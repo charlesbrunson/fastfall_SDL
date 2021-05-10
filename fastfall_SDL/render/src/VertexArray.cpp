@@ -1,4 +1,4 @@
-#include "VertexArray.hpp"
+#include "render/VertexArray.hpp"
 
 namespace ff {
 

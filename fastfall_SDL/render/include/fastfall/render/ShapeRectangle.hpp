@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../VertexArray.hpp"
-#include "../../util/Rect.hpp"
+#include "VertexArray.hpp"
+#include "../util/Rect.hpp"
 
 namespace ff {
 

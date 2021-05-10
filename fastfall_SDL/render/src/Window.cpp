@@ -1,4 +1,4 @@
-#include "Window.hpp"
+#include "render/Window.hpp"
 
 #include <SDL.h>
 #include <gl\glew.h>
@@ -34,6 +34,10 @@ void Window::init() {
 	checkSDL(m_context);
 
 	ff::initGLEW();
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplSDL2_InitForOpenGL(m_window, m_context);
+	glCheck(ImGui_ImplOpenGL3_Init("#version 330"));
 
 	setDefaultView();
 }

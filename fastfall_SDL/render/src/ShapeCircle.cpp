@@ -1,5 +1,5 @@
-#include "ShapeCircle.hpp"
-#include "../RenderTarget.hpp"
+#include "render/ShapeCircle.hpp"
+#include "render/RenderTarget.hpp"
 
 namespace ff {
 

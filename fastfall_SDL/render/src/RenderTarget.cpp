@@ -1,6 +1,6 @@
-#include "RenderTarget.hpp"
+#include "render/RenderTarget.hpp"
 
-#include "Drawable.hpp"
+#include "render/Drawable.hpp"
 
 namespace ff {
 

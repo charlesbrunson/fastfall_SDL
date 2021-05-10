@@ -2,18 +2,11 @@
 #include <thread>
 #include <iostream>
 
-#include "imgui.h"
-#include "backends/imgui_impl_sdl.h"
-#include "backends/imgui_impl_opengl3.h"
-
-#include "render/render.hpp"
-
-#include "SDL_image.h"
+#include "fastfall/render.hpp"
 
 int main(int argc, char* argv[])
 {
 	ff::init();
-
 
 	ff::Window window{ "AAAAAAAAAAAA", 800, 600 };
 	window.setWindowCentered();
@@ -21,28 +14,6 @@ int main(int argc, char* argv[])
 	window.setVsyncEnabled();
 	window.showWindow();
 	window.setActive();
-
-	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-	ImGui::StyleColorsDark();
-
-	// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-	ImGuiStyle& style = ImGui::GetStyle();
-	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-	{
-		style.WindowRounding = 0.0f;
-		style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-	}
-
-	// Setup Platform/Renderer backends
-	ImGui_ImplSDL2_InitForOpenGL(window.getSDL_Window(), window.getSDLContext());
-	ImGui_ImplOpenGL3_Init("#version 330");
-
 
 	const ff::ShaderProgram* program = nullptr;
 	try {
@@ -68,7 +39,6 @@ int main(int argc, char* argv[])
 	tex2.loadFromFile("testimage2.bmp");
 	assert(tex2.exists());
 
-
 	ff::RenderTexture rtexture;
 	rtexture.create(100, 100);
 	rtexture.setDefaultView();
@@ -77,8 +47,11 @@ int main(int argc, char* argv[])
 	ff::Sprite obj1{ rtexture.getTexture(), 100.f, 100.f };
 	obj1.setOrigin(50.f, 50.f);
 
-	ff::Sprite obj2{ &tex2 };
+	ff::Sprite obj2{ &tex1 };
 	obj2.setPosition(200.f, -200.f);
+
+	ff::Sprite obj3{ &tex2 };
+	obj3.setPosition(50.f, -300.f);
 
 	ff::ShapeLine line1{
 		{50.f, 50.f},
@@ -157,14 +130,10 @@ int main(int argc, char* argv[])
 		static glm::fvec2 circle3pos{ 25.f, -25.f };
 
 		{
-			// Start the Dear ImGui frame
-			ImGui_ImplOpenGL3_NewFrame();
-			ImGui_ImplSDL2_NewFrame(window.getSDL_Window());
-			ImGui::NewFrame();
+			ff::ImGuiNewFrame(window);
 
 			if (show_demo_window)
 				ImGui::ShowDemoWindow(&show_demo_window);
-
 
 			// coordinate testing
 			if (ImGui::Begin("Coordinate Testing")) {
@@ -217,6 +186,8 @@ int main(int argc, char* argv[])
 				ImGui::Checkbox("Spin", &spin);
 				if (spin) {
 					obj1.setRotation(obj1.getRotation() - elapsed.count());
+					obj2.setRotation(obj2.getRotation() - elapsed.count());
+					obj3.setRotation(obj3.getRotation() - elapsed.count());
 				}
 				static bool wireframe = false;
 				if (ImGui::Checkbox("Wireframe", &wireframe)) {
@@ -251,7 +222,8 @@ int main(int argc, char* argv[])
 			}
 			ImGui::End();
 
-			ImGui::Render();
+			ff::ImGuiEndFrame();
+
 		}
 
 
@@ -280,28 +252,14 @@ int main(int argc, char* argv[])
 
 		window.draw(obj1, *program);
 		window.draw(obj2, *program);
+		window.draw(obj3, *program);
 
 		window.draw(line1, *program);
 		window.draw(line2, *program);
 		window.draw(circle1, *program);
 		window.draw(rect1, *program);
 
-
-		{
-			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-			// Update and Render additional Platform Windows
-			// (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
-			//  For this specific demo app we could also call SDL_GL_MakeCurrent(window, gl_context) directly)
-			if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-			{
-				SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
-				SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
-				ImGui::UpdatePlatformWindows();
-				ImGui::RenderPlatformWindowsDefault();
-				SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
-			}
-		}
+		ff::ImGuiRenderFrame();
 
 		window.display();
 

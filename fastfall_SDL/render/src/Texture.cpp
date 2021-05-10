@@ -1,13 +1,12 @@
-#include "Texture.hpp"
+#include "render/Texture.hpp"
 
-#include <SDL.h>
-#include <gl/glew.h>
-#include <SDL_opengl.h>
-#include <gl/glu.h>
+#include "render/opengl.hpp"
 
 #include "SDL_image.h"
 
 #include <iostream>
+
+#include "detail/error.hpp"
 
 
 namespace ff {
@@ -25,7 +24,7 @@ TextureRef::TextureRef()
 
 }
 
-void TextureRef::bind() const noexcept {
+void TextureRef::bind() const {
 	if (texture) {
 		texture->bind();
 	}
@@ -53,7 +52,7 @@ Texture::Texture()
 }
 
 Texture::~Texture() {
-	glDeleteTextures(1, &texture_id);
+	glCheck(glDeleteTextures(1, &texture_id));
 }
 
 bool Texture::loadFromFile(const std::string_view filename) {
@@ -70,7 +69,7 @@ bool Texture::loadFromFile(const std::string_view filename) {
 			loadFromData(surf->pixels, surf->w, surf->h, ImageFormat::BMP);
 		}
 
-		SDL_FreeSurface(surf);
+		glCheck(SDL_FreeSurface(surf));
 	}
 	else {
 		std::cout << IMG_GetError() << std::endl;
@@ -90,10 +89,10 @@ bool Texture::loadFromData(const void* data, unsigned width, unsigned height, Im
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		if (format == ImageFormat::BMP) {
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
+			glCheck(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data));
 		}
 		else if (format == ImageFormat::PNG) {
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glCheck(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
 		}
 
 		m_size = { width, height };
@@ -103,17 +102,22 @@ bool Texture::loadFromData(const void* data, unsigned width, unsigned height, Im
 	return exists();
 }
 
-void Texture::bind() const noexcept {
+void Texture::bind() const {
 	if (exists()) {
-		glBindTexture(GL_TEXTURE_2D, texture_id);
+		glCheck(glBindTexture(GL_TEXTURE_2D, texture_id));
 	}
 	else {
-		getNullTexture().bind();
+		if (!NullTexture.exists() && this != &NullTexture) {
+			getNullTexture().bind();
+		}
+		else {
+			throw Error("Unable to bind a texture!");
+		}
 	}
 }
 
 void Texture::clear() {
-	glDeleteTextures(1, &texture_id);
+	glCheck(glDeleteTextures(1, &texture_id));
 }
 
 bool Texture::exists() const noexcept {
@@ -138,7 +142,7 @@ const Texture& Texture::getNullTexture() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glCheck(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
 	}
 	return NullTexture;
 }
@@ -163,7 +167,7 @@ bool Texture::create(unsigned sizeX, unsigned sizeY) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sizeX, sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glCheck(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sizeX, sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
 	return exists();
 }
 

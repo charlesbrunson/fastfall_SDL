@@ -24,7 +24,7 @@ public:
 		texture = &tex;
 	}
 
-	void bind() const noexcept;
+	void bind() const;
 	bool exists() const noexcept;
 	const Texture* get() const noexcept;
 
@@ -57,7 +57,7 @@ public:
 	bool create(glm::uvec2 size);
 	bool create(unsigned sizeX, unsigned sizeY);
 
-	void bind() const noexcept;
+	void bind() const;
 
 	void clear();
 

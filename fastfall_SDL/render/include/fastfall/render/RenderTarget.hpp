@@ -4,9 +4,8 @@
 #include "View.hpp"
 #include "RenderState.hpp"
 #include "VertexArray.hpp"
-#include "shapes/ShapeLine.hpp"
-#include "shapes/ShapeRectangle.hpp"
-#include "shapes/ShapeCircle.hpp"
+
+#include "opengl.hpp"
 
 namespace ff {
 
@@ -35,8 +34,8 @@ public:
 
 	//virtual void setActive() = 0;
 
-	void draw(const Drawable& drawable, const RenderState& state = RenderState::Default);
-	void draw(const VertexArray& varray, const RenderState& state = RenderState::Default);
+	void draw(const Drawable& drawable, const RenderState& state = RenderState());
+	void draw(const VertexArray& varray, const RenderState& state = RenderState());
 	//void draw(const ShapeLine& line, const RenderState& state = RenderState::Default);
 	//void draw(const ShapeRectange& line, const RenderState& state = RenderState::Default);
 	//void draw(const ShapeCircle& line, const RenderState& state = RenderState::Default);

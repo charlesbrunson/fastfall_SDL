@@ -5,6 +5,8 @@
 #include "Shader.hpp"
 #include "Color.hpp"
 
+#include "opengl.hpp"
+
 namespace ff {
 
 
@@ -45,40 +47,15 @@ public:
 			  Factor srcFactorAlpha, Factor dstFactorAlpha, Equation blendEquationAlpha);
 
 
-	void setBlendEquation(Equation equationRGBA) {
-		equationRGB = equationRGBA; equationA = equationRGBA;
-		hasSepEquation = false;
-	}
-	void setBlendEquation(Equation equationColor, Equation equationAlpha) {
-		equationRGB = equationColor; equationA = equationAlpha;
-		hasSepEquation = equationRGB != equationA;
-	}
+	void setBlendEquation(Equation equationRGBA);
+	void setBlendEquation(Equation equationColor, Equation equationAlpha);
 
-	void setSrcFactor(Factor factorRGBA) {
-		srcFactorRGB = factorRGBA; srcFactorA = factorRGBA;
-		hasSepFactor = dstFactorRGB != dstFactorA;
-		updateHasColor();
-	}
-	void setSrcFactor(Factor factorColor, Factor factorAlpha) {
-		srcFactorRGB = factorColor; srcFactorA = factorAlpha;
-		hasSepFactor = srcFactorRGB != srcFactorA || dstFactorRGB != dstFactorA;
-		updateHasColor();
-	}
+	void setSrcFactor(Factor factorRGBA);
+	void setSrcFactor(Factor factorColor, Factor factorAlpha);
 
-	void setDstFactor(Factor factorRGBA) {
-		dstFactorRGB = factorRGBA; dstFactorA = factorRGBA;
-		hasSepFactor = srcFactorRGB != srcFactorA;
-		updateHasColor();
-	}
-	void setDstFactor(Factor factorColor, Factor factorAlpha) {
-		dstFactorRGB = factorColor; dstFactorA = factorAlpha;
-		hasSepFactor = srcFactorRGB != srcFactorA || dstFactorRGB != dstFactorA;
-		updateHasColor();
-	}
-	void setColor(ff::Color color) {
-		colorConstant = color;
-
-	}
+	void setDstFactor(Factor factorRGBA);
+	void setDstFactor(Factor factorColor, Factor factorAlpha);
+	void setColor(ff::Color color);
 
 	inline Equation getEquationRGB() const { return equationRGB; };
 	inline Equation getEquationA() const { return equationRGB; };
@@ -118,19 +95,8 @@ private:
 
 	Color colorConstant = ff::Color::White;
 
-	void updateHasColor() {
-		hasColor = isConstantFactor(srcFactorRGB)
-			|| isConstantFactor(dstFactorRGB)
-			|| isConstantFactor(srcFactorA)
-			|| isConstantFactor(dstFactorA);
-	}
-
-	static bool isConstantFactor(Factor factor) {
-		return factor == Factor::CONSTANT_COLOR
-			|| factor == Factor::ONE_MINUS_CONSTANT_COLOR
-			|| factor == Factor::CONSTANT_ALPHA
-			|| factor == Factor::ONE_MINUS_CONSTANT_ALPHA;
-	}
+	void updateHasColor();
+	static bool isConstantFactor(Factor factor);
 };
 
 
@@ -185,7 +151,7 @@ public:
 	TextureRef texture;
 	const ShaderProgram* program;
 
-	static RenderState Default;
+	//static RenderState Default;
 
 };
 
