@@ -1,6 +1,7 @@
 
 cmake_minimum_required (VERSION 3.8)
 
+add_subdirectory ("external")
 
 file(GLOB_RECURSE FF_RENDER_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*)
 file(GLOB_RECURSE FF_RENDER_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*)
@@ -19,10 +20,11 @@ target_include_directories(ff_render PUBLIC "${glm_SOURCE_DIR}")
 target_compile_definitions(ff_render PUBLIC DEBUG)
 
 target_link_libraries(ff_render PRIVATE 
+	zlibstatic
 	glm
-	SDL2
+	SDL2-static
 	SDL2main
 	SDL2image
-	glew
+	glew_s
 	imgui
 )

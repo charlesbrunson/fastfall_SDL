@@ -121,15 +121,9 @@ void ImGuiNewFrame(Window& window) {
     ImGui::NewFrame();
 }
 
-
-
-void ImGuiEndFrame() {
+void ImGuiRender() {
 
     ImGui::Render();
-}
-
-void ImGuiRenderFrame() {
-
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

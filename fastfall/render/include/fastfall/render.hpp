@@ -31,6 +31,5 @@ namespace ff {
 
 namespace ff {
 	void ImGuiNewFrame(Window& window);
-	void ImGuiEndFrame();
-	void ImGuiRenderFrame();
+	void ImGuiRender();
 }

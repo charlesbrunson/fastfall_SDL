@@ -3,12 +3,11 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-
 add_subdirectory ("render")
 
 add_executable (fastfall_SDL 
 	"main.cpp"
-	 )
+)
 	 
 target_link_libraries(fastfall_SDL PRIVATE 
 	ff_render

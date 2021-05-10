@@ -32,11 +32,11 @@ int main(int argc, char* argv[])
 	ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.00f);
 
 	ff::Texture tex1{};
-	tex1.loadFromFile("testimage1.png");
+	tex1.loadFromFile("data/testimage1.png");
 	assert(tex1.exists());
 
 	ff::Texture tex2;
-	tex2.loadFromFile("testimage2.bmp");
+	tex2.loadFromFile("data/testimage2.bmp");
 	assert(tex2.exists());
 
 	ff::RenderTexture rtexture;
@@ -80,7 +80,6 @@ int main(int argc, char* argv[])
 		std::chrono::time_point now = clock.now();
 		elapsed = (now - start);
 		start = now;
-
 
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
@@ -222,8 +221,6 @@ int main(int argc, char* argv[])
 			}
 			ImGui::End();
 
-			ff::ImGuiEndFrame();
-
 		}
 
 
@@ -259,7 +256,7 @@ int main(int argc, char* argv[])
 		window.draw(circle1, *program);
 		window.draw(rect1, *program);
 
-		ff::ImGuiRenderFrame();
+		ff::ImGuiRender();
 
 		window.display();
 
