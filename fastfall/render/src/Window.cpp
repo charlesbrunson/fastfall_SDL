@@ -1,13 +1,9 @@
 #include "render/Window.hpp"
-
-#include <SDL.h>
-#include <gl\glew.h>
-#include <SDL_opengl.h>
-#include <gl\glu.h>
+#include "render/opengl.hpp"
+#include "render.hpp"
 
 #include "detail/error.hpp"
 
-#include "render.hpp"
 
 namespace ff {
 

@@ -9,6 +9,7 @@ FetchContent_Declare(
 	URL			https://zlib.net/zlib-1.2.11.tar.gz
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
 )
+set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
 
 #libpng
 set(PNG_SHARED OFF)
@@ -21,6 +22,7 @@ FetchContent_Declare(
 )
 
 # sdl
+set(SDL_SHARED OFF)
 FetchContent_Declare(
 	sdl
 	URL			https://www.libsdl.org/release/SDL2-2.0.14.tar.gz
@@ -83,6 +85,7 @@ FetchContent_Declare(
     SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/imgui
 )
 
+
 FetchContent_MakeAvailable(
 	zlib
 	libpng
@@ -120,7 +123,7 @@ add_library(imgui STATIC
 target_include_directories(imgui PRIVATE "${imgui_SOURCE_DIR}")
 target_include_directories(imgui PRIVATE "${sdl_SOURCE_DIR}/include")
 target_include_directories(imgui PRIVATE "${glew_SOURCE_DIR}/include")
-target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLEW)
+target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLEW)
 
 #build sdl_image as library
 file(GLOB SDLIMG_SOURCES ${sdl_image_SOURCE_DIR}/*.c)
@@ -133,4 +136,8 @@ target_include_directories(SDL2image PRIVATE "${sdl_SOURCE_DIR}/include")
 target_include_directories(SDL2image PRIVATE "${sdl_image_SOURCE_DIR}")
 target_include_directories(SDL2image PRIVATE "${libpng_SOURCE_DIR}")
 target_link_libraries(SDL2image PRIVATE png_static)
-target_compile_definitions(SDL2image PUBLIC LOAD_PNG LOAD_BMP)
+target_compile_definitions(SDL2image PRIVATE LOAD_PNG LOAD_BMP)
+
+
+
+

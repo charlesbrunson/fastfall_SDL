@@ -10,21 +10,24 @@ add_library(ff_render STATIC
 	${FF_RENDER_SOURCES}
 	${FF_RENDER_HEADERS}
 )
-target_include_directories(ff_render PUBLIC "include/fastfall")
-target_include_directories(ff_render PUBLIC "${glew_SOURCE_DIR}/include")
-target_include_directories(ff_render PUBLIC "${sdl_SOURCE_DIR}/include")
-target_include_directories(ff_render PUBLIC "${sdl_image_SOURCE_DIR}")
-target_include_directories(ff_render PUBLIC "${PROJECT_SOURCE_DIR}/external/imgui")
-target_include_directories(ff_render PUBLIC "${glm_SOURCE_DIR}")
 
-target_compile_definitions(ff_render PUBLIC DEBUG)
+target_include_directories(ff_render PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/fastfall")
+target_include_directories(ff_render PUBLIC 
+	${CMAKE_CURRENT_SOURCE_DIR}/external/glew/include
+	${CMAKE_CURRENT_SOURCE_DIR}/external/sdl/include
+	${CMAKE_CURRENT_SOURCE_DIR}/external/sdl_image
+	${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
+	${CMAKE_CURRENT_SOURCE_DIR}/external/glm
+)
+
+target_compile_definitions(ff_render PRIVATE DEBUG)
 
 target_link_libraries(ff_render PRIVATE 
 	zlibstatic
-	glm
-	SDL2-static
-	SDL2main
-	SDL2image
-	glew_s
-	imgui
+	glm 
+	SDL2-static 
+	SDL2main 
+	SDL2image 
+	glew_s 
+	imgui 
 )
