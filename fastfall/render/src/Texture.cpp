@@ -1,6 +1,6 @@
-#include "render/Texture.hpp"
+#include "fastfall/render/Texture.hpp"
 
-#include "render/opengl.hpp"
+#include "fastfall/render/opengl.hpp"
 
 #include "SDL_image.h"
 

@@ -1,7 +1,7 @@
 
 #include "error.hpp"
 
-#include "render/opengl.hpp"
+#include "fastfall/render/opengl.hpp"
 
 #include <iostream>
 

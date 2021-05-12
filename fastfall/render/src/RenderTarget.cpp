@@ -1,6 +1,6 @@
-#include "render/RenderTarget.hpp"
+#include "fastfall/render/RenderTarget.hpp"
 
-#include "render/Drawable.hpp"
+#include "fastfall/render/Drawable.hpp"
 
 namespace ff {
 

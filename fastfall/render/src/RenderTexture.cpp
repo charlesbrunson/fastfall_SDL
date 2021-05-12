@@ -1,5 +1,5 @@
 
-#include "render/RenderTexture.hpp"
+#include "fastfall/render/RenderTexture.hpp"
 
 namespace ff {
 
@@ -22,6 +22,9 @@ bool RenderTexture::create(int sizeX, int sizeY) {
 	m_valid = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	if (m_valid) {
+		setDefaultView();
+	}
 	return m_valid;
 }
 

@@ -1,6 +1,6 @@
-#include "render/Window.hpp"
-#include "render/opengl.hpp"
-#include "render.hpp"
+#include "fastfall/render/Window.hpp"
+#include "fastfall/render/opengl.hpp"
+#include "fastfall/render.hpp"
 
 #include "detail/error.hpp"
 

@@ -1,5 +1,5 @@
-#include "render/ShapeRectangle.hpp"
-#include "render/RenderTarget.hpp"
+#include "fastfall/render/ShapeRectangle.hpp"
+#include "fastfall/render/RenderTarget.hpp"
 
 namespace ff {
 

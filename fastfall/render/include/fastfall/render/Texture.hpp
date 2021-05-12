@@ -2,13 +2,6 @@
 
 #include <string_view>
 
-/*
-#include <SDL.h>
-#include <gl/glew.h>
-#include <SDL_opengl.h>
-#include <gl/glu.h>
-*/
-
 #include "glm/glm.hpp"
 
 namespace ff {

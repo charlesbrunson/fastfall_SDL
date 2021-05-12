@@ -1,5 +1,5 @@
-#include "render/ShapeLine.hpp"
-#include "render/RenderTarget.hpp"
+#include "fastfall/render/ShapeLine.hpp"
+#include "fastfall/render/RenderTarget.hpp"
 
 namespace ff {
 

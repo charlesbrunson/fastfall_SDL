@@ -1,6 +1,6 @@
 #pragma once
 
-#include "render/opengl.hpp"
+#include "fastfall/render/opengl.hpp"
 
 
 namespace ff {
@@ -14,19 +14,19 @@ namespace ff {
 	void initGLEW();
 }
 
-#include "render/Window.hpp"
-#include "render/Color.hpp"
-#include "render/Vertex.hpp"
-#include "render/VertexArray.hpp"
-#include "render/Texture.hpp"
-#include "render/RenderTexture.hpp"
-#include "render/Sprite.hpp"
-#include "render/Shader.hpp"
-#include "render/Texture.hpp"
-#include "render/RenderState.hpp"
-#include "render/ShapeLine.hpp"
-#include "render/ShapeCircle.hpp"
-#include "render/ShapeRectangle.hpp"
+#include "fastfall/render/Window.hpp"
+#include "fastfall/render/Color.hpp"
+#include "fastfall/render/Vertex.hpp"
+#include "fastfall/render/VertexArray.hpp"
+#include "fastfall/render/Texture.hpp"
+#include "fastfall/render/RenderTexture.hpp"
+#include "fastfall/render/Sprite.hpp"
+#include "fastfall/render/Shader.hpp"
+#include "fastfall/render/Texture.hpp"
+#include "fastfall/render/RenderState.hpp"
+#include "fastfall/render/ShapeLine.hpp"
+#include "fastfall/render/ShapeCircle.hpp"
+#include "fastfall/render/ShapeRectangle.hpp"
 
 
 namespace ff {

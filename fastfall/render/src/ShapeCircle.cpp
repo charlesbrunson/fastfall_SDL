@@ -1,5 +1,5 @@
-#include "render/ShapeCircle.hpp"
-#include "render/RenderTarget.hpp"
+#include "fastfall/render/ShapeCircle.hpp"
+#include "fastfall/render/RenderTarget.hpp"
 
 namespace ff {
 

@@ -45,11 +45,11 @@ FetchContent_Declare(
 )
 
 # glm
-FetchContent_Declare(
-	glm
-	URL			https://github.com/g-truc/glm/releases/download/0.9.9.8/glm-0.9.9.8.zip
-    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glm
-)
+#FetchContent_Declare(
+#	glm
+#	URL			https://github.com/g-truc/glm/releases/download/0.9.9.8/glm-0.9.9.8.zip
+#    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glm
+#)
 
 # fmt
 # FetchContent_Declare(
@@ -92,7 +92,7 @@ FetchContent_MakeAvailable(
 	sdl
 	sdl_image
 	glew
-	glm
+	# glm
 	# fmt
 	# flatbuffers
 	# rapidxml

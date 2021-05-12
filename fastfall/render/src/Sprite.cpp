@@ -1,5 +1,5 @@
-#include "render/Sprite.hpp"
-#include "render/RenderTarget.hpp"
+#include "fastfall/render/Sprite.hpp"
+#include "fastfall/render/RenderTarget.hpp"
 
 namespace ff {
 

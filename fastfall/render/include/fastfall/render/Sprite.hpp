@@ -3,7 +3,7 @@
 #include "VertexArray.hpp"
 #include "Transformable.hpp"
 #include "Texture.hpp"
-#include "../util/Rect.hpp"
+#include "fastfall/util/Rect.hpp"
 
 namespace ff {
 
