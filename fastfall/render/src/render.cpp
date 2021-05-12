@@ -32,7 +32,7 @@ namespace {
 
 }
 
-bool init()
+bool FFinit()
 {
     assert(!renderInitialized);
     renderInitialized = true;
@@ -87,7 +87,7 @@ bool init()
     return renderInitialized;
 }
 
-void quit()
+void FFquit()
 {
     assert(renderInitialized);
     IMG_Quit();
@@ -95,12 +95,12 @@ void quit()
     renderInitialized = false;
 }
 
-bool isInit()
+bool FFisInit()
 {
 	return renderInitialized;
 }
 
-void initGLEW() {
+void FFinitGLEW() {
     if (glewInitialized) return;
 
     GLenum glew_err = glewInit();

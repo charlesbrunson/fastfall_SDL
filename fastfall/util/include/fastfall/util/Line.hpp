@@ -53,19 +53,17 @@ public:
 	}
 };
 
+typedef Line<int> Linei;
+typedef Line<float> Linef;
+
+}
+
 template<class T>
-inline bool operator==(const Line<T>& lhs, const Line<T>& rhs) {
+inline bool operator==(const ff::Line<T>& lhs, const ff::Line<T>& rhs) {
 	return (lhs.p1 == rhs.p1) && (lhs.p2 == rhs.p2);
 }
 
 template<class T>
-inline bool operator!=(const Line<T>& lhs, const Line<T>& rhs) {
+inline bool operator!=(const ff::Line<T>& lhs, const ff::Line<T>& rhs) {
 	return (lhs.p1 != rhs.p1) || (lhs.p2 != rhs.p2);
-}
-
-#include "Line.inl"
-
-typedef Line<int> Linei;
-typedef Line<float> Linef;
-
 }

@@ -21,13 +21,13 @@ set(FF_RENDER_LIBRARY ff_render							  CACHE STRING "fastfall render library na
 
 target_include_directories(ff_render PRIVATE 
 	"${CMAKE_CURRENT_SOURCE_DIR}/include"
+	${FF_UTIL_INCLUDE}
 )
 target_include_directories(ff_render PUBLIC 
 	${CMAKE_CURRENT_SOURCE_DIR}/external/glew/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/sdl/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/sdl_image
 	${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
-	${FF_UTIL_INCLUDE}
 )
 
 target_compile_definitions(ff_render PRIVATE DEBUG)

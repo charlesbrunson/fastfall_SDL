@@ -5,13 +5,13 @@
 
 namespace ff {
 	
-	bool init();
+	bool FFinit();
 
-	void quit();
+	void FFquit();
 
-	bool isInit();
+	bool FFisInit();
 
-	void initGLEW();
+	void FFinitGLEW();
 }
 
 #include "fastfall/render/Window.hpp"

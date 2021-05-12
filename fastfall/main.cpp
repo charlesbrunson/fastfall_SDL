@@ -58,9 +58,11 @@ bool handleInputs(ff::Window& window) {
 int main(int argc, char* argv[])
 {
 
+	using namespace ff;
+
 	LOG_INFO("Hello World!");
 
-	ff::init();
+	ff::FFinit();
 
 	// make a window
 
@@ -262,7 +264,7 @@ int main(int argc, char* argv[])
 	}
 
 
-	ff::quit();
+	ff::FFquit();
 
 	return EXIT_SUCCESS;
 }

@@ -121,49 +121,46 @@ protected:
 			);
 	}
 };
-inline constexpr Angle operator -(const Angle& right) {
-	return Angle(-right.radians());
+
 }
-inline constexpr Angle& operator +=(Angle& left, const Angle& right) {
+
+inline constexpr ff::Angle operator -(const ff::Angle& right) {
+	return ff::Angle(-right.radians());
+}
+inline constexpr ff::Angle& operator +=(ff::Angle& left, const ff::Angle& right) {
 	left.setRad(left.radians() + right.radians());
 	return left;
 }
-inline constexpr Angle& operator -=(Angle& left, const Angle& right) {
+inline constexpr ff::Angle& operator -=(ff::Angle& left, const ff::Angle& right) {
 	left.setRad(left.radians() - right.radians());
 	return left;
 }
-inline constexpr Angle operator +(const Angle& left, const Angle& right) {
-	return Angle(left.radians() + right.radians());
+inline constexpr ff::Angle operator +(const ff::Angle& left, const ff::Angle& right) {
+	return ff::Angle(left.radians() + right.radians());
 }
-inline constexpr Angle operator -(const Angle& left, const Angle& right) {
-	return Angle(left.radians() - right.radians());
+inline constexpr ff::Angle operator -(const ff::Angle& left, const ff::Angle& right) {
+	return ff::Angle(left.radians() - right.radians());
 }
-inline constexpr Angle operator *(const Angle& left, float right) {
-	return Angle(left.radians() * right);
+inline constexpr ff::Angle operator *(const ff::Angle& left, float right) {
+	return ff::Angle(left.radians() * right);
 }
-inline constexpr Angle operator *(float left, const Angle& right) {
-	return Angle(right.radians() * left);
+inline constexpr ff::Angle operator *(float left, const ff::Angle& right) {
+	return ff::Angle(right.radians() * left);
 }
-inline constexpr Angle& operator *=(Angle& left, float right) {
+inline constexpr ff::Angle& operator *=(ff::Angle& left, float right) {
 	left.setRad(left.radians() * right);
 	return left;
 }
-inline constexpr Angle operator /(const Angle& left, float right) {
-	return Angle(left.radians() / right);
+inline constexpr ff::Angle operator /(const ff::Angle& left, float right) {
+	return ff::Angle(left.radians() / right);
 }
-inline constexpr Angle& operator /=(Angle& left, float right) {
+inline constexpr ff::Angle& operator /=(ff::Angle& left, float right) {
 	left.setRad(left.radians() / right);
 	return left;
 }
-inline constexpr bool operator ==(const Angle& left, const Angle& right) {
+inline constexpr bool operator ==(const ff::Angle& left, const ff::Angle& right) {
 	return left.radians() == right.radians();
 }
-inline constexpr bool operator !=(const Angle& left, const Angle& right) {
+inline constexpr bool operator !=(const ff::Angle& left, const ff::Angle& right) {
 	return left.radians() != right.radians();
-}
-
-//std::ostream& operator<<(std::ostream& os, const Angle& dt);
-
-//#include "Angle.inl"
-
 }

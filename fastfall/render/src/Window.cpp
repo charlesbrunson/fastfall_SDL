@@ -24,12 +24,12 @@ Window::Window(const char* title, unsigned initWidth, unsigned initHeight)
 }
 
 void Window::init() {
-	assert(ff::isInit());
+	assert(ff::FFisInit());
 
 	m_context = SDL_GL_CreateContext(m_window);
 	checkSDL(m_context);
 
-	ff::initGLEW();
+	ff::FFinitGLEW();
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplSDL2_InitForOpenGL(m_window, m_context);
