@@ -1,0 +1,151 @@
+#pragma once
+
+#include "time/EngineClock.hpp"
+#include "state/EngineStateHandler.hpp"
+#include "EngineRunnable.hpp"
+
+//#include "resource/Resources.hpp"
+
+#include "imgui/ImGuiContent.hpp"
+
+//#include "input/Input.hpp"
+
+//#include "game/InstanceObserver.hpp"
+
+#include "fastfall/util/Vec2.hpp"
+
+#include "fastfall/render/VertexArray.hpp"
+#include "fastfall/render/Window.hpp"
+
+#include <queue>
+#include <memory>
+#include <mutex>
+#include <functional>
+#include <chrono>
+
+//#include <SFML/Graphics.hpp>
+
+#include <mutex>
+#include <barrier>
+
+//using namespace std::chrono;
+
+namespace ff {
+
+//constexpr int VERSION[3] = { PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH };
+constexpr int VERSION[3] = { 0, 0, 1 };
+
+struct EngineSettings {
+	// window margins
+	bool allowMargins = true;
+
+	// display refresh rate
+	int refreshRate = 60;
+	bool vsyncEnabled = false;
+
+	// display fullscreen
+	bool fullscreen = false;
+
+	// display ImGui
+	bool showDebug = false;
+
+	// run displayless
+	bool noWindow = false;
+};
+
+
+
+class Engine : public ImGuiContent {
+private:
+	// singleton
+	static Engine* engineInstance;
+
+	//Input::InputObserver input;
+	//InstanceObserver instanceObs;
+
+	Engine(EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings);
+	~Engine() = default;
+
+public:
+
+	static inline Engine& getInstance() { assert(engineInstance != nullptr); return *engineInstance; };
+
+	static void init(EngineRunnable&& toRun, const Vec2u& initWindowSize = Vec2u(0, 0), EngineSettings engineSettings = EngineSettings{});
+
+	static void shutdown();
+
+	void addRunnable(EngineRunnable&& toRun);
+
+	bool run();
+
+	inline bool isRunning() const noexcept { return running; };
+	inline bool isInitialized() { return initialized; }
+
+	inline void freeze() { pauseUpdate = true; stepUpdate = false; };
+	inline void freezeStepOnce() { pauseUpdate = true; stepUpdate = true; };
+	inline void unfreeze() { pauseUpdate = false; stepUpdate = false; };
+	inline bool isFrozen() { return pauseUpdate; };
+
+private:
+
+	EngineSettings settings;
+
+	bool initialized = false;
+
+	// thread-sync helper
+	class Barrier;
+
+	bool running = false;
+
+	// display management
+	bool windowless;
+	std::unique_ptr<Window> window;
+	Vec2i lastWindowedPos;
+	Vec2u initWinSize;
+	Vec2u lastWindowedSize;
+	int windowZoom;
+
+	bool wantFullscreen = false;
+	//bool isFullscreen = false;
+	bool hasFocus = true;
+
+	//int refreshRate = 60;
+	//bool vsyncEnabled = false;
+	//int vsyncRefreshRate = 60;
+
+	// margins
+	//bool marginsDisabled;
+	//sf::VertexArray margins;
+	//sf::View marginView;
+
+	// TODO
+	//VertexArray margins;
+	View marginView;
+
+	// framerate & time management
+	EngineClock clock;
+	secs elapsedTime;
+	secs maxDeltaTime;
+	secs deltaTime;
+
+	bool pauseUpdate, stepUpdate;
+
+	std::vector<EngineRunnable> runnables;
+
+	// run() subcalls
+	void initRenderTarget(bool fullscreen);
+	void runUpdate(std::barrier<>* bar);
+	void drawRunnable(EngineRunnable& run);
+	//void updateImGUI();
+
+	void close();
+
+	void handleEvents(/*sf::Window* window, */bool* timeWasted);
+	void resizeWindow(Vec2u size);
+	bool setFullscreen(bool fullscreen);
+
+	void ImGui_getContent();
+	void ImGui_getExtraContent();
+};
+
+}

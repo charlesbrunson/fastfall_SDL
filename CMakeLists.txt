@@ -10,5 +10,29 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Include sub-projects.
+# build fastfall engine.
+#add_subdirectory ("fastfall")
+
 add_subdirectory ("fastfall")
+
+add_executable(test_project	
+	"main.cpp" 
+	"EmptyState.hpp"
+)
+
+target_include_directories(test_project PRIVATE
+
+	${CMAKE_CURRENT_SOURCE_DIR}/fastfall/external/rapidxml
+	${CMAKE_CURRENT_SOURCE_DIR}/fastfall/external/fmt/include
+	${CMAKE_CURRENT_SOURCE_DIR}/fastfall/external/flatbuffers/include
+	${CMAKE_CURRENT_SOURCE_DIR}/fastfall/external/glm
+	${CMAKE_CURRENT_SOURCE_DIR}/fastfall/external/glew/include
+	${CMAKE_CURRENT_SOURCE_DIR}/fastfall/external/sdl/include
+	${CMAKE_CURRENT_SOURCE_DIR}/fastfall/external/sdl_image
+	${CMAKE_CURRENT_SOURCE_DIR}/fastfall/external/imgui
+	${CMAKE_CURRENT_SOURCE_DIR}/fastfall/external/implot
+)
+
+target_link_libraries(test_project PRIVATE 
+	fastfall
+)

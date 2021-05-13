@@ -3,30 +3,54 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
+# build fastfall dependencies
+add_subdirectory("external")
 
-# build fastfall util library
-add_subdirectory ("util")
-
-# build fastfall render library
-add_subdirectory ("render")
-
-# build fastfall engine library
-
-
-# build fastfall game library
-
-add_executable (fastfall_test 
-	"main.cpp"
+file(GLOB_RECURSE FF_SOURCES 
+	${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp
+)
+file(GLOB_RECURSE FF_HEADERS 
+	${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
 )
 
-target_compile_definitions(fastfall_test PUBLIC DEBUG)
+add_library (fastfall STATIC
+	${FF_SOURCES}
+	${FF_HEADERS}
+)
 
-target_link_libraries(fastfall_test PRIVATE 
-	${FF_UTIL_LIBRARY}
-	${FF_RENDER_LIBRARY}
+#message(STATUS "AAAAAAAAAAAAAAAA ${FF_SOURCES}")
+#message(STATUS "AAAAAAAAAAAAAAAA ${FF_HEADERS}")
+
+target_include_directories(fastfall PUBLIC 
+	${CMAKE_CURRENT_SOURCE_DIR}/include
+
+	${CMAKE_CURRENT_SOURCE_DIR}/external/rapidxml
+	${CMAKE_CURRENT_SOURCE_DIR}/external/fmt/include
+	${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers/include
+	${CMAKE_CURRENT_SOURCE_DIR}/external/glm
+	${CMAKE_CURRENT_SOURCE_DIR}/external/glew/include
+	${CMAKE_CURRENT_SOURCE_DIR}/external/sdl/include
+	${CMAKE_CURRENT_SOURCE_DIR}/external/sdl_image
+	${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
+	${CMAKE_CURRENT_SOURCE_DIR}/external/implot
 )
-target_include_directories(fastfall_test PRIVATE 
-	${FF_UTIL_INCLUDE}
-	${FF_RENDER_INCLUDE}
+
+target_compile_definitions(fastfall PRIVATE
+	#GLEW_STATIC
+	DEBUG
 )
+target_link_libraries(fastfall PUBLIC 
+	glm
+	fmt
+	flatbuffers
+	zlibstatic
+	SDL2-static
+	SDL2main
+	glew_s
+	SDL2image 
+	libimgui 
+)
+
