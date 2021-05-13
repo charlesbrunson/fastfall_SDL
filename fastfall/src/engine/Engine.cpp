@@ -163,16 +163,6 @@ bool Engine::run()
         window->setActive();
     }
 
-    // Update and Render additional Platform Windows
-    /*
-    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_)
-    {
-        ImGui::UpdatePlat();
-        ImGui::RenderPlatformWindowsDefault();
-    }
-    */
-
-
     std::thread stateWorker(&Engine::runUpdate, this, &bar);
 
     running = true;
@@ -228,11 +218,13 @@ bool Engine::run()
         if (window) {
             // TODO
 
+            ff::ImGuiNewFrame(*window);
            // ImGui::SFML::Update(*window, sf::seconds(static_cast<float>(elapsedTime)));
             //updateImGUI();
+
             ImGuiFrame::getInstance().display();
 
-           // ImGui::SFML::Render(*window);
+            ff::ImGuiRender();
         }
 #endif
 
@@ -280,6 +272,10 @@ void Engine::close() {
         window->close();
     }
     */
+
+    if (window) {
+        window->showWindow(false);
+    }
 
     //signals.bail = true;
     running = false;
@@ -348,6 +344,39 @@ void Engine::handleEvents(
         return;
 
     bool discardMousePress = false;
+
+
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        // TODO
+        switch (event.type) {
+        case SDL_KEYUP:
+            if (event.key.keysym.sym == SDLK_ESCAPE)
+                close();
+            break;
+        case SDL_WINDOWEVENT:
+            switch (event.window.event) {
+            case SDL_WINDOWEVENT_CLOSE:
+                close();
+                break;
+            case SDL_WINDOWEVENT_RESIZED:
+                //ff::View view = window.getView();
+                //view.setViewport({ 0, 0, event.window.data1, event.window.data2 });
+                //window.setView(view);
+                //break;
+
+                Vec2i size = window->getSize();
+
+                if (!settings.fullscreen) {
+                    resizeWindow(Vec2u(size.x, size.y));
+                    *timeWasted = true;
+                }
+                break;
+            }
+            break;
+        }
+    }
+
 
     /*
 
@@ -464,6 +493,8 @@ void Engine::initRenderTarget(bool fullscreen)
             initWinSize.x,
             initWinSize.y
         );
+        window->setWindowCentered();
+        window->setWindowResizable();
 
     }
 
@@ -493,6 +524,7 @@ bool Engine::setFullscreen(bool fullscreen) {
     assert(r == 0);
 
 
+    //window->showWindow(false);
 
     if (settings.fullscreen) {
         lastWindowedPos = Vec2i(window->getPosition().x, window->getPosition().y);
@@ -514,8 +546,9 @@ bool Engine::setFullscreen(bool fullscreen) {
         );
         */
 
-        window = std::make_unique<Window>(fmt::format("GamePro2 v{}", version), displaySize.x, displaySize.y);
-        //window->setWindowSize(displaySize.x, displaySize.y);
+        //window = std::make_unique<Window>(fmt::format("GamePro2 v{}", version), displaySize.x, displaySize.y);
+
+        SDL_SetWindowFullscreen(window->getSDL_Window(), SDL_WINDOW_FULLSCREEN_DESKTOP);
     }
     else {
         // go windowed
@@ -528,7 +561,10 @@ bool Engine::setFullscreen(bool fullscreen) {
         window->setPosition(lastWindowedPos);
         */
 
-        window = std::make_unique<Window>(fmt::format("GamePro2 v{}", version), lastWindowedSize.x, lastWindowedSize.y);
+        //window = std::make_unique<Window>(fmt::format("GamePro2 v{}", version), lastWindowedSize.x, lastWindowedSize.y);
+        SDL_SetWindowFullscreen(window->getSDL_Window(), 0);
+        window->setWindowPosition(lastWindowedPos);
+        window->setWindowResizable();
     }
 
     //window->setVerticalSyncEnabled(settings.vsyncEnabled);
@@ -537,7 +573,7 @@ bool Engine::setFullscreen(bool fullscreen) {
     //resizeWindow(window->getSize());
     window->setActive();
     window->setVsyncEnabled(settings.vsyncEnabled);
-    window->showWindow();
+   // window->showWindow();
 
     resizeWindow(Vec2u(window->getSize()));
     return true;
@@ -601,9 +637,18 @@ void Engine::resizeWindow(
     //update margins
     // 
     // TODO
+    
+    glm::fvec4 vp = window->getView().getViewport();
+
+    Recti viewport{ 
+        (int)(vp[0] * window->getSize().x), 
+        (int)(vp[1] * window->getSize().y),
+        (int)(vp[2] * window->getSize().x),
+        (int)(vp[3] * window->getSize().y)
+    };
+    Recti windowSize(0, 0, window->getSize().x, window->getSize().y);
+
     /*
-    sf::IntRect viewport = window->getViewport(window->getView());
-    sf::IntRect windowSize(0, 0, window->getSize().x, window->getSize().y);
     margins[0].position = sf::Vector2f(static_cast<float>(windowSize.left),
         static_cast<float>(windowSize.top));
     margins[1].position = sf::Vector2f(static_cast<float>(viewport.left),
@@ -634,11 +679,11 @@ void Engine::resizeWindow(
     */
 
     //TODO
-    /*
+    
     if (ImGuiFrame::getInstance().isDisplay()) {
         ImGuiFrame::getInstance().resize(windowSize, Vec2u(viewport.getSize().x, viewport.getSize().y));
     }
-    */
+    
 }
 
 bool showImGuiDemo = false;

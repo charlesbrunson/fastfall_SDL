@@ -36,3 +36,5 @@ target_include_directories(test_project PRIVATE
 target_link_libraries(test_project PRIVATE 
 	fastfall
 )
+
+target_compile_definitions(test_project PRIVATE DEBUG)

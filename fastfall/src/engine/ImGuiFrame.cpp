@@ -53,8 +53,12 @@ void ImGuiFrame::resize(Recti outer, Vec2u innersize) {
 void ImGuiFrame::displaySidePanel(std::set<ImGuiContent*>& contents, Recti area, const char* panelName) {
 
 	ImGui::SetNextWindowSize(ImVec2(area.getSize().x, area.getSize().y), ImGuiCond_Always);
-	ImGui::SetNextWindowPos(ImVec2(area.getPosition().x, area.getPosition().y), ImGuiCond_Always);
+	ImGui::SetNextWindowPos(
+		ImVec2(	ImGui::GetMainViewport()->Pos.x + area.getPosition().x, 
+				ImGui::GetMainViewport()->Pos.y + area.getPosition().y), 
+		ImGuiCond_Always);
 	ImGui::SetNextWindowBgAlpha(0.2f);
+	ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
 
 	if (ImGui::Begin(panelName, NULL,
 		ImGuiWindowFlags_NoTitleBar |
@@ -63,7 +67,8 @@ void ImGuiFrame::displaySidePanel(std::set<ImGuiContent*>& contents, Recti area,
 		ImGuiWindowFlags_NoMove |
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoScrollbar |
-		ImGuiWindowFlags_NoBringToFrontOnFocus
+		ImGuiWindowFlags_NoBringToFrontOnFocus |
+		ImGuiWindowFlags_NoDocking
 		| 0
 	)) {
 
@@ -105,9 +110,12 @@ void ImGuiFrame::displaySidePanel(std::set<ImGuiContent*>& contents, Recti area,
 void ImGuiFrame::displayLog(Recti area, const char* panelName) {
 
 	ImGui::SetNextWindowSize(ImVec2(area.getSize().x, area.getSize().y), ImGuiCond_Always);
-	ImGui::SetNextWindowPos(ImVec2(area.getPosition().x, area.getPosition().y), ImGuiCond_Always);
+	ImGui::SetNextWindowPos(
+		ImVec2(	ImGui::GetMainViewport()->Pos.x + area.getPosition().x,
+				ImGui::GetMainViewport()->Pos.y + area.getPosition().y),
+		ImGuiCond_Always);
 	ImGui::SetNextWindowBgAlpha(0.2f);
-
+	ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
 	if (ImGui::Begin(panelName, NULL,
 		ImGuiWindowFlags_NoTitleBar |
 		ImGuiWindowFlags_MenuBar |
@@ -115,7 +123,8 @@ void ImGuiFrame::displayLog(Recti area, const char* panelName) {
 		ImGuiWindowFlags_NoMove |
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoScrollbar |
-		ImGuiWindowFlags_NoBringToFrontOnFocus
+		ImGuiWindowFlags_NoBringToFrontOnFocus |
+		ImGuiWindowFlags_NoDocking
 		| 0
 	)) {
 

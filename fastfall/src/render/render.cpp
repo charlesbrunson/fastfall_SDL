@@ -86,6 +86,8 @@ bool FFinit()
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
+    ImPlot::CreateContext();
+
     return renderInitialized;
 }
 

@@ -14,7 +14,7 @@ namespace ff {
 	void FFinitGLEW();
 }
 
-/*
+
 #include "fastfall/render/Window.hpp"
 #include "fastfall/render/Color.hpp"
 #include "fastfall/render/Vertex.hpp"
@@ -28,9 +28,8 @@ namespace ff {
 #include "fastfall/render/ShapeLine.hpp"
 #include "fastfall/render/ShapeCircle.hpp"
 #include "fastfall/render/ShapeRectangle.hpp"
-*/
 
 namespace ff {
-	//void ImGuiNewFrame(Window& window);
-	//void ImGuiRender();
+	void ImGuiNewFrame(Window& window);
+	void ImGuiRender();
 }
