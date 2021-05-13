@@ -15,6 +15,12 @@ namespace ff {
 class Window : public RenderTarget {
 public:
 
+	enum class FullscreenType {
+		FULLSCREEN,
+		FULLSCREEN_DESKTOP,
+		WINDOWED
+	};
+
 	Window(const char* title, unsigned initWidth, unsigned initHeight);
 	Window(std::string_view title, unsigned initWidth, unsigned initHeight);
 	~Window();
@@ -30,6 +36,8 @@ public:
 	void setWindowPosition(int X, int Y);
 
 	void setWindowCentered();
+
+	void setWindowFullscreen(FullscreenType set);
 
 	void setVsyncEnabled(bool enable = true);
 

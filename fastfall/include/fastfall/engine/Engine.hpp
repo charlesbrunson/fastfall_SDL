@@ -98,7 +98,7 @@ private:
 	bool running = false;
 
 	// display management
-	bool windowless;
+	//bool windowless;
 	std::unique_ptr<Window> window;
 	Vec2i lastWindowedPos;
 	Vec2u initWinSize;
@@ -109,17 +109,8 @@ private:
 	//bool isFullscreen = false;
 	bool hasFocus = true;
 
-	//int refreshRate = 60;
-	//bool vsyncEnabled = false;
-	//int vsyncRefreshRate = 60;
-
-	// margins
-	//bool marginsDisabled;
-	//sf::VertexArray margins;
-	//sf::View marginView;
-
 	// TODO
-	//VertexArray margins;
+	std::unique_ptr<VertexArray> margins;
 	View marginView;
 
 	// framerate & time management
@@ -136,11 +127,10 @@ private:
 	void initRenderTarget(bool fullscreen);
 	void runUpdate(std::barrier<>* bar);
 	void drawRunnable(EngineRunnable& run);
-	//void updateImGUI();
 
 	void close();
 
-	void handleEvents(/*sf::Window* window, */bool* timeWasted);
+	void handleEvents(bool* timeWasted);
 	void resizeWindow(Vec2u size);
 	bool setFullscreen(bool fullscreen);
 

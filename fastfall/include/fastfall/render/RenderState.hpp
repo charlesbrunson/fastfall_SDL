@@ -105,7 +105,7 @@ public:
 	RenderState()
 		: transform{},
 		texture{ Texture::getNullTexture()},
-		program{ nullptr },
+		program{ &ShaderProgram::getDefaultProgram() },
 		blend{}
 	{
 
@@ -114,7 +114,7 @@ public:
 	RenderState(Transform _transform) 
 		: transform{ _transform },
 		texture{ Texture::getNullTexture() },
-		program{ nullptr },
+		program{ &ShaderProgram::getDefaultProgram() },
 		blend{}
 	{
 
@@ -123,7 +123,7 @@ public:
 	RenderState(TextureRef _texture)
 		: transform{ },
 		texture{ _texture },
-		program{ nullptr },
+		program{ &ShaderProgram::getDefaultProgram() },
 		blend{}
 	{
 
@@ -140,7 +140,7 @@ public:
 	RenderState(const BlendMode& _blend)
 		: transform{ },
 		texture{ Texture::getNullTexture() },
-		program{ nullptr },
+		program{ &ShaderProgram::getDefaultProgram() },
 		blend{_blend}
 	{
 

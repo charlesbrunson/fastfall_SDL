@@ -113,8 +113,14 @@ void FFinitGLEW() {
     }
     glewInitialized = true;
 
+    ShaderProgram::getDefaultProgram();
+
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
+}
+
+bool FFisGLEWInit() {
+    return glewInitialized;
 }
 
 void ImGuiNewFrame(Window& window) {

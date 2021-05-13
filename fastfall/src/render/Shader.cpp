@@ -7,6 +7,8 @@
 #include <SDL_opengl.h>
 #include <gl/GLU.h>
 
+#include "fastfall/render.hpp"
+
 #include <assert.h>
 
 namespace ff {
@@ -53,7 +55,7 @@ namespace {
 ShaderProgram ShaderProgram::DefaultProgram;
 
 const ShaderProgram& ShaderProgram::getDefaultProgram() {
-	if (!DefaultProgram.isLinked()) {
+	if (!DefaultProgram.isLinked() && FFisGLEWInit()) {
 		DefaultProgram.add(ff::ShaderType::VERTEX, vertex_default);
 		DefaultProgram.add(ff::ShaderType::FRAGMENT, fragment_default);
 		DefaultProgram.link();
@@ -144,9 +146,12 @@ bool ShaderProgram::isLinked() const {
 }
 
 void ShaderProgram::use() const {
-	assert(isLinked());
-
-	glUseProgram(id);
+	if (isLinked()) {
+		glUseProgram(id);
+	}
+	else {
+		glUseProgram(0);
+	}
 }
 
 

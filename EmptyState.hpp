@@ -6,6 +6,10 @@
 class EmptyState : public ff::EngineState {
 public:
 
+	EmptyState() {
+		clearColor = ff::Color(0x141013FF);
+	}
+
 	void update(secs deltaTime) override {};
 	void predraw(secs deltaTime) override {};
 

@@ -97,6 +97,20 @@ void Window::setVsyncEnabled(bool enable)
 	checkSDL(SDL_GL_SetSwapInterval(enable ? 1 : 0));
 }
 
+void Window::setWindowFullscreen(FullscreenType set) {
+	switch (set) {
+	case FullscreenType::FULLSCREEN:
+		SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+		break;
+	case FullscreenType::FULLSCREEN_DESKTOP:
+		SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		break;
+	case FullscreenType::WINDOWED:
+		SDL_SetWindowFullscreen(m_window, 0);
+		break;
+	}
+}
+
 void Window::showWindow(bool visible)
 {
 	if (visible) {

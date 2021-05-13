@@ -12,6 +12,7 @@ namespace ff {
 	bool FFisInit();
 
 	void FFinitGLEW();
+	bool FFisGLEWInit();
 }
 
 
