@@ -1,0 +1,123 @@
+include "math.fbs";
+
+namespace flat.resources;
+
+// LEVEL ASSET
+
+table PropertyF {
+	propertyName:string;
+	propertyValue:string;
+}
+
+table ObjectF {
+	id:uint;
+	name:string (required);
+	type_hash:uint;
+	pos:math.Vec2Fi (required);
+	width:uint;
+	height:uint;
+	properties:[PropertyF];
+	points:[math.Vec2Fi];
+}
+
+table ObjectLayerF {
+	objects:[ObjectF];
+}
+
+struct TileRefF {
+	gid:int;
+	tilePos:math.Vec2Fu;
+	texPos:math.Vec2Fu;
+	tilesetName:uint;
+
+}
+
+table TileLayerF {
+	tileSize:math.Vec2Fu (required);
+	tiles:[TileRefF];
+	tilesetsReq:[string];
+}
+
+union AnyLayerF {
+	TileLayerF,
+	ObjectLayerF
+}
+
+table LevelLayerF {
+	id:uint;
+	layer:AnyLayerF;
+	properties:[PropertyF];
+}
+
+table LevelTilesetDepF {
+	gid:uint;
+	tilesetName:string;
+}
+
+table LevelAssetF {
+	name:string (required);
+	bgColor:math.ColorF (required);
+	lvlSize:math.Vec2Fu (required);
+	layers:[LevelLayerF];
+	tilesetDeps:[LevelTilesetDepF];
+	borders:uint;
+}
+
+// TILESET ASSET
+
+struct TileShapeF {
+	type:uint;
+	shapeTouches:uint;
+	hflip:bool;
+	vflip:bool;
+}
+
+struct TileF {
+	pos:math.Vec2Fu;
+	shape:TileShapeF;
+	next_offset:math.Vec2Fi;
+	durationMS:uint;
+	next_tilesetNdx:int;
+}
+
+table TilesetAssetF {
+	name:string (required);
+	image:[byte] (required);
+	tileSize:math.Vec2Fu;
+	tileData:[TileF];
+	tilesetRefs:[string];
+}
+
+// SPRITE ASSET
+
+table AnimationAssetF {
+	//spr_name:string (required);
+	name:string (required);
+	area:math.RectFi (required);
+	origin:math.Vec2Fu (required);
+	framerateMS:[uint] (required);
+	loop:uint = 0;
+
+	has_chain:bool = false;
+	chain_spr_name:string;
+	chain_anim_name:string;
+	chain_frame:uint;
+}
+
+table SpriteAssetF {
+	name:string (required);
+	image:[byte] (required);
+	animations:[AnimationAssetF];
+}
+
+// ROOT
+
+table ResourcesF {
+	sprites:[SpriteAssetF];
+	tilesets:[TilesetAssetF];
+	levels:[LevelAssetF];
+}
+
+root_type ResourcesF;
+file_identifier "PACK";
+file_extension  "pack";

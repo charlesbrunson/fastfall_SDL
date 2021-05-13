@@ -8,6 +8,12 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # build fastfall dependencies
 add_subdirectory("external")
 
+
+# generate schema files with flatc
+set(FLATC "${CMAKE_CURRENT_SOURCE_DIR}/tools/flatc.exe")
+set(SCHEMA_DIR "include/fastfall/schema")
+file(GLOB FLATC_SCHEMAS "${SCHEMA_DIR}/*.fbs")
+		 
 file(GLOB_RECURSE FF_SOURCES 
 	${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp
@@ -21,8 +27,15 @@ add_library (fastfall STATIC
 	${FF_HEADERS}
 )
 
-#message(STATUS "AAAAAAAAAAAAAAAA ${FF_SOURCES}")
-#message(STATUS "AAAAAAAAAAAAAAAA ${FF_HEADERS}")
+add_custom_target(fbs_compiled
+	COMMAND ${FLATC} 
+		--cpp 
+		-o "${CMAKE_CURRENT_SOURCE_DIR}/${SCHEMA_DIR}/" 
+		--filename-suffix "-flat"
+		--filename-ext "hpp"
+		${FLATC_SCHEMAS}
+)
+add_dependencies(fastfall fbs_compiled)
 
 target_include_directories(fastfall PUBLIC 
 	${CMAKE_CURRENT_SOURCE_DIR}/include

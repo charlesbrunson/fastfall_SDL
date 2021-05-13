@@ -1,0 +1,61 @@
+
+namespace flat.math;
+
+// common Vec2 types
+
+struct Vec2Fi {
+	x:int;
+	y:int;
+}
+struct Vec2Ff {
+	x:float;
+	y:float;
+}
+struct Vec2Fu {
+	x:uint;
+	y:uint;
+}
+
+// common Line types
+struct LineFi {
+	p1:Vec2Fi;
+	p2:Vec2Fi;
+}
+struct LineFf {
+	p1:Vec2Ff;
+	p2:Vec2Ff;
+}
+
+// cardinals
+
+enum CardinalF : byte { 
+	NORTH = 0,
+	EAST  = 1,
+	SOUTH = 2,
+	WEST  = 3
+}
+
+// Rects
+
+struct RectFi {
+	left:int;
+	top:int;
+	width:int;
+	height:int;
+}
+
+struct RectFf {
+	left:float;
+	top:float;
+	width:float;
+	height:float;
+}
+
+// color
+
+struct ColorF {
+	r:uint8 = 0;
+	g:uint8 = 0;
+	b:uint8 = 0;
+	a:uint8 = 0;
+}

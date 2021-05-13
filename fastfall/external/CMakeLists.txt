@@ -4,6 +4,7 @@ cmake_minimum_required (VERSION 3.19)
 include(FetchContent)
 
 set(BUILD_STATIC_LIBS ON)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # glm
 FetchContent_Declare(
@@ -23,6 +24,7 @@ FetchContent_Declare(
 #flatbuffers
 set(FLATBUFFERS_BUILD_TESTS OFF)
 set(FLATBUFFERS_BUILD_FLATLIB ON)
+set(FLATBUFFERS_BUILD_FLATC ON)
 FetchContent_Declare(
 	flatbuffers
 	GIT_REPOSITORY https://github.com/google/flatbuffers.git
@@ -110,6 +112,9 @@ FetchContent_MakeAvailable(
 	imgui
 	implot
 )
+
+
+
 configure_file(
 	"${zlib_BINARY_DIR}/zconf.h"
 	"${zlib_SOURCE_DIR}/zconf.h"
