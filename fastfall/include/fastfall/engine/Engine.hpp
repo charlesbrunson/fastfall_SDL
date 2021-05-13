@@ -16,6 +16,7 @@
 
 #include "fastfall/render/VertexArray.hpp"
 #include "fastfall/render/Window.hpp"
+#include "fastfall/engine/input.hpp"
 
 #include <queue>
 #include <memory>
@@ -27,6 +28,7 @@
 
 #include <mutex>
 #include <barrier>
+
 
 //using namespace std::chrono;
 
@@ -60,7 +62,7 @@ private:
 	// singleton
 	static Engine* engineInstance;
 
-	//Input::InputObserver input;
+	Input::InputObserver input;
 	//InstanceObserver instanceObs;
 
 	Engine(EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings);

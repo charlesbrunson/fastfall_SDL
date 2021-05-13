@@ -5,23 +5,6 @@
 #include <algorithm>
 #include <atomic>
 
-//SFML
-//#include <SFML/Window.hpp>
-
-//IMGUI
-/*
-#include "imgui/imgui.h"
-#include "implot/implot.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
-*/
-
-//#include "imgui.h"
-//#include "implot.h"
-//#include "misc/cpp/imgui_stdlib.h"
-
-//IMGUI-SFML
-//#include "ImGui-SFML/imgui-SFML.h"
-
 #include "fastfall/engine/imgui/ImGuiFrame.hpp"
 
 #include "fastfall/util/log.hpp"
@@ -29,14 +12,11 @@
 #include "fastfall/render.hpp"
 
 #include "fastfall/engine/Engine.hpp"
-//#include "time/EngineClock.hpp"
 #include "fastfall/engine/config.hpp"
 
-//#include "TestState.hpp"
-
+#include "fastfall/engine/input.hpp"
 
 #include <iostream>
-//#include <SFML/OpenGL.hpp>
 
 namespace ff {
 
@@ -124,7 +104,7 @@ bool Engine::run()
     ImGui_addContent();
     // TODO
     //instanceObs.ImGui_addContent();
-    //input.ImGui_addContent();
+    input.ImGui_addContent();
 
 #ifdef DEBUG
     if (window != nullptr) {
@@ -175,7 +155,7 @@ bool Engine::run()
         }
 
         // TODO
-        //Input::update(deltaTime);
+        Input::update(deltaTime);
 
         bar.arrive_and_wait();
 
@@ -260,6 +240,7 @@ void Engine::close() {
     if (window) {
         window->showWindow(false);
     }
+    Input::closeJoystick();
     running = false;
 }
 
@@ -326,15 +307,6 @@ void Engine::handleEvents(
     while (SDL_PollEvent(&event)) {
         // TODO
         switch (event.type) {
-        case SDL_KEYUP:
-            if (event.key.keysym.sym == SDLK_ESCAPE)
-                if (!settings.fullscreen) {
-                    close();
-                }
-                else {
-                    setFullscreen(!settings.fullscreen);
-                }
-            break;
         case SDL_WINDOWEVENT:
             switch (event.window.event) {
             case SDL_WINDOWEVENT_CLOSE:
@@ -353,6 +325,19 @@ void Engine::handleEvents(
                 }
                 break;
             }
+            break;
+        case SDL_KEYUP:
+            if (event.key.keysym.sym == SDLK_ESCAPE)
+                if (!settings.fullscreen) {
+                    close();
+                }
+                else {
+                    setFullscreen(!settings.fullscreen);
+                }
+            [[fallthrough]];
+        default:
+            if (!discardMousePress || (event.type != SDL_MOUSEBUTTONDOWN && event.type != SDL_MOUSEBUTTONUP))
+                Input::pushEvent(event);
             break;
         }
     }

@@ -39,7 +39,7 @@ bool FFinit()
     assert(!renderInitialized);
     renderInitialized = true;
 
-    checkSDL(SDL_Init(SDL_INIT_VIDEO));
+    checkSDL(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK));
 
     checkSDL(SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
     checkSDL(SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1));
