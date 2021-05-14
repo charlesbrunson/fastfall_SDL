@@ -8,12 +8,28 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # build fastfall dependencies
 add_subdirectory("external")
 
-
 # generate schema files with flatc
 set(FLATC "${CMAKE_CURRENT_SOURCE_DIR}/tools/flatc.exe")
 set(SCHEMA_DIR "include/fastfall/schema")
-file(GLOB FLATC_SCHEMAS "${SCHEMA_DIR}/*.fbs")
-		 
+file(GLOB FLATC_FBS "${SCHEMA_DIR}/*.fbs")
+
+foreach(fbs IN ITEMS ${FLATC_FBS}) 
+	string(REGEX REPLACE "[.]fbs" "-flat.hpp" out ${fbs})
+	list(APPEND FLATC_HPP ${out})
+endforeach()
+
+add_custom_target(fbs_compiled
+	COMMAND ${FLATC} 
+		--cpp 
+		-o "${CMAKE_CURRENT_SOURCE_DIR}/${SCHEMA_DIR}/" 
+		--filename-suffix "-flat"
+		--filename-ext "hpp"
+		${FLATC_FBS}
+	BYPRODUCTS
+		${FLATC_HPP}
+)
+
+# grab fastfall source
 file(GLOB_RECURSE FF_SOURCES 
 	${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp
@@ -22,21 +38,36 @@ file(GLOB_RECURSE FF_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
 )
 
+# grab imgui source
+set(imgui_SOURCE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui")
+set(implot_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/implot")
+
+file(GLOB IMGUI_SOURCES ${imgui_SOURCE_DIR}/*.cpp)
+file(GLOB IMGUI_HEADERS ${imgui_SOURCE_DIR}/*.h)
+file(GLOB IMPLOT_SOURCES ${implot_SOURCE_DIR}/*.cpp)
+file(GLOB IMPLOT_HEADERS ${implot_SOURCE_DIR}/*.h)
+
+# declare fastfall library
 add_library (fastfall STATIC
 	${FF_SOURCES}
 	${FF_HEADERS}
+
+	# imgui stuff
+	
+	${IMGUI_SOURCES} 
+	${IMPLOT_SOURCES} 
+	${IMGUI_HEADERS} 
+	${IMPLOT_HEADERS} 
+	${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.h
+	${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.cpp
+	${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.h
+	${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
 )
 
-add_custom_target(fbs_compiled
-	COMMAND ${FLATC} 
-		--cpp 
-		-o "${CMAKE_CURRENT_SOURCE_DIR}/${SCHEMA_DIR}/" 
-		--filename-suffix "-flat"
-		--filename-ext "hpp"
-		${FLATC_SCHEMAS}
-)
+# depends on compiled flatbuffers headers
 add_dependencies(fastfall fbs_compiled)
 
+# includes
 target_include_directories(fastfall PUBLIC 
 	${CMAKE_CURRENT_SOURCE_DIR}/include
 
@@ -51,10 +82,14 @@ target_include_directories(fastfall PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/external/implot
 )
 
+# compile definitions
 target_compile_definitions(fastfall PRIVATE
 	#GLEW_STATIC
+	IMGUI_IMPL_OPENGL_LOADER_GLEW
 	DEBUG
 )
+
+# libraries
 target_link_libraries(fastfall PUBLIC 
 	glm
 	fmt
@@ -64,6 +99,6 @@ target_link_libraries(fastfall PUBLIC
 	SDL2main
 	glew_s
 	SDL2image 
-	libimgui 
+	#libimgui 
 )
 

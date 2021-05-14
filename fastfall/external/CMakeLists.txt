@@ -140,28 +140,29 @@ target_link_libraries(SDL2image PUBLIC png_static)
 target_compile_definitions(SDL2image PRIVATE LOAD_PNG LOAD_BMP)
 
 # build imgui + implot as library
-file(GLOB IMGUI_SOURCES ${imgui_SOURCE_DIR}/*.cpp)
-file(GLOB IMGUI_HEADERS ${imgui_SOURCE_DIR}/*.h)
-file(GLOB IMPLOT_SOURCES ${implot_SOURCE_DIR}/*.cpp)
-file(GLOB IMPLOT_HEADERS ${implot_SOURCE_DIR}/*.h)
 
-add_library(libimgui STATIC 
-	${IMGUI_SOURCES} 
-	${IMPLOT_SOURCES} 
-	${IMGUI_HEADERS} 
-	${IMPLOT_HEADERS} 
-	${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.h
-	${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.cpp
-	${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.h
-	${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
-	)
-	
-target_include_directories(libimgui PRIVATE "${imgui_SOURCE_DIR}")
-target_include_directories(libimgui PRIVATE "${implot_SOURCE_DIR}")
-target_include_directories(libimgui PRIVATE "${sdl_SOURCE_DIR}/include")
-target_include_directories(libimgui PRIVATE "${glew_SOURCE_DIR}/include")
 
-target_compile_definitions(libimgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLEW)
+#file(GLOB IMGUI_SOURCES ${imgui_SOURCE_DIR}/*.cpp)
+#file(GLOB IMGUI_HEADERS ${imgui_SOURCE_DIR}/*.h)
+#file(GLOB IMPLOT_SOURCES ${implot_SOURCE_DIR}/*.cpp)
+#file(GLOB IMPLOT_HEADERS ${implot_SOURCE_DIR}/*.h)
+#
+#add_library(libimgui STATIC 
+#	${IMGUI_SOURCES} 
+#	${IMPLOT_SOURCES} 
+#	${IMGUI_HEADERS} 
+#	${IMPLOT_HEADERS} 
+#	${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.h
+#	${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.cpp
+#	${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.h
+#	${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+#	)
+#	
+#target_include_directories(libimgui PRIVATE "${imgui_SOURCE_DIR}")
+#target_include_directories(libimgui PRIVATE "${implot_SOURCE_DIR}")
+#target_include_directories(libimgui PUBLIC "${sdl_SOURCE_DIR}/include")
+#target_include_directories(libimgui PUBLIC "${glew_SOURCE_DIR}/include")
+#target_compile_definitions(libimgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLEW)
 
 #target_link_libraries(imgui SDL2 glew)
 
