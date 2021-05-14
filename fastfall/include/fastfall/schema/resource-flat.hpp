@@ -962,8 +962,8 @@ struct AnimationAssetF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flat::math::RectFi *area() const {
     return GetStruct<const flat::math::RectFi *>(VT_AREA);
   }
-  const flat::math::Vec2Fu *origin() const {
-    return GetStruct<const flat::math::Vec2Fu *>(VT_ORIGIN);
+  const flat::math::Vec2Fi *origin() const {
+    return GetStruct<const flat::math::Vec2Fi *>(VT_ORIGIN);
   }
   const flatbuffers::Vector<uint32_t> *framerateMS() const {
     return GetPointer<const flatbuffers::Vector<uint32_t> *>(VT_FRAMERATEMS);
@@ -988,7 +988,7 @@ struct AnimationAssetF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
            VerifyFieldRequired<flat::math::RectFi>(verifier, VT_AREA) &&
-           VerifyFieldRequired<flat::math::Vec2Fu>(verifier, VT_ORIGIN) &&
+           VerifyFieldRequired<flat::math::Vec2Fi>(verifier, VT_ORIGIN) &&
            VerifyOffsetRequired(verifier, VT_FRAMERATEMS) &&
            verifier.VerifyVector(framerateMS()) &&
            VerifyField<uint32_t>(verifier, VT_LOOP) &&
@@ -1012,7 +1012,7 @@ struct AnimationAssetFBuilder {
   void add_area(const flat::math::RectFi *area) {
     fbb_.AddStruct(AnimationAssetF::VT_AREA, area);
   }
-  void add_origin(const flat::math::Vec2Fu *origin) {
+  void add_origin(const flat::math::Vec2Fi *origin) {
     fbb_.AddStruct(AnimationAssetF::VT_ORIGIN, origin);
   }
   void add_framerateMS(flatbuffers::Offset<flatbuffers::Vector<uint32_t>> framerateMS) {
@@ -1053,7 +1053,7 @@ inline flatbuffers::Offset<AnimationAssetF> CreateAnimationAssetF(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
     const flat::math::RectFi *area = 0,
-    const flat::math::Vec2Fu *origin = 0,
+    const flat::math::Vec2Fi *origin = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint32_t>> framerateMS = 0,
     uint32_t loop = 0,
     bool has_chain = false,
@@ -1077,7 +1077,7 @@ inline flatbuffers::Offset<AnimationAssetF> CreateAnimationAssetFDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const flat::math::RectFi *area = 0,
-    const flat::math::Vec2Fu *origin = 0,
+    const flat::math::Vec2Fi *origin = 0,
     const std::vector<uint32_t> *framerateMS = nullptr,
     uint32_t loop = 0,
     bool has_chain = false,

@@ -259,7 +259,7 @@ flatbuffers::Offset<flat::resources::SpriteAssetF> SpriteAsset::writeToFlat(flat
 		//auto assetName = builder.CreateString(anim.owner->assetName());
 		auto animName = builder.CreateString(anim.name);
 		RectFi area(anim.area.left, anim.area.top, anim.area.width, anim.area.height);
-		Vec2Fu origin(anim.origin.x, anim.origin.y);
+		Vec2Fi origin(anim.origin.x, anim.origin.y);
 		auto framerate = builder.CreateVector(anim.framerateMS);
 
 		auto chain_spr_str = builder.CreateString(anim.chain_spr_name);

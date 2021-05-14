@@ -77,10 +77,10 @@ void ImGuiFrame::displaySidePanel(std::set<ImGuiContent*>& contents, Recti area,
 		ImGuiWindowFlags_NoCollapse |
 		ImGuiWindowFlags_NoMove |
 		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoScrollbar |
+		//ImGuiWindowFlags_NoScrollbar |
 		ImGuiWindowFlags_NoBringToFrontOnFocus |
-		ImGuiWindowFlags_NoDocking
-		| 0
+		//ImGuiWindowFlags_NoDocking | 
+		0
 	)) {
 
 		if (ImGui::BeginMenuBar())

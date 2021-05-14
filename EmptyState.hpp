@@ -8,6 +8,7 @@ public:
 
 	EmptyState() {
 		clearColor = ff::Color(0x141013FF);
+		viewPos = ff::Vec2f{100.f, 100.f};
 	}
 
 	void update(secs deltaTime) override {};
