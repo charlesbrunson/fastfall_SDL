@@ -132,6 +132,8 @@ bool Engine::run()
 
     std::thread stateWorker(&Engine::runUpdate, this, &bar);
 
+    std::chrono::time_point<std::chrono::steady_clock> displayStart;
+
     running = true;
 
     clock.reset();
@@ -212,7 +214,9 @@ bool Engine::run()
 
         clock.sleepUntilTick();
         if (window) {
+            displayStart = std::chrono::steady_clock::now();
             window->display();
+            displayTime = std::chrono::steady_clock::now() - displayStart;
         }
     }
 
@@ -611,53 +615,68 @@ void Engine::ImGui_getContent() {
     ImGui::Text("Zoom         =  %2dx", windowZoom);
     ImGui::Separator();
 
-    ImGui::BulletText("Frame Data");
-
-
     static constexpr int arrsize = 301;
-    //static constexpr int arrsizeminus1 = 300;
-    //int cur = clock.data().tickTotal % arrsize;
+    static constexpr int last = arrsize - 1;
 
-    static ImPlotPoint active[arrsize];
-    static ImPlotPoint sleep[arrsize];
-    //static ImPlotPoint display[arrsize];
-    double denom = (clock.getTargetFPS() != 0 ? clock.getTickDuration() : 1.0);
-    ImPlotPoint tick[2] = {
-        ImPlotPoint(0.0,           denom * 1000.0),
-        ImPlotPoint((arrsize - 1), denom * 1000.0)
-    };
+    static float active_x [arrsize] = { 0.f };
+    static float active_y [arrsize] = { 0.f };
+    static float sleep_x  [arrsize] = { 0.f };
+    static float sleep_y  [arrsize] = { 0.f };
+    static float display_x[arrsize] = { 0.f };
+    static float display_y[arrsize] = { 0.f };
 
-    memmove(&active[0], &active[1], sizeof(ImPlotPoint) * (arrsize - 1));
-    memmove(&sleep[0], &sleep[1], sizeof(ImPlotPoint) * (arrsize - 1));
-    //memmove(&display[0], &display[1], sizeof(ImPlotPoint) * arrsizeminus1);
+    double denom = (clock.getTargetFPS() != 0 ? clock.getTickDuration() * 2000.f : 2.0);
 
-    for (int i = 0; i < (arrsize - 1); i++) {
-        active[i].x -= 1.0;
-        sleep[i].x -= 1.0;
-        //display[i].x -= 1.0;
+    float tick_x[2] = { 0.0, (arrsize - 1) };
+    float tick_y[2] = { 0.5f * denom, 0.5f * denom };
+
+    memmove(&active_x[0], &active_x[1], sizeof(float) * last);
+    memmove(&active_y[0], &active_y[1], sizeof(float) * last);
+    memmove(&sleep_x[0], &sleep_x[1], sizeof(float) * last);
+    memmove(&sleep_y[0], &sleep_y[1], sizeof(float) * last);
+    memmove(&display_x[0], &display_x[1], sizeof(float) * last);
+    memmove(&display_y[0], &display_y[1], sizeof(float) * last);
+
+    for (int i = 0; i < last; i++) {
+        active_x [i] -= 1.0;
+        sleep_x  [i] -= 1.0;
+        display_x[i] -= 1.0;
     }
 
-    active[(arrsize - 1)].x = static_cast<double>((arrsize - 1));
-    active[(arrsize - 1)].y = clock.data().activeTime.count() * 1000.0;// / denom;
 
-    sleep[(arrsize - 1)].x = static_cast<double>((arrsize - 1));
-    sleep[(arrsize - 1)].y = active[(arrsize - 1)].y + clock.data().sleepTime.count() * 1000.0;
+    active_x [last] = static_cast<double>(last);
+    sleep_x  [last] = static_cast<double>(last);
+    display_x[last] = static_cast<double>(last);
 
-    //display[arrsizeminus1].x = static_cast<double>(arrsizeminus1);
-    //display[arrsizeminus1].y = sleep[arrsizeminus1].y + display_duration * 1000.0;// / denom;
+    float acc = 0.f;
+    acc += clock.data().activeTime.count() * 1000.0;
+    active_y [last] = acc;
+    acc += clock.data().sleepTime.count() * 1000.0;
+    sleep_y  [last] = acc;
+    acc += displayTime.count() * 1000.0;
+    display_y[last] = acc;
 
+    if (ImGui::CollapsingHeader("Framerate Graph", ImGuiTreeNodeFlags_DefaultOpen)) {
 
-    ImPlot::SetNextPlotLimits(0.0, (arrsize - 1), 0.0, denom * 2000.0, ImGuiCond_Always);
-    if (ImPlot::BeginPlot("##FPS", NULL, NULL, ImVec2(-1, 150), ImPlotFlags_None, ImPlotAxisFlags_None, 0)) {
-        ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.75f);
-        //ImPlot::PlotShaded("display time", &display[0].x, &display[0].y, arrsize, 0, 0, 16);
-        ImPlot::PlotShaded("sleep time", &sleep[0].x, &sleep[0].y, arrsize, 0, 0, 16);
-        ImPlot::PlotShaded("active time", &active[0].x, &active[0].y, arrsize, 0, 0, 16);
-        ImPlot::PopStyleVar();
-        //ImPlot::PlotLine("tick time", tick, 2, 0);
+        ImPlot::SetNextPlotLimits(0.0, (arrsize - 1), 0.0, denom, ImGuiCond_Always);
+        if (ImPlot::BeginPlot("##FPS", NULL, "tick time (ms)", ImVec2(-1, 200), ImPlotFlags_None, ImPlotAxisFlags_None, 0)) {
+            ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1.f);
 
-        ImPlot::EndPlot();
+            ImPlot::PlotShaded("display", display_x, display_y, arrsize);
+            ImPlot::PlotShaded("sleep", sleep_x, sleep_y, arrsize);
+            ImPlot::PlotShaded("active", active_x, active_y, arrsize);
+
+            ImPlot::PopStyleVar();
+
+            if (clock.getTargetFPS() != 0) {
+                ImPlot::PlotLine("tick time", tick_x, tick_y, 2);
+            }
+
+            ImPlot::EndPlot();
+        }
+
     }
+   // ImGui::EndChild();
 
     ImGui::Text("| FPS: %4d |", clock.getAvgFPS());
     ImGui::SameLine();

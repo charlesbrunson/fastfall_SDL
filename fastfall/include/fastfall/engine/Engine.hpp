@@ -121,6 +121,8 @@ private:
 	secs maxDeltaTime;
 	secs deltaTime;
 
+	std::chrono::duration<float> displayTime;
+
 	bool pauseUpdate, stepUpdate;
 
 	std::vector<EngineRunnable> runnables;
