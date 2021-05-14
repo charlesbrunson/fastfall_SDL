@@ -4,21 +4,21 @@
 namespace ff {
 
 
+	Sprite::Sprite()
+	: m_verts{ Primitive::TRIANGLE_STRIP, 4 },
+	m_color{ ff::Color::White }
+{
+
+	setTexture(nullptr);
+	init();
+}
+
 Sprite::Sprite(const Texture* texture)
 	: m_verts{ Primitive::TRIANGLE_STRIP, 4 },
 	m_color{ ff::Color::White }
 {
 
-	setTexture(texture);
-
-	if (m_texture.exists()) {
-		m_textureRect = Rectf{
-			{0.f, 0.f},
-			glm::fvec2{m_texture.get()->size()}
-		};
-	}
-	m_size = m_textureRect.getSize();
-
+	setTexture(texture, true);
 	init();
 }
 
@@ -28,7 +28,7 @@ Sprite::Sprite(const Texture* texture, glm::fvec2 spriteSize)
 	m_color{ ff::Color::White },
 	m_size{ spriteSize }
 {
-	setTexture(texture);
+	setTexture(texture, true);
 	if (m_texture.exists()) {
 		m_textureRect = Rectf{
 			{0.f, 0.f},
@@ -61,8 +61,16 @@ Sprite::Sprite(const Texture* texture, Rectf textureRect, float spriteSizeX, flo
 
 }
 
-void Sprite::setTexture(const Texture* texture) {
+void Sprite::setTexture(const Texture* texture, bool resetRect) {
 	m_texture = texture ? *texture : Texture::getNullTexture();
+
+	if (resetRect && m_texture.exists()) {
+		setTextureRect(Rectf{
+				{ 0, 0 },
+				m_texture.get()->size()
+			});
+		m_size = m_texture.get()->size();
+	}
 }
 
 void Sprite::setTextureRect(Rectf textureRect) {

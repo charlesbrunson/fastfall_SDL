@@ -37,7 +37,13 @@ public:
 	void glTransfer(size_t startNdx, size_t count);
 
 	inline size_t size() const { return m_vec.size(); };
-	inline void push_back(Vertex vertex) { m_vec.push_back(vertex); };
+	inline bool empty() const { return m_vec.empty(); };
+
+	inline void clear() {
+		m_vec.clear();
+	}
+
+	inline std::vector<Vertex>& vec() { return m_vec; };
 
 	const Vertex& operator[] (size_t ndx) const {
 		return m_vec[ndx];

@@ -18,6 +18,10 @@
 
 #include <iostream>
 
+
+#include "fastfall/resource/Resources.hpp"
+#include "fastfall/game/gfx/AnimatedSprite.hpp"
+
 namespace ff {
 
 unsigned getDisplayRefreshRate(const Window& win);
@@ -136,6 +140,13 @@ bool Engine::run()
 
     running = true;
 
+    AnimID runID = Resources::get_animation_id("player", "running");
+
+    AnimatedSprite asprite;
+
+    asprite.set_anim(runID);
+
+
     clock.reset();
     while (isRunning() && !runnables.empty()) {
         elapsedTime = clock.tick();
@@ -175,12 +186,17 @@ bool Engine::run()
             window->setView(v);
         }
 
+        asprite.update(deltaTime);
+        asprite.predraw(deltaTime);
+
         //draw current state
         for (auto& run : runnables) {
             drawRunnable(run);
         }
+        window->draw(asprite);
 
         // test
+        /*
         window->draw(
             ShapeCircle{
                 {0.f, 0.f},
@@ -189,10 +205,13 @@ bool Engine::run()
                 ff::Color::Red
             }, ShaderProgram::getDefaultProgram()
         );
-
-        bar.arrive_and_wait();
+        */
 
         //do ImGui
+        
+        
+        bar.arrive_and_wait();
+
 #ifdef DEBUG
         if (window) {
             ff::ImGuiNewFrame(*window);
@@ -211,6 +230,7 @@ bool Engine::run()
         */
 
         bar.arrive_and_wait();
+
 
         clock.sleepUntilTick();
         if (window) {
@@ -615,6 +635,9 @@ void Engine::ImGui_getContent() {
     ImGui::Text("Zoom         =  %2dx", windowZoom);
     ImGui::Separator();
 
+
+    // FRAME DATA GRAPH
+
     static constexpr int arrsize = 301;
     static constexpr int last = arrsize - 1;
 
@@ -625,29 +648,26 @@ void Engine::ImGui_getContent() {
     static float display_x[arrsize] = { 0.f };
     static float display_y[arrsize] = { 0.f };
 
-    double denom = (clock.getTargetFPS() != 0 ? clock.getTickDuration() * 2000.f : 2.0);
-
-    float tick_x[2] = { 0.0, (arrsize - 1) };
-    float tick_y[2] = { 0.5f * denom, 0.5f * denom };
-
-    memmove(&active_x[0], &active_x[1], sizeof(float) * last);
-    memmove(&active_y[0], &active_y[1], sizeof(float) * last);
-    memmove(&sleep_x[0], &sleep_x[1], sizeof(float) * last);
-    memmove(&sleep_y[0], &sleep_y[1], sizeof(float) * last);
-    memmove(&display_x[0], &display_x[1], sizeof(float) * last);
-    memmove(&display_y[0], &display_y[1], sizeof(float) * last);
-
-    for (int i = 0; i < last; i++) {
-        active_x [i] -= 1.0;
-        sleep_x  [i] -= 1.0;
-        display_x[i] -= 1.0;
+    static bool initX = false;
+    if (!initX) {
+        for (int x = 0; x <= last; x++) {
+            active_x [x] = static_cast<float>(x);
+            sleep_x  [x] = static_cast<float>(x);
+            display_x[x] = static_cast<float>(x);
+        }
+        initX = true;
     }
 
+    //double denom = (clock.getTargetFPS() != 0 ? clock.getTickDuration() * 2000.f : 2.0);
+    float denom = 1000.0 / clock.getAvgFPS();
 
-    active_x [last] = static_cast<double>(last);
-    sleep_x  [last] = static_cast<double>(last);
-    display_x[last] = static_cast<double>(last);
+    float tick_x[2] = { 0.0, (arrsize - 1) };
+    float tick_y[2] = { denom, denom };
 
+    memmove(&active_y[0], &active_y[1], sizeof(float) * last);
+    memmove(&sleep_y[0], &sleep_y[1], sizeof(float) * last);
+    memmove(&display_y[0], &display_y[1], sizeof(float) * last);
+    
     float acc = 0.f;
     acc += clock.data().activeTime.count() * 1000.0;
     active_y [last] = acc;
@@ -658,7 +678,7 @@ void Engine::ImGui_getContent() {
 
     if (ImGui::CollapsingHeader("Framerate Graph", ImGuiTreeNodeFlags_DefaultOpen)) {
 
-        ImPlot::SetNextPlotLimits(0.0, (arrsize - 1), 0.0, denom, ImGuiCond_Always);
+        ImPlot::SetNextPlotLimits(0.0, (arrsize - 1), 0.0, denom * 2.f, ImGuiCond_Always);
         if (ImPlot::BeginPlot("##FPS", NULL, "tick time (ms)", ImVec2(-1, 200), ImPlotFlags_None, ImPlotAxisFlags_None, 0)) {
             ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1.f);
 
@@ -676,7 +696,8 @@ void Engine::ImGui_getContent() {
         }
 
     }
-   // ImGui::EndChild();
+
+    // END FRAME DATA GRAPH
 
     ImGui::Text("| FPS: %4d |", clock.getAvgFPS());
     ImGui::SameLine();

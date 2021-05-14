@@ -93,12 +93,12 @@ secs EngineClock::tick() noexcept {
 
 	// update avg fps
 	elapsedAcc += elapsed;
-	if (elapsedAcc >= 1s) {
+	while (elapsedAcc >= 1s) {
 		_data.avgFps = tickCounter;
 		_data.tickMissPerSec = tickMissCounter;
 		tickCounter = 0;
 		tickMissCounter = 0;
-		elapsedAcc %= 1s;
+		elapsedAcc -= 1s;
 	}
 
 	if (!fpsUnlimited && steadyTick && prev_tick + 1 == cur_tick) {

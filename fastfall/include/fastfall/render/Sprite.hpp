@@ -9,13 +9,14 @@ namespace ff {
 
 class Sprite : public Drawable, public Transformable {
 public:
+	Sprite();
 	Sprite(const Texture* texture);
 	Sprite(const Texture* texture, glm::fvec2 spriteSize);
 	Sprite(const Texture* texture, float spriteSizeX, float spriteSizeY);
 	Sprite(const Texture* texture, Rectf textureRect, glm::fvec2 spriteSize);
 	Sprite(const Texture* texture, Rectf textureRect, float spriteSizeX, float spriteSizeY);
 
-	void setTexture(const Texture* texture);
+	void setTexture(const Texture* texture, bool resetRect = false);
 	void setTextureRect(Rectf textureRect);
 	void setColor(Color color);
 	void setSize(glm::fvec2 size);
