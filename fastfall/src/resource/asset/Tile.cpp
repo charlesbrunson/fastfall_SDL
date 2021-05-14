@@ -1,4 +1,4 @@
-#include "fastfall/game/level/Tile.hpp"
+#include "fastfall/resource/asset/Tile.hpp"
 
 #include "fastfall/util/cardinal.hpp"
 #include "fastfall/util/log.hpp"

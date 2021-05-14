@@ -22,7 +22,7 @@ namespace ff {
 			// axis data
 			JoystickAxis axis;
 			bool positiveSide = true;
-			mutable short axisPrevPos = 0;
+			//short axisPrevPos = 0;
 
 			static GamepadInput Axis(JoystickAxis axis, bool positiveEnd = true);
 			static GamepadInput Button(Button button);

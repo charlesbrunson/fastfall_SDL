@@ -52,6 +52,8 @@ private:
 
 public:
 
+	static void loadControllerDB();
+
 	static void addLoadedToWatcher();
 
 	static inline AssetSource lastLoadMethod() noexcept { return resource.loadMethod; };

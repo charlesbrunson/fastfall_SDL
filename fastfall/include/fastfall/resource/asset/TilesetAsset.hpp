@@ -2,9 +2,9 @@
 
 #include "rapidxml.hpp"
 
-#include "fastfall/game/level/Tile.hpp"
-
+#include "fastfall/resource/asset/Tile.hpp"
 #include "fastfall/resource/asset/TextureAsset.hpp"
+
 #include "fastfall/util/math.hpp"
 
 #include "fastfall/schema/resource-flat.hpp"

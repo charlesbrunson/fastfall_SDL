@@ -524,4 +524,21 @@ void Resources::addLoadedToWatcher() {
 	}
 }
 
+
+void Resources::loadControllerDB() {
+	static bool loadedControllerDB = false;
+	if (!loadedControllerDB) {
+		std::string path = DEBUGPATH + std::string("gamecontrollerdb.txt");
+		int r = SDL_GameControllerAddMappingsFromFile(path.c_str());
+
+		if (r >= 0) {
+			LOG_INFO("Loaded gamecontrollerdb.txt");
+		}
+		else {
+			LOG_WARN("Unable to load gamecontrollerdb.txt");
+		}
+		loadedControllerDB = true;
+	}
+}
+
 }

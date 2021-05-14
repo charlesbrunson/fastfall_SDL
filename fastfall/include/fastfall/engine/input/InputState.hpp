@@ -24,6 +24,8 @@ public:
 	bool confirmed = false;
 	bool firstFrame = false;
 
+	short axisPrevPos = 0;
+
 	secs lastPressed = 0.0;
 	secs lastHoldDuration = 0.0;
 

@@ -2,6 +2,7 @@
 
 #include "fastfall/engine/input/InputState.hpp"
 #include "fastfall/engine/input/GamepadInput.hpp"
+#include "fastfall/resource/Resources.hpp"
 
 #include "fastfall/util/log.hpp"
 
@@ -46,63 +47,77 @@ namespace Input {
             InputState(InputType::MOUSE2)
         };
 
+        struct InputMapValue {
+            InputMapValue() = default;
+
+            InputMapValue(InputType t)
+                : type(t)
+            {
+
+            }
+
+            InputType type = InputType::NONE;
+            bool active = false;
+        };
+
         // default input mapping for keyboards
-        using keyMapType = std::pair<SDL_Keycode, std::pair<InputType, bool>>;
-        std::map<SDL_Keycode, std::pair<InputType, bool>> keyMap = {
-            {SDLK_w,      {InputType::UP,     false}},
-            {SDLK_a,      {InputType::LEFT,   false}},
-            {SDLK_s,      {InputType::DOWN,   false}},
-            {SDLK_d,      {InputType::RIGHT,  false}},
-            {SDLK_SPACE,  {InputType::JUMP,   false}},
-            {SDLK_LSHIFT, {InputType::DASH,   false}},
-            {SDLK_k,      {InputType::ATTACK, false}},
+        std::map<SDL_Keycode, InputMapValue> keyMap = {
+            {SDLK_w,      {InputType::UP}},
+            {SDLK_a,      {InputType::LEFT}},
+            {SDLK_s,      {InputType::DOWN}},
+            {SDLK_d,      {InputType::RIGHT}},
+            {SDLK_SPACE,  {InputType::JUMP}},
+            {SDLK_LSHIFT, {InputType::DASH}},
+            {SDLK_k,      {InputType::ATTACK}},
         };
 
         // input mapping for mouse
-        using mouseMapType = std::pair<MouseButton, std::pair<InputType, bool>>;
-        std::map<MouseButton, std::pair<InputType, bool>> mouseMap = {
-            {SDL_BUTTON_LEFT,      {InputType::MOUSE1,   false}},
-            {SDL_BUTTON_RIGHT,     {InputType::MOUSE2,   false}},
+        std::map<MouseButton, InputMapValue> mouseMap = {
+            {SDL_BUTTON_LEFT,      {InputType::MOUSE1}},
+            {SDL_BUTTON_RIGHT,     {InputType::MOUSE2}},
         };
 
         // default input mapping for joysticks
-        using joyMapType = std::pair<Input::GamepadInput, std::pair<InputType, bool>>;
-        std::map<Input::GamepadInput, std::pair<InputType, bool>> joystickMap = {
-            {Input::GamepadInput::Axis(SDL_CONTROLLER_AXIS_LEFTY, false), {InputType::UP,     false}},
-            {Input::GamepadInput::Axis(SDL_CONTROLLER_AXIS_LEFTX, false), {InputType::LEFT,   false}},
-            {Input::GamepadInput::Axis(SDL_CONTROLLER_AXIS_LEFTY, true),  {InputType::DOWN,   false}},
-            {Input::GamepadInput::Axis(SDL_CONTROLLER_AXIS_LEFTX, true),  {InputType::RIGHT,  false}},
-            {Input::GamepadInput::Button(0),                          {InputType::JUMP,   false}},
-            {Input::GamepadInput::Button(1),                          {InputType::DASH,   false}},
-            {Input::GamepadInput::Button(2),                          {InputType::ATTACK, false}},
+        std::map<GamepadInput, InputMapValue> joystickMap = {
+            {GamepadInput::Axis(SDL_CONTROLLER_AXIS_LEFTY, false),   {InputType::UP}},
+            {GamepadInput::Axis(SDL_CONTROLLER_AXIS_LEFTX, false),   {InputType::LEFT}},
+            {GamepadInput::Axis(SDL_CONTROLLER_AXIS_LEFTY, true),    {InputType::DOWN}},
+            {GamepadInput::Axis(SDL_CONTROLLER_AXIS_LEFTX, true),    {InputType::RIGHT}},
+            {GamepadInput::Button(SDL_CONTROLLER_BUTTON_DPAD_UP),    {InputType::UP}},
+            {GamepadInput::Button(SDL_CONTROLLER_BUTTON_DPAD_LEFT),  {InputType::LEFT}},
+            {GamepadInput::Button(SDL_CONTROLLER_BUTTON_DPAD_DOWN),  {InputType::DOWN}},
+            {GamepadInput::Button(SDL_CONTROLLER_BUTTON_DPAD_RIGHT), {InputType::RIGHT}},
+            {GamepadInput::Button(SDL_CONTROLLER_BUTTON_A),          {InputType::JUMP}},
+            {GamepadInput::Button(SDL_CONTROLLER_BUTTON_B),          {InputType::DASH}},
+            {GamepadInput::Button(SDL_CONTROLLER_BUTTON_X),          {InputType::ATTACK}},
         };
 
 
         InputState* getKeyInput(SDL_Keycode key) {
             auto t = keyMap.find(key);
             if (t != keyMap.end()) {
-                return &inputs[t->second.first];
+                return &inputs[t->second.type];
             }
             return nullptr;
         }
         InputState* getMouseInput(MouseButton button) {
             auto t = mouseMap.find(button);
             if (t != mouseMap.end()) {
-                return &inputs[t->second.first];
+                return &inputs[t->second.type];
             }
             return nullptr;
         }
         InputState* getJoyInput(Button button) {
             auto t = joystickMap.find(GamepadInput::Button(button));
             if (t != joystickMap.end()) {
-                return &inputs[t->second.first];
+                return &inputs[t->second.type];
             }
             return nullptr;
         }
         std::pair<InputState*, const GamepadInput*> getAxisInput(JoystickAxis axis, bool side) {
             auto t = joystickMap.find(GamepadInput::Axis(axis, side));
             if (t != joystickMap.end()) {
-                return std::make_pair(&inputs[t->second.first], &t->first);
+                return std::make_pair(&inputs[t->second.type], &t->first);
             }
             return std::make_pair(nullptr, nullptr);
         }
@@ -112,7 +127,7 @@ namespace Input {
             joystickMap.clear();
         }
 
-        std::optional<Gamepad> joystick;
+        std::optional<Gamepad> controller;
 
     } // anonymous namespace
 
@@ -181,51 +196,47 @@ namespace Input {
                     auto& key = keyMap.at(e.key.keysym.sym);
 
                     // guard against input sticking
-                    if (!key.second) {
+                    if (!key.active) {
                         ptr->activate();
                     }
-                    key.second = true;
+                    key.active = true;
                 }
                 break;
             case SDL_KEYUP:
                 if (auto ptr = getKeyInput(e.key.keysym.sym)) {
                     auto& key = keyMap.at(e.key.keysym.sym);
                     ptr->deactivate();
-                    key.second = false;
+                    key.active = false;
                 }
                 break;
-            case SDL_JOYBUTTONDOWN:
+            case SDL_CONTROLLERBUTTONDOWN:
                 if (waitingForInput != InputType::NONE) {
-                    bindInput(waitingForInput, GamepadInput::Button(e.jbutton.button));
+                    bindInput(waitingForInput, GamepadInput::Button(e.cbutton.button));
                     waitingForInput = InputType::NONE;
                 }
-                else if (auto ptr = getJoyInput(e.jbutton.button)) {
-                    auto& button = joystickMap.at(Input::GamepadInput::Button(e.jbutton.button));
-                    if (!button.second) {
+                else if (auto ptr = getJoyInput(e.cbutton.button)) {
+                    auto& button = joystickMap.at(Input::GamepadInput::Button(e.cbutton.button));
+                    if (!button.active) {
                         ptr->activate();
                     }
-                    button.second = true;
+                    button.active = true;
                 }
                 break;
-            case SDL_JOYBUTTONUP:
-                if (auto ptr = getJoyInput(e.jbutton.button)) {
-                    auto& button = joystickMap.at(Input::GamepadInput::Button(e.jbutton.button));
-                    if (button.second) {
+            case SDL_CONTROLLERBUTTONUP:
+                if (auto ptr = getJoyInput(e.cbutton.button)) {
+                    auto& button = joystickMap.at(Input::GamepadInput::Button(e.cbutton.button));
+                    if (button.active) {
                         ptr->deactivate();
-                        button.second = false;
+                        button.active = false;
                     }
                 }
                 break;
-            case SDL_JOYHATMOTION:
+            //case SDL_CONTROLLER:
+            //    break;
+            case SDL_CONTROLLERAXISMOTION:
 
-
-
-
-                break;
-            case SDL_JOYAXISMOTION:
-
-                if (waitingForInput != InputType::NONE && abs(e.jaxis.value) > JOY_AXIS_MAP_THRESHOLD) {
-                    bindInput(waitingForInput, GamepadInput::Axis(e.jaxis.axis, e.jaxis.value > JOY_AXIS_MAP_THRESHOLD));
+                if (waitingForInput != InputType::NONE && abs(e.caxis.value) > JOY_AXIS_MAP_THRESHOLD) {
+                    bindInput(waitingForInput, GamepadInput::Axis(e.caxis.axis, e.caxis.value > JOY_AXIS_MAP_THRESHOLD));
                     waitingForInput = InputType::NONE;
                 }
                 else {
@@ -239,16 +250,16 @@ namespace Input {
                     };
 
                     auto checkAxisSide = [&e](bool side) {
-                        auto r = getAxisInput(e.jaxis.axis, side);
+                        auto r = getAxisInput(e.caxis.axis, side);
 
                         if (r.first && r.second) {
-                            bool inrangeCur = inRange(r.second->positiveSide, e.jaxis.value);
-                            bool inrangePrev = inRange(r.second->positiveSide, r.second->axisPrevPos);
+                            bool inrangeCur = inRange(r.second->positiveSide, e.caxis.value);
+                            bool inrangePrev = inRange(r.second->positiveSide, r.first->axisPrevPos);
 
                             if (inrangeCur != inrangePrev) {
                                 inrangeCur ? r.first->activate() : r.first->deactivate();
                             }
-                            r.second->axisPrevPos = e.jaxis.value;
+                            r.first->axisPrevPos = e.caxis.value;
                         }
                     };
 
@@ -266,11 +277,11 @@ namespace Input {
                 if (auto ptr = getMouseInput(e.button.button)) {
                     auto& mouse = mouseMap.at(e.button.button);
 
-                    if (!mouse.second) {
+                    if (!mouse.active) {
                         ptr->activate();
                         ptr->lastPressPosition = Vec2i(e.button.x, e.button.y);
                     }
-                    mouse.second = true;
+                    mouse.active = true;
                 }
                 break;
             case SDL_MOUSEBUTTONUP:
@@ -278,7 +289,7 @@ namespace Input {
                     auto& mouse = mouseMap.at(e.button.button);
                     ptr->deactivate();
                     ptr->lastReleasePosition = Vec2i(e.button.x, e.button.y);
-                    mouse.second = false;
+                    mouse.active = false;
                 }
                 break;
             }
@@ -307,18 +318,16 @@ namespace Input {
 
     //////////////////////////////////////////////////////////////////////////////////////////
     void bindInput(InputType input, SDL_Keycode key) {
-        keyMap[key].first = input;
-        keyMap[key].second = false;
+        keyMap[key] = InputMapValue{ input };
     }
     void bindInput(InputType input, GamepadInput gamepad) {
-        joystickMap[gamepad].first = input;
-        joystickMap[gamepad].second = false;
+        joystickMap[gamepad] = InputMapValue{ input };
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
     void unbind(InputType input) {
         for (auto it = keyMap.begin(); it != keyMap.end();) {
-            if (it->second.first == input) {
+            if (it->second.type == input) {
                 it = keyMap.erase(it);
             }
             else {
@@ -326,7 +335,7 @@ namespace Input {
             }
         }
         for (auto it = joystickMap.begin(); it != joystickMap.end();) {
-            if (it->second.first == input) {
+            if (it->second.type == input) {
                 it = joystickMap.erase(it);
             }
             else {
@@ -362,27 +371,30 @@ namespace Input {
     //////////////////////////////////////////////////////////////////////////////////////////
 
     void updateJoystick() {
-        if (!joystick) {
+        if (!controller) {
             int joycount = SDL_NumJoysticks();
             for (int i = 0; i < joycount; i++) {
 
-                joystick = Gamepad(i);
+                controller = Gamepad(i);
 
-                if (joystick->isConnected()) {
+                if (controller->isConnected()) {
+                    LOG_INFO("Connected game controller");
+                    Resources::loadControllerDB();
                     break;
                 }
                 else {
-                    joystick = std::nullopt;
+                    controller = std::nullopt;
                 }
             }
         }
-        else if (!joystick->isConnected()) {
-            joystick = std::nullopt;
+        else if (!controller->isConnected()) {
+            LOG_INFO("Disconnected game controller");
+            controller = std::nullopt;
         }
     }
 
     void closeJoystick() {
-        joystick = std::nullopt;
+        controller = std::nullopt;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -484,12 +496,12 @@ namespace Input {
                 joys.clear();
 
                 for (auto& it : keyMap) {
-                    if (it.second.first == i) {
+                    if (it.second.type == i) {
                         keys.push_back(&it.first);
                     }
                 }
                 for (auto& it : joystickMap) {
-                    if (it.second.first == i) {
+                    if (it.second.type == i) {
                         joys.push_back(&it.first);
                     }
                 }
@@ -577,9 +589,12 @@ namespace Input {
 
                 //SDL_Joystick* joy = activeJoystick;
 
-                if (joystick && joystick->isConnected()) {
-                    int buttonCount = SDL_JoystickNumButtons(joystick->getHandle());
-                    SDL_JoystickID id = SDL_JoystickInstanceID(joystick->getHandle());
+                if (controller && controller->isConnected()) {
+
+                    SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller->getHandle());
+
+                    int buttonCount = SDL_JoystickNumButtons(joystick);
+                    SDL_JoystickID id = SDL_JoystickInstanceID(joystick);
                                         
                     static char controllerbuf[32];
                     sprintf(controllerbuf, "Controller %1d", i);
@@ -596,11 +611,11 @@ namespace Input {
                         ImGui::Text("Controller Name"); ImGui::NextColumn();
                         ImGui::Text("%s", SDL_JoystickNameForIndex(i)); ImGui::NextColumn();
                         ImGui::Text("Vendor ID"); ImGui::NextColumn();
-                        ImGui::Text("0x%04x", SDL_JoystickGetVendor(joystick->getHandle())); ImGui::NextColumn();
+                        ImGui::Text("0x%04x", SDL_JoystickGetVendor(joystick)); ImGui::NextColumn();
                         ImGui::Text("Product ID"); ImGui::NextColumn();
-                        ImGui::Text("0x%04x", SDL_JoystickGetProduct(joystick->getHandle())); ImGui::NextColumn();
+                        ImGui::Text("0x%04x", SDL_JoystickGetProduct(joystick)); ImGui::NextColumn();
                         ImGui::Text("Product Version"); ImGui::NextColumn();
-                        ImGui::Text("0x%04x", SDL_JoystickGetProductVersion(joystick->getHandle())); ImGui::NextColumn();
+                        ImGui::Text("0x%04x", SDL_JoystickGetProductVersion(joystick)); ImGui::NextColumn();
                         ImGui::Columns(1);
                         ImGui::Separator();
 
@@ -615,7 +630,7 @@ namespace Input {
 
                             ImGui::Text("Button %2d", j);
                             ImGui::NextColumn();
-                            ImGui::Text("%d", SDL_JoystickGetButton(joystick->getHandle(), j));
+                            ImGui::Text("%s", SDL_JoystickGetButton(joystick, j) != 0 ? "PRESSED" : "");
                             ImGui::NextColumn();
                         }
                         ImGui::Columns(1);
@@ -623,12 +638,12 @@ namespace Input {
 
                         ImGui::Spacing();
                         
-                        int axiscount = SDL_JoystickNumAxes(joystick->getHandle());
+                        int axiscount = SDL_JoystickNumAxes(joystick);
                         ImGui::Text("Axis Count: %d", axiscount);
                         for (int j = 0; j < axiscount; j++) {
 
                             static char axisbuf[32];
-                            float position = 100.f * (float)SDL_JoystickGetAxis(joystick->getHandle(), j) / (float)(SHRT_MAX);
+                            float position = 100.f * (float)SDL_JoystickGetAxis(joystick, j) / (float)(SHRT_MAX);
                             sprintf(axisbuf, "%d", (int)(position));
 
                             ImGui::Text("%4s: ", axisNames[j]);
@@ -641,10 +656,10 @@ namespace Input {
                         ImGui::Separator();
                         ImGui::Spacing();
 
-                        int hatcount = SDL_JoystickNumHats(joystick->getHandle());
+                        int hatcount = SDL_JoystickNumHats(joystick);
                         for (int j = 0; j < hatcount; j++) {
                             static const char* hatbuf;
-                            uint8_t hatpos = SDL_JoystickGetHat(joystick->getHandle(), j);
+                            uint8_t hatpos = SDL_JoystickGetHat(joystick, j);
                             switch (hatpos) {
                                 case SDL_HAT_CENTERED: 
                                     hatbuf = "SDL_HAT_CENTERED";

@@ -5,12 +5,12 @@
 class Gamepad {
 public:
 	Gamepad(int device) {
-		handle = SDL_JoystickOpen(device);
+		handle = SDL_GameControllerOpen(device);
 	}
 	~Gamepad() {
-		if (handle && SDL_JoystickGetAttached(handle)) 
+		if (handle && SDL_GameControllerGetAttached(handle)) 
 		{
-			SDL_JoystickClose(handle);
+			SDL_GameControllerClose(handle);
 		}
 	}
 
@@ -29,13 +29,13 @@ public:
 	}
 
 	inline bool isConnected() {
-		return handle && SDL_JoystickGetAttached(handle);
+		return handle && SDL_GameControllerGetAttached(handle);
 	}
 
-	inline SDL_Joystick* getHandle() {
+	inline SDL_GameController* getHandle() {
 		return handle;
 	}
 
 protected:
-	SDL_Joystick* handle = nullptr;
+	SDL_GameController* handle = nullptr;
 };
