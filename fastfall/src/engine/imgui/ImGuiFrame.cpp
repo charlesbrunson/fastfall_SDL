@@ -37,7 +37,12 @@ void ImGuiFrame::addContent(ImGuiContent* content) {
 	imguiContent[static_cast<unsigned int>(content->ImGui_getType())].insert(content);
 }
 void ImGuiFrame::removeContent(ImGuiContent* content) {
-	imguiContent[static_cast<unsigned int>(content->ImGui_getType())].erase(content);
+
+	std::set<ImGuiContent*>& set = imguiContent[static_cast<unsigned int>(content->ImGui_getType())];
+
+	if (!set.empty()) {
+		set.erase(content);
+	}
 }
 void ImGuiFrame::resize(Recti outer, Vec2u innersize) {
 	int sideMargin = (outer.width - innersize.x) / 2;
@@ -49,6 +54,12 @@ void ImGuiFrame::resize(Recti outer, Vec2u innersize) {
 	lower_consoleArea = Recti(sideMargin, topMargin + innersize.y, innersize.x, topMargin);;
 }
 
+void ImGuiFrame::clear() {
+	for (unsigned i = 0; i < ImGuiContentTypeCount; i++) {
+		imguiContent[i].clear();
+	}
+
+}
 
 void ImGuiFrame::displaySidePanel(std::set<ImGuiContent*>& contents, Recti area, const char* panelName) {
 

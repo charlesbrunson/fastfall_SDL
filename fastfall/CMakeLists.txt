@@ -27,15 +27,15 @@ add_library (fastfall STATIC
 	${FF_HEADERS}
 )
 
-add_custom_target(fbs_compiled
-	COMMAND ${FLATC} 
-		--cpp 
-		-o "${CMAKE_CURRENT_SOURCE_DIR}/${SCHEMA_DIR}/" 
-		--filename-suffix "-flat"
-		--filename-ext "hpp"
-		${FLATC_SCHEMAS}
-)
-add_dependencies(fastfall fbs_compiled)
+#add_custom_target(fbs_compiled
+#	COMMAND ${FLATC} 
+#		--cpp 
+#		-o "${CMAKE_CURRENT_SOURCE_DIR}/${SCHEMA_DIR}/" 
+#		--filename-suffix "-flat"
+#		--filename-ext "hpp"
+#		${FLATC_SCHEMAS}
+#)
+#add_dependencies(fastfall fbs_compiled)
 
 target_include_directories(fastfall PUBLIC 
 	${CMAKE_CURRENT_SOURCE_DIR}/include

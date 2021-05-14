@@ -1,0 +1,12 @@
+<index>
+	<sprites path="sprite/">
+		<sprite>player</sprite>
+	</sprites>
+	<tilesets path="level/tileset/">
+		<tileset>tile_test</tileset>
+		<tileset>other_tileset</tileset>
+	</tilesets>
+	<levels path="level/">
+		<level>map_test</level>
+	</levels>
+</index>

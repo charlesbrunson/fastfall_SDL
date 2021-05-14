@@ -21,6 +21,7 @@ public:
 		WINDOWED
 	};
 
+	Window();
 	Window(const char* title, unsigned initWidth, unsigned initHeight);
 	Window(std::string_view title, unsigned initWidth, unsigned initHeight);
 	~Window();
@@ -38,6 +39,8 @@ public:
 	void setWindowCentered();
 
 	void setWindowFullscreen(FullscreenType set);
+
+	void setWindowTitle(std::string_view title);
 
 	void setVsyncEnabled(bool enable = true);
 

@@ -1,4 +1,4 @@
-#include "Asset.hpp"
+#include "fastfall/resource/Asset.hpp"
 
 #include <fstream>
 #include <memory>
@@ -28,9 +28,12 @@ sf::Int64 AssetStream::getSize()
 */
 
 //ASSET
-Asset::Asset(const std::string& filename):
-	assetName(filename),
-	ImGuiContent(ImGuiContentType::NONE, filename)
+
+namespace ff {
+
+Asset::Asset(const std::string& filename) :
+    assetName(filename),
+    ImGuiContent(ImGuiContentType::NONE, filename)
 {
 
 };
@@ -39,6 +42,8 @@ std::vector<int8_t> readFile(const char* filename) {
 
     // open the file:
     std::ifstream file(filename, std::ios::binary);
+
+    assert(file.is_open());
 
     // Stop eating new lines in binary mode!!!
     file.unsetf(std::ios::skipws);
@@ -60,4 +65,6 @@ std::vector<int8_t> readFile(const char* filename) {
         std::istream_iterator<int8_t>());
 
     return vec;
+}
+
 }

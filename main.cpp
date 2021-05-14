@@ -6,8 +6,14 @@
 #include "fastfall/render.hpp"
 
 #include "fastfall/util/log.hpp"
+#include "fastfall/util/math.hpp"
 #include "fastfall/engine/Engine.hpp"
 #include "EmptyState.hpp"
+
+#include "fastfall/resource/Resources.hpp"
+#include "fastfall/resource/ResourceWatcher.hpp"
+
+#include "fastfall/engine/imgui/ImGuiFrame.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -26,27 +32,23 @@ int main(int argc, char* argv[])
 
 	log::set_verbosity(log::level::INFO);
 
-	
-	//Resources::loadAll(Resources::AssetSource::INDEX_FILE, "fileindex.xml");
-	//Resources::buildPackFile("data.pack");
-	//Resources::unloadAll();
-
-	//Resources::loadAll(Resources::AssetSource::PACK_FILE, "data.pack");
-	//Resources::unloadAll();
-	
-
-	//Resources::loadAll(Resources::AssetSource::INDEX_FILE, "fileindex.xml");
-	//Resources::buildPackFile("data.pack");
-
-	//Resources::addLoadedToWatcher();
-	//ResourceWatcher::start_watch_thread();
-
-
 	using namespace ff;
 
 	FFinit();
 
+	std::unique_ptr<Window> window = std::make_unique<Window>();
+
+	Resources::loadAll(Resources::AssetSource::INDEX_FILE, "fileindex.xml");
+	Resources::buildPackFile("data.pack");
+	Resources::unloadAll();
+
+	Resources::loadAll(Resources::AssetSource::PACK_FILE, "data.pack");
+
+	//Resources::addLoadedToWatcher();
+	//ResourceWatcher::start_watch_thread();
+
 	Engine::init(
+		std::move(window),
 		EngineRunnable(std::make_unique<EmptyState>()),
 		Vec2u(1920, 1080),
 		EngineSettings{
@@ -74,10 +76,11 @@ int main(int argc, char* argv[])
 	//ResourceWatcher::join_watch_thread();
 
 	Engine::shutdown();
-	//Resources::unloadAll();
+	Resources::unloadAll();
+
+	ImGuiFrame::getInstance().clear();
 
 	FFquit();
-	
 
 	return EXIT_SUCCESS;
 }

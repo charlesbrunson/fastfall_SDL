@@ -7,6 +7,21 @@
 
 namespace ff {
 
+Window::Window()
+	: RenderTarget(),
+	m_window{ SDL_CreateWindow(
+		"",
+		SDL_WINDOWPOS_UNDEFINED,
+		SDL_WINDOWPOS_UNDEFINED,
+		480,
+		360,
+		SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN
+	) }
+{
+	init();
+	m_id = SDL_GetWindowID(m_window);
+}
+
 Window::Window(const char* title, unsigned initWidth, unsigned initHeight)
 	: RenderTarget(),
 	m_window{ SDL_CreateWindow(
@@ -95,6 +110,11 @@ void Window::setVsyncEnabled(bool enable)
 {
 	setActive();
 	checkSDL(SDL_GL_SetSwapInterval(enable ? 1 : 0));
+}
+
+
+void Window::setWindowTitle(std::string_view title) {
+	SDL_SetWindowTitle(m_window, title.data());
 }
 
 void Window::setWindowFullscreen(FullscreenType set) {

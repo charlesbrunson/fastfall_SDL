@@ -2,7 +2,7 @@
 
 #include "fastfall/render/opengl.hpp"
 
-#include "SDL_image.h"
+#include "fastfall/util/log.hpp"
 
 #include <iostream>
 
@@ -58,27 +58,42 @@ Texture::~Texture() {
 bool Texture::loadFromFile(const std::string_view filename) {
 
 	SDL_Surface* surf = IMG_Load(filename.data());
-	if (surf) {
-		// determine the image type
-		// SDL_image is configured to only support BMP and PNG
-		// and BMP does not support an alpha channel
-		if (surf->format->Amask > 0) {
-			loadFromData(surf->pixels, surf->w, surf->h, ImageFormat::PNG);
-		}
-		else {
-			loadFromData(surf->pixels, surf->w, surf->h, ImageFormat::BMP);
-		}
+	checkSDL(surf);
 
-		glCheck(SDL_FreeSurface(surf));
-	}
-	else {
-		std::cout << IMG_GetError() << std::endl;
-	}
+	loadFromSurface(surf);
+	SDL_FreeSurface(surf);
 
 	return exists();
 }
 
-bool Texture::loadFromData(const void* data, unsigned width, unsigned height, ImageFormat format) {
+
+bool Texture::loadFromStream(const void* data, short length) {
+	SDL_RWops* io = SDL_RWFromConstMem(data, length);
+	checkSDL(io);
+
+	SDL_Surface* surf = IMG_Load_RW(io, 1);
+	checkSDL(surf);
+
+	loadFromSurface(surf);
+	SDL_FreeSurface(surf);
+
+	return exists();
+}
+
+bool Texture::loadFromSurface(SDL_Surface* surface) {
+	checkSDL(surface);
+	if (surface) {
+		if (surface->format->Amask > 0) {
+			load(surface->pixels, surface->w, surface->h, ImageFormat::PNG);
+		}
+		else {
+			load(surface->pixels, surface->w, surface->h, ImageFormat::BMP);
+		}
+	}
+	return exists();
+}
+
+bool Texture::load(const void* data, unsigned width, unsigned height, ImageFormat format) {
 	if (data) {
 		glGenTextures(1, &texture_id);
 		glBindTexture(GL_TEXTURE_2D, texture_id);
@@ -129,13 +144,9 @@ const Texture& Texture::getNullTexture() {
 
 		// generate null texture
 		glGenTextures(1, &NullTexture.texture_id);
+		glBindTexture(GL_TEXTURE_2D, NullTexture.texture_id);
 
 		GLubyte data[] = { 255, 255, 255, 255 };
-
-		NullTexture.m_size = { 1, 1 };
-		NullTexture.m_invSize = { 1.f, 1.f };
-
-		glBindTexture(GL_TEXTURE_2D, NullTexture.texture_id);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -143,6 +154,9 @@ const Texture& Texture::getNullTexture() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		glCheck(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
+
+		NullTexture.m_size = { 1, 1 };
+		NullTexture.m_invSize = { 1.f, 1.f };
 	}
 	return NullTexture;
 }

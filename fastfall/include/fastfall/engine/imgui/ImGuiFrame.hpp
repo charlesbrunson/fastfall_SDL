@@ -31,6 +31,7 @@ public:
 		enabled = is_enabled;
 	}
 
+	void clear();
 
 	const static std::string leftPanel;
 	const static std::string rightPanel;

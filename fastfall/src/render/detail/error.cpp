@@ -81,12 +81,13 @@ namespace ff {
             }
 
             // Log the error
-            std::cout << "An internal OpenGL call failed in "
+            std::stringstream ss;
+            ss << "An internal OpenGL call failed in "
                 << fileString.substr(fileString.find_last_of("\\/") + 1) << "(" << line << ")."
                 << "\nExpression:\n   " << expression
                 << "\nError description:\n   " << error << "\n   " << description << "\n"
                 << std::endl;
+            LOG_ERR_(ss.str());
         }
     }
-
 }

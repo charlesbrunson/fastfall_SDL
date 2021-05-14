@@ -12,7 +12,7 @@ using namespace rapidxml;
 
 #include <ranges>
 
-#include "schema/resource-flat.hpp"
+#include "fastfall/schema/resource-flat.hpp"
 
 #include "fastfall/resource/ResourceWatcher.hpp"
 
@@ -148,7 +148,6 @@ void Resources::add_animation(const SpriteAsset::ParsedAnim& panim) {
 
 		//resource.animation_table.insert(std::make_pair( anim.anim_id, anim ));
 		resource.animation_table[anim.anim_id] = std::move(anim);
-		LOG_INFO("loaded animation:  {} - {}", panim.owner->getAssetName(), panim.name);
 
 	}
 	else {
@@ -163,8 +162,8 @@ void Resources::add_animation(const SpriteAsset::ParsedAnim& panim) {
 		doChain(anim);
 
 		resource.animation_table[existing_id] = std::move(anim);
-		LOG_INFO("updated animation: {} - {}", panim.owner->getAssetName(), panim.name);
 	}
+	LOG_INFO("loaded anim: {} - {}", panim.owner->getAssetName(), panim.name);
 }
 
 ////////////////////////////////////////////////////////////
@@ -301,12 +300,11 @@ bool Resources::buildPackFile(const std::string& packFilename) {
 	//sf::Clock timer;
 	flatbuffers::FlatBufferBuilder builder;
 
-
 	using namespace flat::resources;
 
-	auto sprvec = buildPackAssets<SpriteAsset >(builder, resource.sprites);
+	auto sprvec  = buildPackAssets<SpriteAsset >(builder, resource.sprites);
 	auto tilevec = buildPackAssets<TilesetAsset>(builder, resource.tilesets);
-	auto lvlvec = buildPackAssets<LevelAsset  >(builder, resource.levels);
+	auto lvlvec  = buildPackAssets<LevelAsset  >(builder, resource.levels);
 
 	ResourcesFBuilder resBuilder(builder);
 	resBuilder.add_sprites(sprvec);
@@ -318,7 +316,7 @@ bool Resources::buildPackFile(const std::string& packFilename) {
 	//LOG_INFO("Serializing complete: {}ms", timer.getElapsedTime().asMilliseconds());
 
 	LOG_INFO("Writing serialized data to file: {}", packFilename);
-	std::fstream file(packFilename, std::ios::binary | std::ios_base::out);
+	std::fstream file(DEBUGPATH + packFilename, std::ios::binary | std::ios_base::out);
 	if (file) {
 
 		uint8_t* data = builder.GetBufferPointer();
@@ -511,6 +509,8 @@ void Resources::ImGui_getContent() {
 
 
 void Resources::addLoadedToWatcher() {
+	assert(resource.loadMethod != AssetSource::PACK_FILE);
+
 	for (auto& [key, val] : resource.sprites) {
 		ResourceWatcher::add_watch(val->getFilePath() + val->getAssetName() + spriteExt, val.get());
 		ResourceWatcher::add_watch(val->getTexPath(), val.get());

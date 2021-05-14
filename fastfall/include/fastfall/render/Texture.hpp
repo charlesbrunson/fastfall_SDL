@@ -4,6 +4,8 @@
 
 #include "glm/glm.hpp"
 
+#include "SDL_image.h"
+
 namespace ff {
 
 class Texture;
@@ -45,7 +47,8 @@ public:
 	Texture& operator=(Texture&&) = default;
 
 	bool loadFromFile(const std::string_view filename);
-	bool loadFromData(const void* data, unsigned width, unsigned height, ImageFormat format = ImageFormat::BMP);
+	bool loadFromStream(const void* data, short length);
+	bool loadFromSurface(SDL_Surface* surface);
 
 	bool create(glm::uvec2 size);
 	bool create(unsigned sizeX, unsigned sizeY);
@@ -65,6 +68,9 @@ public:
 	glm::fvec2 inverseSize() const { return m_invSize; };
 
 private:
+
+	bool load(const void* data, unsigned width, unsigned height, ImageFormat format = ImageFormat::BMP);
+
 	glm::uvec2 m_size;
 	glm::fvec2 m_invSize;
 

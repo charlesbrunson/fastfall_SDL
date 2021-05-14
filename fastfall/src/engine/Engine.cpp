@@ -24,9 +24,9 @@ unsigned getDisplayRefreshRate(const Window& win);
 
 Engine* Engine::engineInstance = nullptr;
 
-void Engine::init(EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings) {
+void Engine::init(std::unique_ptr<Window>&& window, EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings) {
     LOG_INFO("Initializing engine instance");
-    engineInstance = new Engine{ std::move(toRun), initWindowSize, engineSettings };
+    engineInstance = new Engine{ std::move(window), std::move(toRun), initWindowSize, engineSettings };
 
     LOG_INFO("Initialization complete");
 }
@@ -40,9 +40,12 @@ void Engine::shutdown() {
 }
 
 Engine::Engine(
+    std::unique_ptr<Window>&& window,
     EngineRunnable&& toRun,
     const Vec2u& initWindowSize,
     EngineSettings engineSettings) :
+
+    window{std::move(window)},
 
     initWinSize(initWindowSize),
     settings(engineSettings),
@@ -428,17 +431,16 @@ void Engine::initRenderTarget(bool fullscreen)
     char version[32];
     sprintf_s(version, "%d.%d.%d", VERSION[0], VERSION[1], VERSION[2]);
 
+    window->setWindowTitle(fmt::format("GamePro2 v{}", version));
     if (settings.fullscreen) {
         // go borderless fullscreen
-        window = std::make_unique<Window>(fmt::format("GamePro2 v{}", version), displaySize.x, displaySize.y);
-        window->setWindowFullscreen(Window::FullscreenType::FULLSCREEN_DESKTOP);
 
+        window->setWindowSize(displaySize);
+        window->setWindowFullscreen(Window::FullscreenType::FULLSCREEN_DESKTOP);
     }
     else {
-        window = std::make_unique<Window>(fmt::format("GamePro2 v{}", version), 
-            initWinSize.x,
-            initWinSize.y
-        );
+
+        window->setWindowSize(initWinSize);
         window->setWindowCentered();
         window->setWindowResizable();
     }

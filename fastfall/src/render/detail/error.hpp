@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <string>
 
+#include "fastfall/util/log.hpp"
+
 #include <SDL.h>
 
 namespace ff {
@@ -15,6 +17,7 @@ namespace ff {
     inline void checkSDL(int result) {
         if (result < 0) {
             std::string err = SDL_GetError();
+            LOG_ERR_(err);
             throw Error(err);
         }
     }
@@ -23,6 +26,7 @@ namespace ff {
     auto checkSDL(ObjectPtr pObject) {
         if (pObject == nullptr) {
             std::string err = SDL_GetError();
+            LOG_ERR_(err);
             throw Error(err);
         }
         return pObject;

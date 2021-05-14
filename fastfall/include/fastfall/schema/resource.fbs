@@ -94,7 +94,7 @@ table AnimationAssetF {
 	//spr_name:string (required);
 	name:string (required);
 	area:math.RectFi (required);
-	origin:math.Vec2Fu (required);
+	origin:math.Vec2Fi (required);
 	framerateMS:[uint] (required);
 	loop:uint = 0;
 

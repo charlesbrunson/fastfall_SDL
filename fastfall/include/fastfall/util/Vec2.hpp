@@ -95,70 +95,78 @@ public:
 		return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";
 	}
 
+
+	template <typename T, typename = std::enable_if_t<std::is_integral<T>::value>>
+	bool operator< (const ff::Vec2<T>& right) const noexcept {
+		return y == right.y ?
+			x < right.x :
+			y < right.y;
+	}
+
 	Type x;
 	Type y;
 };
 
-typedef Vec2<int> Vec2i;
-typedef Vec2<unsigned int> Vec2u;
-typedef Vec2<float> Vec2f;
+using Vec2i = Vec2<int>;
+using Vec2u = Vec2<unsigned int>;
+using Vec2f = Vec2<float>;
 
-}
+} // namespace ff
 
 template <typename T>
-inline ff::Vec2<T> operator -(const ff::Vec2<T>& right) {
-	return Vec2<T>(-right.x, -right.y);
+inline ff::Vec2<T> operator-(const ff::Vec2<T>& right) {
+	return ff::Vec2<T>(-right.x, -right.y);
 }
 
 template <typename T, typename U>
-inline ff::Vec2<T>& operator +=(ff::Vec2<T>& left, const ff::Vec2<U>& right) {
+inline ff::Vec2<T>& operator+=(ff::Vec2<T>& left, const ff::Vec2<U>& right) {
 	left.x += static_cast<T>(right.x);
 	left.y += static_cast<T>(right.y);
 	return left;
 }
 
 template <typename T, typename U>
-inline ff::Vec2<T>& operator -=(ff::Vec2<T>& left, const ff::Vec2<U>& right) {
+inline ff::Vec2<T>& operator-=(ff::Vec2<T>& left, const ff::Vec2<U>& right) {
 	left.x -= static_cast<T>(right.x);
 	left.y -= static_cast<T>(right.y);
 	return left;
 }
 
 template <typename T, typename U>
-inline ff::Vec2<T> operator +(const ff::Vec2<T>& left, const ff::Vec2<U>& right) {
-	return Vec2<T>(left.x + static_cast<T>(right.x), left.y + static_cast<T>(right.y));
+inline ff::Vec2<T> operator+(const ff::Vec2<T>& left, const ff::Vec2<U>& right) {
+	return ff::Vec2<T>(left.x + static_cast<T>(right.x), left.y + static_cast<T>(right.y));
 }
 
 template <typename T, typename U>
-inline ff::Vec2<T> operator -(const ff::Vec2<T>& left, const ff::Vec2<U>& right) {
-	return Vec2<T>(left.x - static_cast<T>(right.x), left.y - static_cast<T>(right.y));
+inline ff::Vec2<T> operator-(const ff::Vec2<T>& left, const ff::Vec2<U>& right) {
+	return ff::Vec2<T>(left.x - static_cast<T>(right.x), left.y - static_cast<T>(right.y));
 }
 
 template <typename T, typename U>
-inline ff::Vec2<T> operator *(const ff::Vec2<T>& left, U right) {
-	return Vec2<T>(left.x * static_cast<T>(right), left.y * static_cast<T>(right));
+inline ff::Vec2<T> operator*(const ff::Vec2<T>& left, U right) {
+	return ff::Vec2<T>(left.x * static_cast<T>(right), left.y * static_cast<T>(right));
 }
 
 template <typename T, typename U>
-inline ff::Vec2<U> operator *(T left, const ff::Vec2<U>& right) {
-	return Vec2<U>(right.x * left, right.y * left);
+inline ff::Vec2<U> operator*(T left, const ff::Vec2<U>& right) {
+	return ff::Vec2<U>(right.x * left, right.y * left);
 }
 
 template <typename T, typename U>
-inline ff::Vec2<T>& operator *=(ff::Vec2<T>& left, U right) {
+inline ff::Vec2<T>& operator*=(ff::Vec2<T>& left, U right) {
 	left.x *= right;
 	left.y *= right;
 	return left;
 }
 
 template <typename T, typename U>
-inline ff::Vec2<T> operator /(const ff::Vec2<T>& left, U right) {
+inline ff::Vec2<T> operator/(const ff::Vec2<T>& left, U right) {
 	if (right == 0) throw "Vec2: divide by zero";
-	return Vec2<T>(left.x / static_cast<T>(right), left.y / static_cast<T>(right));
+	return ff::Vec2<T>(left.x / static_cast<T>(right), left.y / static_cast<T>(right));
 }
 
 template <typename T, typename U>
-inline ff::Vec2<T>& operator /=(ff::Vec2<T>& left, U right) {
+inline ff::Vec2<T>& operator/=(ff::Vec2<T>& left, U right) {
 	if (right == 0) throw "Vec2: divide by zero";
 	left.x /= right;
 	left.y /= right;
@@ -166,34 +174,36 @@ inline ff::Vec2<T>& operator /=(ff::Vec2<T>& left, U right) {
 }
 
 template <typename T>
-inline bool operator ==(const ff::Vec2<T>& left, const ff::Vec2<T>& right) {
+inline bool operator==(const ff::Vec2<T>& left, const ff::Vec2<T>& right) noexcept {
 	return (left.x == right.x) && (left.y == right.y);
 }
 
 template <typename T>
-inline bool operator !=(const ff::Vec2<T>& left, const ff::Vec2<T>& right) {
+inline bool operator!=(const ff::Vec2<T>& left, const ff::Vec2<T>& right) noexcept {
 	return (left.x != right.x) || (left.y != right.y);
 }
 
-template <typename T, typename>
-inline bool operator <(const ff::Vec2<T>& left, const ff::Vec2<T>& right) {
+/*
+template <typename T, typename = std::enable_if_t<std::is_integral<T>::value>>
+inline bool operator< (const ff::Vec2<T>& left, const ff::Vec2<T>& right) noexcept {
 	return left.y == right.y ?
 		left.x < right.x :
 		left.y < right.y;
 }
+*/
 
-template <typename T, typename>
-inline bool operator <=(const ff::Vec2<T>& left, const ff::Vec2<T>& right) {
+template <typename T, typename = std::enable_if_t<std::is_integral<T>::value>>
+inline bool operator<= (const ff::Vec2<T>& left, const ff::Vec2<T>& right) noexcept {
 	return left == right || left < right;
 }
 
-template <typename T, typename>
-inline bool operator >(const ff::Vec2<T>& left, const ff::Vec2<T>& right) {
+template <typename T, typename = std::enable_if_t<std::is_integral<T>::value>>
+inline bool operator> (const ff::Vec2<T>& left, const ff::Vec2<T>& right) noexcept {
 	return !(left <= right);
 }
 
-template <typename T, typename>
-inline bool operator >=(const ff::Vec2<T>& left, const ff::Vec2<T>& right) {
+template <typename T, typename = std::enable_if_t<std::is_integral<T>::value>>
+inline bool operator>= (const ff::Vec2<T>& left, const ff::Vec2<T>& right) noexcept {
 	return !(left < right);
 }
 

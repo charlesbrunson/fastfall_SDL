@@ -65,14 +65,14 @@ private:
 	Input::InputObserver input;
 	//InstanceObserver instanceObs;
 
-	Engine(EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings);
+	Engine(std::unique_ptr<Window>&& window, EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings);
 	~Engine() = default;
 
 public:
 
 	static inline Engine& getInstance() { assert(engineInstance != nullptr); return *engineInstance; };
 
-	static void init(EngineRunnable&& toRun, const Vec2u& initWindowSize = Vec2u(0, 0), EngineSettings engineSettings = EngineSettings{});
+	static void init(std::unique_ptr<Window>&& window, EngineRunnable&& toRun, const Vec2u& initWindowSize = Vec2u(0, 0), EngineSettings engineSettings = EngineSettings{});
 
 	static void shutdown();
 
