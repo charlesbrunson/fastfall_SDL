@@ -12,7 +12,7 @@ table PropertyF {
 table ObjectF {
 	id:uint;
 	name:string (required);
-	type_hash:uint;
+	type_hash:ulong;
 	pos:math.Vec2Fi (required);
 	width:uint;
 	height:uint;

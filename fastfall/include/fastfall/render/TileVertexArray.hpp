@@ -4,6 +4,7 @@
 #include "fastfall/engine/config.hpp"
 
 #include "fastfall/render/VertexArray.hpp"
+#include "fastfall/render/Drawable.hpp"
 
 //#include <SFML/Graphics.hpp>
 

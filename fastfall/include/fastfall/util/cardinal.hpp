@@ -1,7 +1,4 @@
 #pragma once
-
-#pragma message("HELLO")
-
 #include <optional>
 
 #include "fastfall/util/Vec2.hpp"

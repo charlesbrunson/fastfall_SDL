@@ -1,11 +1,11 @@
 #pragma once
 
 #include "RenderState.hpp"
-//#include "RenderTarget.hpp"
+#include "RenderTarget.hpp"
 
 namespace ff {
 
-class RenderTarget;
+//class RenderTarget;
 
 class Drawable {
 public:

@@ -18,7 +18,11 @@ add_subdirectory ("fastfall")
 add_executable(test_project	
 	"main.cpp" 
 	"EmptyState.hpp"
-)
+	"content/object/BasicPlatform.hpp" 
+	"content/object/Player.cpp" 
+	"content/object/Player.hpp" 
+	"content/TestState.cpp" 
+	"content/TestState.hpp" "content/object/BasicPlatform.cpp")
 
 target_include_directories(test_project PRIVATE
 

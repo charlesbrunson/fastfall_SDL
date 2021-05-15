@@ -1,13 +1,14 @@
 #pragma once
 
 #include "Vertex.hpp"
-#include "Drawable.hpp"
+//#include "Drawable.hpp"
 
 #include "Transformable.hpp"
 #include "Primitives.hpp"
 #include "Texture.hpp"
 
 #include <memory>
+#include <vector>
 
 namespace ff {
 
@@ -20,6 +21,21 @@ enum class VertexUsage {
 };
 
 class VertexArray : public Transformable {
+private:
+
+	// used to synchronize the state on the vram prior to drawing
+	// mutable because i am not smart
+	struct GPUState {
+		GLuint m_array = 0;
+		GLuint m_buffer = 0;
+
+		size_t m_bufsize = 0;
+		bool m_bound = false;
+
+		bool sync = false;
+	} mutable gl;
+
+
 public:
 
 	VertexArray(Primitive primitive_type, size_t size = 0, VertexUsage usage = VertexUsage::DYNAMIC);
@@ -57,17 +73,6 @@ private:
 	VertexUsage m_usage;
 	Primitive m_primitive;
 
-	// used to synchronize the state on the vram prior to drawing
-	// mutable because i am not smart
-	struct GPUState {
-		GLuint m_array = 0;
-		GLuint m_buffer = 0;
-
-		size_t m_bufsize = 0;
-		bool m_bound = false;
-
-		bool sync = false;
-	} mutable gl;
 
 
 	std::vector<Vertex> m_vec;

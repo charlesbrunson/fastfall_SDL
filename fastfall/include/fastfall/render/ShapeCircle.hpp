@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VertexArray.hpp"
+#include "fastfall/render/Drawable.hpp"
 
 namespace ff {
 

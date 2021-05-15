@@ -18,13 +18,13 @@ TileVertexArray::TileVertexArray()
 	tex = TextureRef{};
 }
 TileVertexArray::TileVertexArray(Vec2u arr_size) 
-	: verts(ff::Primitive::TRIANGLES, arr_size.x * arr_size.y * VERTICES_PER_TILE)
+	: verts(ff::Primitive::TRIANGLES)
 {
 	tex = TextureRef{};
 	size = arr_size;
 
 	tiles.reserve(size.x * size.y);
-	//verts.reserve(size.x * size.y * VERTICES_PER_TILE);
+	verts.vec().reserve(size.x * size.y * VERTICES_PER_TILE);
 }
 
 TileVertexArray::~TileVertexArray() {
@@ -71,7 +71,7 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 
 	}
 	else {
-		vert = vertvec.begin() + (std::distance(tiles.begin(), tile) * 4);
+		vert = vertvec.begin() + (std::distance(tiles.begin(), tile) * VERTICES_PER_TILE);
 	}
 	assert(vert != vertvec.end());
 
@@ -91,10 +91,10 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 	auto pos_botleft = (pos + botleft) * TILESIZE_F;
 	auto pos_botright = (pos + botright) * TILESIZE_F;
 
-	auto tex_topleft = (texpos + topleft) * TILESIZE_F;
-	auto tex_topright = (texpos + topright) * TILESIZE_F;
-	auto tex_botleft = (texpos + botleft) * TILESIZE_F;
-	auto tex_botright = (texpos + botright) * TILESIZE_F;
+	auto tex_topleft = (texpos + topleft) * TILESIZE_F * tex.get()->inverseSize();
+	auto tex_topright = (texpos + topright) * TILESIZE_F * tex.get()->inverseSize();
+	auto tex_botleft = (texpos + botleft) * TILESIZE_F * tex.get()->inverseSize();
+	auto tex_botright = (texpos + botright) * TILESIZE_F * tex.get()->inverseSize();
 
 	vert->color.a = 255;
 	vert->pos = pos_topleft;

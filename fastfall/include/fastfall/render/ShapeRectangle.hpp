@@ -2,6 +2,7 @@
 
 #include "VertexArray.hpp"
 #include "fastfall/util/Rect.hpp"
+#include "fastfall/render/Drawable.hpp"
 
 namespace ff {
 

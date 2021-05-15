@@ -9,6 +9,7 @@
 #include "fastfall/util/math.hpp"
 #include "fastfall/engine/Engine.hpp"
 #include "EmptyState.hpp"
+#include "content/TestState.hpp"
 
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/resource/ResourceWatcher.hpp"
@@ -49,7 +50,7 @@ int main(int argc, char* argv[])
 
 	Engine::init(
 		std::move(window),
-		EngineRunnable(std::make_unique<EmptyState>()),
+		EngineRunnable(std::make_unique<TestState>()),
 		Vec2u(1920, 1080),
 		EngineSettings{
 			.allowMargins = true,

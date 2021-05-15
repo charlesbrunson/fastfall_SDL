@@ -286,8 +286,8 @@ struct ObjectF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  uint32_t type_hash() const {
-    return GetField<uint32_t>(VT_TYPE_HASH, 0);
+  uint64_t type_hash() const {
+    return GetField<uint64_t>(VT_TYPE_HASH, 0);
   }
   const flat::math::Vec2Fi *pos() const {
     return GetStruct<const flat::math::Vec2Fi *>(VT_POS);
@@ -309,7 +309,7 @@ struct ObjectF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint32_t>(verifier, VT_ID) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint32_t>(verifier, VT_TYPE_HASH) &&
+           VerifyField<uint64_t>(verifier, VT_TYPE_HASH) &&
            VerifyFieldRequired<flat::math::Vec2Fi>(verifier, VT_POS) &&
            VerifyField<uint32_t>(verifier, VT_WIDTH) &&
            VerifyField<uint32_t>(verifier, VT_HEIGHT) &&
@@ -332,8 +332,8 @@ struct ObjectFBuilder {
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(ObjectF::VT_NAME, name);
   }
-  void add_type_hash(uint32_t type_hash) {
-    fbb_.AddElement<uint32_t>(ObjectF::VT_TYPE_HASH, type_hash, 0);
+  void add_type_hash(uint64_t type_hash) {
+    fbb_.AddElement<uint64_t>(ObjectF::VT_TYPE_HASH, type_hash, 0);
   }
   void add_pos(const flat::math::Vec2Fi *pos) {
     fbb_.AddStruct(ObjectF::VT_POS, pos);
@@ -368,19 +368,19 @@ inline flatbuffers::Offset<ObjectF> CreateObjectF(
     flatbuffers::FlatBufferBuilder &_fbb,
     uint32_t id = 0,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    uint32_t type_hash = 0,
+    uint64_t type_hash = 0,
     const flat::math::Vec2Fi *pos = 0,
     uint32_t width = 0,
     uint32_t height = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flat::resources::PropertyF>>> properties = 0,
     flatbuffers::Offset<flatbuffers::Vector<const flat::math::Vec2Fi *>> points = 0) {
   ObjectFBuilder builder_(_fbb);
+  builder_.add_type_hash(type_hash);
   builder_.add_points(points);
   builder_.add_properties(properties);
   builder_.add_height(height);
   builder_.add_width(width);
   builder_.add_pos(pos);
-  builder_.add_type_hash(type_hash);
   builder_.add_name(name);
   builder_.add_id(id);
   return builder_.Finish();
@@ -390,7 +390,7 @@ inline flatbuffers::Offset<ObjectF> CreateObjectFDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     uint32_t id = 0,
     const char *name = nullptr,
-    uint32_t type_hash = 0,
+    uint64_t type_hash = 0,
     const flat::math::Vec2Fi *pos = 0,
     uint32_t width = 0,
     uint32_t height = 0,

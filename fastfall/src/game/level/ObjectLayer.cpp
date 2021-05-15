@@ -63,7 +63,7 @@ void ObjectLayer::initFromAsset(GameContext context, const LayerRef& layerData) 
 	ref = &layerData;
 
 	for (auto& objRef : layerData.objLayer.get()->objects) {
-		GameObject::build(context, objRef.second);
+		GameObjectLibrary::build(context, objRef.second);
 	}
 }
 
