@@ -69,11 +69,11 @@ public:
 	}
 	inline void setSize(glm::vec<2, T> size)
 	{
-		left = size[0]; top = size[1];
+		width = size[0]; height = size[1];
 	}
 	inline void setSize(Vec2<T> size)
 	{
-		left = size[0]; top = size[1];
+		width = size[0]; height = size[1];
 	}
 
 	inline glm::vec<2, T> getPosition() const 

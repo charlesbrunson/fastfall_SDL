@@ -63,7 +63,9 @@ void ObjectLayer::initFromAsset(GameContext context, const LayerRef& layerData) 
 	ref = &layerData;
 
 	for (auto& objRef : layerData.objLayer.get()->objects) {
-		GameObjectLibrary::build(context, objRef.second);
+		if (objRef.second.type != 0) {
+			GameObjectLibrary::build(context, objRef.second);
+		}
 	}
 }
 

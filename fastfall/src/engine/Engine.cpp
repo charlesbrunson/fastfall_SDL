@@ -105,12 +105,10 @@ void Engine::drawRunnable(EngineRunnable& run) {
 
 bool Engine::run()
 {
-    //Barrier bar(2);
     std::barrier<> bar{ 2 };
 
     ImGui_addContent();
-    // TODO
-    //instanceObs.ImGui_addContent();
+    instanceObs.ImGui_addContent();
     input.ImGui_addContent();
 
 #ifdef DEBUG

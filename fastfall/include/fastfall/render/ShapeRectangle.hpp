@@ -15,10 +15,10 @@ public:
 	glm::fvec2 getSize();
 
 	void setColor(ff::Color color);
-	ff::Color getColor();
+	Color getColor();
 
 	void setOutlineColor(ff::Color color);
-	ff::Color getOutlineColor();
+	Color getOutlineColor();
 
 protected:
 	void initVertexArray();

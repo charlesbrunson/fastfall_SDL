@@ -10,7 +10,7 @@
 
 //#include "input/Input.hpp"
 
-//#include "game/InstanceObserver.hpp"
+#include "fastfall/game/InstanceObserver.hpp"
 
 #include "fastfall/util/Vec2.hpp"
 
@@ -63,7 +63,7 @@ private:
 	static Engine* engineInstance;
 
 	Input::InputObserver input;
-	//InstanceObserver instanceObs;
+	InstanceObserver instanceObs;
 
 	Engine(std::unique_ptr<Window>&& window, EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings);
 	~Engine() = default;

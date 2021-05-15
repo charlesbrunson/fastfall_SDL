@@ -12,7 +12,11 @@ using namespace ff;
 class BasicPlatform : public GameObject {
 public:
 	BasicPlatform(GameContext instance, const ObjectRef& ref) :
-		GameObject(instance, ref)
+		GameObject(instance, ref),
+		shape{
+			Rectf{},
+			Color{0x285cc4FF} 
+		}
 	{
 		for (auto& [propName, propValue] : ref.properties) {
 			if (propName == "path") {
@@ -64,13 +68,26 @@ public:
 		context.collision().get().addColliderRegion(collider);
 
 		hasCollider = true;
+
+
+		/*
+		ShapeRectangle shape{
+			Rectf{
+				collider.get()->getPrevPosition() + collider_offset,
+				Vec2f{collider.get()->getBoundingBox().getSize()}
+			},
+			Color{0x285cc4FF}
+		};
+		*/
+
+
 	}
 
 	~BasicPlatform() {
 
 	}
 
-	virtual std::unique_ptr<GameObject> clone() const override {
+	std::unique_ptr<GameObject> clone() const override {
 		std::unique_ptr<BasicPlatform> object = std::make_unique<BasicPlatform>(context, *getObjectRef());
 
 		//TODO copy current state data
@@ -78,7 +95,7 @@ public:
 		return object;
 	}
 
-	virtual void update(secs deltaTime) override {
+	void update(secs deltaTime) override {
 
 		if (has_path) {
 
@@ -118,8 +135,9 @@ public:
 		collider->update(deltaTime);
 	}
 
-	virtual void predraw(secs deltaTime) override {
-
+	void predraw(secs deltaTime) override {
+		shape.setPosition(collider.get()->getPrevPosition() + collider_offset);
+		shape.setSize(Vec2f{ collider.get()->getBoundingBox().getSize() });
 	}
 
 protected:
@@ -142,7 +160,10 @@ protected:
 
 	std::shared_ptr<ColliderSimple> collider;
 
+	ShapeRectangle shape;
+
 	virtual void draw(RenderTarget& target, RenderState states = RenderState()) const override {
+		/*
 		ShapeRectangle shape{
 			Rectf{
 				collider.get()->getPrevPosition() + collider_offset,
@@ -150,6 +171,7 @@ protected:
 			},
 			Color{0x285cc4FF}
 		};
+		*/
 
 
 
