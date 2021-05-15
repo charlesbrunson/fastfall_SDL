@@ -11,6 +11,8 @@
 #include "SDL_image.h"
 
 #include <iostream>
+#include <stack>
+#include <mutex>
 
 namespace ff {
 namespace {
@@ -149,6 +151,46 @@ void ImGuiRender() {
         SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
     }
 }
+
+namespace {
+
+    std::mutex stale_lock;
+    std::vector<GLuint> staleVAO;
+    std::vector<GLuint> staleVBO;
+
+}
+
+void glStaleVertexArrays(size_t count, const GLuint* vao) {
+    std::lock_guard<std::mutex> guard(stale_lock);
+    //staleVAO.emplace_back(std::vector<GLuint>(count));
+
+    int end = staleVAO.size();
+    staleVAO.resize(staleVAO.size() + count);
+    memcpy(&staleVAO[end], vao, count);
+}
+
+void glStaleVertexBuffers(size_t count, const GLuint* vbo) {
+    std::lock_guard<std::mutex> guard(stale_lock);
+
+    int end = staleVBO.size();
+    staleVBO.resize(staleVBO.size() + count);
+    memcpy(&staleVBO[end], vbo, count);
+}
+
+void glDeleteStale() {
+    std::lock_guard<std::mutex> guard(stale_lock);
+
+    if (!staleVAO.empty()) {
+        glDeleteVertexArrays(staleVAO.size(), &staleVAO[0]);
+        staleVAO.clear();
+    }
+    if (!staleVBO.empty()) {
+        glDeleteBuffers(staleVBO.size(), &staleVBO[0]);
+        staleVBO.clear();
+    }
+}
+
+
 
 }
 

@@ -41,6 +41,8 @@ struct Color {
 	inline Color& blue (uint8_t amount) { b = amount; return *this; };
 	inline Color& alpha(uint8_t amount) { a = amount; return *this; };
 
+	uint32_t hex() const;
+
 	static const Color Transparent;
 	static const Color White;
 	static const Color Black;

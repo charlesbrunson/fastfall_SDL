@@ -30,8 +30,8 @@ void ShapeRectangle::setSize(glm::fvec2 size) {
 	m_outline_verts[2].pos = m_verts[3].pos;
 	m_outline_verts[3].pos = m_verts[2].pos;
 
-	m_verts.glTransfer();
-	m_outline_verts.glTransfer();
+	//m_verts.glTransfer();
+	//m_outline_verts.glTransfer();
 }
 
 void ShapeRectangle::setSize(float sizeX, float sizeY) {
@@ -63,8 +63,8 @@ void ShapeRectangle::initVertexArray() {
 	m_outline_verts[2].color = m_lineColor;
 	m_outline_verts[3].color = m_lineColor;
 
-	m_verts.glTransfer();
-	m_outline_verts.glTransfer();
+	//m_verts.glTransfer();
+	//m_outline_verts.glTransfer();
 }
 
 void ShapeRectangle::setColor(ff::Color color) {
@@ -73,7 +73,7 @@ void ShapeRectangle::setColor(ff::Color color) {
 	m_verts[1].color = color;
 	m_verts[2].color = color;
 	m_verts[3].color = color;
-	m_verts.glTransfer();
+	//m_verts.glTransfer();
 }
 
 ff::Color ShapeRectangle::getColor() {
@@ -86,7 +86,7 @@ void ShapeRectangle::setOutlineColor(ff::Color color) {
 	m_outline_verts[1].color = color;
 	m_outline_verts[2].color = color;
 	m_outline_verts[3].color = color;
-	m_outline_verts.glTransfer();
+	//m_outline_verts.glTransfer();
 }
 
 ff::Color ShapeRectangle::getOutlineColor() {

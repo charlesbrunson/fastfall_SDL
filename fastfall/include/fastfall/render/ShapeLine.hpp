@@ -16,7 +16,7 @@ public:
 		m_verts[1].pos = p2;
 		m_verts[0].color = color;
 		m_verts[1].color = color;
-		m_verts.glTransfer();
+		//m_verts.glTransfer();
 	}
 
 	inline glm::fvec2 getP1() { return m_verts[0].pos; }

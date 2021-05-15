@@ -24,7 +24,7 @@ void ShapeCircle::setColor(ff::Color color) {
 	}
 	m_verts[m_circleVertCount + 1].color = m_color;
 
-	m_verts.glTransfer();
+	//m_verts.glTransfer();
 }
 
 void ShapeCircle::setOutlineColor(ff::Color color) {
@@ -32,7 +32,7 @@ void ShapeCircle::setOutlineColor(ff::Color color) {
 	for (size_t step = 0; step < m_circleVertCount; step++) {
 		m_outline_verts[step].color = m_lineColor;
 	}
-	m_outline_verts.glTransfer();
+	//m_outline_verts.glTransfer();
 }
 
 void ShapeCircle::setRadius(float radius) {
@@ -66,8 +66,8 @@ void ShapeCircle::initVertexArray() {
 		sinf(0) * m_radius
 	);
 	m_verts[m_circleVertCount + 1].color = m_color;
-	m_verts.glTransfer();
-	m_outline_verts.glTransfer();
+	//m_verts.glTransfer();
+	//m_outline_verts.glTransfer();
 }
 
 void ShapeCircle::draw(RenderTarget& target, RenderState state) const {

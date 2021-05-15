@@ -38,6 +38,8 @@ void RenderTarget::draw(const Drawable& drawable, const RenderState& state) {
 
 void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 
+	varray.glTransfer();
+
 	glViewport(
 		m_view.getViewport()[0],
 		m_view.getViewport()[1],
@@ -50,7 +52,7 @@ void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 	applyUniforms(Transform::combine(varray.getTransform(), state.transform), state);
 	applyTexture(state.texture);
 
-	glBindVertexArray(varray.m_array);
+	glBindVertexArray(varray.gl.m_array);
 	glDrawArrays(static_cast<GLenum>(varray.m_primitive), 0, varray.size());
 }
 

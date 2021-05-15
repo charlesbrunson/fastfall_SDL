@@ -140,13 +140,6 @@ bool Engine::run()
 
     running = true;
 
-    AnimID runID = Resources::get_animation_id("player", "running");
-
-    AnimatedSprite asprite;
-
-    asprite.set_anim(runID);
-
-
     clock.reset();
     while (isRunning() && !runnables.empty()) {
         elapsedTime = clock.tick();
@@ -186,33 +179,15 @@ bool Engine::run()
             window->setView(v);
         }
 
-        asprite.update(deltaTime);
-        asprite.predraw(deltaTime);
-
         //draw current state
         for (auto& run : runnables) {
             drawRunnable(run);
         }
-        window->draw(asprite);
-
-        // test
-        /*
-        window->draw(
-            ShapeCircle{
-                {0.f, 0.f},
-                16.f,
-                32,
-                ff::Color::Red
-            }, ShaderProgram::getDefaultProgram()
-        );
-        */
-
-        //do ImGui
-        
-        
+                
         bar.arrive_and_wait();
 
 #ifdef DEBUG
+        //do ImGui
         if (window) {
             ff::ImGuiNewFrame(*window);
             ImGuiFrame::getInstance().display();
@@ -220,17 +195,9 @@ bool Engine::run()
         }
 #endif
 
-        /*
-        for (auto& run : runnables) {
-            if (auto rtex = run.getRTexture()) {
-                // TODO
-                //rtex->display();
-            }
-        }
-        */
-
         bar.arrive_and_wait();
 
+        ff::glDeleteStale();
 
         clock.sleepUntilTick();
         if (window) {
@@ -246,14 +213,6 @@ bool Engine::run()
     stateWorker.join();
 
     LOG_INFO("Display thread shutting down");
-
-    /*
-#ifdef DEBUG
-    if (window) {
-        //ImGui::SFML::Shutdown();
-    }
-#endif
-    */
 
     running = false;
 
@@ -597,7 +556,7 @@ void Engine::resizeWindow(
     (*margins.get())[7].pos = glm::fvec2((float)viewport.left + viewport.width, (float)viewport.top);
     (*margins.get())[8].pos = glm::fvec2((float)windowSize.left, (float)windowSize.top);
     (*margins.get())[9].pos = glm::fvec2((float)viewport.left, (float)viewport.top);
-    margins->glTransfer();
+    //margins->glTransfer();
 
     marginView = View{ { 0.f, 0.f }, window->getSize() };
     marginView.setCenter(glm::fvec2{ window->getSize() } / 2.f);
@@ -689,7 +648,10 @@ void Engine::ImGui_getContent() {
             ImPlot::PopStyleVar();
 
             if (clock.getTargetFPS() != 0) {
-                ImPlot::PlotLine("tick time", tick_x, tick_y, 2);
+                ImPlot::PlotLine("target tick", tick_x, tick_y, 2);
+            }
+            else {
+                ImPlot::PlotLine("avg tick", tick_x, tick_y, 2);
             }
 
             ImPlot::EndPlot();

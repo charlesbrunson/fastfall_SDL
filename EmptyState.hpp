@@ -26,18 +26,15 @@ public:
 		sprite.setSize(texSize.getSize());
 
 
-		//ff::AnimID running = ff::Resources::get_animation_id("player", "running");
-		//asprite.set_anim(running);
-		//asprite.update(deltaTime);
-		//asprite.predraw(deltaTime);
-		//target.draw(asprite);
+		ff::AnimID running = ff::Resources::get_animation_id("player", "running");
+		asprite.set_anim(running);
 	}
 
 	void update(secs deltaTime) override {
-		//asprite.update(deltaTime);
+		asprite.update(deltaTime);
 	};
 	void predraw(secs deltaTime) override {
-		//asprite.predraw(deltaTime);
+		asprite.predraw(deltaTime);
 	};
 
 
@@ -57,6 +54,6 @@ private:
 
 	void draw(ff::RenderTarget& target, ff::RenderState state) const override {
 		target.draw(sprite);
-		//target.draw(asprite);
+		target.draw(asprite);
 	};
 };

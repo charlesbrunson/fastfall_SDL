@@ -33,9 +33,6 @@ public:
 
 	void swap(VertexArray& varray);
 
-	void glTransfer();
-	void glTransfer(size_t startNdx, size_t count);
-
 	inline size_t size() const { return m_vec.size(); };
 	inline bool empty() const { return m_vec.empty(); };
 
@@ -43,33 +40,38 @@ public:
 		m_vec.clear();
 	}
 
-	inline std::vector<Vertex>& vec() { return m_vec; };
+	inline std::vector<Vertex>& vec() { gl.sync = false; return m_vec; };
 
 	const Vertex& operator[] (size_t ndx) const {
 		return m_vec[ndx];
 	}
 	Vertex& operator[] (size_t ndx) {
+		gl.sync = false;
 		return m_vec[ndx];
 	}
 
 private:
 	friend class RenderTarget;
-
-
-	GLuint m_buffer = 0;
-	GLuint m_array = 0;
-
-	bool m_bufferBound = false;
-	size_t m_bufferSize = 0;
+	void glTransfer() const;
 
 	VertexUsage m_usage;
 	Primitive m_primitive;
 
+	// used to synchronize the state on the vram prior to drawing
+	// mutable because i am not smart
+	struct GPUState {
+		GLuint m_array = 0;
+		GLuint m_buffer = 0;
+
+		size_t m_bufsize = 0;
+		bool m_bound = false;
+
+		bool sync = false;
+	} mutable gl;
+
+
 	std::vector<Vertex> m_vec;
 
-	void glInitObjects();
 };
-
-void swap(VertexArray& lhs, VertexArray& rhs);
 
 }

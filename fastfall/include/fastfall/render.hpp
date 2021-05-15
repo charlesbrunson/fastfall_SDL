@@ -13,6 +13,7 @@ namespace ff {
 
 	void FFinitGLEW();
 	bool FFisGLEWInit();
+
 }
 
 
@@ -33,4 +34,12 @@ namespace ff {
 namespace ff {
 	void ImGuiNewFrame(Window& window);
 	void ImGuiRender();
+}
+
+
+namespace ff {
+	void glStaleVertexArrays(size_t count, const GLuint* vao);
+	void glStaleVertexBuffers(size_t count, const GLuint* vbo);
+
+	void glDeleteStale();
 }

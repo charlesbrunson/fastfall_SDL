@@ -16,4 +16,8 @@ glm::uvec4 Color::toVec4() const {
 	return glm::fvec4{ r,g,b,a };
 }
 
+uint32_t Color::hex() const {
+	return (r << 24) + (g << 16) + (b << 8) + a;
+}
+
 }
