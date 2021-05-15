@@ -1,4 +1,4 @@
-#include "fastfall/game/gfx/AnimatedSprite.hpp"
+#include "fastfall/render/AnimatedSprite.hpp"
 
 #include "fastfall/resource/Resources.hpp"
 

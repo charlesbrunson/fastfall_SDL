@@ -1,0 +1,123 @@
+#pragma once
+
+#include "fastfall/util/math.hpp"
+#include "fastfall/engine/time/time.hpp"
+#include "fastfall/game/phys/Identity.hpp"
+#include "fastfall/game/phys/collision/Contact.hpp"
+#include "fastfall/game/GameContext.hpp"
+
+#include <optional>
+#include <functional>
+
+namespace ff {
+
+class Collidable;
+
+struct Friction {
+	float stationary = 0.f;
+	float kinetic = 0.f;
+};
+
+// track contact duration for surfaces between the given angle ranges
+class SurfaceTracker {
+public:
+	SurfaceTracker(GameContext game_context, Angle ang_min, Angle ang_max, bool inclusive = true);
+
+	~SurfaceTracker();
+
+	// acceleration out
+	Vec2f premove_update(secs deltaTime);
+
+	// new position out
+	Vec2f postmove_update(Vec2f wish_pos, secs deltaTime);
+
+	void process_contacts(std::vector<PersistantContact>& contacts);
+	bool has_contact() const noexcept;
+
+	// applies velocity/acceleration accounting for gravity (for movement consistency)
+	// is !has_contact, will apply on the X axis
+	void traverse_set_max_speed(float speed);
+	float traverse_get_max_speed() const noexcept { return max_speed; };
+	void traverse_set_speed(float speed);
+	void traverse_add_accel(float accel);
+	void traverse_add_decel(float decel);
+
+	float traverse_get_speed();
+
+	inline Collidable* get_collidable() { return owner; };
+
+	inline void duration_reset() { duration = 0.0; };
+	inline void duration_accumulate(secs deltaTime) { duration += deltaTime; };
+	inline secs get_duration() const noexcept { return duration; };
+
+	inline bool is_angle_in_range(Angle ang) { return ang.isBetween(angle_min, angle_max, angle_inclusive); }
+	inline Angle get_angle_min() { return angle_min; };
+	inline Angle get_angle_max() { return angle_max; };
+	inline bool get_angle_inclusive() { return angle_inclusive; };
+
+	bool move_with_platforms = false;
+
+	Angle stick_angle_max;
+	bool slope_sticking = false;
+	bool slope_wall_stop = false;
+
+	bool has_friction = false;
+	Friction surface_friction;
+
+	const std::optional<const PersistantContact> get_contact() { return currentContact; };
+
+	void start_touch(PersistantContact& contact);
+	void end_touch(PersistantContact& contact);
+
+	inline void set_start_touch(std::function<void(PersistantContact&)> func) {
+		callback_start_touch = func;
+	}
+	inline void set_end_touch(std::function<void(PersistantContact&)> func) {
+		callback_end_touch = func;
+	}
+	inline void set_on_stick(std::function<void(const ColliderSurface&)> func) {
+		callback_on_stick = func;
+	}
+
+private:
+
+	// the best suited contact for this recorder
+	// from the current contact frame
+	// based on angle and contact duration
+	std::optional<PersistantContact> currentContact = std::nullopt;
+
+	bool do_slope_wall_stop(bool had_wall) noexcept;
+	bool do_move_with_platform() noexcept;
+	Vec2f do_slope_sticking(secs deltaTime) noexcept;
+
+	float wallYadj = 0.f;
+
+	// applied when max_speed > 0.f
+	float max_speed = 0.f;
+
+	std::function<void(PersistantContact&)> callback_start_touch;
+	std::function<void(PersistantContact&)> callback_end_touch;
+	std::function<void(const ColliderSurface&)> callback_on_stick;
+
+	std::optional<PersistantContact> wallContact;
+
+	GameContext context;
+
+	friend class Collidable;
+	Vec2f get_friction(Vec2f currVel, Vec2f prevVel);
+
+	// time in contact
+	// this will propogate across different surfaces
+	// as long as they're within the angle range
+	secs duration = 0.0;
+
+	// applicable range
+	// based on contact surface_normal
+	const Angle angle_min;
+	const Angle angle_max;
+	const bool angle_inclusive;
+
+	Collidable* owner = nullptr;
+};
+
+}

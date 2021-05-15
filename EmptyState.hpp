@@ -4,7 +4,7 @@
 #include "fastfall/engine/imgui/ImGuiContent.hpp"
 
 #include "fastfall/resource/Resources.hpp"
-#include "fastfall/game/gfx/AnimatedSprite.hpp"
+#include "fastfall/render/AnimatedSprite.hpp"
 
 class EmptyState : public ff::EngineState, public ff::ImGuiContent {
 public:

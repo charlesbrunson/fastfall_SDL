@@ -1,4 +1,4 @@
-#include "fastfall/game/gfx/TileVertexArray.hpp"
+#include "fastfall/render/TileVertexArray.hpp"
 
 #include "fastfall/util/log.hpp"
 #include "fastfall/util/Vec2.hpp"
@@ -150,7 +150,7 @@ void TileVertexArray::blank(Vec2u at) {
 	);
 
 	if (iter != tiles.end()) {
-		int ndx = std::distance(tiles.begin(), iter) * VERTICES_PER_TILE;
+		size_t ndx = std::distance(tiles.begin(), iter) * VERTICES_PER_TILE;
 		//tiles.erase(iter);
 
 		verts[ndx + 0].color.a = 0;
