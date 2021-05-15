@@ -1,7 +1,7 @@
 #include "fastfall/game/GameContext.hpp"
 
 #include "fastfall/game/Instance.hpp"
-#include "fastfall/game/obj/GameObject.hpp"
+#include "fastfall/game/object/GameObject.hpp"
 #include "fastfall/game/phys/ColliderRegion.hpp"
 
 // GAME

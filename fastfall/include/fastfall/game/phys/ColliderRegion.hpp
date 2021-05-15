@@ -50,7 +50,7 @@ public:
 	}
 
 	inline Rectf getBoundingBox() const noexcept {
-		return Rectf(Vec2f(boundingBox.getPosition()) + position, boundingBox.getSize());
+		return Rectf(Vec2f(boundingBox.getPosition()) + position, Vec2f(boundingBox.getSize()));
 	}
 
 	inline ColliderID get_ID() const noexcept { return id; };

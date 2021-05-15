@@ -26,7 +26,7 @@ public:
 
 	void predraw(secs deltaTime);
 
-	inline const sf::Color& getBGColor() const { return bgColor; };
+	inline const Color& getBGColor() const { return bgColor; };
 	inline const Vec2u& size() const { return levelSize; };
 	inline const std::string* name() const { return levelName; };
 

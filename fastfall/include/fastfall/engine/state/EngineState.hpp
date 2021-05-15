@@ -13,7 +13,7 @@
 #include <memory>
 
 // TODO
-//#include "game/InstanceID.hpp"
+#include "fastfall/game/InstanceID.hpp"
 
 //#include <SFML/Graphics.hpp>
 //#include <SFML/System.hpp>
@@ -73,7 +73,7 @@ public:
 
 	// what instance ID this state is associated with, if any (zero)
 	// TODO
-	//inline InstanceID getInstanceID() { return instanceID; };
+	inline InstanceID getInstanceID() { return instanceID; };
 
 	// used by rendered to update view
 	inline Vec2f getViewPos() const noexcept { return viewPos; };
@@ -107,7 +107,7 @@ public:
 protected:
 
 	// TODO
-	//InstanceID instanceID;
+	InstanceID instanceID;
 
 	Color clearColor;
 

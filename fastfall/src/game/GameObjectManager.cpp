@@ -85,7 +85,7 @@ void GameObjectManager::addObject(std::unique_ptr<GameObject>&& obj) {
 		.drawOrder.insert(std::make_pair(priority, object));
 }
 
-void GameObjectManager::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void GameObjectManager::draw(RenderTarget& target, RenderState states) const {
 	target.draw(drawOrderBG, states);
 }
 

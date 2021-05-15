@@ -38,7 +38,7 @@ namespace ff {
 			size_max += Vec2i(1, 1);
 		}
 
-		collisionMapSize = size_max - size_min;
+		collisionMapSize = Vec2u{ size_max - size_min };
 
 		minIndex = 0u;
 		maxIndex = (collisionMapSize.y * collisionMapSize.x);
@@ -52,8 +52,8 @@ namespace ff {
 
 		//debug_dirtyFlag = true;
 		boundingBox = Rectf(
-			size_min * TILESIZE_F,
-			size_max * TILESIZE_F
+			Vec2f(size_min * TILESIZE_F),
+			Vec2f(size_max * TILESIZE_F)
 		);
 	}
 
@@ -61,9 +61,9 @@ namespace ff {
 		applyChanges();
 
 
-		if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER)) {
-			debugDrawQuad(validCollisionSize, &tileCollisionMap[0], getPosition());
-		}
+		//if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER)) {
+		//	debugDrawQuad(validCollisionSize, &tileCollisionMap[0], getPosition());
+		//}
 	}
 
 	const ColliderQuad* ColliderTileMap::get_quad(int quad_id) const noexcept
@@ -377,7 +377,7 @@ namespace ff {
 		if (!quad)
 			return;
 
-		Rectf tileArea{ position * TILESIZE_F, Vec2f(TILESIZE_F, TILESIZE_F) };
+		Rectf tileArea{ Vec2f(position * TILESIZE_F), Vec2f(TILESIZE_F, TILESIZE_F) };
 		Recti adjArea{ position - Vec2i(1, 1), Vec2i(3, 3) };
 
 		int y = 0, x = 0;

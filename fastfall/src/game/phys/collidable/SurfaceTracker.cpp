@@ -3,7 +3,7 @@
 #include "fastfall/game/phys//Collidable.hpp"
 #include "fastfall/game/phys//ColliderRegion.hpp"
 
-#include "fastfall/game/DebugDraw.hpp"
+//#include "fastfall/game/DebugDraw.hpp"
 
 namespace ff {
 

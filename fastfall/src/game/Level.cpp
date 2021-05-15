@@ -5,8 +5,8 @@
 //#include "level/LevelObserver.hpp"
 #include "imgui.h"
 
-#include "Instance.hpp"
-#include "GameObjectManager.hpp"
+#include "fastfall/game/Instance.hpp"
+#include "fastfall/game/GameObjectManager.hpp"
 
 namespace ff {
 

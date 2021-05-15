@@ -4,6 +4,8 @@
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/util/log.hpp"
 
+#include "fastfall/render/RenderTarget.hpp"
+
 #include <assert.h>
 
 //#include <SFML/Graphics.hpp>
@@ -147,7 +149,7 @@ void TileLayer::predraw(secs deltaTime) {
 					tileset = Resources::get<TilesetAsset>(next_name);
 
 					// if different tileset, use as absolute
-					tex_pos = t.next_offset;
+					tex_pos = Vec2u{ t.next_offset };
 				}
 				else {
 					// if same tileset, use as relative
@@ -223,12 +225,15 @@ void TileLayer::clear() {
 		collision->clear();
 }
 
-void TileLayer::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-	states.transform.translate(offset);
+void TileLayer::draw(RenderTarget& target, RenderState states) const {
+	//states.transform.translate(offset);
+
+	states.transform = Transform::combine(states.transform, Transform(offset));
+
 
 	if (!hidden) {
 		for (auto& layer : tileVertices) {
-			states.texture = &layer.first->getTexture();
+			states.texture = layer.first->getTexture();
 			target.draw(layer.second, states);
 		}
 	}

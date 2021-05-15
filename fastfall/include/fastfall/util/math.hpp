@@ -81,7 +81,7 @@ inline T distSquared(const Vec2<T>& a, const Vec2<T>& b) {
 	return (a - b).magnitudeSquared();
 }
 
-template<typename T, typename>
+template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
 inline T dist(const Vec2<T>& a, const Vec2<T>& b) {
 	return (a - b).magnitude();
 }
@@ -122,7 +122,7 @@ bool is_vertical(const Line<T>& a) {
 }
 
 
-template<typename T, typename>
+template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
 Vec2<T> rotate(const Vec2<T>& a, const Angle& ang) {
 	return Vec2f{
 		a.x * cos(ang.radians()) - a.y * sin(ang.radians()),
@@ -146,8 +146,8 @@ Vec2<T> vector(const Line<T>& line) {
 	return Vec2<T>(line.p2.x - line.p1.x, line.p2.y - line.p1.y);
 }
 
-template<typename T, typename>
-Vec2<T> projection(const Vec2<T>& a, const Vec2<T>& onto, bool ontoIsUnitVec) {
+template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
+Vec2<T> projection(const Vec2<T>& a, const Vec2<T>& onto, bool ontoIsUnitVec = false) {
 	if (onto.x == 0.f && onto.y == 0.f) {
 		return Vec2<T>(0.f, 0.f);
 	}
@@ -170,7 +170,7 @@ Vec2<T> projection(const Vec2<T>& a, const Vec2<T>& onto, bool ontoIsUnitVec) {
 	}
 }
 
-template<typename T, typename>
+template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
 Vec2<T> intersection(const Line<T>& a, const Line<T>& b) {
 
 	T detA = a.p1.x * a.p2.y - a.p1.y * a.p2.x;
@@ -203,7 +203,7 @@ Vec2<T> intersection(const Line<T>& a, const Line<T>& b) {
 	return Vec2<T>(ixOut, iyOut);
 }
 
-template<typename T, typename>
+template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
 Vec2<T> midpoint(const Line<T>& a) {
 	return a.p1 + (math::vector(a) / static_cast<T>(2.0));
 }
@@ -229,7 +229,7 @@ Vec2<T> rect_botleft(const Rect<T>& a) {
 	return Vec2<T>(a.left, a.top + a.height);
 }
 
-template<typename T, typename>
+template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
 Vec2<T> rect_mid(const Rect<T>& a) {
 	return Vec2<T>(a.left + (a.width / 2.f), a.top + (a.height / 2.f));
 }
@@ -257,12 +257,12 @@ Rect<T> rect_extend(const Rect<T>& a, Cardinal dir, T amount) {
 }
 
 // Angle stuff
-template<typename T, typename>
+template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
 Angle angle(const Vec2<T>& a) {
 	return Angle(atan2f(a.y, a.x));
 }
 
-template<typename T, typename>
+template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
 Angle angle(const Line<T>& a) {
 	return Angle(atan2f(a.p2.y - a.p1.y, a.p2.x - a.p1.x));
 }

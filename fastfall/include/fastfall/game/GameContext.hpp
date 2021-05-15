@@ -10,6 +10,14 @@
 #include <map>
 #include <string>
 
+
+//class GameInstance;
+
+// lightweight containing interfaces to all the game instance's managers
+// meant to be passed to lower game entities and the like
+
+namespace ff {
+
 class GameObject;
 class GameObjectManager;
 class CollisionManager;
@@ -18,13 +26,6 @@ class Level;
 
 class ColliderRegion;
 class ColliderQuad;
-
-//class GameInstance;
-
-// lightweight containing interfaces to all the game instance's managers
-// meant to be passed to lower game entities and the like
-
-namespace ff {
 
 class ObjectContext {
 private:

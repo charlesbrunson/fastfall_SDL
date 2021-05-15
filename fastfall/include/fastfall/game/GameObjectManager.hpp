@@ -1,6 +1,6 @@
 #pragma once
 
-#include "fastfall/game/obj/GameObject.hpp"
+#include "fastfall/game/object/GameObject.hpp"
 
 #include "fastfall/render/Drawable.hpp"
 #include "fastfall/engine/time/time.hpp"
