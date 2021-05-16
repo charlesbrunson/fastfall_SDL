@@ -67,9 +67,9 @@ void debugDrawContact(Contact& contact) {
 		return;
 
 	auto& pos = createDebugDrawable<ShapeCircle, debug_draw::Type::COLLISION_CONTACT>(
-		contact.position - Vec2f(1.f, 1.f), 
+		contact.position, 
 		1.f, 
-		16, 
+		8, 
 		Color::Transparent, 
 		Color::Yellow
 	);

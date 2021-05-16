@@ -49,8 +49,11 @@ void debug_draw::swapDrawLists() {
 
 void debug_draw::draw(RenderTarget& target, RenderState states) {
 	for (auto& drawable : *activeList) {
-		states.transform = Transform::combine(states.transform, Transform(drawable.first));
-		if (drawable.second) target.draw(*drawable.second.get(), states);
+		RenderState state = states;
+		state.transform = Transform::combine(states.transform, Transform(drawable.first));
+		if (drawable.second) {
+			target.draw(*drawable.second.get(), state);
+		}
 	} 
 }
 
