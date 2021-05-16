@@ -87,6 +87,7 @@ public:
 
 		sprite.set_playback(1.f);
 
+		raycast(context.collision(), box->getPosition(), Cardinal::SOUTH);
 		
 		// on ground
 		if (ground.has_contact()) {
@@ -96,7 +97,7 @@ public:
 			ground.slope_sticking = true;
 
 			float speed = ground.traverse_get_speed();
-			const static float max_speed = 500.f;
+			const static float max_speed = 400.f;
 
 
 			if (ground.get_duration() == 0.0) {
@@ -170,14 +171,14 @@ public:
 				//ground.traverse_set_max_speed(0.f);
 
 				if (wishx != 0) {
-					ground.traverse_add_accel(wishx * 600.f);
+					ground.traverse_add_accel(wishx * 1200.f);
 
 					bool isBraking = (movex != 0) && (wishx < 0) != (movex < 0);
 					ground.surface_friction = isBraking ? braking : moving;
 
 				}
 				else if (ground.has_friction) {
-					ground.traverse_add_decel(300.f);
+					ground.traverse_add_decel(600.f);
 					ground.surface_friction = braking;
 				}
 			}
@@ -208,7 +209,7 @@ public:
 			// air control
 			if (wishx != 0 && (abs(box->get_vel().x) < 150.f ||
 				box->get_vel().x < 0.f != wishx < 0.f)) {
-				box->add_accelX(600.f * wishx);
+				box->add_accelX(900.f * wishx);
 			}
 		} 
 

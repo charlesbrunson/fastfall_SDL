@@ -7,7 +7,7 @@
 #include "fastfall/util/log.hpp"
 
 #include "fastfall/game/phys/collision/Contact.hpp"
-//#include "DebugDraw.hpp"
+#include "fastfall/render/DebugDraw.hpp"
 
 namespace ff {
 
@@ -18,7 +18,7 @@ void collisionContent(GameContext context) {
 	CollisionManager* man = &context.collision().get();//&Instance(instance)->getCollision();
 
 	// TODO
-	/*
+	
 	static bool draw_collider = true;
 	if (ImGui::Checkbox("Draw Colliders", &draw_collider))
 		debug_draw::setTypeEnabled(debug_draw::Type::COLLISION_COLLIDER, draw_collider);
@@ -35,7 +35,7 @@ void collisionContent(GameContext context) {
 	if (ImGui::Checkbox("Draw Raycasts", &draw_raycast))
 		debug_draw::setTypeEnabled(debug_draw::Type::COLLISION_RAYCAST, draw_raycast);
 
-	*/
+	
 
 	ImGui::Text("Colliders");
 	//...

@@ -173,6 +173,7 @@ glm::ivec2 Window::worldCoordToWindow(glm::fvec2 worldCoord) {
 
 glm::fvec2 Window::windowCoordToWorld(int windowCoordX, int windowCoordY) {
 
+	
 	glm::fvec3 ndc{
 		(float)windowCoordX / (float)getSize().x,
 		(float)windowCoordY / (float)getSize().y,
@@ -183,8 +184,14 @@ glm::fvec2 Window::windowCoordToWorld(int windowCoordX, int windowCoordY) {
 
 	glm::mat3 view_mat = getView().getInvMatrix();
 	glm::fvec3 world_coord = view_mat * ndc;
+	
 
-	return glm::fvec2{ world_coord.x, world_coord.y };
+	//auto viewport = getView().getViewport();
+
+
+
+	//glm::fvec2 world_coord = getView().getInvMatrix() * ndc;
+	return world_coord;
 }
 
 glm::ivec2 Window::worldCoordToWindow(float worldCoordX, float worldCoordY) {

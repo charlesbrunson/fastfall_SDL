@@ -3,13 +3,14 @@
 #include "Color.hpp"
 #include "View.hpp"
 #include "RenderState.hpp"
-#include "VertexArray.hpp"
+//#include "VertexArray.hpp"
 
 #include "opengl.hpp"
 
 namespace ff {
 
 class Drawable;
+class VertexArray;
 
 class RenderTarget {
 public:

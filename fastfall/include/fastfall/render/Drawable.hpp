@@ -14,7 +14,7 @@ public:
 private:
 	friend class RenderTarget;
 
-	virtual void draw(RenderTarget& target, RenderState state) const = 0;
+	virtual void draw(RenderTarget& target, RenderState state = RenderState()) const = 0;
 
 };
 

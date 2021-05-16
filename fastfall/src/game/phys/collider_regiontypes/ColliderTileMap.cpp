@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <cmath>
 
-//#include "../../DebugDraw.hpp"
+#include "fastfall/render/DebugDraw.hpp"
 
 namespace ff {
 
@@ -61,9 +61,9 @@ namespace ff {
 		applyChanges();
 
 
-		//if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER)) {
-		//	debugDrawQuad(validCollisionSize, &tileCollisionMap[0], getPosition());
-		//}
+		if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER)) {
+			debugDrawQuad(validCollisionSize, &tileCollisionMap[0], getPosition());
+		}
 	}
 
 	const ColliderQuad* ColliderTileMap::get_quad(int quad_id) const noexcept

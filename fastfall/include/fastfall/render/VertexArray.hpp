@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Vertex.hpp"
-//#include "Drawable.hpp"
+#include "fastfall/render/Vertex.hpp"
+#include "fastfall/render/Drawable.hpp"
 
-#include "Transformable.hpp"
-#include "Primitives.hpp"
-#include "Texture.hpp"
+#include "fastfall/render/Transformable.hpp"
+#include "fastfall/render/Primitives.hpp"
+#include "fastfall/render/Texture.hpp"
 
 #include <memory>
 #include <vector>
@@ -20,7 +20,7 @@ enum class VertexUsage {
 	STREAM = GL_STREAM_DRAW,
 };
 
-class VertexArray : public Transformable {
+class VertexArray : public Transformable, public Drawable {
 private:
 
 	// used to synchronize the state on the vram prior to drawing
@@ -73,6 +73,7 @@ private:
 	VertexUsage m_usage;
 	Primitive m_primitive;
 
+	void draw(RenderTarget& target, RenderState state = RenderState()) const override;
 
 
 	std::vector<Vertex> m_vec;

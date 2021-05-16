@@ -20,7 +20,7 @@ namespace Input {
 
     namespace {
 
-        short _deadzone = (short)(0.4f * ((float)SHRT_MAX));
+        short _deadzone = (short)(0.2f * ((float)SHRT_MAX));
 
         Vec2i mouseWindowPosition;
         Vec2f mouseWorldPosition;
@@ -292,6 +292,12 @@ namespace Input {
                     mouse.active = false;
                 }
                 break;
+            case SDL_JOYDEVICEADDED:
+            case SDL_JOYDEVICEREMOVED:
+            case SDL_CONTROLLERDEVICEADDED:
+            case SDL_CONTROLLERDEVICEREMOVED:
+                Input::updateJoystick();
+                break;
             }
         }
     }
@@ -313,7 +319,7 @@ namespace Input {
                 }
             }
         }
-        updateJoystick();
+        //updateJoystick();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -379,7 +385,6 @@ namespace Input {
 
                 if (controller->isConnected()) {
                     LOG_INFO("Connected game controller");
-                    Resources::loadControllerDB();
                     break;
                 }
                 else {

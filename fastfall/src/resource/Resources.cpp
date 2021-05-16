@@ -33,7 +33,6 @@ Resources Resources::resource;
 Resources::Resources() :
 	ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Resources", "System")
 {
-
 }
 Resources::~Resources() {
 	//unloadAll();
@@ -190,6 +189,7 @@ bool Resources::loadAll(AssetSource loadType, const std::string& filename) {
 	default:
 		result = false;
 	}
+	loadControllerDB();
 
 	return result;
 }

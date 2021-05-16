@@ -3,55 +3,55 @@
 #include "fastfall/util/cardinal.hpp"
 #include "fastfall/util/log.hpp"
 
-//#include "game/DebugDraw.hpp"
+#include "fastfall/render/DebugDraw.hpp"
 
 #include "fastfall/game/CollisionManager.hpp"
 
-/*
+namespace ff {
+
 void debugDrawRaycast(std::optional<RaycastHit> result, Linef raycastLine) {
 
 	if (result.has_value()) {
-		auto& rayX = createDebugDrawable<sf::VertexArray, debug_draw::Type::COLLISION_RAYCAST>(sf::PrimitiveType::Lines, 8);
-		rayX[0].color = sf::Color::Red;
-		rayX[1].color = sf::Color::Red;
-		rayX[2].color = sf::Color::Red;
-		rayX[3].color = sf::Color::Red;
-		rayX[4].color = sf::Color::Red;
-		rayX[5].color = sf::Color::Red;
-		rayX[6].color = sf::Color::Red;
-		rayX[7].color = sf::Color::Red;
-		rayX[0].position = result.value().impact + Vec2f(-2.f, -2.f);
-		rayX[1].position = result.value().impact + Vec2f(2.f, 2.f);
-		rayX[2].position = result.value().impact + Vec2f(2.f, -2.f);
-		rayX[3].position = result.value().impact + Vec2f(-2.f, 2.f);
-		rayX[4].position = result.value().origin;
-		rayX[5].position = result.value().impact;
-		rayX[6].position = result.value().surface->surface.p1 + result.value().region->getPosition();
-		rayX[7].position = result.value().surface->surface.p2 + result.value().region->getPosition();
+		auto& rayX = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINES, 8);
+		rayX[0].color = Color::Red;
+		rayX[1].color = Color::Red;
+		rayX[2].color = Color::Red;
+		rayX[3].color = Color::Red;
+		rayX[4].color = Color::Red;
+		rayX[5].color = Color::Red;
+		rayX[6].color = Color::Red;
+		rayX[7].color = Color::Red;
+		rayX[0].pos = result.value().impact + Vec2f(-2.f, -2.f);
+		rayX[1].pos = result.value().impact + Vec2f(2.f, 2.f);
+		rayX[2].pos = result.value().impact + Vec2f(2.f, -2.f);
+		rayX[3].pos = result.value().impact + Vec2f(-2.f, 2.f);
+		rayX[4].pos = result.value().origin;
+		rayX[5].pos = result.value().impact;
+		rayX[6].pos = result.value().surface->surface.p1 + result.value().region->getPosition();
+		rayX[7].pos = result.value().surface->surface.p2 + result.value().region->getPosition();
 	}
 	else {
-		auto& empty = createDebugDrawable<sf::VertexArray, debug_draw::Type::COLLISION_RAYCAST>(sf::PrimitiveType::LineStrip, 5);
-		empty[0].color = sf::Color::Red;
-		empty[1].color = sf::Color::Red;
-		empty[2].color = sf::Color::Red;
-		empty[3].color = sf::Color::Red;
-		empty[4].color = sf::Color::Red;
-		empty[0].position = raycastLine.p2 + Vec2f(-2.f, -2.f);
-		empty[1].position = raycastLine.p2 + Vec2f(2.f, -2.f);
-		empty[2].position = raycastLine.p2 + Vec2f(2.f, 2.f);
-		empty[3].position = raycastLine.p2 + Vec2f(-2.f, 2.f);
-		empty[4].position = raycastLine.p2 + Vec2f(-2.f, -2.f);
+		auto& empty = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINE_LOOP, 4);
+		empty[0].color = Color::Red;
+		empty[1].color = Color::Red;
+		empty[2].color = Color::Red;
+		empty[3].color = Color::Red;
+		//empty[4].color = sf::Color::Red;
+		empty[0].pos = raycastLine.p2 + Vec2f(-2.f, -2.f);
+		empty[1].pos = raycastLine.p2 + Vec2f(2.f, -2.f);
+		empty[2].pos = raycastLine.p2 + Vec2f(2.f, 2.f);
+		empty[3].pos = raycastLine.p2 + Vec2f(-2.f, 2.f);
+		//empty[4].position = raycastLine.p2 + Vec2f(-2.f, -2.f);
 
-		auto& line = createDebugDrawable<sf::VertexArray, debug_draw::Type::COLLISION_RAYCAST>(sf::PrimitiveType::Lines, 2);
-		line[0].color = sf::Color::Red;
-		line[1].color = sf::Color::Red;
-		line[0].position = raycastLine.p1;
-		line[1].position = raycastLine.p2;
+		auto& line = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINES, 2);
+		line[0].color = Color::Red;
+		line[1].color = Color::Red;
+		line[0].pos = raycastLine.p1;
+		line[1].pos = raycastLine.p2;
 	}
 }
-*/
 
-namespace ff {
+
 
 std::optional<RaycastHit> compareHits(const std::optional<RaycastHit>& lhs, const std::optional<RaycastHit>& rhs) noexcept {
 
@@ -183,8 +183,8 @@ std::optional<RaycastHit> raycast(CollisionContext phys_context, const Vec2f& or
 		result = std::nullopt;
 	}
 
-	//if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_RAYCAST))
-	//	debugDrawRaycast(result, raycastLine);
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_RAYCAST))
+		debugDrawRaycast(result, raycastLine);
 
 	return result;
 }

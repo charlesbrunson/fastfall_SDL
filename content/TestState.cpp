@@ -3,6 +3,7 @@
 
 #include "fastfall/game/Instance.hpp"
 #include "fastfall/render/ShapeRectangle.hpp"
+#include "fastfall/render/DebugDraw.hpp"
 
 TestState::TestState()
 {
@@ -84,8 +85,8 @@ void TestState::predraw(secs deltaTime) {
 	instance->getActiveLevel()->predraw(deltaTime);
 	viewPos = instance->getCamera().currentPosition;
 
-	//if (deltaTime > 0.0)
-	//	debug_draw::swapDrawLists();
+	if (deltaTime > 0.0)
+		ff::debug_draw::swapDrawLists();
 }
 
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
@@ -115,8 +116,7 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
 			target.draw(instance->getObject().getObjectDrawList(true));
 		}
 	}
-	//target.draw(instance->getCollision(), states);
 
-	//debug_draw::draw(target, states);
+	ff::debug_draw::draw(target, state);
 	
 }

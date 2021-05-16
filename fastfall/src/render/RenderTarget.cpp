@@ -1,6 +1,7 @@
 #include "fastfall/render/RenderTarget.hpp"
 
 #include "fastfall/render/Drawable.hpp"
+#include "fastfall/render/VertexArray.hpp"
 
 namespace ff {
 
@@ -29,6 +30,11 @@ void RenderTarget::setDefaultView() {
 
 void RenderTarget::setView(const View& view) {
 	m_view = view;
+	glViewport(
+		m_view.getViewport()[0],
+		m_view.getViewport()[1],
+		m_view.getViewport()[2],
+		m_view.getViewport()[3]);
 
 }
 
@@ -39,12 +45,6 @@ void RenderTarget::draw(const Drawable& drawable, const RenderState& state) {
 void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 
 	varray.glTransfer();
-
-	glViewport(
-		m_view.getViewport()[0],
-		m_view.getViewport()[1],
-		m_view.getViewport()[2],
-		m_view.getViewport()[3]);
 
 	bindFramebuffer();
 	applyBlend(state.blend);

@@ -104,4 +104,9 @@ void VertexArray::glTransfer() const {
 	}
 }
 
+
+void VertexArray::draw(RenderTarget& target, RenderState state) const {
+	target.draw(*this, state);
+}
+
 }

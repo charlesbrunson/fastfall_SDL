@@ -161,7 +161,6 @@ bool Engine::run()
             stepUpdate = false;
         }
 
-        // TODO
         Input::update(deltaTime);
 
         bar.arrive_and_wait();
@@ -278,8 +277,6 @@ void Engine::handleEvents(
     bool* timeWasted)
 {
 
-    // TODO
-
     // no window to handle inputs from
     if (window == nullptr)
         return;
@@ -289,7 +286,6 @@ void Engine::handleEvents(
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        // TODO
         switch (event.type) {
         case SDL_WINDOWEVENT:
             switch (event.window.event) {
@@ -297,27 +293,48 @@ void Engine::handleEvents(
                 close();
                 break;
             case SDL_WINDOWEVENT_RESIZED:
-                //ff::View view = window.getView();
-                //view.setViewport({ 0, 0, event.window.data1, event.window.data2 });
-                //window.setView(view);
-                //break;
-
-                Vec2i size = window->getSize();
                 if (!settings.fullscreen) {
-                    resizeWindow(Vec2u(size.x, size.y));
+                    resizeWindow(Vec2u(window->getSize()));
                     *timeWasted = true;
                 }
+                break;
+            case SDL_WINDOWEVENT_FOCUS_GAINED:
+                hasFocus = true;
+                *timeWasted = true;
+                discardMousePress = true;
+                Input::resetState();
+                break;
+            case SDL_WINDOWEVENT_FOCUS_LOST:
+                hasFocus = false;
+                Input::resetState();
                 break;
             }
             break;
         case SDL_KEYUP:
-            if (event.key.keysym.sym == SDLK_ESCAPE)
+            switch (event.key.keysym.sym) {
+            case SDLK_ESCAPE: 
                 if (!settings.fullscreen) {
                     close();
                 }
                 else {
                     setFullscreen(!settings.fullscreen);
                 }
+                break;
+            case SDLK_F10: 
+                setFullscreen(!settings.fullscreen);
+                break;
+            case SDLK_KP_1:
+                if (isFrozen()) {
+                    unfreeze();
+                }
+                else {
+                    freeze();
+                }
+                break;
+            case SDLK_KP_2:
+                freezeStepOnce();
+                break;
+            }
             [[fallthrough]];
         default:
             if (!discardMousePress || (event.type != SDL_MOUSEBUTTONDOWN && event.type != SDL_MOUSEBUTTONUP))
@@ -326,6 +343,35 @@ void Engine::handleEvents(
         }
     }
 
+    if (window) {
+
+        // TODO
+        Vec2i pixel_pos = Input::getMouseWindowPosition();
+        Vec2f world_pos = Vec2f{ window->windowCoordToWorld(pixel_pos) };
+
+        //const auto& viewport = window->getView().getViewport();
+        const auto& size = window->getSize();
+
+
+        glm::vec4 viewport = window->getView().getViewport();
+
+        //auto pos = Vec2f((float)pixel_pos.x / (float)size.x, (float)pixel_pos.y / (float)size.y);
+
+        bool inside = pixel_pos.x >= viewport[0] 
+            && pixel_pos.x <= (viewport[0] + viewport[2])
+            && pixel_pos.y >= viewport[1]
+            && pixel_pos.y <= (viewport[1] + viewport[3]);
+
+
+        //bool inside = window->getView().getViewport().contains(Vec2f((float)pixel_pos.x / size.x, (float)pixel_pos.y / size.y));
+
+        Input::setMouseWorldPosition(world_pos);
+        Input::setMouseInView(inside);
+
+        //LOG_INFO("Viewport: t {}, l {}, w {}, h {}", viewport[0], viewport[1], viewport[2], viewport[3]);
+        //LOG_INFO("Mouse Pixel: {:4d}, {:4d}", pixel_pos.x, pixel_pos.y);
+        //LOG_INFO("Mouse World: {:4.2f}, {:4.2f}, {}", world_pos.x, world_pos.y, inside);
+    }
 
     /*
 

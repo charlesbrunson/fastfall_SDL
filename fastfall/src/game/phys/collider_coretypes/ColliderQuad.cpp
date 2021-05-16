@@ -1,11 +1,12 @@
 #include "fastfall/game/phys/collider_coretypes/ColliderQuad.hpp"
 
-//#include "fastfall/game/DebugDraw.hpp"
+#include "fastfall/render/DebugDraw.hpp"
+#include "fastfall/render/VertexArray.hpp"
+
 
 namespace ff {
 
-// TODO
-/*
+
 void debug_impl(ColliderQuad* quad, VertexArray& array, size_t startNdx) {
 	static auto normal = [](Line<float> line) -> Vec2f {
 		Vec2f v = (line.p2 - line.p1);
@@ -25,69 +26,67 @@ void debug_impl(ColliderQuad* quad, VertexArray& array, size_t startNdx) {
 		0xFFFF00FF // yellow, west
 	};
 
-	for (int i = 0; i < 4; i++) {
+	for (size_t i = 0; i < 4; i++) {
 		if (const ColliderSurface* s = quad->getSurface((Cardinal)i)) {
 
-			sf::Vector2f n = normal(Linef(Vec2f(s->surface.p1), Vec2f(s->surface.p2)));
-			sf::Color c = sf::Color(colors[i]);
+			Vec2f n = normal(Linef(Vec2f(s->surface.p1), Vec2f(s->surface.p2)));
+			Color c = colors[i];
+			
+			array[startNdx + (i * 6)].color = c;
+			array[startNdx + (i * 6)].pos = s->surface.p1;
 
-			array[startNdx + (i * 4)].color = c;
-			array[startNdx + (i * 4)].position = Vec2f(s->surface.p1);
+			array[startNdx + (i * 6) + 1].color = c;
+			array[startNdx + (i * 6) + 1].pos = s->surface.p2;
 
-			array[startNdx + (i * 4) + 1].color = c;
-			array[startNdx + (i * 4) + 1].position = Vec2f(s->surface.p2);
+			array[startNdx + (i * 6) + 2].color = c().alpha(128);
+			array[startNdx + (i * 6) + 2].pos = s->surface.p1 - n;
 
-			c.a = 128;
+			array[startNdx + (i * 6) + 3].color = c().alpha(128);
+			array[startNdx + (i * 6) + 3].pos = s->surface.p2 - n;
 
-			array[startNdx + (i * 4) + 2].color = c;
-			array[startNdx + (i * 4) + 2].position = s->surface.p2;
-			array[startNdx + (i * 4) + 2].position -= n;
+			array[startNdx + (i * 6) + 4].color = c().alpha(128);
+			array[startNdx + (i * 6) + 4].pos = s->surface.p1 - n;
 
-			array[startNdx + (i * 4) + 3].color = c;
-			array[startNdx + (i * 4) + 3].position = s->surface.p1;
-			array[startNdx + (i * 4) + 3].position -= n;
+			array[startNdx + (i * 6) + 5].color = c;
+			array[startNdx + (i * 6) + 5].pos = s->surface.p2;
 		}
 	}
 }
-*/
+
 
 void debugDrawQuad(ColliderQuad& quad, Vec2f offset) {
-
-	// TODO
-	/*
+		
 	if (!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER))
 		return;
 
 	debug_draw::set_offset(offset);
 
-	auto& draw = createDebugDrawable<sf::VertexArray, debug_draw::Type::COLLISION_COLLIDER>(sf::PrimitiveType::Quads, 16);
+	auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDER>(Primitive::TRIANGLES, 24);
 	debug_impl(&quad, draw, 0);
 
 	debug_draw::set_offset();
-	*/
+	
 
 }
 void debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset) {
-
-	// TODO
-	/*
+		
 	if (!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER))
 		return;
 
 	debug_draw::set_offset(offset);
 
-	auto& draw = createDebugDrawable<sf::VertexArray, debug_draw::Type::COLLISION_COLLIDER>(sf::PrimitiveType::Quads, count * 16);
+	auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDER>(Primitive::TRIANGLES, count * 24);
 	size_t ndx = 0;
 	for (size_t i = 0; i < count; ndx++) {
 		if (!(quad + ndx)->hasAnySurface()) {
 			continue;
 		}
 
-		debug_impl(quad + ndx, draw, i * 16);
+		debug_impl(quad + ndx, draw, i * 24);
 		i++;
 	}
 	debug_draw::set_offset();
-	*/
+	
 }
 
 // -------------------------------------------

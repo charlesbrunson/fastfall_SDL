@@ -2,14 +2,17 @@
 
 #include "fastfall/util/log.hpp"
 #include "fastfall/engine/config.hpp"
-//#include "game/DebugDraw.hpp"
+#include "fastfall/render/DebugDraw.hpp"
+
+#include "fastfall/render/ShapeCircle.hpp"
 
 #include "fastfall/game/phys/collision/Response.hpp"
 
 #include <assert.h>
 #include <functional>
 
-/*
+namespace ff {
+
 void drawDrawCollidable(Collidable& c) {
 	if (!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDABLE))
 		return;
@@ -18,43 +21,42 @@ void drawDrawCollidable(Collidable& c) {
 	Rectf prevRect = c.getPrevBox();
 
 
-	auto& curShape  = createDebugDrawable<sf::VertexArray, debug_draw::Type::COLLISION_COLLIDABLE>(sf::PrimitiveType::Quads,      4);
-	auto& prevShape = createDebugDrawable<sf::VertexArray, debug_draw::Type::COLLISION_COLLIDABLE>(sf::PrimitiveType::LinesStrip, 5);
-	auto& bounding  = createDebugDrawable<sf::VertexArray, debug_draw::Type::COLLISION_COLLIDABLE>(sf::PrimitiveType::LinesStrip, 5);
+	auto& curShape  = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDABLE>(Primitive::TRIANGLE_STRIP, 4);
+	auto& prevShape = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDABLE>(Primitive::LINE_LOOP, 4);
+	auto& bounding  = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDABLE>(Primitive::LINE_LOOP, 4);
 
-	for (int i = 0; i < 4; i++) {
-		curShape[i].color = sf::Color(0, 255, 0, 100);
+	for (int i = 0; i < curShape.size(); i++) {
+		curShape[i].color = Color(0, 255, 0, 100);
 	}
-	for (int i = 0; i < 5; i++) {
-		prevShape[i].color = sf::Color(0, 255, 0, 200);
+	for (int i = 0; i < prevShape.size(); i++) {
+		prevShape[i].color = Color(0, 255, 0, 200);
 	}
-	for (int i = 0; i < 5; i++) {
-		bounding[i].color = sf::Color(255, 255, 0, 200);
+	for (int i = 0; i < bounding.size(); i++) {
+		bounding[i].color = Color(255, 255, 0, 200);
 	}
 
 	
-	prevShape[0].position = math::rect_topleft(prevRect);
-	prevShape[1].position = math::rect_topright(prevRect);
-	prevShape[2].position = math::rect_botright(prevRect);
-	prevShape[3].position = math::rect_botleft(prevRect);
-	prevShape[4].position = prevShape[0].position;
+	prevShape[0].pos = math::rect_topleft(prevRect);
+	prevShape[1].pos = math::rect_topright(prevRect);
+	prevShape[2].pos = math::rect_botright(prevRect);
+	prevShape[3].pos = math::rect_botleft(prevRect);
+	//prevShape[4].position = prevShape[0].position;
 	
 
-	curShape[0].position = math::rect_topleft(curRect);
-	curShape[1].position = math::rect_topright(curRect);
-	curShape[2].position = math::rect_botright(curRect);
-	curShape[3].position = math::rect_botleft(curRect);
+	curShape[0].pos = math::rect_topleft(curRect);
+	curShape[1].pos = math::rect_topright(curRect);
+	curShape[2].pos = math::rect_botleft(curRect);
+	curShape[3].pos = math::rect_botright(curRect);
 
-	
 	Rectf r = math::rect_bound(
-		Rectf(curShape[0].position, curShape[2].position - curShape[0].position),
-		Rectf(prevShape[0].position, prevShape[2].position - prevShape[0].position)
+		Rectf(curShape[0].pos, curShape[2].pos - curShape[0].pos),
+		Rectf(prevShape[0].pos, prevShape[2].pos - prevShape[0].pos)
 	);
-	bounding[0].position = math::rect_topleft(r);
-	bounding[1].position = math::rect_topright(r);
-	bounding[2].position = math::rect_botright(r);
-	bounding[3].position = math::rect_botleft(r);
-	bounding[4].position = bounding[0].position;
+	bounding[0].pos = math::rect_topleft(r);
+	bounding[1].pos = math::rect_topright(r);
+	bounding[2].pos = math::rect_botright(r);
+	bounding[3].pos = math::rect_botleft(r);
+	//bounding[4].position = bounding[0].position;
 	
 }
 
@@ -64,48 +66,50 @@ void debugDrawContact(Contact& contact) {
 		!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_CONTACT))
 		return;
 
-	auto& pos = createDebugDrawable<sf::CircleShape, debug_draw::Type::COLLISION_CONTACT>(1.f, 16);
-	pos.setPosition(contact.position - Vec2f(1.f, 1.f));
-	pos.setFillColor(sf::Color::Transparent);
-	pos.setOutlineColor(sf::Color::Yellow);
-	pos.setOutlineThickness(0.25f);
+	auto& pos = createDebugDrawable<ShapeCircle, debug_draw::Type::COLLISION_CONTACT>(
+		contact.position - Vec2f(1.f, 1.f), 
+		1.f, 
+		16, 
+		Color::Transparent, 
+		Color::Yellow
+	);
 
-	auto& line = createDebugDrawable<sf::VertexArray, debug_draw::Type::COLLISION_CONTACT>(sf::PrimitiveType::Lines, 4);
-	line[0].position = contact.position;
-	line[1].position = contact.position + (contact.ortho_normal * contact.separation);
-	line[0].color = sf::Color::Yellow;
-	line[1].color = sf::Color::Yellow;
 
-	line[2].position = contact.collider.surface.p1 - contact.collider_normal;
-	line[3].position = contact.collider.surface.p2 - contact.collider_normal;
-	line[2].color = sf::Color::White;
-	line[3].color = sf::Color::White;
+	auto& line = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(Primitive::LINES, 4);
+	line[0].pos = contact.position;
+	line[1].pos = contact.position + (contact.ortho_normal * contact.separation);
+	line[0].color = Color::Yellow;
+	line[1].color = Color::Yellow;
 
-	auto& surf = createDebugDrawable<sf::VertexArray, debug_draw::Type::COLLISION_CONTACT>(sf::PrimitiveType::LinesStrip, 4);
-	surf[0].color = contact.collider.g0virtual ? sf::Color::Blue : sf::Color::White;
-	surf[1].color = sf::Color::White;
-	surf[2].color = sf::Color::White;
-	surf[3].color = contact.collider.g3virtual ? sf::Color::Blue : sf::Color::White;
-	surf[0].position = contact.collider.ghostp0;
-	surf[1].position = contact.collider.surface.p1;
-	surf[2].position = contact.collider.surface.p2;
-	surf[3].position = contact.collider.ghostp3;
+	line[2].pos = contact.collider.surface.p1 - contact.collider_normal;
+	line[3].pos = contact.collider.surface.p2 - contact.collider_normal;
+	line[2].color = Color::White;
+	line[3].color = Color::White;
+
+	auto& surf = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(Primitive::LINE_STRIP, 4);
+	surf[0].color = contact.collider.g0virtual ? Color::Blue : Color::White;
+	surf[1].color = Color::White;
+	surf[2].color = Color::White;
+	surf[3].color = contact.collider.g3virtual ? Color::Blue : Color::White;
+	surf[0].pos = contact.collider.ghostp0;
+	surf[1].pos = contact.collider.surface.p1;
+	surf[2].pos = contact.collider.surface.p2;
+	surf[3].pos = contact.collider.ghostp3;
 
 	if (contact.collider.surface.p1 == contact.collider.surface.p2) {
 
-		auto& corner = createDebugDrawable<sf::VertexArray, debug_draw::Type::COLLISION_CONTACT>(sf::PrimitiveType::Triangles, 3);
-		corner[0].color = sf::Color::White;
-		corner[1].color = sf::Color::White;
-		corner[2].color = sf::Color::White;
+		auto& corner = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(Primitive::TRIANGLES, 3);
+		corner[0].color = Color::White;
+		corner[1].color = Color::White;
+		corner[2].color = Color::White;
 
-		corner[0].position = contact.collider.surface.p1;
-		corner[1].position = contact.collider.surface.p1 - (contact.ortho_normal - contact.ortho_normal.lefthand()) * 2.f;
-		corner[2].position = contact.collider.surface.p1 - (contact.ortho_normal + contact.ortho_normal.lefthand()) * 2.f;
+		corner[0].pos = contact.collider.surface.p1;
+		corner[1].pos = contact.collider.surface.p1 - (contact.ortho_normal - contact.ortho_normal.lefthand()) * 2.f;
+		corner[2].pos = contact.collider.surface.p1 - (contact.ortho_normal + contact.ortho_normal.lefthand()) * 2.f;
 	}
 }
-*/
 
-namespace ff {
+
 
 Collidable::Collidable() {
 	// reserving zero as invalid
@@ -153,8 +157,8 @@ void Collidable::update(secs deltaTime) {
 		pos = tracker->postmove_update(pos, deltaTime);
 	}
 
-	//if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDABLE))
-	//	drawDrawCollidable(*this);
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDABLE))
+		drawDrawCollidable(*this);
 
 	setPosition(pos);
 
@@ -302,13 +306,13 @@ void Collidable::process_current_frame() {
 	hori_crush = false;
 	vert_crush = false;
 
-	/*
+	
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_CONTACT)) {
 		for (auto& contact : currContacts) {
 			debugDrawContact(contact);
 		}
 	}
-	*/
+	
 
 	for (auto& contact : currContacts) {
 		if (contact.type == ContactType::CRUSH_HORIZONTAL) {
