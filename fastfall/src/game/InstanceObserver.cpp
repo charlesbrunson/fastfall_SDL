@@ -487,20 +487,6 @@ void InstanceObserver::ImGui_getExtraContent() {
 		}
 	}
 
-
-	/*
-	if (auto* inst = Instance(instanceID)) {
-		GameObjectManager* man = &inst->getObject();
-
-		for (auto& obj : man->getObjects()) {
-			if (obj->showInspect && ImGui::Begin(obj->getType().c_str(), &obj->showInspect)) {
-				obj->ImGui_Inspect();
-				ImGui::End();
-			}
-		}
-	}
-	*/
-
 }
 
 }

@@ -104,7 +104,7 @@ private:
 	GameContext context;
 
 	friend class Collidable;
-	Vec2f get_friction(Vec2f currVel, Vec2f prevVel);
+	Vec2f get_friction(Vec2f prevVel);
 
 	// time in contact
 	// this will propogate across different surfaces

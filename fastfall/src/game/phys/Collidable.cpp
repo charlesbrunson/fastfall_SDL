@@ -329,7 +329,7 @@ void Collidable::process_current_frame() {
 	Vec2f friction;
 	for (auto& tracker : trackers) {
 		tracker->process_contacts(currContacts);
-		friction += tracker->get_friction(get_vel(), pVel);
+		friction += tracker->get_friction(pVel);
 	}
 	vel -= friction;
 }

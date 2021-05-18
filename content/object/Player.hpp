@@ -87,7 +87,7 @@ public:
 
 		sprite.set_playback(1.f);
 
-		raycast(context.collision(), box->getPosition(), Cardinal::SOUTH);
+		//raycast(context.collision(), box->getPosition(), Cardinal::SOUTH);
 		
 		// on ground
 		if (ground.has_contact()) {

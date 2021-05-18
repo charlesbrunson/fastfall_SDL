@@ -184,6 +184,7 @@ bool Engine::run()
         bar.arrive_and_wait();
 
 #ifdef DEBUG
+        //bar.arrive_and_wait();
         //do ImGui
         if (window) {
             ff::ImGuiNewFrame(*window);
@@ -248,6 +249,11 @@ void Engine::runUpdate(std::barrier<>* bar) {
         for (auto& run : runnables) {
             run.getStateHandle().update();
         }
+
+
+#ifdef DEBUG
+        //bar->arrive_and_wait();
+#endif
 
         bar->arrive_and_wait();
 
@@ -458,7 +464,7 @@ void Engine::initRenderTarget(bool fullscreen)
     char version[32];
     sprintf_s(version, "%d.%d.%d", VERSION[0], VERSION[1], VERSION[2]);
 
-    window->setWindowTitle(fmt::format("GamePro2 v{}", version));
+    window->setWindowTitle(fmt::format("game v{}", version));
     if (settings.fullscreen) {
         // go borderless fullscreen
 
@@ -641,7 +647,7 @@ void Engine::ImGui_getContent() {
 
     // FRAME DATA GRAPH
 
-    static constexpr int arrsize = 301;
+    static constexpr int arrsize = 101;
     static constexpr int last = arrsize - 1;
 
     static float active_x [arrsize] = { 0.f };
