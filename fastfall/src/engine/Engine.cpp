@@ -180,7 +180,7 @@ bool Engine::run()
         for (auto& run : runnables) {
             drawRunnable(run);
         }
-                
+                        
         bar.arrive_and_wait();
 
 #ifdef DEBUG
@@ -350,105 +350,19 @@ void Engine::handleEvents(
     }
 
     if (window) {
-
-        // TODO
         Vec2i pixel_pos = Input::getMouseWindowPosition();
         Vec2f world_pos = Vec2f{ window->windowCoordToWorld(pixel_pos) };
 
-        //const auto& viewport = window->getView().getViewport();
-        const auto& size = window->getSize();
-
-
         glm::vec4 viewport = window->getView().getViewport();
-
-        //auto pos = Vec2f((float)pixel_pos.x / (float)size.x, (float)pixel_pos.y / (float)size.y);
-
         bool inside = pixel_pos.x >= viewport[0] 
             && pixel_pos.x <= (viewport[0] + viewport[2])
             && pixel_pos.y >= viewport[1]
             && pixel_pos.y <= (viewport[1] + viewport[3]);
 
 
-        //bool inside = window->getView().getViewport().contains(Vec2f((float)pixel_pos.x / size.x, (float)pixel_pos.y / size.y));
-
         Input::setMouseWorldPosition(world_pos);
         Input::setMouseInView(inside);
-
-        //LOG_INFO("Viewport: t {}, l {}, w {}, h {}", viewport[0], viewport[1], viewport[2], viewport[3]);
-        //LOG_INFO("Mouse Pixel: {:4d}, {:4d}", pixel_pos.x, pixel_pos.y);
-        //LOG_INFO("Mouse World: {:4.2f}, {:4.2f}, {}", world_pos.x, world_pos.y, inside);
     }
-
-    /*
-
-
-    sf::Event event;
-    while (window->pollEvent(event))
-    {
-#ifdef DEBUG
-        ImGui::SFML::ProcessEvent(event);
-#endif
-
-        switch (event.type) {
-
-            // Window has lost focus
-        case sf::Event::EventType::LostFocus:
-            hasFocus = false;
-            Input::resetState();
-            break;
-
-            // Window has gained focus
-        case sf::Event::EventType::GainedFocus:
-            hasFocus = true;
-            *timeWasted = true;
-            discardMousePress = true;
-            Input::resetState();
-            break;
-
-            // "close requested" event: we close the window
-        case sf::Event::Closed:
-            close();
-            *timeWasted = true;
-            break;
-
-        case sf::Event::EventType::Resized:
-            if (!settings.fullscreen) {
-                resizeWindow(sf::Vector2u(event.size.width, event.size.height));
-                *timeWasted = true;
-            }
-            break;
-
-        case sf::Event::EventType::KeyPressed:
-            switch (event.key.code) {
-            case sf::Keyboard::F10: setFullscreen(!settings.fullscreen); break;
-            case sf::Keyboard::Escape: (settings.fullscreen ? setFullscreen(!settings.fullscreen) : running = false); break;
-            case sf::Keyboard::Num1: isFrozen() ? unfreeze() : freeze(); break;
-            case sf::Keyboard::Num2: freezeStepOnce(); break;
-            }
-            [[fallthrough]];
-
-        default:
-            if (!discardMousePress || event.type != sf::Event::EventType::MouseButtonPressed)
-                Input::pushEvent(event);
-            break;
-        }
-    }
-
-    if (window) {
-        Vec2i pixel_pos = Input::getMouseWindowPosition();
-        Vec2f world_pos = Vec2f{ window->mapPixelToCoords(pixel_pos) };
-
-        //const auto& viewport = window->getView().getViewport();
-        const auto& size = window->getSize();
-        bool inside = window->getView().getViewport().contains(Vec2f((float)pixel_pos.x / size.x, (float)pixel_pos.y / size.y));
-
-        Input::setMouseWorldPosition(world_pos);
-        Input::setMouseInView(inside);
-
-        //LOG_INFO("Viewport: t{}, l{}, w{}, h{}", viewport.top, viewport.left, viewport.width, viewport.height);
-        //LOG_INFO("Mouse: {:4.2f}, {:4.2f}, {}", world_pos.x, world_pos.y, inside);
-    }
-    */
 }
 
 void Engine::initRenderTarget(bool fullscreen)
@@ -640,8 +554,10 @@ void Engine::ImGui_getContent() {
     }
     ImGui::Separator();
     glm::fvec4 vp = window->getView().getViewport();
-    ImGui::Text("Viewport     = (%6.2f, %6.2f, %6.2f, %6.2f)", vp[0], vp[1], vp[2], vp[3]);
-    ImGui::Text("Zoom         =  %2dx", windowZoom);
+    ImGui::Text("Viewport      = (%6.2f, %6.2f, %6.2f, %6.2f)", vp[0], vp[1], vp[2], vp[3]);
+    ImGui::Text("Zoom          =  %2dx", windowZoom);
+    ImGui::Text("Cursor (game) = (%6.2f, %6.2f)", Input::getMouseWorldPosition().x, Input::getMouseWorldPosition().y);
+    ImGui::Text("Cursor inside = %s", Input::getMouseInView() ? "true" : "false");
     ImGui::Separator();
 
 

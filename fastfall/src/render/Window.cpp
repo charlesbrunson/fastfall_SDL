@@ -173,35 +173,33 @@ glm::ivec2 Window::worldCoordToWindow(glm::fvec2 worldCoord) {
 
 glm::fvec2 Window::windowCoordToWorld(int windowCoordX, int windowCoordY) {
 
-	
-	glm::fvec3 ndc{
-		(float)windowCoordX / (float)getSize().x,
-		(float)windowCoordY / (float)getSize().y,
-		1.f
+	const View& v = getView();
+	glm::fvec2 vsize = v.getSize();
+	glm::fvec2 vzoom = glm::fvec2(v.getViewport()[2] / vsize.x, v.getViewport()[3] / vsize.y);
+	glm::fvec2 viewcenter{ v.getViewport()[0] + v.getViewport()[2] / 2, v.getViewport()[1] + v.getViewport()[3] / 2 };
+
+	glm::fvec2 world_coord{
+		((float)windowCoordX - viewcenter.x) / vzoom.x,
+		((float)windowCoordY - viewcenter.y) / vzoom.y
 	};
-	ndc.x = (ndc.x * 2.f) - 1.f;
-	ndc.y = (ndc.y * 2.f) - 1.f;
+	world_coord += v.getCenter();
 
-	glm::mat3 view_mat = getView().getInvMatrix();
-	glm::fvec3 world_coord = view_mat * ndc;
-	
-
-	//auto viewport = getView().getViewport();
-
-
-
-	//glm::fvec2 world_coord = getView().getInvMatrix() * ndc;
 	return world_coord;
 }
 
 glm::ivec2 Window::worldCoordToWindow(float worldCoordX, float worldCoordY) {
 
-	glm::mat3 view_mat = getView().getMatrix();
-	glm::fvec3 ndc = view_mat * glm::fvec3{ worldCoordX, worldCoordY, 1.f };
-	ndc.x = (ndc.x + 1.f) / 2.f;
-	ndc.y = (ndc.y + 1.f) / 2.f;
+	const View& v = getView();
+	glm::fvec2 vsize = v.getSize();
+	glm::fvec2 vzoom = glm::fvec2(v.getViewport()[2] / vsize.x, v.getViewport()[3] / vsize.y);
+	glm::fvec2 viewcenter{ v.getViewport()[0] + v.getViewport()[2] / 2, v.getViewport()[1] + v.getViewport()[3] / 2 };
 
-	return glm::ivec2{ roundf(ndc.x * getSize().x), roundf(ndc.y * getSize().y) };
+	glm::fvec2 world_coord{ worldCoordX, worldCoordY };
+	world_coord -= v.getCenter();
+	world_coord *= vzoom;
+	world_coord += viewcenter;
+
+	return glm::ivec2{ roundf(world_coord.x), roundf(world_coord.y) };
 }
 
 unsigned int Window::getID() {

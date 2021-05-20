@@ -23,16 +23,16 @@ FetchContent_Declare(
 
 
 #flatbuffers
+set(FLATBUFFERS_BUILD_TESTS OFF)
+set(FLATBUFFERS_BUILD_FLATLIB ON)
+set(FLATBUFFERS_BUILD_FLATC OFF)
+set(FLATBUFFERS_BUILD_CPP17 ON)
 FetchContent_Declare(
 	flatbuffers
 	GIT_REPOSITORY https://github.com/google/flatbuffers.git
 	GIT_TAG        v1.12.0
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers
 )
-set(FLATBUFFERS_BUILD_TESTS OFF)
-set(FLATBUFFERS_BUILD_FLATLIB ON)
-set(FLATBUFFERS_BUILD_FLATC OFF)
-set(FLATBUFFERS_BUILD_CPP17 ON)
 
 #rapidxml
 FetchContent_Declare(
@@ -50,16 +50,16 @@ FetchContent_Declare(
 )
 
 #libpng
-FetchContent_Declare(
-	libpng
-	URL			https://download.sourceforge.net/libpng/libpng-1.6.37.tar.gz
-    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/libpng
-)
 set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
 #set(ZLIB_LIBRARY ${zlib_BINARY_DIR}/zlibd.lib)
 set(PNG_SHARED OFF)
 set(PNG_TESTS OFF)
 set(PNG_BUILD_ZLIB ON)
+FetchContent_Declare(
+	libpng
+	URL			https://download.sourceforge.net/libpng/libpng-1.6.37.tar.gz
+    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/libpng
+)
 
 # sdl
 #set(SDL_SHARED OFF)
