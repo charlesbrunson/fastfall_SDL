@@ -74,7 +74,6 @@ void debugDrawContact(Contact& contact) {
 		Color::Yellow
 	);
 
-
 	auto& line = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(Primitive::LINES, 4);
 	line[0].pos = contact.position;
 	line[1].pos = contact.position + (contact.ortho_normal * contact.separation);
@@ -159,6 +158,12 @@ void Collidable::update(secs deltaTime) {
 
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDABLE))
 		drawDrawCollidable(*this);
+
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_CONTACT)) {
+		for (auto& contact : currContacts) {
+			debugDrawContact(contact);
+		}
+	}
 
 	setPosition(pos);
 
@@ -307,11 +312,6 @@ void Collidable::process_current_frame() {
 	vert_crush = false;
 
 	
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_CONTACT)) {
-		for (auto& contact : currContacts) {
-			debugDrawContact(contact);
-		}
-	}
 	
 
 	for (auto& contact : currContacts) {

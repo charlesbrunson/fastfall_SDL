@@ -72,7 +72,7 @@ public:
 	}
 
 	void update(secs deltaTime) override {
-		debugDrawQuad(quad, getPosition());
+		debugDrawQuad(quad, getPosition(), this);
 	}
 	const ColliderQuad* get_quad(int quad_id) const noexcept override {
 		return quad_id == 0u ? &quad : nullptr;

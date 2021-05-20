@@ -97,7 +97,7 @@ private:
 	// thread-sync helper
 	class Barrier;
 
-	bool running = false;
+	std::atomic<bool> running = false;
 
 	// display management
 	//bool windowless;

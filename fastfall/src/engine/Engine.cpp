@@ -208,11 +208,15 @@ bool Engine::run()
     // clean up
     close();
 
+    LOG_INFO("Update thread shutting down");
+
     stateWorker.join();
 
     LOG_INFO("Display thread shutting down");
 
     running = false;
+
+    ff::glDeleteStale();
 
     // destroy window
     window.reset();
@@ -272,10 +276,6 @@ void Engine::runUpdate(std::barrier<>* bar) {
             runnables.clear();
         }
     }
-
-
-    LOG_INFO("Update thread shutting down");
-
 }
 
 void Engine::handleEvents(
@@ -574,6 +574,9 @@ void Engine::ImGui_getContent() {
     static float display_y[arrsize] = { 0.f };
 
     static bool initX = false;
+
+    static int roller = 0;
+
     if (!initX) {
         for (int x = 0; x <= last; x++) {
             active_x [x] = static_cast<float>(x);
@@ -601,6 +604,11 @@ void Engine::ImGui_getContent() {
     acc += displayTime.count() * 1000.0;
     display_y[last] = acc;
 
+    roller++;
+    if (roller == last) {
+        roller %= last;
+    }
+
     if (ImGui::CollapsingHeader("Framerate Graph", ImGuiTreeNodeFlags_DefaultOpen)) {
 
         ImPlot::SetNextPlotLimits(0.0, (arrsize - 1), 0.0, denom * 2.f, ImGuiCond_Always);
@@ -627,13 +635,19 @@ void Engine::ImGui_getContent() {
 
     // END FRAME DATA GRAPH
 
-    ImGui::Text("| FPS: %4d |", clock.getAvgFPS());
+    ImGui::Text("| FPS:%4d |", clock.getAvgFPS());
     ImGui::SameLine();
-    ImGui::Text("Gamespeed: %3.0f%% | ", 100.0 * (elapsedTime > maxDeltaTime ? maxDeltaTime / elapsedTime : 1.f));
+    ImGui::Text("Speed:%3.0f%% | ", 100.0 * (elapsedTime > maxDeltaTime ? maxDeltaTime / elapsedTime : 1.f));
     ImGui::SameLine();
-    ImGui::Text("Tick#: %8d | ", clock.data().tickTotal);
+    ImGui::Text("Tick#:%6d | ", clock.data().tickTotal);
     ImGui::SameLine();
-    ImGui::Text("Tick Miss: %2d | ", clock.data().tickMissPerSec);
+    ImGui::Text("Tick Miss:%2d | ", clock.data().tickMissPerSec);
+    ImGui::SameLine();
+    static float tickMS = 0.f;
+    if (roller == 0) {
+        tickMS = clock.data().activeTime.count() * 1000.f;
+    }
+    ImGui::Text("ActiveMS:%2.1f | ", tickMS);
 
     ImGui::Separator();
 

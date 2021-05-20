@@ -40,6 +40,8 @@ namespace ff {
 namespace ff {
 	void glStaleVertexArrays(size_t count, const GLuint* vao);
 	void glStaleVertexBuffers(size_t count, const GLuint* vbo);
+	void glStaleVertexArrays(const GLuint vao);
+	void glStaleVertexBuffers(const GLuint vbo);
 
 	void glDeleteStale();
 }

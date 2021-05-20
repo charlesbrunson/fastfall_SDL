@@ -106,6 +106,7 @@ private:
 		//throw std::out_of_range(std::to_string(ndx) + " out of range");
 	};
 
+	bool changed = false;
 
 	bool hasBorder;
 	size_t validCollisionSize = 0;

@@ -83,7 +83,7 @@ protected:
 
 };
 
-void debugDrawQuad(ColliderQuad& quad, Vec2f offset = Vec2f{});
-void debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset = Vec2f{});
+void debugDrawQuad(ColliderQuad& quad, Vec2f offset = Vec2f{}, const void* sign = nullptr, bool always_redraw = false);
+void debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset = Vec2f{}, const void* sign = nullptr, bool always_redraw = false);
 
 }

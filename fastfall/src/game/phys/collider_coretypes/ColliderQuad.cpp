@@ -26,56 +26,76 @@ void debug_impl(ColliderQuad* quad, VertexArray& array, size_t startNdx) {
 		0xFFFF00FF // yellow, west
 	};
 
-	for (size_t i = 0; i < 4; i++) {
-		if (const ColliderSurface* s = quad->getSurface((Cardinal)i)) {
+	int side = 0;
+	for (size_t i = startNdx; i < startNdx + 24; i += 6) {
+		if (const ColliderSurface* s = quad->getSurface((Cardinal)side)) {
 
 			Vec2f n = normal(Linef(Vec2f(s->surface.p1), Vec2f(s->surface.p2)));
-			Color c = colors[i];
+			Color c = colors[side];
 			
-			array[startNdx + (i * 6)].color = c;
-			array[startNdx + (i * 6)].pos = s->surface.p1;
+			array[i].color = c;
+			array[i].pos = s->surface.p1;
 
-			array[startNdx + (i * 6) + 1].color = c;
-			array[startNdx + (i * 6) + 1].pos = s->surface.p2;
+			array[i + 1].color = c;
+			array[i + 1].pos = s->surface.p2;
 
-			array[startNdx + (i * 6) + 2].color = c().alpha(128);
-			array[startNdx + (i * 6) + 2].pos = s->surface.p1 - n;
+			array[i + 2].color = c;
+			array[i + 2].pos = s->surface.p1 - n;
 
-			array[startNdx + (i * 6) + 3].color = c().alpha(128);
-			array[startNdx + (i * 6) + 3].pos = s->surface.p2 - n;
+			array[i + 3].color = c;
+			array[i + 3].pos = s->surface.p2 - n;
 
-			array[startNdx + (i * 6) + 4].color = c().alpha(128);
-			array[startNdx + (i * 6) + 4].pos = s->surface.p1 - n;
+			array[i + 4].color = c;
+			array[i + 4].pos = s->surface.p1 - n;
 
-			array[startNdx + (i * 6) + 5].color = c;
-			array[startNdx + (i * 6) + 5].pos = s->surface.p2;
+			array[i + 5].color = c;
+			array[i + 5].pos = s->surface.p2;
 		}
+		side++;
 	}
 }
 
 
-void debugDrawQuad(ColliderQuad& quad, Vec2f offset) {
-		
+void debugDrawQuad(ColliderQuad& quad, Vec2f offset, const void* sign, bool always_redraw) {
+	
 	if (!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER))
 		return;
 
+	if (!always_redraw && sign && debug_draw::repeat(sign, offset)) {
+		return;
+	}
+
 	debug_draw::set_offset(offset);
 
-	auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDER>(Primitive::TRIANGLES, 24);
+	auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDER>(sign, Primitive::TRIANGLES, 24);
+
+	//std::unique_ptr<Drawable> ptr = std::make_unique<VertexArray>(Primitive::TRIANGLES, 24);
+	//VertexArray& draw = *static_cast<VertexArray*>(ptr.get());
+	//debug_draw::add(std::move(ptr), debug_draw::Type::COLLISION_COLLIDER, sign);
+
 	debug_impl(&quad, draw, 0);
 
 	debug_draw::set_offset();
-	
-
 }
-void debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset) {
+
+void debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset, const void* sign, bool always_redraw) {
 		
+
 	if (!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER))
 		return;
 
+	if (!always_redraw && sign && debug_draw::repeat(sign, offset)) {
+		return;
+	}
+
 	debug_draw::set_offset(offset);
 
-	auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDER>(Primitive::TRIANGLES, count * 24);
+	auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDER>(sign, Primitive::TRIANGLES, count * 24);
+
+	//std::unique_ptr<Drawable> ptr = std::make_unique<VertexArray>(Primitive::TRIANGLES, count * 24);
+	//VertexArray& draw = *static_cast<VertexArray*>(ptr.get());
+	//debug_draw::add(std::move(ptr), debug_draw::Type::COLLISION_COLLIDER, sign);
+
 	size_t ndx = 0;
 	for (size_t i = 0; i < count; ndx++) {
 		if (!(quad + ndx)->hasAnySurface()) {
@@ -86,7 +106,6 @@ void debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset) {
 		i++;
 	}
 	debug_draw::set_offset();
-	
 }
 
 // -------------------------------------------

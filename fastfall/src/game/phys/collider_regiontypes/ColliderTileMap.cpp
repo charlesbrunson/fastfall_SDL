@@ -62,7 +62,7 @@ namespace ff {
 
 
 		if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER)) {
-			debugDrawQuad(validCollisionSize, &tileCollisionMap[0], getPosition());
+			debugDrawQuad(validCollisionSize, &tileCollisionMap[0], getPosition(), this, changed);
 		}
 	}
 
@@ -160,9 +160,11 @@ namespace ff {
 
 	void ColliderTileMap::applyChanges() {
 		if (editQueue.empty()) {
+			changed = false;
 			return;
 		}
 		else {
+			changed = true;
 			//debug_dirtyFlag = true;
 		}
 

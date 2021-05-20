@@ -164,7 +164,6 @@ void glStaleVertexArrays(size_t count, const GLuint* vao) {
     std::lock_guard<std::mutex> guard(stale_lock);
 
     std::vector<GLuint> in(vao, vao + count);
-   //staleVAO.emplace_back(in.begin(), in.end());
     staleVAO.insert(staleVAO.end(), in.begin(), in.end());
 
 }
@@ -173,8 +172,17 @@ void glStaleVertexBuffers(size_t count, const GLuint* vbo) {
     std::lock_guard<std::mutex> guard(stale_lock);
 
     std::vector<GLuint> in(vbo, vbo + count);
-    //staleVBO.emplace_back(in.begin(), in.end());
     staleVBO.insert(staleVBO.end(), in.begin(), in.end());
+}
+
+void glStaleVertexArrays(const GLuint vao) {
+    std::lock_guard<std::mutex> guard(stale_lock);
+    staleVAO.push_back(vao);
+}
+
+void glStaleVertexBuffers(const GLuint vbo) {
+    std::lock_guard<std::mutex> guard(stale_lock);
+    staleVBO.push_back(vbo);
 }
 
 void glDeleteStale() {

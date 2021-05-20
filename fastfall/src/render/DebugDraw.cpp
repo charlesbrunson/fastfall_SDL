@@ -1,15 +1,44 @@
 #include "fastfall/render/DebugDraw.hpp"
 
+#include <set>
+#include <deque>
 
 namespace ff {
 
-using DebugDrawable = std::pair<Vec2f, std::unique_ptr<Drawable>>;
+//using DebugDrawable = std::pair<Vec2f, std::unique_ptr<Drawable>>;
 
-std::vector<DebugDrawable> debugDrawListA;
-std::vector<DebugDrawable> debugDrawListB;
+struct DebugDrawable {
+	Vec2f offset;
+	std::unique_ptr<Drawable> drawable;
+	debug_draw::Type type;
+	const void* signature = nullptr;
+};
 
-std::vector<DebugDrawable>* activeList = &debugDrawListA;
-std::vector<DebugDrawable>* inactiveList = &debugDrawListB;
+
+std::deque<DebugDrawable> debugDrawListA;
+std::deque<DebugDrawable> debugDrawListB;
+
+std::deque<DebugDrawable>* activeList = &debugDrawListA;
+std::deque<DebugDrawable>* inactiveList = &debugDrawListB;
+
+struct Repeat {
+	const void* signature = nullptr;
+	Vec2f offset;
+
+
+	inline bool operator< (const Repeat& rhs) const {
+		return signature < rhs.signature;
+	}
+	inline bool operator==(const Repeat& rhs) const {
+		return signature == rhs.signature;
+	}
+};
+
+
+
+
+
+std::set<Repeat> repeatList;
 
 Vec2f current_offset;
 
@@ -37,22 +66,49 @@ bool debug_draw::hasTypeEnabled(Type type) {
 	return typeEnable[static_cast<unsigned>(type)];
 }
 
-void debug_draw::add(std::unique_ptr<Drawable>&& drawable, Type type) {
+void debug_draw::add(std::unique_ptr<Drawable>&& drawable, Type type, const void* signature) {
 	if (hasTypeEnabled(type))
-		inactiveList->push_back(std::make_pair(current_offset, std::move(drawable)));
+		inactiveList->push_back(DebugDrawable{ current_offset, std::move(drawable), type, signature });
+}
+
+bool debug_draw::repeat(const void* signature, Vec2f offset) {
+
+	auto iter = std::find_if(activeList->begin(), activeList->end(), [&signature](const DebugDrawable& debug) {
+			return debug.signature == signature;
+		});
+
+	if (iter != activeList->end()) {
+		repeatList.insert(Repeat{ signature, offset });
+	}
+	return (iter != activeList->end());
+
 }
 
 void debug_draw::swapDrawLists() {
+
+	for (auto& debug : *activeList) {
+		if (debug.signature) {
+			if (const auto it = repeatList.find(Repeat{ debug.signature }); 
+				it != repeatList.end()
+				)
+			{
+				debug.offset = it->offset;
+				inactiveList->push_front(std::move(debug));
+			}
+		}
+	}
+	activeList->clear();
 	std::swap(activeList, inactiveList);
-	inactiveList->clear();
+	repeatList.clear();
+
 }
 
 void debug_draw::draw(RenderTarget& target, RenderState states) {
-	for (auto& drawable : *activeList) {
+	for (auto& debug : *activeList) {
 		RenderState state = states;
-		state.transform = Transform::combine(states.transform, Transform(drawable.first));
-		if (drawable.second) {
-			target.draw(*drawable.second.get(), state);
+		state.transform = Transform::combine(states.transform, Transform(debug.offset));
+		if (debug.drawable) {
+			target.draw(*debug.drawable.get(), state);
 		}
 	} 
 }

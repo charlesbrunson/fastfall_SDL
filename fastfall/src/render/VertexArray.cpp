@@ -49,8 +49,8 @@ void VertexArray::swap(VertexArray& varray) {
 }
 
 VertexArray::~VertexArray() {
-	ff::glStaleVertexArrays(1, &gl.m_array);
-	ff::glStaleVertexBuffers(1, &gl.m_buffer);
+	ff::glStaleVertexArrays(gl.m_array);
+	ff::glStaleVertexBuffers(gl.m_buffer);
 }
 
 void VertexArray::glTransfer() const {

@@ -29,12 +29,25 @@ namespace debug_draw {
 	void setTypeEnabled(Type type, bool enable);
 	bool hasTypeEnabled(Type type);
 
-	void add(std::unique_ptr<Drawable>&& drawable, Type type = Type::NONE);
+	void add(std::unique_ptr<Drawable>&& drawable, Type type = Type::NONE, const void* signature = nullptr);
 	void swapDrawLists();
 
 	void draw(RenderTarget& target, RenderState states = RenderState());
 
 	void set_offset(Vec2f offset = Vec2f{});
+
+	bool repeat(const void* signature, Vec2f offset);
+
+};
+
+// wrapper for declaring drawable for debugging
+// T must be sf::Drawable subclass
+template<class T, debug_draw::Type type = debug_draw::Type::NONE, class ...Args, typename = std::enable_if_t<std::is_base_of<Drawable, T>::value>>
+T& createDebugDrawable(const void* sign, Args&&...args) {
+	std::unique_ptr<Drawable> ptr = std::make_unique<T>(args...);
+	T* t = static_cast<T*>(ptr.get());
+	debug_draw::add(std::move(ptr), type, sign);
+	return *t;
 };
 
 // wrapper for declaring drawable for debugging
