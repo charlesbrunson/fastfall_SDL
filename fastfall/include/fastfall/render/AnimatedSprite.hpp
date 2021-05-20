@@ -31,7 +31,7 @@ public:
 	inline bool has_anim() noexcept { return animation != nullptr; };
 	inline const Animation* get_anim() { return animation; };
 
-	inline std::string_view anim_name()	  noexcept { return has_anim() ? animation->anim_name : ""; };
+	inline std::string       anim_name()  noexcept { return has_anim() ? animation->anim_name : ""; };
 	inline unsigned			curr_frame()  noexcept { return current_frame; };
 
 	void update(secs deltaTime);

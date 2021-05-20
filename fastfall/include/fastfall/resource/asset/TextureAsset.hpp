@@ -15,14 +15,14 @@ public:
 		return tex;
 	}
 
-	bool loadFromFile(const std::string& relpath) { return false; };
+	bool loadFromFile(const std::string& relpath) override { return false; };
 
 	bool reloadFromFile() override {
 		//TODO
 		return false;
 	};
 
-	virtual void ImGui_getContent();
+	void ImGui_getContent() override;
 
 	inline std::string getTexPath() const noexcept { return fullpath; };
 

@@ -86,7 +86,7 @@ void SurfaceTracker::process_contacts(std::vector<PersistantContact>& contacts) 
 
 Vec2f SurfaceTracker::get_friction(Vec2f prevVel) {
 	Vec2f friction;
-	if (has_contact() && duration > 0.0 && has_friction) {
+	if (has_contact() && has_friction) {
 
 		Vec2f tangent = math::projection(prevVel, currentContact->collider_normal.righthand(), true);
 		Vec2f normal = math::projection(prevVel - currentContact->velocity, currentContact->collider_normal, true);

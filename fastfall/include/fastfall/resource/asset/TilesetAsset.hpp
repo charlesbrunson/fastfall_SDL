@@ -29,7 +29,7 @@ public:
 	Tile getTile(Vec2u texPos) const;
 	inline const Vec2u& getTileSize() { return texTileSize; };
 
-	void ImGui_getContent();
+	void ImGui_getContent() override;
 
 	inline const std::string_view getTilesetRef(unsigned ndx) const { return tilesetRef.at(ndx); };
 

@@ -114,7 +114,7 @@ private:
 	static unsigned currentDepth;
 	static constexpr unsigned maxDepth = 10u;
 
-	static constexpr unsigned LOG_HISTORY_SIZE = 500;
+	static constexpr unsigned LOG_HISTORY_SIZE = 50;
 	static std::deque<log::LogMessage> messages;
 
 	static constexpr std::string_view lvlStr[] = {

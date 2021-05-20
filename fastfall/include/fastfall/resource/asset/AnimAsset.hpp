@@ -25,7 +25,7 @@ public:
 		value = id.value;
 	}
 
-	constexpr static AnimID reserve_id() {
+	static AnimID reserve_id() {
 		counter++;
 		return AnimID{ counter };
 	}

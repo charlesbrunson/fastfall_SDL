@@ -21,16 +21,18 @@ FetchContent_Declare(
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/fmt
 )
 
+
 #flatbuffers
-set(FLATBUFFERS_BUILD_TESTS OFF)
-set(FLATBUFFERS_BUILD_FLATLIB ON)
-set(FLATBUFFERS_BUILD_FLATC ON)
 FetchContent_Declare(
 	flatbuffers
 	GIT_REPOSITORY https://github.com/google/flatbuffers.git
 	GIT_TAG        v1.12.0
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers
 )
+set(FLATBUFFERS_BUILD_TESTS OFF)
+set(FLATBUFFERS_BUILD_FLATLIB ON)
+set(FLATBUFFERS_BUILD_FLATC OFF)
+set(FLATBUFFERS_BUILD_CPP17 ON)
 
 #rapidxml
 FetchContent_Declare(
@@ -48,16 +50,16 @@ FetchContent_Declare(
 )
 
 #libpng
-set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
-#set(ZLIB_LIBRARY ${zlib_BINARY_DIR}/zlibd.lib)
-set(PNG_SHARED OFF)
-set(PNG_TESTS OFF)
-set(PNG_BUILD_ZLIB ON)
 FetchContent_Declare(
 	libpng
 	URL			https://download.sourceforge.net/libpng/libpng-1.6.37.tar.gz
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/libpng
 )
+set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
+#set(ZLIB_LIBRARY ${zlib_BINARY_DIR}/zlibd.lib)
+set(PNG_SHARED OFF)
+set(PNG_TESTS OFF)
+set(PNG_BUILD_ZLIB ON)
 
 # sdl
 #set(SDL_SHARED OFF)
@@ -113,8 +115,6 @@ FetchContent_MakeAvailable(
 	implot
 )
 
-
-
 configure_file(
 	"${zlib_BINARY_DIR}/zconf.h"
 	"${zlib_SOURCE_DIR}/zconf.h"
@@ -138,31 +138,3 @@ target_include_directories(SDL2image PRIVATE "${sdl_image_SOURCE_DIR}")
 target_include_directories(SDL2image PRIVATE "${libpng_SOURCE_DIR}")
 target_link_libraries(SDL2image PUBLIC png_static)
 target_compile_definitions(SDL2image PRIVATE LOAD_PNG LOAD_BMP)
-
-# build imgui + implot as library
-
-
-#file(GLOB IMGUI_SOURCES ${imgui_SOURCE_DIR}/*.cpp)
-#file(GLOB IMGUI_HEADERS ${imgui_SOURCE_DIR}/*.h)
-#file(GLOB IMPLOT_SOURCES ${implot_SOURCE_DIR}/*.cpp)
-#file(GLOB IMPLOT_HEADERS ${implot_SOURCE_DIR}/*.h)
-#
-#add_library(libimgui STATIC 
-#	${IMGUI_SOURCES} 
-#	${IMPLOT_SOURCES} 
-#	${IMGUI_HEADERS} 
-#	${IMPLOT_HEADERS} 
-#	${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.h
-#	${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.cpp
-#	${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.h
-#	${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
-#	)
-#	
-#target_include_directories(libimgui PRIVATE "${imgui_SOURCE_DIR}")
-#target_include_directories(libimgui PRIVATE "${implot_SOURCE_DIR}")
-#target_include_directories(libimgui PUBLIC "${sdl_SOURCE_DIR}/include")
-#target_include_directories(libimgui PUBLIC "${glew_SOURCE_DIR}/include")
-#target_compile_definitions(libimgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLEW)
-
-#target_link_libraries(imgui SDL2 glew)
-

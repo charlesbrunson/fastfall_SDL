@@ -42,3 +42,4 @@ target_link_libraries(test_project PRIVATE
 )
 
 target_compile_definitions(test_project PRIVATE DEBUG)
+

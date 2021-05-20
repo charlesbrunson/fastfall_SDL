@@ -95,8 +95,8 @@ target_link_libraries(fastfall PUBLIC
 	fmt
 	flatbuffers
 	zlibstatic
-	SDL2-static
 	SDL2main
+	SDL2-static
 	glew_s
 	SDL2image 
 	#libimgui 

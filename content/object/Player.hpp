@@ -81,7 +81,7 @@ public:
 		return object;
 	}
 
-	void update(secs deltaTime) {
+	void update(secs deltaTime) override {
 
 		int wishx = (int)Input::isHeld(InputType::RIGHT) - (int)Input::isHeld(InputType::LEFT);
 
@@ -97,7 +97,7 @@ public:
 			ground.slope_sticking = true;
 
 			float speed = ground.traverse_get_speed();
-			const static float max_speed = 400.f;
+			const static float max_speed = 1200.f;
 
 
 			if (ground.get_duration() == 0.0) {
@@ -107,8 +107,8 @@ public:
 			}
 			else {
 				ground.traverse_set_max_speed(
-						std::max(300.f, std::min(std::abs(speed), ground.traverse_get_max_speed()))
-					);
+					std::max(300.f, std::min(std::abs(speed), ground.traverse_get_max_speed()))
+				);
 			}
 			//LOG_INFO("{}", ground.traverse_get_max_speed());
 			//ground.traverse_set_max_speed(300.f);
@@ -235,12 +235,12 @@ public:
 		}
 	}
 
-	void predraw(secs deltaTime) {
+	void predraw(secs deltaTime) override {
 		sprite.set_pos(box->getPosition());
 		sprite.predraw(deltaTime);
 	}
 
-	virtual void ImGui_Inspect() {
+	void ImGui_Inspect() override {
 		ImGui::Text("Hello World!");
 		ImGui::Text("Position(%3.2f, %3.2f)", box->getPosition().x, box->getPosition().y);
 		ImGui::Text("Velocity(%3.2f, %3.2f)", box->get_vel().x, box->get_vel().y);
