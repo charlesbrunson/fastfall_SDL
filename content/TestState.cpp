@@ -64,8 +64,6 @@ void TestState::update(secs deltaTime) {
 		
 		static secs timebuf = 0.0;
 		timebuf += deltaTime;
-		//platform1->setPosition(Vec2f(128.f * cos(timebuf * 2.f), 0.f)); //64.f * sin(timebuf)));
-		//platform2->setPosition(Vec2f(64.f * cos(timebuf * 2.f), 64.f * sin(timebuf * 2.f))); //64.f * sin(timebuf)));
 
 		colmap->setPosition(colmap->getPosition());
 	}

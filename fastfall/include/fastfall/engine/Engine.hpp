@@ -65,7 +65,7 @@ private:
 	Input::InputObserver input;
 	InstanceObserver instanceObs;
 
-	Engine(std::unique_ptr<Window>&& window, EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings);
+	Engine(std::unique_ptr<Window>&& initWindow, EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings);
 	~Engine() = default;
 
 public:
@@ -78,7 +78,8 @@ public:
 
 	void addRunnable(EngineRunnable&& toRun);
 
-	bool run();
+	bool run_doubleThread();
+	bool run_singleThread();
 
 	inline bool isRunning() const noexcept { return running; };
 	inline bool isInitialized() { return initialized; }
@@ -89,6 +90,21 @@ public:
 	inline bool isFrozen() { return pauseUpdate; };
 
 private:
+
+
+
+	void prerun_init();
+
+	void updateTimer();
+	void updateStateHandler();
+	void updateView();
+	void updateRunnables();
+	void predrawRunnables();
+	void drawRunnables();
+	void updateImGui();
+	void cleanRunnables();
+	void sleep();
+
 
 	EngineSettings settings;
 
@@ -121,6 +137,7 @@ private:
 	secs maxDeltaTime;
 	secs deltaTime;
 
+	std::chrono::time_point<std::chrono::steady_clock> displayStart;
 	std::chrono::duration<float> displayTime;
 
 	bool pauseUpdate, stepUpdate;

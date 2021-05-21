@@ -51,7 +51,7 @@ void CollisionSolver::solve() {
 	// do arbiter-to-arbiter comparisons 
 
 
-	LOG_STEP("ARB COUNT: {}", arbiters.size());
+	//LOG_STEP("ARB COUNT: {}", arbiters.size());
 	for (size_t i = 0; i < arbiters.size() - 1; i++) {
 		for (size_t j = i + 1; j < arbiters.size(); ) {
 			ArbCompResult result = compArbiters(arbiters.at(i), arbiters.at(j));

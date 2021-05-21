@@ -44,12 +44,12 @@ void Engine::shutdown() {
 }
 
 Engine::Engine(
-    std::unique_ptr<Window>&& window,
+    std::unique_ptr<Window>&& initWindow,
     EngineRunnable&& toRun,
     const Vec2u& initWindowSize,
     EngineSettings engineSettings) :
 
-    window{std::move(window)},
+    window{std::move(initWindow)},
 
     initWinSize(initWindowSize),
     settings(engineSettings),
@@ -103,13 +103,17 @@ void Engine::drawRunnable(EngineRunnable& run) {
     }
 }
 
-bool Engine::run()
-{
-    std::barrier<> bar{ 2 };
+// -------------------------------------------
 
+void Engine::prerun_init()
+{
     ImGui_addContent();
     instanceObs.ImGui_addContent();
     input.ImGui_addContent();
+
+    if (window) {
+        window->setActive();
+    }
 
 #ifdef DEBUG
     if (window != nullptr) {
@@ -127,82 +131,93 @@ bool Engine::run()
 
     }
 #endif
+}
 
-    if (window) {
-        window->setActive();
+// -------------------------------------------
+
+bool Engine::run_singleThread()
+{
+    prerun_init();
+
+    running = true;
+
+    while (isRunning() && !runnables.empty()) {
+        updateTimer();
+
+        Input::update(deltaTime);
+
+        updateRunnables();
+
+        predrawRunnables();
+
+        updateView();
+
+        drawRunnables();
+
+        updateImGui();
+
+        updateStateHandler();
+
+        cleanRunnables();
+
+        ff::glDeleteStale();
+
+        sleep();
     }
+
+    // clean up
+    close();
+
+    LOG_INFO("Run thread shutting down");
+
+    running = false;
+
+    ff::glDeleteStale();
+
+    // destroy window
+    window.reset();
+
+    return true;
+}
+
+
+// -------------------------------------------
+
+bool Engine::run_doubleThread()
+{
+
+    prerun_init();
+
+
+    std::barrier<> bar{ 2 };
 
     std::thread stateWorker(&Engine::runUpdate, this, &bar);
 
-    std::chrono::time_point<std::chrono::steady_clock> displayStart;
+    //std::chrono::time_point<std::chrono::steady_clock> displayStart;
 
     running = true;
 
     clock.reset();
     while (isRunning() && !runnables.empty()) {
-        elapsedTime = clock.tick();
-
-        if (window) {
-            bool resetTimers = false;
-            handleEvents(&resetTimers);
-            if (resetTimers) {
-                clock.tick();
-            }
-
-        }
-        log::set_tick(clock.getTickCount());
-
-        //update deltatime
-        deltaTime = std::min(elapsedTime, maxDeltaTime);
-        if (deltaTime > 0.0) {
-            if (pauseUpdate && !stepUpdate) {
-                deltaTime = 0.0;
-            }
-            stepUpdate = false;
-        }
+        updateTimer();
 
         Input::update(deltaTime);
 
         bar.arrive_and_wait();
 
-        if (window) {
-            View v = window->getView();
-            EngineState* st = runnables.front().getStateHandle().getActiveState();
-            Vec2f vPos = Vec2f(st->getViewPos());
-            float vZoom = st->getViewZoom();
+        updateView();
 
-            v.setCenter(vPos);
-            v.setSize(GAME_W_F * vZoom, GAME_H_F * vZoom);
-            window->setView(v);
-        }
-
-        //draw current state
-        for (auto& run : runnables) {
-            drawRunnable(run);
-        }
+        drawRunnables();
                         
         bar.arrive_and_wait();
 
-#ifdef DEBUG
-        //bar.arrive_and_wait();
-        //do ImGui
-        if (window) {
-            ff::ImGuiNewFrame(*window);
-            ImGuiFrame::getInstance().display();
-            ff::ImGuiRender();
-        }
-#endif
+        updateImGui();
 
         bar.arrive_and_wait();
 
         ff::glDeleteStale();
 
-        clock.sleepUntilTick();
-        if (window) {
-            displayStart = std::chrono::steady_clock::now();
-            window->display();
-            displayTime = std::chrono::steady_clock::now() - displayStart;
-        }
+        sleep();
     }
 
     // clean up
@@ -224,13 +239,6 @@ bool Engine::run()
     return true;
 }
 
-void Engine::close() {
-    if (window) {
-        window->showWindow(false);
-    }
-    Input::closeJoystick();
-    running = false;
-}
 
 
 void Engine::runUpdate(std::barrier<>* bar) {
@@ -240,47 +248,128 @@ void Engine::runUpdate(std::barrier<>* bar) {
         bar->arrive_and_wait();
 
         // do update
-        for (auto& run : runnables) {
-            run.getStateHandle().getActiveState()->update(deltaTime);
-        }
+        updateRunnables();
 
         bar->arrive_and_wait();
 
-        for (auto& run : runnables) {
-            run.getStateHandle().getActiveState()->predraw(deltaTime);
-        }
+        predrawRunnables();
 
-        for (auto& run : runnables) {
-            run.getStateHandle().update();
-        }
-
-
-#ifdef DEBUG
-        //bar->arrive_and_wait();
-#endif
+        updateStateHandler();
 
         bar->arrive_and_wait();
 
-
-        // clean up finished runnables
-        runnables.erase(
-            std::remove_if(
-                runnables.begin(), runnables.end(),
-                [](EngineRunnable& r) {
-                    return r.isRunning();
-                }
-            ),
-            runnables.end());
-
-        if (!runnables.empty() && runnables.begin()->getRTexture() != nullptr) {
-            runnables.clear();
-        }
+        cleanRunnables();
     }
 }
 
-void Engine::handleEvents(
-    // sf::Window* window, 
-    bool* timeWasted)
+// -------------------------------------------
+
+void Engine::close() {
+    if (window) {
+        window->showWindow(false);
+    }
+    Input::closeJoystick();
+    running = false;
+}
+
+// -------------------------------------------
+
+void Engine::updateTimer() {
+    elapsedTime = clock.tick();
+
+    if (window) {
+        bool resetTimers = false;
+        handleEvents(&resetTimers);
+        if (resetTimers) {
+            clock.tick();
+        }
+
+    }
+    log::set_tick(clock.getTickCount());
+
+    //update deltatime
+    deltaTime = std::min(elapsedTime, maxDeltaTime);
+    if (deltaTime > 0.0) {
+        if (pauseUpdate && !stepUpdate) {
+            deltaTime = 0.0;
+        }
+        stepUpdate = false;
+    }
+}
+
+void Engine::updateStateHandler() {
+    for (auto& run : runnables) {
+        run.getStateHandle().update();
+    }
+}
+
+void Engine::updateView() {
+    if (window) {
+        View v = window->getView();
+        EngineState* st = runnables.front().getStateHandle().getActiveState();
+        Vec2f vPos = Vec2f(st->getViewPos());
+        float vZoom = st->getViewZoom();
+
+        v.setCenter(vPos);
+        v.setSize(GAME_W_F * vZoom, GAME_H_F * vZoom);
+        window->setView(v);
+    }
+}
+
+void Engine::updateRunnables() {
+    for (auto& run : runnables) {
+        run.getStateHandle().getActiveState()->update(deltaTime);
+    }
+}
+void Engine::predrawRunnables() {
+    for (auto& run : runnables) {
+        run.getStateHandle().getActiveState()->predraw(deltaTime);
+    }
+}
+
+void Engine::drawRunnables() {
+    for (auto& run : runnables) {
+        drawRunnable(run);
+    }
+}
+
+void Engine::updateImGui() {
+#ifdef DEBUG
+    if (window) {
+        ff::ImGuiNewFrame(*window);
+        ImGuiFrame::getInstance().display();
+        ff::ImGuiRender();
+    }
+#endif
+}
+
+void Engine::cleanRunnables() {
+    runnables.erase(
+        std::remove_if(
+            runnables.begin(), runnables.end(),
+            [](EngineRunnable& r) {
+                return r.isRunning();
+            }
+        ),
+        runnables.end());
+
+    if (!runnables.empty() && runnables.begin()->getRTexture() != nullptr) {
+        runnables.clear();
+    }
+}
+
+void Engine::sleep() {
+    clock.sleepUntilTick();
+    if (window) {
+        displayStart = std::chrono::steady_clock::now();
+        window->display();
+        displayTime = std::chrono::steady_clock::now() - displayStart;
+    }
+}
+
+// -------------------------------------------
+
+void Engine::handleEvents(bool* timeWasted)
 {
 
     // no window to handle inputs from
@@ -587,7 +676,7 @@ void Engine::ImGui_getContent() {
     }
 
     //double denom = (clock.getTargetFPS() != 0 ? clock.getTickDuration() * 2000.f : 2.0);
-    float denom = 1000.0 / clock.getAvgFPS();
+    float denom =  1000.0 / (clock.getAvgFPS() > 0 ? clock.getAvgFPS() : 60);
 
     float tick_x[2] = { 0.0, (arrsize - 1) };
     float tick_y[2] = { denom, denom };

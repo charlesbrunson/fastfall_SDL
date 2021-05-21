@@ -67,9 +67,9 @@ LevelProperties tmxParseLevelProperties(xml_node<>* mapNode) {
 			for (char c : str) {
 				switch (c) {
 				case 'N': prop.borderCardinalBits |= cardinalToBits(Cardinal::NORTH); break;
-				case 'E': prop.borderCardinalBits |= cardinalToBits(Cardinal::EAST); break;
+				case 'E': prop.borderCardinalBits |= cardinalToBits(Cardinal::EAST);  break;
 				case 'S': prop.borderCardinalBits |= cardinalToBits(Cardinal::SOUTH); break;
-				case 'W': prop.borderCardinalBits |= cardinalToBits(Cardinal::WEST); break;
+				case 'W': prop.borderCardinalBits |= cardinalToBits(Cardinal::WEST);  break;
 				}
 			}
 

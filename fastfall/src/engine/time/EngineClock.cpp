@@ -3,6 +3,8 @@
 #include <thread>
 #include <iostream>
 
+#include "fastfall/util/log.hpp"
+
 //#include <chrono>
 using namespace std::chrono;
 
@@ -63,18 +65,21 @@ void EngineClock::resetTickWindow(bool nomiss) noexcept {
 
 	time_point<steady_clock> now = engineClock.now();
 
-	prev_tick = cur_tick;
-	cur_tick = now.time_since_epoch() / tickDuration;
-
-	if (prev_tick == cur_tick) {
-		cur_tick++;
+	if (tickDuration > 0s) {
+		prev_tick = cur_tick;
+		cur_tick = now.time_since_epoch() / tickDuration;
+		if (prev_tick == cur_tick) {
+			cur_tick++;
+		}
 	}
 
 	tick_start_p = time_point<steady_clock>( (cur_tick * tickDuration));
 	tick_end_p = tick_start_p + tickDuration;
 
-	if (!nomiss && prev_tick != 0 && prev_tick + 1 != cur_tick) {
-		tickMissCounter += cur_tick - prev_tick - 1;
+	if (tickDuration > 0s) {
+		if (!nomiss && prev_tick != 0 && prev_tick + 1 != cur_tick) {
+			tickMissCounter += cur_tick - prev_tick - 1;
+		}
 	}
 }
 
