@@ -33,11 +33,6 @@ struct Repeat {
 		return signature == rhs.signature;
 	}
 };
-
-
-
-
-
 std::set<Repeat> repeatList;
 
 Vec2f current_offset;
@@ -55,6 +50,10 @@ static_assert(typeEnableCount == static_cast<unsigned>(debug_draw::Type::LAST), 
 void debug_draw::setAllTypeEnabled(bool enable) {
 	for (auto i = 0u; i != typeEnableCount; i++) {
 		typeEnable[i] = enable;
+	}
+	if (!enable) {
+		activeList->clear();
+		inactiveList->clear();
 	}
 }
 

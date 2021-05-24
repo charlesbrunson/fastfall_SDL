@@ -200,6 +200,7 @@ void Resources::unloadAll() {
 	AnimID::resetCounter();
 	resource.tilesets.clear();
 	resource.sprites.clear();
+	Texture::destroyNullTexture();
 	resource.levels.clear();
 	LOG_INFO("All resources unloaded");
 }

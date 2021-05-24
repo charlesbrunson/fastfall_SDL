@@ -68,8 +68,8 @@ void debugDrawContact(Contact& contact) {
 
 	auto& pos = createDebugDrawable<ShapeCircle, debug_draw::Type::COLLISION_CONTACT>(
 		contact.position, 
-		1.f, 
-		8, 
+		1.5f, 
+		4, 
 		Color::Transparent, 
 		Color::Yellow
 	);
@@ -156,14 +156,6 @@ void Collidable::update(secs deltaTime) {
 		pos = tracker->postmove_update(pos, deltaTime);
 	}
 
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDABLE))
-		drawDrawCollidable(*this);
-
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_CONTACT)) {
-		for (auto& contact : currContacts) {
-			debugDrawContact(contact);
-		}
-	}
 
 	setPosition(pos);
 
@@ -302,6 +294,16 @@ void Collidable::set_frame(std::vector<PersistantContact>&& frame) {
 	currContacts = frame;
 
 	process_current_frame();
+
+
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDABLE))
+		drawDrawCollidable(*this);
+
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_CONTACT)) {
+		for (auto& contact : currContacts) {
+			debugDrawContact(contact);
+		}
+	}
 }
 
 

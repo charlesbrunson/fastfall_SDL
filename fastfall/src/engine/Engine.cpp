@@ -21,6 +21,7 @@
 
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/render/AnimatedSprite.hpp"
+#include "fastfall/render/DebugDraw.hpp"
 
 namespace ff {
 
@@ -37,6 +38,9 @@ void Engine::init(std::unique_ptr<Window>&& window, EngineRunnable&& toRun, cons
 
 void Engine::shutdown() {
     LOG_INFO("Shutting down engine instance");
+
+    engineInstance->window.reset();
+
     delete engineInstance;
     engineInstance = nullptr;
 
@@ -175,7 +179,7 @@ bool Engine::run_singleThread()
     ff::glDeleteStale();
 
     // destroy window
-    window.reset();
+    //window.reset();
 
     return true;
 }
@@ -234,7 +238,7 @@ bool Engine::run_doubleThread()
     ff::glDeleteStale();
 
     // destroy window
-    window.reset();
+    //window.reset();
 
     return true;
 }
@@ -295,6 +299,7 @@ void Engine::updateTimer() {
         }
         stepUpdate = false;
     }
+    
 }
 
 void Engine::updateStateHandler() {
@@ -325,17 +330,21 @@ void Engine::predrawRunnables() {
     for (auto& run : runnables) {
         run.getStateHandle().getActiveState()->predraw(deltaTime);
     }
+    if (settings.showDebug && deltaTime > 0.0)
+        debug_draw::swapDrawLists();
 }
 
 void Engine::drawRunnables() {
     for (auto& run : runnables) {
         drawRunnable(run);
     }
+    if (settings.showDebug)
+        debug_draw::draw(*window, RenderState());
 }
 
 void Engine::updateImGui() {
 #ifdef DEBUG
-    if (window) {
+    if (window && settings.showDebug) {
         ff::ImGuiNewFrame(*window);
         ImGuiFrame::getInstance().display();
         ff::ImGuiRender();
@@ -428,6 +437,12 @@ void Engine::handleEvents(bool* timeWasted)
                 break;
             case SDLK_KP_2:
                 freezeStepOnce();
+                break;
+            case SDLK_KP_3:
+                settings.showDebug = !settings.showDebug;
+                resizeWindow(Vec2u(window->getSize()));
+                debug_draw::setAllTypeEnabled(settings.showDebug);
+                LOG_INFO("Toggling debug mode");
                 break;
             }
             [[fallthrough]];

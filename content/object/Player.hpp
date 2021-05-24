@@ -32,7 +32,6 @@ public:
 		ground.slope_sticking = true;
 		ground.slope_wall_stop = true;
 		ground.stick_angle_max = Angle::Degree(90);
-		//ground.traverse_set_max_speed(150.f);
 		box->add_tracker(ground);
 
 		braking = Friction{ .stationary = 1.2f, .kinetic = 0.8f };
@@ -48,16 +47,13 @@ public:
 		drawPriority = 0;
 
 		anim_idle     = Resources::get_animation_id("player", "idle");
-		anim_idle_run = Resources::get_animation_id("player", "idle-running");
 		anim_run      = Resources::get_animation_id("player", "running");
-		anim_jump     = Resources::get_animation_id("player", "jump-air");
-		anim_air      = Resources::get_animation_id("player", "air-fall");
+		anim_jump     = Resources::get_animation_id("player", "jump");
 		anim_fall     = Resources::get_animation_id("player", "fall");
 
 		assert(anim_idle != AnimID::NONE);
 		assert(anim_run  != AnimID::NONE);
 		assert(anim_jump != AnimID::NONE);
-		assert(anim_air  != AnimID::NONE);
 		assert(anim_fall != AnimID::NONE);
 
 		sprite.set_anim(anim_idle);
@@ -97,32 +93,28 @@ public:
 			ground.slope_sticking = true;
 
 			float speed = ground.traverse_get_speed();
-			const static float max_speed = 1200.f;
+			const static float max_speed = 300.f;
 
 
 			if (ground.get_duration() == 0.0) {
 				ground.traverse_set_max_speed(
-					std::max(300.f, std::min(std::abs(speed), max_speed))
+					std::max(200.f, std::min(std::abs(speed), max_speed))
 				);
 			}
 			else {
 				ground.traverse_set_max_speed(
-					std::max(300.f, std::min(std::abs(speed), ground.traverse_get_max_speed()))
+					std::max(200.f, std::min(std::abs(speed), ground.traverse_get_max_speed()))
 				);
 			}
-			//LOG_INFO("{}", ground.traverse_get_max_speed());
-			//ground.traverse_set_max_speed(300.f);
-
-
-			//ground.traverse_set_max_speed(std::max(150.f, abs(speed)));
 
 			int movex = (speed == 0.f ? 0 : (speed < 0.f ? -1 : 1));
 
 			airtime = 0.0;
 
 			// sinful
-			//double target_rot = (90.f + math::angle(ground.get_contact()->collider_normal).degrees());
-			//sprite.get_sprite().setRotation(target_rot / 3.f);
+			float target_rot = -math::angle(ground.get_contact()->collider.surface).radians() / 3.f;
+			target_rot = (target_rot * 0.1f) + (sprite.get_sprite().getRotation() * 0.9f);
+			sprite.get_sprite().setRotation(target_rot);
 
 
 			if (box->get_vel().x == 0) {
@@ -130,16 +122,11 @@ public:
 			}
 			else {
 				if (sprite.is_playing(anim_idle)) {
-					sprite.set_anim(anim_idle_run);
+					sprite.set_anim(anim_run);
 				}
 
 				sprite.set_anim_if_not(anim_run);
 
-				sprite.set_playback(
-					std::max(
-						0.5f,
-						std::abs(box->get_vel().magnitude()) / 250.f
-					));
 			}
 
 			// jumping
@@ -185,7 +172,9 @@ public:
 		}
 		// in air
 		else {
-			//sprite.get_sprite().setRotation(0);
+			// sinful
+			float target_rot = (sprite.get_sprite().getRotation() * 0.9f);
+			sprite.get_sprite().setRotation(target_rot);
 
 			airtime += deltaTime;
 
@@ -195,12 +184,12 @@ public:
 
 			if (airtime > 0.05
 				&& !sprite.is_playing(anim_jump)
-				&& !sprite.is_playing(anim_air) 
 				&& !sprite.is_playing(anim_fall)) 
 			{
-				sprite.set_anim(anim_air);
+				sprite.set_anim(anim_fall);
+				sprite.set_frame(sprite.get_anim()->framerateMS.size() - 1);
 			}
-			else if (sprite.is_complete(anim_air) && box->get_vel().y > 0) {
+			else if (sprite.is_complete(anim_jump) && box->get_vel().y > -100.f) {
 
 				sprite.set_anim(anim_fall);
 			}
@@ -254,10 +243,10 @@ protected:
 	secs airtime = 0.0;
 
 	static AnimID anim_idle;
-	static AnimID anim_idle_run;
+	//static AnimID anim_idle_run;
 	static AnimID anim_run;
 	static AnimID anim_jump;
-	static AnimID anim_air;
+	//static AnimID anim_air;
 	static AnimID anim_fall;
 
 	AnimatedSprite sprite;

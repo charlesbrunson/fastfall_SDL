@@ -91,8 +91,6 @@ public:
 
 private:
 
-
-
 	void prerun_init();
 
 	void updateTimer();
@@ -105,6 +103,7 @@ private:
 	void cleanRunnables();
 	void sleep();
 
+	//bool showImGui = false;
 
 	EngineSettings settings;
 
@@ -113,7 +112,9 @@ private:
 	// thread-sync helper
 	class Barrier;
 
-	std::atomic<bool> running = false;
+	bool running = false;
+
+	float gamespeed = 1.f;
 
 	// display management
 	//bool windowless;

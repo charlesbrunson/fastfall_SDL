@@ -67,6 +67,8 @@ public:
 	glm::uvec2 size() const { return m_size; };
 	glm::fvec2 inverseSize() const { return m_invSize; };
 
+	static void destroyNullTexture();
+
 private:
 
 	bool load(const void* data, unsigned width, unsigned height, ImageFormat format = ImageFormat::BMP);
@@ -76,7 +78,7 @@ private:
 
 	static Texture NullTexture;
 
-	unsigned int texture_id = NULL;
+	unsigned int texture_id = 0;
 };
 
 }

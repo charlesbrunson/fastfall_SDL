@@ -52,7 +52,9 @@ Texture::Texture()
 }
 
 Texture::~Texture() {
-	glCheck(glDeleteTextures(1, &texture_id));
+	if (texture_id != 0) {
+		glCheck(glDeleteTextures(1, &texture_id));
+	}
 }
 
 bool Texture::loadFromFile(const std::string_view filename) {
@@ -132,11 +134,14 @@ void Texture::bind() const {
 }
 
 void Texture::clear() {
-	glCheck(glDeleteTextures(1, &texture_id));
+	if (texture_id != 0) {
+		glCheck(glDeleteTextures(1, &texture_id));
+	}
+	texture_id = 0;
 }
 
 bool Texture::exists() const noexcept {
-	return texture_id != NULL;
+	return texture_id != 0;
 }
 
 const Texture& Texture::getNullTexture() {
@@ -159,6 +164,14 @@ const Texture& Texture::getNullTexture() {
 		NullTexture.m_invSize = { 1.f, 1.f };
 	}
 	return NullTexture;
+}
+
+
+void Texture::destroyNullTexture() {
+	if (NullTexture.exists()) {
+		glCheck(glDeleteTextures(1, &NullTexture.texture_id));
+		NullTexture.texture_id = 0;
+	}
 }
 
 bool Texture::create(glm::uvec2 size) {

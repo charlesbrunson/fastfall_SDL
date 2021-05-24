@@ -19,8 +19,6 @@
 int main(int argc, char* argv[])
 {
 
-	
-
 	srand(time(NULL));
 
 	{
@@ -77,8 +75,8 @@ int main(int argc, char* argv[])
 	//ResourceWatcher::clear_watch();
 	//ResourceWatcher::join_watch_thread();
 
-	Engine::shutdown();
 	Resources::unloadAll();
+	Engine::shutdown();
 
 	ImGuiFrame::getInstance().clear();
 

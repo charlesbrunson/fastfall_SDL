@@ -83,8 +83,8 @@ void TestState::predraw(secs deltaTime) {
 	instance->getActiveLevel()->predraw(deltaTime);
 	viewPos = instance->getCamera().currentPosition;
 
-	if (deltaTime > 0.0)
-		ff::debug_draw::swapDrawLists();
+	//if (deltaTime > 0.0)
+	//	ff::debug_draw::swapDrawLists();
 }
 
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
@@ -115,6 +115,6 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
 		}
 	}
 
-	ff::debug_draw::draw(target, state);
+	//ff::debug_draw::draw(target, state);
 	
 }

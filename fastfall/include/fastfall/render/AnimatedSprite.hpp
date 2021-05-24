@@ -32,6 +32,8 @@ public:
 	inline const Animation* get_anim() { return animation; };
 
 	inline std::string       anim_name()  noexcept { return has_anim() ? animation->anim_name : ""; };
+
+	void set_frame(unsigned frame) { current_frame = frame; };
 	inline unsigned			curr_frame()  noexcept { return current_frame; };
 
 	void update(secs deltaTime);

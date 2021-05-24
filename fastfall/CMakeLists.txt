@@ -18,14 +18,21 @@ foreach(fbs IN ITEMS ${FLATC_FBS})
 	list(APPEND FLATC_HPP ${out})
 endforeach()
 
-add_custom_target(fbs_compiled
+add_custom_command(#fbs_compiled
 	COMMAND ${FLATC} 
 		--cpp 
 		-o "${CMAKE_CURRENT_SOURCE_DIR}/${SCHEMA_DIR}/" 
 		--filename-suffix "-flat"
 		--filename-ext "hpp"
 		${FLATC_FBS}
-	BYPRODUCTS
+	OUTPUT
+		${FLATC_HPP}
+	DEPENDS
+		${FLATC_FBS}
+)
+
+add_custom_target(fbs_compiled
+	DEPENDS
 		${FLATC_HPP}
 )
 
