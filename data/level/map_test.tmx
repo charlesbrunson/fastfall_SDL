@@ -8,8 +8,8 @@
  <objectgroup id="4" name="Object Layer 1">
   <object id="7" type="Player" x="1680" y="192" width="16" height="32">
    <properties>
-    <property name="AnotherProp" value="Foo"/>
-    <property name="FaceLeft" type="bool" value="true"/>
+    <property name="anotherprop" value="Foo"/>
+    <property name="faceleft" type="bool" value="true"/>
    </properties>
   </object>
   <object id="16" x="1039.16" y="384">

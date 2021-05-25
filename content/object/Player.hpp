@@ -93,18 +93,23 @@ public:
 			ground.slope_sticking = true;
 
 			float speed = ground.traverse_get_speed();
-			const static float max_speed = 300.f;
+			const static float max_speed = 600.f;
+			const static float norm_speed = 250.f;
 
 
 			if (ground.get_duration() == 0.0) {
 				ground.traverse_set_max_speed(
-					std::max(200.f, std::min(std::abs(speed), max_speed))
+					std::max(norm_speed, std::min(std::abs(speed), max_speed))
 				);
 			}
 			else {
 				ground.traverse_set_max_speed(
-					std::max(200.f, std::min(std::abs(speed), ground.traverse_get_max_speed()))
+					std::max(norm_speed, std::min(std::abs(speed), ground.traverse_get_max_speed()))
 				);
+
+				if (abs(speed) > norm_speed) {
+					ground.traverse_add_decel(300.f);
+				}
 			}
 
 			int movex = (speed == 0.f ? 0 : (speed < 0.f ? -1 : 1));
@@ -112,9 +117,9 @@ public:
 			airtime = 0.0;
 
 			// sinful
-			float target_rot = -math::angle(ground.get_contact()->collider.surface).radians() / 3.f;
-			target_rot = (target_rot * 0.1f) + (sprite.get_sprite().getRotation() * 0.9f);
-			sprite.get_sprite().setRotation(target_rot);
+			//float target_rot = -math::angle(ground.get_contact()->collider.surface).radians() / 3.f;
+			//target_rot = (target_rot * 0.1f) + (sprite.get_sprite().getRotation() * 0.9f);
+			//sprite.get_sprite().setRotation(target_rot);
 
 
 			if (box->get_vel().x == 0) {
@@ -127,6 +132,11 @@ public:
 
 				sprite.set_anim_if_not(anim_run);
 
+				sprite.set_playback(
+					std::max(
+						0.5f,
+						std::abs(box->get_vel().magnitude()) / 200.f
+					));
 			}
 
 			// jumping
@@ -173,9 +183,9 @@ public:
 		// in air
 		else {
 			// sinful
-			float target_rot = (sprite.get_sprite().getRotation() * 0.9f);
-			sprite.get_sprite().setRotation(target_rot);
-
+			//float target_rot = (sprite.get_sprite().getRotation() * 0.9f);
+			//sprite.get_sprite().setRotation(target_rot);
+			
 			airtime += deltaTime;
 
 			// flight control
@@ -187,7 +197,7 @@ public:
 				&& !sprite.is_playing(anim_fall)) 
 			{
 				sprite.set_anim(anim_fall);
-				sprite.set_frame(sprite.get_anim()->framerateMS.size() - 1);
+				sprite.set_frame(2);
 			}
 			else if (sprite.is_complete(anim_jump) && box->get_vel().y > -100.f) {
 
@@ -198,7 +208,7 @@ public:
 			// air control
 			if (wishx != 0 && (abs(box->get_vel().x) < 150.f ||
 				box->get_vel().x < 0.f != wishx < 0.f)) {
-				box->add_accelX(900.f * wishx);
+				box->add_accelX(500.f * wishx);
 			}
 		} 
 

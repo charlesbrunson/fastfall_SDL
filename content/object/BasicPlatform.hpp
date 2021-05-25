@@ -136,7 +136,7 @@ public:
 	}
 
 	void predraw(secs deltaTime) override {
-		shape.setPosition(collider.get()->getPrevPosition() + collider_offset);
+		shape.setPosition(collider.get()->getPosition() + collider_offset);
 		shape.setSize(Vec2f{ collider.get()->getBoundingBox().getSize() });
 	}
 

@@ -8,4 +8,12 @@ AnimID Player::anim_jump     = AnimID::NONE;
 //AnimID Player::anim_air      = AnimID::NONE;
 AnimID Player::anim_fall     = AnimID::NONE;
 
-GameObjectLibrary::Entry<Player> plr_type;
+GameObjectLibrary::Entry<Player> plr_type{ 
+	{
+		.tile_size = {1, 2},
+		.properties = {
+			ObjectTypeProperty("anotherprop", ObjectPropertyType::String),
+			ObjectTypeProperty("faceleft", false)
+		}
+	} 
+};

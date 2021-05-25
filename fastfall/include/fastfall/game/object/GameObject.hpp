@@ -7,6 +7,7 @@
 #include <functional>
 #include <type_traits>
 #include <set>
+#include <string>
 
 #include "imgui.h"
 
@@ -25,27 +26,73 @@ struct GameObjectID {
 
 //class GameObject;
 
+enum class ObjectPropertyType {
+	String,
+	Int,
+	Bool,
+	Float,
+	Object,
+};
+
+struct ObjectTypeProperty {
+
+	// only specify the expected type
+	explicit ObjectTypeProperty(std::string propName, ObjectPropertyType type) : name(propName), type(type), default_value("") {}
+
+	// specify type and default value
+	explicit ObjectTypeProperty(std::string propName, std::string value_default) : name(propName), type(ObjectPropertyType::String), default_value(value_default) {}
+	explicit ObjectTypeProperty(std::string propName, int value_default) : name(propName), type(ObjectPropertyType::String), default_value(std::to_string(value_default)) {}
+	explicit ObjectTypeProperty(std::string propName, bool value_default) : name(propName), type(ObjectPropertyType::String), default_value(std::to_string(value_default)) {}
+	explicit ObjectTypeProperty(std::string propName, float value_default) : name(propName), type(ObjectPropertyType::String), default_value(std::to_string(value_default)) {}
+	explicit ObjectTypeProperty(std::string propName, object_id value_default) : name(propName), type(ObjectPropertyType::String), default_value(std::to_string(value_default)) {}
+
+	std::string name;
+	ObjectPropertyType type;
+	std::string default_value = "";
+
+	inline bool operator< (const ObjectTypeProperty& rhs) const {
+		return name < rhs.name;
+	}
+};
+
+struct ObjectTypeConstraints {
+	Vec2u tile_size = { 0u, 0u };
+	std::set<ObjectTypeProperty> properties;
+
+	bool test(ObjectRef& ref) const;
+};
+
+
 class GameObjectLibrary {
 public:
-	using ObjectTypeBuilder = std::function<std::unique_ptr<GameObject>(GameContext, const ObjectRef&)>;
+	using ObjectTypeBuilder = std::function<std::unique_ptr<GameObject>(GameContext, const ObjectRef&, const ObjectTypeConstraints&)>;
 
 	struct ObjectType {
 
+		/*
 		template<typename T>
 		struct tag { using type = T; };
+		*/
 
 		template<typename T, typename = std::enable_if<std::is_base_of<GameObject, T>::value>>
-		static ObjectType create() {
+		static ObjectType create(ObjectTypeConstraints&& constraints) {
 			ObjectType t;
 			t.objTypeName = typeid(T).name();
 			t.objTypeName = t.objTypeName.substr(6); // cut off "class "
 
 			t.hash = std::hash<std::string>{}(t.objTypeName);
-			t.builder = [](GameContext inst, const ObjectRef& ref)->std::unique_ptr<GameObject>
+			t.constraints = std::move(constraints);
+			t.builder = [](GameContext inst, const ObjectRef& ref, const ObjectTypeConstraints& constraints)->std::unique_ptr<GameObject>
 			{
-				return std::make_unique<T>(inst, ref);
+				ObjectRef cref = ref;
+				if (constraints.test(cref)) {
+					return std::make_unique<T>(inst, ref);
+				}
+				else {
+					LOG_WARN("unable to instantiate object:{}", ref.id);
+					return nullptr;
+				}
 			};
-
 			return t;
 		};
 
@@ -59,6 +106,7 @@ public:
 		size_t hash;
 		std::string objTypeName;
 		ObjectTypeBuilder builder;
+		ObjectTypeConstraints constraints;
 	};
 
 	struct ObjectType_compare {
@@ -74,9 +122,13 @@ public:
 	template<typename T>
 	struct Entry {
 		Entry() {
-			GameObjectLibrary::addType<T>();
+			GameObjectLibrary::addType<T>(ObjectTypeConstraints());
+		}
+		Entry(ObjectTypeConstraints&& constraints) {
+			GameObjectLibrary::addType<T>(std::move(constraints));
 		}
 	};
+
 
 	static std::set<ObjectType, ObjectType_compare>& getBuilder() {
 		if (!objectBuildMap) {
@@ -90,8 +142,8 @@ private:
 
 
 	template<typename T, typename = std::enable_if<std::is_base_of<GameObject, T>::value>>
-	static void addType() {
-		getBuilder().insert(std::move(ObjectType::create<T>()));
+	static void addType(ObjectTypeConstraints&& constraints) {
+		getBuilder().insert(std::move(ObjectType::create<T>(std::move(constraints))));
 	}
 };
 
