@@ -24,6 +24,9 @@ namespace debug_draw {
 		LAST
 	};
 
+	void enable(bool enabled = true);
+	bool hasEnabled();
+
 	void setAllTypeEnabled(bool enable);
 
 	void setTypeEnabled(Type type, bool enable);

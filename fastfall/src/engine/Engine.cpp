@@ -441,7 +441,7 @@ void Engine::handleEvents(bool* timeWasted)
             case SDLK_KP_3:
                 settings.showDebug = !settings.showDebug;
                 resizeWindow(Vec2u(window->getSize()));
-                debug_draw::setAllTypeEnabled(settings.showDebug);
+                debug_draw::enable(settings.showDebug);
                 LOG_INFO("Toggling debug mode");
                 break;
             }
