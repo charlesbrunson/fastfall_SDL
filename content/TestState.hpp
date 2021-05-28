@@ -15,7 +15,7 @@ public:
 	TestState();
 	~TestState();
 
-	void update(secs deltaTime);
+	void update(secs deltaTime) override;
 	void predraw(secs deltaTime) override;
 
 

@@ -6,17 +6,24 @@
 
 #include <functional>
 
+#include "fastfall/util/log.hpp"
+
 namespace ff {
 
 void parseLayerProperties(xml_node<>* propNode, TileLayerRef& layer) {
 
-	const static std::map<const std::string, std::function<void(TileLayerRef&, char*)>> validLayerProps
-	{
-		/*
-		{"ACTIVE", [](LayerRef& layer, char* val) {
-			layer.isActive = strcmp("true", val) == 0;
+	const static std::map < std::string, void(*)(TileLayerRef&, char*) > validLayerProps{
+
+		{"parallax", [](TileLayerRef& layer, char* val) {
+			layer.isParallax = strcmp(val, "true") == 0;
 		}},
-		*/
+		{"sizex", [](TileLayerRef& layer, char* val) {
+			layer.internalSize.x = atoi(val);
+		}},
+		{"sizey", [](TileLayerRef& layer, char* val) {
+			layer.internalSize.y = atoi(val);
+		}},
+		
 	};
 
 	if (propNode) {
@@ -54,7 +61,7 @@ void parseLayerTiles(xml_node<>* dataNode, TileLayerRef& layer, const TilesetMap
 
 	// read decoded tile data
 	Vec2u tilepos(0u, 0u);
-	for (unsigned i = 0; i < dataSize; i += 4) {
+	for (size_t i = 0; i < dataSize; i += 4) {
 		gid tilesetgid =
 			data[i] |
 			data[i + 1] << 8 |
@@ -66,7 +73,10 @@ void parseLayerTiles(xml_node<>* dataNode, TileLayerRef& layer, const TilesetMap
 			FLIPPED_VERTICALLY_FLAG |
 			FLIPPED_DIAGONALLY_FLAG);
 
-		if (tilesetgid > 0) {
+		if (tilesetgid > 0 
+			&& (layer.internalSize.x == 0 || tilepos.x < layer.internalSize.x)
+			&& (layer.internalSize.y == 0 || tilepos.y < layer.internalSize.y)
+			) {
 			TileRef t;
 			t.tile_id = tilesetgid;
 

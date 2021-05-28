@@ -22,7 +22,7 @@ class LevelAsset : public Asset {
 public:
 	LevelAsset(const std::string& filename);
 
-	bool loadFromFile(const std::string& relpath);
+	bool loadFromFile(const std::string& relpath) override;
 	bool loadFromFlat(const flat::resources::LevelAssetF* builder);
 	flatbuffers::Offset<flat::resources::LevelAssetF> writeToFlat(flatbuffers::FlatBufferBuilder& builder) const;
 
@@ -39,7 +39,7 @@ public:
 
 	inline unsigned getBorder() const { return borderCardinalBits; };
 
-	void ImGui_getContent();
+	void ImGui_getContent() override;
 
 protected:
 	//void generateCollisionForLayer(LayerRef& ref);

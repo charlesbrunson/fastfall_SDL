@@ -27,6 +27,7 @@ set(FLATBUFFERS_BUILD_TESTS OFF)
 set(FLATBUFFERS_BUILD_FLATLIB ON)
 set(FLATBUFFERS_BUILD_FLATC OFF)
 set(FLATBUFFERS_BUILD_CPP17 ON)
+set(FLATBUFFERS_LIBCXX_WITH_CLANG OFF)
 FetchContent_Declare(
 	flatbuffers
 	GIT_REPOSITORY https://github.com/google/flatbuffers.git
@@ -62,7 +63,12 @@ FetchContent_Declare(
 )
 
 # sdl
-#set(SDL_SHARED OFF)
+#set(MMX OFF)
+#set(3DNOW OFF)
+#set(SSE OFF)
+#set(SSE2 OFF)
+#set(SSE3 OFF)
+#set(ALTIVEC OFF)
 FetchContent_Declare(
 	sdl
 	URL			https://www.libsdl.org/release/SDL2-2.0.14.tar.gz
@@ -114,6 +120,7 @@ FetchContent_MakeAvailable(
 	imgui
 	implot
 )
+target_compile_definitions(flatbuffers PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 configure_file(
 	"${zlib_BINARY_DIR}/zconf.h"

@@ -137,9 +137,7 @@ bool AnimCompiler::parseAnimation(xml_node<>* animationNode, SpriteAsset& asset)
 
 	//auto [iter, inserted] = asset.animations.insert(std::make_pair(name, std::move(Animation{ &asset })));
 
-	asset.parsedAnims.push_back(SpriteAsset::ParsedAnim{});
-
-	SpriteAsset::ParsedAnim& anim = asset.parsedAnims.back();
+	SpriteAsset::ParsedAnim& anim = asset.parsedAnims.emplace_back(SpriteAsset::ParsedAnim{});
 
 	if (!animationNode->first_attribute("name"))
 		throw parse_error("animation has no name", nullptr);
@@ -165,30 +163,38 @@ bool AnimCompiler::parseAnimation(xml_node<>* animationNode, SpriteAsset& asset)
 			anim.loop = atoi(prop->value());
 		}
 		else if (strcmp("framerate", propName) == 0) {
-			unsigned count = atoi(prop->first_attribute("count")->value());
-			unsigned defMS = atoi(prop->first_attribute("defaultMS")->value());
+			unsigned count = 1;
+			if (auto attr = prop->first_attribute("count")) {
+				count = atoi(attr->value());
+			}
+
+			unsigned defMS = 0;
+			if (auto attr = prop->first_attribute("defaultMS")) {
+				defMS = atoi(attr->value());
+			}
 
 			anim.framerateMS = std::vector<unsigned>(count, defMS);
 
 			xml_node<>* frameProp = prop->first_node("frame");
 			unsigned i = 0;
-			while (frameProp && i < anim.framerateMS.size()) {
-				anim.framerateMS[i] = atoi(frameProp->value());
+			while (frameProp) {
+				if (i < anim.framerateMS.size()) {
+					anim.framerateMS[i] = atoi(frameProp->value());
+				}
+				else {
+					anim.framerateMS.push_back(atoi(frameProp->value()));
+				}
 				i++;
 				frameProp = frameProp->next_sibling("frame");
 			}
 		}
 		else if (strcmp("chainsTo", propName) == 0) {
-
-
-
 			anim.chain_anim_name = prop->first_attribute("name")->value();
 			anim.chain_spr_name = prop->first_attribute("sprite")->value();
 			anim.chain_frame = atoi(prop->first_attribute("frame")->value());
 
 			if (!anim.chain_anim_name.empty() && !anim.chain_spr_name.empty())
 				anim.has_chain = true;
-
 		}
 		prop = prop->next_sibling();
 	}

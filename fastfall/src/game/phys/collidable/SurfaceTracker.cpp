@@ -287,7 +287,7 @@ Vec2f SurfaceTracker::postmove_update(Vec2f wish_pos, secs deltaTime) {
 			//float dir1 = math::vector(contact.collider.surface).y;
 			//float dir2 = math::vector(next->surface).y;
 
-			if (math::angle(next->surface) != math::angle(contact.collider.surface) &&
+			if ((math::angle(next->surface) != math::angle(contact.collider.surface)) &&
 				is_angle_in_range(math::angle(next->surface) - Angle::Degree(90.f)) &&
 				//(dir1 == 0.f || dir2 == 0.f || ((dir1 < 0.f) == (dir2 < 0.f))) &&
 				abs(diff.degrees()) < abs(stick_angle_max.degrees())
@@ -341,8 +341,8 @@ void SurfaceTracker::end_touch(PersistantContact& contact) {
 	if (move_with_platforms) {
 		// have to avoid collider velocity being double-applied
 		bool still_touching = false;
-		for (auto& contact : owner->get_contacts()) {
-			if (contact.collider_id.value == contact.collider_id.value) {
+		for (auto& contact_ : owner->get_contacts()) {
+			if (contact.collider_id.value == contact_.collider_id.value) {
 				still_touching = true;
 			}
 		}

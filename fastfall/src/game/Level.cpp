@@ -105,7 +105,7 @@ void Level::init(const LevelAsset& levelData) {
 		}
 		else if (i->type == LayerType::TILELAYER) {
 			(bg ? bgLayers : fgLayers).push_back(
-				TileLayer(*i, (!bg && fgLayers.empty()))
+				TileLayer(*i, context, (!bg && fgLayers.empty()))
 			);
 		}
 	}

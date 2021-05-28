@@ -64,7 +64,7 @@ public:
 	bool has_friction = false;
 	Friction surface_friction;
 
-	const std::optional<const PersistantContact> get_contact() { return currentContact; };
+	const std::optional<PersistantContact>& get_contact() { return currentContact; };
 
 	void start_touch(PersistantContact& contact);
 	void end_touch(PersistantContact& contact);

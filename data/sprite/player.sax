@@ -16,7 +16,7 @@
 	<animation name="running">
 		<area   x="0" y="32" w="32" h="32" />
 		<origin x="16" y="32" />
-		<framerate count="8" defaultMS="80">
+		<framerate>
 			<frame>100</frame>
 			<frame>80</frame>
 			<frame>100</frame>
@@ -32,10 +32,7 @@
 	<animation name="jump">
 		<area   x="0" y="64" w="32" h="48" />
 		<origin x="16" y="41" />
-		<framerate count="2" defaultMS="83.3333333333">
-			<frame>83.3333333333</frame>
-			<frame>83.3333333333</frame>
-		</framerate>
+		<framerate count="2" defaultMS="83.3333333333"/>
 		<loop>1</loop>
 	</animation>
 	

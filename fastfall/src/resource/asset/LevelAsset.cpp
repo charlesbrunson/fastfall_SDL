@@ -36,7 +36,7 @@ LevelProperties tmxParseLevelProperties(xml_node<>* mapNode) {
 
 	xml_attribute<>* mapAttr = mapNode->first_attribute();
 
-	const static std::map<const std::string, std::function<void(LevelProperties&, char*)>> validLevelProps
+	const static std::map<std::string, void(*)(LevelProperties&, char*)> validLevelProps
 	{
 		{"tilewidth", [](LevelProperties& prop, char* val) {
 			assert(atoi(val) == TILESIZE);
@@ -218,6 +218,9 @@ bool LevelAsset::loadFromFlat(const flat::resources::LevelAssetF* builder) {
 			layerRef.id = layerT->id();
 
 			layerRef.tileLayer->tileSize = Vec2u(tileT->tileSize()->x(), tileT->tileSize()->y());
+			layerRef.tileLayer->internalSize = Vec2u(tileT->internalSize()->x(), tileT->internalSize()->y());
+			layerRef.tileLayer->isParallax = tileT->isParallax();
+
 			for (auto tT = tileT->tiles()->begin(); tT != tileT->tiles()->end(); tT++) {
 				Vec2u pos(tT->tilePos().x(), tT->tilePos().y());
 
@@ -317,6 +320,8 @@ flatbuffers::Offset<flat::resources::LevelAssetF> LevelAsset::writeToFlat(flatbu
 
 			TileLayerRef* tilelayer = lay.tileLayer.get();
 
+
+			Vec2Fu flat_layerTileInternalSize(tilelayer->internalSize.x, tilelayer->internalSize.y);
 			Vec2Fu flat_layerTileSize(tilelayer->tileSize.x, tilelayer->tileSize.y);
 
 			std::vector<TileRefF> tiles;
@@ -354,6 +359,8 @@ flatbuffers::Offset<flat::resources::LevelAssetF> LevelAsset::writeToFlat(flatbu
 			auto flat_tilesetNames = builder.CreateVectorOfStrings(tilesetNames);
 
 			TileLayerFBuilder tileBuilder(builder);
+			tileBuilder.add_isParallax(tilelayer->isParallax);
+			tileBuilder.add_internalSize(&flat_layerTileInternalSize);
 			tileBuilder.add_tileSize(&flat_layerTileSize);
 			tileBuilder.add_tiles(flat_tiles);
 			tileBuilder.add_tilesetsReq(flat_tilesetNames);

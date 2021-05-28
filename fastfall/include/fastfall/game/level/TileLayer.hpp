@@ -10,6 +10,8 @@
 #include "fastfall/game/phys/collider_regiontypes/ColliderTileMap.hpp"
 #include "fastfall/render/TileVertexArray.hpp"
 
+#include "fastfall/game/GameContext.hpp"
+
 //#include <SFML/Graphics.hpp>
 #include <memory>
 
@@ -17,7 +19,7 @@ namespace ff {
 
 class TileLayer : public Drawable {
 public:
-	TileLayer(const LayerRef& layerData, bool initCollision = false);
+	TileLayer(const LayerRef& layerData, GameContext context, bool initCollision = false);
 	TileLayer(const TileLayer& tile);
 	TileLayer(TileLayer&& tile) noexcept;
 	TileLayer& operator=(const TileLayer& tile);
@@ -47,6 +49,8 @@ public:
 
 protected:
 
+	GameContext m_context;
+
 	struct TileTimer {
 		Vec2u tex_position;
 		secs time_to_anim;
@@ -61,6 +65,12 @@ protected:
 
 	Vec2u size;
 	Vec2f offset;
+
+	bool isParallax = false;
+	struct ParallaxState {
+		Vec2f initOffset;
+		Vec2f camFactor;
+	} parallax;
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 

@@ -244,7 +244,7 @@ void levelContent(GameContext context) {
 
 		if (ImGui::CollapsingHeader(lvl->name()->c_str(), ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
 
-			ImGui::Text("Instance = %u", lvl->getInstanceID());
+			ImGui::Text("Instance = %u", (unsigned int)lvl->getInstanceID());
 			ImGui::Text("Dimensions = %u, %u", lvl->size().x, lvl->size().y);
 			ImGui::Text("BG Color = (%3u, %3u, %3u)", lvl->getBGColor().r, lvl->getBGColor().g, lvl->getBGColor().b);
 
@@ -269,7 +269,7 @@ void levelContent(GameContext context) {
 					for (auto& obj : layer.getLayerRef()->objLayer->objects) {
 
 						const std::string* type = GameObjectLibrary::lookupTypeName(obj.second.type);
-						if (ImGui::TreeNode((char*)&obj, "%s #%u", (type ? type->c_str() : "Anonymous Type"), obj.second.id, obj.second.id)) {
+						if (ImGui::TreeNode((char*)&obj, "%s #%u", (type ? type->c_str() : "Anonymous Type"), obj.second.id)) {
 
 							if (ImGui::BeginChild((char*)&obj, ImVec2(0, 100), true)) {
 								ImGui::Text("Name : \"%s\"", obj.second.name.c_str());
@@ -325,9 +325,7 @@ void levelContent(GameContext context) {
 void objectContent(GameContext context) {
 	GameObjectManager* man = &context.objects().get(); //&Instance(instance)->getObject();
 
-	ImGui::Text("Object Count: %3u", man->getObjects().size());
-
-
+	ImGui::Text("Object Count: %3ull", man->getObjects().size());
 
 	ImGui::Columns(2, NULL, false);
 	for (auto& obj : man->getObjects()) {

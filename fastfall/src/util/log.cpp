@@ -11,7 +11,7 @@ unsigned log::currentDepth = 0u;
 unsigned log::currentTick = 0u;
 
 log::scope::scope() {
-	if (added = (currentDepth < maxDepth)) {
+	if ((added = (currentDepth < maxDepth))) {
 		currentDepth++;
 	}
 }

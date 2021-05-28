@@ -38,7 +38,7 @@ public:
 
 	SpriteAsset(const std::string& filename);
 
-	bool loadFromFile(const std::string& relpath);
+	bool loadFromFile(const std::string& relpath) override;
 	bool loadFromFlat(const flat::resources::SpriteAssetF* builder);
 	flatbuffers::Offset<flat::resources::SpriteAssetF> writeToFlat(flatbuffers::FlatBufferBuilder& builder) const;
 
@@ -53,7 +53,7 @@ public:
 	[[nodiscard]]
 	const std::vector<ParsedAnim>& getParsedAnims();
 
-	void ImGui_getContent();
+	void ImGui_getContent() override;
 
 	//static std::map<AnimID, Animation> addAnimations(const std::vector<ParsedAnim>& allParsedAnims);
 

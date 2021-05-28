@@ -250,6 +250,9 @@ void CollisionDiscrete::createAxes() noexcept {
 		switch (non_verticals[i].dir) {
 		case Cardinal::NORTH: axes.push_back(createFloor(non_verticals[i])); break;
 		case Cardinal::SOUTH: axes.push_back(createCeil(non_verticals[i])); break;
+
+		// dont handle EAST or WEST
+		default: break;
 		}
 	}
 	for (size_t i = 0u; i < vSize; i++) {
@@ -262,6 +265,8 @@ void CollisionDiscrete::createAxes() noexcept {
 			if ((hasWest && hasWestCorner && verticals[i].is_real) || (!hasWest || !hasWestCorner))
 				axes.push_back(createWestWall(verticals[i]));
 			break;
+		// dont handle NORTH or SOUTH
+		default: break;
 		}
 	}
 }

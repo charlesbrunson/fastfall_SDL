@@ -17,7 +17,7 @@ public:
 
 	TilesetAsset(const std::string& filename);
 
-	bool loadFromFile(const std::string& relpath);
+	bool loadFromFile(const std::string& relpath) override;
 	bool loadFromFlat(const flat::resources::TilesetAssetF* builder);
 	flatbuffers::Offset<flat::resources::TilesetAssetF> writeToFlat(flatbuffers::FlatBufferBuilder& builder) const;
 

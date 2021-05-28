@@ -6,41 +6,22 @@
 
 #include "fastfall/render/RenderTarget.hpp"
 
-#include <assert.h>
+#include "fastfall/game/GameCamera.hpp"
 
-//#include <SFML/Graphics.hpp>
+#include <assert.h>
 
 namespace ff {
 
-//constexpr unsigned vertsPerTile = 6u;
 
-/*
-void updateTileVertices(VertexArray& vtx, unsigned ndx, const Vec2u& texPos, const Vec2i& gamePos) {
-
-
-	assert(vtx.getPrimitiveType() == sf::PrimitiveType::Quads);
-	assert(ndx + vertsPerTile <= vtx.getVertexCount());
-
-	// update texCoords
-	vtx[ndx + 0].texCoords = (texPos + Vec2u(0, 0)) * TILESIZE_F;
-	vtx[ndx + 1].texCoords = (texPos + Vec2u(1, 0)) * TILESIZE_F;
-	vtx[ndx + 2].texCoords = (texPos + Vec2u(1, 1)) * TILESIZE_F;
-	vtx[ndx + 3].texCoords = (texPos + Vec2u(0, 1)) * TILESIZE_F;
-
-	// update worldposition
-	vtx[ndx + 0].position = (gamePos + Vec2u(0, 0)) * TILESIZE_F;
-	vtx[ndx + 1].position = (gamePos + Vec2u(1, 0)) * TILESIZE_F;
-	vtx[ndx + 2].position = (gamePos + Vec2u(1, 1)) * TILESIZE_F;
-	vtx[ndx + 3].position = (gamePos + Vec2u(0, 1)) * TILESIZE_F;
-
-}
-*/
-
-TileLayer::TileLayer(const LayerRef& layerData, bool initCollision) {
-
+TileLayer::TileLayer(const LayerRef& layerData, GameContext context, bool initCollision)
+	: m_context(context)
+{
 	initFromAsset(layerData, initCollision);
 }
-TileLayer::TileLayer(const TileLayer& tile) {
+
+TileLayer::TileLayer(const TileLayer& tile)
+	: m_context(tile.m_context) 
+{
 	layerID = tile.layerID;
 	ref = tile.ref;
 	size = tile.size;
@@ -49,8 +30,11 @@ TileLayer::TileLayer(const TileLayer& tile) {
 	tileVertices = tile.tileVertices;
 	pos2tileset = tile.pos2tileset;
 	tile_timers = tile.tile_timers;
+	isParallax = tile.isParallax;
+	parallax = tile.parallax;
 }
 TileLayer& TileLayer::operator=(const TileLayer& tile) {
+	m_context = tile.m_context;
 	layerID = tile.layerID;
 	ref = tile.ref;
 	size = tile.size;
@@ -59,9 +43,13 @@ TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	tileVertices = tile.tileVertices;
 	pos2tileset = tile.pos2tileset;
 	tile_timers = tile.tile_timers;
+	isParallax = tile.isParallax;
+	parallax = tile.parallax;
 	return *this;
 }
-TileLayer::TileLayer(TileLayer&& tile) noexcept {
+TileLayer::TileLayer(TileLayer&& tile) noexcept
+	: m_context(tile.m_context)
+{
 	layerID = tile.layerID;
 	ref = tile.ref;
 	size = tile.size;
@@ -70,8 +58,11 @@ TileLayer::TileLayer(TileLayer&& tile) noexcept {
 	std::swap(pos2tileset, tile.pos2tileset);
 	tileVertices.swap(tile.tileVertices);
 	tile_timers.swap(tile.tile_timers);
+	isParallax = tile.isParallax;
+	std::swap(parallax, tile.parallax);
 }
 TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
+	m_context = tile.m_context;
 	layerID = tile.layerID;
 	ref = tile.ref;
 	size = tile.size;
@@ -80,6 +71,8 @@ TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	std::swap(pos2tileset, tile.pos2tileset);
 	tileVertices.swap(tile.tileVertices);
 	tile_timers.swap(tile.tile_timers);
+	isParallax = tile.isParallax;
+	std::swap(parallax, tile.parallax);
 	return *this;
 }
 
@@ -91,7 +84,21 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 	hasCollision = initCollision;
 	layerID = layerData.id;
 
-	size = layerData.tileLayer->tileSize;
+	size.x = layerData.tileLayer->internalSize.x == 0 ? layerData.tileLayer->tileSize.x : layerData.tileLayer->internalSize.x;
+	size.y = layerData.tileLayer->internalSize.y == 0 ? layerData.tileLayer->tileSize.y : layerData.tileLayer->internalSize.y;
+	isParallax = layerData.tileLayer->isParallax;
+
+	if (isParallax) {
+		parallax.initOffset.x = (float)(std::min(size.x, GAME_TILE_W) * TILESIZE) / 2.f;
+		parallax.initOffset.y = (float)(std::min(size.y, GAME_TILE_H) * TILESIZE) / 2.f;
+		parallax.camFactor = Vec2f{1.f, 1.f};
+		if (size.x > GAME_TILE_W) {
+			parallax.camFactor.x = 1.f - ((float)(size.x - GAME_TILE_W) / (float)layerData.tileLayer->tileSize.x);
+		}
+		if (size.y > GAME_TILE_H) {
+			parallax.camFactor.y = 1.f - ((float)(size.y - GAME_TILE_H) / (float)layerData.tileLayer->tileSize.y);
+		}
+	}
 
 	if (hasCollision)
 		collision = std::make_shared<ColliderTileMap>(Vec2i(size.x, size.y), true);
@@ -105,6 +112,7 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 			LOG_ERR_("unknown tileset {}", *i.second.tilesetName);
 		}
 	}
+
 	if (hasCollision)
 		collision->applyChanges();
 
@@ -119,6 +127,7 @@ void TileLayer::predraw(secs deltaTime) {
 
 	bool changedTile = false;
 
+	// update tile timers
 	for (auto& timer : tile_timers) {
 		timer.time_to_anim -= deltaTime;
 
@@ -127,6 +136,7 @@ void TileLayer::predraw(secs deltaTime) {
 		}
 	}
 
+	// update tiles
 	if (changedTile) {
 		auto iter = std::partition(tile_timers.begin(), tile_timers.end(), [](const TileTimer& timer) {
 			return timer.time_to_anim > 0.0;
@@ -159,10 +169,25 @@ void TileLayer::predraw(secs deltaTime) {
 
 			}
 		}
+		collision->applyChanges();
 	}
 
-	if (changedTile) {
-		collision->applyChanges();
+
+	// parallax update
+	static secs buff = 0.0;
+	buff += deltaTime;
+	if (isParallax) {
+
+		Vec2f camPos = m_context.camera()->currentPosition;
+
+		Vec2f pos = Vec2f{
+			m_context.camera()->currentPosition.x * parallax.camFactor.x,
+			m_context.camera()->currentPosition.y * parallax.camFactor.y
+		} - parallax.initOffset;
+
+		for (auto& vta_pair : tileVertices) {
+			vta_pair.second.offset = pos;
+		}
 	}
 }
 

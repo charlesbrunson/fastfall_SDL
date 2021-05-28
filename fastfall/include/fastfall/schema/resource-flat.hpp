@@ -467,10 +467,18 @@ inline flatbuffers::Offset<ObjectLayerF> CreateObjectLayerFDirect(
 struct TileLayerF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TileLayerFBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_TILESIZE = 4,
-    VT_TILES = 6,
-    VT_TILESETSREQ = 8
+    VT_ISPARALLAX = 4,
+    VT_INTERNALSIZE = 6,
+    VT_TILESIZE = 8,
+    VT_TILES = 10,
+    VT_TILESETSREQ = 12
   };
+  bool isParallax() const {
+    return GetField<uint8_t>(VT_ISPARALLAX, 0) != 0;
+  }
+  const flat::math::Vec2Fu *internalSize() const {
+    return GetStruct<const flat::math::Vec2Fu *>(VT_INTERNALSIZE);
+  }
   const flat::math::Vec2Fu *tileSize() const {
     return GetStruct<const flat::math::Vec2Fu *>(VT_TILESIZE);
   }
@@ -482,6 +490,8 @@ struct TileLayerF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyField<uint8_t>(verifier, VT_ISPARALLAX) &&
+           VerifyField<flat::math::Vec2Fu>(verifier, VT_INTERNALSIZE) &&
            VerifyFieldRequired<flat::math::Vec2Fu>(verifier, VT_TILESIZE) &&
            VerifyOffset(verifier, VT_TILES) &&
            verifier.VerifyVector(tiles()) &&
@@ -496,6 +506,12 @@ struct TileLayerFBuilder {
   typedef TileLayerF Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
+  void add_isParallax(bool isParallax) {
+    fbb_.AddElement<uint8_t>(TileLayerF::VT_ISPARALLAX, static_cast<uint8_t>(isParallax), 0);
+  }
+  void add_internalSize(const flat::math::Vec2Fu *internalSize) {
+    fbb_.AddStruct(TileLayerF::VT_INTERNALSIZE, internalSize);
+  }
   void add_tileSize(const flat::math::Vec2Fu *tileSize) {
     fbb_.AddStruct(TileLayerF::VT_TILESIZE, tileSize);
   }
@@ -520,6 +536,8 @@ struct TileLayerFBuilder {
 
 inline flatbuffers::Offset<TileLayerF> CreateTileLayerF(
     flatbuffers::FlatBufferBuilder &_fbb,
+    bool isParallax = false,
+    const flat::math::Vec2Fu *internalSize = 0,
     const flat::math::Vec2Fu *tileSize = 0,
     flatbuffers::Offset<flatbuffers::Vector<const flat::resources::TileRefF *>> tiles = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> tilesetsReq = 0) {
@@ -527,11 +545,15 @@ inline flatbuffers::Offset<TileLayerF> CreateTileLayerF(
   builder_.add_tilesetsReq(tilesetsReq);
   builder_.add_tiles(tiles);
   builder_.add_tileSize(tileSize);
+  builder_.add_internalSize(internalSize);
+  builder_.add_isParallax(isParallax);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<TileLayerF> CreateTileLayerFDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
+    bool isParallax = false,
+    const flat::math::Vec2Fu *internalSize = 0,
     const flat::math::Vec2Fu *tileSize = 0,
     const std::vector<flat::resources::TileRefF> *tiles = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *tilesetsReq = nullptr) {
@@ -539,6 +561,8 @@ inline flatbuffers::Offset<TileLayerF> CreateTileLayerFDirect(
   auto tilesetsReq__ = tilesetsReq ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*tilesetsReq) : 0;
   return flat::resources::CreateTileLayerF(
       _fbb,
+      isParallax,
+      internalSize,
       tileSize,
       tiles__,
       tilesetsReq__);

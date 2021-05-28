@@ -23,10 +23,13 @@ struct TileRef {
 };
 
 using object_id = unsigned int;
+constexpr object_id object_null = 0;
 
 // represents a layer of tile data
 struct TileLayerRef {
 
+	bool isParallax = false;
+	Vec2u internalSize;
 	Vec2u tileSize;
 	std::map<Vec2u, TileRef> tiles;
 

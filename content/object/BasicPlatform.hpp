@@ -20,12 +20,15 @@ public:
 	{
 		for (auto& [propName, propValue] : ref.properties) {
 			if (propName == "path") {
-				auto layer = ref.getLayer();
-				auto c_iter = layer->objects.find(std::atoi(propValue.c_str()));
+				object_id obj = std::atoi(propValue.c_str());
+				if (obj != object_null) {
+					auto layer = ref.getLayer();
+					auto c_iter = layer->objects.find(obj);
 
-				if (c_iter != layer->objects.end()) {
-					waypoints_origin = Vec2f{ c_iter->second.position };
-					waypoints = &c_iter->second.points;
+					if (c_iter != layer->objects.end()) {
+						waypoints_origin = Vec2f{ c_iter->second.position };
+						waypoints = &c_iter->second.points;
+					}
 				}
 			}
 			else if (propName == "max_velocity") {
