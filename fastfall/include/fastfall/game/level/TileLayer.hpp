@@ -73,6 +73,7 @@ protected:
 	Vec2f offset;
 
 	Vec2f scroll_offset;
+	Vec2f scroll_rollover;
 
 	// parallax data
 	bool has_parallax = false;

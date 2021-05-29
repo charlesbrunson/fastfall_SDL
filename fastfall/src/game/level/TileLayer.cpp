@@ -204,7 +204,8 @@ void TileLayer::predraw(secs deltaTime) {
 
 			}
 		}
-		collision->applyChanges();
+		if (hasCollision)
+			collision->applyChanges();
 	}
 
 
@@ -223,6 +224,7 @@ void TileLayer::predraw(secs deltaTime) {
 	Vec2f pSize = Vec2f{ size } * TILESIZE_F;
 	if (hasScrollX() || hasScrollY()) {
 		scroll_offset += scrollRate * deltaTime;
+
 		while (scroll_offset.x < 0.f) {	
 			scroll_offset.x += TILESIZE_F;
 			for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_backwardX();
@@ -239,6 +241,7 @@ void TileLayer::predraw(secs deltaTime) {
 			scroll_offset.y -= TILESIZE_F;
 			for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_forwardY();
 		}
+
 	}
 
 	if (has_parallax || hasScrollX() || hasScrollY()) {
@@ -275,7 +278,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 
 	auto vertarr = tileVertices.find(&tileset);
 	if (vertarr == tileVertices.end()) {
-		auto [iter, inserted] = tileVertices.insert(std::make_pair(&tileset, TileVertexArray(size, hasScrollX() || hasScrollY())));
+		auto [iter, inserted] = tileVertices.insert(std::make_pair(&tileset, TileVertexArray(size)));
 		iter->second.setTexture(tileset.getTexture());
 		iter->second.setTile(position, texposition);
 	}
