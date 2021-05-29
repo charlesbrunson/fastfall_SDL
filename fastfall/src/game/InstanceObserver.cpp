@@ -238,6 +238,46 @@ void collisionContent(GameContext context) {
 }
 
 void levelContent(GameContext context) {
+
+	constexpr auto displayTileLayer = [](TileLayer& tile) {
+		ImGui::Checkbox("Hidden", &tile.hidden);
+		ImGui::Text("Collision = %s", tile.hasCollision ? "true" : "false");
+		ImGui::Text("Parallax = %s", tile.isParallax() ? "true" : "false");
+		ImGui::Text("Scrolling = %s", tile.hasScrollX() || tile.hasScrollY() ? "true" : "false");
+
+
+
+
+	};
+	constexpr auto displayObjectRef = [](ObjectRef& obj) {
+		//ImGui::Checkbox("Hidden", &layer.hidden);
+
+		ImGui::Text("Name : \"%s\"", obj.name.c_str());
+		ImGui::Text("Type ID : %d", obj.id);
+		ImGui::Text("Position : (%4d, %4d)", obj.position.x, obj.position.y);
+		ImGui::Text("Size : (%2d, %2d)", obj.width, obj.height);
+
+		if (!obj.properties.empty()) {
+			if (ImGui::TreeNode("Properties")) {
+				for (auto& prop : obj.properties) {
+					ImGui::Text("%s : %s", prop.first.c_str(), prop.second.c_str());
+				}
+				ImGui::TreePop();
+			}
+		}
+		if (!obj.points.empty()) {
+			if (ImGui::TreeNode("Points")) {
+				unsigned pCount = 0;
+				for (auto& p : obj.points) {
+					ImGui::Text("points[%2d] : (% 4d, % 4d)", pCount++, p.x, p.y);
+
+				}
+				ImGui::TreePop();
+			}
+		}
+	};
+
+
 	for (auto& lvlpair : context.levels().get_all()) { // Instance(instance)->getAllLevels()) {
 
 		Level* lvl = lvlpair.second.get();
@@ -251,68 +291,35 @@ void levelContent(GameContext context) {
 			int i = 0;
 			for (TileLayer& layer : lvl->getBGLayers()) {
 				if (ImGui::TreeNode((void*)(&layer), "%d. Background  #%u", i, layer.getID())) {
-
-					ImGui::Checkbox("Hidden", &layer.hidden);
-
-					//if (layer.hasCollision)
-					//	ImGui::Checkbox("Collision", &layer.showCollision);
-
+					displayTileLayer(layer);
 
 					ImGui::TreePop();
 				}
 				i++;
 			}
-			{
-				ObjectLayer& layer = lvl->getObjLayer();
-				if (ImGui::TreeNode((void*)(&layer), "%d. Objects  #%u", i, layer.getLayerID())) {
+			
+			ObjectLayer& layer = lvl->getObjLayer();
+			if (ImGui::TreeNode((void*)(&layer), "%d. Objects  #%u", i, layer.getLayerID())) {
+				for (auto& obj : layer.getLayerRef()->objLayer->objects) {
 
-					for (auto& obj : layer.getLayerRef()->objLayer->objects) {
+					const std::string* type = GameObjectLibrary::lookupTypeName(obj.second.type);
+					if (ImGui::TreeNode((char*)&obj, "%s #%u", (type ? type->c_str() : "Anonymous Type"), obj.second.id)) {
 
-						const std::string* type = GameObjectLibrary::lookupTypeName(obj.second.type);
-						if (ImGui::TreeNode((char*)&obj, "%s #%u", (type ? type->c_str() : "Anonymous Type"), obj.second.id)) {
-
-							if (ImGui::BeginChild((char*)&obj, ImVec2(0, 100), true)) {
-								ImGui::Text("Name : \"%s\"", obj.second.name.c_str());
-								ImGui::Text("Type ID : %d", obj.second.id);
-								ImGui::Text("Position : (%4d, %4d)", obj.second.position.x, obj.second.position.y);
-								ImGui::Text("Size : (%2d, %2d)", obj.second.width, obj.second.height);
-
-								if (!obj.second.properties.empty()) {
-									if (ImGui::TreeNode("Properties")) {
-										for (auto& prop : obj.second.properties) {
-											ImGui::Text("%s : %s", prop.first.c_str(), prop.second.c_str());
-										}
-										ImGui::TreePop();
-									}
-								}
-								if (!obj.second.points.empty()) {
-									if (ImGui::TreeNode("Points")) {
-										unsigned pCount = 0;
-										for (auto& p : obj.second.points) {
-											ImGui::Text("points[%2d] : (% 4d, % 4d)", pCount++, p.x, p.y);
-
-										}
-										ImGui::TreePop();
-									}
-								}
-							}
-							ImGui::EndChild();
-
-							ImGui::TreePop();
+						if (ImGui::BeginChild((char*)&obj, ImVec2(0, 100), true)) {
+							displayObjectRef(obj.second);
 						}
+						ImGui::EndChild();
+						ImGui::TreePop();
 					}
-					ImGui::TreePop();
 				}
-				i++;
+				ImGui::TreePop();
 			}
+			i++;
+			
 			for (TileLayer& layer : lvl->getFGLayers()) {
 				if (ImGui::TreeNode((void*)(&layer), "%d. Foreground%s #%u", i, layer.hasCollision ? "*" : " ", layer.getID())) {
 
-					ImGui::Checkbox("Hidden", &layer.hidden);
-
-					//if (layer.hasCollision)
-					//	ImGui::Checkbox("Collision", &layer.showCollision);
-
+					displayTileLayer(layer);
 
 					ImGui::TreePop();
 				}

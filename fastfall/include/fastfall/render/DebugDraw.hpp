@@ -21,6 +21,8 @@ namespace debug_draw {
 		COLLISION_CONTACT,
 		COLLISION_RAYCAST,
 
+		TILELAYER_AREA,
+
 		LAST
 	};
 

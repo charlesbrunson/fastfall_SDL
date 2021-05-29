@@ -44,6 +44,7 @@ bool typeEnable[] = {
 	true, // COLLISION_COLLIDABLE
 	true, // COLLISION_CONTACT
 	true, // COLLISION_RAYCAST
+	true, // TILELAYER_AREA
 };
 constexpr unsigned typeEnableCount = (sizeof(typeEnable) / sizeof(typeEnable[0]));
 static_assert(typeEnableCount == static_cast<unsigned>(debug_draw::Type::LAST), "debug draw type enum and type enable array count mismatch");

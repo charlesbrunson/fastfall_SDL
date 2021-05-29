@@ -218,8 +218,9 @@ bool LevelAsset::loadFromFlat(const flat::resources::LevelAssetF* builder) {
 			layerRef.id = layerT->id();
 
 			layerRef.tileLayer->tileSize = Vec2u(tileT->tileSize()->x(), tileT->tileSize()->y());
-			layerRef.tileLayer->internalSize = Vec2u(tileT->internalSize()->x(), tileT->internalSize()->y());
-			layerRef.tileLayer->isParallax = tileT->isParallax();
+			layerRef.tileLayer->innerSize = Vec2u(tileT->innerSize()->x(), tileT->innerSize()->y());
+			layerRef.tileLayer->has_parallax = tileT->has_parallax();
+			layerRef.tileLayer->scrollrate = Vec2f(tileT->scrollrate()->x(), tileT->scrollrate()->y());
 
 			for (auto tT = tileT->tiles()->begin(); tT != tileT->tiles()->end(); tT++) {
 				Vec2u pos(tT->tilePos().x(), tT->tilePos().y());
@@ -321,8 +322,9 @@ flatbuffers::Offset<flat::resources::LevelAssetF> LevelAsset::writeToFlat(flatbu
 			TileLayerRef* tilelayer = lay.tileLayer.get();
 
 
-			Vec2Fu flat_layerTileInternalSize(tilelayer->internalSize.x, tilelayer->internalSize.y);
+			Vec2Fu flat_layerTileInternalSize(tilelayer->innerSize.x, tilelayer->innerSize.y);
 			Vec2Fu flat_layerTileSize(tilelayer->tileSize.x, tilelayer->tileSize.y);
+			Vec2Ff flat_scrollrate(tilelayer->scrollrate.x, tilelayer->scrollrate.y);
 
 			std::vector<TileRefF> tiles;
 
@@ -359,9 +361,10 @@ flatbuffers::Offset<flat::resources::LevelAssetF> LevelAsset::writeToFlat(flatbu
 			auto flat_tilesetNames = builder.CreateVectorOfStrings(tilesetNames);
 
 			TileLayerFBuilder tileBuilder(builder);
-			tileBuilder.add_isParallax(tilelayer->isParallax);
-			tileBuilder.add_internalSize(&flat_layerTileInternalSize);
+			tileBuilder.add_has_parallax(tilelayer->has_parallax);
+			tileBuilder.add_innerSize(&flat_layerTileInternalSize);
 			tileBuilder.add_tileSize(&flat_layerTileSize);
+			tileBuilder.add_scrollrate(&flat_scrollrate);
 			tileBuilder.add_tiles(flat_tiles);
 			tileBuilder.add_tilesetsReq(flat_tilesetNames);
 			flat_layerref = tileBuilder.Finish().Union();

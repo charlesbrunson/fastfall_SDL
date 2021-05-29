@@ -13,17 +13,26 @@ namespace ff {
 void parseLayerProperties(xml_node<>* propNode, TileLayerRef& layer) {
 
 	const static std::map < std::string, void(*)(TileLayerRef&, char*) > validLayerProps{
-
-		{"parallax", [](TileLayerRef& layer, char* val) {
-			layer.isParallax = strcmp(val, "true") == 0;
-		}},
+		// inner size
 		{"sizex", [](TileLayerRef& layer, char* val) {
-			layer.internalSize.x = atoi(val);
+			layer.innerSize.x = atoi(val);
 		}},
 		{"sizey", [](TileLayerRef& layer, char* val) {
-			layer.internalSize.y = atoi(val);
+			layer.innerSize.y = atoi(val);
 		}},
-		
+
+		// parallax flag
+		{"parallax", [](TileLayerRef& layer, char* val) {
+			layer.has_parallax = strcmp(val, "true") == 0;
+		}},
+
+		// layer scrolling
+		{"scrollx_vel", [](TileLayerRef& layer, char* val) {
+			layer.scrollrate.x = atof(val);
+		}},
+		{"scrolly_vel", [](TileLayerRef& layer, char* val) {
+			layer.scrollrate.y = atof(val);
+		}},
 	};
 
 	if (propNode) {
@@ -74,8 +83,8 @@ void parseLayerTiles(xml_node<>* dataNode, TileLayerRef& layer, const TilesetMap
 			FLIPPED_DIAGONALLY_FLAG);
 
 		if (tilesetgid > 0 
-			&& (layer.internalSize.x == 0 || tilepos.x < layer.internalSize.x)
-			&& (layer.internalSize.y == 0 || tilepos.y < layer.internalSize.y)
+			&& (layer.innerSize.x == 0 || tilepos.x < layer.innerSize.x)
+			&& (layer.innerSize.y == 0 || tilepos.y < layer.innerSize.y)
 			) {
 			TileRef t;
 			t.tile_id = tilesetgid;

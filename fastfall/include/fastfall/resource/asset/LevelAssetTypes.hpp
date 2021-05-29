@@ -28,9 +28,12 @@ constexpr object_id object_null = 0;
 // represents a layer of tile data
 struct TileLayerRef {
 
-	bool isParallax = false;
-	Vec2u internalSize;
+	bool has_parallax = false;
+	Vec2u innerSize;
 	Vec2u tileSize;
+
+	Vec2f scrollrate;
+
 	std::map<Vec2u, TileRef> tiles;
 
 	//bool isActive = false;

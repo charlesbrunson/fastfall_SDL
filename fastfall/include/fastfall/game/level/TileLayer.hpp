@@ -43,11 +43,17 @@ public:
 	inline Vec2f getOffset() const noexcept { return offset; };
 	inline void  setOffset(Vec2f off) noexcept { offset = off; };
 
+	inline bool isParallax() const noexcept { return has_parallax; };
+	inline bool hasScrollX() const noexcept { return scrollRate.x != 0.f; };
+	inline bool hasScrollY() const noexcept { return scrollRate.y != 0.f; };
+
 	bool hidden = false;
 	bool hasCollision = false;
 	//bool showCollision = false;
 
 protected:
+
+
 
 	GameContext m_context;
 
@@ -66,11 +72,17 @@ protected:
 	Vec2u size;
 	Vec2f offset;
 
-	bool isParallax = false;
+	Vec2f scroll_offset;
+
+	// parallax data
+	bool has_parallax = false;
 	struct ParallaxState {
 		Vec2f initOffset;
 		Vec2f camFactor;
 	} parallax;
+
+	// scroll data
+	Vec2f scrollRate;
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 

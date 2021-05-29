@@ -33,8 +33,10 @@ struct TileRefF {
 }
 
 table TileLayerF {
-	isParallax:bool;
-	internalSize:math.Vec2Fu;
+	has_parallax:bool;
+	scrollrate:math.Vec2Ff;
+
+	innerSize:math.Vec2Fu;
 	tileSize:math.Vec2Fu (required);
 	tiles:[TileRefF];
 	tilesetsReq:[string];

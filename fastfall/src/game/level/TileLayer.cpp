@@ -7,6 +7,8 @@
 #include "fastfall/render/RenderTarget.hpp"
 
 #include "fastfall/game/GameCamera.hpp"
+#include "fastfall/render/DebugDraw.hpp"
+#include "fastfall/render/ShapeRectangle.hpp"
 
 #include <assert.h>
 
@@ -30,8 +32,9 @@ TileLayer::TileLayer(const TileLayer& tile)
 	tileVertices = tile.tileVertices;
 	pos2tileset = tile.pos2tileset;
 	tile_timers = tile.tile_timers;
-	isParallax = tile.isParallax;
+	has_parallax = tile.has_parallax;
 	parallax = tile.parallax;
+	scrollRate = tile.scrollRate;
 }
 TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	m_context = tile.m_context;
@@ -43,8 +46,9 @@ TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	tileVertices = tile.tileVertices;
 	pos2tileset = tile.pos2tileset;
 	tile_timers = tile.tile_timers;
-	isParallax = tile.isParallax;
+	has_parallax = tile.has_parallax;
 	parallax = tile.parallax;
+	scrollRate = tile.scrollRate;
 	return *this;
 }
 TileLayer::TileLayer(TileLayer&& tile) noexcept
@@ -58,8 +62,9 @@ TileLayer::TileLayer(TileLayer&& tile) noexcept
 	std::swap(pos2tileset, tile.pos2tileset);
 	tileVertices.swap(tile.tileVertices);
 	tile_timers.swap(tile.tile_timers);
-	isParallax = tile.isParallax;
+	has_parallax = tile.has_parallax;
 	std::swap(parallax, tile.parallax);
+	std::swap(scrollRate, tile.scrollRate);
 }
 TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	m_context = tile.m_context;
@@ -71,8 +76,9 @@ TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	std::swap(pos2tileset, tile.pos2tileset);
 	tileVertices.swap(tile.tileVertices);
 	tile_timers.swap(tile.tile_timers);
-	isParallax = tile.isParallax;
+	has_parallax = tile.has_parallax;
 	std::swap(parallax, tile.parallax);
+	std::swap(scrollRate, tile.scrollRate);
 	return *this;
 }
 
@@ -84,11 +90,23 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 	hasCollision = initCollision;
 	layerID = layerData.id;
 
-	size.x = layerData.tileLayer->internalSize.x == 0 ? layerData.tileLayer->tileSize.x : layerData.tileLayer->internalSize.x;
-	size.y = layerData.tileLayer->internalSize.y == 0 ? layerData.tileLayer->tileSize.y : layerData.tileLayer->internalSize.y;
-	isParallax = layerData.tileLayer->isParallax;
+	size.x = layerData.tileLayer->innerSize.x == 0 ? layerData.tileLayer->tileSize.x : layerData.tileLayer->innerSize.x;
+	size.y = layerData.tileLayer->innerSize.y == 0 ? layerData.tileLayer->tileSize.y : layerData.tileLayer->innerSize.y;
 
-	if (isParallax) {
+	has_parallax = layerData.tileLayer->has_parallax;
+	scrollRate = layerData.tileLayer->scrollrate;
+
+	/*
+	if (hasScrollX()) {
+		size.x++;
+	}
+	if (hasScrollY()) {
+		size.y++;
+	}
+	*/
+
+	// calc parallax factors
+	if (has_parallax) {
 		parallax.initOffset.x = (float)(std::min(size.x, GAME_TILE_W) * TILESIZE) / 2.f;
 		parallax.initOffset.y = (float)(std::min(size.y, GAME_TILE_H) * TILESIZE) / 2.f;
 		parallax.camFactor = Vec2f{1.f, 1.f};
@@ -107,6 +125,23 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 		TilesetAsset* ta = Resources::get<TilesetAsset>(*i.second.tilesetName);
 		if (ta) {
 			setTile(i.first, i.second.texPos, *ta);
+
+			/*
+			if (hasScrollX() && hasScrollY()
+				&& i.first.x == 0 && i.first.y == 0)
+			{
+				setTile(Vec2u(size.x - 1, i.first.y),  i.second.texPos, *ta);
+				setTile(Vec2u(i.first.x, size.y - 1),  i.second.texPos, *ta);
+				setTile(Vec2u(size.x - 1, size.y - 1), i.second.texPos, *ta);
+			}
+			else if (hasScrollX() && i.first.x == 0) {
+				setTile(Vec2u(size.x - 1, i.first.y),  i.second.texPos, *ta);
+			}
+			else if (hasScrollY() && i.first.y == 0) {
+				setTile(Vec2u(i.first.x, size.y - 1),  i.second.texPos, *ta);
+			}
+			*/
+
 		}
 		else {
 			LOG_ERR_("unknown tileset {}", *i.second.tilesetName);
@@ -176,18 +211,50 @@ void TileLayer::predraw(secs deltaTime) {
 	// parallax update
 	static secs buff = 0.0;
 	buff += deltaTime;
-	if (isParallax) {
-
-		Vec2f camPos = m_context.camera()->currentPosition;
-
-		Vec2f pos = Vec2f{
+	Vec2f parallax_offset;
+	if (has_parallax) {
+		parallax_offset = Vec2f{
 			m_context.camera()->currentPosition.x * parallax.camFactor.x,
 			m_context.camera()->currentPosition.y * parallax.camFactor.y
 		} - parallax.initOffset;
+	}
 
-		for (auto& vta_pair : tileVertices) {
-			vta_pair.second.offset = pos;
+	// scroll update
+	Vec2f pSize = Vec2f{ size } * TILESIZE_F;
+	if (hasScrollX() || hasScrollY()) {
+		scroll_offset += scrollRate * deltaTime;
+		while (scroll_offset.x < 0.f) {	
+			scroll_offset.x += pSize.x;
+			//for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_backwardX();
 		}
+		while (scroll_offset.x >= pSize.x) {
+			scroll_offset.x -= pSize.x;
+			//for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_forwardX();
+		}
+		while (scroll_offset.y < 0.f) { 
+			scroll_offset.y += pSize.y;
+			//for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_backwardY();
+		}
+		while (scroll_offset.y >= pSize.y) {
+			scroll_offset.y -= pSize.y;
+			//for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_forwardY();
+		}
+	}
+
+	if (has_parallax || hasScrollX() || hasScrollY()) {
+		for (auto& vta_pair : tileVertices) {
+			vta_pair.second.offset = parallax_offset + scroll_offset;
+		}
+	}
+
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_AREA)
+		&& !debug_draw::repeat(this, parallax_offset)) 
+	{
+		auto& drawable1 = createDebugDrawable<ShapeRectangle>(Rectf({ 0, 0 }, pSize), Color::Transparent, Color::Red);
+		drawable1.setPosition(parallax_offset);
+
+		auto& drawable2 = createDebugDrawable<ShapeRectangle>(Rectf({ 0, 0 }, pSize), Color::Transparent, Color::Green);
+		drawable2.setPosition(parallax_offset + scroll_offset);
 	}
 }
 
@@ -259,7 +326,30 @@ void TileLayer::draw(RenderTarget& target, RenderState states) const {
 	if (!hidden) {
 		for (auto& layer : tileVertices) {
 			states.texture = layer.first->getTexture();
+
 			target.draw(layer.second, states);
+			if (hasScrollX() && hasScrollY()) {
+				RenderState state_off = states;
+				Vec2f off = Vec2f{ size /*- Vec2u(1, 1)*/ } * TILESIZE_F;
+				state_off.transform = Transform::combine(states.transform, Transform(-off));
+				target.draw(layer.second, state_off);
+
+
+			}
+			if (hasScrollX()) {
+				RenderState state_off = states;
+				Vec2f off = Vec2f{ (float)size.x /*- 1*/, 0.f } * TILESIZE_F;
+				state_off.transform = Transform::combine(states.transform, Transform(-off));
+				target.draw(layer.second, state_off);
+
+			}
+			if (hasScrollY()) {
+				RenderState state_off = states;
+				Vec2f off = Vec2f{ 0.f, (float)size.y /*- 1*/ } *TILESIZE_F;
+				state_off.transform = Transform::combine(states.transform, Transform(-off));
+				target.draw(layer.second, state_off);
+
+			}
 		}
 	}
 }

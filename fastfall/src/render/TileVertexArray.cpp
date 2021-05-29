@@ -41,6 +41,10 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 
 	assert(at.x <= size.x && at.y <= size.y);
 
+	//at = at + rotation_offset;
+	//at.x %= size.x;
+	//at.y %= size.y;
+
 	auto tile = std::upper_bound(tiles.begin(), tiles.end(), Tile{ at, texPos },
 		[](const Tile& lhs, const Tile& rhs) {
 			return lhs.position <= rhs.position;
@@ -169,6 +173,40 @@ void TileVertexArray::clear() {
 	verts.clear();
 }
 
+void TileVertexArray::rotate_forwardX() {
+	if (size.x <= 1)
+		return;
+
+	rotation_offset.x++;
+	rotation_offset.x %= size.x;
+
+	LOG_INFO("{}", rotation_offset.to_string());
+}
+void TileVertexArray::rotate_backwardX() {
+	if (size.x <= 1)
+		return;
+
+	if (rotation_offset.x == 0) {
+		rotation_offset.x = size.x - 1;
+	}
+	else {
+		rotation_offset.x--;
+	}
+
+	LOG_INFO("{}", rotation_offset.to_string());
+
+}
+void TileVertexArray::rotate_forwardY() {
+	if (size.y <= 1)
+		return;
+
+}
+void TileVertexArray::rotate_backwardY() {
+	if (size.y <= 1)
+		return;
+
+}
+
 void TileVertexArray::draw(RenderTarget& target, RenderState states) const {
 	if (verts.empty())
 		return;
@@ -180,5 +218,7 @@ void TileVertexArray::draw(RenderTarget& target, RenderState states) const {
 	target.draw(verts, states);
 	//target.draw(&verts[0], verts.size(), sf::Quads, states);
 }
+
+
 
 }
