@@ -13,7 +13,7 @@ namespace ff {
 class TileVertexArray : public Drawable {
 public:
 	TileVertexArray();
-	TileVertexArray(Vec2u arr_size);
+	TileVertexArray(Vec2u arr_size, bool fillInit);
 
 	~TileVertexArray();
 
@@ -36,6 +36,7 @@ public:
 
 protected:
 
+	bool filled;
 
 	TextureRef tex;
 	Vec2u size;

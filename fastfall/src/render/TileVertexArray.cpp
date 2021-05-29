@@ -17,14 +17,32 @@ TileVertexArray::TileVertexArray()
 {
 	tex = TextureRef{};
 }
-TileVertexArray::TileVertexArray(Vec2u arr_size) 
-	: verts(ff::Primitive::TRIANGLES)
+TileVertexArray::TileVertexArray(Vec2u arr_size, bool fillInit)
+	: verts(ff::Primitive::TRIANGLES),
+	filled(fillInit)
 {
 	tex = TextureRef{};
 	size = arr_size;
 
-	tiles.reserve(size.x * size.y);
-	verts.vec().reserve(size.x * size.y * VERTICES_PER_TILE);
+	tiles.reserve((size_t)size.x * size.y);
+
+	if (fillInit) {
+		verts.vec().resize((size_t)size.x * size.y * VERTICES_PER_TILE, Vertex(glm::fvec2(), Color::Transparent, glm::fvec2()));
+		for (size_t x = 0; x < size.x; x++) {
+			for (size_t y = 0; y < size.y; y++) {
+				verts[((size_t)y * size.x + x) * VERTICES_PER_TILE].pos = Vec2f{ (float)x, (float)y } * TILESIZE_F;
+				verts[((size_t)y * size.x + x) * VERTICES_PER_TILE + 1].pos = Vec2f{ (float)x + 1, (float)y } * TILESIZE_F;
+				verts[((size_t)y * size.x + x) * VERTICES_PER_TILE + 2].pos = Vec2f{ (float)x, (float)y + 1} * TILESIZE_F;
+				verts[((size_t)y * size.x + x) * VERTICES_PER_TILE + 3].pos = Vec2f{ (float)x + 1, (float)y + 1 } * TILESIZE_F;
+				verts[((size_t)y * size.x + x) * VERTICES_PER_TILE + 4].pos = Vec2f{ (float)x, (float)y + 1 } * TILESIZE_F;
+				verts[((size_t)y * size.x + x) * VERTICES_PER_TILE + 5].pos = Vec2f{ (float)x + 1, (float)y } * TILESIZE_F;
+
+			}
+		}
+	}
+	else {
+		verts.vec().reserve((size_t)size.x * size.y * VERTICES_PER_TILE);
+	}
 }
 
 TileVertexArray::~TileVertexArray() {
@@ -52,32 +70,49 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 
 	std::vector<Vertex>& vertvec = verts.vec();
 
-	auto vert = vertvec.end();
+	Vertex* v_ptr;
 
-	if (tile == tiles.end()) {
-		tiles.resize(tiles.size() + 1);
-		tile = tiles.end() - 1;
+	if (!filled) {
+		auto vert = vertvec.end();
 
-		//verts.resize(verts.size() + VERTICES_PER_TILE);
-		vertvec.insert(vertvec.end(), VERTICES_PER_TILE, Vertex{});
+		if (tile == tiles.end()) {
+			tiles.resize(tiles.size() + 1);
+			tile = tiles.end() - 1;
 
-		vert = vertvec.end() - VERTICES_PER_TILE;
-	}
-	else if (tile->position != at) {
-		tile = tiles.insert(tile, Tile());
+			//verts.resize(verts.size() + VERTICES_PER_TILE);
+			vertvec.insert(vertvec.end(), VERTICES_PER_TILE, Vertex{});
 
-		ptrdiff_t distance = (std::distance(tiles.begin(), tile) * VERTICES_PER_TILE);
+			vert = vertvec.end() - VERTICES_PER_TILE;
+		}
+		else if (tile->position != at) {
+			tile = tiles.insert(tile, Tile());
 
-		vert = vertvec.insert(
-			vertvec.begin() + distance,
-			VERTICES_PER_TILE,
-			Vertex{});
+			ptrdiff_t distance = (std::distance(tiles.begin(), tile) * VERTICES_PER_TILE);
 
+			vert = vertvec.insert(
+				vertvec.begin() + distance,
+				VERTICES_PER_TILE,
+				Vertex{});
+
+		}
+		else {
+			vert = vertvec.begin() + (std::distance(tiles.begin(), tile) * VERTICES_PER_TILE);
+		}
+		assert(vert != vertvec.end());
+
+		v_ptr = &*vert;
 	}
 	else {
-		vert = vertvec.begin() + (std::distance(tiles.begin(), tile) * VERTICES_PER_TILE);
+		if (tile == tiles.end()) {
+			tiles.resize(tiles.size() + 1);
+			tile = tiles.end() - 1;
+		}
+		else if (tile->position != at) {
+			tile = tiles.insert(tile, Tile());
+		}
+		v_ptr = &vertvec[((size_t)at.y * size.x + at.x) * VERTICES_PER_TILE];
 	}
-	assert(vert != vertvec.end());
+
 
 	tile->position = at;
 	tile->tex_position = texPos;
@@ -100,35 +135,35 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 	auto tex_botleft = (texpos + botleft) * TILESIZE_F * tex.get()->inverseSize();
 	auto tex_botright = (texpos + botright) * TILESIZE_F * tex.get()->inverseSize();
 
-	vert->color.a = 255;
-	vert->pos = pos_topleft;
-	vert->tex_pos = tex_topleft;
-	vert++;
+	v_ptr->color = Color::White;
+	v_ptr->pos = pos_topleft;
+	v_ptr->tex_pos = tex_topleft;
+	v_ptr++;
 
-	vert->color.a = 255;
-	vert->pos = pos_topright;
-	vert->tex_pos = tex_topright;
-	vert++;
+	v_ptr->color = Color::White;
+	v_ptr->pos = pos_topright;
+	v_ptr->tex_pos = tex_topright;
+	v_ptr++;
 
-	vert->color.a = 255;
-	vert->pos = pos_botleft;
-	vert->tex_pos = tex_botleft;
-	vert++;
+	v_ptr->color = Color::White;
+	v_ptr->pos = pos_botleft;
+	v_ptr->tex_pos = tex_botleft;
+	v_ptr++;
 
-	vert->color.a = 255;
-	vert->pos = pos_botright;
-	vert->tex_pos = tex_botright;
-	vert++;
+	v_ptr->color = Color::White;
+	v_ptr->pos = pos_botright;
+	v_ptr->tex_pos = tex_botright;
+	v_ptr++;
 
-	vert->color.a = 255;
-	vert->pos = pos_botleft;
-	vert->tex_pos = tex_botleft;
-	vert++;
+	v_ptr->color = Color::White;
+	v_ptr->pos = pos_botleft;
+	v_ptr->tex_pos = tex_botleft;
+	v_ptr++;
 
-	vert->color.a = 255;
-	vert->pos = pos_topright;
-	vert->tex_pos = tex_topright;
-	vert++;
+	v_ptr->color = Color::White;
+	v_ptr->pos = pos_topright;
+	v_ptr->tex_pos = tex_topright;
+	v_ptr++;
 }
 
 
@@ -180,7 +215,31 @@ void TileVertexArray::rotate_forwardX() {
 	rotation_offset.x++;
 	rotation_offset.x %= size.x;
 
-	LOG_INFO("{}", rotation_offset.to_string());
+	size_t vwidth = (size_t)size.x * 6;
+
+	auto at = [&vwidth](const size_t& x, const size_t& y) -> size_t {
+		return y * vwidth + x * 6;
+	};
+
+	for (int y = 0; y < size.y; y++) {
+
+		size_t ndx = y * vwidth;
+
+		std::array<Vec2f, 6> texpos;
+		std::array<Color, 6> col;
+		for (int i = 0; i < 6; i++) {
+			texpos[i] = verts[at(size.x - 1, y) + i].tex_pos;
+			col[i] = verts[at(size.x - 1, y) + i].color;
+		}
+		for (int i = vwidth - 1; i >= 6; i--) {
+			verts[at(0, y) + i].tex_pos = verts[at(0, y) + i - 6].tex_pos;
+			verts[at(0, y) + i].color = verts[at(0, y) + i - 6].color;
+		}
+		for (int i = 0; i < 6; i++) {
+			verts[at(0, y) + i].tex_pos = texpos[i];
+			verts[at(0, y) + i].color = col[i];
+		}
+	}
 }
 void TileVertexArray::rotate_backwardX() {
 	if (size.x <= 1)
@@ -193,18 +252,96 @@ void TileVertexArray::rotate_backwardX() {
 		rotation_offset.x--;
 	}
 
-	LOG_INFO("{}", rotation_offset.to_string());
+	size_t vwidth = (size_t)size.x * 6;
 
+	auto at = [&vwidth](const size_t& x, const size_t& y) -> size_t {
+		return y * vwidth + x * 6;
+	};
+
+	for (int y = 0; y < size.y; y++) {
+
+		std::array<Vec2f, 6> texpos;
+		std::array<Color, 6> col;
+		for (int i = 0; i < 6; i++) {
+			texpos[i] = verts[at(0, y) + i].tex_pos;
+			col[i] = verts[at(0, y) + i].color;
+		}
+		for (int i = 0; i < vwidth - 6; i++) {
+			verts[at(0, y) + i].tex_pos = verts[at(0, y) + i + 6].tex_pos;
+			verts[at(0, y) + i].color = verts[at(0, y) + i + 6].color;
+		}
+		for (int i = 0; i < 6; i++) {
+			verts[at(size.x - 1, y) + i].tex_pos = texpos[i];
+			verts[at(size.x - 1, y) + i].color = col[i];
+		}
+	}
 }
 void TileVertexArray::rotate_forwardY() {
 	if (size.y <= 1)
 		return;
 
+	rotation_offset.y++;
+	rotation_offset.y %= size.y;
+
+	size_t vwidth = (size_t)size.x * 6;
+	size_t vheight = (size_t)size.y * 6;
+
+	auto at = [&vwidth](const size_t& x, const size_t& y) -> size_t {
+		return y * vwidth + x * 6;
+	};
+
+	for (int x = 0; x < size.x; x++) {
+
+		std::array<Vec2f, 6> texpos;
+		std::array<Color, 6> col;
+		for (int i = 0; i < 6; i++) {
+			texpos[i] = verts[at(x, size.y - 1) + i].tex_pos;
+			col[i] = verts[at(x, size.y - 1) + i].color;
+		}
+		for (int y = size.y - 1; y >= 1; y--) {
+			for (int i = 0; i < 6; i++) {
+				verts[at(x, y) + i].tex_pos = verts[at(x, (size_t)y - 1) + i].tex_pos;
+				verts[at(x, y) + i].color = verts[at(x, (size_t)y - 1) + i].color;
+			}
+		}
+		for (int i = 0; i < 6; i++) {
+			verts[at(x, 0) + i].tex_pos = texpos[i];
+			verts[at(x, 0) + i].color = col[i];
+		}
+	}
 }
 void TileVertexArray::rotate_backwardY() {
 	if (size.y <= 1)
 		return;
 
+	size_t vwidth = (size_t)size.x * 6;
+	size_t vheight = (size_t)size.y * 6;
+
+	auto at = [&vwidth](const size_t& x, const size_t& y) -> size_t {
+		return y * vwidth + x * 6;
+	};
+
+	for (int x = 0; x < size.x; x++) {
+
+		std::array<Vec2f, 6> texpos;
+		std::array<Color, 6> col;
+
+		for (int i = 0; i < 6; i++) {
+			texpos[i] = verts[at(x, 0) + i].tex_pos;
+			col[i] = verts[at(x, 0) + i].color;
+		}
+		for (int y = 0; y < size.y - 1; y++) {
+			for (int i = 0; i < 6; i++) {
+				verts[at(x, y) + i].tex_pos = verts[at(x, y + 1) + i].tex_pos;
+				verts[at(x, y) + i].color = verts[at(x, y + 1) + i].color;
+			}
+		}
+		for (int i = 0; i < 6; i++) {
+			verts[at(x, size.y - 1) + i].tex_pos = texpos[i];
+			verts[at(x, size.y - 1) + i].color = col[i];
+		}
+
+	}
 }
 
 void TileVertexArray::draw(RenderTarget& target, RenderState states) const {

@@ -224,20 +224,20 @@ void TileLayer::predraw(secs deltaTime) {
 	if (hasScrollX() || hasScrollY()) {
 		scroll_offset += scrollRate * deltaTime;
 		while (scroll_offset.x < 0.f) {	
-			scroll_offset.x += pSize.x;
-			//for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_backwardX();
+			scroll_offset.x += TILESIZE_F;
+			for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_backwardX();
 		}
-		while (scroll_offset.x >= pSize.x) {
-			scroll_offset.x -= pSize.x;
-			//for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_forwardX();
+		while (scroll_offset.x >= TILESIZE_F) {
+			scroll_offset.x -= TILESIZE_F;
+			for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_forwardX();
 		}
 		while (scroll_offset.y < 0.f) { 
-			scroll_offset.y += pSize.y;
-			//for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_backwardY();
+			scroll_offset.y += TILESIZE_F;
+			for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_backwardY();
 		}
-		while (scroll_offset.y >= pSize.y) {
-			scroll_offset.y -= pSize.y;
-			//for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_forwardY();
+		while (scroll_offset.y >= TILESIZE_F) {
+			scroll_offset.y -= TILESIZE_F;
+			for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_forwardY();
 		}
 	}
 
@@ -247,14 +247,19 @@ void TileLayer::predraw(secs deltaTime) {
 		}
 	}
 
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_AREA)
-		&& !debug_draw::repeat(this, parallax_offset)) 
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_AREA))
 	{
-		auto& drawable1 = createDebugDrawable<ShapeRectangle>(Rectf({ 0, 0 }, pSize), Color::Transparent, Color::Red);
-		drawable1.setPosition(parallax_offset);
-
-		auto& drawable2 = createDebugDrawable<ShapeRectangle>(Rectf({ 0, 0 }, pSize), Color::Transparent, Color::Green);
-		drawable2.setPosition(parallax_offset + scroll_offset);
+		size_t ptr = (size_t)this;
+		if (!debug_draw::repeat((void*)(ptr), parallax_offset)) {
+			debug_draw::set_offset(parallax_offset);
+			auto& drawable1 = createDebugDrawable<ShapeRectangle>((const void*)(ptr), Rectf({ 0, 0 }, pSize), Color::Transparent, Color::Red);
+			debug_draw::set_offset();
+		}
+		if (!debug_draw::repeat((void*)(ptr + 1), parallax_offset + scroll_offset)) {
+			debug_draw::set_offset(parallax_offset + scroll_offset);
+			auto& drawable2 = createDebugDrawable<ShapeRectangle>((const void*)(ptr + 1), Rectf({ 0, 0 }, pSize), Color::Transparent, Color::Green);
+			debug_draw::set_offset();
+		}
 	}
 }
 
@@ -270,7 +275,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 
 	auto vertarr = tileVertices.find(&tileset);
 	if (vertarr == tileVertices.end()) {
-		auto [iter, inserted] = tileVertices.insert(std::make_pair(&tileset, TileVertexArray(size)));
+		auto [iter, inserted] = tileVertices.insert(std::make_pair(&tileset, TileVertexArray(size, hasScrollX() || hasScrollY())));
 		iter->second.setTexture(tileset.getTexture());
 		iter->second.setTile(position, texposition);
 	}
@@ -322,15 +327,15 @@ void TileLayer::draw(RenderTarget& target, RenderState states) const {
 
 	states.transform = Transform::combine(states.transform, Transform(offset));
 
-
 	if (!hidden) {
 		for (auto& layer : tileVertices) {
 			states.texture = layer.first->getTexture();
 
 			target.draw(layer.second, states);
+			/*
 			if (hasScrollX() && hasScrollY()) {
 				RenderState state_off = states;
-				Vec2f off = Vec2f{ size /*- Vec2u(1, 1)*/ } * TILESIZE_F;
+				Vec2f off = Vec2f{ size } * TILESIZE_F;
 				state_off.transform = Transform::combine(states.transform, Transform(-off));
 				target.draw(layer.second, state_off);
 
@@ -338,18 +343,19 @@ void TileLayer::draw(RenderTarget& target, RenderState states) const {
 			}
 			if (hasScrollX()) {
 				RenderState state_off = states;
-				Vec2f off = Vec2f{ (float)size.x /*- 1*/, 0.f } * TILESIZE_F;
+				Vec2f off = Vec2f{ (float)size.x , 0.f } * TILESIZE_F;
 				state_off.transform = Transform::combine(states.transform, Transform(-off));
 				target.draw(layer.second, state_off);
 
 			}
 			if (hasScrollY()) {
 				RenderState state_off = states;
-				Vec2f off = Vec2f{ 0.f, (float)size.y /*- 1*/ } *TILESIZE_F;
+				Vec2f off = Vec2f{ 0.f, (float)size.y } * TILESIZE_F;
 				state_off.transform = Transform::combine(states.transform, Transform(-off));
 				target.draw(layer.second, state_off);
 
 			}
+			*/
 		}
 	}
 }
