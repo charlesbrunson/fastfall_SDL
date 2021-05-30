@@ -10,8 +10,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# build fastfall engine.
-#add_subdirectory ("fastfall")
+
+message(STATUS "C Compiler executable: ${CMAKE_C_COMPILER}")
+message(STATUS "CXX Compiler executable: ${CMAKE_CXX_COMPILER}")
+message(STATUS "Linker executable: ${CMAKE_LINKER}")
 
 add_subdirectory ("fastfall")
 

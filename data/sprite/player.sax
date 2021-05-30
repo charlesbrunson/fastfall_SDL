@@ -13,6 +13,17 @@
 		<loop>0</loop>
 	</animation>
 	
+	<animation name="land">
+		<area   x="32" y="0" w="32" h="32" />
+		<origin x="16" y="32" />
+		<framerate>
+			<frame>100</frame>
+			<frame>40</frame>
+		</framerate>
+		<loop>1</loop>
+		<chainsTo sprite="player" name="idle" frame="0"/>
+	</animation>
+	
 	<animation name="running">
 		<area   x="0" y="32" w="32" h="32" />
 		<origin x="16" y="32" />

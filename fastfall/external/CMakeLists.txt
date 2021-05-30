@@ -12,6 +12,9 @@ FetchContent_Declare(
 	URL			https://github.com/g-truc/glm/releases/download/0.9.9.8/glm-0.9.9.8.zip
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glm
 )
+if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+	add_compile_options(-Wno-deprecated-volatile)
+endif()
 
 #fmt
 FetchContent_Declare(
@@ -24,9 +27,10 @@ FetchContent_Declare(
 
 #flatbuffers
 set(FLATBUFFERS_BUILD_TESTS OFF)
-set(FLATBUFFERS_BUILD_FLATLIB ON)
+set(FLATBUFFERS_INSTALL OFF)
+set(FLATBUFFERS_BUILD_FLATLIB OFF)
 set(FLATBUFFERS_BUILD_FLATC OFF)
-set(FLATBUFFERS_BUILD_CPP17 ON)
+set(FLATBUFFERS_BUILD_CPP17 OFF)
 set(FLATBUFFERS_LIBCXX_WITH_CLANG OFF)
 FetchContent_Declare(
 	flatbuffers
@@ -52,7 +56,6 @@ FetchContent_Declare(
 
 #libpng
 set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
-#set(ZLIB_LIBRARY ${zlib_BINARY_DIR}/zlibd.lib)
 set(PNG_SHARED OFF)
 set(PNG_TESTS OFF)
 set(PNG_BUILD_ZLIB ON)
@@ -63,12 +66,6 @@ FetchContent_Declare(
 )
 
 # sdl
-#set(MMX OFF)
-#set(3DNOW OFF)
-#set(SSE OFF)
-#set(SSE2 OFF)
-#set(SSE3 OFF)
-#set(ALTIVEC OFF)
 FetchContent_Declare(
 	sdl
 	URL			https://www.libsdl.org/release/SDL2-2.0.14.tar.gz
@@ -120,7 +117,6 @@ FetchContent_MakeAvailable(
 	imgui
 	implot
 )
-target_compile_definitions(flatbuffers PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 configure_file(
 	"${zlib_BINARY_DIR}/zconf.h"
@@ -133,7 +129,7 @@ configure_file(
 	COPYONLY
 )
 
-#build sdl_image as library
+# build sdl_image as library
 file(GLOB SDLIMG_SOURCES ${sdl_image_SOURCE_DIR}/*.c)
 file(GLOB SDLIMG_HEADERS ${sdl_image_SOURCE_DIR}/*.h)
 add_library(SDL2image STATIC 
@@ -145,3 +141,25 @@ target_include_directories(SDL2image PRIVATE "${sdl_image_SOURCE_DIR}")
 target_include_directories(SDL2image PRIVATE "${libpng_SOURCE_DIR}")
 target_link_libraries(SDL2image PUBLIC png_static)
 target_compile_definitions(SDL2image PRIVATE LOAD_PNG LOAD_BMP)
+
+# build flatbuffers as a library
+add_library(flatbuffers STATIC 
+  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/base.h
+  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/flatbuffers.h
+  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/hash.h
+  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/idl.h
+  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/util.h
+  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/reflection.h
+  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/reflection_generated.h
+  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/stl_emulation.h
+  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/flexbuffers.h
+  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/registry.h
+  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/minireflect.h
+  ${flatbuffers_SOURCE_DIR}/src/idl_parser.cpp
+  ${flatbuffers_SOURCE_DIR}/src/idl_gen_text.cpp
+  ${flatbuffers_SOURCE_DIR}/src/reflection.cpp
+  ${flatbuffers_SOURCE_DIR}/src/util.cpp
+)
+target_include_directories(flatbuffers PUBLIC
+    ${flatbuffers_SOURCE_DIR}/include
+)

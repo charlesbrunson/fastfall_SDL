@@ -16,6 +16,28 @@
 
 using namespace ff;
 
+class AnimIDRef {
+public:
+	AnimIDRef(std::string_view sprite, std::string_view anim)
+		: m_sprite(sprite), m_anim(anim)
+	{
+
+	}
+
+	AnimID id() {
+		if (m_id == AnimID::NONE) {
+			m_id = Resources::get_animation_id(m_sprite, m_anim);
+		}
+		return m_id; 
+	};
+
+private:
+	AnimID m_id = AnimID::NONE;
+
+	std::string_view m_sprite;
+	std::string_view m_anim;
+};
+
 class Player : public GameObject {
 public:
 	Player(GameContext instance, const ObjectRef& ref) :
@@ -46,17 +68,7 @@ public:
 
 		drawPriority = 0;
 
-		anim_idle     = Resources::get_animation_id("player", "idle");
-		anim_run      = Resources::get_animation_id("player", "running");
-		anim_jump     = Resources::get_animation_id("player", "jump");
-		anim_fall     = Resources::get_animation_id("player", "fall");
-
-		assert(anim_idle != AnimID::NONE);
-		assert(anim_run  != AnimID::NONE);
-		assert(anim_jump != AnimID::NONE);
-		assert(anim_fall != AnimID::NONE);
-
-		sprite.set_anim(anim_idle);
+		sprite.set_anim(anim_idle.id());
 
 		sprite.set_pos(box->getPosition());
 	};
@@ -101,6 +113,7 @@ public:
 				ground.traverse_set_max_speed(
 					std::max(norm_speed, std::min(std::abs(speed), max_speed))
 				);
+				sprite.set_anim(anim_land.id());
 			}
 			else {
 				ground.traverse_set_max_speed(
@@ -122,15 +135,11 @@ public:
 			//sprite.get_sprite().setRotation(target_rot);
 
 
-			if (box->get_vel().x == 0) {
-				sprite.set_anim_if_not(anim_idle);
+			if (abs(box->get_vel().x) <= 100.f && wishx == 0) {
+				sprite.set_anim_if_not(anim_idle.id());
 			}
 			else {
-				if (sprite.is_playing(anim_idle)) {
-					sprite.set_anim(anim_run);
-				}
-
-				sprite.set_anim_if_not(anim_run);
+				sprite.set_anim_if_not(anim_run.id());
 
 				sprite.set_playback(
 					std::max(
@@ -143,7 +152,7 @@ public:
 			if (Input::isPressed(InputType::JUMP, 0.1f)) {
 				Input::confirmPress(InputType::JUMP);
 
-				sprite.set_anim(anim_jump);
+				sprite.set_anim(anim_jump.id());
 
 				ground.slope_sticking = false;
 
@@ -193,15 +202,15 @@ public:
 			box->add_accelY(600.f * wishy);
 
 			if (airtime > 0.05
-				&& !sprite.is_playing(anim_jump)
-				&& !sprite.is_playing(anim_fall)) 
+				&& !sprite.is_playing(anim_jump.id())
+				&& !sprite.is_playing(anim_fall.id()))
 			{
-				sprite.set_anim(anim_fall);
+				sprite.set_anim(anim_fall.id());
 				sprite.set_frame(2);
 			}
-			else if (sprite.is_complete(anim_jump) && box->get_vel().y > -100.f) {
+			else if (sprite.is_complete(anim_jump.id()) && box->get_vel().y > -100.f) {
 
-				sprite.set_anim(anim_fall);
+				sprite.set_anim(anim_fall.id());
 			}
 
 			ground.slope_sticking = false;
@@ -252,12 +261,11 @@ protected:
 
 	secs airtime = 0.0;
 
-	static AnimID anim_idle;
-	//static AnimID anim_idle_run;
-	static AnimID anim_run;
-	static AnimID anim_jump;
-	//static AnimID anim_air;
-	static AnimID anim_fall;
+	static AnimIDRef anim_idle;
+	static AnimIDRef anim_land;
+	static AnimIDRef anim_run;
+	static AnimIDRef anim_jump;
+	static AnimIDRef anim_fall;
 
 	AnimatedSprite sprite;
 
