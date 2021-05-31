@@ -88,19 +88,22 @@ void TestState::predraw(secs deltaTime) {
 }
 
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
-	auto size = instance->getActiveLevel()->size() * TILESIZE_F;
 
-	ff::ShapeRectangle lvlRect(
-		ff::Rectf(ff::Vec2f(), ff::Vec2f(size)),
-		instance->getActiveLevel()->getBGColor()
-	);
-	target.draw(lvlRect, state);
+	if (instance->enableScissor(target, viewPos)) {
 
-	for (auto& bg : instance->getActiveLevel()->getBGLayers()) {
-		target.draw(bg, state);
+		auto size = instance->getActiveLevel()->size() * TILESIZE_F;
+
+		ff::ShapeRectangle lvlRect(
+			ff::Rectf(ff::Vec2f(), ff::Vec2f(size)),
+			instance->getActiveLevel()->getBGColor()
+		);
+		target.draw(lvlRect, state);
+
+		for (auto& bg : instance->getActiveLevel()->getBGLayers()) {
+			target.draw(bg, state);
+		}
 	}
-
-	//target.draw(instance->getObject().getObjectDrawList(false));
+	instance->disableScissor();
 
 	target.draw(instance->getObject().getObjectDrawList(false));
 
@@ -114,7 +117,4 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
 			target.draw(instance->getObject().getObjectDrawList(true));
 		}
 	}
-
-	//ff::debug_draw::draw(target, state);
-	
 }

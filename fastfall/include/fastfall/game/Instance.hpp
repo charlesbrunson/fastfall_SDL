@@ -10,6 +10,8 @@
 #include "fastfall/game/CollisionManager.hpp"
 #include "fastfall/game/GameCamera.hpp"
 
+#include "fastfall/render/RenderTarget.hpp"
+
 namespace ff {
 
 class GameInstance {
@@ -36,6 +38,10 @@ public:
 
 	inline GameContext getContext() const noexcept { return GameContext{ instanceID }; };
 
+
+	bool enableScissor(const RenderTarget& target, Vec2f viewPos);
+	void disableScissor();
+
 private:
 	InstanceID instanceID;
 
@@ -49,6 +55,7 @@ private:
 
 	GameObjectManager objMan;
 	CollisionManager colMan;
+
 };
 
 

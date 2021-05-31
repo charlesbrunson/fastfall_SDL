@@ -23,6 +23,8 @@ namespace debug_draw {
 
 		TILELAYER_AREA,
 
+		SCISSOR,
+
 		LAST
 	};
 
