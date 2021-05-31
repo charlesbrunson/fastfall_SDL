@@ -45,6 +45,10 @@ public:
 	bool is_playing() const noexcept;
 	bool is_playing(AnimID id, unsigned incl_chain_anims_depth = 1) const noexcept;
 
+	bool is_playing_any(std::vector<AnimID> ids, unsigned incl_chain_anims_depth = 1) const noexcept;
+
+
+
 	inline void  set_pos(Vec2f pos) noexcept { position = pos; };
 	inline Vec2f get_pos()          noexcept { return position; };
 

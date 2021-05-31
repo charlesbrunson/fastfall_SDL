@@ -134,6 +134,14 @@ bool AnimatedSprite::is_playing(AnimID id, unsigned incl_chain_anims_depth) cons
 	return id == curr_anim || id == animation->chain.anim_id;
 }
 
+bool AnimatedSprite::is_playing_any(std::vector<AnimID> ids, unsigned incl_chain_anims_depth) const noexcept
+{
+	for (auto id : ids) {
+		if (is_playing(id, incl_chain_anims_depth)) return true;
+	}
+	return false;
+}
+
 void AnimatedSprite::update_sprite()
 {
 	if (animation) {

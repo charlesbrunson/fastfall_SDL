@@ -9,6 +9,7 @@
 
 namespace ff {
 
+
 class AnimID {
 public:
 	static AnimID NONE;
@@ -54,6 +55,19 @@ private:
 
 	unsigned int value;
 	static unsigned int counter;
+};
+
+class AnimIDRef {
+public:
+	AnimIDRef(std::string_view sprite, std::string_view anim);
+
+	AnimID id();
+
+private:
+	AnimID m_id = AnimID::NONE;
+
+	std::string_view m_sprite;
+	std::string_view m_anim;
 };
 
 class SpriteAsset;
