@@ -32,18 +32,10 @@ public:
 
 protected:
 
-	secs airtime = 0.0;
-
 	AnimatedSprite sprite;
 
-	Friction braking;
-	Friction moving;
-
-	SurfaceTracker ground;
-
-	float airNeutralVel;
-
 	Collidable* box;
+	SurfaceTracker* ground;
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 };

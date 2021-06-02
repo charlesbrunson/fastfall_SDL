@@ -7,6 +7,7 @@
 #include "fastfall/util/cardinal.hpp"
 
 #include <algorithm>
+#include <cmath>
 
 namespace ff {
 

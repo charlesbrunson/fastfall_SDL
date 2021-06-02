@@ -1,6 +1,8 @@
 
 #include "Player.hpp"
 
+using namespace ff;
+
 GameObjectLibrary::Entry<Player> plr_type{ 
 	{
 		.tile_size = {1, 2},
@@ -21,28 +23,34 @@ namespace constants {
 
 	AnimIDRef a_jump_f("player", "jump_f");
 	AnimIDRef a_fall_f("player", "fall_f");
+
+
+	Friction braking{ .stationary = 1.2f, .kinetic = 0.8f };
+	Friction moving{ .stationary = 0.f,  .kinetic = 0.f };
+
+	float max_speed = 500.f;
+	float norm_speed = 200.f;
+
+	float jumpVelY = -180.f;
+
 }
 
 using namespace constants;
 
 Player::Player(GameContext instance, const ObjectRef& ref) :
-	GameObject{ instance, ref },
-	ground{ instance, Angle::Degree(-135), Angle::Degree(-45) }
+	GameObject{ instance, ref }
 {
-	Collidable myBox;
+	Collidable myBox(instance);
 	myBox.init(Vec2f(ref.position), Vec2f(8.f, 28.f));
 	box = context.collision()->createCollidable(std::move(myBox));
 	box->set_gravity(Vec2f{ 0.f, 450.f });
 
-	ground.has_friction = true;
-	ground.move_with_platforms = true;
-	ground.slope_sticking = true;
-	ground.slope_wall_stop = true;
-	ground.stick_angle_max = Angle::Degree(90);
-	box->add_tracker(ground);
-
-	braking = Friction{ .stationary = 1.2f, .kinetic = 0.8f };
-	moving = Friction{ .stationary = 0.f,  .kinetic = 0.f };
+	ground = &box->create_tracker(Angle::Degree(-135), Angle::Degree(-45));
+	ground->has_friction = true;
+	ground->move_with_platforms = true;
+	ground->slope_sticking = true;
+	ground->slope_wall_stop = true;
+	ground->stick_angle_max = Angle::Degree(90);
 
 	GameCamera::Target target;
 	target.priority = GameCamera::TargetPriority::MEDIUM;
@@ -60,6 +68,7 @@ Player::Player(GameContext instance, const ObjectRef& ref) :
 
 Player::~Player() {
 	if (context.valid()) {
+		//box->remove_tracker(std::move(*ground));
 		context.collision()->removeCollidable(box);
 		context.camera()->removeTarget(GameCamera::TargetPriority::MEDIUM);
 	}
@@ -80,47 +89,37 @@ void Player::update(secs deltaTime) {
 
 	sprite.set_playback(1.f);
 
-	//raycast(context.collision(), box->getPosition(), Cardinal::SOUTH);
-
 	// on ground
-	if (ground.has_contact()) {
-		const PersistantContact& contact = ground.get_contact().value();
+	if (ground->has_contact()) {
+		box->setSlipNone();
+		const PersistantContact& contact = ground->get_contact().value();
 
 		Vec2f groundUnit = contact.collider_normal.righthand();
-		ground.slope_sticking = true;
+		ground->slope_sticking = true;
 
-		float speed = ground.traverse_get_speed();
-		const static float max_speed = 600.f;
-		const static float norm_speed = 250.f;
+		float speed = ground->traverse_get_speed();
 
 
-		if (ground.get_duration() == 0.0) {
-			ground.traverse_set_max_speed(
+		if (ground->get_air_time() >= 0.05f) {
+			ground->traverse_set_max_speed(
 				std::max(norm_speed, std::min(std::abs(speed), max_speed))
 			);
 			sprite.set_anim(a_land.id());
 		}
 		else {
-			ground.traverse_set_max_speed(
-				std::max(norm_speed, std::min(std::abs(speed), ground.traverse_get_max_speed()))
+			ground->traverse_set_max_speed(
+				std::max(norm_speed, std::min(std::abs(speed), ground->traverse_get_max_speed()))
 			);
 
 			if (abs(speed) > norm_speed) {
-				ground.traverse_add_decel(300.f);
+				ground->traverse_add_decel(300.f);
 			}
 		}
 
 		int movex = (speed == 0.f ? 0 : (speed < 0.f ? -1 : 1));
 
-		airtime = 0.0;
-
-		// sinful
-		//float target_rot = -math::angle(ground.get_contact()->collider.surface).radians() / 3.f;
-		//target_rot = (target_rot * 0.1f) + (sprite.get_sprite().getRotation() * 0.9f);
-		//sprite.get_sprite().setRotation(target_rot);
-
-
-		if (abs(box->get_vel().x) <= 100.f && wishx == 0) {
+		if (abs(speed) <= 100.f && wishx == 0
+			|| abs(speed) <= 5.f && wishx != 0) {
 			sprite.set_anim_if_not(a_idle.id());
 		}
 		else {
@@ -129,7 +128,7 @@ void Player::update(secs deltaTime) {
 			sprite.set_playback(
 				std::max(
 					0.5f,
-					std::abs(box->get_vel().magnitude()) / 200.f
+					std::abs(box->get_vel().magnitude()) / 150.f
 				));
 		}
 
@@ -137,19 +136,13 @@ void Player::update(secs deltaTime) {
 		if (Input::isPressed(InputType::JUMP, 0.1f)) {
 			Input::confirmPress(InputType::JUMP);
 
-			if (wishx == movex && movex != 0 && abs(speed) >= 200.f) {
-				sprite.set_anim(a_jump_f.id());
-			}
-			else {
-				sprite.set_anim(a_jump.id());
-			}
+			sprite.set_anim(a_jump.id());
 
-			ground.slope_sticking = false;
+			ground->slope_sticking = false;
 
 
-			Vec2f jumpVel = Vec2f{ box->get_vel().x, -200.f };
-
-			Angle jump_ang = math::angle(jumpVel) - math::angle(ground.get_contact()->collider_normal);
+			Vec2f jumpVel = Vec2f{ box->get_vel().x, jumpVelY };
+			Angle jump_ang = math::angle(jumpVel) - math::angle(ground->get_contact()->collider_normal);
 
 			// from perpendicular to the ground
 			static const Angle min_jump_ang = Angle::Degree(60);
@@ -164,40 +157,37 @@ void Player::update(secs deltaTime) {
 
 		}
 		else {
-			//ground.traverse_set_max_speed(0.f);
-
 			if (wishx != 0) {
-				ground.traverse_add_accel(wishx * 1200.f);
+				ground->traverse_add_accel(wishx * 1200.f);
 
 				bool isBraking = (movex != 0) && (wishx < 0) != (movex < 0);
-				ground.surface_friction = isBraking ? braking : moving;
+				ground->surface_friction = isBraking ? braking : moving;
 
 			}
-			else if (ground.has_friction) {
-				ground.traverse_add_decel(600.f);
-				ground.surface_friction = braking;
+			else if (ground->has_friction) {
+				ground->traverse_add_decel(600.f);
+				ground->surface_friction = braking;
 			}
 		}
 	}
 	// in air
 	else {
-		// sinful
-		//float target_rot = (sprite.get_sprite().getRotation() * 0.9f);
-		//sprite.get_sprite().setRotation(target_rot);
-
-		airtime += deltaTime;
+		if (box->get_vel().y > -100.f) {
+			box->setSlipV(6.f);
+		}
+		else {
+			box->setSlipNone();
+		}
 
 		// flight control
 		int wishy = (int)Input::isHeld(InputType::DOWN) - (int)Input::isHeld(InputType::UP);
 		box->add_accelY(600.f * wishy);
 
-		if (airtime > 0.05
-			&& !sprite.is_playing_any({ a_jump.id(), a_jump_f.id() })
-			&& !sprite.is_playing_any({ a_fall.id(), a_fall_f.id() })
+		if (ground->get_air_time() > 0.05
+			&& !sprite.is_playing_any({ a_jump.id(), a_fall.id() })
 			)
 		{
 			sprite.set_anim(a_fall.id());
-
 			sprite.set_frame(2);
 		}
 		else if ( (sprite.is_complete(a_jump.id()) || sprite.is_complete(a_jump_f.id()))
@@ -211,7 +201,7 @@ void Player::update(secs deltaTime) {
 			}
 		}
 
-		ground.slope_sticking = false;
+		ground->slope_sticking = false;
 		// air control
 		if (wishx != 0 && (abs(box->get_vel().x) < 150.f ||
 			box->get_vel().x < 0.f != wishx < 0.f)) {
@@ -250,9 +240,6 @@ void Player::ImGui_Inspect() {
 	ImGui::Text("Hello World!");
 	ImGui::Text("Position(%3.2f, %3.2f)", box->getPosition().x, box->getPosition().y);
 	ImGui::Text("Velocity(%3.2f, %3.2f)", box->get_vel().x, box->get_vel().y);
-
-	//ImGui::Text("Braking: %s", (isBraking ? "true" : "false"));
-
 }
 
 void Player::draw(RenderTarget& target, RenderState states) const {

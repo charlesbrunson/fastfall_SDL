@@ -60,6 +60,7 @@ struct Contact {
 	// used by continuous collision
 	float impactTime = -1.0;
 	bool  hasImpactTime = false;
+	bool  isSlip = false;
 
 };
 

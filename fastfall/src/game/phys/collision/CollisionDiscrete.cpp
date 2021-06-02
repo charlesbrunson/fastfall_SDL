@@ -388,8 +388,12 @@ void CollisionDiscrete::evalContact() noexcept {
 
 	if (noContactCounter == 0u) {
 		for (auto& axis : axes) {
-			if (axis.is_collider_valid() &&
-				(!bestPick || (axis.contact.separation < bestPick->contact.separation))) {
+
+			auto sepCmp = [](auto& axis, auto* best) -> bool {
+				return !best || (axis.contact.separation < best->contact.separation);
+			};
+
+			if (axis.is_collider_valid() &&	sepCmp(axis, bestPick)) {
 				bestPick = &axis;
 			}
 		}

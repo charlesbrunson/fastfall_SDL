@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
 #include "CollisionDiscrete.hpp"
 
@@ -34,7 +35,6 @@ public:
 		return cTile && cTile->hasAnySurface();
 	};
 
-
 	CollisionContinuous(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion);
 	CollisionContinuous(CollisionContinuous&&) = default;
 	CollisionContinuous(const CollisionContinuous&) = default;
@@ -49,16 +49,16 @@ public:
 	inline Contact getDiscreteContact() const noexcept { return currCollision.getContact(); }
 	inline Contact getDiscretePreviousContact() const noexcept { return prevCollision.getContact(); }
 
-	// attempts to "slip" onto another axis to avoid a harsher collision
-	// example: landing on a ledge instead of hitting a wall
-	Contact getSlipContact(Cardinal slipDir, float slipTolerance);
 
 	int resolveType = -1;
 
 	void setAxisApplied(Vec2f ortho_normal) noexcept {
 		currCollision.setAxisApplied(ortho_normal);
 	}
+private:
+	void slipUpdate();
 
+	std::optional<Contact> getVerticalSlipContact(float leeway);
 };
 
 }

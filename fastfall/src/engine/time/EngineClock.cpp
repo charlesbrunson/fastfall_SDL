@@ -2,6 +2,8 @@
 
 #include <thread>
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 #include "fastfall/util/log.hpp"
 
@@ -41,12 +43,9 @@ unsigned EngineClock::getInstantFPS() const noexcept {
 }
 
 void EngineClock::sleepUntilTick(bool nosleep) noexcept {
-	//endTick();
 	_data.activeTime = engineClock.now() - _active_start;
 	if (fpsUnlimited)
 		return;
-
-
 
 	if (engineClock.now() < tick_end_p && !nosleep) {
 		_sleep_start = engineClock.now();

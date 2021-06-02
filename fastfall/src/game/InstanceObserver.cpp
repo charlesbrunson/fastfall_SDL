@@ -101,7 +101,10 @@ void collisionContent(GameContext context) {
 					ImGui::Text("%s", tracker->has_contact() ? "true" : "false"); ImGui::NextColumn();
 
 					ImGui::Text("Contact Duration"); ImGui::NextColumn();
-					ImGui::Text("%3.2f", tracker->get_duration()); ImGui::NextColumn();
+					ImGui::Text("%3.2f", tracker->get_contact_time()); ImGui::NextColumn();
+
+					ImGui::Text("Air Duration"); ImGui::NextColumn();
+					ImGui::Text("%3.2f", tracker->get_air_time()); ImGui::NextColumn();
 
 					ImGui::Text("Traversal Speed"); ImGui::NextColumn();
 					ImGui::Text("%3.2f", tracker->traverse_get_speed()); ImGui::NextColumn();

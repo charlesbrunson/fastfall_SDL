@@ -6,6 +6,7 @@
 
 #include <type_traits>
 #include <string>
+#include <cmath>
 
 namespace ff {
 

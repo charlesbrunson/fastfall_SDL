@@ -35,15 +35,6 @@ void CollisionContinuous::update(secs deltaTime) {
 		resolveType = evalContact(deltaTime);
 	}
 	else {
-		/*
-		if (prevCollision.getCollisionAxes().size() !=
-			currCollision.getCollisionAxes().size()) {
-
-			prevCollision = CollisionDiscrete{ cAble, cTile, region, true };
-
-		}
-		*/
-
 		currCollision.updateContact();
 		evalContact(deltaTime);
 	}
@@ -113,6 +104,7 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 				alwaysColliding = false;
 
 				if (touchingAxis && root == lastEntry) {
+					
 					if (touchingAxis->contact.separation > cAxis->contact.separation && cAxis->is_collider_valid()) {
 						touchingAxis = cAxis;
 						touchingAxisNdx = i;
@@ -139,7 +131,7 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 	else if (touchingAxis != nullptr && firstExit >= lastEntry) {
 		copiedContact = &touchingAxis->contact;
 		contact = touchingAxis->contact;
-		contact.hasContact = touchingAxis->is_intersecting();// (touchingAxis->inclusive ? touchingAxis->contact.separation >= 0.f : touchingAxis->contact.separation > 0.f);
+		contact.hasContact = touchingAxis->is_intersecting();
 
 		if (lastEntry == 0.f && firstExit < 1.f) {
 			contact.hasContact &= currCollision.getContact().hasContact;
@@ -161,7 +153,7 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 
 			copiedContact = &axis.contact;
 			contact = axis.contact;
-			contact.hasContact = axis.is_intersecting(); //(axis.inclusive ? axis.contact.separation >= 0.f : axis.contact.separation > 0.f);
+			contact.hasContact = axis.is_intersecting();
 			resolve = 3;
 		}
 		else {
@@ -173,7 +165,6 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 	}
 
 	if (deltaTime > 0.0) {
-		//velocity = (region->getPosition() - region->getPrevPosition()) / deltaTime;
 		velocity = region->velocity;
 	}
 
@@ -181,12 +172,92 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 		contact.velocity = velocity;
 
 	evaluated = true;
+
+	if (deltaTime == 0.0) {
+		slipUpdate();
+	}
+
 	return resolve;
 }
 
-Contact CollisionContinuous::getSlipContact(Cardinal slipDir, float slipTolerance) {
-	// TODO (?)
-	return Contact{};
+
+void CollisionContinuous::slipUpdate() {
+
+	// vertical slip
+	if (cAble->getSlipV() != 0.f) {
+		auto slip = getVerticalSlipContact(cAble->getSlipV());
+		if (slip) {
+			contact = slip.value();
+		}
+	}
+
+	// horizontal slip
+	// TODO
+}
+
+std::optional<Contact> CollisionContinuous::getVerticalSlipContact(float leeway) {
+	// contact must be evaluated first
+	if (!evaluated)
+		throw "contact must be evaluated first";
+
+	// leeway must be != 0.f
+	if (leeway == 0.f)
+		return std::nullopt;
+
+	// leeway must be > 0
+	if (leeway < 0.f)
+		leeway *= -1.f;
+
+	// slip only applicable on first contact
+	if (!contact.hasContact  || !contact.hasImpactTime)
+		return std::nullopt;
+
+	// if we're trying to slip vertically then the 
+	// contact must be horizontal
+	if (contact.ortho_normal.y != 0.f)
+		return std::nullopt;
+
+	auto& cAxes = currCollision.getCollisionAxes();
+
+	auto nAxis = std::find_if(cAxes.begin(), cAxes.end(), [](const auto& axis) {return axis.dir == Cardinal::NORTH; });
+	auto sAxis = std::find_if(cAxes.begin(), cAxes.end(), [](const auto& axis) {return axis.dir == Cardinal::SOUTH; });
+
+	bool canNorth = false;
+	bool canSouth = false;
+
+	if (nAxis != cAxes.end() && nAxis->contact.separation - leeway < 0.f) {
+		canNorth = true;
+	}
+	if (sAxis != cAxes.end() && sAxis->contact.separation - leeway < 0.f) {
+		canSouth = true;
+	}
+
+	else if (canNorth && canSouth) {
+		LOG_INFO("SLIP BOTH");
+
+		canNorth = sAxis->contact.separation > nAxis->contact.separation;
+		canSouth = !canNorth;
+	}
+
+	if (canNorth && !canSouth) {
+		LOG_INFO("SLIP NORTH");
+		Contact c = nAxis->contact;
+		c.isSlip = true;
+		c.hasImpactTime = contact.hasImpactTime;
+		c.impactTime = contact.impactTime;
+		return c;
+	}
+
+	else if (!canNorth && canSouth) {
+		LOG_INFO("SLIP SOUTH");
+		Contact c = sAxis->contact;
+		c.isSlip = true;
+		c.hasImpactTime = contact.hasImpactTime;
+		c.impactTime = contact.impactTime;
+		return c;
+	}
+
+	return std::nullopt;
 }
 
 }

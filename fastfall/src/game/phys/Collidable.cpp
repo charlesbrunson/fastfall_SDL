@@ -110,7 +110,9 @@ void debugDrawContact(Contact& contact) {
 
 
 
-Collidable::Collidable() {
+Collidable::Collidable(GameContext gameContext) :
+	context(gameContext)
+{
 	// reserving zero as invalid
 	static unsigned collidableIDCounter = CollidableID::NO_ID + 1u;
 
@@ -123,6 +125,82 @@ Collidable::~Collidable() {
 		track->owner = nullptr;
 	}
 }
+
+Collidable::Collidable(const Collidable& rhs) :
+	context(rhs.context) 
+{
+	id = rhs.id;
+	gravity_acc = rhs.gravity_acc;
+	vel = rhs.vel;
+	accel_accum = rhs.accel_accum;
+	decel_accum = rhs.decel_accum;
+	acc = rhs.acc;
+	pos = rhs.pos;
+	curRect = rhs.curRect;
+	prevRect = rhs.prevRect;
+	pVel = rhs.pVel;
+	currContacts = rhs.currContacts;
+
+	for (auto& t : rhs.trackers) {
+		trackers.push_back(std::make_unique<SurfaceTracker>(*t.get()));
+		trackers.back()->owner = this;
+	}
+}
+Collidable::Collidable(Collidable&& rhs) noexcept :
+	context(rhs.context)
+{
+	id = rhs.id;
+	gravity_acc = rhs.gravity_acc;
+	vel = rhs.vel;
+	accel_accum = rhs.accel_accum;
+	decel_accum = rhs.decel_accum;
+	acc = rhs.acc;
+	pos = rhs.pos;
+	curRect = rhs.curRect;
+	prevRect = rhs.prevRect;
+	pVel = rhs.pVel;
+	std::swap(currContacts, rhs.currContacts);
+	std::swap(trackers, rhs.trackers);
+}
+
+Collidable& Collidable::operator=(const Collidable& rhs) 
+{
+	id = rhs.id;
+	gravity_acc = rhs.gravity_acc;
+	vel = rhs.vel;
+	accel_accum = rhs.accel_accum;
+	decel_accum = rhs.decel_accum;
+	acc = rhs.acc;
+	pos = rhs.pos;
+	curRect = rhs.curRect;
+	prevRect = rhs.prevRect;
+	pVel = rhs.pVel;
+	currContacts = rhs.currContacts;
+
+	for (auto& t : rhs.trackers) {
+		trackers.push_back(std::make_unique<SurfaceTracker>(*t.get()));
+		trackers.back()->owner = this;
+	}
+	return *this;
+}
+Collidable& Collidable::operator=(Collidable&& rhs) noexcept
+{
+	id = rhs.id;
+	context = rhs.context;
+	gravity_acc = rhs.gravity_acc;
+	vel = rhs.vel;
+	accel_accum = rhs.accel_accum;
+	decel_accum = rhs.decel_accum;
+	acc = rhs.acc;
+	pos = rhs.pos;
+	curRect = rhs.curRect;
+	prevRect = rhs.prevRect;
+	pVel = rhs.pVel;
+	std::swap(currContacts, rhs.currContacts);
+	std::swap(trackers, rhs.trackers);
+	return *this;
+}
+
 void Collidable::init(Vec2f position, Vec2f size) {
 	if (size.x > TILESIZE_F)
 		LOG_WARN("{} collidable width > {} not recommended, may break collision", size.x, TILESIZE_F);
@@ -142,7 +220,11 @@ void Collidable::update(secs deltaTime) {
 	for (auto& tracker : trackers) {
 		acc += tracker->premove_update(deltaTime);
 		if (tracker->has_contact()) {
-			tracker->duration += deltaTime;
+			tracker->contact_time += deltaTime;
+			tracker->air_time = 0.0;
+		}
+		else {
+			tracker->air_time += deltaTime;
 		}
 	}
 
@@ -218,7 +300,7 @@ void Collidable::teleport(Vec2f position) noexcept {
 		if (tracker->currentContact.has_value()) {
 			tracker->end_touch(tracker->currentContact.value());
 			tracker->currentContact = std::nullopt;
-			tracker->duration_reset();
+			tracker->contact_time = 0.0;
 		}
 	}
 }
@@ -242,27 +324,27 @@ void Collidable::applyContact(const Contact& contact, ContactType type) {
 
 // --------------------------------------------------
 
-void Collidable::add_tracker(SurfaceTracker& tracker) {
-	assert(tracker.owner == nullptr);
+SurfaceTracker& Collidable::create_tracker(Angle ang_min, Angle ang_max, bool inclusive) {
 
-	auto tracker_iter = std::find(trackers.cbegin(), trackers.cend(), &tracker);
-	if (tracker_iter == trackers.cend()) {
-		trackers.push_back(&tracker);
-	}
-	tracker.owner = this;
-};
+	auto tracker = std::make_unique<SurfaceTracker>(context, ang_min, ang_max, inclusive);
+	tracker->owner = this;
+	trackers.push_back(std::move(tracker));
+	return *trackers.back().get();
+}
 
-void Collidable::remove_tracker(SurfaceTracker& tracker) {
+bool Collidable::remove_tracker(SurfaceTracker& tracker) {
 
-	if (tracker.has_contact())
-		tracker.callback_end_touch(tracker.currentContact.value());
-
-	auto tracker_iter = std::find(trackers.cbegin(), trackers.cend(), &tracker);
+	auto tracker_iter = trackers.end();
 	if (tracker_iter != trackers.cend()) {
-		trackers.erase(tracker_iter);
-	}
+		SurfaceTracker* ptr = tracker_iter->get();
 
-	tracker.owner = nullptr;
+		if (ptr->has_contact())
+			ptr->callback_end_touch(ptr->currentContact.value());
+
+		trackers.erase(tracker_iter);
+		return true;
+	}
+	return false;
 }
 
 // will return nullptr if no contact in the given range, or no record for that range
@@ -312,9 +394,6 @@ void Collidable::process_current_frame() {
 
 	hori_crush = false;
 	vert_crush = false;
-
-	
-	
 
 	for (auto& contact : currContacts) {
 		if (contact.type == ContactType::CRUSH_HORIZONTAL) {

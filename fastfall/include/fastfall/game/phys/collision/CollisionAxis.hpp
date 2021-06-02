@@ -9,17 +9,6 @@
 namespace ff {
 
 struct AxisPreStep {
-	/*
-	AxisPreStep() = default;
-	AxisPreStep(Cardinal direction, const ColliderSurface& s, bool real, bool valid, uint8_t ndx) :
-		dir(direction),
-		surface(s),
-		is_real(real),
-		is_valid(valid),
-		quadNdx(ndx)
-	{
-	}
-	*/
 	Cardinal dir;
 	ColliderSurface surface;
 	bool is_real = false;

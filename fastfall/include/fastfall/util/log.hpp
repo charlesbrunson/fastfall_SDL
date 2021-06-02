@@ -85,7 +85,7 @@ public:
 
 		std::string msgContent = fmt::format(format, std::forward<Args>(args)...);
 
-		msgContent.insert(msgContent.begin(), currentDepth * 2, ' ');
+		msgContent.insert(msgContent.begin(), (size_t)currentDepth * 2, ' ');
 		if (fileContent.size() > 80)
 			fileContent.resize(80, ' ');
 

@@ -82,22 +82,22 @@ bool GameInstance::enableScissor(const RenderTarget& target, Vec2f viewPos) {
 		glm::fvec2 lvlbotleft2cam{ campos.x, levelsize.y - campos.y };
 		glm::fvec2 levelbotleft2window = campos2window - (lvlbotleft2cam * zoom);
 
-		scissor[0] = std::max(scissor[0], levelbotleft2window.x);
-		scissor[1] = std::max(scissor[1], levelbotleft2window.y);
+		scissor[0] = roundf(std::max(scissor[0], levelbotleft2window.x));
+		scissor[1] = roundf(std::max(scissor[1], levelbotleft2window.y));
 
 		scissor[2] = std::min(vpOff.x + vpSize.x, levelbotleft2window.x + (levelsize.x * zoom)) - scissor[0];
 		scissor[3] = std::min(vpOff.y + vpSize.y, levelbotleft2window.y + (levelsize.y * zoom)) - scissor[1];
 
-		scissor[2] = std::max(scissor[2], 0.f);
-		scissor[3] = std::max(scissor[3], 0.f);
+		scissor[2] = roundf(std::max(scissor[2], 0.f));
+		scissor[3] = roundf(std::max(scissor[3], 0.f));
 	}
 	glScissor(
-		roundf(scissor[0]), 
-		roundf(scissor[1]), 
-		roundf(scissor[2]),
-		roundf(scissor[3])
+		scissor[0], 
+		scissor[1], 
+		scissor[2],
+		scissor[3]
 	);
-	return roundf(scissor[2]) > 0 && roundf(scissor[3]) > 0;
+	return scissor[2] > 0 && scissor[3] > 0;
 }
 
 void GameInstance::disableScissor() {

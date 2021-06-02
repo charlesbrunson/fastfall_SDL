@@ -46,9 +46,15 @@ public:
 
 	inline Collidable* get_collidable() { return owner; };
 
-	inline void duration_reset() { duration = 0.0; };
-	inline void duration_accumulate(secs deltaTime) { duration += deltaTime; };
-	inline secs get_duration() const noexcept { return duration; };
+	inline void time_reset() { contact_time = 0.0; air_time = 0.0; };
+
+	inline void contact_time_acc(secs deltaTime) { contact_time += deltaTime; };
+	inline secs get_contact_time() const noexcept { return contact_time; };
+
+	inline void air_time_acc(secs deltaTime) { air_time += deltaTime; };
+	inline secs get_air_time() const noexcept { return air_time; };
+
+
 
 	inline bool is_angle_in_range(Angle ang) { return ang.isBetween(angle_min, angle_max, angle_inclusive); }
 	inline Angle get_angle_min() { return angle_min; };
@@ -109,7 +115,8 @@ private:
 	// time in contact
 	// this will propogate across different surfaces
 	// as long as they're within the angle range
-	secs duration = 0.0;
+	secs contact_time = 0.0;
+	secs air_time = 0.0;
 
 	// applicable range
 	// based on contact surface_normal

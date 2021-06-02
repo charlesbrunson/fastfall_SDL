@@ -12,18 +12,32 @@
 #include <assert.h>
 #include <vector>
 #include <optional>
+#include <memory>
 
 #include "fastfall/game/phys/Identity.hpp"
 
 namespace ff {
 
 class Collidable {
+private:
+	enum class SlipState {
+		SlipNone,
+		SlipHorizontal,
+		SlipVertical
+	};
+
 public:
 
-	static constexpr float REST_THRESHOLD = 1.f * 1.f;
 
-	Collidable();
+
+	Collidable(GameContext game_context);
 	~Collidable();
+
+	Collidable(const Collidable& rhs);
+	Collidable(Collidable&& rhs) noexcept;
+
+	Collidable& operator=(const Collidable& rhs);
+	Collidable& operator=(Collidable&& rhs) noexcept;
 
 	void init(Vec2f position, Vec2f size);
 	void update(secs deltaTime);
@@ -36,11 +50,9 @@ public:
 	inline const Vec2f& getPosition() const noexcept { return pos; };
 	inline void move(Vec2f offset) { setPosition(getPosition() + offset, false); };
 
-
 	void setPosition(Vec2f position, bool swapPrev = true) noexcept;
 	void setSize(Vec2f size) noexcept;
 	void teleport(Vec2f position) noexcept;
-
 
 	inline Vec2f get_gravity() const noexcept { return gravity_acc; };
 	inline void set_gravity(Vec2f grav) noexcept { gravity_acc = grav; };
@@ -64,13 +76,11 @@ public:
 
 	// -----------------------------------------
 
-	inline std::vector<SurfaceTracker*>& get_trackers() noexcept { return trackers; };
-	inline const std::vector<SurfaceTracker*>& get_trackers() const noexcept { return trackers; };
+	inline std::vector<std::unique_ptr<SurfaceTracker>>& get_trackers() noexcept { return trackers; };
+	inline const std::vector<std::unique_ptr<SurfaceTracker>>& get_trackers() const noexcept { return trackers; };
 
-	void add_tracker(SurfaceTracker& tracker);
-	void remove_tracker(SurfaceTracker& tracker);
-
-	// will return nullptr if no contact in the given range, or no record for that range
+	SurfaceTracker& create_tracker(Angle ang_min, Angle ang_max, bool inclusive = true);
+	bool remove_tracker(SurfaceTracker& tracker);
 
 	const PersistantContact* get_contact(Angle angle) const noexcept;
 	const PersistantContact* get_contact(Cardinal dir) const noexcept;
@@ -88,33 +98,42 @@ public:
 
 	inline CollidableID get_ID() const noexcept { return id; };
 
+	void setSlipNone() { slipState = SlipState::SlipNone; slipLeeway = 0.f; };
+	void setSlipH(float leeway) { slipState = SlipState::SlipHorizontal; slipLeeway = leeway; };
+	void setSlipV(float leeway) { slipState = SlipState::SlipVertical; slipLeeway = leeway; };
+
+	float getSlipH() const noexcept { return slipState == SlipState::SlipHorizontal ? slipLeeway : 0.f; };
+	float getSlipV() const noexcept { return slipState == SlipState::SlipVertical ? slipLeeway : 0.f; };
+
+
 private:
-
-	CollidableID id;
-
-	Vec2f gravity_acc;
-
-	Vec2f vel;
-	Vec2f accel_accum;
-	Vec2f decel_accum;
-
-	Vec2f acc;
-
-	Vec2f pos;
-	Rectf curRect;
-	Rectf prevRect;
-
-	Vec2f pVel;
-
-	// -----------------------------------------
+	SlipState slipState = SlipState::SlipNone;
+	float slipLeeway = 0.f;
 
 	bool hori_crush = false;
 	bool vert_crush = false;
 
 	void process_current_frame();
 
+	CollidableID id;
+	GameContext context;
+
+	Vec2f pos;
+	Rectf curRect;
+	Rectf prevRect;
+
+	Vec2f vel;
+	Vec2f pVel;
+
+	Vec2f acc;
+	Vec2f gravity_acc;
+	Vec2f accel_accum;
+	Vec2f decel_accum;
+
+
+
 	std::vector<PersistantContact> currContacts;
-	std::vector<SurfaceTracker*> trackers;
+	std::vector<std::unique_ptr<SurfaceTracker>> trackers;
 
 };
 

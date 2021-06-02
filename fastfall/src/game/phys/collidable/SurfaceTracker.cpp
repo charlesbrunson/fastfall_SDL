@@ -17,8 +17,8 @@ SurfaceTracker::SurfaceTracker(GameContext game_context, Angle ang_min, Angle an
 }
 
 SurfaceTracker::~SurfaceTracker() {
-	if (owner)
-		owner->remove_tracker(*this);
+	//if (owner)
+	//	owner->remove_tracker(*this);
 
 	owner = nullptr;
 }
@@ -39,6 +39,9 @@ void SurfaceTracker::process_contacts(std::vector<PersistantContact>& contacts) 
 	wallContact = std::nullopt;
 
 	for (auto& contact : contacts) {
+		if (contact.isSlip)
+			continue;
+
 		Angle angle = math::angle(contact.collider_normal);
 
 		if (!found && angle.isBetween(angle_min, angle_max, angle_inclusive))
@@ -79,7 +82,7 @@ void SurfaceTracker::process_contacts(std::vector<PersistantContact>& contacts) 
 	}
 
 	if (!has_contact()) {
-		duration = 0.0;
+		contact_time = 0.0;
 	}
 }
 
@@ -87,7 +90,7 @@ void SurfaceTracker::process_contacts(std::vector<PersistantContact>& contacts) 
 Vec2f SurfaceTracker::get_friction(Vec2f prevVel) {
 	Vec2f friction;
 	if (has_contact() 
-		&& (!currentContact->hasImpactTime || duration > 0.0) 
+		&& (!currentContact->hasImpactTime || contact_time > 0.0)
 		&& has_friction) 
 	{
 
