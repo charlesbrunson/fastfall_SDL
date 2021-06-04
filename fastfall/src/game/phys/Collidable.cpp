@@ -215,7 +215,7 @@ void Collidable::init(Vec2f position, Vec2f size) {
 void Collidable::update(secs deltaTime) {
 
 
-	acc = accel_accum + gravity_acc;
+	acc = accel_accum;
 
 	for (auto& tracker : trackers) {
 		acc += tracker->premove_update(deltaTime);
@@ -227,10 +227,16 @@ void Collidable::update(secs deltaTime) {
 			tracker->air_time += deltaTime;
 		}
 	}
+	//acc += gravity_acc;
 
 	vel += acc * deltaTime;
 	vel.x = math::reduce(vel.x, decel_accum.x * (float)deltaTime, 0.f);
 	vel.y = math::reduce(vel.y, decel_accum.y * (float)deltaTime, 0.f);
+	vel += gravity_acc * deltaTime;
+
+	if (vel == Vec2f{}) {
+		LOG_VERB("check");
+	}
 
 	pos += vel * deltaTime;
 

@@ -59,6 +59,7 @@ set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
 set(PNG_SHARED OFF)
 set(PNG_TESTS OFF)
 set(PNG_BUILD_ZLIB ON)
+include_directories(${ZLIB_INCLUDE_DIR})
 FetchContent_Declare(
 	libpng
 	URL			https://download.sourceforge.net/libpng/libpng-1.6.37.tar.gz

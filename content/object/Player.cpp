@@ -99,8 +99,7 @@ void Player::update(secs deltaTime) {
 
 		float speed = ground->traverse_get_speed();
 
-
-		if (ground->get_air_time() >= 0.05f) {
+		if (ground->get_contact_time() == 0.f) {
 			ground->traverse_set_max_speed(
 				std::max(norm_speed, std::min(std::abs(speed), max_speed))
 			);
@@ -139,7 +138,6 @@ void Player::update(secs deltaTime) {
 			sprite.set_anim(a_jump.id());
 
 			ground->slope_sticking = false;
-
 
 			Vec2f jumpVel = Vec2f{ box->get_vel().x, jumpVelY };
 			Angle jump_ang = math::angle(jumpVel) - math::angle(ground->get_contact()->collider_normal);

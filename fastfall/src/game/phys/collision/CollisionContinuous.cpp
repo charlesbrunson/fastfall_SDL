@@ -225,10 +225,10 @@ std::optional<Contact> CollisionContinuous::getVerticalSlipContact(float leeway)
 	bool canNorth = false;
 	bool canSouth = false;
 
-	if (nAxis != cAxes.end() && nAxis->contact.separation - leeway < 0.f) {
+	if (nAxis->is_collider_valid() && nAxis != cAxes.end() && nAxis->contact.separation - leeway < 0.f) {
 		canNorth = true;
 	}
-	if (sAxis != cAxes.end() && sAxis->contact.separation - leeway < 0.f) {
+	if (sAxis->is_collider_valid() && sAxis != cAxes.end() && sAxis->contact.separation - leeway < 0.f) {
 		canSouth = true;
 	}
 

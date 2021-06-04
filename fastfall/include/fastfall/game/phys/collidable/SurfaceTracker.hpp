@@ -86,6 +86,7 @@ public:
 	}
 
 private:
+	friend class Collidable;
 
 	// the best suited contact for this recorder
 	// from the current contact frame
@@ -94,7 +95,7 @@ private:
 
 	bool do_slope_wall_stop(bool had_wall) noexcept;
 	bool do_move_with_platform() noexcept;
-	Vec2f do_slope_sticking(secs deltaTime) noexcept;
+	Vec2f do_max_speed(secs deltaTime) noexcept;
 
 	float wallYadj = 0.f;
 
@@ -109,7 +110,6 @@ private:
 
 	GameContext context;
 
-	friend class Collidable;
 	Vec2f get_friction(Vec2f prevVel);
 
 	// time in contact
