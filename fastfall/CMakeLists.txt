@@ -102,7 +102,7 @@ target_compile_definitions(fastfall PRIVATE
 # libraries
 target_link_libraries(fastfall PUBLIC 
 	glm
-	fmt
+	fmt::fmt-header-only
 	flatbuffers
 	zlibstatic
 	SDL2main

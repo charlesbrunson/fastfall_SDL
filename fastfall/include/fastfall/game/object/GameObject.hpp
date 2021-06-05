@@ -75,10 +75,11 @@ public:
 		*/
 
 		template<typename T, typename = std::enable_if<std::is_base_of<GameObject, T>::value>>
-		static ObjectType create(ObjectTypeConstraints&& constraints) {
+		static ObjectType create(std::string typeName, ObjectTypeConstraints&& constraints) {
 			ObjectType t;
-			t.objTypeName = typeid(T).name();
-			t.objTypeName = t.objTypeName.substr(6); // cut off "class "
+			//t.objTypeName = typeid(T).name();
+			//t.objTypeName = t.objTypeName.substr(6); // cut off "class "
+			t.objTypeName = typeName;
 
 			t.hash = std::hash<std::string>{}(t.objTypeName);
 			t.constraints = std::move(constraints);
@@ -121,11 +122,11 @@ public:
 
 	template<typename T>
 	struct Entry {
-		Entry() {
-			GameObjectLibrary::addType<T>(ObjectTypeConstraints());
+		Entry(std::string typeName) {
+			GameObjectLibrary::addType<T>(typeName, ObjectTypeConstraints());
 		}
-		Entry(ObjectTypeConstraints&& constraints) {
-			GameObjectLibrary::addType<T>(std::move(constraints));
+		Entry(std::string typeName, ObjectTypeConstraints&& constraints) {
+			GameObjectLibrary::addType<T>(typeName, std::move(constraints));
 		}
 	};
 
@@ -142,8 +143,8 @@ private:
 
 
 	template<typename T, typename = std::enable_if<std::is_base_of<GameObject, T>::value>>
-	static void addType(ObjectTypeConstraints&& constraints) {
-		getBuilder().insert(std::move(ObjectType::create<T>(std::move(constraints))));
+	static void addType(std::string typeName, ObjectTypeConstraints&& constraints) {
+		getBuilder().insert(std::move(ObjectType::create<T>(typeName, std::move(constraints))));
 	}
 };
 

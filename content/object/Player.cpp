@@ -4,6 +4,7 @@
 using namespace ff;
 
 GameObjectLibrary::Entry<Player> plr_type{ 
+	"Player",
 	{
 		.tile_size = {1, 2},
 		.properties = {

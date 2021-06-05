@@ -55,6 +55,7 @@ void EngineStateHandler::update() {
 		case EngineStateAction::CLOSE_ALL:
 			clear();
 			break;
+		default: 
 		}
 		st = getActiveState();
 	}

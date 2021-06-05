@@ -1,6 +1,7 @@
 #include "BasicPlatform.hpp"
 
 GameObjectLibrary::Entry<BasicPlatform> platform_type{
+	"BasicPlatform",
 	{
 		.tile_size = {0, 0},
 		.properties = {
