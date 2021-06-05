@@ -119,15 +119,9 @@ FetchContent_MakeAvailable(
 	implot
 )
 
-configure_file(
-	"${zlib_BINARY_DIR}/zconf.h"
-	"${zlib_SOURCE_DIR}/zconf.h"
-	COPYONLY
-)
-configure_file(
-	"${libpng_BINARY_DIR}/pnglibconf.h"
-	"${libpng_SOURCE_DIR}/pnglibconf.h"
-	COPYONLY
+include_directories(
+	${zlib_BINARY_DIR}
+	${libpng_BINARY_DIR}
 )
 
 # build sdl_image as library

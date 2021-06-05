@@ -3,6 +3,8 @@
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/log.hpp"
 
+//#include <ranges>
+
 namespace ff {
 
 bool CollisionSolver::canApplyAltArbiters(std::deque<Arbiter*>& north_alt, std::deque<Arbiter*>& south_alt) {
@@ -149,8 +151,11 @@ void CollisionSolver::solveX() {
 		arb->update(0.0);
 	}
 
-	std::ranges::sort(east, ArbiterCompare);
-	std::ranges::sort(west, ArbiterCompare);
+	//std::ranges::sort(east, ArbiterCompare);
+	//std::ranges::sort(west, ArbiterCompare);
+
+	std::sort(east.begin(), east.end(), ArbiterCompare);
+	std::sort(west.begin(), west.end(), ArbiterCompare);
 
 	while (!east.empty() && !west.empty()) {
 		auto eastArb = east.front();
@@ -209,9 +214,12 @@ void CollisionSolver::solveY() {
 		arb->update(0.0);
 	}
 
-	std::ranges::sort(north, ArbiterCompare);
-	std::ranges::sort(south, ArbiterCompare);
+	//std::ranges::sort(north, ArbiterCompare);
+	//std::ranges::sort(south, ArbiterCompare);
 
+	std::sort(north.begin(), north.begin(), ArbiterCompare);
+	std::sort(south.begin(), south.begin(), ArbiterCompare);
+	
 	while (!north.empty() && !south.empty()) {
 		auto northArb = north.front();
 		auto southArb = south.front();
@@ -267,7 +275,8 @@ void CollisionSolver::updateArbiterStack(std::deque<Arbiter*>& stack) {
 		(*arb)->update(0.0);
 	}
 
-	std::ranges::sort(stack, ArbiterCompare);
+	//std::ranges::sort(stack, ArbiterCompare);
+	std::sort(stack.begin(), stack.end(), ArbiterCompare);
 }
 
 void CollisionSolver::applyArbiterStack(std::deque<Arbiter*>& stack) {

@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <fstream>
 
-#include <ranges>
+//#include <ranges>
 
 namespace ff {
 
@@ -62,7 +62,8 @@ void TilesetAsset::parseTileProperties(xml_node<>* propsNode, Tile& t) {
 						if (strlen(attr_value) > 0
 							&& strcmp(assetName.c_str(), attr_value) != 0) {
 
-							auto r = std::ranges::find(tilesetRef, attr_value);
+							//auto r = std::ranges::find(tilesetRef, attr_value);
+							auto r = std::find(tilesetRef.begin(), tilesetRef.end(), attr_value);
 
 							if (r != tilesetRef.end()) {
 								t.next_tileset = std::distance(tilesetRef.begin(), r);

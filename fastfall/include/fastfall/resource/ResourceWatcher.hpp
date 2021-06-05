@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <atomic>
 #include <mutex>
+#include <thread>
 
 namespace ff {
 

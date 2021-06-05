@@ -15,6 +15,7 @@
 #include <sstream>
 #include <algorithm>
 #include <functional>
+#include <stdexcept>
 
 namespace ff {
 
@@ -280,7 +281,7 @@ bool LevelAsset::loadFromFlat(const flat::resources::LevelAssetF* builder) {
 	}
 
 	if (!hasObjectLayer)
-		throw std::exception("Level has no object layer");
+		throw std::runtime_error("Level has no object layer");
 
 	loaded = true;
 	return true;

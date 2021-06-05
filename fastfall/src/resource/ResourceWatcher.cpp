@@ -1,6 +1,5 @@
 #include "fastfall/resource/ResourceWatcher.hpp"
 
-#include <mutex>
 #include <unordered_set>
 
 #include "fastfall/util/log.hpp"

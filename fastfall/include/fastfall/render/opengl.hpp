@@ -5,10 +5,9 @@
 #include "backends/imgui_impl_opengl3.h"
 #include "implot.h"
 
-#include <GL\glew.h>
+#include <GL/glew.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
-//#include <gl\glu.h>
 
 
 

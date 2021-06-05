@@ -10,7 +10,7 @@ using namespace rapidxml;
 #include <mutex>
 #include <future>
 
-#include <ranges>
+//#include <ranges>
 
 #include "fastfall/schema/resource-flat.hpp"
 

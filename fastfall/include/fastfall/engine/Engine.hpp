@@ -110,7 +110,7 @@ private:
 	bool initialized = false;
 
 	// thread-sync helper
-	class Barrier;
+	// class Barrier;
 
 	bool running = false;
 

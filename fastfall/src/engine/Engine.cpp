@@ -18,10 +18,11 @@
 
 #include <iostream>
 
-
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/render/AnimatedSprite.hpp"
 #include "fastfall/render/DebugDraw.hpp"
+
+#include "fmt/format.h"
 
 namespace ff {
 
@@ -479,10 +480,9 @@ void Engine::initRenderTarget(bool fullscreen)
 
     Vec2u displaySize(mode.w, mode.h);
 
-    char version[32];
-    sprintf_s(version, "%d.%d.%d", VERSION[0], VERSION[1], VERSION[2]);
+    std::string title = fmt::format("game v{}.{}.{}", VERSION[0], VERSION[1], VERSION[2]);
 
-    window->setWindowTitle(fmt::format("game v{}", version));
+    window->setWindowTitle(title);
     if (settings.fullscreen) {
         // go borderless fullscreen
 
@@ -516,14 +516,9 @@ bool Engine::setFullscreen(bool fullscreen) {
 
     LOG_INFO(settings.fullscreen ? "Entering fullscreen" : "Exiting fullscreen");
 
-    char version[32];
-    sprintf_s(version, "%d.%d.%d", VERSION[0], VERSION[1], VERSION[2]);
-
     SDL_DisplayMode mode;
     int r = SDL_GetCurrentDisplayMode(0, &mode);
     assert(r == 0);
-
-    //window->showWindow(false);
 
     if (settings.fullscreen) {
         lastWindowedPos = Vec2i(window->getPosition().x, window->getPosition().y);
