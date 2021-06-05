@@ -182,11 +182,11 @@ void ImGuiFrame::displayLog(Recti area, const char* panelName) {
 						col.g * inv_255,
 						col.b * inv_255,
 						col.a * inv_255),
-					entry.message.c_str());
+					"%s", entry.message.c_str());
 
 			}
 			else {
-				ImGui::Text(entry.message.c_str());
+				ImGui::Text("%s", entry.message.c_str());
 			}
 		}
 		if (ScrollToBottom || ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {

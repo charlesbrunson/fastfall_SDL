@@ -12,12 +12,14 @@
 //#include "fmt/core.h"
 #include "fmt/format.h"
 
-#if defined(_WIN32)
-#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
-#elif defined(unix)
-#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-#elif defined(__APPLE__)
-// TODO
+
+
+#if not defined(__FILENAME__)
+	#if defined(_WIN32)
+	#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
+	#else
+	#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+	#endif
 #endif
 
 //namespace ff {
@@ -66,50 +68,16 @@ public:
 		if (lvl < get_verbosity())
 			return;
 
-		static constexpr char fill[] = {
-			' ',
-			' ',
-			' ',
-			' ',
-			'-',
-			'!'
-		};
-
-		unsigned lvlNdx = static_cast<unsigned>(lvl);
-
-		if (messages.size() == LOG_HISTORY_SIZE) { messages.pop_front(); }
-
-		std::string_view levelStr = lvlStr[lvlNdx];
-
-		std::string fileContent = fmt::format("{}:{}", file, line);
-		if (fileContent.size() > 30)
-			fileContent.resize(30, ' ');
-
 		std::string msgContent = fmt::format(format, std::forward<Args>(args)...);
-
-		msgContent.insert(msgContent.begin(), (size_t)currentDepth * 2, ' ');
-		if (fileContent.size() > 80)
-			fileContent.resize(80, ' ');
-
-		messages.push_back(LogMessage{
-			.lvl = lvl,
-			.message = fmt::format("{:<10}{:<5s}{:<30s}{:<s}", currentTick, levelStr, fileContent, msgContent)
-			});
-
-		int fillSize = 28 - fileContent.size();
-		if (fillSize > 0) {
-			char fillChar = fill[lvlNdx];
-			std::fill_n(&messages.back().message[15 + fileContent.size() + 1], fillSize, fillChar);
-		}
-
-
-		if (lvl >= get_verbosity())
-			std::cout << messages.back().message << std::endl;
+		detail_log(lvl, file, line, msgContent);
 	}
 
-	static inline void set_tick(unsigned tick) { currentTick = tick; }
+
+	static void set_tick(unsigned tick) { currentTick = tick; }
 
 private:
+	static void detail_log(level lvl, const std::string_view& file, int line, std::string& msg) noexcept;
+
 	static unsigned currentTick;
 
 	static log::level logVerbosity;
@@ -118,19 +86,7 @@ private:
 
 	static constexpr unsigned LOG_HISTORY_SIZE = 50;
 	static std::deque<log::LogMessage> messages;
-
-	static constexpr std::string_view lvlStr[] = {
-		"NONE",
-		"STEP",
-		"VERB",
-		"INFO",
-		"WARN",
-		"ERR",
-	};
-
 };
-
-//}
 
 #ifdef DEBUG
 	#define LOG_STEP( ... ) log::_log( log::level::STEP, __FILENAME__, __LINE__, __VA_ARGS__ );

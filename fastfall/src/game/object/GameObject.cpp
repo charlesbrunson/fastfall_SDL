@@ -42,6 +42,11 @@ void GameObjectLibrary::build(GameContext instance, const ObjectRef& ref) {
 	else {
 
 		LOG_ERR_("could not match object type {}", ref.type);
+		LOG_ERR_("known types are:");
+		log::scope scope;
+		for (auto& type : getBuilder()) {
+			LOG_ERR_("{}: {}", type.hash, type.objTypeName);
+		}
 	}
 }
 

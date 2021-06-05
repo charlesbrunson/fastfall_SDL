@@ -28,4 +28,56 @@ log::level log::get_verbosity() noexcept {
 	return logVerbosity;
 }
 
+
+void log::detail_log(level lvl, const std::string_view& file, int line, std::string& msg) noexcept {
+	static constexpr char fill[] = {
+		' ',
+		' ',
+		' ',
+		' ',
+		'-',
+		'!'
+	};
+	static constexpr std::string_view lvlStr[] = {
+		"NONE",
+		"STEP",
+		"VERB",
+		"INFO",
+		"WARN",
+		"ERR",
+	};
+
+	unsigned lvlNdx = static_cast<unsigned>(lvl);
+
+	if (messages.size() == LOG_HISTORY_SIZE) { messages.pop_front(); }
+
+	std::string_view levelStr = lvlStr[lvlNdx];
+
+	std::string fileContent = fmt::format("{}:{}", file, line);
+	if (fileContent.size() > 30)
+		fileContent.resize(30, ' ');
+
+	msg.insert(msg.begin(), (size_t)currentDepth * 2, ' ');
+	if (fileContent.size() > 80)
+		fileContent.resize(80, ' ');
+
+	messages.push_back(LogMessage{
+		.lvl = lvl,
+		.message = fmt::format("{:<10}{:<5s}{:<30s}{:<s}", currentTick, levelStr, fileContent, msg)
+		});
+
+	int fillSize = 28 - fileContent.size();
+	if (fillSize > 0) {
+		char fillChar = fill[lvlNdx];
+		std::fill_n(&messages.back().message[15 + fileContent.size() + 1], fillSize, fillChar);
+	}
+
+
+	if (lvl >= get_verbosity())
+		std::cout << messages.back().message << std::endl;
+}
+
+
+
+
 //}
