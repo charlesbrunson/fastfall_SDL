@@ -16,10 +16,12 @@ using namespace rapidxml;
 
 #include "fastfall/resource/ResourceWatcher.hpp"
 
+#ifndef FF_DATAPATH
 #if defined(DEBUG)
-#define DEBUGPATH "../../../"
+#define FF_DATAPATH FF_DATA_DIR
 #else
-#define DEBUGPATH ""
+#define FF_DATAPATH ""
+#endif
 #endif
 
 // internal stuff
@@ -225,7 +227,7 @@ std::string LoadPackedAsset(const FlatType* flat) {
 
 bool loadFromPack(const std::string& packFile) {
 
-	std::string path = DEBUGPATH + packFile;
+	std::string path = FF_DATAPATH + packFile;
 
 	// load pack file into memory
 	bool good = true;
@@ -317,7 +319,7 @@ bool Resources::buildPackFile(const std::string& packFilename) {
 	//LOG_INFO("Serializing complete: {}ms", timer.getElapsedTime().asMilliseconds());
 
 	LOG_INFO("Writing serialized data to file: {}", packFilename);
-	std::fstream file(DEBUGPATH + packFilename, std::ios::binary | std::ios_base::out);
+	std::fstream file(FF_DATAPATH + packFilename, std::ios::binary | std::ios_base::out);
 	if (file) {
 
 		uint8_t* data = builder.GetBufferPointer();
@@ -355,11 +357,13 @@ bool loadAssets(const std::string& path, std::vector<std::string>& names) {
 		log::scope scope;
 		if (ptr->loadFromFile(path)) {
 			Resources::add(asset, std::move(ptr));
-			LOG_INFO("{}{} ... complete", path, asset);
+			std::string small_path = path.substr(path.find("data/") + 5);
+			LOG_INFO("{}{} ... complete", small_path, asset);
 		}
 		else {
 			//std::cout << "failed to load: " << typeid(*ptr.get()).name() << ", " << asset << std::endl;
-			LOG_ERR_("{}{} ... failed to load: {}, {1}", path, asset, typeid(*ptr.get()).name());
+			std::string small_path = path.substr(path.find("data/") + 5);
+			LOG_ERR_("{}{} ... failed to load: {}, {1}", small_path, asset, typeid(*ptr.get()).name());
 			return false;
 		}
 	}
@@ -381,7 +385,7 @@ bool loadFromIndex(const std::string& indexFile) {
 	std::string levelRelPath;
 	std::vector<std::string> levelNames;
 
-	std::string dataPath = std::string(DEBUGPATH) + "data/";
+	std::string dataPath = std::string(FF_DATAPATH) + "data/";
 
 	// try to open the index file
 	std::ifstream ndxStream(dataPath + indexFile, std::ios::binary | std::ios::ate);
@@ -529,7 +533,7 @@ void Resources::addLoadedToWatcher() {
 void Resources::loadControllerDB() {
 	static bool loadedControllerDB = false;
 	if (!loadedControllerDB) {
-		std::string path = DEBUGPATH + std::string("gamecontrollerdb.txt");
+		std::string path = FF_DATAPATH + std::string("gamecontrollerdb.txt");
 		int r = SDL_GameControllerAddMappingsFromFile(path.c_str());
 
 		if (r >= 0) {

@@ -95,6 +95,9 @@ target_compile_definitions(fastfall PRIVATE
 	IMGUI_IMPL_OPENGL_LOADER_GLEW
 	DEBUG
 )
+target_compile_definitions(fastfall PRIVATE
+	FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
+)
 
 # libraries
 target_link_libraries(fastfall PUBLIC 
@@ -109,3 +112,7 @@ target_link_libraries(fastfall PUBLIC
 	#libimgui 
 )
 
+#target_compile_options(fastfall PUBLIC -stdlib=libc++)
+#target_compile_options(fastfall PUBLIC -Wno-deprecated-volatile)
+#target_link_options(fastfall PUBLIC -lz)
+#target_link_options(fastfall PUBLIC -lc++)
