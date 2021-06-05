@@ -233,14 +233,14 @@ std::optional<Contact> CollisionContinuous::getVerticalSlipContact(float leeway)
 	}
 
 	else if (canNorth && canSouth) {
-		LOG_INFO("SLIP BOTH");
+		//LOG_INFO("SLIP BOTH");
 
 		canNorth = sAxis->contact.separation > nAxis->contact.separation;
 		canSouth = !canNorth;
 	}
 
 	if (canNorth && !canSouth) {
-		LOG_INFO("SLIP NORTH");
+		//LOG_INFO("SLIP NORTH");
 		Contact c = nAxis->contact;
 		c.isSlip = true;
 		c.hasImpactTime = contact.hasImpactTime;
@@ -249,7 +249,7 @@ std::optional<Contact> CollisionContinuous::getVerticalSlipContact(float leeway)
 	}
 
 	else if (!canNorth && canSouth) {
-		LOG_INFO("SLIP SOUTH");
+		//LOG_INFO("SLIP SOUTH");
 		Contact c = sAxis->contact;
 		c.isSlip = true;
 		c.hasImpactTime = contact.hasImpactTime;

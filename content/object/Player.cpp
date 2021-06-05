@@ -31,7 +31,7 @@ namespace constants {
 	float max_speed = 500.f;
 	float norm_speed = 200.f;
 
-	float jumpVelY = -180.f;
+	float jumpVelY = -190.f;
 
 }
 

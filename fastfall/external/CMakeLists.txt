@@ -55,7 +55,7 @@ FetchContent_Declare(
 )
 
 #libpng
-set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
+set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/zlib)
 set(PNG_SHARED OFF)
 set(PNG_TESTS OFF)
 set(PNG_BUILD_ZLIB ON)
