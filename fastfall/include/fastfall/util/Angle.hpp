@@ -158,9 +158,3 @@ inline constexpr ff::Angle& operator /=(ff::Angle& left, float right) {
 	left.setRad(left.radians() / right);
 	return left;
 }
-inline constexpr bool operator ==(const ff::Angle& left, const ff::Angle& right) {
-	return left.radians() == right.radians();
-}
-inline constexpr bool operator !=(const ff::Angle& left, const ff::Angle& right) {
-	return left.radians() != right.radians();
-}
