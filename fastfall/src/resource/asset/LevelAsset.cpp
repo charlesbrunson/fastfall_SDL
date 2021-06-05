@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <functional>
 #include <stdexcept>
+#include <string>
 
 namespace ff {
 

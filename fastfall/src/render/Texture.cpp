@@ -181,7 +181,7 @@ bool Texture::create(glm::uvec2 size) {
 bool Texture::create(unsigned sizeX, unsigned sizeY) {
 	if (exists()) {
 		glDeleteTextures(1, &texture_id);
-		texture_id = NULL;
+		texture_id = 0;
 	}
 	m_size = { sizeX, sizeY };
 	m_invSize = 1.f / glm::fvec2{ m_size };

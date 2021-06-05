@@ -436,7 +436,7 @@ namespace Input {
         ImGui::Separator();
         int i = 0;
         for (auto& in : inputs) {
-            ImGui::Text(inputNames[i]); ImGui::NextColumn();
+            ImGui::Text("%s", inputNames[i]); ImGui::NextColumn();
             ImGui::Text("%d", in.active); ImGui::NextColumn();
             ImGui::Text("%d", in.activeCounter); ImGui::NextColumn();
 
@@ -467,7 +467,7 @@ namespace Input {
             for (unsigned int i = 0; i < InputType::COUNT; i++) {
 
                 ImGui::Columns(3);
-                ImGui::Text(inputNames[i]);
+                ImGui::Text("%s", inputNames[i]);
                 ImGui::NextColumn();
 
                 static char bindbuf[32];
@@ -513,12 +513,12 @@ namespace Input {
                 for (unsigned i = 0; i < keys.size() || i < joys.size(); i++) {
                     ImGui::NextColumn();
                     if (i < keys.size()) {
-                        ImGui::Text(SDL_GetKeyName(*keys.at(i)));
+                        ImGui::Text("%s", SDL_GetKeyName(*keys.at(i)));
                         //ImGui::Text(keyToString.at(*keys.at(i)).c_str());
                     }
                     ImGui::NextColumn();
                     if (i < joys.size()) {
-                        ImGui::Text(joys.at(i)->toString().c_str());
+                        ImGui::Text("%s", joys.at(i)->toString().c_str());
                     }
                     ImGui::NextColumn();
                 }

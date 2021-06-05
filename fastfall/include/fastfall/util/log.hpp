@@ -9,7 +9,8 @@
 
 //#include <source_location>
 
-#include "fmt/core.h"
+//#include "fmt/core.h"
+#include "fmt/format.h"
 
 #if defined(_WIN32)
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)

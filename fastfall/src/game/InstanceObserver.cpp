@@ -335,7 +335,7 @@ void levelContent(GameContext context) {
 void objectContent(GameContext context) {
 	GameObjectManager* man = &context.objects().get(); //&Instance(instance)->getObject();
 
-	ImGui::Text("Object Count: %3ull", man->getObjects().size());
+	ImGui::Text("Object Count: %3lu", man->getObjects().size());
 
 	ImGui::Columns(2, NULL, false);
 	for (auto& obj : man->getObjects()) {
