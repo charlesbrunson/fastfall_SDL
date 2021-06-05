@@ -109,7 +109,10 @@ void Window::setWindowCentered() {
 void Window::setVsyncEnabled(bool enable)
 {
 	setActive();
-	checkSDL(SDL_GL_SetSwapInterval(enable ? 1 : 0));
+	//checkSDL(SDL_GL_SetSwapInterval(enable ? 1 : 0));
+	if (SDL_GL_SetSwapInterval(enable ? 1 : 0) != 0) {
+		LOG_WARN("Vsync not supported");
+	}
 }
 
 
