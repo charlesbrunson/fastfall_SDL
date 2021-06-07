@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : CMake project for fastfall_SDL, include source and define
 # project specific logic here.
 #
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.19)
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
@@ -18,7 +18,7 @@ foreach(fbs IN ITEMS ${FLATC_FBS})
 	list(APPEND FLATC_HPP ${out})
 endforeach()
 
-add_custom_command(#fbs_compiled
+add_custom_command(
 	COMMAND ${FLATC} 
 		--cpp 
 		-o "${CMAKE_CURRENT_SOURCE_DIR}/${SCHEMA_DIR}/" 
@@ -35,6 +35,64 @@ add_custom_target(fbs_compiled
 	DEPENDS
 		${FLATC_HPP}
 )
+
+set(FF_INCLUDES
+	${CMAKE_CURRENT_SOURCE_DIR}/include
+
+	${CMAKE_CURRENT_SOURCE_DIR}/external/sdl/include
+	${CMAKE_CURRENT_SOURCE_DIR}/external/sdl_image
+	
+	${CMAKE_CURRENT_SOURCE_DIR}/external/rapidxml
+	${CMAKE_CURRENT_SOURCE_DIR}/external/fmt/include
+	${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers/include
+	${CMAKE_CURRENT_SOURCE_DIR}/external/glm
+	
+	${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
+	${CMAKE_CURRENT_SOURCE_DIR}/external/implot
+)
+
+set(FF_LIBRARIES
+	glm
+	fmt::fmt-header-only
+	flatbuffers
+)
+
+if(EMSCRIPTEN)
+	set(CMAKE_EXECUTABLE_SUFFIX .html)
+	set(USE_FLAGS "-sUSE_ZLIB=1 -sUSE_LIBPNG=1 -sUSE_SDL=2 -sUSE_SDL_IMAGE=2")
+	set_target_properties(test PROPERTIES LINK_FLAGS ${USE_FLAGS})
+	
+	set(FF_INCLUDES
+		${FF_INCLUDES}
+		${CMAKE_CURRENT_SOURCE_DIR}/external/emscripten/system/include
+	)
+
+else()
+
+	set(FF_INCLUDES
+		${FF_INCLUDES}
+		${CMAKE_CURRENT_SOURCE_DIR}/external/glew/include
+	)
+
+	set(FF_LIBRARIES 
+		${FF_LIBRARIES}
+		zlibstatic
+		SDL2main
+		SDL2-static
+		SDL2image 
+		glew_s
+	)
+endif()
+
+
+if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+	target_compile_options(test PUBLIC -Wno-deprecated-volatile)
+	if(NOT EMSCRIPTEN)
+		target_compile_options(test PUBLIC -stdlib=libc++)
+		target_link_options(test PUBLIC -lz)
+		target_link_options(test PUBLIC -lc++)
+	endif()
+endif()
 
 # grab fastfall source
 file(GLOB_RECURSE FF_SOURCES 
@@ -54,65 +112,39 @@ file(GLOB IMGUI_HEADERS ${imgui_SOURCE_DIR}/*.h)
 file(GLOB IMPLOT_SOURCES ${implot_SOURCE_DIR}/*.cpp)
 file(GLOB IMPLOT_HEADERS ${implot_SOURCE_DIR}/*.h)
 
-# declare fastfall library
-add_library (fastfall STATIC
-	${FF_SOURCES}
-	${FF_HEADERS}
-
-	# imgui stuff
-	
-	${IMGUI_SOURCES} 
-	${IMPLOT_SOURCES} 
-	${IMGUI_HEADERS} 
-	${IMPLOT_HEADERS} 
+set(FF_SOURCES 
+	${FF_SOURCES} 
+	${IMGUI_SOURCES}
+	${IMPLOT_SOURCES}
 	${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.h
 	${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.cpp
 	${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.h
 	${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
 )
 
+set(FF_HEADERS 
+	${FF_HEADERS} 
+	${IMGUI_HEADERS} 
+	${IMPLOT_HEADERS} 
+)
+
+add_library (fastfall STATIC ${FF_SOURCES} ${FF_HEADERS})
+
 # depends on compiled flatbuffers headers
 add_dependencies(fastfall fbs_compiled)
 
 # includes
-target_include_directories(fastfall PUBLIC 
-	${CMAKE_CURRENT_SOURCE_DIR}/include
+target_include_directories(fastfall PUBLIC ${FF_INCLUDES})
 
-	${CMAKE_CURRENT_SOURCE_DIR}/external/rapidxml
-	${CMAKE_CURRENT_SOURCE_DIR}/external/fmt/include
-	${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers/include
-	${CMAKE_CURRENT_SOURCE_DIR}/external/glm
-	${CMAKE_CURRENT_SOURCE_DIR}/external/glew/include
-	${CMAKE_CURRENT_SOURCE_DIR}/external/sdl/include
-	${CMAKE_CURRENT_SOURCE_DIR}/external/sdl_image
-	${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
-	${CMAKE_CURRENT_SOURCE_DIR}/external/implot
-)
+# libraries
+target_link_libraries(fastfall PUBLIC ${FF_LIBRARIES})
 
 # compile definitions
 target_compile_definitions(fastfall PRIVATE
-	#GLEW_STATIC
 	IMGUI_IMPL_OPENGL_LOADER_GLEW
-	DEBUG
 )
+
 target_compile_definitions(fastfall PRIVATE
+	DEBUG
 	FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
 )
-
-# libraries
-target_link_libraries(fastfall PUBLIC 
-	glm
-	fmt::fmt-header-only
-	flatbuffers
-	zlibstatic
-	SDL2main
-	SDL2-static
-	glew_s
-	SDL2image 
-	#libimgui 
-)
-
-#target_compile_options(fastfall PUBLIC -stdlib=libc++)
-#target_compile_options(fastfall PUBLIC -Wno-deprecated-volatile)
-#target_link_options(fastfall PUBLIC -lz)
-#target_link_options(fastfall PUBLIC -lc++)

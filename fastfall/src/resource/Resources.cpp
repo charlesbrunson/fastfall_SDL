@@ -357,12 +357,12 @@ bool loadAssets(const std::string& path, std::vector<std::string>& names) {
 		log::scope scope;
 		if (ptr->loadFromFile(path)) {
 			Resources::add(asset, std::move(ptr));
-			std::string small_path = path.substr(path.find("data/") + 5);
+			std::string small_path = path.substr(path.rfind("data/") + 5);
 			LOG_INFO("{}{} ... complete", small_path, asset);
 		}
 		else {
 			//std::cout << "failed to load: " << typeid(*ptr.get()).name() << ", " << asset << std::endl;
-			std::string small_path = path.substr(path.find("data/") + 5);
+			std::string small_path = path.substr(path.rfind("data/") + 5);
 			LOG_ERR_("{}{} ... failed to load: {}, {1}", small_path, asset, typeid(*ptr.get()).name());
 			return false;
 		}

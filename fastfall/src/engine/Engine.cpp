@@ -66,7 +66,7 @@ Engine::Engine(
 
     ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Engine", "System")
 {
-
+    
     // use first runnable to determine if we need a window
     addRunnable(std::move(toRun));
     //windowless = runnables.back().getRTexture() != nullptr;
@@ -81,6 +81,8 @@ Engine::Engine(
     if (runnables.empty()) {
         initialized = false;
     }
+
+    debug_draw::enable(settings.showDebug);
 }
 
 void Engine::addRunnable(EngineRunnable&& toRun) {
@@ -136,6 +138,16 @@ void Engine::prerun_init()
 
     }
 #endif
+}
+
+
+bool Engine::run() {
+    switch (settings.runstyle) {
+    case EngineRunStyle::SingleThread:  return run_singleThread();
+    case EngineRunStyle::DoubleThread:  return run_singleThread();
+    case EngineRunStyle::Emscripten:    return run_emscripten();
+    default: return false;
+    }
 }
 
 // -------------------------------------------
@@ -265,6 +277,14 @@ void Engine::runUpdate(std::barrier<>* bar) {
 
         cleanRunnables();
     }
+}
+
+// -------------------------------------------
+
+bool Engine::run_emscripten() {
+    // TODO
+    return false;
+
 }
 
 // -------------------------------------------

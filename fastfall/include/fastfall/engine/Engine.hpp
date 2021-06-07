@@ -37,6 +37,12 @@ namespace ff {
 //constexpr int VERSION[3] = { PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH };
 constexpr int VERSION[3] = { 0, 0, 1 };
 
+enum class EngineRunStyle {
+	SingleThread,
+	DoubleThread,
+	Emscripten
+};
+
 struct EngineSettings {
 	// window margins
 	bool allowMargins = true;
@@ -53,6 +59,9 @@ struct EngineSettings {
 
 	// run displayless
 	bool noWindow = false;
+
+	// run style
+	EngineRunStyle runstyle = EngineRunStyle::DoubleThread;
 };
 
 
@@ -78,11 +87,10 @@ public:
 
 	void addRunnable(EngineRunnable&& toRun);
 
-	bool run_doubleThread();
-	bool run_singleThread();
+	bool run();
 
 	inline bool isRunning() const noexcept { return running; };
-	inline bool isInitialized() { return initialized; }
+	inline bool isInit() { return initialized; }
 
 	inline void freeze() { pauseUpdate = true; stepUpdate = false; };
 	inline void freezeStepOnce() { pauseUpdate = true; stepUpdate = true; };
@@ -90,6 +98,9 @@ public:
 	inline bool isFrozen() { return pauseUpdate; };
 
 private:
+	bool run_doubleThread();
+	bool run_singleThread();
+	bool run_emscripten();
 
 	void prerun_init();
 

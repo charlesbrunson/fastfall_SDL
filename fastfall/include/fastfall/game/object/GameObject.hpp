@@ -69,16 +69,9 @@ public:
 
 	struct ObjectType {
 
-		/*
-		template<typename T>
-		struct tag { using type = T; };
-		*/
-
 		template<typename T, typename = std::enable_if<std::is_base_of<GameObject, T>::value>>
 		static ObjectType create(std::string typeName, ObjectTypeConstraints&& constraints) {
 			ObjectType t;
-			//t.objTypeName = typeid(T).name();
-			//t.objTypeName = t.objTypeName.substr(6); // cut off "class "
 			t.objTypeName = typeName;
 
 			t.hash = std::hash<std::string>{}(t.objTypeName);

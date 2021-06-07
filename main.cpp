@@ -1,26 +1,45 @@
 
-#include <thread>
-#include <iostream>
-
-#include "fastfall/render/opengl.hpp"
-#include "fastfall/render.hpp"
-
 #include "fastfall/util/log.hpp"
 #include "fastfall/util/math.hpp"
-#include "fastfall/engine/Engine.hpp"
-#include "EmptyState.hpp"
-#include "content/TestState.hpp"
 
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/resource/ResourceWatcher.hpp"
 
+#include "fastfall/render.hpp"
+
+#include "fastfall/engine/Engine.hpp"
 #include "fastfall/engine/imgui/ImGuiFrame.hpp"
+
+#include "content/TestState.hpp"
+
+ff::EngineSettings getSettings() {
+	ff::EngineSettings settings;
+	settings.allowMargins = true;
+	settings.fullscreen = false;
+	settings.noWindow = false;
+	settings.refreshRate = 144;
+
+#if defined(__EMSCRIPTEN__)
+	settings.runstyle = ff::EngineRunStyle::Emscripten;
+#else
+	settings.runstyle = ff::EngineRunStyle::DoubleThread;
+#endif
+
+#if defined(DEBUG)
+	settings.showDebug = true;
+#else
+	settings.showDebug = false;
+#endif
+
+	settings.vsyncEnabled = true;
+
+	return settings;
+}
+
 
 int main(int argc, char* argv[])
 {
-
 	srand(time(NULL));
-
 	{
 		log::scope scope;
 		LOG_VERB("TEST");
@@ -28,52 +47,33 @@ int main(int argc, char* argv[])
 		LOG_WARN("TEST");
 		LOG_ERR_("TEST");
 	}
-
 	log::set_verbosity(log::level::INFO);
 
 	using namespace ff;
 
 	FFinit();
 
+	// need to create window before loading resources :(
 	std::unique_ptr<Window> window = std::make_unique<Window>();
 
 	Resources::loadAll(Resources::AssetSource::INDEX_FILE, "fileindex.xml");
-	//Resources::buildPackFile("data.pack");
-	//Resources::unloadAll();
-
-	//Resources::loadAll(Resources::AssetSource::PACK_FILE, "data.pack");
-
-	//Resources::addLoadedToWatcher();
-	//ResourceWatcher::start_watch_thread();
 
 	Engine::init(
 		std::move(window),
 		EngineRunnable(std::make_unique<TestState>()),
 		Vec2u(1920, 1080),
-		EngineSettings{
-			.allowMargins = true,
-			.refreshRate = 144,
-			.vsyncEnabled = true,
-#if defined(DEBUG)
-			.showDebug = true
-#else
-			.showDebug = false
-#endif
-		}
+		getSettings()
 	);
 
-	if (Engine::getInstance().isInitialized()) {
-		//Engine::getInstance().run_singleThread();
-		Engine::getInstance().run_doubleThread();
+	if (Engine::getInstance().isInit()) {
+
+		Engine::getInstance().run();
+
 	}
 	else {
 		std::cout << "Could not initialize engine" << std::endl;
 		return EXIT_FAILURE;
 	}
-
-	//ResourceWatcher::stop_watch_thread();
-	//ResourceWatcher::clear_watch();
-	//ResourceWatcher::join_watch_thread();
 
 	Resources::unloadAll();
 	Engine::shutdown();

@@ -24,7 +24,6 @@ FetchContent_Declare(
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/fmt
 )
 
-
 #flatbuffers
 set(FLATBUFFERS_BUILD_TESTS OFF)
 set(FLATBUFFERS_INSTALL OFF)
@@ -45,47 +44,6 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://github.com/discord/rapidxml.git
 	GIT_TAG        2ae4b2888165a393dfb6382168825fddf00c27b9
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/rapidxml
-)
-
-#zlib
-FetchContent_Declare(
-	zlib
-	URL			https://zlib.net/zlib-1.2.11.tar.gz
-    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
-)
-
-#libpng
-set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/zlib)
-set(PNG_SHARED OFF)
-set(PNG_TESTS OFF)
-set(PNG_BUILD_ZLIB ON)
-include_directories(${ZLIB_INCLUDE_DIR})
-FetchContent_Declare(
-	libpng
-	URL			https://download.sourceforge.net/libpng/libpng-1.6.37.tar.gz
-    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/libpng
-)
-
-# sdl
-FetchContent_Declare(
-	sdl
-	URL			https://www.libsdl.org/release/SDL2-2.0.14.tar.gz
-    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
-)
-
-# sdl_image
-FetchContent_Declare(
-	sdl_image
-	URL			https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.5.tar.gz
-    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_image
-)
-
-# glew
-FetchContent_Declare(
-	glew
-	URL			https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0.tgz/download
-    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glew
-	SOURCE_SUBDIR  build/cmake
 )
 
 # imgui
@@ -110,42 +68,97 @@ FetchContent_MakeAvailable(
 	fmt
 	flatbuffers
 	rapidxml
-	zlib
-	libpng
-	sdl
-	sdl_image
-	glew
 	imgui
 	implot
 )
 
-include_directories(
-	${zlib_BINARY_DIR}
-	${libpng_BINARY_DIR}
-)
-configure_file(
-	"${zlib_BINARY_DIR}/zconf.h"
-	"${zlib_SOURCE_DIR}/zconf.h"
-	COPYONLY
-)
-#configure_file(
-#	"${libpng_BINARY_DIR}/pnglibconf.h"
-#	"${libpng_SOURCE_DIR}/pnglibconf.h"
-#	COPYONLY
-#)
+if (NOT EMSCRIPTEN)
 
-# build sdl_image as library
-file(GLOB SDLIMG_SOURCES ${sdl_image_SOURCE_DIR}/*.c)
-file(GLOB SDLIMG_HEADERS ${sdl_image_SOURCE_DIR}/*.h)
-add_library(SDL2image STATIC 
-	${SDLIMG_SOURCES} 
-	${SDLIMG_HEADERS} 
+	# glew
+	FetchContent_Declare(
+		glew
+		URL			https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0.tgz/download
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glew
+		SOURCE_SUBDIR  build/cmake
 	)
-target_include_directories(SDL2image PRIVATE "${sdl_SOURCE_DIR}/include")
-target_include_directories(SDL2image PRIVATE "${sdl_image_SOURCE_DIR}")
-target_include_directories(SDL2image PRIVATE "${libpng_SOURCE_DIR}")
-target_link_libraries(SDL2image PUBLIC png_static)
-target_compile_definitions(SDL2image PRIVATE LOAD_PNG LOAD_BMP)
+
+	#zlib
+	FetchContent_Declare(
+		zlib
+		URL			https://zlib.net/zlib-1.2.11.tar.gz
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
+	)
+
+	#libpng
+	set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/zlib)
+	set(PNG_SHARED OFF)
+	set(PNG_TESTS OFF)
+	set(PNG_BUILD_ZLIB ON)
+	include_directories(${ZLIB_INCLUDE_DIR})
+	FetchContent_Declare(
+		libpng
+		URL			https://download.sourceforge.net/libpng/libpng-1.6.37.tar.gz
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/libpng
+	)
+
+	# sdl
+	FetchContent_Declare(
+		sdl
+		URL			https://www.libsdl.org/release/SDL2-2.0.14.tar.gz
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
+	)
+
+	# sdl_image
+	FetchContent_Declare(
+		sdl_image
+		URL			https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.5.tar.gz
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_image
+	)
+
+	FetchContent_MakeAvailable(
+		glew
+		zlib
+		libpng
+		sdl
+		sdl_image
+	)
+
+	include_directories(
+		${zlib_BINARY_DIR}
+		${libpng_BINARY_DIR}
+	)
+	configure_file(
+		"${zlib_BINARY_DIR}/zconf.h"
+		"${zlib_SOURCE_DIR}/zconf.h"
+		COPYONLY
+	)
+
+	# build sdl_image as library
+	file(GLOB SDLIMG_SOURCES ${sdl_image_SOURCE_DIR}/*.c)
+	file(GLOB SDLIMG_HEADERS ${sdl_image_SOURCE_DIR}/*.h)
+	add_library(SDL2image STATIC 
+		${SDLIMG_SOURCES} 
+		${SDLIMG_HEADERS} 
+	)
+	target_include_directories(SDL2image PRIVATE "${sdl_SOURCE_DIR}/include")
+	target_include_directories(SDL2image PRIVATE "${sdl_image_SOURCE_DIR}")
+	target_include_directories(SDL2image PRIVATE "${libpng_SOURCE_DIR}")
+	target_link_libraries(SDL2image PUBLIC png_static)
+	target_compile_definitions(SDL2image PRIVATE LOAD_PNG LOAD_BMP)
+
+else()
+	# emscripten
+	FetchContent_Declare(
+		emscripten
+		GIT_REPOSITORY	https://github.com/emscripten-core/emscripten.git
+		GIT_TAG			2.0.23
+    	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/emscripten
+	)
+	FetchContent_MakeAvailable(
+		emscripten
+	)
+
+endif()
 
 # build flatbuffers as a library
 add_library(flatbuffers STATIC 

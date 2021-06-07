@@ -14,6 +14,7 @@
 
 
 
+
 #if not defined(__FILENAME__)
 	#if defined(_WIN32)
 	#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
@@ -21,6 +22,7 @@
 	#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 	#endif
 #endif
+
 
 //namespace ff {
 
@@ -65,7 +67,11 @@ public:
 	// log internal call, use appropriate LOG_ macros instead
 	template<class... Args>
 	static void _log(level lvl, const std::string_view& file, int line, const std::string_view& format, Args&&...args) noexcept {
-		if (lvl < get_verbosity())
+
+
+
+
+		if (lvl < get_verbosity()) 
 			return;
 
 		std::string msgContent = fmt::format(format, std::forward<Args>(args)...);
@@ -95,11 +101,11 @@ private:
 	#define LOG_WARN( ... ) log::_log( log::level::WARN, __FILENAME__, __LINE__, __VA_ARGS__ );
 	#define LOG_ERR_( ... ) log::_log( log::level::ERR,  __FILENAME__, __LINE__, __VA_ARGS__ );
 #else
-	#define LOG_NONE( message )
-	#define LOG_STEP( message )
-	#define LOG_VERB( message )
-	#define LOG_INFO( message )
-	#define LOG_WARN( message )
-	#define LOG_ERR_( message )
+	#define LOG_NONE( ... )
+	#define LOG_STEP( ... )
+	#define LOG_VERB( ... )
+	#define LOG_INFO( ... )
+	#define LOG_WARN( ... )
+	#define LOG_ERR_( ... )
 #endif
 
