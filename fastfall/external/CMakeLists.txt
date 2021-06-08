@@ -104,7 +104,7 @@ if (NOT EMSCRIPTEN)
 	# sdl
 	FetchContent_Declare(
 		sdl
-		URL			https://www.libsdl.org/release/SDL2-2.0.14.tar.gz
+		URL			https://www.libsdl.org/release/SDL2-2.0.10.tar.gz
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
 	)
 
@@ -148,15 +148,15 @@ if (NOT EMSCRIPTEN)
 
 else()
 	# emscripten
-	FetchContent_Declare(
-		emscripten
-		GIT_REPOSITORY	https://github.com/emscripten-core/emscripten.git
-		GIT_TAG			2.0.23
-    	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/emscripten
-	)
-	FetchContent_MakeAvailable(
-		emscripten
-	)
+	#FetchContent_Declare(
+	#	emscripten
+	#	GIT_REPOSITORY	https://github.com/emscripten-core/emscripten.git
+	#	GIT_TAG			2.0.23
+    #	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/emscripten
+	#)
+	#FetchContent_MakeAvailable(
+	#	emscripten
+	#)
 
 endif()
 

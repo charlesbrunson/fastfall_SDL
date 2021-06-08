@@ -59,8 +59,8 @@ set(FF_LIBRARIES
 
 if(EMSCRIPTEN)
 	set(CMAKE_EXECUTABLE_SUFFIX .html)
-	set(USE_FLAGS "-sUSE_ZLIB=1 -sUSE_LIBPNG=1 -sUSE_SDL=2 -sUSE_SDL_IMAGE=2")
-	set_target_properties(test PROPERTIES LINK_FLAGS ${USE_FLAGS})
+	set(USE_FLAGS "-s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_SDL=2 -s SDL2_IMAGE=2 -s USE_SDL_IMAGE_FORMATS='[\"bmp\",\"png\"]'")
+	set_target_properties(fastfall PROPERTIES LINK_FLAGS ${USE_FLAGS})
 	
 	set(FF_INCLUDES
 		${FF_INCLUDES}
@@ -86,11 +86,11 @@ endif()
 
 
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-	target_compile_options(test PUBLIC -Wno-deprecated-volatile)
+	target_compile_options(fastfall PUBLIC -Wno-deprecated-volatile)
 	if(NOT EMSCRIPTEN)
-		target_compile_options(test PUBLIC -stdlib=libc++)
-		target_link_options(test PUBLIC -lz)
-		target_link_options(test PUBLIC -lc++)
+		target_compile_options(fastfall PUBLIC -stdlib=libc++)
+		target_link_options(fastfall PUBLIC -lz)
+		target_link_options(fastfall PUBLIC -lc++)
 	endif()
 endif()
 
