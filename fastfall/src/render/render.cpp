@@ -43,6 +43,10 @@ bool FFinit()
 
     checkSDL(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER));
 
+    SDL_version version;
+    SDL_GetVersion(&version);
+    LOG_INFO("{:6} {}.{}.{}", "SDL", version.major, version.minor, version.patch);
+
     checkSDL(SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
     checkSDL(SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1));
 
@@ -114,6 +118,12 @@ void FFinitGLEW() {
         throw std::string("Unable to init glew: ") + (char*)glewGetErrorString(glew_err);
     }
     glewInitialized = true;
+    LOG_INFO("{:6} {}", "GLEW", glewGetString(GLEW_VERSION));
+
+    GLint glvmajor, glvminor;
+    glGetIntegerv(GL_MAJOR_VERSION, &glvmajor);
+    glGetIntegerv(GL_MINOR_VERSION, &glvminor);
+    LOG_INFO("{:6} {}.{}", "OpenGL", glvmajor, glvminor);
 
     ShaderProgram::getDefaultProgram();
 

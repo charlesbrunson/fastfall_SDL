@@ -110,6 +110,13 @@ if (NOT EMSCRIPTEN)
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/libpng
 	)
 
+	# sdl
+	FetchContent_Declare(
+		sdl
+		URL			https://www.libsdl.org/release/SDL2-2.0.10.tar.gz
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
+	)
+
 	# sdl_image
 	FetchContent_Declare(
 		sdl_image
@@ -147,18 +154,6 @@ if (NOT EMSCRIPTEN)
 	target_include_directories(SDL2image PRIVATE "${libpng_SOURCE_DIR}")
 	target_link_libraries(SDL2image PUBLIC png_static)
 	target_compile_definitions(SDL2image PRIVATE LOAD_PNG LOAD_BMP)
-
-else()
-	# emscripten
-	#	FetchContent_Declare(
-	#		emscripten
-	#		GIT_REPOSITORY	https://github.com/emscripten-core/emscripten.git
-	#		GIT_TAG			2.0.23
-	#    	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/emscripten
-	#	)
-	#	FetchContent_MakeAvailable(
-	#		emscripten
-	#	)
 
 endif()
 
