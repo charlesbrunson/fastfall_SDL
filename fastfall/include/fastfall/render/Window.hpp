@@ -64,6 +64,8 @@ public:
 
 	unsigned int getID();
 
+	inline bool valid() { return m_window != nullptr; };
+
 private:
 
 	void init();

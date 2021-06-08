@@ -49,7 +49,7 @@ bool FFinit()
 
     SDL_version version;
     SDL_GetVersion(&version);
-    LOG_INFO("{:6} {}.{}.{}", "SDL", version.major, version.minor, version.patch);
+    LOG_INFO("{:>10} {}.{}.{}", "SDL", version.major, version.minor, version.patch);
 
     checkSDL(SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
     checkSDL(SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1));
@@ -73,7 +73,7 @@ bool FFinit()
     int flags = IMG_INIT_PNG;
     int outflags = IMG_Init(flags);
     if (outflags != flags) {
-        std::cout << IMG_GetError();
+        LOG_ERR_("IMG init failed: {}", IMG_GetError());
         renderInitialized = false;
     }
 
@@ -98,26 +98,30 @@ void FFinitGLEW() {
 
     GLenum glew_err = glewInit();
     if (GLEW_OK != glew_err) {
-        throw std::string("Unable to init glew: ") + (char*)glewGetErrorString(glew_err);
+        glewInitialized = false;
+        std::string err = (char*)glewGetErrorString(glew_err);
+        LOG_ERR_("Unable to init glew: {}", err);
+        return;
     }
     glewInitialized = true;
-    LOG_INFO("{:6} {}", "GLEW", glewGetString(GLEW_VERSION));
+    LOG_INFO("{:>10} {}", "GLEW", glewGetString(GLEW_VERSION));
+
 
     GLint glvmajor, glvminor;
     glGetIntegerv(GL_MAJOR_VERSION, &glvmajor);
     glGetIntegerv(GL_MINOR_VERSION, &glvminor);
-    LOG_INFO("{:6} {}.{}", "OpenGL", glvmajor, glvminor);
+#if defined(__EMSCRIPTEN__)
+    LOG_INFO("{:>10} {}.{}", "OpenGL ES", glvmajor, glvminor);
+#else
+    LOG_INFO("{:>10} {}.{}", "OpenGL", glvmajor, glvminor);
+#endif
 
     ShaderProgram::getDefaultProgram();
-
     LOG_INFO("Loaded default shader");
 
 #if not defined(__EMSCRIPTEN__)
     glCheck(glEnable(GL_DEBUG_OUTPUT));
     glDebugMessageCallback(MessageCallback, 0);
-    //glCheck(glDisable(GL_LIGHTING));
-    //glCheck(glDisable(GL_ALPHA_TEST));
-    //glCheck(glEnable(GL_TEXTURE_2D));
 #endif
 
     glCheck(glDisable(GL_CULL_FACE));

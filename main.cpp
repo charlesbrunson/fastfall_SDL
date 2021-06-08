@@ -55,8 +55,16 @@ int main(int argc, char* argv[])
 
 	// need to create window before loading resources :(
 	std::unique_ptr<Window> window = std::make_unique<Window>();
-
-	Resources::loadAll(Resources::AssetSource::INDEX_FILE, "fileindex.xml");
+	if (!window->valid()) {
+		LOG_ERR_("Could not initialize window");
+		return EXIT_FAILURE;
+	}
+	
+	bool result = Resources::loadAll(Resources::AssetSource::INDEX_FILE, "fileindex.xml");
+	if (!result) {
+		LOG_ERR_("Could not load assets");
+		return EXIT_FAILURE;
+	}
 
 	Engine::init(
 		std::move(window),
@@ -66,12 +74,10 @@ int main(int argc, char* argv[])
 	);
 
 	if (Engine::getInstance().isInit()) {
-
 		Engine::getInstance().run();
-
 	}
 	else {
-		std::cout << "Could not initialize engine" << std::endl;
+		LOG_ERR_("Could not initialize engine");
 		return EXIT_FAILURE;
 	}
 

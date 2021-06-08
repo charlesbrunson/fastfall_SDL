@@ -72,6 +72,8 @@ Engine::Engine(
     ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Engine", "System")
 {
 
+
+
     // use first runnable to determine if we need a window
     addRunnable(std::move(toRun));
     //windowless = runnables.back().getRTexture() != nullptr;
@@ -83,7 +85,7 @@ Engine::Engine(
     initRenderTarget(false);
 
     initialized = true;
-    if (runnables.empty()) {
+    if (runnables.empty() || (window && !window->valid())) {
         initialized = false;
     }
 

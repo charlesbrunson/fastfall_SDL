@@ -19,7 +19,8 @@ Window::Window()
 	) }
 {
 	init();
-	m_id = SDL_GetWindowID(m_window);
+	if (m_window)
+		m_id = SDL_GetWindowID(m_window);
 }
 
 Window::Window(const char* title, unsigned initWidth, unsigned initHeight)
@@ -34,7 +35,8 @@ Window::Window(const char* title, unsigned initWidth, unsigned initHeight)
 	) }
 {	
 	init();
-	m_id = SDL_GetWindowID(m_window);
+	if (m_window)
+		m_id = SDL_GetWindowID(m_window);
 }
 
 
@@ -50,7 +52,9 @@ Window::Window(std::string_view title, unsigned initWidth, unsigned initHeight)
 	)}
 {
 	init();
-	m_id = SDL_GetWindowID(m_window);
+
+	if (m_window)
+		m_id = SDL_GetWindowID(m_window);
 }
 
 void Window::init() {
@@ -60,6 +64,11 @@ void Window::init() {
 	checkSDL(m_context);
 
 	ff::FFinitGLEW();
+	if (!FFisGLEWInit()) {
+		SDL_DestroyWindow(m_window);
+		m_window = nullptr;
+		return;
+	}
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplSDL2_InitForOpenGL(m_window, m_context);
@@ -76,7 +85,9 @@ void Window::init() {
 Window::~Window() 
 {
 	SDL_GL_DeleteContext(m_context);
-	SDL_DestroyWindow(m_window);
+
+	if (m_window)
+		SDL_DestroyWindow(m_window);
 }
 
 SDL_Window* Window::getSDL_Window() const
@@ -162,6 +173,7 @@ glm::ivec2 Window::getPosition() {
 }
 
 void Window::display() {
+	glFinish();
 	SDL_GL_SwapWindow(m_window);
 }
 

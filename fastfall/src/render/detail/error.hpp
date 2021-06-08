@@ -17,7 +17,7 @@ namespace ff {
     inline void checkSDL(int result) {
         if (result < 0) {
             std::string err = SDL_GetError();
-            LOG_ERR_(err);
+            LOG_ERR_("checkSDL: {}", err);
             throw Error(err);
         }
     }
@@ -26,7 +26,7 @@ namespace ff {
     auto checkSDL(ObjectPtr pObject) {
         if (pObject == nullptr) {
             std::string err = SDL_GetError();
-            LOG_ERR_(err);
+            LOG_ERR_("checkSDL: {}", err);
             throw Error(err);
         }
         return pObject;
