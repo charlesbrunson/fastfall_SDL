@@ -287,6 +287,7 @@ void Engine::runUpdate(std::barrier<>* bar) {
 // -------------------------------------------
 
 bool Engine::run_emscripten() {
+#if defined(__EMSCRIPTEN__)
 	
     prerun_init();
 
@@ -302,7 +303,7 @@ bool Engine::run_emscripten() {
     //running = false;
 
     //ff::glDeleteStale();
-
+#endif
     return true;
 
 }
@@ -438,7 +439,7 @@ void Engine::cleanRunnables() {
 }
 
 void Engine::sleep() {
-    clock.sleepUntilTick();
+    clock.sleepUntilTick(window && settings.vsyncEnabled);
     if (window) {
         displayStart = std::chrono::steady_clock::now();
         window->display();

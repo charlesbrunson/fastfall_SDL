@@ -118,12 +118,11 @@ void ShaderProgram::add(ShaderType type, const std::string_view shader_code) {
 	assert(!isLinked());
 
 	if (!isInitialized()) {
-		id = glCreateProgram();
-		glCheck();
+		glCheck(id = glCreateProgram());
 	}
 
-	GLint shader_id = glCreateShader(type == ShaderType::VERTEX ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
-	glCheck();
+	GLint shader_id;
+	glCheck(shader_id = glCreateShader(type == ShaderType::VERTEX ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER));
 	shaders.push_back(shader_id);
 
 	GLint len = shader_code.length();

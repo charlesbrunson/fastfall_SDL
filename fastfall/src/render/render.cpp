@@ -112,12 +112,12 @@ void FFinitGLEW() {
 
     LOG_INFO("Loaded default shader");
 
-    //glDebugMessageCallback(MessageCallback, 0);
 #if not defined(__EMSCRIPTEN__)
     glCheck(glEnable(GL_DEBUG_OUTPUT));
-    glCheck(glDisable(GL_LIGHTING));
-    glCheck(glDisable(GL_ALPHA_TEST));
-    glCheck(glEnable(GL_TEXTURE_2D));
+    glDebugMessageCallback(MessageCallback, 0);
+    //glCheck(glDisable(GL_LIGHTING));
+    //glCheck(glDisable(GL_ALPHA_TEST));
+    //glCheck(glEnable(GL_TEXTURE_2D));
 #endif
 
     glCheck(glDisable(GL_CULL_FACE));

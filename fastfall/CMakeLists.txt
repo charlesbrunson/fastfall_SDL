@@ -139,7 +139,6 @@ target_link_libraries(fastfall PUBLIC ${FF_LIBRARIES})
 # compile definitions
 target_compile_definitions(fastfall PUBLIC
 	IMGUI_IMPL_OPENGL_LOADER_GLEW
-	IMGUI_IMPL_OPENGL_ES3
 )
 
 target_compile_definitions(fastfall PRIVATE
@@ -151,6 +150,9 @@ if(NOT EMSCRIPTEN)
 		FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
 	)
 else()
+	target_compile_definitions(fastfall PUBLIC
+		IMGUI_IMPL_OPENGL_ES3
+	)
 	target_compile_definitions(fastfall PRIVATE
 		FF_DATA_DIR=""
 	)
