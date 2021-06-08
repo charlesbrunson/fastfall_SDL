@@ -66,7 +66,7 @@ Engine::Engine(
 
     ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Engine", "System")
 {
-    
+
     // use first runnable to determine if we need a window
     addRunnable(std::move(toRun));
     //windowless = runnables.back().getRTexture() != nullptr;
@@ -74,7 +74,7 @@ Engine::Engine(
     stepUpdate = false;
     pauseUpdate = false;
     maxDeltaTime = secs(1.0 / 60.0);
-        
+
     initRenderTarget(false);
 
     initialized = true;
@@ -728,6 +728,7 @@ void Engine::ImGui_getContent() {
         roller %= last;
     }
 
+
     if (ImGui::CollapsingHeader("Framerate Graph", ImGuiTreeNodeFlags_DefaultOpen)) {
 
         ImPlot::SetNextPlotLimits(0.0, (arrsize - 1), 0.0, denom * 2.f, ImGuiCond_Always);
@@ -824,6 +825,7 @@ void Engine::ImGui_getExtraContent() {
 unsigned getDisplayRefreshRate(const Window& win) {
 
     SDL_DisplayMode mode;
+
     int displayIndex = SDL_GetWindowDisplayIndex(win.getSDL_Window());
 
     int defaultRefreshRate = 60;

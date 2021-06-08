@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : CMake project for fastfall_SDL, include source and define
 # project specific logic here.
 #
-cmake_minimum_required (VERSION 3.19)
+cmake_minimum_required (VERSION 3.16)
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
@@ -39,9 +39,7 @@ add_custom_target(fbs_compiled
 set(FF_INCLUDES
 	${CMAKE_CURRENT_SOURCE_DIR}/include
 
-	${CMAKE_CURRENT_SOURCE_DIR}/external/sdl/include
-	${CMAKE_CURRENT_SOURCE_DIR}/external/sdl_image
-	
+
 	${CMAKE_CURRENT_SOURCE_DIR}/external/rapidxml
 	${CMAKE_CURRENT_SOURCE_DIR}/external/fmt/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers/include
@@ -57,42 +55,26 @@ set(FF_LIBRARIES
 	flatbuffers
 )
 
-if(EMSCRIPTEN)
-	set(CMAKE_EXECUTABLE_SUFFIX .html)
-	set(USE_FLAGS "-sUSE_ZLIB=1 -sUSE_LIBPNG=1 -sUSE_SDL=2 -sUSE_SDL_IMAGE=2")
-	set_target_properties(test PROPERTIES LINK_FLAGS ${USE_FLAGS})
-	
-	set(FF_INCLUDES
-		${FF_INCLUDES}
-		${CMAKE_CURRENT_SOURCE_DIR}/external/emscripten/system/include
-	)
 
-else()
+if(NOT EMSCRIPTEN)
 
 	set(FF_INCLUDES
 		${FF_INCLUDES}
 		${CMAKE_CURRENT_SOURCE_DIR}/external/glew/include
+		${CMAKE_CURRENT_SOURCE_DIR}/external/sdl_image
+		${CMAKE_CURRENT_SOURCE_DIR}/external/sdl/include
 	)
 
 	set(FF_LIBRARIES 
 		${FF_LIBRARIES}
 		zlibstatic
-		SDL2main
-		SDL2-static
 		SDL2image 
 		glew_s
+		SDL2main
+		SDL2-static
 	)
 endif()
 
-
-if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-	target_compile_options(test PUBLIC -Wno-deprecated-volatile)
-	if(NOT EMSCRIPTEN)
-		target_compile_options(test PUBLIC -stdlib=libc++)
-		target_link_options(test PUBLIC -lz)
-		target_link_options(test PUBLIC -lc++)
-	endif()
-endif()
 
 # grab fastfall source
 file(GLOB_RECURSE FF_SOURCES 
@@ -130,6 +112,21 @@ set(FF_HEADERS
 
 add_library (fastfall STATIC ${FF_SOURCES} ${FF_HEADERS})
 
+
+if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+	target_compile_options(fastfall PUBLIC -Wno-deprecated-volatile)
+	if(NOT EMSCRIPTEN)
+		target_compile_options(fastfall PUBLIC -stdlib=libc++)
+		target_link_options(fastfall PUBLIC -lz)
+		target_link_options(fastfall PUBLIC -lc++)
+	else()
+		set(CMAKE_EXECUTABLE_SUFFIX .html)
+		set(USE_FLAGS "-s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"bmp\",\"png\"]' -s FULL_ES3=1 -s WASM=1 -s OFFSCREEN_FRAMEBUFFER=1 -g")
+		set_target_properties(fastfall PROPERTIES LINK_FLAGS "${USE_FLAGS} --emrun")
+		set_target_properties(fastfall PROPERTIES COMPILE_FLAGS ${USE_FLAGS})
+	endif()
+endif()
+
 # depends on compiled flatbuffers headers
 add_dependencies(fastfall fbs_compiled)
 
@@ -140,11 +137,13 @@ target_include_directories(fastfall PUBLIC ${FF_INCLUDES})
 target_link_libraries(fastfall PUBLIC ${FF_LIBRARIES})
 
 # compile definitions
-target_compile_definitions(fastfall PRIVATE
+target_compile_definitions(fastfall PUBLIC
 	IMGUI_IMPL_OPENGL_LOADER_GLEW
+	IMGUI_IMPL_OPENGL_ES3
 )
 
 target_compile_definitions(fastfall PRIVATE
 	DEBUG
 	FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
 )
+

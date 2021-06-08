@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : Top-level CMake project file, do global configuration
 # and include sub-projects here.
 #
-cmake_minimum_required (VERSION 3.19)
+cmake_minimum_required (VERSION 3.16)
 
 project ("fastfall_test_project")
 
@@ -32,3 +32,10 @@ target_link_libraries(test_project PRIVATE
 )
 
 target_compile_definitions(test_project PUBLIC DEBUG)
+
+if(EMSCRIPTEN)
+	set(CMAKE_EXECUTABLE_SUFFIX .html)
+	set(USE_FLAGS "-s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"bmp\",\"png\"]' -s FULL_ES3=1 -s WASM=1 -s OFFSCREEN_FRAMEBUFFER=1 -g")
+	set_target_properties(test_project PROPERTIES LINK_FLAGS "${USE_FLAGS} --emrun")
+	set_target_properties(test_project PROPERTIES COMPILE_FLAGS ${USE_FLAGS})
+endif()

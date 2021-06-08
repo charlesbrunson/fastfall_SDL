@@ -52,7 +52,7 @@ FetchContent_Declare(
 	GIT_REPOSITORY	https://github.com/ocornut/imgui.git
 	GIT_TAG			docking # docking branch
 	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-    SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/imgui
+    	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/imgui
 )
 
 # implot
@@ -72,9 +72,18 @@ FetchContent_MakeAvailable(
 	implot
 )
 
+
 if (NOT EMSCRIPTEN)
 
+	# sdl
+	FetchContent_Declare(
+		sdl
+		URL			https://www.libsdl.org/release/SDL2-2.0.10.tar.gz
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
+	)
+
 	# glew
+	set(BUILD_UTILS OFF)
 	FetchContent_Declare(
 		glew
 		URL			https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0.tgz/download
@@ -99,13 +108,6 @@ if (NOT EMSCRIPTEN)
 		libpng
 		URL			https://download.sourceforge.net/libpng/libpng-1.6.37.tar.gz
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/libpng
-	)
-
-	# sdl
-	FetchContent_Declare(
-		sdl
-		URL			https://www.libsdl.org/release/SDL2-2.0.14.tar.gz
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
 	)
 
 	# sdl_image
@@ -148,15 +150,15 @@ if (NOT EMSCRIPTEN)
 
 else()
 	# emscripten
-	FetchContent_Declare(
-		emscripten
-		GIT_REPOSITORY	https://github.com/emscripten-core/emscripten.git
-		GIT_TAG			2.0.23
-    	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/emscripten
-	)
-	FetchContent_MakeAvailable(
-		emscripten
-	)
+	#	FetchContent_Declare(
+	#		emscripten
+	#		GIT_REPOSITORY	https://github.com/emscripten-core/emscripten.git
+	#		GIT_TAG			2.0.23
+	#    	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/emscripten
+	#	)
+	#	FetchContent_MakeAvailable(
+	#		emscripten
+	#	)
 
 endif()
 
