@@ -101,6 +101,7 @@ private:
 	bool run_doubleThread();
 	bool run_singleThread();
 	bool run_emscripten();
+	static void emscripten_loop(void* engine_ptr);
 
 	void prerun_init();
 

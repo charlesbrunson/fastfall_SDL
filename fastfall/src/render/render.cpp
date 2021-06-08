@@ -14,6 +14,10 @@
 #include <stack>
 #include <mutex>
 
+#if defined(__EMSCRIPTEN__)
+#include "emscripten.h"
+#endif
+
 namespace ff {
 namespace {
     bool renderInitialized = false;
@@ -54,12 +58,17 @@ bool FFinit()
     checkSDL(SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8));
     checkSDL(SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8));
     checkSDL(SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8));
+    checkSDL(SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0));
 
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
-
+#if defined(__EMSCRIPTEN__)
+    checkSDL(SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3));
+    checkSDL(SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0));
+    checkSDL(SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES));
+#else
     checkSDL(SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3));
     checkSDL(SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3));
     checkSDL(SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE));
+#endif
 
     int flags = IMG_INIT_PNG;
     int outflags = IMG_Init(flags);
@@ -67,32 +76,6 @@ bool FFinit()
         std::cout << IMG_GetError();
         renderInitialized = false;
     }
-
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_ALPHA_TEST);
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_BLEND);
-
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-    ImGui::StyleColorsDark();
-
-    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-    ImGuiStyle& style = ImGui::GetStyle();
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
-        style.WindowRounding = 0.0f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-    }
-
-    ImPlot::CreateContext();
 
     return renderInitialized;
 }
@@ -127,8 +110,39 @@ void FFinitGLEW() {
 
     ShaderProgram::getDefaultProgram();
 
-    glEnable(GL_DEBUG_OUTPUT);
+    LOG_INFO("Loaded default shader");
+
     //glDebugMessageCallback(MessageCallback, 0);
+#if not defined(__EMSCRIPTEN__)
+    glCheck(glEnable(GL_DEBUG_OUTPUT));
+    glCheck(glDisable(GL_LIGHTING));
+    glCheck(glDisable(GL_ALPHA_TEST));
+    glCheck(glEnable(GL_TEXTURE_2D));
+#endif
+
+    glCheck(glDisable(GL_CULL_FACE));
+    glCheck(glDisable(GL_DEPTH_TEST));
+    glCheck(glEnable(GL_BLEND));
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+    ImGui::StyleColorsDark();
+
+    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+    ImGuiStyle& style = ImGui::GetStyle();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        style.WindowRounding = 0.0f;
+        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+    }
+
+    ImPlot::CreateContext();
+
 }
 
 bool FFisGLEWInit() {

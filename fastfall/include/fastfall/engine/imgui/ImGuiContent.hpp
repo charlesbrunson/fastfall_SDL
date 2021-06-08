@@ -18,7 +18,7 @@ constexpr int ImGuiContentTypeCount = 3;
 
 class ImGuiContent {
 private:
-	bool isOpen = false;
+	bool isOpen = true;
 	bool isMenu = false;
 
 	std::string contentTag;

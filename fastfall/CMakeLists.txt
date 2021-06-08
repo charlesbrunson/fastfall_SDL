@@ -121,7 +121,7 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 		target_link_options(fastfall PUBLIC -lc++)
 	else()
 		set(CMAKE_EXECUTABLE_SUFFIX .html)
-		set(USE_FLAGS "-s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"bmp\",\"png\"]' -s FULL_ES3=1 -s WASM=1 -s OFFSCREEN_FRAMEBUFFER=1 -g")
+		set(USE_FLAGS "-s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"bmp\",\"png\"]' -s FULL_ES3=1 -s WASM=1 -s OFFSCREEN_FRAMEBUFFER=1 -g --preload-file ../data@/data --preload-file ../gamecontrollerdb.txt@/gamecontrollerdb.txt -s ALLOW_MEMORY_GROWTH=1")
 		set_target_properties(fastfall PROPERTIES LINK_FLAGS "${USE_FLAGS} --emrun")
 		set_target_properties(fastfall PROPERTIES COMPILE_FLAGS ${USE_FLAGS})
 	endif()
@@ -144,6 +144,14 @@ target_compile_definitions(fastfall PUBLIC
 
 target_compile_definitions(fastfall PRIVATE
 	DEBUG
-	FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
 )
 
+if(NOT EMSCRIPTEN)
+	target_compile_definitions(fastfall PRIVATE
+		FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
+	)
+else()
+	target_compile_definitions(fastfall PRIVATE
+		FF_DATA_DIR=""
+	)
+endif()

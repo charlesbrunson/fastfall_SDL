@@ -4,6 +4,9 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 fastfall/external/*/*
+build/*
+build_em/*
+compile_commands.json
 
 # User-specific files
 *.rsuser

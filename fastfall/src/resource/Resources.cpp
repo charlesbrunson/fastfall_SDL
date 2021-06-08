@@ -537,10 +537,10 @@ void Resources::loadControllerDB() {
 		int r = SDL_GameControllerAddMappingsFromFile(path.c_str());
 
 		if (r >= 0) {
-			LOG_INFO("Loaded gamecontrollerdb.txt");
+			LOG_INFO("Loaded {}", path);
 		}
 		else {
-			LOG_WARN("Unable to load gamecontrollerdb.txt");
+			LOG_WARN("Unable to load {}", path);
 		}
 		loadedControllerDB = true;
 	}

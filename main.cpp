@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 	Engine::init(
 		std::move(window),
 		EngineRunnable(std::make_unique<TestState>()),
-		Vec2u(1920, 1080),
+		Vec2u(1600, 900),
 		getSettings()
 	);
 
@@ -75,12 +75,14 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
+#if not defined(__EMSCRIPTEN__)
 	Resources::unloadAll();
 	Engine::shutdown();
 
 	ImGuiFrame::getInstance().clear();
 
 	FFquit();
+#endif
 
 	return EXIT_SUCCESS;
 }

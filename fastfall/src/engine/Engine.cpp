@@ -24,6 +24,11 @@
 
 #include "fmt/format.h"
 
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
+
+
 namespace ff {
 
 unsigned getDisplayRefreshRate(const Window& win);
@@ -225,7 +230,7 @@ bool Engine::run_doubleThread()
         updateView();
 
         drawRunnables();
-                        
+
         bar.arrive_and_wait();
 
         updateImGui();
@@ -282,9 +287,53 @@ void Engine::runUpdate(std::barrier<>* bar) {
 // -------------------------------------------
 
 bool Engine::run_emscripten() {
-    // TODO
-    return false;
+	
+    prerun_init();
 
+    running = true;
+
+	emscripten_set_main_loop_arg(Engine::emscripten_loop, this, 0, false);
+
+    // clean up
+    //close();
+
+    //LOG_INFO("Run thread shutting down");
+
+    //running = false;
+
+    //ff::glDeleteStale();
+
+    return true;
+
+}
+
+void Engine::emscripten_loop(void* engine_ptr) {
+	Engine* engine = (Engine*)engine_ptr;
+
+	if(!engine->isRunning() || engine->runnables.empty())
+		return;
+
+	engine->updateTimer();
+
+	Input::update(engine->deltaTime);
+
+	engine->updateRunnables();
+
+	engine->predrawRunnables();
+
+	engine->updateView();
+
+	engine->drawRunnables();
+
+	engine->updateImGui();
+
+	engine->updateStateHandler();
+
+	engine->cleanRunnables();
+
+	ff::glDeleteStale();
+
+	engine->sleep();
 }
 
 // -------------------------------------------
@@ -411,6 +460,8 @@ void Engine::handleEvents(bool* timeWasted)
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
+		ImGui_ImplSDL2_ProcessEvent(&event);
+
         switch (event.type) {
         case SDL_WINDOWEVENT:
             switch (event.window.event) {

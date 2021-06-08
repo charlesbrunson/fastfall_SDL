@@ -63,7 +63,12 @@ void Window::init() {
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplSDL2_InitForOpenGL(m_window, m_context);
+
+#if defined(__EMSCRIPTEN__)
+	glCheck(ImGui_ImplOpenGL3_Init("#version 300 es"));
+#else
 	glCheck(ImGui_ImplOpenGL3_Init("#version 330"));
+#endif
 
 	setDefaultView();
 }

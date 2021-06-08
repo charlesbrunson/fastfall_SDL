@@ -10,6 +10,43 @@ namespace ff {
 
 namespace {
 
+#if defined(__EMSCRIPTEN__)
+	static const std::string_view vertex_default = 
+	R"(#version 300 es
+
+	layout(location = 0) in vec2 i_position;
+	layout(location = 1) in vec4 i_color;
+	layout(location = 2) in vec2 i_texcoord;
+
+	out vec4 v_color;
+	out vec2 v_texcoord;
+
+	uniform mat3 model;
+	uniform mat3 view;
+	uniform mat3 subtexture;
+
+	void main() {
+		v_texcoord = i_texcoord;
+		v_color = i_color;
+		gl_Position = vec4( view * model * vec3( i_position, 1.0 ), 1.0);
+	})";
+
+	static const std::string_view fragment_default = 
+	R"(#version 300 es
+
+	precision mediump float;
+	in vec4 v_color;
+	in vec2 v_texcoord;
+
+	out vec4 FragColor;
+
+	uniform sampler2D Texture;
+
+	void main() {
+		FragColor = texture(Texture, v_texcoord) * v_color;
+	})";
+
+#else
 	static const std::string_view vertex_default = R"(
 	#version 330 core
 
@@ -43,6 +80,8 @@ namespace {
 	void main() {
 		FragColor = texture(Texture, v_texcoord) * v_color;
 	})";
+
+#endif
 
 }
 
@@ -80,14 +119,17 @@ void ShaderProgram::add(ShaderType type, const std::string_view shader_code) {
 
 	if (!isInitialized()) {
 		id = glCreateProgram();
+		glCheck();
 	}
 
-	shaders.push_back(glCreateShader(type == ShaderType::VERTEX ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER));
+	GLint shader_id = glCreateShader(type == ShaderType::VERTEX ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
+	glCheck();
+	shaders.push_back(shader_id);
 
 	GLint len = shader_code.length();
 	const GLchar* data = shader_code.data();
-	glShaderSource(shaders.back(), 1, &data, NULL);
-	glCompileShader(shaders.back());
+	glCheck(glShaderSource(shaders.back(), 1, &data, NULL));
+	glCheck(glCompileShader(shaders.back()));
 
 	GLint status;
 	glGetShaderiv(shaders.back(), GL_COMPILE_STATUS, &status);
@@ -101,16 +143,18 @@ void ShaderProgram::add(ShaderType type, const std::string_view shader_code) {
 		glDeleteShader(shaders.back());
 		shaders.pop_back();
 
+		LOG_ERR_("Could not compile shader: {}", log);
+
 		throw Error(std::string("Could not compile shader: \n") + log);
 	}
-	glAttachShader(id, shaders.back());
+	glCheck(glAttachShader(id, shaders.back()));
 }
 
 void ShaderProgram::link() {
 	if (isLinked())
 		return;
 
-	glLinkProgram(id);
+	glCheck(glLinkProgram(id));
 
 	GLint status;
 	glGetProgramiv(id, GL_LINK_STATUS, &status);
