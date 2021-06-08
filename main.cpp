@@ -26,7 +26,7 @@ ff::EngineSettings getSettings() {
 #endif
 
 #if defined(DEBUG)
-	settings.showDebug = true;
+	settings.showDebug = false;
 #else
 	settings.showDebug = false;
 #endif
