@@ -1,6 +1,8 @@
 
 #include "Player.hpp"
 
+#include <functional>
+
 using namespace ff;
 
 GameObjectLibrary::Entry<Player> plr_type{ 
@@ -16,24 +18,23 @@ GameObjectLibrary::Entry<Player> plr_type{
 
 namespace constants {
 
-	AnimIDRef a_idle("player", "idle");
-	AnimIDRef a_land("player", "land");
-	AnimIDRef a_run("player", "running");
-	AnimIDRef a_jump("player", "jump");
-	AnimIDRef a_fall("player", "fall");
+	AnimIDRef a_idle  ("player", "idle");
+	AnimIDRef a_land  ("player", "land");
+	AnimIDRef a_run   ("player", "running");
+	AnimIDRef a_jump  ("player", "jump");
+	AnimIDRef a_fall  ("player", "fall");
+	//AnimIDRef a_jump_f("player", "jump_f");
+	//AnimIDRef a_fall_f("player", "fall_f");
 
-	AnimIDRef a_jump_f("player", "jump_f");
-	AnimIDRef a_fall_f("player", "fall_f");
+	const Friction braking{ .stationary = 1.2f, .kinetic = 0.8f };
+	const Friction moving{ .stationary = 0.f,  .kinetic = 0.f };
 
+	const float max_speed = 500.f;
+	const float norm_speed = 200.f;
+	const float jumpVelY = -200.f;
 
-	Friction braking{ .stationary = 1.2f, .kinetic = 0.8f };
-	Friction moving{ .stationary = 0.f,  .kinetic = 0.f };
-
-	float max_speed = 500.f;
-	float norm_speed = 200.f;
-
-	float jumpVelY = -190.f;
-
+	const Vec2f grav_normal{ 0.f, 500.f };
+	const Vec2f grav_light{ 0.f, 350.f };
 }
 
 using namespace constants;
@@ -44,7 +45,7 @@ Player::Player(GameContext instance, const ObjectRef& ref) :
 	Collidable myBox(instance);
 	myBox.init(Vec2f(ref.position), Vec2f(8.f, 28.f));
 	box = context.collision()->createCollidable(std::move(myBox));
-	box->set_gravity(Vec2f{ 0.f, 450.f });
+	box->set_gravity(grav_normal);
 
 	ground = &box->create_tracker(Angle::Degree(-135), Angle::Degree(-45));
 	ground->has_friction = true;
@@ -62,7 +63,7 @@ Player::Player(GameContext instance, const ObjectRef& ref) :
 
 	drawPriority = 0;
 
-	sprite.set_anim(a_idle.id());
+	sprite.set_anim(a_idle);
 
 	sprite.set_pos(box->getPosition());
 };
@@ -90,6 +91,8 @@ void Player::update(secs deltaTime) {
 
 	sprite.set_playback(1.f);
 
+	box->set_gravity(grav_normal);
+
 	// on ground
 	if (ground->has_contact()) {
 		box->setSlipNone();
@@ -104,7 +107,7 @@ void Player::update(secs deltaTime) {
 			ground->traverse_set_max_speed(
 				std::max(norm_speed, std::min(std::abs(speed), max_speed))
 			);
-			sprite.set_anim(a_land.id());
+			sprite.set_anim(a_land);
 		}
 		else {
 			ground->traverse_set_max_speed(
@@ -120,10 +123,10 @@ void Player::update(secs deltaTime) {
 
 		if (abs(speed) <= 100.f && wishx == 0
 			|| abs(speed) <= 5.f && wishx != 0) {
-			sprite.set_anim_if_not(a_idle.id());
+			sprite.set_anim_if_not(a_idle);
 		}
 		else {
-			sprite.set_anim_if_not(a_run.id());
+			sprite.set_anim_if_not(a_run);
 
 			sprite.set_playback(
 				std::max(
@@ -136,7 +139,7 @@ void Player::update(secs deltaTime) {
 		if (Input::isPressed(InputType::JUMP, 0.1f)) {
 			Input::confirmPress(InputType::JUMP);
 
-			sprite.set_anim(a_jump.id());
+			sprite.set_anim(a_jump);
 
 			ground->slope_sticking = false;
 
@@ -178,26 +181,24 @@ void Player::update(secs deltaTime) {
 			box->setSlipNone();
 		}
 
+		if (abs(box->get_vel().y) < 50.f) {
+			box->set_gravity(grav_light);
+		}
+
 		// flight control
 		int wishy = (int)Input::isHeld(InputType::DOWN) - (int)Input::isHeld(InputType::UP);
 		box->add_accelY(600.f * wishy);
 
 		if (ground->get_air_time() > 0.05
-			&& !sprite.is_playing_any({ a_jump.id(), a_fall.id() })
-			)
+			&& !sprite.is_playing_any({ a_jump, a_fall }))
 		{
-			sprite.set_anim(a_fall.id());
+			sprite.set_anim(a_fall);
 			sprite.set_frame(2);
 		}
-		else if ( (sprite.is_complete(a_jump.id()) || sprite.is_complete(a_jump_f.id()))
-			&& box->get_vel().y > -100.f) {
-
-			if (sprite.is_playing(a_jump.id())) {
-				sprite.set_anim(a_fall.id());
-			}
-			else {
-				sprite.set_anim(a_fall_f.id());
-			}
+		else if (sprite.is_complete(a_jump)
+			&& box->get_vel().y > -100.f) 
+		{
+			sprite.set_anim(a_fall);
 		}
 
 		ground->slope_sticking = false;

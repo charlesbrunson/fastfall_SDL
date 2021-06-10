@@ -31,24 +31,22 @@ public:
 	inline bool has_anim() noexcept { return animation != nullptr; };
 	inline const Animation* get_anim() { return animation; };
 
-	inline std::string       anim_name()  noexcept { return has_anim() ? animation->anim_name : ""; };
+	inline std::string anim_name()  noexcept { return has_anim() ? animation->anim_name : ""; };
 
 	void set_frame(unsigned frame) { current_frame = frame; };
-	inline unsigned			curr_frame()  noexcept { return current_frame; };
+	inline unsigned	get_frame()  noexcept { return current_frame; };
 
 	void update(secs deltaTime);
 	void predraw(secs deltaTime);
 
 	bool is_complete() const noexcept;
 	bool is_complete(AnimID id) const noexcept;
+	bool is_complete_any(std::vector<AnimID> ids) const noexcept;
 
 	bool is_playing() const noexcept;
 	bool is_playing(AnimID id, unsigned incl_chain_anims_depth = 1) const noexcept;
-
 	bool is_playing_any(std::vector<AnimID> ids, unsigned incl_chain_anims_depth = 1) const noexcept;
-
-
-
+	
 	inline void  set_pos(Vec2f pos) noexcept { position = pos; };
 	inline Vec2f get_pos()          noexcept { return position; };
 

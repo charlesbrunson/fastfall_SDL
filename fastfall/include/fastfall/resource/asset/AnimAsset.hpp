@@ -48,7 +48,7 @@ public:
 	}
 
 private:
-	constexpr AnimID(unsigned int id) :
+	explicit constexpr AnimID(unsigned int id) :
 		value{ id }
 	{
 	};
@@ -60,11 +60,17 @@ private:
 class AnimIDRef {
 public:
 	AnimIDRef(std::string_view sprite, std::string_view anim);
+	AnimIDRef(const AnimIDRef&) = delete;
+	AnimIDRef& operator=(const AnimIDRef&) = delete;
 
-	AnimID id();
+	AnimID id() const;
+
+	operator AnimID() const {
+		return id();
+	}
 
 private:
-	AnimID m_id = AnimID::NONE;
+	mutable AnimID m_id = AnimID::NONE;
 
 	std::string_view m_sprite;
 	std::string_view m_anim;

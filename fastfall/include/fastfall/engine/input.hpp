@@ -48,7 +48,7 @@ namespace Input {
 
 	Vec2i getMouseWindowPosition();
 
-	bool mousePositionUpdated();
+	//bool mousePositionUpdated();
 	Vec2f getMouseWorldPosition();
 	void setMouseWorldPosition(Vec2f pos);
 

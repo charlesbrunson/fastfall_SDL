@@ -111,7 +111,6 @@ void AnimatedSprite::update(secs deltaTime)
 
 void AnimatedSprite::predraw(secs deltaTime)
 {
-	//sprite.setPosition(position);
 	update_sprite();
 }
 
@@ -123,21 +122,51 @@ bool AnimatedSprite::is_complete(AnimID id) const noexcept {
 	return curr_anim == id && is_complete();
 }
 
+
+bool AnimatedSprite::is_complete_any(std::vector<AnimID> ids) const noexcept {
+	for (auto id : ids) {
+		if (is_complete(id)) 
+			return true;
+	}
+	return false;
+}
+
 bool AnimatedSprite::is_playing() const noexcept
 {
 	return animation != nullptr && playback_speed > 0.f;
 }
 
 bool AnimatedSprite::is_playing(AnimID id, unsigned incl_chain_anims_depth) const noexcept
-{
-	// TODO make this better
-	return id == curr_anim || id == animation->chain.anim_id;
+{	
+	const Animation* anim = animation; // start with current animation
+	for (unsigned i = 0; i <= incl_chain_anims_depth; i++) {
+		if (anim->anim_id == id) {
+			return true;
+		}
+		else if (anim->chain.has_chain){
+			if (i < incl_chain_anims_depth) {
+				if (anim->chain.anim_id == id) {
+					return true;
+				}
+				else {
+					anim = Resources::get_animation(anim->chain.anim_id);
+				}
+			}
+		}
+		else {
+			break;
+		}
+	}
+	return false;
 }
+
+
 
 bool AnimatedSprite::is_playing_any(std::vector<AnimID> ids, unsigned incl_chain_anims_depth) const noexcept
 {
 	for (auto id : ids) {
-		if (is_playing(id, incl_chain_anims_depth)) return true;
+		if (is_playing(id, incl_chain_anims_depth)) 
+			return true;
 	}
 	return false;
 }

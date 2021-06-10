@@ -72,7 +72,9 @@ Engine::Engine(
     ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Engine", "System")
 {
 
-
+#if defined(__EMSCRIPTEN__)
+    clock.setSteady(false);
+#endif
 
     // use first runnable to determine if we need a window
     addRunnable(std::move(toRun));
@@ -151,7 +153,7 @@ void Engine::prerun_init()
 bool Engine::run() {
     switch (settings.runstyle) {
     case EngineRunStyle::SingleThread:  return run_singleThread();
-    case EngineRunStyle::DoubleThread:  return run_singleThread();
+    case EngineRunStyle::DoubleThread:  return run_doubleThread();
     case EngineRunStyle::Emscripten:    return run_emscripten();
     default: return false;
     }
@@ -444,6 +446,7 @@ void Engine::sleep() {
     clock.sleepUntilTick(window && settings.vsyncEnabled);
     if (window) {
         displayStart = std::chrono::steady_clock::now();
+        glFinish();
         window->display();
         displayTime = std::chrono::steady_clock::now() - displayStart;
         if (displayTime.count() > clock.getTickDuration() * 1.5f) {
@@ -467,7 +470,12 @@ void Engine::handleEvents(bool* timeWasted)
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-		ImGui_ImplSDL2_ProcessEvent(&event);
+
+        if (ImGui_ImplSDL2_ProcessEvent(&event)) {
+            if (ImGui::GetIO().WantCaptureMouse && (event.type & SDL_MOUSEMOTION) > 0) {
+                continue;
+            }
+        }
 
         switch (event.type) {
         case SDL_WINDOWEVENT:
@@ -545,6 +553,7 @@ void Engine::handleEvents(bool* timeWasted)
 
         Input::setMouseWorldPosition(world_pos);
         Input::setMouseInView(inside);
+
     }
 }
 

@@ -24,7 +24,7 @@ namespace Input {
 
         Vec2i mouseWindowPosition;
         Vec2f mouseWorldPosition;
-        bool updateMouse = false;
+        //bool updateMouse = false;
         bool mouseInView = false;
 
         InputMethod activeInputMethod = InputMethod::KEYBOARD;
@@ -150,12 +150,12 @@ namespace Input {
         return mouseWorldPosition;
     }
     void setMouseWorldPosition(Vec2f pos) {
-        updateMouse = false;
+        //updateMouse = false;
         mouseWorldPosition = pos;
     }
-    bool mousePositionUpdated() {
-        return updateMouse;
-    }
+    //bool mousePositionUpdated() {
+    //    return updateMouse;
+    //}
 
     void setMouseInView(bool in_view) {
         mouseInView = in_view;
@@ -269,7 +269,7 @@ namespace Input {
                 }
                 break;
             case SDL_MOUSEMOTION:
-                updateMouse = true;
+                //updateMouse = true;
                 mouseWindowPosition.x = e.motion.x;
                 mouseWindowPosition.y = e.motion.y;
                 break;
@@ -353,7 +353,7 @@ namespace Input {
 
     //////////////////////////////////////////////////////////////////////////////////////////
     void resetState() {
-        updateMouse = false;
+        //updateMouse = false;
         mouseInView = false;
         for (auto& it : inputs) {
             it.reset();
