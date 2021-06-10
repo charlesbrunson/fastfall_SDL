@@ -75,7 +75,7 @@ public:
 
 private:
 
-	void update_sprite();
+	//void update_sprite();
 
 	void draw(RenderTarget& target, RenderState states = RenderState{}) const;
 
@@ -88,7 +88,6 @@ private:
 	Sprite sprite;
 
 	unsigned int loop_counter = 0;
-
 	unsigned int current_frame = 0;
 	float playback_speed = 1.f;
 
@@ -96,7 +95,6 @@ private:
 	secs curr_frame_duration = 0.0;
 
 	const Animation* animation = nullptr;
-
 	bool flag_dirty = false;
 
 };

@@ -111,7 +111,34 @@ void AnimatedSprite::update(secs deltaTime)
 
 void AnimatedSprite::predraw(secs deltaTime)
 {
-	update_sprite();
+	if (animation) {
+		if (flag_dirty) {
+			if (curr_anim != animation->anim_id) {
+
+				curr_anim = animation->anim_id;
+				sprite.setTexture(&animation->get_sprite_texture());
+
+			}
+
+			Rectf area = Rectf(
+				animation->area.getPosition(),
+				animation->area.getSize()
+			);
+			area.left += area.width * current_frame;
+
+			sprite.setScale(Vec2f{ (hflip ? -1.f : 1.f), 1.f });
+			sprite.setTextureRect(area);
+			sprite.setSize(area.getSize());
+			sprite.setOrigin(glm::fvec2(animation->origin.x, animation->origin.y));
+			sprite.setColor(Color::White);
+			flag_dirty = false;
+		}
+		sprite.setPosition(position);
+	}
+	else {
+		// reset sprite
+		sprite = Sprite{};
+	}
 }
 
 bool AnimatedSprite::is_complete() const noexcept {
@@ -169,38 +196,6 @@ bool AnimatedSprite::is_playing_any(std::vector<AnimID> ids, unsigned incl_chain
 			return true;
 	}
 	return false;
-}
-
-void AnimatedSprite::update_sprite()
-{
-	if (animation) {
-		if (flag_dirty) {
-			if (curr_anim != animation->anim_id) {
-
-				curr_anim = animation->anim_id;
-				sprite.setTexture(&animation->get_sprite_texture());
-
-			}
-
-			Rectf area = Rectf(
-				animation->area.getPosition(),
-				animation->area.getSize()
-			);
-			area.left += area.width * current_frame;
-
-			sprite.setScale(Vec2f{ (hflip ? -1.f : 1.f), 1.f });
-			sprite.setTextureRect(area);
-			sprite.setSize(area.getSize());
-			sprite.setOrigin(glm::fvec2(animation->origin.x, animation->origin.y));
-			sprite.setColor(Color::White);
-			flag_dirty = false;
-		}
-		sprite.setPosition(position);
-	}
-	else {
-		// reset sprite
-		sprite = Sprite{};
-	}
 }
 
 void AnimatedSprite::draw(RenderTarget& target, RenderState states) const
