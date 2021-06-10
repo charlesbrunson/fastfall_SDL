@@ -28,10 +28,11 @@ void TilesetAsset::parseTileProperties(xml_node<>* propsNode, Tile& t) {
 		char* name = propNode->first_attribute("name")->value();
 		char* value = propNode->first_attribute("value")->value();
 
-		if (strcmp("SHAPE", name) == 0) {
+		if (strcmp("shape", name) == 0) {
+			
 			t.shape = TileShape(value);
 		}
-		if (strcmp("ANIM", name) == 0) {
+		if (strcmp("anim", name) == 0) {
 
 			//xml_document<> doc{};
 

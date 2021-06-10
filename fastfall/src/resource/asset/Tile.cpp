@@ -6,47 +6,40 @@
 #include <map>
 #include <array>
 
-/*
-struct TilePrototype {
-	TileShape::Type type;
-	unsigned touchBits;
-};
-*/
-
 namespace ff {
 
 using StringTileType = std::pair<std::string_view, TileShape::Type>;
 constexpr std::array<StringTileType, TILE_TYPE_COUNT> tileStringToType = {
-	StringTileType{"EMPTY",       TileShape::Type::EMPTY},
-	StringTileType{"SOLID",       TileShape::Type::SOLID},
-	StringTileType{"HALF",        TileShape::Type::HALF},
-	StringTileType{"HALFVERT",    TileShape::Type::HALFVERT},
-	StringTileType{"SLOPE",       TileShape::Type::SLOPE},
-	StringTileType{"SHALLOW1",    TileShape::Type::SHALLOW1},
-	StringTileType{"SHALLOW2",    TileShape::Type::SHALLOW2},
-	StringTileType{"STEEP1",      TileShape::Type::STEEP1},
-	StringTileType{"STEEP2",      TileShape::Type::STEEP2},
-	StringTileType{"ONEWAY",      TileShape::Type::ONEWAY},
-	StringTileType{"ONEWAY_WALL", TileShape::Type::ONEWAY_WALL},
+	StringTileType{"empty",       TileShape::Type::EMPTY},
+	StringTileType{"solid",       TileShape::Type::SOLID},
+	StringTileType{"half",        TileShape::Type::HALF},
+	StringTileType{"halfvert",    TileShape::Type::HALFVERT},
+	StringTileType{"slope",       TileShape::Type::SLOPE},
+	StringTileType{"shallow1",    TileShape::Type::SHALLOW1},
+	StringTileType{"shallow2",    TileShape::Type::SHALLOW2},
+	StringTileType{"steep1",      TileShape::Type::STEEP1},
+	StringTileType{"steep2",      TileShape::Type::STEEP2},
+	StringTileType{"oneway",      TileShape::Type::ONEWAY},
+	StringTileType{"oneway_wall", TileShape::Type::ONEWAY_WALL},
 
-	StringTileType{"LEVELBOUNDARY",      TileShape::Type::LEVELBOUNDARY},
-	StringTileType{"LEVELBOUNDARY_WALL",      TileShape::Type::LEVELBOUNDARY_WALL}
+	StringTileType{"levelboundary",      TileShape::Type::LEVELBOUNDARY},
+	StringTileType{"levelboundary_wall",      TileShape::Type::LEVELBOUNDARY_WALL}
 };
 
 constexpr std::array<std::string_view, TILE_TYPE_COUNT> tileTypeToStr{
-	"EMPTY",
-	"SOLID",
-	"HALF",
-	"SLOPE",
-	"SHALLOW1",
-	"SHALLOW2",
-	"STEEP1",
-	"STEEP2",
-	"ONEWAY",
-	"ONEWAY_WALL",
+	"empty",
+	"solid",
+	"half",
+	"slope",
+	"shallow1",
+	"shallow2",
+	"steep1",
+	"steep2",
+	"oneway",
+	"oneway_wall",
 
-	"LEVELBOUNDARY",
-	"LEVELBOUNDARY_WALL"
+	"levelboundary",
+	"levelboundary_wall"
 };
 
 TileShape::TileShape() noexcept :
@@ -84,8 +77,8 @@ TileShape::TileShape(const char* shapeStr) noexcept {
 		return;
 	}
 
-	hflipped = flipParams.find('H') != std::string::npos;
-	vflipped = flipParams.find('V') != std::string::npos;
+	hflipped = flipParams.find_first_of("hH") != std::string::npos;
+	vflipped = flipParams.find_first_of("vV") != std::string::npos;
 
 	init();
 }
