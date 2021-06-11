@@ -33,6 +33,8 @@ public:
 
 	inline const std::string_view getTilesetRef(unsigned ndx) const { return tilesetRef.at(ndx); };
 
+	int getTilesetRefIndex(std::string_view tileset_name);
+
 protected:
 	void parseTileProperties(rapidxml::xml_node<>* propsNode, Tile& t);
 

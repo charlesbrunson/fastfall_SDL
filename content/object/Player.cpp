@@ -129,10 +129,8 @@ void Player::update(secs deltaTime) {
 			sprite.set_anim_if_not(a_run);
 
 			sprite.set_playback(
-				std::max(
-					0.5f,
-					std::abs(box->get_vel().magnitude()) / 150.f
-				));
+				std::clamp(std::abs(box->get_vel().magnitude()) / 150.f, 0.5f, 2.f)
+			);
 		}
 
 		// jumping

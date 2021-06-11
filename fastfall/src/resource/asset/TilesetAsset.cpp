@@ -3,6 +3,7 @@
 
 #include "fastfall/util/xml.hpp"
 #include "fastfall/util/cardinal.hpp"
+#include "fastfall/util/log.hpp"
 
 
 #include <assert.h>
@@ -10,7 +11,56 @@
 
 //#include <ranges>
 
+
+
 namespace ff {
+
+
+void parseTileAnim(Tile& t, std::string_view value) {
+
+}
+
+
+std::map<std::string, void(*)(TilesetAsset*, Tile&, char*)> tileProperties
+{
+	{"shape", [](TilesetAsset* owner, Tile& t, char* value)
+	{
+		t.shape = TileShape(value);
+	}},
+	{"anim", [](TilesetAsset* owner, Tile& t, char* value)
+	{
+		std::unique_ptr<xml_document<>> doc = std::make_unique<xml_document<>>();
+
+		doc->parse<0>(value);
+
+		auto* node = doc->first_node();
+		if (node) {
+
+			auto* attr = node->first_attribute();
+			while (attr) {
+				char* attr_name = attr->name();
+				char* attr_value = attr->value();
+
+				if (strcmp("ms", attr_name) == 0) {
+					t.durationMS = std::stoi(attr_value);
+				}
+				else if (strcmp("nextx", attr_name) == 0) {
+					t.next_offset.x = std::stoi(attr_value);
+				}
+				else if (strcmp("nexty", attr_name) == 0) {
+					t.next_offset.y = std::stoi(attr_value);
+				}
+				else if (strcmp("tileset", attr_name) == 0) {
+					if (strlen(attr_value) > 0 && strcmp(owner->getAssetName().c_str(), attr_value) != 0) {
+						t.next_tileset = owner->getTilesetRefIndex(attr_value);
+					}
+				}
+				attr = attr->next_attribute();
+			}
+		}
+	}}
+};
+
 
 TilesetAsset::TilesetAsset(const std::string& filename) :
 	TextureAsset(filename)
@@ -28,61 +78,27 @@ void TilesetAsset::parseTileProperties(xml_node<>* propsNode, Tile& t) {
 		char* name = propNode->first_attribute("name")->value();
 		char* value = propNode->first_attribute("value")->value();
 
-		if (strcmp("shape", name) == 0) {
-			
-			t.shape = TileShape(value);
+		auto prop = tileProperties.find(name);
+		if (prop != tileProperties.end()) {
+			prop->second(this, t, value);
 		}
-		if (strcmp("anim", name) == 0) {
-
-			//xml_document<> doc{};
-
-			std::unique_ptr<xml_document<>> doc = std::make_unique<xml_document<>>();
-
-			doc->parse<0>(value);
-
-			auto* node = doc->first_node();
-			if (node) {
-
-				auto* attr = node->first_attribute();
-				while (attr) {
-
-					char* attr_name = attr->name();
-					char* attr_value = attr->value();
-
-					if (strcmp("ms", attr_name) == 0) {
-						t.durationMS = std::stoi(attr_value);
-					}
-					else if (strcmp("nextx", attr_name) == 0) {
-						t.next_offset.x = std::stoi(attr_value);
-					}
-					else if (strcmp("nexty", attr_name) == 0) {
-						t.next_offset.y = std::stoi(attr_value);
-					}
-					else if (strcmp("tileset", attr_name) == 0) {
-
-						if (strlen(attr_value) > 0
-							&& strcmp(assetName.c_str(), attr_value) != 0) {
-
-							//auto r = std::ranges::find(tilesetRef, attr_value);
-							auto r = std::find(tilesetRef.begin(), tilesetRef.end(), attr_value);
-
-							if (r != tilesetRef.end()) {
-								t.next_tileset = std::distance(tilesetRef.begin(), r);
-							}
-							else {
-								tilesetRef.push_back(attr_value);
-								t.next_tileset = tilesetRef.size() - 1;
-							}
-						}
-
-					}
-					attr = attr->next_attribute();
-				}
-			}
+		else {
+			LOG_WARN("unknown tile property: {} = {}", name, value);
 		}
-		//...
 
 		propNode = propNode->next_sibling();
+	}
+}
+
+
+int TilesetAsset::getTilesetRefIndex(std::string_view tileset_name) {
+	auto r = std::find(tilesetRef.begin(), tilesetRef.end(), tileset_name);
+	if (r != tilesetRef.end()) {
+		return std::distance(tilesetRef.begin(), r);
+	}
+	else {
+		tilesetRef.push_back(tileset_name.data());
+		return tilesetRef.size() - 1;
 	}
 }
 
