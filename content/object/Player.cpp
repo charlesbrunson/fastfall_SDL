@@ -18,11 +18,16 @@ GameObjectLibrary::Entry<Player> plr_type{
 
 namespace constants {
 
-	AnimIDRef a_idle  ("player", "idle");
-	AnimIDRef a_land  ("player", "land");
-	AnimIDRef a_run   ("player", "running");
-	AnimIDRef a_jump  ("player", "jump");
-	AnimIDRef a_fall  ("player", "fall");
+	AnimIDRef idle  ("player", "idle");
+	AnimIDRef land  ("player", "land");
+	AnimIDRef run   ("player", "running");
+	AnimIDRef jump  ("player", "jump");
+	AnimIDRef fall  ("player", "fall");
+
+	AnimIDRef brakeb("player", "brake_back");
+	AnimIDRef brakef("player", "brake_front");
+
+
 	//AnimIDRef a_jump_f("player", "jump_f");
 	//AnimIDRef a_fall_f("player", "fall_f");
 
@@ -63,7 +68,7 @@ Player::Player(GameContext instance, const ObjectRef& ref) :
 
 	drawPriority = 0;
 
-	sprite.set_anim(a_idle);
+	sprite.set_anim(idle);
 
 	sprite.set_pos(box->getPosition());
 };
@@ -107,7 +112,7 @@ void Player::update(secs deltaTime) {
 			ground->traverse_set_max_speed(
 				std::max(norm_speed, std::min(std::abs(speed), max_speed))
 			);
-			sprite.set_anim(a_land);
+			sprite.set_anim(land);
 		}
 		else {
 			ground->traverse_set_max_speed(
@@ -123,21 +128,31 @@ void Player::update(secs deltaTime) {
 
 		if (abs(speed) <= 100.f && wishx == 0
 			|| abs(speed) <= 5.f && wishx != 0) {
-			sprite.set_anim_if_not(a_idle);
+			sprite.set_anim_if_not(idle);
 		}
 		else {
-			sprite.set_anim_if_not(a_run);
 
-			sprite.set_playback(
-				std::clamp(std::abs(box->get_vel().magnitude()) / 150.f, 0.5f, 2.f)
-			);
+
+			if ((wishx < 0) == (movex < 0)) {
+				if (wishx != 0) {
+					sprite.set_hflip(movex < 0);
+				}
+
+				sprite.set_anim_if_not(run);
+				sprite.set_playback(
+					std::clamp(std::abs(box->get_vel().magnitude()) / 150.f, 0.5f, 2.f)
+				);
+			}
+			//else {
+				//sprite.set_anim_if_not(brakef);
+			//}
 		}
 
 		// jumping
 		if (Input::isPressed(InputType::JUMP, 0.1f)) {
 			Input::confirmPress(InputType::JUMP);
 
-			sprite.set_anim(a_jump);
+			sprite.set_anim(jump);
 
 			ground->slope_sticking = false;
 
@@ -155,17 +170,36 @@ void Player::update(secs deltaTime) {
 			}
 			box->set_vel(jumpVel);
 
+
+			if (wishx != 0) {
+				sprite.set_hflip(movex < 0);
+			}
+
 		}
 		else {
+
+			bool turning = wishx != 0 && ((movex < 0) != (wishx < 0));
+			bool nowishx = wishx == 0;
+			bool shouldbrake = nowishx || turning;
+
+			if (movex != 0 && abs(speed) > 100.f && shouldbrake) {
+				AnimID brakeStyle = sprite.get_hflip() == (movex < 0) ? brakef.id() : brakeb.id();
+
+				if (abs(speed) > 300.f) {
+					sprite.set_anim(brakeStyle);
+				}
+				else {
+					sprite.set_anim(brakeStyle);
+					sprite.set_frame(1);
+				}
+			}
+
 			if (wishx != 0) {
 				ground->traverse_add_accel(wishx * 1200.f);
-
-				bool isBraking = (movex != 0) && (wishx < 0) != (movex < 0);
-				ground->surface_friction = isBraking ? braking : moving;
-
+				ground->surface_friction = turning || nowishx ? braking : moving;
 			}
 			else if (ground->has_friction) {
-				ground->traverse_add_decel(600.f);
+				ground->traverse_add_decel(450.f);
 				ground->surface_friction = braking;
 			}
 		}
@@ -188,15 +222,15 @@ void Player::update(secs deltaTime) {
 		box->add_accelY(600.f * wishy);
 
 		if (ground->get_air_time() > 0.05
-			&& !sprite.is_playing_any({ a_jump, a_fall }))
+			&& !sprite.is_playing_any({ jump, fall }))
 		{
-			sprite.set_anim(a_fall);
+			sprite.set_anim(fall);
 			sprite.set_frame(2);
 		}
-		else if (sprite.is_complete(a_jump)
+		else if (sprite.is_complete(jump)
 			&& box->get_vel().y > -100.f) 
 		{
-			sprite.set_anim(a_fall);
+			sprite.set_anim(fall);
 		}
 
 		ground->slope_sticking = false;
@@ -224,9 +258,11 @@ void Player::update(secs deltaTime) {
 
 	box->update(deltaTime);
 	sprite.update(deltaTime);
+	/*
 	if (box->get_vel().x != 0) {
 		sprite.set_hflip(box->get_vel().x < 0);
 	}
+	*/
 }
 
 void Player::predraw(secs deltaTime) {
