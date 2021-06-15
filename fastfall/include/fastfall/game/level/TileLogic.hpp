@@ -11,22 +11,22 @@
 namespace ff {
 
 
+struct TileLogicCommand {
+	enum class Type {
+		Set,
+		Remove
+	};
+	Type type;
+	Vec2u position;
+
+	Vec2u texposition;
+	std::reference_wrapper<const TilesetAsset> tileset;
+};
 
 class TileLogic {
 protected:
-	struct Command {
-		enum class Type {
-			Set,
-			Remove
-		};
-		Type type;
-		Vec2u& position;
 
-		Vec2u& texposition;
-		TilesetAsset& tileset;
-	};
-
-	inline void pushCommand(const Command& cmd) {
+	inline void pushCommand(const TileLogicCommand& cmd) {
 		commands.push(cmd);
 	}
 
@@ -37,26 +37,27 @@ public:
 	{
 
 	}
+	virtual ~TileLogic() = default;
 
-	virtual void addTile(Vec2u tilePos, std::string args) = 0;
+	virtual void addTile(Vec2u tilePos, Tile tile, std::string args) = 0;
 
-	virtual void updateLogic(secs deltaTime) = 0;
+	virtual void update(secs deltaTime) = 0;
 
 	inline bool hasNextCommand() const {
 		return !commands.empty();
 	}
-	inline const Command& nextCommand() const {
+	inline const TileLogicCommand& nextCommand() const {
 		return commands.front();
 	}
 	inline void popCommand() {
 		commands.pop();
 	}
 	inline void clearCommands() {
-		commands = std::queue<Command>{};
+		commands = std::queue<TileLogicCommand>{};
 	}
 
 private:
-	std::queue<Command> commands;
+	std::queue<TileLogicCommand> commands;
 	GameContext m_context;
 };
 
@@ -64,17 +65,14 @@ class TileLogicType {
 public:
 	using FactoryFunction = std::function<std::unique_ptr<TileLogic>(GameContext)>;
 
-	TileLogicType(std::string_view type, FactoryFunction create) {
-		typeName = type;
-		fn_create = create;
-	}
+	TileLogicType(std::string_view type, FactoryFunction builder);
 
-	std::string_view typeName;
+	std::string typeName;
 	FactoryFunction fn_create;
 };
 
-void addTileLogicType(const TileLogicType& type);
 
+void addTileLogicType(const TileLogicType& type);
 std::unique_ptr<TileLogic> createTileLogic(GameContext context, std::string_view typeName);
 
 }

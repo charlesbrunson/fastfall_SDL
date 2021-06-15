@@ -5,8 +5,11 @@
 #include "fastfall/render/ShapeRectangle.hpp"
 #include "fastfall/render/DebugDraw.hpp"
 
+#include "tilelogic/AnimLogic.hpp"
+
 TestState::TestState()
 {
+
 
 	instance = ff::CreateInstance();
 	instanceID = instance->getInstanceID();

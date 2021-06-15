@@ -107,7 +107,7 @@ public:
 	Vec2i next_offset;
 	int next_tileset = SAME_TILESET;
 
-	bool has_next_tileset() {
+	bool has_next_tileset() const {
 		return next_tileset != SAME_TILESET;
 	}
 };

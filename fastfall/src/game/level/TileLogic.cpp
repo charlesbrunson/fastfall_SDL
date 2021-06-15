@@ -1,5 +1,7 @@
 #include "fastfall/game/level/TileLogic.hpp"
 
+#include "fastfall/util/log.hpp"
+
 namespace ff {
 
 namespace {
@@ -11,7 +13,10 @@ namespace {
 
 
 	Map* getMap() {
-		if (!factories) factories = std::make_unique<Map>();
+		if (!factories) {
+			factories = std::make_unique<Map>();
+		}
+
 		return factories.get();
 	}
 
@@ -21,6 +26,13 @@ namespace {
 		}
 		return nullptr;
 	}
+}
+
+TileLogicType::TileLogicType(std::string_view type, FactoryFunction builder) :
+	typeName(type), fn_create(builder)
+{
+	LOG_INFO("created type {}", type);
+	addTileLogicType(*this);
 }
 
 void addTileLogicType(const TileLogicType& type) {

@@ -31,10 +31,17 @@ TileLayer::TileLayer(const TileLayer& tile)
 	collision = tile.collision;
 	tileVertices = tile.tileVertices;
 	pos2tileset = tile.pos2tileset;
-	//tile_timers = tile.tile_timers;
 	has_parallax = tile.has_parallax;
 	parallax = tile.parallax;
 	scrollRate = tile.scrollRate;
+
+	tileLogic.clear();
+	for (const auto& [type, logic] : tile.tileLogic) {
+		tileLogic.insert(std::make_pair(type,
+				createTileLogic(m_context, type)
+			));
+	}
+
 }
 TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	m_context = tile.m_context;
@@ -45,10 +52,17 @@ TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	collision = tile.collision;
 	tileVertices = tile.tileVertices;
 	pos2tileset = tile.pos2tileset;
-	//tile_timers = tile.tile_timers;
 	has_parallax = tile.has_parallax;
 	parallax = tile.parallax;
 	scrollRate = tile.scrollRate;
+
+	tileLogic.clear();
+	for (const auto& [type, logic] : tile.tileLogic) {
+		tileLogic.insert(std::make_pair(type,
+			createTileLogic(m_context, type)
+		));
+	}
+
 	return *this;
 }
 TileLayer::TileLayer(TileLayer&& tile) noexcept
@@ -61,10 +75,12 @@ TileLayer::TileLayer(TileLayer&& tile) noexcept
 	std::swap(collision, tile.collision);
 	std::swap(pos2tileset, tile.pos2tileset);
 	tileVertices.swap(tile.tileVertices);
-	//tile_timers.swap(tile.tile_timers);
 	has_parallax = tile.has_parallax;
 	std::swap(parallax, tile.parallax);
 	std::swap(scrollRate, tile.scrollRate);
+
+	std::swap(tileLogic, tile.tileLogic);
+
 }
 TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	m_context = tile.m_context;
@@ -75,10 +91,12 @@ TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	std::swap(collision, tile.collision);
 	std::swap(pos2tileset, tile.pos2tileset);
 	tileVertices.swap(tile.tileVertices);
-	//tile_timers.swap(tile.tile_timers);
 	has_parallax = tile.has_parallax;
 	std::swap(parallax, tile.parallax);
 	std::swap(scrollRate, tile.scrollRate);
+
+	std::swap(tileLogic, tile.tileLogic);
+
 	return *this;
 }
 
@@ -95,15 +113,6 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 
 	has_parallax = layerData.tileLayer->has_parallax;
 	scrollRate = layerData.tileLayer->scrollrate;
-
-	/*
-	if (hasScrollX()) {
-		size.x++;
-	}
-	if (hasScrollY()) {
-		size.y++;
-	}
-	*/
 
 	// calc parallax factors
 	if (has_parallax) {
@@ -125,23 +134,6 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 		TilesetAsset* ta = Resources::get<TilesetAsset>(*i.second.tilesetName);
 		if (ta) {
 			setTile(i.first, i.second.texPos, *ta);
-
-			/*
-			if (hasScrollX() && hasScrollY()
-				&& i.first.x == 0 && i.first.y == 0)
-			{
-				setTile(Vec2u(size.x - 1, i.first.y),  i.second.texPos, *ta);
-				setTile(Vec2u(i.first.x, size.y - 1),  i.second.texPos, *ta);
-				setTile(Vec2u(size.x - 1, size.y - 1), i.second.texPos, *ta);
-			}
-			else if (hasScrollX() && i.first.x == 0) {
-				setTile(Vec2u(size.x - 1, i.first.y),  i.second.texPos, *ta);
-			}
-			else if (hasScrollY() && i.first.y == 0) {
-				setTile(Vec2u(i.first.x, size.y - 1),  i.second.texPos, *ta);
-			}
-			*/
-
 		}
 		else {
 			LOG_ERR_("unknown tileset {}", *i.second.tilesetName);
@@ -155,60 +147,36 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 
 
 void TileLayer::update(secs deltaTime) {
-
+	for (auto& logic : tileLogic) {
+		logic.second->update(deltaTime);
+	}
 }
 
 void TileLayer::predraw(secs deltaTime) {
 
-	/*
-	bool changedTile = false;
+	bool changed = false;
 
-	// update tile timers
-	for (auto& timer : tile_timers) {
-		timer.time_to_anim -= deltaTime;
+	// update logic
+	for (auto& logic : tileLogic) {
+		TileLogic* ptr = logic.second.get();
+		
+		while (ptr->hasNextCommand()) {
 
-		if (timer.time_to_anim < 0.0) {
-			changedTile = true;
-		}
-	}
-
-	// update tiles
-	if (changedTile) {
-		auto iter = std::partition(tile_timers.begin(), tile_timers.end(), [](const TileTimer& timer) {
-			return timer.time_to_anim > 0.0;
-			});
-
-		if (iter != tile_timers.end()) {
-			std::vector<TileTimer> copy_end{ iter, tile_timers.end() };
-
-			tile_timers.erase(iter, tile_timers.end());
-
-			for (auto& timer : copy_end) {
-
-				auto* tileset = pos2tileset.at(timer.tile_impacted);
-				Tile t = tileset->getTile(timer.tex_position);
-
-				Vec2u tex_pos;
-
-				if (t.has_next_tileset()) {
-					std::string_view next_name = tileset->getTilesetRef(t.next_tileset);
-					tileset = Resources::get<TilesetAsset>(next_name);
-
-					// if different tileset, use as absolute
-					tex_pos = Vec2u{ t.next_offset };
-				}
-				else {
-					// if same tileset, use as relative
-					tex_pos = timer.tex_position + t.next_offset;
-				}
-				setTile(timer.tile_impacted, tex_pos, *tileset);
-
+			const TileLogicCommand& cmd = ptr->nextCommand();
+			if (cmd.type == TileLogicCommand::Type::Set) {
+				setTile(cmd.position, cmd.texposition, cmd.tileset);
 			}
+			else if (cmd.type == TileLogicCommand::Type::Remove) {
+				removeTile(cmd.position);
+			}
+			changed = true;
+			ptr->popCommand();
 		}
-		if (hasCollision)
-			collision->applyChanges();
 	}
-	*/
+	if (changed && hasCollision)
+		collision->applyChanges();
+
+
 
 	// parallax update
 	static secs buff = 0.0;
@@ -293,16 +261,31 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 		collision->setTile(Vec2i(position), tileset.getTile(texposition).shape);
 	}
 
-	Tile t = tileset.getTile(texposition);
 
-	/*
-	if (t.has_animation()) {
-		tile_timers.push_back(TileTimer{});
-		tile_timers.back().time_to_anim = ms_to_secs(t.durationMS);
-		tile_timers.back().tile_impacted = position;
-		tile_timers.back().tex_position = texposition;
+	if (auto logic = tileset.getTileLogic(texposition); logic.has_value()) {
+		auto it = tileLogic.find(logic->logicType);
+
+		Tile t = tileset.getTile(texposition);
+
+		if (it == tileLogic.end()) {
+
+			auto logic_ptr = createTileLogic(m_context, logic->logicType);
+			if (logic_ptr) {
+				auto [n_it, inserted] = tileLogic.insert(std::make_pair(logic->logicType, std::move(logic_ptr)));
+				it = n_it;
+
+
+				it->second->addTile(position, t, logic->logicArg);
+			}
+			else {
+				LOG_WARN("could not create tile logic type: {}", logic->logicType);
+			}
+		}
+		else {
+			it->second->addTile(position, t, logic->logicArg);
+		}
 	}
-	*/
+
 }
 void TileLayer::removeTile(const Vec2u& position) {
 	auto iter1 = pos2tileset.find(position);

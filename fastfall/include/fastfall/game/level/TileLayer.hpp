@@ -12,6 +12,8 @@
 
 #include "fastfall/game/GameContext.hpp"
 
+#include "fastfall/game/level/TileLogic.hpp"
+
 //#include <SFML/Graphics.hpp>
 #include <memory>
 
@@ -65,6 +67,8 @@ protected:
 	std::vector<TileTimer> tile_timers;
 	*/
 
+
+
 	unsigned int layerID;
 
 	const LayerRef* ref;
@@ -91,6 +95,8 @@ protected:
 	std::map<Vec2u, const TilesetAsset*> pos2tileset;
 	std::map<const TilesetAsset*, TileVertexArray> tileVertices;
 	std::shared_ptr<ColliderTileMap> collision;
+
+	std::map<std::string, std::unique_ptr<TileLogic>> tileLogic;
 };
 
 }
