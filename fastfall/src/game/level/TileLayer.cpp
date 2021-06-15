@@ -31,7 +31,7 @@ TileLayer::TileLayer(const TileLayer& tile)
 	collision = tile.collision;
 	tileVertices = tile.tileVertices;
 	pos2tileset = tile.pos2tileset;
-	tile_timers = tile.tile_timers;
+	//tile_timers = tile.tile_timers;
 	has_parallax = tile.has_parallax;
 	parallax = tile.parallax;
 	scrollRate = tile.scrollRate;
@@ -45,7 +45,7 @@ TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	collision = tile.collision;
 	tileVertices = tile.tileVertices;
 	pos2tileset = tile.pos2tileset;
-	tile_timers = tile.tile_timers;
+	//tile_timers = tile.tile_timers;
 	has_parallax = tile.has_parallax;
 	parallax = tile.parallax;
 	scrollRate = tile.scrollRate;
@@ -61,7 +61,7 @@ TileLayer::TileLayer(TileLayer&& tile) noexcept
 	std::swap(collision, tile.collision);
 	std::swap(pos2tileset, tile.pos2tileset);
 	tileVertices.swap(tile.tileVertices);
-	tile_timers.swap(tile.tile_timers);
+	//tile_timers.swap(tile.tile_timers);
 	has_parallax = tile.has_parallax;
 	std::swap(parallax, tile.parallax);
 	std::swap(scrollRate, tile.scrollRate);
@@ -75,7 +75,7 @@ TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	std::swap(collision, tile.collision);
 	std::swap(pos2tileset, tile.pos2tileset);
 	tileVertices.swap(tile.tileVertices);
-	tile_timers.swap(tile.tile_timers);
+	//tile_timers.swap(tile.tile_timers);
 	has_parallax = tile.has_parallax;
 	std::swap(parallax, tile.parallax);
 	std::swap(scrollRate, tile.scrollRate);
@@ -160,6 +160,7 @@ void TileLayer::update(secs deltaTime) {
 
 void TileLayer::predraw(secs deltaTime) {
 
+	/*
 	bool changedTile = false;
 
 	// update tile timers
@@ -207,7 +208,7 @@ void TileLayer::predraw(secs deltaTime) {
 		if (hasCollision)
 			collision->applyChanges();
 	}
-
+	*/
 
 	// parallax update
 	static secs buff = 0.0;
@@ -294,12 +295,14 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 
 	Tile t = tileset.getTile(texposition);
 
+	/*
 	if (t.has_animation()) {
 		tile_timers.push_back(TileTimer{});
 		tile_timers.back().time_to_anim = ms_to_secs(t.durationMS);
 		tile_timers.back().tile_impacted = position;
 		tile_timers.back().tex_position = texposition;
 	}
+	*/
 }
 void TileLayer::removeTile(const Vec2u& position) {
 	auto iter1 = pos2tileset.find(position);

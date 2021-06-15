@@ -53,10 +53,9 @@ public:
 
 protected:
 
-
-
 	GameContext m_context;
 
+	/*
 	struct TileTimer {
 		Vec2u tex_position;
 		secs time_to_anim;
@@ -64,6 +63,7 @@ protected:
 	};
 
 	std::vector<TileTimer> tile_timers;
+	*/
 
 	unsigned int layerID;
 

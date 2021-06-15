@@ -148,31 +148,41 @@
  </tile>
  <tile id="34">
   <properties>
-   <property name="anim" value="&lt;anim ms=&quot;50&quot; nextx=&quot;1&quot; nexty=&quot;0&quot; tileset=&quot;&quot;/&gt;"/>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="50"/>
+   <property name="next_x" type="int" value="1"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="35">
   <properties>
-   <property name="anim" value="&lt;anim ms=&quot;50&quot; nextx=&quot;1&quot; nexty=&quot;0&quot; tileset=&quot;&quot;/&gt;"/>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="50"/>
+   <property name="next_x" type="int" value="1"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="36">
   <properties>
-   <property name="anim" value="&lt;anim ms=&quot;50&quot; nextx=&quot;1&quot; nexty=&quot;0&quot; tileset=&quot;&quot;/&gt;"/>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="50"/>
+   <property name="next_x" type="int" value="1"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="37">
   <properties>
-   <property name="anim" value="&lt;anim ms=&quot;50&quot; nextx=&quot;1&quot; nexty=&quot;0&quot; tileset=&quot;&quot;/&gt;"/>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="50"/>
+   <property name="next_x" type="int" value="1"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="38">
   <properties>
-   <property name="anim" value="&lt;anim ms=&quot;50&quot; nextx=&quot;-4&quot; nexty=&quot;0&quot; tileset=&quot;&quot;/&gt;"/>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="50"/>
+   <property name="next_x" type="int" value="-4"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>

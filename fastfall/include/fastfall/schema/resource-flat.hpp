@@ -38,6 +38,9 @@ struct TileShapeF;
 
 struct TileF;
 
+struct TilesetLogicF;
+struct TilesetLogicFBuilder;
+
 struct TilesetAssetF;
 struct TilesetAssetFBuilder;
 
@@ -170,18 +173,16 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileF FLATBUFFERS_FINAL_CLASS {
   flat::math::Vec2Fu pos_;
   flat::resources::TileShapeF shape_;
   flat::math::Vec2Fi next_offset_;
-  uint32_t durationMS_;
   int32_t next_tilesetNdx_;
 
  public:
   TileF() {
     memset(static_cast<void *>(this), 0, sizeof(TileF));
   }
-  TileF(const flat::math::Vec2Fu &_pos, const flat::resources::TileShapeF &_shape, const flat::math::Vec2Fi &_next_offset, uint32_t _durationMS, int32_t _next_tilesetNdx)
+  TileF(const flat::math::Vec2Fu &_pos, const flat::resources::TileShapeF &_shape, const flat::math::Vec2Fi &_next_offset, int32_t _next_tilesetNdx)
       : pos_(_pos),
         shape_(_shape),
         next_offset_(_next_offset),
-        durationMS_(flatbuffers::EndianScalar(_durationMS)),
         next_tilesetNdx_(flatbuffers::EndianScalar(_next_tilesetNdx)) {
   }
   const flat::math::Vec2Fu &pos() const {
@@ -193,14 +194,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileF FLATBUFFERS_FINAL_CLASS {
   const flat::math::Vec2Fi &next_offset() const {
     return next_offset_;
   }
-  uint32_t durationMS() const {
-    return flatbuffers::EndianScalar(durationMS_);
-  }
   int32_t next_tilesetNdx() const {
     return flatbuffers::EndianScalar(next_tilesetNdx_);
   }
 };
-FLATBUFFERS_STRUCT_END(TileF, 36);
+FLATBUFFERS_STRUCT_END(TileF, 32);
 
 struct PropertyF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef PropertyFBuilder Builder;
@@ -870,6 +868,86 @@ inline flatbuffers::Offset<LevelAssetF> CreateLevelAssetFDirect(
       borders);
 }
 
+struct TilesetLogicF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef TilesetLogicFBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_POS = 4,
+    VT_LOGIC = 6,
+    VT_LOGIC_ARG = 8
+  };
+  const flat::math::Vec2Fu *pos() const {
+    return GetStruct<const flat::math::Vec2Fu *>(VT_POS);
+  }
+  const flatbuffers::String *logic() const {
+    return GetPointer<const flatbuffers::String *>(VT_LOGIC);
+  }
+  const flatbuffers::String *logic_arg() const {
+    return GetPointer<const flatbuffers::String *>(VT_LOGIC_ARG);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyFieldRequired<flat::math::Vec2Fu>(verifier, VT_POS) &&
+           VerifyOffsetRequired(verifier, VT_LOGIC) &&
+           verifier.VerifyString(logic()) &&
+           VerifyOffset(verifier, VT_LOGIC_ARG) &&
+           verifier.VerifyString(logic_arg()) &&
+           verifier.EndTable();
+  }
+};
+
+struct TilesetLogicFBuilder {
+  typedef TilesetLogicF Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_pos(const flat::math::Vec2Fu *pos) {
+    fbb_.AddStruct(TilesetLogicF::VT_POS, pos);
+  }
+  void add_logic(flatbuffers::Offset<flatbuffers::String> logic) {
+    fbb_.AddOffset(TilesetLogicF::VT_LOGIC, logic);
+  }
+  void add_logic_arg(flatbuffers::Offset<flatbuffers::String> logic_arg) {
+    fbb_.AddOffset(TilesetLogicF::VT_LOGIC_ARG, logic_arg);
+  }
+  explicit TilesetLogicFBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  TilesetLogicFBuilder &operator=(const TilesetLogicFBuilder &);
+  flatbuffers::Offset<TilesetLogicF> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<TilesetLogicF>(end);
+    fbb_.Required(o, TilesetLogicF::VT_POS);
+    fbb_.Required(o, TilesetLogicF::VT_LOGIC);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<TilesetLogicF> CreateTilesetLogicF(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const flat::math::Vec2Fu *pos = 0,
+    flatbuffers::Offset<flatbuffers::String> logic = 0,
+    flatbuffers::Offset<flatbuffers::String> logic_arg = 0) {
+  TilesetLogicFBuilder builder_(_fbb);
+  builder_.add_logic_arg(logic_arg);
+  builder_.add_logic(logic);
+  builder_.add_pos(pos);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<TilesetLogicF> CreateTilesetLogicFDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const flat::math::Vec2Fu *pos = 0,
+    const char *logic = nullptr,
+    const char *logic_arg = nullptr) {
+  auto logic__ = logic ? _fbb.CreateString(logic) : 0;
+  auto logic_arg__ = logic_arg ? _fbb.CreateString(logic_arg) : 0;
+  return flat::resources::CreateTilesetLogicF(
+      _fbb,
+      pos,
+      logic__,
+      logic_arg__);
+}
+
 struct TilesetAssetF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TilesetAssetFBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -877,7 +955,8 @@ struct TilesetAssetF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_IMAGE = 6,
     VT_TILESIZE = 8,
     VT_TILEDATA = 10,
-    VT_TILESETREFS = 12
+    VT_TILESETREFS = 12,
+    VT_TILESETLOGICS = 14
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -894,6 +973,9 @@ struct TilesetAssetF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *tilesetRefs() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_TILESETREFS);
   }
+  const flatbuffers::Vector<flatbuffers::Offset<flat::resources::TilesetLogicF>> *tilesetLogics() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flat::resources::TilesetLogicF>> *>(VT_TILESETLOGICS);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
@@ -906,6 +988,9 @@ struct TilesetAssetF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_TILESETREFS) &&
            verifier.VerifyVector(tilesetRefs()) &&
            verifier.VerifyVectorOfStrings(tilesetRefs()) &&
+           VerifyOffset(verifier, VT_TILESETLOGICS) &&
+           verifier.VerifyVector(tilesetLogics()) &&
+           verifier.VerifyVectorOfTables(tilesetLogics()) &&
            verifier.EndTable();
   }
 };
@@ -929,6 +1014,9 @@ struct TilesetAssetFBuilder {
   void add_tilesetRefs(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> tilesetRefs) {
     fbb_.AddOffset(TilesetAssetF::VT_TILESETREFS, tilesetRefs);
   }
+  void add_tilesetLogics(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flat::resources::TilesetLogicF>>> tilesetLogics) {
+    fbb_.AddOffset(TilesetAssetF::VT_TILESETLOGICS, tilesetLogics);
+  }
   explicit TilesetAssetFBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -949,8 +1037,10 @@ inline flatbuffers::Offset<TilesetAssetF> CreateTilesetAssetF(
     flatbuffers::Offset<flatbuffers::Vector<int8_t>> image = 0,
     const flat::math::Vec2Fu *tileSize = 0,
     flatbuffers::Offset<flatbuffers::Vector<const flat::resources::TileF *>> tileData = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> tilesetRefs = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> tilesetRefs = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flat::resources::TilesetLogicF>>> tilesetLogics = 0) {
   TilesetAssetFBuilder builder_(_fbb);
+  builder_.add_tilesetLogics(tilesetLogics);
   builder_.add_tilesetRefs(tilesetRefs);
   builder_.add_tileData(tileData);
   builder_.add_tileSize(tileSize);
@@ -965,18 +1055,21 @@ inline flatbuffers::Offset<TilesetAssetF> CreateTilesetAssetFDirect(
     const std::vector<int8_t> *image = nullptr,
     const flat::math::Vec2Fu *tileSize = 0,
     const std::vector<flat::resources::TileF> *tileData = nullptr,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *tilesetRefs = nullptr) {
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *tilesetRefs = nullptr,
+    const std::vector<flatbuffers::Offset<flat::resources::TilesetLogicF>> *tilesetLogics = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto image__ = image ? _fbb.CreateVector<int8_t>(*image) : 0;
   auto tileData__ = tileData ? _fbb.CreateVectorOfStructs<flat::resources::TileF>(*tileData) : 0;
   auto tilesetRefs__ = tilesetRefs ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*tilesetRefs) : 0;
+  auto tilesetLogics__ = tilesetLogics ? _fbb.CreateVector<flatbuffers::Offset<flat::resources::TilesetLogicF>>(*tilesetLogics) : 0;
   return flat::resources::CreateTilesetAssetF(
       _fbb,
       name__,
       image__,
       tileSize,
       tileData__,
-      tilesetRefs__);
+      tilesetRefs__,
+      tilesetLogics__);
 }
 
 struct AnimationAssetF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

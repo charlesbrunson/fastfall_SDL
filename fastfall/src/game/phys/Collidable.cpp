@@ -234,10 +234,6 @@ void Collidable::update(secs deltaTime) {
 	vel.y = math::reduce(vel.y, decel_accum.y * (float)deltaTime, 0.f);
 	vel += gravity_acc * deltaTime;
 
-	if (vel == Vec2f{}) {
-		LOG_VERB("check");
-	}
-
 	pos += vel * deltaTime;
 
 	for (auto& tracker : trackers) {

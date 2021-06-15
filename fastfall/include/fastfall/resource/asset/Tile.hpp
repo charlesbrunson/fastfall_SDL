@@ -3,6 +3,7 @@
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/cardinal.hpp"
 
+
 namespace ff {
 
 class TilesetAsset;
@@ -96,22 +97,16 @@ private:
 };
 
 class Tile {
-	constexpr static int NOT_ANIMATED = 0;
 	constexpr static int SAME_TILESET = -1;
-
 public:
 	Vec2u pos;
 	TileShape shape;
 	const TilesetAsset* origin = nullptr;
 
-	// for animated tiles
+	// tile next reference
 	Vec2i next_offset;
-	unsigned int durationMS = NOT_ANIMATED;
-	int next_tileset = SAME_TILESET; // index of name in tilesetReferences of TilesetAsset
+	int next_tileset = SAME_TILESET;
 
-	bool has_animation() {
-		return durationMS != NOT_ANIMATED;
-	}
 	bool has_next_tileset() {
 		return next_tileset != SAME_TILESET;
 	}

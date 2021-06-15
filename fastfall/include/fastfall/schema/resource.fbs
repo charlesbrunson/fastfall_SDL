@@ -80,8 +80,13 @@ struct TileF {
 	pos:math.Vec2Fu;
 	shape:TileShapeF;
 	next_offset:math.Vec2Fi;
-	durationMS:uint;
 	next_tilesetNdx:int;
+}
+
+table TilesetLogicF {
+	pos:math.Vec2Fu (required);
+	logic:string (required);
+	logic_arg:string;
 }
 
 table TilesetAssetF {
@@ -90,6 +95,7 @@ table TilesetAssetF {
 	tileSize:math.Vec2Fu;
 	tileData:[TileF];
 	tilesetRefs:[string];
+	tilesetLogics:[TilesetLogicF];
 }
 
 // SPRITE ASSET

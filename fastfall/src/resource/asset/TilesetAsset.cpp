@@ -1,6 +1,8 @@
 #include "fastfall/resource/asset/TilesetAsset.hpp"
 #include "fastfall/engine/config.hpp"
 
+#include "fastfall/game/level/TileLogic.hpp"
+
 #include "fastfall/util/xml.hpp"
 #include "fastfall/util/cardinal.hpp"
 #include "fastfall/util/log.hpp"
@@ -16,47 +18,42 @@
 namespace ff {
 
 
-void parseTileAnim(Tile& t, std::string_view value) {
 
-}
+struct TileState {
+	TilesetAsset* owner;
+	Tile* tile;
+	TileLogicData logic;
+};
 
-
-std::map<std::string, void(*)(TilesetAsset*, Tile&, char*)> tileProperties
+std::map<std::string, void(*)(TileState&, char*)> tileProperties
 {
-	{"shape", [](TilesetAsset* owner, Tile& t, char* value)
+	{"shape", [](TileState& state, char* value)
 	{
-		t.shape = TileShape(value);
+		state.tile->shape = TileShape(value);
 	}},
-	{"anim", [](TilesetAsset* owner, Tile& t, char* value)
+
+	{"logic", [](TileState& state, char* value)
 	{
-		std::unique_ptr<xml_document<>> doc = std::make_unique<xml_document<>>();
+		state.logic.logicType = value;
+	}},
+	{"logic_arg", [](TileState& state, char* value)
+	{
+		state.logic.logicArg = value;
+	}},
+	{"next_x", [](TileState& state, char* value)
+	{
+		state.tile->next_offset.x = std::stoi(value);
 
-		doc->parse<0>(value);
+	}},
+	{"next_y", [](TileState& state, char* value)
+	{
+		state.tile->next_offset.y = std::stoi(value);
 
-		auto* node = doc->first_node();
-		if (node) {
-
-			auto* attr = node->first_attribute();
-			while (attr) {
-				char* attr_name = attr->name();
-				char* attr_value = attr->value();
-
-				if (strcmp("ms", attr_name) == 0) {
-					t.durationMS = std::stoi(attr_value);
-				}
-				else if (strcmp("nextx", attr_name) == 0) {
-					t.next_offset.x = std::stoi(attr_value);
-				}
-				else if (strcmp("nexty", attr_name) == 0) {
-					t.next_offset.y = std::stoi(attr_value);
-				}
-				else if (strcmp("tileset", attr_name) == 0) {
-					if (strlen(attr_value) > 0 && strcmp(owner->getAssetName().c_str(), attr_value) != 0) {
-						t.next_tileset = owner->getTilesetRefIndex(attr_value);
-					}
-				}
-				attr = attr->next_attribute();
-			}
+	}},
+	{"next_tileset", [](TileState& state, char* value)
+	{
+		if (strlen(value) > 0 && strcmp(state.owner->getAssetName().c_str(), value) != 0) {
+			state.tile->next_tileset = state.owner->getTilesetRefIndex(value);
 		}
 	}}
 };
@@ -71,6 +68,12 @@ TilesetAsset::TilesetAsset(const std::string& filename) :
 void TilesetAsset::parseTileProperties(xml_node<>* propsNode, Tile& t) {
 	xml_node<>* propNode = propsNode->first_node();
 
+	TileState state;
+	state.owner = this;
+	state.tile = &t;
+
+	//TileLogicData logic;
+
 	while (propNode) {
 		if (strcmp("property", propNode->name()) != 0)
 			throw parse_error("not a property", nullptr);
@@ -80,13 +83,17 @@ void TilesetAsset::parseTileProperties(xml_node<>* propsNode, Tile& t) {
 
 		auto prop = tileProperties.find(name);
 		if (prop != tileProperties.end()) {
-			prop->second(this, t, value);
+			prop->second(state, value);
 		}
 		else {
 			LOG_WARN("unknown tile property: {} = {}", name, value);
 		}
 
 		propNode = propNode->next_sibling();
+	}
+
+	if (!state.logic.logicType.empty()) {
+		setTileLogic(t.pos, state.logic);
 	}
 }
 
@@ -179,9 +186,20 @@ bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder) {
 
 	tileData.clear();
 	tilesetRef.clear();
+	logicData.clear();
 
 	for (auto tileR : *builder->tilesetRefs()) {
 		tilesetRef.push_back(tileR->str());
+	}
+
+	for (auto logicR : *builder->tilesetLogics()) {
+		Vec2u pos{ logicR->pos()->x(), logicR->pos()->y() };
+		logicData.insert(std::make_pair(pos, 
+			TileLogicData{
+				.logicType = logicR->logic()->str(), 
+				.logicArg = logicR->logic_arg()->str()
+			}
+		));
 	}
 
 	for (auto tileT = builder->tileData()->begin(); tileT != builder->tileData()->end(); tileT++) {
@@ -193,7 +211,6 @@ bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder) {
 		tile.shape.hflipped = tileT->shape().hflip();
 		tile.shape.vflipped = tileT->shape().vflip();
 		tile.next_offset = Vec2i(tileT->next_offset().x(), tileT->next_offset().y());
-		tile.durationMS = tileT->durationMS();
 		tile.next_tileset = tileT->next_tilesetNdx();
 		tileData.insert(std::make_pair(tile.pos, tile));
 	}
@@ -206,6 +223,17 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 	using namespace flat::resources;
 	using namespace flat::math;
 
+	std::vector<flatbuffers::Offset<TilesetLogicF>> logicdata_vec;
+	for (const auto& [position, data] : logicData) {
+		TilesetLogicFBuilder logics(builder);
+		Vec2Fu pos{ position.x, position.y };
+
+		logics.add_pos(&pos);
+		logics.add_logic(builder.CreateString(data.logicType));
+		logics.add_logic_arg(builder.CreateString(data.logicArg));
+		logicdata_vec.push_back(logics.Finish());
+	}
+	auto logicdata = builder.CreateVector(logicdata_vec);
 
 	auto flat_refs = builder.CreateVectorOfStrings(tilesetRef);
 
@@ -222,7 +250,7 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 
 		Vec2Fi next{ tile.second.next_offset.x, tile.second.next_offset.y };
 
-		TileF t{ pos, shape, next, tile.second.durationMS, tile.second.next_tileset };
+		TileF t{ pos, shape, next, tile.second.next_tileset };
 		tiledata.push_back(t);
 
 	}
@@ -243,6 +271,7 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 	tileBuilder.add_tileSize(&flat_tileSize);
 	tileBuilder.add_tileData(flat_tiledata);
 	tileBuilder.add_tilesetRefs(flat_refs);
+	tileBuilder.add_tilesetLogics(logicdata);
 	return tileBuilder.Finish();
 }
 
