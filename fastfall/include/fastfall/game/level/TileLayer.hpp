@@ -29,7 +29,7 @@ public:
 
 	void initFromAsset(const LayerRef& layerData, bool initCollision = false);
 
-	void setTile(const Vec2u& position, const Vec2u& texposition, const TilesetAsset& tileset);
+	void setTile(const Vec2u& position, const Vec2u& texposition, const TilesetAsset& tileset, bool useLogic = true);
 	void removeTile(const Vec2u& position);
 	void clear();
 

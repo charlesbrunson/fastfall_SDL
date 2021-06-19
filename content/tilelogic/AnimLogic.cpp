@@ -42,13 +42,26 @@ void AnimLogic::update(secs deltaTime) {
 				tex_pos = tile.pos + tile.next_offset;
 			}
 
+			bool nLogic = true;
+			if (auto logic = next->getTileLogic(tex_pos); logic && logic->logicType == getName()) {
+				timer->time_to_anim += ms_to_secs(std::stoi(logic->logicArg));
+				timer->tile = next->getTile(tex_pos);
+				nLogic = false;
+			}
+
 			pushCommand({
 				.type = TileLogicCommand::Type::Set,
 				.position = timer->tile_impacted,
 				.texposition = tex_pos,
-				.tileset = std::ref(*next)
+				.tileset = std::ref(*next),
+				.updateLogic = nLogic
 			});
 		}
+
+		// update partition
+		iter = std::partition(tile_timers.begin(), tile_timers.end(), [](TileTimer& timer) {
+			return timer.time_to_anim > 0.0;
+			});
 		tile_timers.erase(iter, tile_timers.end());
 	}
 }

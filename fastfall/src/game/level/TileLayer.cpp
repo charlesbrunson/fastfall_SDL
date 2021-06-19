@@ -162,7 +162,7 @@ void TileLayer::predraw(secs deltaTime) {
 
 			const TileLogicCommand& cmd = ptr->nextCommand();
 			if (cmd.type == TileLogicCommand::Type::Set) {
-				setTile(cmd.position, cmd.texposition, cmd.tileset);
+				setTile(cmd.position, cmd.texposition, cmd.tileset, cmd.updateLogic);
 			}
 			else if (cmd.type == TileLogicCommand::Type::Remove) {
 				removeTile(cmd.position);
@@ -233,7 +233,7 @@ void TileLayer::predraw(secs deltaTime) {
 	}
 }
 
-void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const TilesetAsset& tileset) {
+void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const TilesetAsset& tileset, bool useLogic) {
 
 	// blank existing tile at that position
 	unsigned ndx = position.y * size.x + position.x;
@@ -276,27 +276,31 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 		collision->setTile(Vec2i(position), tileset.getTile(texposition).shape);
 	}
 
-	if (auto logic = tileset.getTileLogic(texposition); logic.has_value()) {
-		auto it = std::find_if(tileLogic.begin(), tileLogic.end(), [&logic](const std::unique_ptr<TileLogic>& log) {
-			return logic->logicType == log->getName();
-			});
+	if (useLogic) {
 
-		Tile t = tileset.getTile(texposition);
+		if (auto logic = tileset.getTileLogic(texposition); logic.has_value()) {
+			auto it = std::find_if(tileLogic.begin(), tileLogic.end(), [&logic](const std::unique_ptr<TileLogic>& log) {
+				return logic->logicType == log->getName();
+				});
 
-		if (it == tileLogic.end()) {
+			Tile t = tileset.getTile(texposition);
 
-			auto logic_ptr = createTileLogic(m_context, logic->logicType);
-			if (logic_ptr) {
-				tileLogic.push_back(std::move(logic_ptr));
-				tileLogic.back()->addTile(position, t, logic->logicArg);
+			if (it == tileLogic.end()) {
+
+				auto logic_ptr = createTileLogic(m_context, logic->logicType);
+				if (logic_ptr) {
+					tileLogic.push_back(std::move(logic_ptr));
+					tileLogic.back()->addTile(position, t, logic->logicArg);
+				}
+				else {
+					LOG_WARN("could not create tile logic type: {}", logic->logicType);
+				}
 			}
 			else {
-				LOG_WARN("could not create tile logic type: {}", logic->logicType);
+				it->get()->addTile(position, t, logic->logicArg);
 			}
 		}
-		else {
-			it->get()->addTile(position, t, logic->logicArg);
-		}
+
 	}
 
 }

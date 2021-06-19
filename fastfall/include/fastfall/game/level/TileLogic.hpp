@@ -16,11 +16,12 @@ struct TileLogicCommand {
 		Set,
 		Remove
 	};
+
 	Type type;
 	Vec2u position;
-
 	Vec2u texposition;
 	std::reference_wrapper<const TilesetAsset> tileset;
+	bool updateLogic = true;
 };
 
 class TileLogic {
