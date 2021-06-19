@@ -52,11 +52,17 @@ public:
 	inline size_t size() const { return m_vec.size(); };
 	inline bool empty() const { return m_vec.empty(); };
 
+
+	void insert(size_t ndx, size_t count = 1, Vertex value = Vertex{});
+	void erase(size_t ndx, size_t count = 1);
+
 	inline void clear() {
 		m_vec.clear();
 	}
 
-	inline std::vector<Vertex>& vec() { gl.sync = false; return m_vec; };
+	inline const std::vector<Vertex>& vec() const { 
+		return m_vec; 
+	};
 
 	const Vertex& operator[] (size_t ndx) const {
 		return m_vec[ndx];

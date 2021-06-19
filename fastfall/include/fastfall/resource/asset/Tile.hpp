@@ -96,12 +96,31 @@ private:
 	}
 };
 
+class TileMaterial {
+	struct SurfaceMaterial {
+		float surfaceVel;
+	};
+
+public:
+
+	SurfaceMaterial getMat(Cardinal side, Cardinal facing = Cardinal::NORTH) {
+
+		size_t ndx = (static_cast<int>(side) - static_cast<int>(facing)) % 4;
+		return surfaceVel.at(ndx);
+	}
+
+	std::array<SurfaceMaterial, 4> surfaceVel;
+};
+
 class Tile {
 	constexpr static int SAME_TILESET = -1;
 public:
 	Vec2u pos;
 	TileShape shape;
 	const TilesetAsset* origin = nullptr;
+
+	Cardinal matFacing = Cardinal::NORTH;
+	const TileMaterial* material = nullptr;
 
 	// tile next reference
 	Vec2i next_offset;

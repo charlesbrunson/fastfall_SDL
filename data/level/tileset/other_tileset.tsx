@@ -10,7 +10,7 @@
    <property name="logic" value="anim"/>
    <property name="logic_arg" value="50"/>
    <property name="next_tileset" value="tile_test"/>
-   <property name="next_x" type="int" value="3"/>
+   <property name="next_x" type="int" value="2"/>
    <property name="next_y" value="4"/>
    <property name="shape" value="solid"/>
   </properties>

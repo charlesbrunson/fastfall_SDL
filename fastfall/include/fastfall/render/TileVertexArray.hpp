@@ -18,7 +18,7 @@ public:
 	~TileVertexArray();
 
 	void setTexture(const Texture& texture) noexcept;
-	const TextureRef& getTexture() noexcept;
+	const TextureRef& getTexture() const noexcept;
 	void setTile(Vec2u at, Vec2u texPos);
 
 	void erase(Vec2u at);

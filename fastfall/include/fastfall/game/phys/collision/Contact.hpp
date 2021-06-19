@@ -55,6 +55,10 @@ struct Contact {
 	// relative to worldspace
 	Vec2f velocity;
 
+	// the velocity of the surface
+	float surfaceVel = 0.f;
+	Vec2f getSurfaceVel() const { return collider_normal.righthand() * surfaceVel; }
+
 	// moment that the object started intersecting the collider,
 	// represented as a fraction of the tick deltatime [0, 1.0]
 	// used by continuous collision

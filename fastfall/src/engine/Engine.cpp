@@ -446,12 +446,9 @@ void Engine::sleep() {
     clock.sleepUntilTick(window && settings.vsyncEnabled);
     if (window) {
         displayStart = std::chrono::steady_clock::now();
-        glFinish();
+        //glFinish();
         window->display();
         displayTime = std::chrono::steady_clock::now() - displayStart;
-        if (displayTime.count() > clock.getTickDuration() * 1.5f) {
-            LOG_INFO("{} : {} < {}", window && settings.vsyncEnabled, clock.getTickDuration(), displayTime.count());
-        }
 
     }
 }

@@ -229,9 +229,17 @@ void Collidable::update(secs deltaTime) {
 	}
 	//acc += gravity_acc;
 
+	Vec2f surfaceVel;
+	for (auto& tracker : trackers) {
+		if (tracker->has_contact()) {
+			surfaceVel += tracker->currentContact->getSurfaceVel();
+		}
+	}
+
 	vel += acc * deltaTime;
-	vel.x = math::reduce(vel.x, decel_accum.x * (float)deltaTime, 0.f);
-	vel.y = math::reduce(vel.y, decel_accum.y * (float)deltaTime, 0.f);
+	vel.x = math::reduce(vel.x, decel_accum.x * (float)deltaTime, surfaceVel.x);
+	vel.y = math::reduce(vel.y, decel_accum.y * (float)deltaTime, surfaceVel.y);
+
 	vel += gravity_acc * deltaTime;
 
 	pos += vel * deltaTime;

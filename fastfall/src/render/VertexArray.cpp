@@ -97,13 +97,22 @@ void VertexArray::glTransfer() const {
 			gl.m_bufsize = m_vec.size();
 			gl.m_bound = true;
 		}
-		else {
+		else {			
 			glCheck(glBufferSubData(GL_ARRAY_BUFFER, 0 * sizeof(Vertex), m_vec.size() * sizeof(Vertex), &m_vec[0]));
 		}
 		gl.sync = true;
 	}
 }
 
+void VertexArray::insert(size_t ndx, size_t count, Vertex value) {
+	m_vec.insert(m_vec.cbegin() + ndx, count, value);
+	gl.sync = false;
+}
+
+void VertexArray::erase(size_t ndx, size_t count) {
+	m_vec.erase(m_vec.cbegin() + ndx, m_vec.cbegin() + ndx + count);
+	gl.sync = false;
+}
 
 void VertexArray::draw(RenderTarget& target, RenderState state) const {
 	target.draw(*this, state);

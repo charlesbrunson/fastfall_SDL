@@ -28,7 +28,4 @@ private:
 
 	ff::GameInstance* instance;
 
-	//std::shared_ptr<ColliderSimple> platform1;
-	//std::shared_ptr<ColliderSimple> platform2;
-
 };

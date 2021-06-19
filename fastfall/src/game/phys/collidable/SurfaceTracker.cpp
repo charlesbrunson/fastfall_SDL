@@ -93,8 +93,9 @@ Vec2f SurfaceTracker::get_friction(Vec2f prevVel) {
 		&& (!currentContact->hasImpactTime || contact_time > 0.0)
 		&& has_friction) 
 	{
-		Vec2f tangent = math::projection(prevVel, currentContact->collider_normal.righthand(), true);
-		Vec2f normal = math::projection(prevVel - currentContact->velocity, currentContact->collider_normal, true);
+		Vec2f sVel = currentContact->getSurfaceVel();
+		Vec2f tangent = math::projection(prevVel - sVel, currentContact->collider_normal.righthand(), true);
+		Vec2f normal = math::projection(prevVel - sVel - currentContact->velocity, currentContact->collider_normal, true);
 
 		float Ft = tangent.magnitude();
 		float Fn = normal.magnitude();
@@ -200,6 +201,9 @@ Vec2f SurfaceTracker::do_max_speed(secs deltaTime) noexcept {
 
 	if (has_contact() && slope_sticking && max_speed > 0.f) {
 
+		Vec2f surfaceVel = currentContact->getSurfaceVel();
+		float surface_mag = surfaceVel.x > 0 ? surfaceVel.magnitude() : -surfaceVel.magnitude();
+
 		float speed = traverse_get_speed();
 
 		Vec2f acc_vec = math::projection(owner->get_acc(), math::vector(currentContact->collider.surface));
@@ -209,7 +213,7 @@ Vec2f SurfaceTracker::do_max_speed(secs deltaTime) noexcept {
 		}
 
 		if (abs(speed + (acc_mag * deltaTime)) > max_speed) {
-			traverse_set_speed(max_speed * (speed < 0.f ? -1.f : 1.f));
+			traverse_set_speed(max_speed * (speed < 0.f ? -1.f : 1.f) + surface_mag);
 			decel -= acc_vec;
 		}
 	}
@@ -414,7 +418,7 @@ float SurfaceTracker::traverse_get_speed() {
 	}
 
 	Vec2f surf = math::vector(currentContact->collider.surface);
-	Vec2f proj = math::projection(owner->get_vel(), surf);
+	Vec2f proj = math::projection(owner->get_vel(), surf) - currentContact->getSurfaceVel();
 
 	if (proj.x == 0.f) {
 		return 0.f;

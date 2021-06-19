@@ -6,7 +6,7 @@ using namespace ff;
 
 class AnimLogic : public TileLogic {
 public:
-	AnimLogic(GameContext context) : TileLogic(context) {}
+	AnimLogic(GameContext context) : TileLogic(context, "anim") {}
 
 	void addTile(Vec2u tilePos, Tile tile, std::string arg) override;
 	void update(secs deltaTime) override;

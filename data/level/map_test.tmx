@@ -30,7 +30,7 @@
   </data>
  </layer>
  <objectgroup id="4" name="Object Layer 1">
-  <object id="7" type="Player" x="1920" y="320" width="16" height="32">
+  <object id="7" type="Player" x="48" y="144" width="16" height="32">
    <properties>
     <property name="anotherprop" value="Foo"/>
     <property name="faceleft" type="bool" value="true"/>

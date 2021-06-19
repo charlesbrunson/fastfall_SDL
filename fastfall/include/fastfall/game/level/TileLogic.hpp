@@ -32,8 +32,8 @@ protected:
 
 public:
 
-	TileLogic(GameContext context) 
-		: m_context(context)
+	TileLogic(GameContext context, std::string name) 
+		: m_context(context), m_name(name)
 	{
 
 	}
@@ -42,6 +42,10 @@ public:
 	virtual void addTile(Vec2u tilePos, Tile tile, std::string args) = 0;
 
 	virtual void update(secs deltaTime) = 0;
+
+	inline std::string_view getName() const {
+		return m_name;
+	}
 
 	inline bool hasNextCommand() const {
 		return !commands.empty();
@@ -57,6 +61,7 @@ public:
 	}
 
 private:
+	std::string m_name;
 	std::queue<TileLogicCommand> commands;
 	GameContext m_context;
 };

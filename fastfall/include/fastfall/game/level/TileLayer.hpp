@@ -92,11 +92,20 @@ protected:
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 
 	//sets of vertexs for each texture this layer needs
-	std::map<Vec2u, const TilesetAsset*> pos2tileset;
-	std::map<const TilesetAsset*, TileVertexArray> tileVertices;
+	//std::map<Vec2u, const TilesetAsset*> pos2tileset;
+
+	static constexpr int NO_TILESET = UINT8_MAX;
+	std::vector<uint8_t> pos2tileset;
+
+	struct TVArrayT {
+		const TilesetAsset* tileset;
+		TileVertexArray varray;
+	};
+	std::vector<TVArrayT> tileVertices;
+
 	std::shared_ptr<ColliderTileMap> collision;
 
-	std::map<std::string, std::unique_ptr<TileLogic>> tileLogic;
+	std::vector<std::unique_ptr<TileLogic>> tileLogic;
 };
 
 }

@@ -103,7 +103,10 @@ void Player::update(secs deltaTime) {
 		box->setSlipNone();
 		const PersistantContact& contact = ground->get_contact().value();
 
-		Vec2f groundUnit = contact.collider_normal.righthand();
+		//Vec2f groundUnit = contact.collider_normal.righthand();
+
+		Vec2f groundVel = contact.getSurfaceVel();
+
 		ground->slope_sticking = true;
 
 		float speed = ground->traverse_get_speed();
@@ -140,7 +143,7 @@ void Player::update(secs deltaTime) {
 
 				sprite.set_anim_if_not(run);
 				sprite.set_playback(
-					std::clamp(std::abs(box->get_vel().magnitude()) / 150.f, 0.5f, 2.f)
+					std::clamp(abs(speed) / 150.f, 0.5f, 2.f)
 				);
 			}
 			//else {

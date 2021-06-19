@@ -36,10 +36,8 @@ TileLayer::TileLayer(const TileLayer& tile)
 	scrollRate = tile.scrollRate;
 
 	tileLogic.clear();
-	for (const auto& [type, logic] : tile.tileLogic) {
-		tileLogic.insert(std::make_pair(type,
-				createTileLogic(m_context, type)
-			));
+	for (const auto& logic : tile.tileLogic) {
+		tileLogic.push_back(createTileLogic(m_context, logic->getName()));
 	}
 
 }
@@ -57,10 +55,8 @@ TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	scrollRate = tile.scrollRate;
 
 	tileLogic.clear();
-	for (const auto& [type, logic] : tile.tileLogic) {
-		tileLogic.insert(std::make_pair(type,
-			createTileLogic(m_context, type)
-		));
+	for (const auto& logic : tile.tileLogic) {
+		tileLogic.push_back(createTileLogic(m_context, logic->getName()));
 	}
 
 	return *this;
@@ -111,6 +107,8 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 	size.x = layerData.tileLayer->innerSize.x == 0 ? layerData.tileLayer->tileSize.x : layerData.tileLayer->innerSize.x;
 	size.y = layerData.tileLayer->innerSize.y == 0 ? layerData.tileLayer->tileSize.y : layerData.tileLayer->innerSize.y;
 
+	pos2tileset.resize(size.x * size.y, -1);
+
 	has_parallax = layerData.tileLayer->has_parallax;
 	scrollRate = layerData.tileLayer->scrollrate;
 
@@ -148,7 +146,7 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 
 void TileLayer::update(secs deltaTime) {
 	for (auto& logic : tileLogic) {
-		logic.second->update(deltaTime);
+		logic->update(deltaTime);
 	}
 }
 
@@ -158,7 +156,7 @@ void TileLayer::predraw(secs deltaTime) {
 
 	// update logic
 	for (auto& logic : tileLogic) {
-		TileLogic* ptr = logic.second.get();
+		TileLogic* ptr = logic.get();
 		
 		while (ptr->hasNextCommand()) {
 
@@ -196,26 +194,26 @@ void TileLayer::predraw(secs deltaTime) {
 
 		while (scroll_offset.x < 0.f) {	
 			scroll_offset.x += TILESIZE_F;
-			for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_backwardX();
+			for (auto& vta_pair : tileVertices)	vta_pair.varray.rotate_backwardX();
 		}
 		while (scroll_offset.x >= TILESIZE_F) {
 			scroll_offset.x -= TILESIZE_F;
-			for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_forwardX();
+			for (auto& vta_pair : tileVertices)	vta_pair.varray.rotate_forwardX();
 		}
 		while (scroll_offset.y < 0.f) { 
 			scroll_offset.y += TILESIZE_F;
-			for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_backwardY();
+			for (auto& vta_pair : tileVertices)	vta_pair.varray.rotate_backwardY();
 		}
 		while (scroll_offset.y >= TILESIZE_F) {
 			scroll_offset.y -= TILESIZE_F;
-			for (auto& vta_pair : tileVertices)	vta_pair.second.rotate_forwardY();
+			for (auto& vta_pair : tileVertices)	vta_pair.varray.rotate_forwardY();
 		}
 
 	}
 
 	if (has_parallax || hasScrollX() || hasScrollY()) {
 		for (auto& vta_pair : tileVertices) {
-			vta_pair.second.offset = parallax_offset + scroll_offset;
+			vta_pair.varray.offset = parallax_offset + scroll_offset;
 		}
 	}
 
@@ -237,33 +235,51 @@ void TileLayer::predraw(secs deltaTime) {
 
 void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const TilesetAsset& tileset) {
 
-	auto iter1 = pos2tileset.find(position);
-	if (iter1 != pos2tileset.end()) {
-		auto iter2 = tileVertices.find(iter1->second);
-		if (iter2 != tileVertices.end()) {
-			iter2->second.blank(position);
-		}
+	// blank existing tile at that position
+	unsigned ndx = position.y * size.x + position.x;
+	uint8_t tileset_ndx = pos2tileset.at(ndx);
+	if (tileset_ndx != NO_TILESET) {
+		tileVertices.at(tileset_ndx).varray.blank(position);
+		pos2tileset.at(ndx) = NO_TILESET;
 	}
 
-	auto vertarr = tileVertices.find(&tileset);
+	// find tilearray or create it
+	auto vertarr = std::find_if(tileVertices.begin(), tileVertices.end(), [&tileset](const TVArrayT& tva) {
+		return tva.tileset == &tileset;
+		});
 	if (vertarr == tileVertices.end()) {
-		auto [iter, inserted] = tileVertices.insert(std::make_pair(&tileset, TileVertexArray(size)));
-		iter->second.setTexture(tileset.getTexture());
-		iter->second.setTile(position, texposition);
+
+		if (tileVertices.size() < UINT8_MAX) {
+
+			tileVertices.push_back(TVArrayT{
+					.tileset = &tileset,
+					.varray = TileVertexArray(size)
+				});
+
+			tileVertices.back().varray.setTexture(tileset.getTexture());
+			tileVertices.back().varray.setTile(position, texposition);
+			tileset_ndx = tileVertices.size() - 1;
+		}
+		else {
+			LOG_ERR_("Cannot set tile, tilelayer has reached max tileset references: {}", tileVertices.size());
+		}
 	}
 	else {
-		vertarr->second.setTile(position, texposition);
+		vertarr->varray.setTile(position, texposition);
+		tileset_ndx = std::distance(tileVertices.begin(), vertarr);
 	}
-	pos2tileset[position] = &tileset;
+	// set new tileset
+	pos2tileset.at(ndx) = tileset_ndx;
 
 
 	if (hasCollision) {
 		collision->setTile(Vec2i(position), tileset.getTile(texposition).shape);
 	}
 
-
 	if (auto logic = tileset.getTileLogic(texposition); logic.has_value()) {
-		auto it = tileLogic.find(logic->logicType);
+		auto it = std::find_if(tileLogic.begin(), tileLogic.end(), [&logic](const std::unique_ptr<TileLogic>& log) {
+			return logic->logicType == log->getName();
+			});
 
 		Tile t = tileset.getTile(texposition);
 
@@ -271,33 +287,41 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 
 			auto logic_ptr = createTileLogic(m_context, logic->logicType);
 			if (logic_ptr) {
-				auto [n_it, inserted] = tileLogic.insert(std::make_pair(logic->logicType, std::move(logic_ptr)));
-				it = n_it;
-
-
-				it->second->addTile(position, t, logic->logicArg);
+				tileLogic.push_back(std::move(logic_ptr));
+				tileLogic.back()->addTile(position, t, logic->logicArg);
 			}
 			else {
 				LOG_WARN("could not create tile logic type: {}", logic->logicType);
 			}
 		}
 		else {
-			it->second->addTile(position, t, logic->logicArg);
+			it->get()->addTile(position, t, logic->logicArg);
 		}
 	}
 
 }
 void TileLayer::removeTile(const Vec2u& position) {
-	auto iter1 = pos2tileset.find(position);
-	if (iter1 != pos2tileset.end()) {
-		auto iter2 = tileVertices.find(iter1->second);
-		if (iter2 != tileVertices.end()) {
-			iter2->second.erase(position);
+	//auto iter1 = pos2tileset.find(position);
 
-			if (iter2->second.empty()) {
+	unsigned ndx = position.y * size.x + position.x;
+	uint8_t tileset_ndx = pos2tileset.at(ndx);
+
+	if (tileset_ndx != NO_TILESET) {
+		tileVertices.at(tileset_ndx).varray.erase(position);
+		pos2tileset.at(ndx) = NO_TILESET;
+		/*
+		auto iter2 = std::find_if(tileVertices.begin(), tileVertices.end(), [&iter1](const TVArrayT& tva) {
+			return tva.tileset == iter1->second;
+			});
+
+		if (iter2 != tileVertices.end()) {
+			iter2->varray.erase(position);
+
+			if (iter2->varray.empty()) {
 				tileVertices.erase(iter2);
 			}
 		}
+		*/
 	}
 	if (hasCollision) {
 		collision->removeTile(Vec2i(position));
@@ -312,39 +336,13 @@ void TileLayer::clear() {
 }
 
 void TileLayer::draw(RenderTarget& target, RenderState states) const {
-	//states.transform.translate(offset);
-
 	states.transform = Transform::combine(states.transform, Transform(offset));
 
 	if (!hidden) {
 		for (auto& layer : tileVertices) {
-			states.texture = layer.first->getTexture();
+			states.texture = layer.varray.getTexture();
 
-			target.draw(layer.second, states);
-			/*
-			if (hasScrollX() && hasScrollY()) {
-				RenderState state_off = states;
-				Vec2f off = Vec2f{ size } * TILESIZE_F;
-				state_off.transform = Transform::combine(states.transform, Transform(-off));
-				target.draw(layer.second, state_off);
-
-
-			}
-			if (hasScrollX()) {
-				RenderState state_off = states;
-				Vec2f off = Vec2f{ (float)size.x , 0.f } * TILESIZE_F;
-				state_off.transform = Transform::combine(states.transform, Transform(-off));
-				target.draw(layer.second, state_off);
-
-			}
-			if (hasScrollY()) {
-				RenderState state_off = states;
-				Vec2f off = Vec2f{ 0.f, (float)size.y } * TILESIZE_F;
-				state_off.transform = Transform::combine(states.transform, Transform(-off));
-				target.draw(layer.second, state_off);
-
-			}
-			*/
+			target.draw(layer.varray, states);
 		}
 	}
 }
