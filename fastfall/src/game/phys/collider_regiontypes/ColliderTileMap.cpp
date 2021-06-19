@@ -174,61 +174,71 @@ namespace ff {
 		Vec2i change_min{ INT_MAX, INT_MAX };
 		Vec2i change_max{ -INT_MAX, -INT_MAX };
 
+		bool any_change = false;
+
 		while (!editQueue.empty()) {
+
+			bool has_change = false;
 
 			const Edit& change = editQueue.front();
 
 			const Vec2i& pos = change.position;
 
 			if (change.removal) {
-				applyRemoveTile(change);
+				has_change = applyRemoveTile(change);
 			}
 			else {
-				applySetTile(change);
+				has_change = applySetTile(change);
 			}
 
-			for (int xx = pos.x - 1 - size_min.x; xx <= pos.x + 1 - size_min.x; xx++) {
-				for (int yy = pos.y - 1 - size_min.y; yy <= pos.y + 1 - size_min.y; yy++) {
+			if (has_change) {
+				for (int xx = pos.x - 1 - size_min.x; xx <= pos.x + 1 - size_min.x; xx++) {
+					for (int yy = pos.y - 1 - size_min.y; yy <= pos.y + 1 - size_min.y; yy++) {
 
-					if (xx >= 0 && xx < size.x &&
-						yy >= 0 && yy < size.y) {
+						if (xx >= 0 && xx < size.x &&
+							yy >= 0 && yy < size.y) {
 
-						change_min.x = std::min(xx, change_min.x);
-						change_min.y = std::min(yy, change_min.y);
+							change_min.x = std::min(xx, change_min.x);
+							change_min.y = std::min(yy, change_min.y);
 
-						change_max.x = std::max(xx, change_max.x);
-						change_max.y = std::max(yy, change_max.y);
+							change_max.x = std::max(xx, change_max.x);
+							change_max.y = std::max(yy, change_max.y);
 
-						int ndx = yy * size.x + xx;
+							int ndx = yy * size.x + xx;
 
-						impacted[ndx] = true;
+							impacted[ndx] = true;
+						}
+
 					}
-
 				}
 			}
 
 			editQueue.pop();
+			any_change |= has_change;
 		}
 
-		// update impacted
-		for (int xx = change_min.x; xx <= change_max.x; xx++) {
-			for (int yy = change_min.y; yy <= change_max.y; yy++) {
+		if (any_change) {
 
-				if (impacted[yy * size.x + xx]) {
+			// update impacted
+			for (int xx = change_min.x; xx <= change_max.x; xx++) {
+				for (int yy = change_min.y; yy <= change_max.y; yy++) {
 
-					updateGhosts(Vec2i{ size_min.x + xx , size_min.y + yy });
+					if (impacted[yy * size.x + xx]) {
+
+						updateGhosts(Vec2i{ size_min.x + xx , size_min.y + yy });
+					}
+
 				}
-
 			}
 		}
 	}
 
-	void ColliderTileMap::applyRemoveTile(const Edit& change) {
+	bool ColliderTileMap::applyRemoveTile(const Edit& change) {
 
 		auto [quad, tile] = getTile(change.position);
 
 		if (!quad)
-			return;
+			return false;
 
 		unsigned shapeTouchBits = tile->shape.shapeTouches;
 		for (const auto& side : sides) {
@@ -255,9 +265,9 @@ namespace ff {
 		}
 
 		tileShapeMap[getTileIndex(change.position)].hasTile = false;
-
+		return true;
 	}
-	void ColliderTileMap::applySetTile(const Edit& change) {
+	bool ColliderTileMap::applySetTile(const Edit& change) {
 
 		ColliderTile nTile(change.position /* * static_cast<int>(TILESIZE)*/, change.toShape);
 		ColliderQuad nQuad = nTile.toQuad();
@@ -273,7 +283,7 @@ namespace ff {
 				&& (tile->shape.vflipped == nTile.shape.vflipped)
 				) {
 				// no impact to collision map
-				return;
+				return false;
 			}
 			else {
 				applyRemoveTile(Edit{ change.position, true });
@@ -281,7 +291,7 @@ namespace ff {
 		}
 
 		if (nTile.shape.type == TileShape::Type::EMPTY)
-			return;
+			return true;
 
 		unsigned shapeTouchBits = nTile.shape.shapeTouches;
 		for (const auto& side : sides) {
@@ -324,6 +334,7 @@ namespace ff {
 		tileShapeMap[ndx].hasTile = true;
 		tileShapeMap[ndx].tile = nTile;
 		tileCollisionMap[ndx] = nQuad;
+		return true;
 	}
 
 	const ColliderQuad* ColliderTileMap::getTileCollision(const Vec2i& at) const {

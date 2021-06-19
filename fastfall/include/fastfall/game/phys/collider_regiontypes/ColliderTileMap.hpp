@@ -79,8 +79,8 @@ private:
 	};
 	Ghosts getGhosts(const std::array<std::pair<Vec2i, const ColliderQuad*>, 9>& nearby, const Linef& surface, bool isOneWay);
 
-	void applyRemoveTile(const Edit& change);
-	void applySetTile(const Edit& change);
+	bool applyRemoveTile(const Edit& change);
+	bool applySetTile(const Edit& change);
 
 	//returns indicate of which surfaces to be erased (corresponds to params)
 	std::pair<bool, bool> cullTouchingSurfaces(ColliderSurface& lhs, ColliderSurface& rhs);

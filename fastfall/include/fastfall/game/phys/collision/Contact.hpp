@@ -56,7 +56,7 @@ struct Contact {
 	Vec2f velocity;
 
 	// the velocity of the surface
-	float surfaceVel = 40.f;
+	float surfaceVel = 0.f;
 	Vec2f getSurfaceVel() const { return collider_normal.righthand() * surfaceVel; }
 
 	// moment that the object started intersecting the collider,
