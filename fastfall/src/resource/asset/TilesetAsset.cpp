@@ -55,7 +55,27 @@ std::map<std::string, void(*)(TileState&, char*)> tileProperties
 		if (strlen(value) > 0 && strcmp(state.owner->getAssetName().c_str(), value) != 0) {
 			state.tile->next_tileset = state.owner->getTilesetRefIndex(value);
 		}
+	}},
+	{"material", [](TileState& state, char* value)
+	{
+		state.tile->material = getTileMaterial(value);
+	}},
+	{"material_facing", [](TileState& state, char* value)
+	{
+		if (strcmp(value, "north")) {
+			state.tile->matFacing = Cardinal::NORTH;
+		}
+		else if (strcmp(value, "east")) {
+			state.tile->matFacing = Cardinal::EAST;
+		}
+		else if (strcmp(value, "south")) {
+			state.tile->matFacing = Cardinal::SOUTH;
+		}
+		else if (strcmp(value, "west")) {
+			state.tile->matFacing = Cardinal::WEST;
+		}
 	}}
+
 };
 
 

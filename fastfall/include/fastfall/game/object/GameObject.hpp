@@ -55,7 +55,8 @@ struct ObjectTypeProperty {
 	}
 };
 
-struct ObjectTypeConstraints {
+struct ObjectType {
+	std::string typeName;
 	Vec2u tile_size = { 0u, 0u };
 	std::set<ObjectTypeProperty> properties;
 
@@ -64,19 +65,20 @@ struct ObjectTypeConstraints {
 
 
 class GameObjectLibrary {
-public:
-	using ObjectTypeBuilder = std::function<std::unique_ptr<GameObject>(GameContext, const ObjectRef&, const ObjectTypeConstraints&)>;
+private:
 
-	struct ObjectType {
+	using ObjectTypeBuilderFn = std::function<std::unique_ptr<GameObject>(GameContext, const ObjectRef&, const ObjectType&)>;
+
+	struct ObjectTypeBuilder {
 
 		template<typename T, typename = std::enable_if<std::is_base_of<GameObject, T>::value>>
-		static ObjectType create(std::string typeName, ObjectTypeConstraints&& constraints) {
-			ObjectType t;
+		static ObjectTypeBuilder create(std::string typeName, ObjectType&& constraints) {
+			ObjectTypeBuilder t;
 			t.objTypeName = typeName;
 
 			t.hash = std::hash<std::string>{}(t.objTypeName);
 			t.constraints = std::move(constraints);
-			t.builder = [](GameContext inst, const ObjectRef& ref, const ObjectTypeConstraints& constraints)->std::unique_ptr<GameObject>
+			t.builder = [](GameContext inst, const ObjectRef& ref, const ObjectType& constraints)->std::unique_ptr<GameObject>
 			{
 				ObjectRef cref = ref;
 				if (constraints.test(cref)) {
@@ -90,55 +92,45 @@ public:
 			return t;
 		};
 
-		ObjectType() {
+		ObjectTypeBuilder() {
 			hash = 0;
 		}
-		ObjectType(size_t typehash) {
+		ObjectTypeBuilder(size_t typehash) {
 			hash = typehash;
 		}
 
 		size_t hash;
 		std::string objTypeName;
-		ObjectTypeBuilder builder;
-		ObjectTypeConstraints constraints;
+		ObjectTypeBuilderFn builder;
+		ObjectType constraints;
 	};
 
-	struct ObjectType_compare {
-		bool operator() (const ObjectType& lhs, const ObjectType& rhs) const {
+	struct ObjectTypeBuilder_compare {
+		bool operator() (const ObjectTypeBuilder& lhs, const ObjectTypeBuilder& rhs) const {
 			return lhs.hash < rhs.hash;
 		}
 	};
+
+	static std::unique_ptr<std::set<ObjectTypeBuilder, ObjectTypeBuilder_compare>> objectBuildMap;
+
+	static std::set<ObjectTypeBuilder, ObjectTypeBuilder_compare>& getBuilder() {
+		if (!objectBuildMap) {
+			objectBuildMap = std::make_unique<std::set<ObjectTypeBuilder, ObjectTypeBuilder_compare>>();
+		}
+		return *objectBuildMap;
+	}
+
+public:
 
 	static void build(GameContext instance, const ObjectRef& ref);
 
 	static const std::string* lookupTypeName(size_t hash);
 
-	template<typename T>
-	struct Entry {
-		Entry(std::string typeName) {
-			GameObjectLibrary::addType<T>(typeName, ObjectTypeConstraints());
-		}
-		Entry(std::string typeName, ObjectTypeConstraints&& constraints) {
-			GameObjectLibrary::addType<T>(typeName, std::move(constraints));
-		}
-	};
-
-
-	static std::set<ObjectType, ObjectType_compare>& getBuilder() {
-		if (!objectBuildMap) {
-			objectBuildMap = std::make_unique<std::set<ObjectType, ObjectType_compare>>();
-		}
-		return *objectBuildMap;
-	}
-
-private:
-	static std::unique_ptr<std::set<ObjectType, ObjectType_compare>> objectBuildMap;
-
-
 	template<typename T, typename = std::enable_if<std::is_base_of<GameObject, T>::value>>
-	static void addType(std::string typeName, ObjectTypeConstraints&& constraints) {
-		getBuilder().insert(std::move(ObjectType::create<T>(typeName, std::move(constraints))));
+	static void addType(ObjectType&& constraints) {
+		getBuilder().insert(std::move(ObjectTypeBuilder::create<T>(constraints.typeName, std::move(constraints))));
 	}
+
 };
 
 

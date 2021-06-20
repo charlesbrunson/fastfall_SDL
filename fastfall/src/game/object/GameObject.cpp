@@ -17,7 +17,7 @@
 namespace ff {
 
 
-std::unique_ptr<std::set<GameObjectLibrary::ObjectType, GameObjectLibrary::ObjectType_compare>> GameObjectLibrary::objectBuildMap;
+std::unique_ptr<std::set<GameObjectLibrary::ObjectTypeBuilder, GameObjectLibrary::ObjectTypeBuilder_compare>> GameObjectLibrary::objectBuildMap;
 
 
 void GameObjectLibrary::build(GameContext instance, const ObjectRef& ref) {
@@ -58,7 +58,7 @@ const std::string* GameObjectLibrary::lookupTypeName(size_t hash) {
 	return nullptr;
 }
 
-bool ObjectTypeConstraints::test(ObjectRef& ref) const {
+bool ObjectType::test(ObjectRef& ref) const {
 	bool valid = true;
 
 

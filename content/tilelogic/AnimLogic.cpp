@@ -4,13 +4,6 @@
 
 using namespace ff;
 
-TileLogicType type = {
-	"anim",
-	[](GameContext context) -> std::unique_ptr<TileLogic> {
-		return std::make_unique<AnimLogic>(context);
-	}
-};
-
 void AnimLogic::addTile(Vec2u tilePos, Tile tile, std::string arg) {
 	tile_timers.push_back(TileTimer{});
 	tile_timers.back().time_to_anim = ms_to_secs(std::stoi(arg));

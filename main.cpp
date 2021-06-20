@@ -10,6 +10,7 @@
 #include "fastfall/engine/Engine.hpp"
 #include "fastfall/engine/imgui/ImGuiFrame.hpp"
 
+#include "content/types.hpp"
 #include "content/TestState.hpp"
 
 ff::EngineSettings getSettings() {
@@ -50,6 +51,8 @@ int main(int argc, char* argv[])
 	log::set_verbosity(log::level::INFO);
 
 	using namespace ff;
+
+	game_InitTypes();
 
 	FFinit();
 

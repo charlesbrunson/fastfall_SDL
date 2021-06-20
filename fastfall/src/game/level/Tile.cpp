@@ -1,4 +1,4 @@
-#include "fastfall/resource/asset/Tile.hpp"
+#include "fastfall/game/level/Tile.hpp"
 
 #include "fastfall/util/cardinal.hpp"
 #include "fastfall/util/log.hpp"
@@ -81,6 +81,28 @@ TileShape::TileShape(const char* shapeStr) noexcept {
 	vflipped = flipParams.find_first_of("vV") != std::string::npos;
 
 	init();
+}
+
+// tile materials
+namespace {
+	std::unordered_map<std::string, TileMaterial> materials;
+}
+
+const TileMaterial standardMat;
+
+void addTileMaterialType(std::string typeName, const TileMaterial& mat) {
+	materials.insert_or_assign(typeName, mat);
+}
+
+const TileMaterial* getTileMaterial(std::string typeName) {
+	const auto it = materials.find(typeName);
+
+	if (it != materials.end()) {
+		return &(it->second);
+	}
+	else {
+		return &standardMat;
+	}
 }
 
 }

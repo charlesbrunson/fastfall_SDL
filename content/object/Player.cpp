@@ -5,17 +5,6 @@
 
 using namespace ff;
 
-GameObjectLibrary::Entry<Player> plr_type{ 
-	"Player",
-	{
-		.tile_size = {1, 2},
-		.properties = {
-			ObjectTypeProperty("anotherprop", ObjectPropertyType::String),
-			ObjectTypeProperty("faceleft", false)
-		}
-	} 
-};
-
 namespace constants {
 
 	AnimIDRef idle  ("player", "idle");

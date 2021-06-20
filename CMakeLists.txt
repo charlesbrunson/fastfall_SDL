@@ -27,7 +27,8 @@ add_executable(test_project
 	"content/TestState.hpp" 
 	"content/tilelogic/AnimLogic.hpp"
 	"content/tilelogic/AnimLogic.cpp"
-)
+	"content/types.hpp"
+	"content/types.cpp")
 
 target_link_libraries(test_project PRIVATE 
 	fastfall
