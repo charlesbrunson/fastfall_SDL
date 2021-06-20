@@ -39,26 +39,7 @@ void CollisionManager::addColliderRegion(std::shared_ptr<ColliderRegion> col) {
 	}
 };
 
-/*
-void CollisionManager::addCollidable(std::shared_ptr<Collidable> col) {
-	arbiters.insert(std::make_pair(col, ArbiterData()));
-
-	for (auto& collider : colliders.colliders_attached) {
-		if (auto c_lock = collider.lock()) {
-			if (c_lock->attached == col.get()) {
-				collidables.collidables_attached.push_back(col);
-				return;
-			}
-		}
-	}
-	collidables.collidables_free.push_back(col);
-
-};
-*/
-
 Collidable* CollisionManager::createCollidable(Collidable&& col) {
-
-	//arbiters.insert(std::make_pair(&col, ArbiterData()));
 
 	Collidable* ptr = nullptr;
 
@@ -92,20 +73,10 @@ void CollisionManager::removeCollidable(Collidable* colptr) {
 
 
 void CollisionManager::update(secs deltaTime) {
-	//TODO
-
 	if (deltaTime > 0.0) {
 		broadPhase(colliders.colliders_free, collidables.collidables_free, deltaTime);
 
 		for (auto& [cptr, arbData] : arbiters) {
-
-			/*
-			for (auto& solve : arbData) {
-				contacts.push_back(std::make_pair(
-					solve.contact, (solve.region ? solve.region->getPosition() : Vec2f())
-				));
-			}
-			*/
 
 			solve(arbData);
 		}

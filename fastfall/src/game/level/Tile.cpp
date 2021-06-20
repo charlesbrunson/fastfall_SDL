@@ -88,20 +88,22 @@ namespace {
 	std::unordered_map<std::string, TileMaterial> materials;
 }
 
-const TileMaterial standardMat;
+const TileMaterial Tile::standardMat = {
+	.typeName = "standard"
+};
 
-void addTileMaterialType(std::string typeName, const TileMaterial& mat) {
-	materials.insert_or_assign(typeName, mat);
+void Tile::addMaterialType(const TileMaterial& mat) {
+	materials.insert_or_assign(mat.typeName, mat);
 }
 
-const TileMaterial* getTileMaterial(std::string typeName) {
+const TileMaterial& Tile::getMaterial(std::string typeName) {
 	const auto it = materials.find(typeName);
 
 	if (it != materials.end()) {
-		return &(it->second);
+		return (it->second);
 	}
 	else {
-		return &standardMat;
+		return standardMat;
 	}
 }
 

@@ -48,10 +48,20 @@ public:
 		return std::nullopt;
 	}
 
+	const TileMaterial& getMaterial(Vec2u position) const {
+		if (auto it = matData.find(position); it != matData.end()) {
+			return Tile::getMaterial(it->second);
+		}
+		return Tile::standardMat;
+	}
+
 protected:
 
 	void setTileLogic(Vec2u position, const TileLogicData& logic) {
 		logicData.insert(std::make_pair(position, logic));
+	}
+	void setTileMaterial(Vec2u position, const std::string& material) {
+		matData.insert(std::make_pair(position, material));
 	}
 
 	void parseTileProperties(rapidxml::xml_node<>* propsNode, Tile& t);
@@ -61,6 +71,7 @@ protected:
 
 	std::map<Vec2u, Tile> tileData;
 	std::map<Vec2u, TileLogicData> logicData;
+	std::map<Vec2u, std::string> matData;
 	Vec2u texTileSize;
 };
 

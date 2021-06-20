@@ -35,6 +35,7 @@
   <properties>
    <property name="logic" value="anim"/>
    <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow"/>
    <property name="next_y" type="int" value="1"/>
    <property name="shape" value="solid"/>
   </properties>
@@ -43,6 +44,7 @@
   <properties>
    <property name="logic" value="anim"/>
    <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow"/>
    <property name="next_y" type="int" value="1"/>
    <property name="shape" value="solid"/>
   </properties>
@@ -51,6 +53,34 @@
   <properties>
    <property name="logic" value="anim"/>
    <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow"/>
+   <property name="next_y" type="int" value="1"/>
+   <property name="shape" value="solid"/>
+  </properties>
+ </tile>
+ <tile id="10">
+  <properties>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow_reverse"/>
+   <property name="next_y" type="int" value="1"/>
+   <property name="shape" value="solid"/>
+  </properties>
+ </tile>
+ <tile id="11">
+  <properties>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow_reverse"/>
+   <property name="next_y" type="int" value="1"/>
+   <property name="shape" value="solid"/>
+  </properties>
+ </tile>
+ <tile id="12">
+  <properties>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow_reverse"/>
    <property name="next_y" type="int" value="1"/>
    <property name="shape" value="solid"/>
   </properties>
@@ -94,6 +124,7 @@
   <properties>
    <property name="logic" value="anim"/>
    <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow"/>
    <property name="next_y" type="int" value="1"/>
    <property name="shape" value="solid"/>
   </properties>
@@ -102,6 +133,7 @@
   <properties>
    <property name="logic" value="anim"/>
    <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow"/>
    <property name="next_y" type="int" value="1"/>
    <property name="shape" value="solid"/>
   </properties>
@@ -110,6 +142,34 @@
   <properties>
    <property name="logic" value="anim"/>
    <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow"/>
+   <property name="next_y" type="int" value="1"/>
+   <property name="shape" value="solid"/>
+  </properties>
+ </tile>
+ <tile id="26">
+  <properties>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow_reverse"/>
+   <property name="next_y" type="int" value="1"/>
+   <property name="shape" value="solid"/>
+  </properties>
+ </tile>
+ <tile id="27">
+  <properties>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow_reverse"/>
+   <property name="next_y" type="int" value="1"/>
+   <property name="shape" value="solid"/>
+  </properties>
+ </tile>
+ <tile id="28">
+  <properties>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow_reverse"/>
    <property name="next_y" type="int" value="1"/>
    <property name="shape" value="solid"/>
   </properties>
@@ -153,6 +213,7 @@
   <properties>
    <property name="logic" value="anim"/>
    <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow"/>
    <property name="next_y" type="int" value="1"/>
    <property name="shape" value="solid"/>
   </properties>
@@ -161,6 +222,7 @@
   <properties>
    <property name="logic" value="anim"/>
    <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow"/>
    <property name="next_y" type="int" value="1"/>
    <property name="shape" value="solid"/>
   </properties>
@@ -169,6 +231,34 @@
   <properties>
    <property name="logic" value="anim"/>
    <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow"/>
+   <property name="next_y" type="int" value="1"/>
+   <property name="shape" value="solid"/>
+  </properties>
+ </tile>
+ <tile id="42">
+  <properties>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow_reverse"/>
+   <property name="next_y" type="int" value="1"/>
+   <property name="shape" value="solid"/>
+  </properties>
+ </tile>
+ <tile id="43">
+  <properties>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow_reverse"/>
+   <property name="next_y" type="int" value="1"/>
+   <property name="shape" value="solid"/>
+  </properties>
+ </tile>
+ <tile id="44">
+  <properties>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow_reverse"/>
    <property name="next_y" type="int" value="1"/>
    <property name="shape" value="solid"/>
   </properties>
@@ -212,6 +302,7 @@
   <properties>
    <property name="logic" value="anim"/>
    <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow"/>
    <property name="next_y" type="int" value="-3"/>
    <property name="shape" value="solid"/>
   </properties>
@@ -220,6 +311,7 @@
   <properties>
    <property name="logic" value="anim"/>
    <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow"/>
    <property name="next_y" type="int" value="-3"/>
    <property name="shape" value="solid"/>
   </properties>
@@ -228,6 +320,34 @@
   <properties>
    <property name="logic" value="anim"/>
    <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow"/>
+   <property name="next_y" type="int" value="-3"/>
+   <property name="shape" value="solid"/>
+  </properties>
+ </tile>
+ <tile id="58">
+  <properties>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow_reverse"/>
+   <property name="next_y" type="int" value="-3"/>
+   <property name="shape" value="solid"/>
+  </properties>
+ </tile>
+ <tile id="59">
+  <properties>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow_reverse"/>
+   <property name="next_y" type="int" value="-3"/>
+   <property name="shape" value="solid"/>
+  </properties>
+ </tile>
+ <tile id="60">
+  <properties>
+   <property name="logic" value="anim"/>
+   <property name="logic_arg" value="25"/>
+   <property name="material" value="conveyor_slow_reverse"/>
    <property name="next_y" type="int" value="-3"/>
    <property name="shape" value="solid"/>
   </properties>

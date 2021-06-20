@@ -23,6 +23,7 @@ struct TileState {
 	TilesetAsset* owner;
 	Tile* tile;
 	TileLogicData logic;
+	std::string material;
 };
 
 std::map<std::string, void(*)(TileState&, char*)> tileProperties
@@ -58,7 +59,9 @@ std::map<std::string, void(*)(TileState&, char*)> tileProperties
 	}},
 	{"material", [](TileState& state, char* value)
 	{
-		state.tile->material = getTileMaterial(value);
+		state.material = value;
+
+		//state.tile->material = getTileMaterial(value);
 	}},
 	{"material_facing", [](TileState& state, char* value)
 	{
@@ -114,6 +117,9 @@ void TilesetAsset::parseTileProperties(xml_node<>* propsNode, Tile& t) {
 
 	if (!state.logic.logicType.empty()) {
 		setTileLogic(t.pos, state.logic);
+	}
+	if (!state.material.empty()) {
+		setTileMaterial(t.pos, state.material);
 	}
 }
 

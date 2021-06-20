@@ -37,7 +37,7 @@ TileLayer::TileLayer(const TileLayer& tile)
 
 	tileLogic.clear();
 	for (const auto& logic : tile.tileLogic) {
-		tileLogic.push_back(createTileLogic(m_context, logic->getName()));
+		tileLogic.push_back(TileLogic::create(m_context, logic->getName()));
 	}
 
 }
@@ -56,7 +56,7 @@ TileLayer& TileLayer::operator=(const TileLayer& tile) {
 
 	tileLogic.clear();
 	for (const auto& logic : tile.tileLogic) {
-		tileLogic.push_back(createTileLogic(m_context, logic->getName()));
+		tileLogic.push_back(TileLogic::create(m_context, logic->getName()));
 	}
 
 	return *this;
@@ -273,7 +273,8 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 
 
 	if (hasCollision) {
-		collision->setTile(Vec2i(position), tileset.getTile(texposition).shape);
+		Tile t = tileset.getTile(texposition);
+		collision->setTile(Vec2i(position), t.shape, &tileset.getMaterial(texposition), t.matFacing);
 	}
 
 	if (useLogic) {
@@ -287,7 +288,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 
 			if (it == tileLogic.end()) {
 
-				auto logic_ptr = createTileLogic(m_context, logic->logicType);
+				auto logic_ptr = TileLogic::create(m_context, logic->logicType);
 				if (logic_ptr) {
 					tileLogic.push_back(std::move(logic_ptr));
 					tileLogic.back()->addTile(position, t, logic->logicArg);

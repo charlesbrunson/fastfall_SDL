@@ -62,7 +62,7 @@ namespace ff {
 
 
 		if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER)) {
-			debugDrawQuad(validCollisionSize, &tileCollisionMap[0], getPosition(), this, changed);
+			debugDrawQuad(validCollisionSize, &tileCollisionMap[0], getPosition(), this, update_debugDraw);
 		}
 	}
 
@@ -160,12 +160,11 @@ namespace ff {
 
 	void ColliderTileMap::applyChanges() {
 		if (editQueue.empty()) {
-			changed = false;
+			update_debugDraw = false;
 			return;
 		}
 		else {
-			changed = true;
-			//debug_dirtyFlag = true;
+			update_debugDraw = true;
 		}
 
 		Vec2i size = size_max - size_min;
@@ -269,7 +268,7 @@ namespace ff {
 	}
 	bool ColliderTileMap::applySetTile(const Edit& change) {
 
-		ColliderTile nTile(change.position /* * static_cast<int>(TILESIZE)*/, change.toShape);
+		ColliderTile nTile(change.position, change.toShape, change.material, change.matFacing);
 		ColliderQuad nQuad = nTile.toQuad();
 
 		//if ()

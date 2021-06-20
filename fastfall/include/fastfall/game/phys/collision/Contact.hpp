@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fastfall/game/level/Tile.hpp"
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/util/math.hpp"
 #include "fastfall/game/phys/collider_coretypes/ColliderSurface.hpp"
@@ -54,10 +55,12 @@ struct Contact {
 	// the velocity of the surface in contact
 	// relative to worldspace
 	Vec2f velocity;
-
-	// the velocity of the surface
-	float surfaceVel = 0.f;
-	Vec2f getSurfaceVel() const { return collider_normal.righthand() * surfaceVel; }
+		
+	const SurfaceMaterial* material = nullptr;
+	Vec2f getSurfaceVel() const { 
+		return material ? collider_normal.righthand() * material->velocity : Vec2f{};
+	}
+	
 
 	// moment that the object started intersecting the collider,
 	// represented as a fraction of the tick deltatime [0, 1.0]

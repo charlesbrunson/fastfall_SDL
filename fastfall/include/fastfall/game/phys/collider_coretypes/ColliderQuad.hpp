@@ -2,6 +2,7 @@
 
 #include "ColliderSurface.hpp"
 #include "fastfall/util/cardinal.hpp"
+#include "fastfall/game/level/Tile.hpp"
 
 #include <array>
 #include <assert.h>
@@ -17,7 +18,8 @@ public:
 	struct QuadSurface {
 		QuadSurface() noexcept :
 			hasSurface(false),
-			collider(ColliderSurface{})
+			collider(ColliderSurface{}),
+			material(SurfaceMaterial{})
 		{
 
 		}
@@ -30,8 +32,10 @@ public:
 
 		bool hasSurface = false;
 		ColliderSurface collider;
+		SurfaceMaterial material;
 	};
 	typedef std::array<QuadSurface, 4> SurfaceArray;
+
 
 	ColliderQuad() noexcept;
 	ColliderQuad(const SurfaceArray& surfaces) noexcept;
@@ -77,6 +81,9 @@ public:
 	bool hasBoundary = false;
 	Cardinal oneWayDir = CARDINAL_FIRST;
 	SurfaceArray surfaces;
+
+	const TileMaterial* material = nullptr;
+	Cardinal matFacing = Cardinal::NORTH;
 
 protected:
 	int quad_id = -1;

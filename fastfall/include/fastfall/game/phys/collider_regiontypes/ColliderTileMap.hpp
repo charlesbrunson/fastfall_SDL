@@ -14,10 +14,17 @@ namespace ff {
 class ColliderTileMap : public ColliderRegion {
 private:
 	struct Edit {
-		Edit(Vec2i pos, bool remove, TileShape shape = TileShape()) :
+		Edit(Vec2i pos, 
+			bool remove, 
+			TileShape shape = TileShape(),
+			const TileMaterial* mat = nullptr,
+			Cardinal _matFacing = Cardinal::NORTH
+		) :
 			position(pos),
 			removal(remove),
-			toShape(shape)
+			toShape(shape),
+			material(mat),
+			matFacing(_matFacing)
 		{
 
 		}
@@ -25,6 +32,9 @@ private:
 		Vec2i position;
 		bool removal;
 		TileShape toShape;
+		const TileMaterial* material;
+		Cardinal matFacing;
+
 	};
 
 	struct TileTable {
@@ -41,12 +51,21 @@ public:
 	const ColliderQuad* get_quad(int quad_id) const noexcept override;
 
 	void setBorders(const Vec2u& size, const unsigned cardinalBits);
-	inline void setTile(const Vec2i& at, const TileShape& toShape) { editQueue.push(Edit{ at, false, toShape }); };
+	//inline void setTile(const Vec2i& at, const TileShape& toShape) { editQueue.push(Edit{ at, false, toShape }); };
+	inline void setTile(
+		const Vec2i& at, 
+		const TileShape& toShape, 
+		const TileMaterial* mat = nullptr, 
+		Cardinal matFacing = Cardinal::NORTH
+	) 
+	{ 
+		editQueue.push(Edit{ at, false, toShape, mat, matFacing }); 
+	};
+
+
 	inline void removeTile(const Vec2i& at) { editQueue.push(Edit{ at, true }); };
 	void clear();
 	void applyChanges();
-
-	//void updateDebug();
 
 	const ColliderQuad* getTileCollision(const Vec2i& at) const;
 
@@ -55,12 +74,6 @@ public:
 			if (tileShapeMap[ndx].hasTile) f(tileCollisionMap[ndx]);
 		}
 	}
-
-	/*
-	inline std::pair<const ColliderQuad*, unsigned> getTileCollisionMap() const {
-		return std::make_pair(tileCollisionMap.get(), maxIndex);
-	}
-	*/
 
 	void getQuads(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& buffer) const override;
 
@@ -103,10 +116,9 @@ private:
 			return it.hasTile ? std::make_pair(&tileCollisionMap[ndx], &it.tile) : std::make_pair(nullptr, &tileShapeMap[ndx].tile);
 		}
 		return std::make_pair(nullptr, nullptr);
-		//throw std::out_of_range(std::to_string(ndx) + " out of range");
 	};
 
-	bool changed = false;
+	bool update_debugDraw = false;
 
 	bool hasBorder;
 	size_t validCollisionSize = 0;
@@ -123,12 +135,6 @@ private:
 
 	std::queue<ColliderTileMap::Edit> editQueue;
 
-	// debug stuff
-	//sf::VertexArray touches;
-	//sf::VertexArray surf;
-	//bool debug_dirtyFlag = false;
-
-	//void draw(sf::RenderTarget& target, sf::RenderStates states = sf::RenderStates()) const override;
 };
 
 }

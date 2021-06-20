@@ -72,7 +72,6 @@ void CollisionDiscrete::reset(const ColliderQuad* collisionTile, const ColliderR
 			tArea.left -= TILESIZE_F;
 			tArea.width = TILESIZE_F;
 		}
-
 	}
 
 	assert(tArea.width > 0.f);
@@ -425,6 +424,7 @@ void CollisionDiscrete::evalContact() noexcept {
 
 	contact.hasContact = hasContact;
 
+
 }
 
 CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexcept {
@@ -432,6 +432,10 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
 	CollisionAxis axis(initData);
 	axis.contact.ortho_normal = Vec2f(0.f, -1.f);
 	axis.contact.collider_normal = Vec2f(0.f, -1.f);
+	if (cQuad.material) {
+		axis.contact.material = &cQuad.material->getSurface(Cardinal::NORTH, cQuad.matFacing);
+	}
+	//axis.contact.
 
 	// if this is a oneway, invalidate it if the collider's previous position is not above it
 	if (!collidePrevious && cQuad.isOneWay(Cardinal::NORTH)) {
@@ -446,6 +450,9 @@ CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcep
 	CollisionAxis axis(initData);
 	axis.contact.ortho_normal = Vec2f(0.f, 1.f);
 	axis.contact.collider_normal = Vec2f(0.f, 1.f);
+	if (cQuad.material) {
+		axis.contact.material = &cQuad.material->getSurface(Cardinal::SOUTH, cQuad.matFacing);
+	}
 
 	// if this is a oneway, invalidate it if the collider's previous position is not below it
 	if (!collidePrevious && cQuad.isOneWay(Cardinal::SOUTH)) {
@@ -460,6 +467,9 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 	CollisionAxis axis(initData);
 	axis.contact.ortho_normal = Vec2f(1.f, 0.f);
 	axis.contact.collider_normal = Vec2f(1.f, 0.f);
+	if (cQuad.material) {
+		axis.contact.material = &cQuad.material->getSurface(Cardinal::EAST, cQuad.matFacing);
+	}
 
 	bool extend = axis.is_collider_valid();
 
@@ -509,6 +519,9 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 	CollisionAxis axis(initData);
 	axis.contact.ortho_normal = Vec2f(-1.f, 0.f);
 	axis.contact.collider_normal = Vec2f(-1.f, 0.f);
+	if (cQuad.material) {
+		axis.contact.material = &cQuad.material->getSurface(Cardinal::WEST, cQuad.matFacing);
+	}
 
 	bool extend = axis.is_collider_valid();
 

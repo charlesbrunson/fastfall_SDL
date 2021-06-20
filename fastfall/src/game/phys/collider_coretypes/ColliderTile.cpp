@@ -174,6 +174,10 @@ ColliderQuad ColliderTile::toQuad() const {
 		q.oneWayDir = !shape.hflipped ? Cardinal::EAST : Cardinal::WEST;
 	}
 
+	// material
+	q.material = mat;
+	q.matFacing = matFacing;
+
 	return q;
 }
 
