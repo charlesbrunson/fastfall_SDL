@@ -121,6 +121,7 @@ void CollisionManager::cleanInvalidCollisionObjects() {
 	//cleanseCollable(collidables.collidables_attached);
 }
 
+
 void CollisionManager::broadPhase(std::vector<ColliderRegion_Wptr>& p_colliders, std::list<Collidable>& p_collidables, secs deltaTime) {
 
 	std::vector<std::pair<Rectf, const ColliderQuad*>> buffer;
@@ -132,12 +133,15 @@ void CollisionManager::broadPhase(std::vector<ColliderRegion_Wptr>& p_colliders,
 
 		// using double for this as float can lead to infinite loop due to floating point inaccuracy when pushing boundary
 		Rect<double> body_bound(body.getBoundingBox());
-		Rect<double> push_bound(body_bound );
+		Rect<double> push_bound(body_bound);
 
 		ArbiterMap::iterator body_it{ arbiters.find(&body) };
 
 		// this should've been created when the collidable was added
-		assert(body_it != arbiters.end());
+		if (body_it == arbiters.end()) {
+			LOG_WARN("Could not find arbiter for collidable");
+			continue;
+		}
 
 		RegionArbiterMap* collMap = &body_it->second.regions;
 
@@ -156,32 +160,7 @@ void CollisionManager::broadPhase(std::vector<ColliderRegion_Wptr>& p_colliders,
 				body_rect.left - body_bound.left // WEST
 			};
 
-
-			for (auto& coll_wptr : p_colliders) {
-				if (auto coll = coll_wptr.lock()) {
-
-					RegionArbiterMap::iterator coll_it = collMap->find(coll);
-
-					// check if collidable is in this region
-					if (coll->getBoundingBox().intersects(Rectf{ body_bound })) {
-
-						if (coll_it == collMap->end()) {
-							// just entered this region
-
-							RegionArbiter rarb(coll.get(), &body);
-							coll_it = collMap->insert(std::make_pair(coll_wptr, std::move(rarb))).first;
-						}
-
-						coll_it->second.updateRegion(Rectf{ body_bound });
-
-					}
-					else if (coll_it != collMap->end()) {
-						// just left this region
-						collMap->erase(coll_it);
-					}
-				}
-			}
-
+			updateRegionArbiters(p_colliders, collMap, body);
 
 			// try to push out collidable bounds
 			for (auto& [region_wptr, regionArb] : *collMap) {
@@ -193,32 +172,8 @@ void CollisionManager::broadPhase(std::vector<ColliderRegion_Wptr>& p_colliders,
 						updatedBuffer.push_back(&arbiter);
 					}
 
-					const Contact* c = arbiter.getContactPtr();
-					auto dir = vecToCardinal(c->ortho_normal);
+					updatePushBound(push_bound, boundDist, arbiter.getContactPtr());
 
-					if (c->hasContact && dir.has_value()) {
-
-						double diff = c->separation - boundDist[dir.value()];
-						if (diff > 0.f) {
-							push_bound = math::rect_extend(push_bound, dir.value(), diff);
-						}
-
-						if (math::is_vertical(c->ortho_normal) && c->isTransposable()) {
-
-							Vec2f alt_ortho_normal = Vec2f{ (c->collider_normal.x < 0.f ? -1.f : 1.f), 0.f };
-							double alt_separation = abs(((double)c->collider_normal.y * (double)c->separation) / (double)c->collider_normal.x);
-
-							auto alt_dir = vecToCardinal(alt_ortho_normal);
-
-							if (alt_dir.has_value()) {
-								double alt_diff = alt_separation - (double)boundDist[alt_dir.value()];
-
-								if (alt_diff > 0.0) {
-									push_bound = math::rect_extend(push_bound, alt_dir.value(), alt_diff);
-								}
-							}
-						}
-					}
 				}
 			}
 
@@ -229,11 +184,60 @@ void CollisionManager::broadPhase(std::vector<ColliderRegion_Wptr>& p_colliders,
 
 };
 
-/*
-void CollisionManager::predraw(secs deltaTime) {
+void CollisionManager::updateRegionArbiters(std::vector<ColliderRegion_Wptr>& p_colliders, RegionArbiterMap* collMap, Collidable& collidable) {
+	for (auto& coll_wptr : p_colliders) {
+		if (auto coll = coll_wptr.lock()) {
 
+			RegionArbiterMap::iterator coll_it = collMap->find(coll);
+
+			// check if collidable is in this region
+			if (coll->getBoundingBox().intersects(collidable.getBoundingBox())) {
+
+				if (coll_it == collMap->end()) {
+					// just entered this region
+
+					RegionArbiter rarb(coll.get(), &collidable);
+					coll_it = collMap->insert(std::make_pair(coll_wptr, std::move(rarb))).first;
+				}
+
+				coll_it->second.updateRegion(collidable.getBoundingBox());
+
+			}
+			else if (coll_it != collMap->end()) {
+				// just left this region
+				collMap->erase(coll_it);
+			}
+		}
+	}
 }
-*/
+
+void CollisionManager::updatePushBound(Rect<double>& push_bound, const std::array<double, 4u>& boundDist, const Contact* contact) {
+
+	if (!contact->hasContact || !vecToCardinal(contact->ortho_normal).has_value())
+		return;
+
+	Cardinal dir = vecToCardinal(contact->ortho_normal).value();
+
+	double diff = (double)contact->separation - boundDist[dir];
+	if (diff > 0.0) {
+		push_bound = math::rect_extend(push_bound, dir, diff);
+	}
+
+	if (math::is_vertical(contact->ortho_normal) && contact->isTransposable()) {
+
+		Vec2f alt_ortho_normal = Vec2f{ (contact->collider_normal.x < 0.f ? -1.f : 1.f), 0.f };
+		auto alt_dir = vecToCardinal(alt_ortho_normal);
+
+		if (alt_dir.has_value()) {
+			double alt_separation = abs(((double)contact->collider_normal.y / (double)contact->collider_normal.x) * contact->separation);
+			double alt_diff = alt_separation - boundDist[alt_dir.value()];
+
+			if (alt_diff > 0.0) {
+				push_bound = math::rect_extend(push_bound, alt_dir.value(), alt_diff);
+			}
+		}
+	}
+}
 
 void CollisionManager::solve(ArbiterData& arbData) {
 

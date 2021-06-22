@@ -25,9 +25,9 @@ void game_InitTypes() {
 	Tile::addMaterialType({
 			.typeName = "conveyor_slow",
 			.surfaces = {
-				SurfaceMaterial{.velocity = 150.f }, // north
+				SurfaceMaterial{.velocity = 120.f }, // north
 				SurfaceMaterial{.velocity = 0.f },	// south
-				SurfaceMaterial{.velocity = 40.f },	// east
+				SurfaceMaterial{.velocity = 120.f },	// east
 				SurfaceMaterial{.velocity = 0.f }	// west
 			}
 		});
@@ -35,9 +35,9 @@ void game_InitTypes() {
 	Tile::addMaterialType({
 			.typeName = "conveyor_slow_reverse",
 			.surfaces = {
-				SurfaceMaterial{.velocity = -150.f }, // north
+				SurfaceMaterial{.velocity = -120.f }, // north
 				SurfaceMaterial{.velocity = 0.f },	// south
-				SurfaceMaterial{.velocity = -40.f },	// east
+				SurfaceMaterial{.velocity = -120.f },	// east
 				SurfaceMaterial{.velocity = 0.f }	// west
 			}
 		});

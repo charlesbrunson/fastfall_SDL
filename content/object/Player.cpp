@@ -164,7 +164,7 @@ void Player::update(secs deltaTime) {
 
 
 			if (wishx != 0) {
-				sprite.set_hflip(movex < 0);
+				sprite.set_hflip(wishx < 0);
 			}
 
 		}
@@ -180,7 +180,7 @@ void Player::update(secs deltaTime) {
 				if (abs(speed) > 300.f) {
 					sprite.set_anim(brakeStyle);
 				}
-				else {
+				else if (!(sprite.is_playing(brakeStyle) && sprite.get_frame() == 0)) {
 					sprite.set_anim(brakeStyle);
 					sprite.set_frame(1);
 				}

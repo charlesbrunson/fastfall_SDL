@@ -72,6 +72,10 @@ private:
 
 	void broadPhase(std::vector<ColliderRegion_Wptr>& p_colliders, std::list<Collidable>& p_collidables, secs deltaTime);
 
+	void updateRegionArbiters(std::vector<ColliderRegion_Wptr>& p_colliders, RegionArbiterMap* collMap, Collidable& collidable);
+	void updatePushBound(Rect<double>& push_bound, const std::array<double, 4u>& boundDist, const Contact* contact);
+
+
 	void solve(ArbiterData& arbData);
 
 	unsigned instanceID;

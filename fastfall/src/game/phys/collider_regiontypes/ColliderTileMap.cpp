@@ -41,7 +41,7 @@ namespace ff {
 		collisionMapSize = Vec2u{ size_max - size_min };
 
 		minIndex = 0u;
-		maxIndex = (collisionMapSize.y * collisionMapSize.x);
+		maxIndex = ((size_t)collisionMapSize.y * collisionMapSize.x);
 
 		tileCollisionMap = std::make_unique<ColliderQuad[]>(getTileIndex(size_max));
 		tileShapeMap = std::make_unique<TileTable[]   >(getTileIndex(size_max));
@@ -59,7 +59,6 @@ namespace ff {
 
 	void ColliderTileMap::update(secs deltaTime) {
 		applyChanges();
-
 
 		if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER)) {
 			debugDrawQuad(validCollisionSize, &tileCollisionMap[0], getPosition(), this, update_debugDraw);
