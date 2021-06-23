@@ -247,7 +247,7 @@ void CollisionManager::solve(ArbiterData& arbData) {
 
 		if (auto ptr = rArb.first.lock()) {
 			for (auto& qArb : rArb.second.getQuadArbiters()) {
-				if (ptr->on_precontact(*qArb.second.getContactPtr(), qArb.second.getTouchDuration())) {
+				if (ptr->on_precontact(qArb.second.collider->getID(), *qArb.second.getContactPtr(), qArb.second.getTouchDuration())) {
 					solver.pushArbiter(&qArb.second);
 				}
 			}
@@ -271,7 +271,7 @@ void CollisionManager::solve(ArbiterData& arbData) {
 			contact.quad_id = applied.arbiter->collider->getID();
 
 		if (applied.region)
-			applied.region->on_postcontact(contact);
+			applied.region->on_postcontact(contact.quad_id, contact);
 		
 	}
 	arbData.collidable->set_frame(std::move(c));

@@ -53,8 +53,16 @@ public:
 	virtual ~TileLogic() = default;
 
 	virtual void addTile(Vec2u tilePos, Tile tile, std::string args) = 0;
+	virtual void removeTile(Vec2u tilePos) = 0;
 
 	virtual void update(secs deltaTime) = 0;
+
+	virtual bool on_precontact(Vec2i tilePos, const Contact& contact, secs duration) const {
+		return true;
+	};
+
+	virtual void on_postcontact(Vec2i tilePos, const PersistantContact& contact) const {};
+
 
 	inline std::string_view getName() const {
 		return m_name;
@@ -72,6 +80,8 @@ public:
 	inline void clearCommands() {
 		commands = std::queue<TileLogicCommand>{};
 	}
+
+
 
 	template<typename T, typename = std::enable_if<std::is_base_of<TileLogic, T>::value>>
 	static void addType(const std::string& typeName) {

@@ -11,9 +11,17 @@ void AnimLogic::addTile(Vec2u tilePos, Tile tile, std::string arg) {
 	tile_timers.back().tile = tile;
 }
 
+void AnimLogic::removeTile(Vec2u tilePos) {
+	/*
+	tile_timers.erase(std::find_if(tile_timers.begin(), tile_timers.end(), [&tilePos](TileTimer& timer) {
+			return timer.tile_impacted == tilePos;
+		}));
+	*/
+}
+
 void AnimLogic::update(secs deltaTime) {
 
-	auto iter = std::partition(tile_timers.begin(), tile_timers.end(), [deltaTime](TileTimer& timer) {
+	auto iter = std::partition(tile_timers.begin(), tile_timers.end(), [&deltaTime](TileTimer& timer) {
 		timer.time_to_anim -= deltaTime;
 		return timer.time_to_anim > 0.0;
 		});

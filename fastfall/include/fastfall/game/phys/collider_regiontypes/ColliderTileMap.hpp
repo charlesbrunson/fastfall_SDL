@@ -77,8 +77,20 @@ public:
 
 	void getQuads(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& buffer) const override;
 
+	bool on_precontact(int quad_id, const Contact& contact, secs duration) const override;
+	void on_postcontact(int quad_id, const PersistantContact& contact) const override;
+
+	void set_on_precontact(std::function<bool(Vec2i, const Contact&, secs)> func) {
+		callback_on_precontact = func;
+	}
+	void set_on_postcontact(std::function<void(Vec2i, const PersistantContact&)> func) {
+		callback_on_postcontact = func;
+	}
 
 private:
+
+	std::function<bool(Vec2i, const Contact&, secs)> callback_on_precontact;
+	std::function<void(Vec2i, const PersistantContact&)> callback_on_postcontact;
 
 	void updateGhosts(const Vec2i& position);
 

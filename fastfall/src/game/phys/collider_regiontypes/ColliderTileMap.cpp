@@ -70,6 +70,31 @@ namespace ff {
 		return tileShapeMap[quad_id].hasTile ? &tileCollisionMap[quad_id] : nullptr;
 	}
 
+
+	bool ColliderTileMap::on_precontact(int quad_id, const Contact& contact, secs duration) const {
+
+		if (validPosition(quad_id) && callback_on_precontact) {
+			Vec2i position;
+			position.y = quad_id / (size_max.x);
+			position.x = quad_id - (position.y * (size_max.x - size_min.x));
+			position += size_min;
+
+			return callback_on_precontact(position, contact, duration);
+		}
+		return true;
+	}
+
+	void ColliderTileMap::on_postcontact(int quad_id, const PersistantContact& contact) const {
+		if (validPosition(quad_id) && callback_on_precontact) {
+			Vec2i position;
+			position.y = quad_id / (size_max.x);
+			position.x = quad_id - (position.y * (size_max.x - size_min.x));
+			position += size_min;
+
+			callback_on_postcontact(position, contact);
+		}
+	}
+
 	void ColliderTileMap::setBorders(const Vec2u& size, const unsigned cardinalBits) {
 		if (!hasBorder)	return;
 
@@ -151,6 +176,10 @@ namespace ff {
 	void ColliderTileMap::clear() {
 		tileCollisionMap = std::make_unique<ColliderQuad[]>(getTileIndex(size_max));
 		tileShapeMap = std::make_unique<TileTable[]   >(getTileIndex(size_max));
+
+		for (int n = 0; n < getTileIndex(size_max); n++) {
+			tileCollisionMap[n].setID(n);
+		}
 
 		//touches.clear();
 		//surf.clear();
@@ -267,14 +296,11 @@ namespace ff {
 	}
 	bool ColliderTileMap::applySetTile(const Edit& change) {
 
+		size_t ndx = getTileIndex(change.position);
 		ColliderTile nTile(change.position, change.toShape, change.material, change.matFacing);
-		ColliderQuad nQuad = nTile.toQuad();
-
-		//if ()
-
+		ColliderQuad nQuad = nTile.toQuad(ndx);
 
 		if (auto [quad, tile] = getTile(change.position); quad) {
-			//removeTile(change.position);
 
 			if (tile->shape.type == nTile.shape.type
 				&& (tile->shape.hflipped == nTile.shape.hflipped)
@@ -327,8 +353,6 @@ namespace ff {
 			validCollisionSize++;
 		}
 
-		//tileCollisionMap.insert(std::make_pair(change.position, nCollision));
-		size_t ndx = getTileIndex(change.position);
 		tileShapeMap[ndx].hasTile = true;
 		tileShapeMap[ndx].tile = nTile;
 		tileCollisionMap[ndx] = nQuad;

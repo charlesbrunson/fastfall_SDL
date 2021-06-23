@@ -95,7 +95,7 @@ constexpr std::array<TypeSurfaceArray, TILE_TYPE_COUNT> surfacePrototypes
 
 
 
-ColliderQuad ColliderTile::toQuad() const {
+ColliderQuad ColliderTile::toQuad(int id) const {
 
 	//ColliderQuad q{ surfacePrototypes.at(shape.type) };
 
@@ -173,6 +173,8 @@ ColliderQuad ColliderTile::toQuad() const {
 		q.hasBoundary = true;
 		q.oneWayDir = !shape.hflipped ? Cardinal::EAST : Cardinal::WEST;
 	}
+
+	q.setID(id);
 
 	// material
 	q.material = mat;

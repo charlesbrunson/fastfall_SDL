@@ -60,7 +60,28 @@ public:
 		//return r;
 	}
 
+	void set_on_precontact(std::function<bool(const Contact&, secs)> func) {
+		callback_on_precontact = func;
+	}
+	void set_on_postcontact(std::function<void(const PersistantContact&)> func) {
+		callback_on_postcontact = func;
+	}
+
+	bool on_precontact(int quad_id, const Contact& contact, secs duration) const override {
+		if (callback_on_precontact)
+			return callback_on_precontact(contact, duration);
+
+		return true;
+	}
+	void on_postcontact(int quad_id, const PersistantContact& contact) const override {
+		if (callback_on_postcontact)
+			callback_on_postcontact(contact);
+	}
+
 private:
+
+	std::function<bool(const Contact&, secs)> callback_on_precontact;
+	std::function<void(const PersistantContact&)> callback_on_postcontact;
 
 	ColliderQuad quad;
 

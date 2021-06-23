@@ -60,23 +60,8 @@ public:
 
 	Collidable* attached = nullptr;
 
-	inline void set_on_precontact(std::function<bool(const Contact&, secs)> func) {
-		callback_on_precontact = func;
-	}
-	inline void set_on_postcontact(std::function<void(const PersistantContact&)> func) {
-		callback_on_postcontact = func;
-	}
-
-	inline bool on_precontact(const Contact& contact, secs duration) const {
-		if (callback_on_precontact)
-			return callback_on_precontact(contact, duration);
-
-		return true;
-	}
-	inline void on_postcontact(const PersistantContact& contact) const {
-		if (callback_on_postcontact)
-			callback_on_postcontact(contact);
-	}
+	virtual bool on_precontact(int quad_id, const Contact& contact, secs duration) const = 0;
+	virtual void on_postcontact(int quad_id, const PersistantContact& contact) const = 0;
 
 protected:
 	Rectf boundingBox;
@@ -84,8 +69,6 @@ protected:
 	ColliderID id;
 
 private:
-	std::function<bool(const Contact&, secs)> callback_on_precontact;
-	std::function<void(const PersistantContact&)> callback_on_postcontact;
 
 	Vec2f prevPosition;
 	Vec2f position;

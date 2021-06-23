@@ -51,23 +51,13 @@ public:
 
 	bool hidden = false;
 	bool hasCollision = false;
-	//bool showCollision = false;
 
 protected:
 
+	bool handlePreContact(Vec2i pos, const Contact& contact, secs duration);
+	void handlePostContact(Vec2i pos, const PersistantContact& contact);
+
 	GameContext m_context;
-
-	/*
-	struct TileTimer {
-		Vec2u tex_position;
-		secs time_to_anim;
-		Vec2u tile_impacted;
-	};
-
-	std::vector<TileTimer> tile_timers;
-	*/
-
-
 
 	unsigned int layerID;
 
@@ -91,11 +81,13 @@ protected:
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 
-	//sets of vertexs for each texture this layer needs
-	//std::map<Vec2u, const TilesetAsset*> pos2tileset;
+	static constexpr int TILEDATA_NONE = UINT8_MAX;
+	struct TileData {
+		uint8_t tileset_id = TILEDATA_NONE;
+		uint8_t logic_id = TILEDATA_NONE;
+	};
 
-	static constexpr int NO_TILESET = UINT8_MAX;
-	std::vector<uint8_t> pos2tileset;
+	std::vector<TileData> pos2data;
 
 	struct TVArrayT {
 		const TilesetAsset* tileset;
@@ -105,6 +97,7 @@ protected:
 
 	std::shared_ptr<ColliderTileMap> collision;
 
+	std::vector<std::pair<Vec2u, unsigned>> tile2logic;
 	std::vector<std::unique_ptr<TileLogic>> tileLogic;
 };
 

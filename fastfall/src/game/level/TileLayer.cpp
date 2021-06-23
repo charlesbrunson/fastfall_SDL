@@ -30,7 +30,7 @@ TileLayer::TileLayer(const TileLayer& tile)
 	hasCollision = tile.hasCollision;
 	collision = tile.collision;
 	tileVertices = tile.tileVertices;
-	pos2tileset = tile.pos2tileset;
+	pos2data = tile.pos2data;
 	has_parallax = tile.has_parallax;
 	parallax = tile.parallax;
 	scrollRate = tile.scrollRate;
@@ -38,6 +38,17 @@ TileLayer::TileLayer(const TileLayer& tile)
 	tileLogic.clear();
 	for (const auto& logic : tile.tileLogic) {
 		tileLogic.push_back(TileLogic::create(m_context, logic->getName()));
+	}
+
+	if (collision) {
+		collision->set_on_precontact(
+			std::bind(&TileLayer::handlePreContact, this,
+				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+		);
+		collision->set_on_postcontact(
+			std::bind(&TileLayer::handlePostContact, this,
+				std::placeholders::_1, std::placeholders::_2)
+		);
 	}
 
 }
@@ -49,7 +60,7 @@ TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	hasCollision = tile.hasCollision;
 	collision = tile.collision;
 	tileVertices = tile.tileVertices;
-	pos2tileset = tile.pos2tileset;
+	pos2data = tile.pos2data;
 	has_parallax = tile.has_parallax;
 	parallax = tile.parallax;
 	scrollRate = tile.scrollRate;
@@ -57,6 +68,17 @@ TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	tileLogic.clear();
 	for (const auto& logic : tile.tileLogic) {
 		tileLogic.push_back(TileLogic::create(m_context, logic->getName()));
+	}
+
+	if (collision) {
+		collision->set_on_precontact(
+			std::bind(&TileLayer::handlePreContact, this,
+				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+		);
+		collision->set_on_postcontact(
+			std::bind(&TileLayer::handlePostContact, this,
+				std::placeholders::_1, std::placeholders::_2)
+		);
 	}
 
 	return *this;
@@ -69,13 +91,37 @@ TileLayer::TileLayer(TileLayer&& tile) noexcept
 	size = tile.size;
 	hasCollision = tile.hasCollision;
 	std::swap(collision, tile.collision);
-	std::swap(pos2tileset, tile.pos2tileset);
+	std::swap(pos2data, tile.pos2data);
 	tileVertices.swap(tile.tileVertices);
 	has_parallax = tile.has_parallax;
 	std::swap(parallax, tile.parallax);
 	std::swap(scrollRate, tile.scrollRate);
 
 	std::swap(tileLogic, tile.tileLogic);
+
+
+	if (collision) {
+		collision->set_on_precontact(
+			std::bind(&TileLayer::handlePreContact, this,
+				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+		);
+		collision->set_on_postcontact(
+			std::bind(&TileLayer::handlePostContact, this,
+				std::placeholders::_1, std::placeholders::_2)
+		);
+	}
+
+	if (tile.collision) {
+		tile.collision->set_on_precontact(
+			std::bind(&TileLayer::handlePreContact, &tile,
+				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+		);
+		tile.collision->set_on_postcontact(
+			std::bind(&TileLayer::handlePostContact, &tile,
+				std::placeholders::_1, std::placeholders::_2)
+		);
+	}
+
 
 }
 TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
@@ -85,13 +131,36 @@ TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	size = tile.size;
 	hasCollision = tile.hasCollision;
 	std::swap(collision, tile.collision);
-	std::swap(pos2tileset, tile.pos2tileset);
+	std::swap(pos2data, tile.pos2data);
 	tileVertices.swap(tile.tileVertices);
 	has_parallax = tile.has_parallax;
 	std::swap(parallax, tile.parallax);
 	std::swap(scrollRate, tile.scrollRate);
 
 	std::swap(tileLogic, tile.tileLogic);
+
+	if (collision) {
+		collision->set_on_precontact(
+			std::bind(&TileLayer::handlePreContact, this,
+				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+		);
+		collision->set_on_postcontact(
+			std::bind(&TileLayer::handlePostContact, this,
+				std::placeholders::_1, std::placeholders::_2)
+		);
+	}
+
+
+	if (tile.collision) {
+		tile.collision->set_on_precontact(
+			std::bind(&TileLayer::handlePreContact, &tile,
+				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+		);
+		tile.collision->set_on_postcontact(
+			std::bind(&TileLayer::handlePostContact, &tile,
+				std::placeholders::_1, std::placeholders::_2)
+		);
+	}
 
 	return *this;
 }
@@ -107,7 +176,7 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 	size.x = layerData.tileLayer->innerSize.x == 0 ? layerData.tileLayer->tileSize.x : layerData.tileLayer->innerSize.x;
 	size.y = layerData.tileLayer->innerSize.y == 0 ? layerData.tileLayer->tileSize.y : layerData.tileLayer->innerSize.y;
 
-	pos2tileset.resize(size.x * size.y, -1);
+	pos2data.resize(size.x * size.y, TileData{});
 
 	has_parallax = layerData.tileLayer->has_parallax;
 	scrollRate = layerData.tileLayer->scrollrate;
@@ -138,8 +207,19 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 		}
 	}
 
-	if (hasCollision)
+	if (hasCollision) {
 		collision->applyChanges();
+		collision->set_on_precontact(
+			std::bind(&TileLayer::handlePreContact, this, 
+				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+		);
+		collision->set_on_postcontact(
+			std::bind(&TileLayer::handlePostContact, this,
+				std::placeholders::_1, std::placeholders::_2)
+		);
+	}
+
+
 
 }
 
@@ -147,6 +227,23 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 void TileLayer::update(secs deltaTime) {
 	for (auto& logic : tileLogic) {
 		logic->update(deltaTime);
+	}
+}
+
+
+bool TileLayer::handlePreContact(Vec2i pos, const Contact& contact, secs duration) {
+	unsigned ndx = pos.y * size.x + pos.x;
+	bool r = true;
+	if (pos2data.at(ndx).logic_id != TILEDATA_NONE) {
+		r = tileLogic.at(pos2data.at(ndx).logic_id)->on_precontact(pos, contact, duration);
+	}
+	return r;
+}
+
+void TileLayer::handlePostContact(Vec2i pos, const PersistantContact& contact) {
+	unsigned ndx = pos.y * size.x + pos.x;
+	if (pos2data.at(ndx).logic_id != TILEDATA_NONE) {
+		tileLogic.at(pos2data.at(ndx).logic_id)->on_postcontact(pos, contact);
 	}
 }
 
@@ -237,11 +334,17 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 
 	// blank existing tile at that position
 	unsigned ndx = position.y * size.x + position.x;
-	uint8_t tileset_ndx = pos2tileset.at(ndx);
-	if (tileset_ndx != NO_TILESET) {
+	uint8_t tileset_ndx = pos2data.at(ndx).tileset_id;
+	uint8_t logic_ndx = pos2data.at(ndx).logic_id;
+	if (tileset_ndx != TILEDATA_NONE) {
 		tileVertices.at(tileset_ndx).varray.blank(position);
-		pos2tileset.at(ndx) = NO_TILESET;
+		pos2data.at(ndx).tileset_id = TILEDATA_NONE;
 	}
+	if (useLogic && logic_ndx != TILEDATA_NONE) {
+		tileLogic.at(logic_ndx)->removeTile(position);
+		pos2data.at(ndx).logic_id = TILEDATA_NONE;
+	}
+	//pos2data.at(ndx) = TileData{};
 
 	// find tilearray or create it
 	auto vertarr = std::find_if(tileVertices.begin(), tileVertices.end(), [&tileset](const TVArrayT& tva) {
@@ -268,9 +371,9 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 		vertarr->varray.setTile(position, texposition);
 		tileset_ndx = std::distance(tileVertices.begin(), vertarr);
 	}
-	// set new tileset
-	pos2tileset.at(ndx) = tileset_ndx;
 
+	// set new tiledata
+	//pos2data.at(ndx) = TileData{};
 
 	if (hasCollision) {
 		Tile t = tileset.getTile(texposition);
@@ -292,6 +395,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 				if (logic_ptr) {
 					tileLogic.push_back(std::move(logic_ptr));
 					tileLogic.back()->addTile(position, t, logic->logicArg);
+					pos2data.at(ndx).logic_id = tileLogic.size() - 1;
 				}
 				else {
 					LOG_WARN("could not create tile logic type: {}", logic->logicType);
@@ -299,6 +403,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 			}
 			else {
 				it->get()->addTile(position, t, logic->logicArg);
+				pos2data.at(ndx).logic_id = std::distance(tileLogic.begin(), it);
 			}
 		}
 
@@ -309,32 +414,22 @@ void TileLayer::removeTile(const Vec2u& position) {
 	//auto iter1 = pos2tileset.find(position);
 
 	unsigned ndx = position.y * size.x + position.x;
-	uint8_t tileset_ndx = pos2tileset.at(ndx);
 
-	if (tileset_ndx != NO_TILESET) {
-		tileVertices.at(tileset_ndx).varray.erase(position);
-		pos2tileset.at(ndx) = NO_TILESET;
-		/*
-		auto iter2 = std::find_if(tileVertices.begin(), tileVertices.end(), [&iter1](const TVArrayT& tva) {
-			return tva.tileset == iter1->second;
-			});
-
-		if (iter2 != tileVertices.end()) {
-			iter2->varray.erase(position);
-
-			if (iter2->varray.empty()) {
-				tileVertices.erase(iter2);
-			}
-		}
-		*/
+	if (pos2data.at(ndx).tileset_id != TILEDATA_NONE) {
+		tileVertices.at(pos2data.at(ndx).tileset_id).varray.erase(position);
 	}
+	if (pos2data.at(ndx).logic_id != TILEDATA_NONE) {
+		tileLogic.at(pos2data.at(ndx).logic_id)->removeTile(position);
+	}
+	pos2data.at(ndx) = TileData{};
+
 	if (hasCollision) {
 		collision->removeTile(Vec2i(position));
 	}
 }
 void TileLayer::clear() {
 	ref = nullptr;
-	pos2tileset.clear();
+	pos2data.clear();
 	tileVertices.clear();
 	if (collision)
 		collision->clear();
