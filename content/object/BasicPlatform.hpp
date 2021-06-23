@@ -67,22 +67,9 @@ public:
 			collider->teleport(Vec2f{ ref.position } - Vec2f{ (float)ref.width / 2.f, (float)ref.height});
 		}
 
-		//Instance(instance)->getCollision().addColliderRegion(collider);
 		context.collision().get().addColliderRegion(collider);
 
 		hasCollider = true;
-
-
-		/*
-		ShapeRectangle shape{
-			Rectf{
-				collider.get()->getPrevPosition() + collider_offset,
-				Vec2f{collider.get()->getBoundingBox().getSize()}
-			},
-			Color{0x285cc4FF}
-		};
-		*/
-
 
 	}
 

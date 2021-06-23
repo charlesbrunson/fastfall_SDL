@@ -244,8 +244,13 @@ void CollisionManager::solve(ArbiterData& arbData) {
 	CollisionSolver solver{ arbData.collidable };
 
 	for (auto& rArb : arbData.regions) {
-		for (auto& qArb : rArb.second.getQuadArbiters()) {
-			solver.pushArbiter(&qArb.second);
+
+		if (auto ptr = rArb.first.lock()) {
+			for (auto& qArb : rArb.second.getQuadArbiters()) {
+				if (ptr->on_precontact(*qArb.second.getContactPtr(), qArb.second.getTouchDuration())) {
+					solver.pushArbiter(&qArb.second);
+				}
+			}
 		}
 	}
 	solver.solve();
@@ -264,6 +269,10 @@ void CollisionManager::solve(ArbiterData& arbData) {
 
 		if (applied.arbiter && applied.arbiter->collider)
 			contact.quad_id = applied.arbiter->collider->getID();
+
+		if (applied.region)
+			applied.region->on_postcontact(contact);
+		
 	}
 	arbData.collidable->set_frame(std::move(c));
 }

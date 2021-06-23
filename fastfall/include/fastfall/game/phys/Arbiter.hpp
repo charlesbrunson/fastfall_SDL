@@ -1,9 +1,6 @@
 #pragma once
 
 #include "Collidable.hpp"
-//#include "collider_coretypes/ColliderQuad.hpp"
-
-//#include "collision/CollisionQuad.hpp"
 
 #include "collision/Contact.hpp"
 

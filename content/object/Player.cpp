@@ -94,7 +94,7 @@ void Player::update(secs deltaTime) {
 
 		//Vec2f groundUnit = contact.collider_normal.righthand();
 
-		Vec2f groundVel = contact.getSurfaceVel();
+		//Vec2f groundVel = contact.getSurfaceVel();
 
 		ground->slope_sticking = true;
 
@@ -148,7 +148,14 @@ void Player::update(secs deltaTime) {
 
 			ground->slope_sticking = false;
 
-			Vec2f jumpVel = Vec2f{ box->get_vel().x, jumpVelY };
+			/*
+			float surfaceVelY = 0.f;
+			if (auto region = context.collision().get_region(ground->get_contact()->collider_id)) {
+				surfaceVelY = region->velocity.y;
+			}
+			*/
+
+			Vec2f jumpVel = Vec2f{ box->get_vel().x, jumpVelY } ;
 			Angle jump_ang = math::angle(jumpVel) - math::angle(ground->get_contact()->collider_normal);
 
 			// from perpendicular to the ground
@@ -160,7 +167,7 @@ void Player::update(secs deltaTime) {
 			else if (jump_ang > min_jump_ang) {
 				jumpVel = math::rotate(jumpVel, -jump_ang + min_jump_ang);
 			}
-			box->set_vel(jumpVel);
+			box->set_vel(jumpVel + ground->get_contact()->velocity);
 
 
 			if (wishx != 0) {
