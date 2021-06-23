@@ -232,6 +232,11 @@ void TileLayer::update(secs deltaTime) {
 
 
 bool TileLayer::handlePreContact(Vec2i pos, const Contact& contact, secs duration) {
+	if (pos.x < 0 || pos.x >= size.x
+		|| pos.y < 0 || pos.y >= size.y)
+		return true;
+
+
 	unsigned ndx = pos.y * size.x + pos.x;
 	bool r = true;
 	if (pos2data.at(ndx).logic_id != TILEDATA_NONE) {
@@ -241,6 +246,10 @@ bool TileLayer::handlePreContact(Vec2i pos, const Contact& contact, secs duratio
 }
 
 void TileLayer::handlePostContact(Vec2i pos, const PersistantContact& contact) {
+	if (pos.x < 0 || pos.x >= size.x
+		|| pos.y < 0 || pos.y >= size.y)
+		return;
+
 	unsigned ndx = pos.y * size.x + pos.x;
 	if (pos2data.at(ndx).logic_id != TILEDATA_NONE) {
 		tileLogic.at(pos2data.at(ndx).logic_id)->on_postcontact(pos, contact);
@@ -352,7 +361,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 		});
 	if (vertarr == tileVertices.end()) {
 
-		if (tileVertices.size() < UINT8_MAX) {
+		if (tileVertices.size() < UINT8_MAX - 1) {
 
 			tileVertices.push_back(TVArrayT{
 					.tileset = &tileset,
@@ -391,14 +400,22 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 
 			if (it == tileLogic.end()) {
 
-				auto logic_ptr = TileLogic::create(m_context, logic->logicType);
-				if (logic_ptr) {
-					tileLogic.push_back(std::move(logic_ptr));
-					tileLogic.back()->addTile(position, t, logic->logicArg);
-					pos2data.at(ndx).logic_id = tileLogic.size() - 1;
+				if (tileLogic.size() < UINT8_MAX - 1) {
+
+					auto logic_ptr = TileLogic::create(m_context, logic->logicType);
+					if (logic_ptr) {
+
+						tileLogic.push_back(std::move(logic_ptr));
+						tileLogic.back()->addTile(position, t, logic->logicArg);
+						pos2data.at(ndx).logic_id = tileLogic.size() - 1;
+
+					}
+					else {
+						LOG_WARN("could not create tile logic type: {}", logic->logicType);
+					}
 				}
 				else {
-					LOG_WARN("could not create tile logic type: {}", logic->logicType);
+					LOG_ERR_("Cannot set tile logic, tilelayer has reached max logic references: {}", tileLogic.size());
 				}
 			}
 			else {

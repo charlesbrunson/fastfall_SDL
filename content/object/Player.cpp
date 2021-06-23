@@ -155,7 +155,7 @@ void Player::update(secs deltaTime) {
 			}
 			*/
 
-			Vec2f jumpVel = Vec2f{ box->get_vel().x, jumpVelY } ;
+			Vec2f jumpVel = Vec2f{ box->get_vel().x, jumpVelY} ;
 			Angle jump_ang = math::angle(jumpVel) - math::angle(ground->get_contact()->collider_normal);
 
 			// from perpendicular to the ground
@@ -167,7 +167,7 @@ void Player::update(secs deltaTime) {
 			else if (jump_ang > min_jump_ang) {
 				jumpVel = math::rotate(jumpVel, -jump_ang + min_jump_ang);
 			}
-			box->set_vel(jumpVel + ground->get_contact()->velocity);
+			box->set_vel(jumpVel + Vec2f{ 0.f, ground->get_contact()->velocity.y });
 
 
 			if (wishx != 0) {
