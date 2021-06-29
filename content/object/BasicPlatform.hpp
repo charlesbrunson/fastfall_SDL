@@ -59,22 +59,19 @@ public:
 		colliderRect.width = ref.width;
 		colliderRect.height = ref.height;
 
-		collider = std::make_shared<ColliderSimple>(colliderRect);
-
+		collider = context.collision().get().create_collider<ColliderSimple>(colliderRect);
 		if (has_path)
 			collider->teleport(waypoints_origin + Vec2f(waypoints->at(waypoint_ndx)));
 		else {
-			collider->teleport(Vec2f{ ref.position } - Vec2f{ (float)ref.width / 2.f, (float)ref.height});
+			collider->teleport(Vec2f{ ref.position } - Vec2f{ (float)ref.width / 2.f, (float)ref.height });
 		}
-
-		context.collision().get().addColliderRegion(collider);
 
 		hasCollider = true;
 
 	}
 
 	~BasicPlatform() {
-
+		context.collision().get().erase_collider(collider);
 	}
 
 	std::unique_ptr<GameObject> clone() const override {
@@ -126,8 +123,8 @@ public:
 	}
 
 	void predraw(secs deltaTime) override {
-		shape.setPosition(collider.get()->getPosition() + collider_offset);
-		shape.setSize(Vec2f{ collider.get()->getBoundingBox().getSize() });
+		shape.setPosition(collider->getPosition() + collider_offset);
+		shape.setSize(Vec2f{ collider->getBoundingBox().getSize() });
 	}
 
 protected:
@@ -148,30 +145,11 @@ protected:
 	float progress;
 	bool reverser = false;
 
-	std::shared_ptr<ColliderSimple> collider;
+	ColliderSimple* collider;
 
 	ShapeRectangle shape;
 
 	virtual void draw(RenderTarget& target, RenderState states = RenderState()) const override {
-		/*
-		ShapeRectangle shape{
-			Rectf{
-				collider.get()->getPrevPosition() + collider_offset,
-				Vec2f{collider.get()->getBoundingBox().getSize()}
-			},
-			Color{0x285cc4FF}
-		};
-		*/
-
-
-
-
-
-		//shape.setPosition(collider.get()->getPrevPosition() + collider_offset);
-		//shape.setSize(collider.get()->getBoundingBox().getSize());
-		//shape.setFillColor(   sf::Color(0x285cc4FF));
-		//shape.setOutlineColor(sf::Color(0x143464FF));
-		//shape.setOutlineThickness(-1.f);
 		target.draw(shape, states);
 	}
 };

@@ -111,7 +111,7 @@ void Level::init(const LevelAsset& levelData) {
 	}
 
 	if (!fgLayers.empty()) {
-		auto* colMap = fgLayers.front().getCollisionMap().get();
+		auto* colMap = fgLayers.front().getCollisionMap();
 
 		if (colMap) {
 

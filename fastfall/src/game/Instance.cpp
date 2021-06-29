@@ -43,12 +43,12 @@ void GameInstance::reset() {
 
 	Level* lvl = getActiveLevel();
 	assert(lvl);
-	if (lvl) {
+	//if (lvl) {
 
-		if (!lvl->getFGLayers().empty())
-			getCollision().addColliderRegion(lvl->getFGLayers().begin()->getCollisionMap());
+		//if (!lvl->getFGLayers().empty())
+		//	getCollision().addColliderRegion(lvl->getFGLayers().begin()->getCollisionMap());
 
-	}
+	//}
 
 }
 

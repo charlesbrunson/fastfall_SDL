@@ -201,7 +201,7 @@ Collidable& Collidable::operator=(Collidable&& rhs) noexcept
 	return *this;
 }
 
-void Collidable::init(Vec2f position, Vec2f size) {
+void Collidable::init(Vec2f position, Vec2f size, Vec2f gravity) {
 	if (size.x > TILESIZE_F)
 		LOG_WARN("{} collidable width > {} not recommended, may break collision", size.x, TILESIZE_F);
 
@@ -210,6 +210,7 @@ void Collidable::init(Vec2f position, Vec2f size) {
 	curRect = Rectf(topleft, size);
 	prevRect = curRect;
 	pos = Vec2f(curRect.getPosition()) + Vec2f(curRect.width / 2, curRect.height);
+	gravity_acc = gravity;
 }
 
 void Collidable::update(secs deltaTime) {

@@ -22,6 +22,12 @@ public:
 	void updateRegion(Rectf bounds);
 	void updateArbiters(secs deltaTime);
 
+	ColliderRegion* getRegion() const { return collider_; };
+
+	bool operator< (const RegionArbiter& rhs) {
+		return collider_ < rhs.collider_;
+	}
+
 private:
 	ColliderRegion* collider_;
 	Collidable* collidable_;

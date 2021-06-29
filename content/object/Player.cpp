@@ -32,10 +32,8 @@ using namespace constants;
 Player::Player(GameContext instance, const ObjectRef& ref) :
 	GameObject{ instance, ref }
 {
-	Collidable myBox(instance);
-	myBox.init(Vec2f(ref.position), Vec2f(8.f, 28.f));
-	box = context.collision()->createCollidable(std::move(myBox));
-	box->set_gravity(grav_normal);
+	box = context.collision()->create_collidable();
+	box->init(Vec2f(ref.position), Vec2f(8.f, 28.f), grav_normal);
 
 	ground = &box->create_tracker(Angle::Degree(-135), Angle::Degree(-45));
 	ground->has_friction = true;
@@ -60,8 +58,7 @@ Player::Player(GameContext instance, const ObjectRef& ref) :
 
 Player::~Player() {
 	if (context.valid()) {
-		//box->remove_tracker(std::move(*ground));
-		context.collision()->removeCollidable(box);
+		context.collision()->erase_collidable(box);
 		context.camera()->removeTarget(GameCamera::TargetPriority::MEDIUM);
 	}
 }

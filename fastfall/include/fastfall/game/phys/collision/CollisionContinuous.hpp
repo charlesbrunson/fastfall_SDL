@@ -36,8 +36,9 @@ public:
 	};
 
 	CollisionContinuous(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion);
-	CollisionContinuous(CollisionContinuous&&) = default;
-	CollisionContinuous(const CollisionContinuous&) = default;
+	//CollisionContinuous(CollisionContinuous&&) = default;
+	//CollisionContinuous(const CollisionContinuous&) = default;
+
 
 	// advances the collision state to the next tick
 	void update(secs deltaTime);

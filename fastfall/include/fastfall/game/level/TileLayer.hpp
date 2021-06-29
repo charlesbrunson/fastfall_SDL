@@ -27,6 +27,8 @@ public:
 	TileLayer& operator=(const TileLayer& tile);
 	TileLayer& operator=(TileLayer&& tile) noexcept;
 
+	~TileLayer();
+
 	void initFromAsset(const LayerRef& layerData, bool initCollision = false);
 
 	void setTile(const Vec2u& position, const Vec2u& texposition, const TilesetAsset& tileset, bool useLogic = true);
@@ -37,7 +39,7 @@ public:
 
 	void predraw(secs deltaTime);
 
-	inline std::shared_ptr<ColliderTileMap>& getCollisionMap() { return collision; };
+	inline ColliderTileMap* getCollisionMap() { return collision; };
 
 	inline unsigned int getID() { return layerID; };
 
@@ -95,7 +97,7 @@ protected:
 	};
 	std::vector<TVArrayT> tileVertices;
 
-	std::shared_ptr<ColliderTileMap> collision;
+	ColliderTileMap* collision = nullptr;
 
 	std::vector<std::pair<Vec2u, unsigned>> tile2logic;
 	std::vector<std::unique_ptr<TileLogic>> tileLogic;

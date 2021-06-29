@@ -9,6 +9,7 @@
 #include "fastfall/game/GameCamera.hpp"
 #include "fastfall/render/DebugDraw.hpp"
 #include "fastfall/render/ShapeRectangle.hpp"
+#include "fastfall/game/CollisionManager.hpp"
 
 #include <assert.h>
 
@@ -165,6 +166,14 @@ TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	return *this;
 }
 
+
+TileLayer::~TileLayer() {
+	if (m_context.valid() && collision) {
+		m_context.collision().get().erase_collider(collision);
+		collision = nullptr;
+	}
+}
+
 void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 	clear();
 	assert(layerData.type == LayerType::TILELAYER);
@@ -195,7 +204,7 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 	}
 
 	if (hasCollision)
-		collision = std::make_shared<ColliderTileMap>(Vec2i(size.x, size.y), true);
+		collision = m_context.collision().get().create_collider<ColliderTileMap>(Vec2i(size.x, size.y), true);
 
 	for (const auto& i : layerData.tileLayer->tiles) {
 		TilesetAsset* ta = Resources::get<TilesetAsset>(*i.second.tilesetName);

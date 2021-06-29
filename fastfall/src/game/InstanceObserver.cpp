@@ -43,8 +43,9 @@ void collisionContent(GameContext context) {
 	ImGui::Separator();
 	ImGui::Text("Collidables");
 
-	auto& collidables = man->getCollidables()->collidables_free;
-	for (auto& col : collidables) {
+	auto& collidables = man->get_collidables();
+	for (auto& coldata : collidables) {
+		auto& col = coldata.collidable;
 
 		if (ImGui::TreeNode((void*)(&col), "Collidable %d", col.get_ID().value)) {
 
@@ -153,11 +154,13 @@ void collisionContent(GameContext context) {
 
 				bool has_collision = false;
 
-				const auto& arbiter = man->getArbiters()->find(&col);
+				//const auto& arbiter = coldata.regionArbiters;
 
-				if (arbiter != man->getArbiters()->end()) {
+				//const auto& arbiter = man->getArbiters()->find(&col);
 
-					for (auto& c : arbiter->first->get_contacts()) {
+				if (!col.get_contacts().empty()) {
+
+					for (auto& c : col.get_contacts()) {
 
 						if (!has_collision) {
 
@@ -220,22 +223,20 @@ void collisionContent(GameContext context) {
 			ImGui::TreePop();
 		}
 	}
-	auto& colliders = man->getColliders()->colliders_free;
+	auto& colliders = man->get_colliders();
 	for (auto& col : colliders) {
-		if (const auto collider = col.lock()) {
-			if (ImGui::TreeNode((void*)(&col), "Collider %d", collider->get_ID().value)) {
+		if (ImGui::TreeNode((void*)(&col), "Collider %d", col->get_ID().value)) {
 
-				ImGui::Text("Curr Position: %3.2f, %3.2f", collider->getPosition().x, collider->getPosition().y);
-				ImGui::Text("Prev Position: %3.2f, %3.2f", collider->getPrevPosition().x, collider->getPrevPosition().y);
+			ImGui::Text("Curr Position: %3.2f, %3.2f", col->getPosition().x, col->getPosition().y);
+			ImGui::Text("Prev Position: %3.2f, %3.2f", col->getPrevPosition().x, col->getPrevPosition().y);
 
 
-				float pos[2] = { collider->getPosition().x, collider->getPosition().y };
+			float pos[2] = { col->getPosition().x, col->getPosition().y };
 
-				if (ImGui::DragFloat2("Set Pos", pos)) {
-					collider->setPosition(Vec2f(pos[0], pos[1]));
-				}
-				ImGui::TreePop();
+			if (ImGui::DragFloat2("Set Pos", pos)) {
+				col->setPosition(Vec2f(pos[0], pos[1]));
 			}
+			ImGui::TreePop();
 		}
 	}
 

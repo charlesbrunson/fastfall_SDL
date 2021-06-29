@@ -39,7 +39,7 @@ public:
 	Collidable& operator=(const Collidable& rhs);
 	Collidable& operator=(Collidable&& rhs) noexcept;
 
-	void init(Vec2f position, Vec2f size);
+	void init(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
 	void update(secs deltaTime);
 
 	Rectf getBoundingBox();

@@ -19,7 +19,8 @@ private:
 
 public:
 	Arbiter(Collidable* col_dable, const ColliderQuad* col_der, const ColliderRegion* col_region);
-	Arbiter(Arbiter&& arb) noexcept;
+	//Arbiter(Arbiter&& arb) noexcept;
+	//Arbiter& operator= (Arbiter&& arb) noexcept;
 
 	//void update(Contact* newContact);
 	void update(secs deltaTime);

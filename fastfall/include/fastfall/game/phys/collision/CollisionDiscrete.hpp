@@ -15,11 +15,11 @@ class CollisionDiscrete {
 public:
 	CollisionDiscrete(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion, bool collidePreviousFrame = false);
 
-	CollisionDiscrete(const CollisionDiscrete&) = default;
-	CollisionDiscrete(CollisionDiscrete&&) = default;
+	//CollisionDiscrete(const CollisionDiscrete&) = default;
+	//CollisionDiscrete(CollisionDiscrete&&) = default;
 
-	CollisionDiscrete& operator=(const CollisionDiscrete&) = default;
-	CollisionDiscrete& operator=(CollisionDiscrete&&) = default;
+	//CollisionDiscrete& operator=(const CollisionDiscrete&) = default;
+	//CollisionDiscrete& operator=(CollisionDiscrete&&) = default;
 
 	inline void setPrevious() { collidePrevious = true; };
 	inline Contact getContact() const noexcept { return contact; };

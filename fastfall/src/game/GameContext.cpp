@@ -64,6 +64,16 @@ CollisionManager* CollisionContext::operator->() {
 }
 
 const ColliderRegion* CollisionContext::get_region(ColliderID collider_id) const noexcept {
+
+
+	for (const auto& collider_ptr : Instance(id)->getCollision().get_colliders()) {
+		if (collider_ptr->get_ID().value == collider_id.value) {
+			return collider_ptr.get();
+		}
+	}
+
+
+	/*
 	for (const auto& collider_ptr : Instance(id)->getCollision().getColliders()->colliders_free) {
 		if (const auto& collider = collider_ptr.lock()) {
 			if (collider->get_ID().value == collider_id.value) {
@@ -78,6 +88,7 @@ const ColliderRegion* CollisionContext::get_region(ColliderID collider_id) const
 			}
 		}
 	}
+	*/
 	return nullptr;
 }
 

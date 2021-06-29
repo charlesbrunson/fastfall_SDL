@@ -13,74 +13,71 @@
 #include "fastfall/game/phys/CollisionSolver.hpp"
 //#include "phys/Raycast.hpp"
 
+#include "ext/plf_colony.h"
+
 #include <vector>
 #include <list>
 #include <memory>
 
 namespace ff {
 
+template<typename T>
+concept ColliderType = std::is_base_of_v<ColliderRegion, T>;
+
+
 class CollisionManager {
-public:
+private:
 
-	using Collidable_Wptr = std::weak_ptr<Collidable>;
-	using ColliderRegion_Wptr = std::weak_ptr<ColliderRegion>;
-	using RegionArbiterMap = std::map<ColliderRegion_Wptr, RegionArbiter, std::owner_less<ColliderRegion_Wptr>>;
-
-	struct ArbiterData {
-		ArbiterData(Collidable* _col) :
-			collidable(_col)
+	struct CollidableData {
+		CollidableData(Collidable&& col) :
+			collidable(col)
 		{
 
 		}
 
-		RegionArbiterMap regions;
-		Collidable* collidable;
+
+		Collidable collidable;
+		std::vector<RegionArbiter> regionArbiters;
 	};
 
-	using ArbiterMap = std::map<const Collidable*, ArbiterData>;
+	plf::colony<CollidableData> collidables;
 
-	struct Colliders {
-		std::vector<ColliderRegion_Wptr> colliders_free;         // static collider
-		std::vector<ColliderRegion_Wptr> colliders_attached;     // collider attached to a collidable
-	};
-	struct Collidables {
-		std::list<Collidable> collidables_attached; // collidable with colliders attached
-		std::list<Collidable> collidables_free;     // free collidables
-	};
+	std::vector<std::unique_ptr<ColliderRegion>> regions;
+
+public:
 
 	CollisionManager(unsigned instance);
 
 	void update(secs deltaTime);
+	
+	Collidable* create_collidable();
+	bool erase_collidable(Collidable* collidable);
+	
+	template<ColliderType T, typename ... Args>
+	T* create_collider(Args&&... args) {
+		std::unique_ptr<ColliderRegion> collider = std::make_unique<T>(args...);
+		T* collider_ptr = static_cast<T*>(collider.get());
+		regions.push_back(std::move(collider));
+		return collider_ptr;
+	}
+	bool erase_collider(ColliderRegion* region);
 
-	void addColliderRegion(std::shared_ptr<ColliderRegion> col);
-
-	Collidable* createCollidable(Collidable&& col);
-	void removeCollidable(Collidable* colptr);
-
-	inline const Colliders* getColliders() const { return &colliders; };
-	inline const Collidables* getCollidables() const { return &collidables; };
-	inline const ArbiterMap* getArbiters() const { return &arbiters; };
+	inline const std::vector<std::unique_ptr<ColliderRegion>>& get_colliders() const { return regions; };
+	inline const plf::colony<CollidableData>& get_collidables() const { return collidables; };
 
 private:
 
-	void cleanInvalidCollisionObjects();
+	void broadPhase(secs deltaTime);
 
-	void broadPhase(std::vector<ColliderRegion_Wptr>& p_colliders, std::list<Collidable>& p_collidables, secs deltaTime);
+	void updateRegionArbiters(CollidableData& data);
 
-	void updateRegionArbiters(std::vector<ColliderRegion_Wptr>& p_colliders, RegionArbiterMap* collMap, Collidable& collidable);
 	void updatePushBound(Rect<double>& push_bound, const std::array<double, 4u>& boundDist, const Contact* contact);
 
-
-	void solve(ArbiterData& arbData);
+	void solve(CollidableData& collidableData);
 
 	unsigned instanceID;
+	
 
-	std::vector<std::pair<Contact, Vec2f>> contacts;
-
-	Colliders colliders;
-	Collidables collidables;
-
-	ArbiterMap arbiters;
 };
 
 }

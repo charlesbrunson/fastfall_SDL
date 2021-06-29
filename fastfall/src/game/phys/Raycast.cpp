@@ -165,10 +165,12 @@ std::optional<RaycastHit> raycast(CollisionContext phys_context, const Vec2f& or
 
 	std::vector<std::pair<Rectf, const ColliderQuad*>> buffer;
 
-	const CollisionManager::Colliders* colliders = phys_context.get().getColliders();
+	//const auto* colliders = phys_context.get().getColliders();
+	const auto& colliders = phys_context.get().get_colliders();
 
 	std::optional<RaycastHit> result{};
 
+	/*
 	for (std::weak_ptr<ColliderRegion> region_wptr : colliders->colliders_free) {
 		if (auto region = region_wptr.lock()) {
 			result = compareHits(result, raycastRegion(region.get(), raycastArea, raycastLine, backoff_));
@@ -179,6 +181,11 @@ std::optional<RaycastHit> raycast(CollisionContext phys_context, const Vec2f& or
 			result = compareHits(result, raycastRegion(region.get(), raycastArea, raycastLine, backoff_));
 		}
 	}
+	*/
+	for (auto& region_ptr : colliders) {
+		result = compareHits(result, raycastRegion(region_ptr.get(), raycastArea, raycastLine, backoff_));
+	}
+
 	if (result.has_value() && result->distance >= distance) {
 		result = std::nullopt;
 	}

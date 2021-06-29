@@ -27,17 +27,12 @@ TestState::TestState()
 		assert(lvl);
 		if (lvl) {
 
-			if (!lvl->getFGLayers().empty()) {
-				//lvl->getFGLayers().begin()->getCollisionMap()->teleport(Vec2f(32.f, 32.f));
-				instance->getCollision().addColliderRegion(lvl->getFGLayers().begin()->getCollisionMap());
+			//if (!lvl->getFGLayers().empty()) {
 
-				//platform_pos = Vec2f(9.f * TILESIZE_F, 15.f * TILESIZE_F);
-				//platform1 = std::make_shared<ColliderSimple>(Rectf(6.f * TILESIZE_F, 15.f * TILESIZE_F, 3.f * TILESIZE_F, 1.f * TILESIZE_F));
-				//platform2 = std::make_shared<ColliderSimple>(Rectf(42.f * TILESIZE_F, 13.f * TILESIZE_F, 3.f * TILESIZE_F, 1.f * TILESIZE_F));
-				//platform->teleport(platform_pos);
-				//instance->getCollision().addColliderRegion(std::shared_ptr<ColliderSimple>(platform1));
-				//instance->getCollision().addColliderRegion(std::shared_ptr<ColliderSimple>(platform2));
-			}
+
+
+				//instance->getCollision().addColliderRegion(lvl->getFGLayers().begin()->getCollisionMap());
+			//}
 
 			float xf = static_cast<float>(lvl->size().x);
 			float yf = static_cast<float>(lvl->size().y);
@@ -66,7 +61,7 @@ void TestState::update(secs deltaTime) {
 
 	if (deltaTime > 0.0) {
 		auto* tile = &*instance->getActiveLevel()->getFGLayers().begin();
-		auto colmap = tile->getCollisionMap().get();
+		auto colmap = tile->getCollisionMap();
 		
 		static secs timebuf = 0.0;
 		timebuf += deltaTime;

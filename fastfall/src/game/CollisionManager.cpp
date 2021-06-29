@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <set>
+#include <ranges>
 
 //#include "Engine.hpp"
 
@@ -12,6 +13,7 @@
 //#include "phys/collision/CollisionQuad.hpp"
 
 #include "fastfall/game/phys/CollisionSolver.hpp"
+#include "fastfall/game/Instance.hpp"
 
 namespace ff {
 
@@ -21,129 +23,71 @@ CollisionManager::CollisionManager(unsigned instance) :
 
 }
 
-
-void CollisionManager::addColliderRegion(std::shared_ptr<ColliderRegion> col) {
-	if (col->attached != nullptr) {
-		colliders.colliders_attached.push_back(col);
-
-		for (auto collidable = collidables.collidables_free.begin(); collidable != collidables.collidables_free.end(); collidable++) {
-			if (&*collidable == col->attached) {
-				collidables.collidables_attached.push_back(*collidable);
-				collidables.collidables_free.erase(collidable);
-				break;
-			}
-		}
-	}
-	else {
-		colliders.colliders_free.push_back(col);
-	}
-};
-
-Collidable* CollisionManager::createCollidable(Collidable&& col) {
-
-	Collidable* ptr = nullptr;
-
-	for (auto& collider : colliders.colliders_attached) {
-		if (auto c_lock = collider.lock()) {
-			if (c_lock->attached == &col) {
-				collidables.collidables_attached.push_back(col);
-				ptr = &collidables.collidables_attached.back();
-			}
-		}
-	}
-	if (!ptr) {
-		collidables.collidables_free.push_back(col);
-		ptr = &collidables.collidables_free.back();
-	}
-	assert(ptr);
-	arbiters.insert(std::make_pair(ptr, ArbiterData{ ptr }));
-
-	return ptr;
-
-}
-
-void CollisionManager::removeCollidable(Collidable* colptr) {
-	assert(colptr != nullptr);
-
-	arbiters.erase(colptr);
-
-	collidables.collidables_free.remove_if([&](const Collidable& _Other) { return &_Other == colptr; });
-	collidables.collidables_attached.remove_if([&](const Collidable& _Other) { return &_Other == colptr; });
-}
-
-
 void CollisionManager::update(secs deltaTime) {
 	if (deltaTime > 0.0) {
-		broadPhase(colliders.colliders_free, collidables.collidables_free, deltaTime);
+		broadPhase(deltaTime);
 
-		for (auto& [cptr, arbData] : arbiters) {
+		for (auto& colData : collidables) {
 
-			solve(arbData);
+			solve(colData);
 		}
 	}
-
-	cleanInvalidCollisionObjects();
 };
 
+// --------------------------------------------------------------
 
-void CollisionManager::cleanInvalidCollisionObjects() {
-
-	const static auto cleanseCollider = [this](std::vector<ColliderRegion_Wptr>& vec) {
-		for (auto it = vec.begin(); it != vec.end(); ) {
-			if (!it->lock()) {
-				for (auto& arb : arbiters) {
-					arb.second.regions.erase(*it);
-				}
-				it = vec.erase(it);
-			}
-			else {
-				it++;
-			}
-		}
-	};
-	/*
-	const static auto cleanseCollable = [this](std::list<Collidable>& vec) {
-		for (auto it = vec.begin(); it != vec.end(); ) {
-			if (!it->lock()) {
-				arbiters.erase(*it);
-				it = vec.erase(it);
-			}
-			else {
-				it++;
-			}
-		}
-	};
-	*/
-
-	cleanseCollider(colliders.colliders_free);
-	cleanseCollider(colliders.colliders_attached);
-	//cleanseCollable(collidables.collidables_free);
-	//cleanseCollable(collidables.collidables_attached);
+Collidable* CollisionManager::create_collidable() {
+	auto it = collidables.emplace(Collidable{ Instance(InstanceID{instanceID})->getContext() });
+	return &it->collidable;
 }
 
+bool CollisionManager::erase_collidable(Collidable* collidable) {
 
-void CollisionManager::broadPhase(std::vector<ColliderRegion_Wptr>& p_colliders, std::list<Collidable>& p_collidables, secs deltaTime) {
+	auto it = std::find_if(collidables.begin(), collidables.end(), 
+		[&collidable](const CollidableData& data) {
+			return collidable == &data.collidable;
+		});
+
+	if (it != collidables.end()) {
+		collidables.erase(it);
+		return true;
+	}
+	else {
+		return false;
+	}
+	return false;
+}
+
+bool CollisionManager::erase_collider(ColliderRegion* region) {
+
+	auto it = std::find_if(regions.begin(), regions.end(),
+		[&region](const std::unique_ptr<ColliderRegion>& rptr) {
+			return rptr.get() == region;
+		});
+
+	if (it != regions.end()) {
+		regions.erase(it);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+// --------------------------------------------------------------
+
+void CollisionManager::broadPhase(secs deltaTime) {
 
 	std::vector<std::pair<Rectf, const ColliderQuad*>> buffer;
 	buffer.reserve(32);
 
-	for (auto& body : p_collidables) {
+	for (auto& colData : collidables) {
 
-		Rectf body_rect( body.getBox() );
+		Rectf body_rect(colData.collidable.getBox() );
 
 		// using double for this as float can lead to infinite loop due to floating point inaccuracy when pushing boundary
-		Rect<double> body_bound(body.getBoundingBox());
+		Rect<double> body_bound(colData.collidable.getBoundingBox());
 		Rect<double> push_bound(body_bound);
-
-		ArbiterMap::iterator body_it{ arbiters.find(&body) };
-
-		// this should've been created when the collidable was added
-		if (body_it == arbiters.end()) {
-			LOG_WARN("Could not find arbiter for collidable");
-			continue;
-		}
-
-		RegionArbiterMap* collMap = &body_it->second.regions;
 
 		std::vector<const Arbiter*> updatedBuffer;
 
@@ -154,16 +98,16 @@ void CollisionManager::broadPhase(std::vector<ColliderRegion_Wptr>& p_colliders,
 		do {
 			body_bound = push_bound;
 			std::array<double, 4u> boundDist = {
-				body_rect.top - body_bound.top, // NORTH
-				(body_bound.left + body_bound.width) - (body_rect.left + body_rect.width), // EAST
-				(body_bound.top + body_bound.height) - (body_rect.top + body_rect.height), // SOUTH
-				body_rect.left - body_bound.left // WEST
+				body_rect.top - body_bound.top,												// NORTH
+				(body_bound.left + body_bound.width) - (body_rect.left + body_rect.width),	// EAST
+				(body_bound.top + body_bound.height) - (body_rect.top + body_rect.height),	// SOUTH
+				body_rect.left - body_bound.left											// WEST
 			};
 
-			updateRegionArbiters(p_colliders, collMap, body);
+			updateRegionArbiters(colData);
 
 			// try to push out collidable bounds
-			for (auto& [region_wptr, regionArb] : *collMap) {
+			for (auto& regionArb : colData.regionArbiters) {
 				for (auto& [quad, arbiter] : regionArb.getQuadArbiters()) {
 
 					// if this arbiter hasn't pushed before, update it
@@ -180,32 +124,47 @@ void CollisionManager::broadPhase(std::vector<ColliderRegion_Wptr>& p_colliders,
 		} while (body_bound != push_bound);
 	}
 
-	contacts.clear();
-
 };
 
-void CollisionManager::updateRegionArbiters(std::vector<ColliderRegion_Wptr>& p_colliders, RegionArbiterMap* collMap, Collidable& collidable) {
-	for (auto& coll_wptr : p_colliders) {
-		if (auto coll = coll_wptr.lock()) {
+void CollisionManager::updateRegionArbiters(CollidableData& data) {
 
-			RegionArbiterMap::iterator coll_it = collMap->find(coll);
+	for (auto& region : regions) {
+
+		if (data.regionArbiters.empty()) {
+			if (region->getBoundingBox().intersects(data.collidable.getBoundingBox())) {
+				RegionArbiter rarb(region.get(), &data.collidable);
+				auto& arbiter = data.regionArbiters.emplace_back(rarb);
+				arbiter.updateRegion(data.collidable.getBoundingBox());
+			}
+		}
+		else {
+
+
+			auto arbiter = std::lower_bound(
+				data.regionArbiters.begin(),
+				data.regionArbiters.end(),
+				region,
+				[](const RegionArbiter& arb, const std::unique_ptr<ColliderRegion>& region) {
+					return arb.getRegion() < region.get();
+				}
+			);
+
+			bool exists = arbiter != data.regionArbiters.end() && arbiter->getRegion() == region.get();
 
 			// check if collidable is in this region
-			if (coll->getBoundingBox().intersects(collidable.getBoundingBox())) {
+			if (region->getBoundingBox().intersects(data.collidable.getBoundingBox())) {
 
-				if (coll_it == collMap->end()) {
+				if (!exists) {
 					// just entered this region
 
-					RegionArbiter rarb(coll.get(), &collidable);
-					coll_it = collMap->insert(std::make_pair(coll_wptr, std::move(rarb))).first;
+					RegionArbiter rarb(region.get(), &data.collidable);
+					arbiter = data.regionArbiters.emplace(arbiter, rarb);
 				}
-
-				coll_it->second.updateRegion(collidable.getBoundingBox());
-
+				arbiter->updateRegion(data.collidable.getBoundingBox());
 			}
-			else if (coll_it != collMap->end()) {
+			else if (exists) {
 				// just left this region
-				collMap->erase(coll_it);
+				data.regionArbiters.erase(arbiter);
 			}
 		}
 	}
@@ -239,17 +198,15 @@ void CollisionManager::updatePushBound(Rect<double>& push_bound, const std::arra
 	}
 }
 
-void CollisionManager::solve(ArbiterData& arbData) {
+void CollisionManager::solve(CollidableData& collidableData) {
 
-	CollisionSolver solver{ arbData.collidable };
+	CollisionSolver solver{ &collidableData.collidable };
 
-	for (auto& rArb : arbData.regions) {
+	for (auto& rArb : collidableData.regionArbiters) {
 
-		if (auto ptr = rArb.first.lock()) {
-			for (auto& qArb : rArb.second.getQuadArbiters()) {
-				if (ptr->on_precontact(qArb.second.collider->getID(), *qArb.second.getContactPtr(), qArb.second.getTouchDuration())) {
-					solver.pushArbiter(&qArb.second);
-				}
+		for (auto& qArb : rArb.getQuadArbiters()) {
+			if (rArb.getRegion()->on_precontact(qArb.second.collider->getID(), *qArb.second.getContactPtr(), qArb.second.getTouchDuration())) {
+				solver.pushArbiter(&qArb.second);
 			}
 		}
 	}
@@ -274,7 +231,7 @@ void CollisionManager::solve(ArbiterData& arbData) {
 			applied.region->on_postcontact(contact.quad_id, contact);
 		
 	}
-	arbData.collidable->set_frame(std::move(c));
+	collidableData.collidable.set_frame(std::move(c));
 }
 
 }

@@ -12,15 +12,12 @@ namespace ff {
 Arbiter::Arbiter(Collidable* col_dable, const ColliderQuad* col_der, const ColliderRegion* col_region) :
 	collision(col_dable, col_der, col_region)
 {
-
 	collidable = col_dable;
 	collider = col_der;
 	region = col_region;
-
-	//collision = std::make_unique<CollisionContinuous>(collidable, collider, region);
-
 }
 
+/*
 Arbiter::Arbiter(Arbiter&& arb) noexcept :
 	collision(std::move(arb.collision))
 {
@@ -35,6 +32,20 @@ Arbiter::Arbiter(Arbiter&& arb) noexcept :
 	region = arb.region;
 	recalcCounter = arb.recalcCounter;
 }
+
+
+Arbiter& Arbiter::operator= (Arbiter&& arb) noexcept {
+	collision = std::move(arb.collision);
+
+	aliveTimer = arb.aliveTimer;
+	touchTimer = arb.touchTimer;
+
+	collidable = arb.collidable;
+	collider = arb.collider;
+	region = arb.region;
+	recalcCounter = arb.recalcCounter;
+}
+*/
 
 void Arbiter::setApplied() {
 	collision.setAxisApplied(collision.getContact().ortho_normal);
