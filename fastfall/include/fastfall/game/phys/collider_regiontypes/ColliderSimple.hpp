@@ -4,6 +4,8 @@
 #include "fastfall/game/phys/ColliderRegion.hpp"
 #include "fastfall/util/math.hpp"
 
+#include <functional>
+
 // collider region containing a single collider
 
 namespace ff {

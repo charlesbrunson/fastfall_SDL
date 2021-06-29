@@ -6,6 +6,7 @@
 
 #include "fastfall/util/log.hpp"
 
+#include <functional>
 #include <array>
 #include <queue>
 

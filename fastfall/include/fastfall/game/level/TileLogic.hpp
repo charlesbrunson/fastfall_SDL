@@ -5,6 +5,7 @@
 
 #include <queue>
 #include <string_view>
+#include <functional>
 
 #include "fastfall/game/level/Tile.hpp"
 

@@ -19,10 +19,8 @@
 
 namespace ff {
 
-class CollisionManager /* : public sf::Drawable*/ {
+class CollisionManager {
 public:
-	constexpr static unsigned MAX_COLLIDABLES = 128u;
-
 
 	using Collidable_Wptr = std::weak_ptr<Collidable>;
 	using ColliderRegion_Wptr = std::weak_ptr<ColliderRegion>;
@@ -35,7 +33,6 @@ public:
 
 		}
 
-		//CollisionFrame frame;
 		RegionArbiterMap regions;
 		Collidable* collidable;
 	};
@@ -54,11 +51,9 @@ public:
 	CollisionManager(unsigned instance);
 
 	void update(secs deltaTime);
-	//void predraw(secs deltaTime);
 
 	void addColliderRegion(std::shared_ptr<ColliderRegion> col);
 
-	//void addCollidable(std::shared_ptr<Collidable> col);
 	Collidable* createCollidable(Collidable&& col);
 	void removeCollidable(Collidable* colptr);
 

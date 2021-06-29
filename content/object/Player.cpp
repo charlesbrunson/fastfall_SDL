@@ -16,10 +16,6 @@ namespace constants {
 	AnimIDRef brakeb("player", "brake_back");
 	AnimIDRef brakef("player", "brake_front");
 
-
-	//AnimIDRef a_jump_f("player", "jump_f");
-	//AnimIDRef a_fall_f("player", "fall_f");
-
 	const Friction braking{ .stationary = 1.2f, .kinetic = 0.8f };
 	const Friction moving{ .stationary = 0.f,  .kinetic = 0.f };
 
