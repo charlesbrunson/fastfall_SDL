@@ -86,8 +86,8 @@ void CollisionManager::broadPhase(secs deltaTime) {
 		Rectf body_rect(colData.collidable.getBox() );
 
 		// using double for this as float can lead to infinite loop due to floating point inaccuracy when pushing boundary
-		Rect<double> body_bound(colData.collidable.getBoundingBox());
-		Rect<double> push_bound(body_bound);
+		Rectf body_bound(colData.collidable.getBoundingBox());
+		Rectf push_bound(body_bound);
 
 		std::vector<const Arbiter*> updatedBuffer;
 
@@ -97,12 +97,14 @@ void CollisionManager::broadPhase(secs deltaTime) {
 
 		do {
 			body_bound = push_bound;
-			std::array<double, 4u> boundDist = {
+			std::array<float, 4u> boundDist = {
 				body_rect.top - body_bound.top,												// NORTH
 				(body_bound.left + body_bound.width) - (body_rect.left + body_rect.width),	// EAST
 				(body_bound.top + body_bound.height) - (body_rect.top + body_rect.height),	// SOUTH
 				body_rect.left - body_bound.left											// WEST
 			};
+
+			//LOG_INFO("{}, {}, {}, {}", boundDist[0], boundDist[1], boundDist[2], boundDist[3]);
 
 			updateRegionArbiters(colData);
 
@@ -130,55 +132,45 @@ void CollisionManager::updateRegionArbiters(CollidableData& data) {
 
 	for (auto& region : regions) {
 
-		if (data.regionArbiters.empty()) {
-			if (region->getBoundingBox().intersects(data.collidable.getBoundingBox())) {
+		auto arbiter = std::lower_bound(
+			data.regionArbiters.begin(),
+			data.regionArbiters.end(),
+			region,
+			[](const RegionArbiter& arb, const std::unique_ptr<ColliderRegion>& region) {
+				return arb.getRegion() < region.get();
+			}
+		);
+
+		bool exists = arbiter != data.regionArbiters.end() && arbiter->getRegion() == region.get();
+
+		// check if collidable is in this region
+		if (region->getBoundingBox().intersects(data.collidable.getBoundingBox())) {
+
+			if (!exists) {
+				// just entered this region
+
 				RegionArbiter rarb(region.get(), &data.collidable);
-				auto& arbiter = data.regionArbiters.emplace_back(rarb);
-				arbiter.updateRegion(data.collidable.getBoundingBox());
+				arbiter = data.regionArbiters.emplace(arbiter, rarb);
 			}
+			arbiter->updateRegion(data.collidable.getBoundingBox());
 		}
-		else {
-
-
-			auto arbiter = std::lower_bound(
-				data.regionArbiters.begin(),
-				data.regionArbiters.end(),
-				region,
-				[](const RegionArbiter& arb, const std::unique_ptr<ColliderRegion>& region) {
-					return arb.getRegion() < region.get();
-				}
-			);
-
-			bool exists = arbiter != data.regionArbiters.end() && arbiter->getRegion() == region.get();
-
-			// check if collidable is in this region
-			if (region->getBoundingBox().intersects(data.collidable.getBoundingBox())) {
-
-				if (!exists) {
-					// just entered this region
-
-					RegionArbiter rarb(region.get(), &data.collidable);
-					arbiter = data.regionArbiters.emplace(arbiter, rarb);
-				}
-				arbiter->updateRegion(data.collidable.getBoundingBox());
-			}
-			else if (exists) {
-				// just left this region
-				data.regionArbiters.erase(arbiter);
-			}
+		else if (exists) {
+			// just left this region
+			data.regionArbiters.erase(arbiter);
 		}
+		
 	}
 }
 
-void CollisionManager::updatePushBound(Rect<double>& push_bound, const std::array<double, 4u>& boundDist, const Contact* contact) {
+void CollisionManager::updatePushBound(Rectf& push_bound, const std::array<float, 4u>& boundDist, const Contact* contact) {
 
 	if (!contact->hasContact || !vecToCardinal(contact->ortho_normal).has_value())
 		return;
 
 	Cardinal dir = vecToCardinal(contact->ortho_normal).value();
 
-	double diff = (double)contact->separation - boundDist[dir];
-	if (diff > 0.0) {
+	float diff = contact->separation - boundDist[dir];
+	if (diff > 0.f) {
 		push_bound = math::rect_extend(push_bound, dir, diff);
 	}
 
@@ -188,10 +180,13 @@ void CollisionManager::updatePushBound(Rect<double>& push_bound, const std::arra
 		auto alt_dir = vecToCardinal(alt_ortho_normal);
 
 		if (alt_dir.has_value()) {
-			double alt_separation = abs(((double)contact->collider_normal.y / (double)contact->collider_normal.x) * contact->separation);
-			double alt_diff = alt_separation - boundDist[alt_dir.value()];
+			//float alt_separation = abs((contact->collider_normal.y / contact->collider_normal.x) * contact->separation);
 
-			if (alt_diff > 0.0) {
+			float alt_separation = abs(contact->collider_normal.y * contact->separation * (1.f / contact->collider_normal.x));
+
+			float alt_diff = alt_separation - boundDist[alt_dir.value()];
+
+			if (alt_diff > 0.f) {
 				push_bound = math::rect_extend(push_bound, alt_dir.value(), alt_diff);
 			}
 		}
@@ -210,6 +205,7 @@ void CollisionManager::solve(CollidableData& collidableData) {
 			}
 		}
 	}
+
 	solver.solve();
 
 	// push collision data to collidable

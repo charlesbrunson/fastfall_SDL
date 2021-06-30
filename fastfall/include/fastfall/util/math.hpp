@@ -248,11 +248,20 @@ Rect<T> rect_bound(const Rect<T>& a, const Rect<T>& b) {
 template<typename T>
 Rect<T> rect_extend(const Rect<T>& a, Cardinal dir, T amount) {
 	Rect<T> out = a;
+	T temp;
 	switch (dir) {
-	case Cardinal::NORTH: out.top -= amount; out.height += amount; break;
+	case Cardinal::NORTH:
+		temp = out.top + out.height;
+		out.top -= amount; 
+		out.height = temp - out.top;
+		break;
 	case Cardinal::EAST:  out.width += amount; break;
 	case Cardinal::SOUTH: out.height += amount; break;
-	case Cardinal::WEST:  out.left -= amount; out.width += amount; break;
+	case Cardinal::WEST:  
+		temp = out.left + out.width;
+		out.left -= amount; 
+		out.width = temp - out.left;
+		break;
 	}
 	return out;
 }
