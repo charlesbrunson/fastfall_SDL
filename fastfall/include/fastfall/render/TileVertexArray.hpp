@@ -25,11 +25,6 @@ public:
 	void blank(Vec2u at);
 	void clear();
 
-	void rotate_forwardX();
-	void rotate_backwardX();
-	void rotate_forwardY();
-	void rotate_backwardY();
-
 	inline bool empty() noexcept { return tiles.empty(); };
 
 	Vec2f offset;
@@ -38,7 +33,6 @@ protected:
 
 	TextureRef tex;
 	Vec2u size;
-	Vec2u rotation_offset{ 0, 0 };
 
 	struct Tile {
 		Tile() {};
@@ -50,7 +44,6 @@ protected:
 	};
 
 	std::vector<Tile>    tiles;
-	//std::vector<Vertex>  verts;
 	VertexArray verts;
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;

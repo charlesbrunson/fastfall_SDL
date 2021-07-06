@@ -8,7 +8,8 @@
 #include "fastfall/resource/asset/TilesetAsset.hpp"
 
 #include "fastfall/game/phys/collider_regiontypes/ColliderTileMap.hpp"
-#include "fastfall/render/TileVertexArray.hpp"
+//#include "fastfall/render/TileVertexArray.hpp"
+#include "fastfall/render/ChunkVertexArray.hpp"
 
 #include "fastfall/game/GameContext.hpp"
 
@@ -93,7 +94,8 @@ protected:
 
 	struct TVArrayT {
 		const TilesetAsset* tileset;
-		TileVertexArray varray;
+		//TileVertexArray varray;
+		ChunkVertexArray varray;
 	};
 	std::vector<TVArrayT> tileVertices;
 

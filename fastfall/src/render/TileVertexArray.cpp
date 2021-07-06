@@ -73,9 +73,11 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 	auto pos = glm::fvec2(at.x, at.y);
 	auto texpos = glm::fvec2(texPos.x, texPos.y);
 
+	/*
 	pos += glm::fvec2(rotation_offset.x, rotation_offset.y);
 	if (pos.x >= size.x) pos.x -= size.x;
 	if (pos.y >= size.y) pos.y -= size.y;
+	*/
 
 	constexpr std::array<glm::fvec2, 6> offsets{
 		glm::fvec2(0.f, 0.f),
@@ -129,6 +131,7 @@ void TileVertexArray::clear() {
 	verts.clear();
 }
 
+/*
 void TileVertexArray::rotate_forwardX() {
 	if (size.x <= 1)
 		return;
@@ -236,6 +239,7 @@ void TileVertexArray::rotate_backwardY() {
 		}
 	}
 }
+*/
 
 void TileVertexArray::draw(RenderTarget& target, RenderState states) const {
 	if (verts.empty())

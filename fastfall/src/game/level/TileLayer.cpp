@@ -291,10 +291,21 @@ void TileLayer::predraw(secs deltaTime) {
 
 
 
+	Rectf visible;
+	visible.left = m_context.camera().get().currentPosition.x - (GAME_W_F / 2.f);
+	visible.top = m_context.camera().get().currentPosition.y - (GAME_H_F / 2.f);
+	visible.width = GAME_W_F;
+	visible.height = GAME_H_F;
+	for (auto& verts : tileVertices) {
+		verts.varray.visibility = visible;
+	}
+
 	// parallax update
 	static secs buff = 0.0;
 	buff += deltaTime;
 	Vec2f parallax_offset;
+	Vec2f pSize = Vec2f{ size } *TILESIZE_F;
+	/*
 	if (has_parallax) {
 		parallax_offset = Vec2f{
 			m_context.camera()->currentPosition.x * parallax.camFactor.x,
@@ -303,7 +314,6 @@ void TileLayer::predraw(secs deltaTime) {
 	}
 
 	// scroll update
-	Vec2f pSize = Vec2f{ size } * TILESIZE_F;
 	if (hasScrollX() || hasScrollY()) {
 		scroll_offset += scrollRate * deltaTime;
 
@@ -323,7 +333,6 @@ void TileLayer::predraw(secs deltaTime) {
 			scroll_offset.y -= TILESIZE_F;
 			for (auto& vta_pair : tileVertices)	vta_pair.varray.rotate_forwardY();
 		}
-
 	}
 
 	if (has_parallax || hasScrollX() || hasScrollY()) {
@@ -331,6 +340,7 @@ void TileLayer::predraw(secs deltaTime) {
 			vta_pair.varray.offset = parallax_offset + scroll_offset;
 		}
 	}
+	*/
 
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_AREA))
 	{
@@ -374,11 +384,12 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 
 			tileVertices.push_back(TVArrayT{
 					.tileset = &tileset,
-					.varray = TileVertexArray(size)
+					.varray = ChunkVertexArray(size, Vec2u{GAME_TILE_W / 2u, GAME_TILE_H / 2u})
 				});
 
 			tileVertices.back().varray.setTexture(tileset.getTexture());
 			tileVertices.back().varray.setTile(position, texposition);
+			tileVertices.back().varray.use_visible_rect = true;
 			tileset_ndx = tileVertices.size() - 1;
 		}
 		else {
@@ -442,7 +453,7 @@ void TileLayer::removeTile(const Vec2u& position) {
 	unsigned ndx = position.y * size.x + position.x;
 
 	if (pos2data.at(ndx).tileset_id != TILEDATA_NONE) {
-		tileVertices.at(pos2data.at(ndx).tileset_id).varray.erase(position);
+		tileVertices.at(pos2data.at(ndx).tileset_id).varray.blank(position);
 	}
 	if (pos2data.at(ndx).logic_id != TILEDATA_NONE) {
 		tileLogic.at(pos2data.at(ndx).logic_id)->removeTile(position);
