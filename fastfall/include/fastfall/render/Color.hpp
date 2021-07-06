@@ -55,6 +55,10 @@ struct Color {
 
 	Color operator() () const { return *this; };
 
+	inline bool operator== (const Color& color) const {
+		return hex() == color.hex();
+	}
+
 	uint8_t r;
 	uint8_t g;
 	uint8_t b;

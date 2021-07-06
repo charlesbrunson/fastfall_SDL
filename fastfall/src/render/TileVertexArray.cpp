@@ -62,7 +62,6 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 		verts.insert(distance, VERTICES_PER_TILE);
 
 		vndx = distance;
-
 	}
 	else {
 		vndx = std::distance(tiles.begin(), tile) * VERTICES_PER_TILE;
@@ -106,8 +105,6 @@ void TileVertexArray::erase(Vec2u at) {
 		int ndx = std::distance(tiles.begin(), iter) * VERTICES_PER_TILE;
 		tiles.erase(iter);
 		verts.erase(ndx, VERTICES_PER_TILE);
-
-		//verts.vec().erase(verts.vec().begin() + ndx, verts.vec().begin() + ndx + VERTICES_PER_TILE);
 	}
 }
 void TileVertexArray::blank(Vec2u at) {
@@ -118,10 +115,8 @@ void TileVertexArray::blank(Vec2u at) {
 		}
 	);
 
-	//Vertex* v_ptr;
 	if (iter != tiles.end()) {
 		size_t ndx = std::distance(tiles.begin(), iter) * VERTICES_PER_TILE;
-		//v_ptr = &verts[ndx];
 		
 		for (int i = 0; i < VERTICES_PER_TILE; i++) {
 			verts[ndx + i].color.a = 0;
@@ -143,10 +138,7 @@ void TileVertexArray::rotate_forwardX() {
 
 	float end = (size.x - 1) * TILESIZE_F;
 
-	//Vertex* v_ptr;
 	for (size_t i = 0; i < verts.size(); i += VERTICES_PER_TILE) {
-		//v_ptr = &verts[i];
-
 		if (verts[i].pos.x == end) [[unlikely]]
 		{
 			for (size_t j = 0; j < VERTICES_PER_TILE; j++) {
@@ -175,10 +167,7 @@ void TileVertexArray::rotate_backwardX() {
 
 	float end = (size.x - 1) * TILESIZE_F;
 
-	//Vertex* v_ptr;
 	for (size_t i = 0; i < verts.size(); i += VERTICES_PER_TILE) {
-		//v_ptr = &verts[i];
-
 		if (verts[i].pos.x == 0) [[unlikely]]
 		{
 			for (size_t j = 0; j < VERTICES_PER_TILE; j++) {
@@ -204,10 +193,7 @@ void TileVertexArray::rotate_forwardY() {
 
 	float end = (size.y - 1) * TILESIZE_F;
 
-	//Vertex* v_ptr;
 	for (size_t i = 0; i < verts.size(); i += VERTICES_PER_TILE) {
-		//v_ptr = &verts[i];
-
 		if (verts[i].pos.y == end) [[unlikely]]
 		{
 			for (size_t j = 0; j < VERTICES_PER_TILE; j++) {
@@ -235,10 +221,7 @@ void TileVertexArray::rotate_backwardY() {
 
 	float end = (size.y - 1) * TILESIZE_F;
 
-	//Vertex* v_ptr;
 	for (size_t i = 0; i < verts.size(); i += VERTICES_PER_TILE) {
-		//v_ptr = &verts[i];
-
 		if (verts[i].pos.y == 0) [[unlikely]]
 		{
 			for (size_t j = 0; j < VERTICES_PER_TILE; j++) {
@@ -258,14 +241,10 @@ void TileVertexArray::draw(RenderTarget& target, RenderState states) const {
 	if (verts.empty())
 		return;
 
-	//RenderStates shift = states;
 	states.transform = Transform::combine(states.transform, Transform(offset));
 	states.texture = tex;
 
 	target.draw(verts, states);
-	//target.draw(&verts[0], verts.size(), sf::Quads, states);
 }
-
-
 
 }

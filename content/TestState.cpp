@@ -103,7 +103,7 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
 	}
 	instance->disableScissor();
 
-	target.draw(instance->getObject().getObjectDrawList(false));
+	target.draw(instance->getObject().getObjectDrawList(false), state);
 
 	bool firstFG = true;
 	for (auto& fg : instance->getActiveLevel()->getFGLayers()) {
@@ -112,7 +112,7 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
 
 		if (firstFG) {
 			firstFG = false;
-			target.draw(instance->getObject().getObjectDrawList(true));
+			target.draw(instance->getObject().getObjectDrawList(true), state);
 		}
 	}
 

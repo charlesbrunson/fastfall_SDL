@@ -78,6 +78,19 @@ public:
 		return hasColor;
 	}
 
+	inline bool operator== (const BlendMode& mode) const {
+		return hasSepEquation	== mode.hasSepEquation
+			&& hasSepFactor		== mode.hasSepFactor
+			&& hasColor			== mode.hasColor
+			&& equationRGB		== mode.equationRGB
+			&& equationA		== mode.equationA
+			&& srcFactorRGB		== mode.srcFactorRGB
+			&& dstFactorRGB		== mode.dstFactorRGB
+			&& srcFactorA		== mode.srcFactorA
+			&& dstFactorA		== mode.dstFactorA
+			&& colorConstant	== mode.colorConstant;
+	}
+
 private:
 
 	bool hasSepEquation = false;
@@ -98,7 +111,6 @@ private:
 	void updateHasColor();
 	static bool isConstantFactor(Factor factor);
 };
-
 
 class RenderState {
 public:

@@ -446,10 +446,9 @@ void Engine::sleep() {
     clock.sleepUntilTick(window && settings.vsyncEnabled);
     if (window) {
         displayStart = std::chrono::steady_clock::now();
-        //glFinish();
         window->display();
         displayTime = std::chrono::steady_clock::now() - displayStart;
-
+                
     }
 }
 
@@ -464,10 +463,9 @@ void Engine::handleEvents(bool* timeWasted)
 
     bool discardMousePress = false;
 
-
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-
+                
         if (ImGui_ImplSDL2_ProcessEvent(&event)) {
             if (ImGui::GetIO().WantCaptureMouse && (event.type & SDL_MOUSEMOTION) > 0) {
                 continue;

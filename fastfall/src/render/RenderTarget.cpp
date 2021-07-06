@@ -3,7 +3,16 @@
 #include "fastfall/render/Drawable.hpp"
 #include "fastfall/render/VertexArray.hpp"
 
+#include "detail/error.hpp"
+
 namespace ff {
+
+RenderTarget::RenderTarget()
+	: m_view{ {0, 0}, {0, 0} },
+	m_context{ nullptr }
+{
+
+};
 
 void RenderTarget::clear(Color clearColor) {
 	bindFramebuffer();
@@ -47,59 +56,81 @@ void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 	varray.glTransfer();
 
 	bindFramebuffer();
-	applyBlend(state.blend);
-	applyShader(state.program);
-	applyUniforms(Transform::combine(varray.getTransform(), state.transform), state);
-	applyTexture(state.texture);
 
-	glBindVertexArray(varray.gl.m_array);
-	glDrawArrays(static_cast<GLenum>(varray.m_primitive), 0, varray.size());
+	if (!previousRender) {
+		previousRender = RenderState{};
+	}
+
+	if (state.blend != previousRender->blend || !hasBlend) {
+		applyBlend(state.blend);
+		hasBlend = true;
+	}
+
+	if (state.program != previousRender->program || !hasShader) {
+		applyShader(state.program);
+		hasShader = (state.program != nullptr);
+		if (state.program) {
+			applyUniforms(Transform::combine(varray.getTransform(), state.transform), state);
+		}
+	}
+	else if (hasShader && state.transform != previousRender->transform) {
+		applyUniforms(Transform::combine(varray.getTransform(), state.transform), state);
+	}
+
+	if (state.texture.get()->getID() != previousRender->texture.get()->getID()) {
+		applyTexture(state.texture);
+	}
+
+	glCheck(glBindVertexArray(varray.gl.m_array));
+	glCheck(glDrawArrays(static_cast<GLenum>(varray.m_primitive), 0, varray.size()));
+
+	previousRender = state;
 }
 
 // ------------------------------------------------------
 
 void RenderTarget::bindFramebuffer() const {
-	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
+	glCheck(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
 }
 
 void RenderTarget::applyBlend(const BlendMode& blend) const {
-	glEnable(GL_BLEND);
+	glCheck(glEnable(GL_BLEND));
 
 	if (blend.hasConstantColor()) {
 		glm::fvec4 clamped = glm::fvec4{ blend.getColor().toVec4() } / 255.f;
-		glBlendColor(
+		glCheck(glBlendColor(
 			clamped[0],
 			clamped[1],
 			clamped[2],
 			clamped[3]
-		);
+		));
 	}
 
 	if (blend.hasSeparateFactor()) {
-		glBlendFuncSeparate(
+		glCheck(glBlendFuncSeparate(
 			static_cast<GLenum>(blend.getSrcFactorRGB()),
 			static_cast<GLenum>(blend.getDstFactorRGB()),
 			static_cast<GLenum>(blend.getSrcFactorA()),
 			static_cast<GLenum>(blend.getDstFactorA())
-		);
+		));
 	}
 	else {
-		glBlendFunc(
+		glCheck(glBlendFunc(
 			static_cast<GLenum>(blend.getSrcFactorRGB()),
 			static_cast<GLenum>(blend.getDstFactorRGB())
-		);
+		));
 	}
 
 	if (blend.hasSeparateEquation()) {
-		glBlendEquationSeparate(
+		glCheck(glBlendEquationSeparate(
 			static_cast<GLenum>(blend.getEquationRGB()),
 			static_cast<GLenum>(blend.getEquationA())
-		);
+		));
 	}
 	else {
-		glBlendEquation(
+		glCheck(glBlendEquation(
 			static_cast<GLenum>(blend.getEquationRGB())
-		);
+		));
 	}
 
 }
@@ -110,22 +141,17 @@ void RenderTarget::applyShader(const ShaderProgram* shader) const {
 		shader->use();
 	}
 	else {
-		glUseProgram(0);
+		glCheck(glUseProgram(0));
 	}
 }
 
 void RenderTarget::applyUniforms(const Transform& transform, const RenderState& state) const {
-
-	if (!state.program) {
-		return;
-	}
-
 	if (state.program->getMdlUniformID()  >= 0) {
-		glUniformMatrix3fv(state.program->getMdlUniformID(), 1, GL_FALSE, glm::value_ptr(transform.getMatrix()));
+		glCheck(glUniformMatrix3fv(state.program->getMdlUniformID(), 1, GL_FALSE, glm::value_ptr(transform.getMatrix())));
 	}
 	if (state.program->getViewUniformID() >= 0) {
 		glm::mat3 viewmat = m_view.getMatrix();
-		glUniformMatrix3fv(state.program->getViewUniformID(), 1, GL_FALSE, glm::value_ptr(viewmat));
+		glCheck(glUniformMatrix3fv(state.program->getViewUniformID(), 1, GL_FALSE, glm::value_ptr(viewmat)));
 	}
 }
 

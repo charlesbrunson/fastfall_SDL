@@ -31,6 +31,10 @@ public:
 	static Transform combine(const Transform& A, const Transform& B);
 	static Transform inv_combine(const Transform& A, const Transform& B);
 
+	inline bool operator== (const Transform& transform) {
+		return m_transform_mat == transform.m_transform_mat;
+	}
+
 private:
 	glm::mat3 m_transform_mat;
 

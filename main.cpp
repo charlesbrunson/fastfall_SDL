@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 	Engine::init(
 		std::move(window),
 		EngineRunnable(std::make_unique<TestState>()),
-		Vec2u(1600, 900),
+		Vec2u(1920, 1080),
 		getSettings()
 	);
 

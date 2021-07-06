@@ -185,10 +185,10 @@ bool ShaderProgram::isLinked() const {
 
 void ShaderProgram::use() const {
 	if (isLinked()) {
-		glUseProgram(id);
+		glCheck(glUseProgram(id));
 	}
 	else {
-		glUseProgram(0);
+		glCheck(glUseProgram(0));
 	}
 }
 

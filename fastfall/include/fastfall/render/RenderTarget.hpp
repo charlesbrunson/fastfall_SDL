@@ -7,6 +7,8 @@
 
 #include "opengl.hpp"
 
+#include <optional>
+
 namespace ff {
 
 class Drawable;
@@ -14,12 +16,7 @@ class VertexArray;
 
 class RenderTarget {
 public:
-	RenderTarget()
-		: m_view{ {0, 0}, {0, 0} },
-		m_context{ nullptr }
-	{
-		
-	};
+	RenderTarget();
 	virtual ~RenderTarget() = default;
 
 	virtual glm::ivec2 getSize() const = 0;
@@ -42,6 +39,10 @@ public:
 	//void draw(const ShapeCircle& line, const RenderState& state = RenderState::Default);
 
 protected:
+	bool hasShader = false;
+	bool hasBlend = false;
+	std::optional<RenderState> previousRender;
+
 	View m_view;
 	SDL_GLContext m_context;
 
