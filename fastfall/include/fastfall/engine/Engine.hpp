@@ -128,6 +128,8 @@ private:
 
 	float gamespeed = 1.f;
 
+	unsigned int avgFPS = UINT_MAX;
+
 	// display management
 	//bool windowless;
 	std::unique_ptr<Window> window;

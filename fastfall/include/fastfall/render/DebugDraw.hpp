@@ -22,6 +22,9 @@ namespace debug_draw {
 		COLLISION_RAYCAST,
 
 		TILELAYER_AREA,
+		TILELAYER_CHUNK,
+
+		CAMERA_VISIBLE,
 
 		LAST
 	};

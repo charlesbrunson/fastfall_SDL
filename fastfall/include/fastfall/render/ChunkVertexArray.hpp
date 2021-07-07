@@ -27,6 +27,11 @@ public:
 
 	inline bool empty() noexcept { return m_chunks.empty(); };
 
+	void add_scroll(Vec2f scroll_amount);
+	void reset_scroll();
+
+	void predraw();
+
 	Vec2f offset;
 
 	bool use_visible_rect = false;
@@ -38,6 +43,8 @@ private:
 		Vec2u chunk_size;
 		TileVertexArray tva;
 	};
+
+	Vec2f scroll;
 
 	Vec2u m_size;
 	Vec2u m_chunk_size;

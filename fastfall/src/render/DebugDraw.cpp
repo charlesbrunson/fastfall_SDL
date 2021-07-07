@@ -39,12 +39,14 @@ std::set<Repeat> repeatList;
 Vec2f current_offset;
 
 bool typeEnable[] = {
-	true, // NONE
-	true, // COLLISION_COLLIDER
-	true, // COLLISION_COLLIDABLE
-	true, // COLLISION_CONTACT
-	true, // COLLISION_RAYCAST
-	false, // TILELAYER_AREA
+	true,	// NONE
+	true,	// COLLISION_COLLIDER
+	true,	// COLLISION_COLLIDABLE
+	true,	// COLLISION_CONTACT
+	true,	// COLLISION_RAYCAST
+	false,	// TILELAYER_AREA
+	false,	// TILELAYER_CHUNK
+	true,	// CAMERA_VISIBLE
 };
 constexpr unsigned typeEnableCount = (sizeof(typeEnable) / sizeof(typeEnable[0]));
 static_assert(typeEnableCount == static_cast<unsigned>(debug_draw::Type::LAST), "debug draw type enum and type enable array count mismatch");

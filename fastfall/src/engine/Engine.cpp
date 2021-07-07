@@ -374,7 +374,7 @@ void Engine::updateTimer() {
         }
         stepUpdate = false;
     }
-    
+
 }
 
 void Engine::updateStateHandler() {
@@ -384,6 +384,7 @@ void Engine::updateStateHandler() {
 }
 
 void Engine::updateView() {
+
     if (window) {
         View v = window->getView();
         EngineState* st = runnables.front().getStateHandle().getActiveState();
@@ -393,6 +394,14 @@ void Engine::updateView() {
         v.setCenter(vPos);
         v.setSize(GAME_W_F * vZoom, GAME_H_F * vZoom);
         window->setView(v);
+
+
+        if (avgFPS != clock.getAvgFPS()) {
+            avgFPS = clock.getAvgFPS();
+            std::string title = fmt::format("game v{}.{}.{} fps={}", VERSION[0], VERSION[1], VERSION[2], avgFPS);
+            window->setWindowTitle(title);
+        }
+
     }
 }
 
@@ -562,9 +571,9 @@ void Engine::initRenderTarget(bool fullscreen)
 
     Vec2u displaySize(mode.w, mode.h);
 
-    std::string title = fmt::format("game v{}.{}.{}", VERSION[0], VERSION[1], VERSION[2]);
+    //std::string title = fmt::format("game v{}.{}.{}", VERSION[0], VERSION[1], VERSION[2]);
+    window->setWindowTitle("");
 
-    window->setWindowTitle(title);
     if (settings.fullscreen) {
         // go borderless fullscreen
 

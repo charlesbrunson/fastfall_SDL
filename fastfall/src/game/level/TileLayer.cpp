@@ -305,42 +305,25 @@ void TileLayer::predraw(secs deltaTime) {
 	buff += deltaTime;
 	Vec2f parallax_offset;
 	Vec2f pSize = Vec2f{ size } *TILESIZE_F;
-	/*
 	if (has_parallax) {
 		parallax_offset = Vec2f{
 			m_context.camera()->currentPosition.x * parallax.camFactor.x,
 			m_context.camera()->currentPosition.y * parallax.camFactor.y
 		} - parallax.initOffset;
+
+		for (auto& vta_pair : tileVertices) {
+			vta_pair.varray.offset = parallax_offset;
+		}
 	}
 
 	// scroll update
 	if (hasScrollX() || hasScrollY()) {
-		scroll_offset += scrollRate * deltaTime;
+		Vec2f scroll_delta = scrollRate * deltaTime;
 
-		while (scroll_offset.x < 0.f) {	
-			scroll_offset.x += TILESIZE_F;
-			for (auto& vta_pair : tileVertices)	vta_pair.varray.rotate_backwardX();
-		}
-		while (scroll_offset.x >= TILESIZE_F) {
-			scroll_offset.x -= TILESIZE_F;
-			for (auto& vta_pair : tileVertices)	vta_pair.varray.rotate_forwardX();
-		}
-		while (scroll_offset.y < 0.f) { 
-			scroll_offset.y += TILESIZE_F;
-			for (auto& vta_pair : tileVertices)	vta_pair.varray.rotate_backwardY();
-		}
-		while (scroll_offset.y >= TILESIZE_F) {
-			scroll_offset.y -= TILESIZE_F;
-			for (auto& vta_pair : tileVertices)	vta_pair.varray.rotate_forwardY();
-		}
-	}
-
-	if (has_parallax || hasScrollX() || hasScrollY()) {
 		for (auto& vta_pair : tileVertices) {
-			vta_pair.varray.offset = parallax_offset + scroll_offset;
+			vta_pair.varray.add_scroll(scroll_delta);
 		}
 	}
-	*/
 
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_AREA))
 	{
@@ -356,6 +339,13 @@ void TileLayer::predraw(secs deltaTime) {
 			debug_draw::set_offset();
 		}
 	}
+
+	if (!hidden) {
+		for (auto& vta_pair : tileVertices) {
+			vta_pair.varray.predraw();
+		}
+	}
+
 }
 
 void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const TilesetAsset& tileset, bool useLogic) {

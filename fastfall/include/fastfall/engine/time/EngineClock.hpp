@@ -46,11 +46,11 @@ public:
 
 		sec_rep lastElapsed = 0s;
 
-		unsigned avgFps;
+		unsigned avgFps = 0u;
 
-		unsigned tickTotal;
+		unsigned tickTotal = 0u;
 
-		unsigned tickMissPerSec;
+		unsigned tickMissPerSec = 0u;
 	};
 	inline const FrameData& data() { return _data; }
 	inline void setSteady(bool steadytick) { steadyTick = steadytick; };
