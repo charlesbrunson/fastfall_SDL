@@ -29,8 +29,8 @@ namespace constants {
 
 using namespace constants;
 
-Player::Player(GameContext instance, const ObjectRef& ref) :
-	GameObject{ instance, ref }
+Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& type) :
+	GameObject{ instance, ref, type }
 {
 	box = context.collision()->create_collidable();
 	box->init(Vec2f(ref.position), Vec2f(8.f, 28.f), grav_normal);
@@ -65,7 +65,7 @@ Player::~Player() {
 
 std::unique_ptr<GameObject> Player::clone() const {
 
-	std::unique_ptr<Player> object = std::make_unique<Player>(context, *getObjectRef());
+	std::unique_ptr<Player> object = std::make_unique<Player>(context, getObjectRef(), getType());
 
 	//TODO copy current state data
 

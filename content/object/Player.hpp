@@ -18,7 +18,7 @@ using namespace ff;
 
 class Player : public GameObject {
 public:
-	Player(GameContext instance, const ObjectRef& ref);
+	Player(GameContext instance, const ObjectRef& ref, const ObjectType& type);
 
 	~Player();
 

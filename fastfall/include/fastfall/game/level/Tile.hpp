@@ -130,7 +130,7 @@ public:
 	}
 
 	static const TileMaterial standardMat;
-	static void addMaterialType(const TileMaterial& mat);
+	static void addMaterial(const TileMaterial& mat);
 	static const TileMaterial& getMaterial(std::string typeName);
 
 };

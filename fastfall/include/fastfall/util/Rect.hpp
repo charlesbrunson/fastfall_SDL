@@ -10,7 +10,7 @@ namespace ff {
 template<typename T>
 class Rect {
 public:
-	Rect() 
+	constexpr Rect() 
 	{
 		left = 0;
 		top = 0;
@@ -18,7 +18,7 @@ public:
 		height = 0;
 	}
 
-	Rect(T r_left, T r_top, T r_width, T r_height)
+	constexpr Rect(T r_left, T r_top, T r_width, T r_height)
 	{
 		left = r_left;
 		top = r_top;
@@ -26,7 +26,7 @@ public:
 		height = r_height;
 	}
 
-	Rect(glm::vec<2, T> topleft, glm::vec<2, T> size) 
+	constexpr Rect(glm::vec<2, T> topleft, glm::vec<2, T> size)
 	{
 		left = topleft.x;
 		top = topleft.y;
@@ -34,7 +34,7 @@ public:
 		height = size.y;
 	}
 
-	Rect(Vec2<T> topleft, Vec2<T> size)
+	constexpr Rect(Vec2<T> topleft, Vec2<T> size)
 	{
 		left = topleft.x;
 		top = topleft.y;
@@ -43,7 +43,7 @@ public:
 	}
 
 	template<typename U>
-	Rect(const Rect<U>& rect)
+	constexpr Rect(const Rect<U>& rect)
 	{
 		left = static_cast<T>(rect.left);
 		top = static_cast<T>(rect.top);
@@ -109,7 +109,7 @@ public:
 
 	}
 
-	glm::vec<4, T> toVec4() const {
+	constexpr glm::vec<4, T> toVec4() const {
 		return glm::vec<4, T>{
 				left,
 				top,
@@ -119,7 +119,7 @@ public:
 	}
 
 
-	std::array<glm::vec<2, T>, 4> toPoints() const {
+	constexpr std::array<glm::vec<2, T>, 4> toPoints() const {
 		std::array<glm::vec<2, T>, 4> arr;
 
 		T right = left + width;

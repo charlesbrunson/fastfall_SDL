@@ -342,7 +342,7 @@ void objectContent(GameContext context) {
 	ImGui::Columns(2, NULL, false);
 	for (auto& obj : man->getObjects()) {
 
-		ImGui::Text("%s #%u", obj->getType().c_str(), obj->getID());
+		ImGui::Text("%s #%u", obj->getTypeName().c_str(), obj->getID());
 		ImGui::NextColumn();
 
 		static char buttonBuf[32];
@@ -490,7 +490,7 @@ void InstanceObserver::ImGui_getExtraContent() {
 
 	if (context.valid()) {
 		for (auto& obj : context.objects().get().getObjects()) {
-			if (obj->showInspect && ImGui::Begin(obj->getType().c_str(), &obj->showInspect)) {
+			if (obj->showInspect && ImGui::Begin(obj->getTypeName().c_str(), &obj->showInspect)) {
 				obj->ImGui_Inspect();
 				ImGui::End();
 			}

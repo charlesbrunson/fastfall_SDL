@@ -211,27 +211,27 @@ Vec2<T> midpoint(const Line<T>& a) {
 
 // Rect stuff
 template<typename T>
-Vec2<T> rect_topleft(const Rect<T>& a) {
+constexpr Vec2<T> rect_topleft(const Rect<T>& a) {
 	return Vec2<T>(a.left, a.top);
 }
 
 template<typename T>
-Vec2<T> rect_topright(const Rect<T>& a) {
+constexpr Vec2<T> rect_topright(const Rect<T>& a) {
 	return Vec2<T>(a.left + a.width, a.top);
 }
 
 template<typename T>
-Vec2<T> rect_botright(const Rect<T>& a) {
+constexpr Vec2<T> rect_botright(const Rect<T>& a) {
 	return Vec2<T>(a.left + a.width, a.top + a.height);
 }
 
 template<typename T>
-Vec2<T> rect_botleft(const Rect<T>& a) {
+constexpr Vec2<T> rect_botleft(const Rect<T>& a) {
 	return Vec2<T>(a.left, a.top + a.height);
 }
 
 template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
-Vec2<T> rect_mid(const Rect<T>& a) {
+constexpr Vec2<T> rect_mid(const Rect<T>& a) {
 	return Vec2<T>(a.left + (a.width / 2.f), a.top + (a.height / 2.f));
 }
 

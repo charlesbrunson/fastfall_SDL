@@ -78,11 +78,11 @@ private:
 
 			t.hash = std::hash<std::string>{}(t.objTypeName);
 			t.constraints = std::move(constraints);
-			t.builder = [](GameContext inst, const ObjectRef& ref, const ObjectType& constraints)->std::unique_ptr<GameObject>
+			t.builder = [](GameContext inst, const ObjectRef& ref, const ObjectType& constraints) -> std::unique_ptr<GameObject>
 			{
 				ObjectRef cref = ref;
 				if (constraints.test(cref)) {
-					return std::make_unique<T>(inst, ref);
+					return std::make_unique<T>(inst, ref, constraints);
 				}
 				else {
 					LOG_WARN("unable to instantiate object:{}", ref.id);
@@ -111,13 +111,9 @@ private:
 		}
 	};
 
-	static std::unique_ptr<std::set<ObjectTypeBuilder, ObjectTypeBuilder_compare>> objectBuildMap;
-
 	static std::set<ObjectTypeBuilder, ObjectTypeBuilder_compare>& getBuilder() {
-		if (!objectBuildMap) {
-			objectBuildMap = std::make_unique<std::set<ObjectTypeBuilder, ObjectTypeBuilder_compare>>();
-		}
-		return *objectBuildMap;
+		static std::set<ObjectTypeBuilder, ObjectTypeBuilder_compare> objectBuildMap;
+		return objectBuildMap;
 	}
 
 public:
@@ -139,12 +135,12 @@ class GameObject : public Drawable {
 public:
 
 
-	GameObject(GameContext instance, const ObjectRef& ref) :
+	GameObject(GameContext instance, const ObjectRef& ref, const ObjectType& objtype) :
 		context{ instance },
 		id{ .objID = ref.id, .type = ref.type },
-		objRef(&ref)
+		objRef(&ref),
+		type(&objtype)
 	{
-		typeName = GameObjectLibrary::lookupTypeName(ref.type);
 	};
 	virtual ~GameObject() = default;
 	virtual std::unique_ptr<GameObject> clone() const = 0;
@@ -156,12 +152,13 @@ public:
 		ImGui::Text("Hello World!");
 	};
 
-
 	inline unsigned getID()               const { return id.objID; };
-	inline const std::string& getType()   const { return *typeName; };
+	inline const std::string& getTypeName()   const { return type->typeName; };
+	inline const ObjectType& getType()   const { return *type; };
+	inline const ObjectRef& getObjectRef() const { return *objRef; };
+
 	inline GameContext getContext()       const { return context; };
 	inline int getDrawPriority() { return drawPriority; };
-	inline const ObjectRef* getObjectRef() const { return objRef; };
 
 	bool hasCollider = false;
 
@@ -180,9 +177,8 @@ protected:
 	GameContext context;
 
 private:
-
 	const ObjectRef* const objRef;
-	const std::string* typeName;
+	const ObjectType* const type;
 	GameObjectID id;
 };
 

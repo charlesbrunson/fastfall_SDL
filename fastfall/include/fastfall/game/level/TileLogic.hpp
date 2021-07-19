@@ -92,7 +92,7 @@ public:
 				return std::make_unique<T>(context);
 			}
 		};
-		getMap()->insert(std::make_pair(type.typeName, type));
+		getMap().insert(std::make_pair(type.typeName, type));
 	}
 	static std::unique_ptr<TileLogic> create(GameContext context, std::string_view typeName);
 
@@ -101,13 +101,10 @@ private:
 	using Map = std::map<std::string, TileLogicType, std::less<>>;
 	using Iterator = std::map<std::string, TileLogicType>::iterator;
 
-	static std::unique_ptr<Map> factories;
 
-	static Map* getMap() {
-		if (!factories) {
-			factories = std::make_unique<Map>();
-		}
-		return factories.get();
+	static Map& getMap() {
+		static Map factories;
+		return factories;
 	}
 
 	std::string m_name;

@@ -16,10 +16,6 @@
 
 namespace ff {
 
-
-std::unique_ptr<std::set<GameObjectLibrary::ObjectTypeBuilder, GameObjectLibrary::ObjectTypeBuilder_compare>> GameObjectLibrary::objectBuildMap;
-
-
 void GameObjectLibrary::build(GameContext instance, const ObjectRef& ref) {
 	std::unique_ptr<GameObject> obj = nullptr;
 

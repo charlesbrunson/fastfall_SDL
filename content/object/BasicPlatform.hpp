@@ -11,8 +11,8 @@ using namespace ff;
 
 class BasicPlatform : public GameObject {
 public:
-	BasicPlatform(GameContext instance, const ObjectRef& ref) :
-		GameObject(instance, ref),
+	BasicPlatform(GameContext instance, const ObjectRef& ref, const ObjectType& type) :
+		GameObject(instance, ref, type),
 		shape{
 			Rectf{},
 			Color{0x285cc4FF} 
@@ -75,7 +75,7 @@ public:
 	}
 
 	std::unique_ptr<GameObject> clone() const override {
-		std::unique_ptr<BasicPlatform> object = std::make_unique<BasicPlatform>(context, *getObjectRef());
+		std::unique_ptr<BasicPlatform> object = std::make_unique<BasicPlatform>(context, getObjectRef(), getType());
 
 		//TODO copy current state data
 

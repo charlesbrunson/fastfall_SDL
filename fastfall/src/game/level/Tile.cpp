@@ -92,7 +92,7 @@ const TileMaterial Tile::standardMat = {
 	.typeName = "standard"
 };
 
-void Tile::addMaterialType(const TileMaterial& mat) {
+void Tile::addMaterial(const TileMaterial& mat) {
 	materials.insert_or_assign(mat.typeName, mat);
 }
 

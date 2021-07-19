@@ -38,7 +38,7 @@ void GameCamera::update(secs deltaTime) {
 
 		debug_draw::set_offset(currentPosition);
 
-		Rectf area{
+		constexpr Rectf area{
 			Vec2f{GAME_W_F * -0.5f, GAME_H_F * -0.5f},
 			Vec2f{GAME_W_F, GAME_H_F}
 		};
