@@ -110,7 +110,7 @@ set(FF_HEADERS
 	${IMPLOT_HEADERS} 
 )
 
-add_library (fastfall STATIC ${FF_SOURCES} ${FF_HEADERS})
+add_library (fastfall STATIC ${FF_SOURCES} ${FF_HEADERS} "include/fastfall/game/trigger/Trigger.hpp")
 
 
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")

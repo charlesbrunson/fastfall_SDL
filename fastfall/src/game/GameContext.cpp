@@ -142,4 +142,18 @@ std::map<const std::string*, std::unique_ptr<Level>>& LevelContext::get_all() co
 
 }
 
+// TriggerContext
+
+TriggerContext::TriggerContext(InstanceID instanceID) :
+	id(instanceID)
+{ }
+
+
+TriggerManager& TriggerContext::get() const {
+	return Instance(id)->getTrigger();
+}
+TriggerManager* TriggerContext::operator-> () {
+	return &Instance(id)->getTrigger();
+}
+
 }

@@ -13,6 +13,7 @@
 #include "content/types.hpp"
 #include "content/TestState.hpp"
 
+
 ff::EngineSettings getSettings() {
 	ff::EngineSettings settings;
 	settings.allowMargins = true;
@@ -40,6 +41,7 @@ ff::EngineSettings getSettings() {
 
 int main(int argc, char* argv[])
 {
+
 	srand(time(NULL));
 	{
 		log::scope scope;

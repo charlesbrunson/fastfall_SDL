@@ -26,6 +26,8 @@ namespace debug_draw {
 
 		CAMERA_VISIBLE,
 
+		TRIGGER_AREA,
+
 		LAST
 	};
 

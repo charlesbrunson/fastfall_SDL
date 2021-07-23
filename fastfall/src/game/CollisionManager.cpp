@@ -50,6 +50,7 @@ bool CollisionManager::erase_collidable(Collidable* collidable) {
 
 	if (it != collidables.end()) {
 		collidables.erase(it);
+		collidable = nullptr;
 		return true;
 	}
 	else {
@@ -67,6 +68,7 @@ bool CollisionManager::erase_collider(ColliderRegion* region) {
 
 	if (it != regions.end()) {
 		regions.erase(it);
+		region = nullptr;
 		return true;
 	}
 	else {

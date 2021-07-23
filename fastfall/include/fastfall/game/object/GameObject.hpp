@@ -40,11 +40,11 @@ struct ObjectTypeProperty {
 	explicit ObjectTypeProperty(std::string propName, ObjectPropertyType type) : name(propName), type(type), default_value("") {}
 
 	// specify type and default value
-	explicit ObjectTypeProperty(std::string propName, std::string value_default) : name(propName), type(ObjectPropertyType::String), default_value(value_default) {}
-	explicit ObjectTypeProperty(std::string propName, int value_default) : name(propName), type(ObjectPropertyType::String), default_value(std::to_string(value_default)) {}
-	explicit ObjectTypeProperty(std::string propName, bool value_default) : name(propName), type(ObjectPropertyType::String), default_value(std::to_string(value_default)) {}
-	explicit ObjectTypeProperty(std::string propName, float value_default) : name(propName), type(ObjectPropertyType::String), default_value(std::to_string(value_default)) {}
-	explicit ObjectTypeProperty(std::string propName, object_id value_default) : name(propName), type(ObjectPropertyType::String), default_value(std::to_string(value_default)) {}
+	explicit ObjectTypeProperty(std::string propName, std::string value_default): name(propName), type(ObjectPropertyType::String), default_value(value_default) {}
+	explicit ObjectTypeProperty(std::string propName, int value_default)		: name(propName), type(ObjectPropertyType::String), default_value(std::to_string(value_default)) {}
+	explicit ObjectTypeProperty(std::string propName, bool value_default)		: name(propName), type(ObjectPropertyType::String), default_value(std::to_string(value_default)) {}
+	explicit ObjectTypeProperty(std::string propName, float value_default)		: name(propName), type(ObjectPropertyType::String), default_value(std::to_string(value_default)) {}
+	explicit ObjectTypeProperty(std::string propName, object_id value_default)	: name(propName), type(ObjectPropertyType::String), default_value(std::to_string(value_default)) {}
 
 	std::string name;
 	ObjectPropertyType type;

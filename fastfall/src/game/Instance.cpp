@@ -10,7 +10,8 @@ GameInstance::GameInstance(InstanceID instance) :
 	instanceID(instance),
 	activeLevel(nullptr),
 	objMan(instance),
-	colMan(instance)
+	colMan(instance),
+	triMan(instance)
 {
 
 }

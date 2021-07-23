@@ -8,11 +8,10 @@
 #include "fastfall/util/log.hpp"
 #include "fastfall/game/phys/Raycast.hpp"
 
-#include "fastfall/game/CollisionManager.hpp"
-#include "fastfall/game/GameCamera.hpp"
-
 #include "fastfall/render/AnimatedSprite.hpp"
 #include "fastfall/resource/Resources.hpp"
+
+#include "fastfall/game/trigger/Trigger.hpp"
 
 using namespace ff;
 
@@ -36,6 +35,9 @@ protected:
 
 	Collidable* box;
 	SurfaceTracker* ground;
+
+	Trigger* hurtbox;
+	Trigger* hitbox;
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 };

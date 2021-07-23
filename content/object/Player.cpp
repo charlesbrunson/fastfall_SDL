@@ -1,6 +1,10 @@
 
 #include "Player.hpp"
 
+#include "fastfall/game/CollisionManager.hpp"
+#include "fastfall/game/TriggerManager.hpp"
+#include "fastfall/game/GameCamera.hpp"
+
 #include <functional>
 
 using namespace ff;
@@ -49,6 +53,33 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 	target.offset = Vec2f(0, -16);
 	context.camera()->addTarget(target);
 
+	hitbox = context.triggers()->create_trigger();
+	hitbox->self_flags = { TriggerTag{"hitbox"} };
+	hitbox->update(box->getBox());
+
+	hurtbox = context.triggers()->create_trigger();
+	hurtbox->set_trigger_callback([this](const Trigger& t, const Trigger::Duration& d, TriggerState st) {
+		switch (st) {
+		case TriggerState::Entry:
+			LOG_INFO("ENTER: {}:{}", d.total_time, d.delta_time);
+			break;
+		case TriggerState::Loop:
+			LOG_INFO("LOOP: {}:{}", d.total_time, d.delta_time);
+			break;
+		case TriggerState::Exit:
+			LOG_INFO("EXIT: {}:{}", d.total_time, d.delta_time);
+			break;
+		}
+	});
+	hurtbox->self_flags = { TriggerTag{"hurtbox"} };
+	hurtbox->filter_flags = { TriggerTag{"hitbox"} };
+	hurtbox->overlap = TriggerOverlap::Partial;
+	hurtbox->update(box->getBox());
+
+
+
+
+
 	drawPriority = 0;
 
 	sprite.set_anim(idle);
@@ -60,6 +91,8 @@ Player::~Player() {
 	if (context.valid()) {
 		context.collision()->erase_collidable(box);
 		context.camera()->removeTarget(GameCamera::TargetPriority::MEDIUM);
+		context.triggers()->erase_trigger(hitbox);
+		context.triggers()->erase_trigger(hurtbox);
 	}
 }
 
@@ -250,6 +283,9 @@ void Player::update(secs deltaTime) {
 
 	box->update(deltaTime);
 	sprite.update(deltaTime);
+	hitbox->update(box->getBox());
+	hurtbox->update();
+	//hitbox->area = box->getBox();
 	/*
 	if (box->get_vel().x != 0) {
 		sprite.set_hflip(box->get_vel().x < 0);

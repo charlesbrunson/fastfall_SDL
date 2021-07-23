@@ -71,6 +71,7 @@ void TestState::update(secs deltaTime) {
 
 	instance->getActiveLevel()->update(deltaTime);
 	instance->getObject().update(deltaTime);
+	instance->getTrigger().update(deltaTime);
 	instance->getCollision().update(deltaTime);
 	instance->getCamera().update(deltaTime);
 	

@@ -21,6 +21,7 @@ namespace ff {
 class GameObject;
 class GameObjectManager;
 class CollisionManager;
+class TriggerManager;
 class GameCamera;
 class Level;
 
@@ -94,6 +95,19 @@ public:
 	// add more as needed
 };
 
+class TriggerContext {
+private:
+	TriggerContext(InstanceID instanceID);
+
+	friend class GameContext;
+public:
+	InstanceID id;
+
+	// add more as needed
+	TriggerManager& get() const;
+	TriggerManager* operator-> ();
+};
+
 
 class GameContext {
 private:
@@ -113,10 +127,11 @@ public:
 	inline InstanceID getID() const noexcept { return id; };
 	bool valid() const noexcept;
 
-	inline ObjectContext objects() noexcept { return ObjectContext{ id }; };
-	inline CollisionContext collision() noexcept { return CollisionContext{ id }; };
-	inline CameraContext camera() noexcept { return CameraContext{ id }; };
-	inline LevelContext levels() noexcept { return LevelContext{ id }; };
+	inline ObjectContext	objects()	noexcept { return ObjectContext{ id };		};
+	inline CollisionContext collision() noexcept { return CollisionContext{ id };	};
+	inline CameraContext	camera()	noexcept { return CameraContext{ id };		};
+	inline LevelContext		levels()	noexcept { return LevelContext{	id };		};
+	inline TriggerContext	triggers()	noexcept { return TriggerContext{ id };		};
 };
 
 }
