@@ -10,12 +10,12 @@ void Trigger::set_trigger_callback(TriggerFn&& trigger_fn) {
 	on_trigger = std::move(trigger_fn);
 }
 
-Trigger::TriggerResult Trigger::triggerable_by(const Trigger& trigger) {
+std::optional<TriggerPull> Trigger::triggerable_by(const std::shared_ptr<Trigger>& trigger, secs delta_time) {
 	Rectf intersection;
-	area.intersects(trigger.area, intersection);
+	area.intersects(trigger->area, intersection);
 
 	bool result = false;
-	for (auto tag : trigger.self_flags) {
+	for (auto tag : trigger->self_flags) {
 		if (filter_flags.contains(tag)) {
 			result = true;
 			break;
@@ -24,20 +24,60 @@ Trigger::TriggerResult Trigger::triggerable_by(const Trigger& trigger) {
 
 	if (result) {
 		switch (overlap) {
-		case TriggerOverlap::Partial:
+		case Overlap::Partial:
 			result = intersection.width > 0.f && intersection.height > 0.f;
 			break;
-		case TriggerOverlap::Outside:
+		case Overlap::Outside:
 			result = intersection.width == 0.f && intersection.height == 0.f;
 			break;
-		case TriggerOverlap::Inside:
-			result = intersection == area || intersection == trigger.area;
+		case Overlap::Inside:
+			result = intersection == area || intersection == trigger->area;
 			break;
 		}
 	}
 
+	auto driver_iter = drivers.find(trigger.get());
 
-	return TriggerResult{ .canTrigger = result, .trigger = &trigger };
+	std::optional<TriggerPull> pull = std::nullopt;
+	if (result) {
+		if (driver_iter != drivers.end()) {
+
+			driver_iter->second.duration.delta = delta_time;
+			driver_iter->second.duration.time += delta_time;
+			driver_iter->second.duration.ticks++;
+
+			pull = TriggerPull{
+				.duration = driver_iter->second.duration,
+				.state = State::Loop,
+				.trigger = std::cref(*trigger)
+			};
+		}
+		else {
+
+			// start
+			driver_iter = drivers.emplace(trigger.get(), TriggerData{}).first;
+			driver_iter->second.duration.delta = delta_time;
+
+			pull = TriggerPull{
+				.duration = driver_iter->second.duration,
+				.state = State::Entry,
+				.trigger = std::cref(*trigger)
+			};
+		}
+	}
+	else if (driver_iter != drivers.end()) {
+		// exit
+		driver_iter->second.duration.delta = delta_time;
+		pull = TriggerPull{
+			.duration = driver_iter->second.duration,
+			.state = State::Exit,
+			.trigger = std::cref(*trigger)
+		};
+		drivers.erase(driver_iter);
+	}
+	
+	return pull;
+	
 }
 
 void Trigger::update(Rectf t_area) {
@@ -48,10 +88,10 @@ void Trigger::update() {
 	activated = false;
 }
 
-void Trigger::trigger(const Trigger::TriggerResult& confirm, const Duration& duration, TriggerState state) {
-	if ((confirm.canTrigger || state == TriggerState::Exit) && on_trigger) {
+void Trigger::trigger(const TriggerPull& confirm) {
+	if (on_trigger) {
 		activated = true;
-		on_trigger(*confirm.trigger, duration, state);
+		on_trigger(confirm);
 	}
 }
 

@@ -9,33 +9,8 @@
 namespace ff {
 
 class TriggerManager {
-private:
-
-
-	struct Driver {
-
-		Driver() = default;
-		Driver(Trigger* t) : driver(t) {};
-
-		mutable Trigger::Duration duration;
-
-		Trigger* driver = nullptr;
-
-		friend constexpr bool operator< (const Driver& lhs, const Driver& rhs) {
-			return lhs.driver < rhs.driver;
-		}
-		friend constexpr bool operator== (const Driver& lhs, const Driver& rhs) {
-			return lhs.driver == rhs.driver;
-		}
-
-	};
-
-	struct TriggerData {
-		Trigger trigger;
-		std::set<Driver> drivers;
-	};
-
 public:
+	using Trigger_sptr = std::shared_ptr<Trigger>;
 
 	TriggerManager(unsigned instance);
 
@@ -44,14 +19,13 @@ public:
 
 	void update(secs deltaTime);
 
-	const plf::colony<TriggerData>& get_triggers() { return triggers; };
+	const std::vector<Trigger_sptr>& get_triggers() { return triggers; };
 
 private:
 
+	void compareTriggers(Trigger_sptr& A, Trigger_sptr& B, secs deltaTime);
 
-	void compareTriggers(TriggerData& A, TriggerData& B, secs deltaTime);
-
-	plf::colony<TriggerData> triggers;
+	std::vector<Trigger_sptr> triggers;
 
 	unsigned instanceID;
 

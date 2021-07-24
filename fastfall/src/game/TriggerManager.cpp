@@ -7,7 +7,6 @@ namespace ff {
 
 void debugDrawTrigger(const Trigger& tr) {
 
-	//debug_draw::set_offset(tr.area.getPosition());
 	auto& varr = createDebugDrawable<VertexArray, debug_draw::Type::TRIGGER_AREA>(Primitive::TRIANGLE_STRIP, 4);
 	varr[0].pos = math::rect_topleft( tr.get_area());
 	varr[1].pos = math::rect_topright(tr.get_area());
@@ -30,12 +29,12 @@ TriggerManager::TriggerManager(unsigned instance)
 }
 
 Trigger* TriggerManager::create_trigger() {
-	return &triggers.emplace()->trigger;
+	return triggers.emplace_back(std::make_shared<Trigger>()).get();
 }
 bool TriggerManager::erase_trigger(Trigger* trigger) {
 
-	auto it = std::find_if(triggers.begin(), triggers.end(), [trigger](const TriggerData& data) {
-			return trigger == &data.trigger;
+	auto it = std::find_if(triggers.begin(), triggers.end(), [trigger](const std::shared_ptr<Trigger>& sptr) {
+			return trigger == sptr.get();
 		});
 
 	if (it != triggers.end()) {
@@ -57,39 +56,17 @@ void TriggerManager::update(secs deltaTime) {
 
 		if (debug_draw::hasTypeEnabled(debug_draw::Type::TRIGGER_AREA)) {
 			for (auto& tr : triggers) {
-				debugDrawTrigger(tr.trigger);
+				debugDrawTrigger(*tr);
 			}
 		}
 	}
 
 }
 
-void TriggerManager::compareTriggers(TriggerData& A, TriggerData& B, secs deltaTime) {
-	auto driver_iter = A.drivers.find(&B.trigger);
+void TriggerManager::compareTriggers(Trigger_sptr& A, Trigger_sptr& B, secs deltaTime) {
 
-	if (auto result = A.trigger.triggerable_by(B.trigger); result.canTrigger) {
-		if (driver_iter != A.drivers.end()) {
-
-			// repeat
-			driver_iter->duration.delta_time = deltaTime;
-			driver_iter->duration.total_time += deltaTime;
-			driver_iter->duration.tick++;
-			A.trigger.trigger(result, driver_iter->duration, TriggerState::Loop);
-		}
-		else {
-
-			// start
-			driver_iter = A.drivers.insert(&B.trigger).first;
-			driver_iter->duration.delta_time = deltaTime;
-			A.trigger.trigger(result, driver_iter->duration, TriggerState::Entry);
-		}
-	}
-	else if (driver_iter != A.drivers.end()) {
-
-		// exit
-		driver_iter->duration.delta_time = deltaTime;
-		A.trigger.trigger(result, driver_iter->duration, TriggerState::Exit);
-		A.drivers.erase(driver_iter);
+	if (auto pull = A->triggerable_by(B, deltaTime)) {
+		A->trigger(pull.value());
 	}
 }
 

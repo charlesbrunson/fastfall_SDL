@@ -58,26 +58,23 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 	hitbox->update(box->getBox());
 
 	hurtbox = context.triggers()->create_trigger();
-	hurtbox->set_trigger_callback([this](const Trigger& t, const Trigger::Duration& d, TriggerState st) {
-		switch (st) {
-		case TriggerState::Entry:
-			LOG_INFO("ENTER: {}:{}", d.total_time, d.delta_time);
+	hurtbox->set_trigger_callback([this](const TriggerPull& pull) {
+		switch (pull.state) {
+		case Trigger::State::Entry:
+			LOG_INFO("ENTER");
 			break;
-		case TriggerState::Loop:
-			LOG_INFO("LOOP: {}:{}", d.total_time, d.delta_time);
+		case Trigger::State::Loop:
+			LOG_INFO("LOOP");
 			break;
-		case TriggerState::Exit:
-			LOG_INFO("EXIT: {}:{}", d.total_time, d.delta_time);
+		case Trigger::State::Exit:
+			LOG_INFO("EXIT");
 			break;
 		}
 	});
 	hurtbox->self_flags = { TriggerTag{"hurtbox"} };
 	hurtbox->filter_flags = { TriggerTag{"hitbox"} };
-	hurtbox->overlap = TriggerOverlap::Partial;
+	hurtbox->overlap = Trigger::Overlap::Partial;
 	hurtbox->update(box->getBox());
-
-
-
 
 
 	drawPriority = 0;

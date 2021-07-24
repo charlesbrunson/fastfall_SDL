@@ -7,45 +7,54 @@
 #include <functional>
 #include <optional>
 #include <unordered_set>
+#include <map>
 
 namespace ff {
 
 class GameObject;
 
-enum class TriggerState {
-	Loop,
-	Entry,
-	Exit
-};
-enum class TriggerOverlap {
-	Partial,
-	Outside,
-	Inside
-};
+
+struct TriggerPull;
 
 class Trigger {
+public:
+	enum class State {
+		None,
+		Loop,
+		Entry,
+		Exit
+	};
+	enum class Overlap {
+		Partial,
+		Outside,
+		Inside
+	};
+	struct Duration {
+		secs delta = 0.0;
+		secs time = 0.0;
+		size_t ticks = 0u;
+	};
 private:
-	struct TriggerResult {
-		const bool canTrigger = false;
-		const Trigger* trigger;
+
+
+	struct TriggerData {
+		//TriggerData() = default;
+		//TriggerData(std::weak_ptr<Trigger> wptr) : driver(wptr) {};
+		Duration duration;
+		State state = State::None;
+
+		//std::weak_ptr<Trigger> driver;
 	};
 
 public:
 
-	struct Duration {
-		secs delta_time = 0.f;
-		secs total_time = 0.f;
-		size_t tick = 0;
-	};
-
-
-	using TriggerFn = std::function<void(const Trigger&, const Duration&, TriggerState)>;
+	using TriggerFn = std::function<void(const TriggerPull&)>;
 
 	void set_owning_object(std::optional<GameObject*> object = std::nullopt);
 	void set_trigger_callback(TriggerFn&& trigger_fn);
 
-	TriggerResult triggerable_by(const Trigger& trigger);
-	void trigger(const TriggerResult& confirm, const Duration& duration, TriggerState state);
+	std::optional<TriggerPull> triggerable_by(const std::shared_ptr<Trigger>& trigger, secs delta_time);
+	void trigger(const TriggerPull& confirm);
 
 	//bool trigger(const Trigger& trigger);
 
@@ -55,14 +64,15 @@ public:
 	void update(Rectf t_area);
 	void update();
 
-	TriggerOverlap overlap = TriggerOverlap::Partial;
-	//uint8_t flags = 0;
+	Overlap overlap = Overlap::Partial;
 
 	std::unordered_set<TriggerTag> self_flags;
 	std::unordered_set<TriggerTag> filter_flags;
 
 	bool is_activated() const { return activated; };
 	Rectf get_area() const { return area; };
+
+	std::map<const Trigger*, TriggerData> drivers;
 
 private:
 	bool activated = false;
@@ -72,6 +82,11 @@ private:
 	TriggerFn on_trigger;
 };
 
+struct TriggerPull {
+	Trigger::Duration duration;
+	Trigger::State state = Trigger::State::None;
+	std::reference_wrapper<const Trigger> trigger;
+};
 
 extern const TriggerTag ttag_generic;
 extern const TriggerTag ttag_hitbox;

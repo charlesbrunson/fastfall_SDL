@@ -98,7 +98,7 @@ bool GameInstance::enableScissor(const RenderTarget& target, Vec2f viewPos) {
 		scissor[2],
 		scissor[3]
 	);
-	return scissor[2] > 0 && scissor[3] > 0;
+	return scissor[2] > 0.f && scissor[3] > 0.f;
 }
 
 void GameInstance::disableScissor() {

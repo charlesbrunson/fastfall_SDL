@@ -69,11 +69,15 @@ void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 	if (state.program != previousRender->program || !hasShader) {
 		applyShader(state.program);
 		hasShader = (state.program != nullptr);
-		if (state.program) {
-			applyUniforms(Transform::combine(varray.getTransform(), state.transform), state);
-		}
+		//if (state.program) {
+		//	applyUniforms(Transform::combine(varray.getTransform(), state.transform), state);
+		//}
 	}
-	else if (hasShader && state.transform != previousRender->transform) {
+	//else if (hasShader && state.transform != previousRender->transform) {
+	//	applyUniforms(Transform::combine(varray.getTransform(), state.transform), state);
+	//}
+
+	if (state.program) {
 		applyUniforms(Transform::combine(varray.getTransform(), state.transform), state);
 	}
 

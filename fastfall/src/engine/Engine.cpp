@@ -423,7 +423,7 @@ void Engine::drawRunnables() {
         drawRunnable(run);
     }
     if (settings.showDebug)
-        debug_draw::draw(*window, RenderState());
+        debug_draw::draw(*window);
 }
 
 void Engine::updateImGui() {

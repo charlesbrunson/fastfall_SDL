@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <mutex>
 
 //namespace ff {
 
@@ -30,6 +31,7 @@ log::level log::get_verbosity() noexcept {
 
 
 void log::detail_log(level lvl, const std::string_view& file, int line, std::string& msg) noexcept {
+
 	static constexpr char fill[] = {
 		' ',
 		' ',
@@ -46,6 +48,9 @@ void log::detail_log(level lvl, const std::string_view& file, int line, std::str
 		"WARN",
 		"ERR",
 	};
+
+	static std::mutex mut;
+	std::scoped_lock lock(mut);
 
 	unsigned lvlNdx = static_cast<unsigned>(lvl);
 

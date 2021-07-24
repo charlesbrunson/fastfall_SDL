@@ -75,7 +75,6 @@ void TestState::update(secs deltaTime) {
 	instance->getCollision().update(deltaTime);
 	instance->getCamera().update(deltaTime);
 	
-	viewZoom = instance->getCamera().zoomFactor;
 
 }
 
@@ -84,23 +83,43 @@ void TestState::predraw(secs deltaTime) {
 	//instance->getCollision().predraw(deltaTime);
 	instance->getActiveLevel()->predraw(deltaTime);
 	viewPos = instance->getCamera().currentPosition;
+	viewZoom = instance->getCamera().zoomFactor;
 }
 
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
 
 	if (instance->enableScissor(target, viewPos)) {
 
-		auto size = instance->getActiveLevel()->size() * TILESIZE_F;
+		Vec2f size = Vec2f{ instance->getActiveLevel()->size() } *TILESIZE_F;
 
-		ff::ShapeRectangle lvlRect(
-			ff::Rectf(ff::Vec2f(), ff::Vec2f(size)),
+		
+		ff::ShapeRectangle bgRect(
+			ff::Rectf(ff::Vec2f{0.f, 0.f}, ff::Vec2f(size)),
 			instance->getActiveLevel()->getBGColor()
 		);
-		target.draw(lvlRect, state);
+		target.draw(bgRect, state);
+		
+		/*
+		ff::VertexArray bg = [size, c = instance->getActiveLevel()->getBGColor()]() {
+
+			Rectf area{ Vec2f{}, size };
+			ff::VertexArray bg{ ff::Primitive::TRIANGLE_STRIP, 4, ff::VertexUsage::STATIC };
+			bg[0].pos = math::rect_topleft(area);
+			bg[1].pos = math::rect_topright(area);
+			bg[2].pos = math::rect_botleft(area);
+			bg[3].pos = math::rect_botright(area);
+
+			for (int i = 0; i < 4; i++) {
+				bg[i].color = c;
+			}
+			return bg;
+		}();
+		*/
 
 		for (auto& bg : instance->getActiveLevel()->getBGLayers()) {
 			target.draw(bg, state);
 		}
+		
 	}
 	instance->disableScissor();
 

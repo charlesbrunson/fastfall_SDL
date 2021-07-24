@@ -58,7 +58,6 @@ public:
 private:
 	//TargetID targetCounter = 0u;
 
-
 	std::array<Target, 3> targets;
 	static constexpr size_t TARGET_COUNT = 3u;
 

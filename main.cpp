@@ -24,7 +24,8 @@ ff::EngineSettings getSettings() {
 #if defined(__EMSCRIPTEN__)
 	settings.runstyle = ff::EngineRunStyle::Emscripten;
 #else
-	settings.runstyle = ff::EngineRunStyle::DoubleThread;
+	settings.runstyle = ff::EngineRunStyle::SingleThread;
+	//settings.runstyle = ff::EngineRunStyle::DoubleThread;
 #endif
 
 #if defined(DEBUG)
