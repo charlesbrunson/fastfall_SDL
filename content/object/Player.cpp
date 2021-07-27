@@ -76,7 +76,6 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 	hurtbox->overlap = Trigger::Overlap::Partial;
 	hurtbox->update(box->getBox());
 
-
 	drawPriority = 0;
 
 	sprite.set_anim(idle);
@@ -168,7 +167,6 @@ void Player::update(secs deltaTime) {
 			Input::confirmPress(InputType::JUMP);
 
 			sprite.set_anim(jump);
-
 			ground->slope_sticking = false;
 
 			/*

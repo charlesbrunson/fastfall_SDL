@@ -39,7 +39,7 @@ std::optional<TriggerPull> Trigger::triggerable_by(const std::shared_ptr<Trigger
 	auto driver_iter = drivers.find(trigger.get());
 
 	std::optional<TriggerPull> pull = std::nullopt;
-	if (result) {
+	if (result && is_enabled()) {
 		if (driver_iter != drivers.end()) {
 
 			driver_iter->second.duration.delta = delta_time;

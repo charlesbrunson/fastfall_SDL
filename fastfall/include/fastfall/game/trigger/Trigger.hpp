@@ -72,9 +72,13 @@ public:
 	bool is_activated() const { return activated; };
 	Rectf get_area() const { return area; };
 
+	void set_enable(bool t_enabled) { enabled = t_enabled; };
+	bool is_enabled() const { return enabled; };
+
 	std::map<const Trigger*, TriggerData> drivers;
 
 private:
+	bool enabled = true;
 	bool activated = false;
 
 	Rectf area;

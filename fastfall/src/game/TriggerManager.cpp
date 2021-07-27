@@ -14,7 +14,7 @@ void debugDrawTrigger(const Trigger& tr) {
 	varr[3].pos = math::rect_botright(tr.get_area());
 
 
-	Color c = Color::Yellow;
+	Color c = tr.is_enabled() ? Color::Yellow : Color::Black;
 	c.alpha(tr.is_activated() ? 200.f : 50.f);
 
 	for (int i = 0; i < 4; i++) {

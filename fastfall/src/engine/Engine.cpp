@@ -126,6 +126,7 @@ void Engine::prerun_init()
     ImGui_addContent();
     instanceObs.ImGui_addContent();
     input.ImGui_addContent();
+    debugdrawImgui.ImGui_addContent();
 
     if (window) {
         window->setActive();
@@ -910,6 +911,36 @@ unsigned getDisplayRefreshRate(const Window& win) {
     }
     return mode.refresh_rate;
 
+}
+
+
+DebugDrawImgui::DebugDrawImgui() :
+    ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Debug", "System")
+{
+
+}
+void DebugDrawImgui::ImGui_getContent() {
+
+    constexpr std::string_view names[] = {
+        "NONE",
+        "COLLISION_COLLIDER",
+        "COLLISION_COLLIDABLE",
+        "COLLISION_CONTACT",
+        "COLLISION_RAYCAST",
+        "TILELAYER_AREA",
+        "TILELAYER_CHUNK",
+        "CAMERA_VISIBLE",
+        "TRIGGER_AREA",
+    };
+    static_assert((sizeof(names) / sizeof(names[0])) == static_cast<unsigned>(debug_draw::Type::LAST), "fix me");
+
+    for (int i = 0; i < static_cast<unsigned>(debug_draw::Type::LAST); i++) {
+        debug_draw::Type type = static_cast<debug_draw::Type>(i);
+        bool draw = debug_draw::hasTypeEnabled(type);
+        if (ImGui::Checkbox(names[i].data(), &draw)) {
+            debug_draw::setTypeEnabled(type, draw);
+        }
+    }
 }
 
 

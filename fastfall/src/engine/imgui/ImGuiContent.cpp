@@ -17,8 +17,8 @@ ImGuiContent::ImGuiContent(ImGuiContentType type, std::string title, std::string
 {
 	isMenu = !menuName.empty();
 	std::stringstream stream;
-	stream << "##" << title << IDnum << std::endl;
-	stream >> contentTag;
+	stream << "##" << title << IDnum;
+	contentTag = stream.str();
 
 }
 

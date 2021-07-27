@@ -19,6 +19,7 @@ void collisionContent(GameContext context) {
 
 	// TODO
 	
+	/*
 	static bool draw_collider = true;
 	if (ImGui::Checkbox("Draw Colliders", &draw_collider))
 		debug_draw::setTypeEnabled(debug_draw::Type::COLLISION_COLLIDER, draw_collider);
@@ -34,6 +35,7 @@ void collisionContent(GameContext context) {
 	static bool draw_raycast = true;
 	if (ImGui::Checkbox("Draw Raycasts", &draw_raycast))
 		debug_draw::setTypeEnabled(debug_draw::Type::COLLISION_RAYCAST, draw_raycast);
+	*/
 
 	
 

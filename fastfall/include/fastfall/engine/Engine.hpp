@@ -64,12 +64,19 @@ struct EngineSettings {
 	EngineRunStyle runstyle = EngineRunStyle::DoubleThread;
 };
 
+class DebugDrawImgui : public ImGuiContent {
+public:
+	DebugDrawImgui();
+	void ImGui_getContent() override;
+};
 
 
 class Engine : public ImGuiContent {
 private:
 	// singleton
 	static Engine* engineInstance;
+
+	DebugDrawImgui debugdrawImgui;
 
 	Input::InputObserver input;
 	InstanceObserver instanceObs;
@@ -96,6 +103,7 @@ public:
 	inline void freezeStepOnce() { pauseUpdate = true; stepUpdate = true; };
 	inline void unfreeze() { pauseUpdate = false; stepUpdate = false; };
 	inline bool isFrozen() { return pauseUpdate; };
+
 
 private:
 	bool run_doubleThread();
