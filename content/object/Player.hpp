@@ -29,7 +29,18 @@ public:
 
 	void ImGui_Inspect() override;
 
+
+
 protected:
+
+	CmdResponse do_command(ObjCmd cmd, const std::any& payload) override {
+		if (constexpr auto CMD = ObjCmd::NoOp; cmd == CMD)
+		{
+			LOG_INFO("It's me!");
+			return respond<CMD>(true);
+		}
+		return GameObject::do_command(cmd, payload);
+	}
 
 	AnimatedSprite sprite;
 

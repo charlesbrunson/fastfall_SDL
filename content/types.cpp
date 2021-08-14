@@ -51,6 +51,9 @@ void game_InitTypes() {
 	{
 		.typeName = "Player",
 		.tile_size = { 1u, 2u },
+		.group_tags = {
+			"player"
+		},
 		.properties = {
 			ObjectTypeProperty("anotherprop", ObjectPropertyType::String),
 			ObjectTypeProperty("faceleft", false)
@@ -61,6 +64,9 @@ void game_InitTypes() {
 	{
 		.typeName = "BasicPlatform",
 		.tile_size = {0, 0},
+		.group_tags = {
+			"platform"
+		},
 		.properties = {
 			ObjectTypeProperty("acceleration", ObjectPropertyType::Float),
 			ObjectTypeProperty("max_velocity", ObjectPropertyType::Float),

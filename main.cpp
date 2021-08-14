@@ -59,6 +59,7 @@ int main(int argc, char* argv[])
 
 	FFinit();
 
+
 	// need to create window before loading resources :(
 	std::unique_ptr<Window> window = std::make_unique<Window>();
 	if (!window->valid()) {

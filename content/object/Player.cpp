@@ -54,25 +54,32 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 	context.camera()->addTarget(target);
 
 	hitbox = context.triggers()->create_trigger();
-	hitbox->self_flags = { TriggerTag{"hitbox"} };
+	hitbox->self_flags = { "hitbox" };
 	hitbox->update(box->getBox());
+	hitbox->set_owning_object(this);
 
 	hurtbox = context.triggers()->create_trigger();
 	hurtbox->set_trigger_callback([this](const TriggerPull& pull) {
-		switch (pull.state) {
-		case Trigger::State::Entry:
-			LOG_INFO("ENTER");
-			break;
-		case Trigger::State::Loop:
-			LOG_INFO("LOOP");
-			break;
-		case Trigger::State::Exit:
-			LOG_INFO("EXIT");
-			break;
+		if (auto owner = pull.trigger.get().get_owner()) {
+			if (GameObject* obj = *owner; obj->getType().group_tags.contains("player")) {
+				switch (pull.state) {
+				case Trigger::State::Entry:
+					LOG_INFO("ENTER");
+					obj->command<ObjCmd::NoOp>();
+					break;
+				case Trigger::State::Loop:
+					LOG_INFO("LOOP");
+					break;
+				case Trigger::State::Exit:
+					LOG_INFO("EXIT");
+					break;
+				}
+			}
 		}
+
 	});
-	hurtbox->self_flags = { TriggerTag{"hurtbox"} };
-	hurtbox->filter_flags = { TriggerTag{"hitbox"} };
+	hurtbox->self_flags = { "hurtbox" };
+	hurtbox->filter_flags = { "hitbox" };
 	hurtbox->overlap = Trigger::Overlap::Partial;
 	hurtbox->update(box->getBox());
 

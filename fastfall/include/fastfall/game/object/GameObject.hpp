@@ -16,6 +16,9 @@
 
 #include "fastfall/render/Drawable.hpp"
 #include "fastfall/util/log.hpp"
+#include "fastfall/util/tag.hpp"
+#include "fastfall/util/commandable.hpp"
+#include "fastfall/game/object/ObjectCommands.hpp"
 
 namespace ff {
 
@@ -58,6 +61,7 @@ struct ObjectTypeProperty {
 struct ObjectType {
 	std::string typeName;
 	Vec2u tile_size = { 0u, 0u };
+	std::set<ObjectGroupTag> group_tags;
 	std::set<ObjectTypeProperty> properties;
 
 	bool test(ObjectRef& ref) const;
@@ -131,7 +135,7 @@ public:
 
 
 
-class GameObject : public Drawable {
+class GameObject : public Drawable, public Commandable<ObjCmd> {
 public:
 
 

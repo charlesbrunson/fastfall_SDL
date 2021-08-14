@@ -1,4 +1,4 @@
-
+#pragma once
 
 #include <string_view>
 #include <unordered_map>
@@ -63,10 +63,10 @@ public:
 };
 
 
-struct object_tag_traits { constexpr static const char* TagType = "object"; };
+struct object_group_tag_traits { constexpr static const char* TagType = "object_group"; };
 struct trigger_tag_traits { constexpr static const char* TagType = "trigger"; };
 
-using ObjectTag = Tag<object_tag_traits>;
+using ObjectGroupTag = Tag<object_group_tag_traits>;
 using TriggerTag = Tag<trigger_tag_traits>;
 
 }

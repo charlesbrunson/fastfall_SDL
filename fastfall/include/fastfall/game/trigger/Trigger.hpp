@@ -53,6 +53,8 @@ public:
 	void set_owning_object(std::optional<GameObject*> object = std::nullopt);
 	void set_trigger_callback(TriggerFn&& trigger_fn);
 
+	std::optional<GameObject*> get_owner() const { return owner; };
+
 	std::optional<TriggerPull> triggerable_by(const std::shared_ptr<Trigger>& trigger, secs delta_time);
 	void trigger(const TriggerPull& confirm);
 

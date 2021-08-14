@@ -60,7 +60,7 @@ public:
 	inline const ObjectLayerRef* getLayer() const { return layerRef; };
 
 protected:
-	ObjectLayerRef* layerRef = nullptr;
+	const ObjectLayerRef* layerRef = nullptr;
 };
 
 struct ObjectLayerRef {

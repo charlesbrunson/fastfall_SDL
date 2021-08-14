@@ -165,6 +165,7 @@ bool Engine::run() {
 bool Engine::run_singleThread()
 {
     prerun_init();
+    SDL_SetThreadPriority(SDL_ThreadPriority::SDL_THREAD_PRIORITY_HIGH);
 
     running = true;
 
@@ -214,6 +215,7 @@ bool Engine::run_doubleThread()
 {
 
     prerun_init();
+    SDL_SetThreadPriority(SDL_ThreadPriority::SDL_THREAD_PRIORITY_HIGH);
 
 
     std::barrier<> bar{ 2 };
@@ -269,6 +271,7 @@ bool Engine::run_doubleThread()
 
 
 void Engine::runUpdate(std::barrier<>* bar) {
+    SDL_SetThreadPriority(SDL_ThreadPriority::SDL_THREAD_PRIORITY_HIGH);
 
     while (isRunning() && !runnables.empty()) {
 
