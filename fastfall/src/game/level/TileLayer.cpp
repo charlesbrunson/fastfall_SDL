@@ -292,17 +292,16 @@ void TileLayer::predraw(secs deltaTime) {
 
 
 	Rectf visible;
-	visible.left = m_context.camera().get().currentPosition.x - (GAME_W_F / 2.f);
-	visible.top = m_context.camera().get().currentPosition.y - (GAME_H_F / 2.f);
-	visible.width = GAME_W_F;
-	visible.height = GAME_H_F;
+	GameCamera& cam = m_context.camera().get();
+	visible.width = GAME_W_F * cam.zoomFactor;
+	visible.height = GAME_H_F * cam.zoomFactor;
+	visible.left = m_context.camera().get().currentPosition.x - (visible.width / 2.f);
+	visible.top = m_context.camera().get().currentPosition.y - (visible.height / 2.f);
 	for (auto& verts : tileVertices) {
 		verts.varray.visibility = visible;
 	}
 
 	// parallax update
-	static secs buff = 0.0;
-	buff += deltaTime;
 	Vec2f parallax_offset;
 	Vec2f pSize = Vec2f{ size } *TILESIZE_F;
 	if (has_parallax) {

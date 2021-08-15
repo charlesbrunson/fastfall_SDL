@@ -21,73 +21,61 @@ namespace constants {
 	AnimIDRef brakef("player", "brake_front");
 
 	const Friction braking{ .stationary = 1.2f, .kinetic = 0.8f };
-	const Friction moving{ .stationary = 0.f,  .kinetic = 0.f };
+	const Friction moving { .stationary = 0.f,  .kinetic = 0.f };
 
-	const float max_speed = 500.f;
-	const float norm_speed = 200.f;
-	const float jumpVelY = -200.f;
+	const float max_speed  =  500.f;
+	const float norm_speed =  200.f;
+	const float jumpVelY   = -200.f;
 
 	const Vec2f grav_normal{ 0.f, 500.f };
-	const Vec2f grav_light{ 0.f, 350.f };
+	const Vec2f grav_light { 0.f, 350.f };
 }
 
 using namespace constants;
 
-Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& type) :
-	GameObject{ instance, ref, type }
+Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& type) 
+	: GameObject{ instance, ref, type }
 {
-	box = context.collision()->create_collidable();
-	box->init(Vec2f(ref.position), Vec2f(8.f, 28.f), grav_normal);
+	// collision box
+	box = context.collision()->create_collidable(Vec2f(ref.position), Vec2f(8.f, 28.f), grav_normal);
 
-	ground = &box->create_tracker(Angle::Degree(-135), Angle::Degree(-45));
-	ground->has_friction = true;
-	ground->move_with_platforms = true;
-	ground->slope_sticking = true;
-	ground->slope_wall_stop = true;
-	ground->stick_angle_max = Angle::Degree(90);
+	// surface tracker
+	ground = &box->create_tracker(Angle::Degree(-135), Angle::Degree(-45), {
+			.move_with_platforms = true,
+			.slope_sticking = true,
+			.slope_wall_stop = true,
+			.has_friction = true,
+			.stick_angle_max = Angle::Degree(90),
+		});
 
-	GameCamera::Target target;
-	target.priority = GameCamera::TargetPriority::MEDIUM;
-	target.type = GameCamera::TargetType::MOVING;
-	target.movingTarget = &box->getPosition();
-	target.offset = Vec2f(0, -16);
-	context.camera()->addTarget(target);
+	// camera target
+	context.camera()->addTarget({
+			.movingTarget = &box->getPosition(),
+			.type = GameCamera::TargetType::MOVING,
+			.offset = Vec2f(0, -16),
+			.priority = GameCamera::TargetPriority::MEDIUM,
+		});
 
-	hitbox = context.triggers()->create_trigger();
-	hitbox->self_flags = { "hitbox" };
-	hitbox->update(box->getBox());
-	hitbox->set_owning_object(this);
-
-	hurtbox = context.triggers()->create_trigger();
-	hurtbox->set_trigger_callback([this](const TriggerPull& pull) {
-		if (auto owner = pull.trigger.get().get_owner()) {
-			if (GameObject* obj = *owner; obj->getType().group_tags.contains("player")) {
-				switch (pull.state) {
-				case Trigger::State::Entry:
-					LOG_INFO("ENTER");
-					obj->command<ObjCmd::NoOp>();
-					break;
-				case Trigger::State::Loop:
-					LOG_INFO("LOOP");
-					break;
-				case Trigger::State::Exit:
-					LOG_INFO("EXIT");
-					break;
+	// triggers
+	hitbox = context.triggers()->create_trigger(box->getBox(), { "hitbox" }, {}, this);
+	hurtbox = context.triggers()->create_trigger(box->getBox(), { "hurtbox" }, { "hitbox" }, this);
+	hurtbox->set_trigger_callback([](const TriggerPull& pull) {
+			if (auto owner = pull.trigger.get().get_owner()) {
+				if (GameObject* obj = *owner; obj->getType().group_tags.contains("player")) {
+					switch (pull.state) {
+					case Trigger::State::Entry: LOG_INFO("ENTER"); obj->command<ObjCmd::NoOp>(); break;
+					case Trigger::State::Loop:  LOG_INFO("LOOP");  break;
+					case Trigger::State::Exit:  LOG_INFO("EXIT");  break;
+					}
 				}
 			}
-		}
+		});
 
-	});
-	hurtbox->self_flags = { "hurtbox" };
-	hurtbox->filter_flags = { "hitbox" };
-	hurtbox->overlap = Trigger::Overlap::Partial;
-	hurtbox->update(box->getBox());
+	// sprite
+	sprite.set_anim(idle);
+	sprite.set_pos(box->getPosition());
 
 	drawPriority = 0;
-
-	sprite.set_anim(idle);
-
-	sprite.set_pos(box->getPosition());
 };
 
 Player::~Player() {
@@ -121,24 +109,18 @@ void Player::update(secs deltaTime) {
 		box->setSlipNone();
 		const PersistantContact& contact = ground->get_contact().value();
 
-		//Vec2f groundUnit = contact.collider_normal.righthand();
-
-		//Vec2f groundVel = contact.getSurfaceVel();
-
-		ground->slope_sticking = true;
+		ground->settings.slope_sticking = true;
 
 		float speed = ground->traverse_get_speed();
 
 		if (ground->get_contact_time() == 0.f) {
-			ground->traverse_set_max_speed(
-				std::max(norm_speed, std::min(std::abs(speed), max_speed))
-			);
+
+			ground->settings.max_speed = std::max(norm_speed, std::min(std::abs(speed), max_speed));
 			sprite.set_anim(land);
 		}
 		else {
-			ground->traverse_set_max_speed(
-				std::max(norm_speed, std::min(std::abs(speed), ground->traverse_get_max_speed()))
-			);
+			ground->settings.max_speed = std::max(norm_speed, std::min(std::abs(speed), ground->settings.max_speed));
+
 
 			if (abs(speed) > norm_speed) {
 				ground->traverse_add_decel(300.f);
@@ -164,9 +146,6 @@ void Player::update(secs deltaTime) {
 					std::clamp(abs(speed) / 150.f, 0.5f, 2.f)
 				);
 			}
-			//else {
-				//sprite.set_anim_if_not(brakef);
-			//}
 		}
 
 		// jumping
@@ -174,14 +153,7 @@ void Player::update(secs deltaTime) {
 			Input::confirmPress(InputType::JUMP);
 
 			sprite.set_anim(jump);
-			ground->slope_sticking = false;
-
-			/*
-			float surfaceVelY = 0.f;
-			if (auto region = context.collision().get_region(ground->get_contact()->collider_id)) {
-				surfaceVelY = region->velocity.y;
-			}
-			*/
+			ground->settings.slope_sticking = false;
 
 			Vec2f jumpVel = Vec2f{ box->get_vel().x, jumpVelY} ;
 			Angle jump_ang = math::angle(jumpVel) - math::angle(ground->get_contact()->collider_normal);
@@ -223,11 +195,11 @@ void Player::update(secs deltaTime) {
 
 			if (wishx != 0) {
 				ground->traverse_add_accel(wishx * 1200.f);
-				ground->surface_friction = turning || nowishx ? braking : moving;
+				ground->settings.surface_friction = turning || nowishx ? braking : moving;
 			}
-			else if (ground->has_friction) {
+			else if (ground->settings.has_friction) {
 				ground->traverse_add_decel(450.f);
-				ground->surface_friction = braking;
+				ground->settings.surface_friction = braking;
 			}
 		}
 	}
@@ -260,15 +232,13 @@ void Player::update(secs deltaTime) {
 			sprite.set_anim(fall);
 		}
 
-		ground->slope_sticking = false;
+		ground->settings.slope_sticking = false;
 		// air control
 		if (wishx != 0 && (abs(box->get_vel().x) < 150.f ||
 			box->get_vel().x < 0.f != wishx < 0.f)) {
 			box->add_accelX(500.f * wishx);
 		}
 	}
-
-
 
 	if (Input::isPressed(InputType::ATTACK)) {
 		box->setSize(Vec2f(box->getBox().getSize()) + Vec2f(1.f, 1.f));
@@ -287,12 +257,6 @@ void Player::update(secs deltaTime) {
 	sprite.update(deltaTime);
 	hitbox->update(box->getBox());
 	hurtbox->update();
-	//hitbox->area = box->getBox();
-	/*
-	if (box->get_vel().x != 0) {
-		sprite.set_hflip(box->get_vel().x < 0);
-	}
-	*/
 }
 
 void Player::predraw(secs deltaTime) {

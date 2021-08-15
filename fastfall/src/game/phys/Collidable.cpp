@@ -343,6 +343,12 @@ SurfaceTracker& Collidable::create_tracker(Angle ang_min, Angle ang_max, bool in
 	return *trackers.back().get();
 }
 
+SurfaceTracker& Collidable::create_tracker(Angle ang_min, Angle ang_max, SurfaceTracker::Settings settings, bool inclusive) {
+	SurfaceTracker& track = create_tracker(ang_min, ang_max, inclusive);
+	track.settings = settings;
+	return track;
+}
+
 bool Collidable::remove_tracker(SurfaceTracker& tracker) {
 
 	auto tracker_iter = trackers.end();

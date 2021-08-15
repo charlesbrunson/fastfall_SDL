@@ -40,6 +40,11 @@ Collidable* CollisionManager::create_collidable() {
 	auto it = collidables.emplace(Collidable{ Instance(InstanceID{instanceID})->getContext() });
 	return &it->collidable;
 }
+Collidable* CollisionManager::create_collidable(Vec2f init_pos, Vec2f init_size, Vec2f init_grav) {
+	Collidable* col = create_collidable();
+	col->init(init_pos, init_size, init_grav);
+	return col;
+}
 
 bool CollisionManager::erase_collidable(Collidable* collidable) {
 

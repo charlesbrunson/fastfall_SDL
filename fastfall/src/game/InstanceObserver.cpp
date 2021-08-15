@@ -74,22 +74,22 @@ void collisionContent(GameContext context) {
 
 
 					static char labelbuf[32];
-					sprintf(labelbuf, "Friction (%d)", tracker->has_friction);
+					sprintf(labelbuf, "Friction (%d)", tracker->settings.has_friction);
 
 					if (ImGui::SmallButton(labelbuf)) {
-						tracker->has_friction = !tracker->has_friction;
+						tracker->settings.has_friction = !tracker->settings.has_friction;
 					} ImGui::SameLine();
-					sprintf(labelbuf, "Platform Stick (%d)", tracker->move_with_platforms);
+					sprintf(labelbuf, "Platform Stick (%d)", tracker->settings.move_with_platforms);
 					if (ImGui::SmallButton(labelbuf)) {
-						tracker->move_with_platforms = !tracker->move_with_platforms;
+						tracker->settings.move_with_platforms = !tracker->settings.move_with_platforms;
 					} ImGui::SameLine();
-					sprintf(labelbuf, "Slope Stick (%d)", tracker->slope_sticking);
+					sprintf(labelbuf, "Slope Stick (%d)", tracker->settings.slope_sticking);
 					if (ImGui::SmallButton(labelbuf)) {
-						tracker->slope_sticking = !tracker->slope_sticking;
+						tracker->settings.slope_sticking = !tracker->settings.slope_sticking;
 					}ImGui::SameLine();
-					sprintf(labelbuf, "Wall stop (%d)", tracker->slope_wall_stop);
+					sprintf(labelbuf, "Wall stop (%d)", tracker->settings.slope_wall_stop);
 					if (ImGui::SmallButton(labelbuf)) {
-						tracker->slope_wall_stop = !tracker->slope_wall_stop;
+						tracker->settings.slope_wall_stop = !tracker->settings.slope_wall_stop;
 					}
 
 					static char trackerbuf[32];

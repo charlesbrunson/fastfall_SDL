@@ -31,6 +31,23 @@ TriggerManager::TriggerManager(unsigned instance)
 Trigger* TriggerManager::create_trigger() {
 	return triggers.emplace_back(std::make_shared<Trigger>()).get();
 }
+
+Trigger* TriggerManager::create_trigger(
+	Rectf area, 
+	std::unordered_set<TriggerTag> self_flags, 
+	std::unordered_set<TriggerTag> filter_flags,
+	GameObject* owner,
+	Trigger::Overlap overlap
+) {
+	Trigger* trigger = triggers.emplace_back(std::make_shared<Trigger>()).get();
+	trigger->self_flags = self_flags;
+	trigger->filter_flags = filter_flags;
+	trigger->overlap = overlap;
+	trigger->set_owning_object(owner);
+	trigger->update(area);
+	return trigger;
+}
+
 bool TriggerManager::erase_trigger(Trigger* trigger) {
 
 	auto it = std::find_if(triggers.begin(), triggers.end(), [trigger](const std::shared_ptr<Trigger>& sptr) {

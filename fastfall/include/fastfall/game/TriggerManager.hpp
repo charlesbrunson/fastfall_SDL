@@ -15,6 +15,13 @@ public:
 	TriggerManager(unsigned instance);
 
 	Trigger* create_trigger();
+	Trigger* create_trigger(
+		Rectf area, 
+		std::unordered_set<TriggerTag> self_flags = {}, 
+		std::unordered_set<TriggerTag> filter_flags = {},
+		GameObject* owner = nullptr,
+		Trigger::Overlap overlap = Trigger::Overlap::Partial
+	);
 	bool erase_trigger(Trigger* trigger);
 
 	void update(secs deltaTime);

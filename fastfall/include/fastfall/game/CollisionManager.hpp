@@ -51,6 +51,7 @@ public:
 	void update(secs deltaTime);
 	
 	Collidable* create_collidable();
+	Collidable* create_collidable(Vec2f init_pos, Vec2f init_size, Vec2f init_grav = Vec2f{});
 	bool erase_collidable(Collidable* collidable);
 	
 	template<ColliderType T, typename ... Args>

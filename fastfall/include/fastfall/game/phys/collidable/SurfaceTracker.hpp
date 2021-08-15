@@ -36,8 +36,8 @@ public:
 
 	// applies velocity/acceleration accounting for gravity (for movement consistency)
 	// is !has_contact, will apply on the X axis
-	void traverse_set_max_speed(float speed);
-	float traverse_get_max_speed() const noexcept { return max_speed; };
+	//void traverse_set_max_speed(float speed);
+	//float traverse_get_max_speed() const noexcept { return max_speed; };
 	void traverse_set_speed(float speed);
 	void traverse_add_accel(float accel);
 	void traverse_add_decel(float decel);
@@ -54,21 +54,10 @@ public:
 	inline void air_time_acc(secs deltaTime) { air_time += deltaTime; };
 	inline secs get_air_time() const noexcept { return air_time; };
 
-
-
 	inline bool is_angle_in_range(Angle ang) { return ang.isBetween(angle_min, angle_max, angle_inclusive); }
 	inline Angle get_angle_min() { return angle_min; };
 	inline Angle get_angle_max() { return angle_max; };
 	inline bool get_angle_inclusive() { return angle_inclusive; };
-
-	bool move_with_platforms = false;
-
-	Angle stick_angle_max;
-	bool slope_sticking = false;
-	bool slope_wall_stop = false;
-
-	bool has_friction = false;
-	Friction surface_friction;
 
 	const std::optional<PersistantContact>& get_contact() { return currentContact; };
 
@@ -85,6 +74,17 @@ public:
 		callback_on_stick = func;
 	}
 
+	struct Settings {
+		bool move_with_platforms = false;
+		bool slope_sticking = false;
+		bool slope_wall_stop = false;
+		bool has_friction = false;
+
+		Angle stick_angle_max;
+		Friction surface_friction;
+		float max_speed = 0.f;
+	} settings;
+
 private:
 	friend class Collidable;
 
@@ -100,7 +100,6 @@ private:
 	float wallYadj = 0.f;
 
 	// applied when max_speed > 0.f
-	float max_speed = 0.f;
 
 	std::function<void(PersistantContact&)> callback_start_touch;
 	std::function<void(PersistantContact&)> callback_end_touch;

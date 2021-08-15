@@ -15,11 +15,13 @@ requires requires (T t) {
 struct Tag {
 private:
 
-	unsigned tag_id = 0;
+	unsigned short tag_id = 0;
+	static constexpr unsigned short kLimit = USHRT_MAX - 1;
+
 	std::string_view str;
 
-	std::unordered_map<std::string, unsigned>& getTags() {
-		static std::unordered_map<std::string, unsigned> tags;
+	std::unordered_map<std::string, size_t>& getTags() {
+		static std::unordered_map<std::string, size_t> tags;
 		return tags;
 	}
 
@@ -37,10 +39,17 @@ public:
 		auto it = getTags().find(tag);
 
 		if (it == getTags().end()) {
-			it = getTags().insert(std::make_pair(tag, getTags().size() + 1)).first;
+			if (getTags().size() < kLimit) {
+				it = getTags().insert(std::make_pair(tag, static_cast<unsigned short>(getTags().size()) + 1)).first;
+			}
+			else {
+				LOG_ERR_("cannot create tag \"{}\", tag type {} at max size of {}", tag, T::TagType, kLimit);
+			}
 		}
-		tag_id = it->second;
-		str = it->first;
+		if (it != getTags().end()) {
+			tag_id = it->second;
+			str = it->first;
+		}
 	}
 
 	constexpr std::string_view tag_type_str() const { return T::TagType; }
@@ -51,7 +60,7 @@ public:
 		return ss.str();
 	}
 
-	constexpr unsigned id() const { return tag_id; }
+	constexpr unsigned short id() const { return tag_id; }
 	constexpr bool empty() const { return tag_id == 0; }
 
 	friend constexpr bool operator< (const Tag<T>& lhs, const Tag<T>& rhs) {

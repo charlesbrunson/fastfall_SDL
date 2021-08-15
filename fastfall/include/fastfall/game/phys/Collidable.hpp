@@ -80,6 +80,7 @@ public:
 	inline const std::vector<std::unique_ptr<SurfaceTracker>>& get_trackers() const noexcept { return trackers; };
 
 	SurfaceTracker& create_tracker(Angle ang_min, Angle ang_max, bool inclusive = true);
+	SurfaceTracker& create_tracker(Angle ang_min, Angle ang_max, SurfaceTracker::Settings settings, bool inclusive = true);
 	bool remove_tracker(SurfaceTracker& tracker);
 
 	const PersistantContact* get_contact(Angle angle) const noexcept;
