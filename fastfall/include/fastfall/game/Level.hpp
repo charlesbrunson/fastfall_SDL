@@ -13,7 +13,7 @@
 
 namespace ff {
 
-class Level : public Drawable {
+class Level  /* : public Drawable */ {
 public:
 
 	Level(GameContext context);
@@ -42,7 +42,7 @@ private:
 
 	GameContext context;
 
-	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
+	//void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 
 	const std::string* levelName;
 	Vec2u levelSize;

@@ -89,7 +89,7 @@ public:
 		class Return = std::conditional_t<std::is_void_v<CmdReturnType>, Response, std::pair<Response, CmdReturnType>>
 	>
 		requires is_command_v<Enum, C>&& std::is_void_v<cmd_payload_t<Enum, C>>
-		constexpr inline Return command() {
+	constexpr inline Return command() {
 		auto resp = do_command(C, std::any{});
 		if constexpr (std::is_void_v<CmdReturnType>) {
 			return resp.response;
@@ -104,7 +104,7 @@ public:
 		class Return = std::conditional_t<std::is_void_v<CmdReturnType>, Response, std::pair<Response, CmdReturnType>>
 	>
 		requires is_command_v<Enum, C>
-		constexpr inline Return command(const cmd_payload_t<Enum, C>& payload) {
+	constexpr inline Return command(const cmd_payload_t<Enum, C>& payload) {
 		auto resp = do_command(C, payload);
 		if constexpr (std::is_void_v<CmdReturnType>) {
 			assert(!resp.payload.has_value());

@@ -329,12 +329,16 @@ void TileLayer::predraw(secs deltaTime) {
 		size_t ptr = (size_t)this;
 		if (!debug_draw::repeat((void*)(ptr), parallax_offset)) {
 			debug_draw::set_offset(parallax_offset);
-			auto& drawable1 = createDebugDrawable<ShapeRectangle>((const void*)(ptr), Rectf({ 0, 0 }, pSize), Color::Transparent, Color::Red);
+			auto& drawable1 = createDebugDrawable<ShapeRectangle, debug_draw::Type::TILELAYER_AREA>(
+				(const void*)(ptr), Rectf({ 0, 0 }, pSize), Color::Transparent, Color::Red
+			);
 			debug_draw::set_offset();
 		}
 		if (!debug_draw::repeat((void*)(ptr + 1), parallax_offset + scroll_offset)) {
 			debug_draw::set_offset(parallax_offset + scroll_offset);
-			auto& drawable2 = createDebugDrawable<ShapeRectangle>((const void*)(ptr + 1), Rectf({ 0, 0 }, pSize), Color::Transparent, Color::Green);
+			auto& drawable2 = createDebugDrawable<ShapeRectangle, debug_draw::Type::TILELAYER_AREA>(
+				(const void*)(ptr + 1), Rectf({ 0, 0 }, pSize), Color::Transparent, Color::Green
+			);
 			debug_draw::set_offset();
 		}
 	}

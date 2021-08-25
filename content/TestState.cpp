@@ -84,10 +84,16 @@ void TestState::predraw(secs deltaTime) {
 	instance->getActiveLevel()->predraw(deltaTime);
 	viewPos = instance->getCamera().currentPosition;
 	viewZoom = instance->getCamera().zoomFactor;
+
+	instance->getScene().set_bg_color(instance->getActiveLevel()->getBGColor());
+	instance->getScene().set_size(instance->getActiveLevel()->size());
 }
 
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
 
+	target.draw(instance->getScene(), state);
+
+	/*
 	if (instance->enableScissor(target, viewPos)) {
 
 		Vec2f size = Vec2f{ instance->getActiveLevel()->size() } *TILESIZE_F;
@@ -99,22 +105,6 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
 		);
 		target.draw(bgRect, state);
 		
-		/*
-		ff::VertexArray bg = [size, c = instance->getActiveLevel()->getBGColor()]() {
-
-			Rectf area{ Vec2f{}, size };
-			ff::VertexArray bg{ ff::Primitive::TRIANGLE_STRIP, 4, ff::VertexUsage::STATIC };
-			bg[0].pos = math::rect_topleft(area);
-			bg[1].pos = math::rect_topright(area);
-			bg[2].pos = math::rect_botleft(area);
-			bg[3].pos = math::rect_botright(area);
-
-			for (int i = 0; i < 4; i++) {
-				bg[i].color = c;
-			}
-			return bg;
-		}();
-		*/
 
 		for (auto& bg : instance->getActiveLevel()->getBGLayers()) {
 			target.draw(bg, state);
@@ -136,4 +126,5 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
 		}
 	}
 
+	*/
 }

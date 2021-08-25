@@ -10,6 +10,7 @@
 #include "fastfall/game/CollisionManager.hpp"
 #include "fastfall/game/TriggerManager.hpp"
 #include "fastfall/game/GameCamera.hpp"
+#include "fastfall/game/SceneManager.hpp"
 
 #include "fastfall/render/RenderTarget.hpp"
 
@@ -33,6 +34,7 @@ public:
 	inline CollisionManager& getCollision() noexcept { return colMan; };
 	inline TriggerManager& getTrigger() noexcept { return triMan; };
 	inline GameCamera& getCamera() noexcept { return camera; };
+	inline SceneManager& getScene() noexcept { return sceneMan; };
 
 	bool addLevel(const LevelAsset& levelRef);
 
@@ -40,8 +42,12 @@ public:
 
 	inline GameContext getContext() const noexcept { return GameContext{ instanceID }; };
 
+	
+	/*
 	bool enableScissor(const RenderTarget& target, Vec2f viewPos);
 	void disableScissor();
+	*/
+
 
 private:
 	InstanceID instanceID;
@@ -57,6 +63,9 @@ private:
 	GameObjectManager objMan;
 	CollisionManager colMan;
 	TriggerManager triMan;
+	SceneManager sceneMan;
+
+	void populateSceneFromLevel(Level& lvl);
 
 };
 

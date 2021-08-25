@@ -65,6 +65,7 @@ void Level::predraw(secs deltaTime) {
 	}
 }
 
+/*
 void Level::draw(RenderTarget& target, RenderState states) const {
 
 	for (auto it = bgLayers.begin(); it != bgLayers.end(); it++) {
@@ -85,6 +86,7 @@ void Level::draw(RenderTarget& target, RenderState states) const {
 		}
 	}
 }
+*/
 
 void Level::init(const LevelAsset& levelData) {
 	levelName = &levelData.getAssetName();

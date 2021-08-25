@@ -8,17 +8,18 @@ namespace ff {
 
 class ShapeRectangle : public Transformable, public Drawable {
 public:
+	ShapeRectangle();
 	ShapeRectangle(Rectf area, Color color = ff::Color::White, Color lineColor = ff::Color::Transparent);
 
 	void setSize(glm::fvec2 size);
 	void setSize(float sizeX, float sizeY);
-	glm::fvec2 getSize();
+	glm::fvec2 getSize() const;
 
 	void setColor(ff::Color color);
-	Color getColor();
+	Color getColor() const;
 
 	void setOutlineColor(ff::Color color);
-	Color getOutlineColor();
+	Color getOutlineColor() const;
 
 protected:
 	void initVertexArray();

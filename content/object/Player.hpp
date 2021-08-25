@@ -13,6 +13,8 @@
 
 #include "fastfall/game/trigger/Trigger.hpp"
 
+#include <cmath>
+
 using namespace ff;
 
 class Player : public GameObject {

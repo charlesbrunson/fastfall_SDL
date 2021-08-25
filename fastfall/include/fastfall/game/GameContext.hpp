@@ -22,6 +22,7 @@ class GameObject;
 class GameObjectManager;
 class CollisionManager;
 class TriggerManager;
+class SceneManager;
 class GameCamera;
 class Level;
 
@@ -108,6 +109,18 @@ public:
 	TriggerManager* operator-> ();
 };
 
+class SceneContext {
+private:
+	SceneContext(InstanceID instanceID);
+
+	friend class GameContext;
+public:
+	InstanceID id;
+
+	SceneManager& get() const;
+	SceneManager* operator-> ();
+
+};
 
 class GameContext {
 private:
@@ -132,6 +145,7 @@ public:
 	inline CameraContext	camera()	noexcept { return CameraContext{ id };		};
 	inline LevelContext		levels()	noexcept { return LevelContext{	id };		};
 	inline TriggerContext	triggers()	noexcept { return TriggerContext{ id };		};
+	inline SceneContext		scene()		noexcept { return SceneContext{ id };		};
 };
 
 }

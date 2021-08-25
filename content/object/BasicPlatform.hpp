@@ -4,6 +4,7 @@
 #include "fastfall/game/object/GameObject.hpp"
 #include "fastfall/game/phys/collider_regiontypes/ColliderSimple.hpp"
 #include "fastfall/game/CollisionManager.hpp"
+#include "fastfall/game/SceneManager.hpp"
 
 #include "fastfall/render/ShapeRectangle.hpp"
 
@@ -67,6 +68,8 @@ public:
 		}
 
 		hasCollider = true;
+
+		context.scene()->add(SceneType::Object, shape, 1);
 
 	}
 

@@ -3,6 +3,7 @@
 
 #include "fastfall/game/CollisionManager.hpp"
 #include "fastfall/game/TriggerManager.hpp"
+#include "fastfall/game/SceneManager.hpp"
 #include "fastfall/game/GameCamera.hpp"
 
 #include <functional>
@@ -75,6 +76,9 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 	sprite.set_anim(idle);
 	sprite.set_pos(box->getPosition());
 
+	context.scene()->add(SceneType::Object, sprite);
+
+
 	drawPriority = 0;
 };
 
@@ -84,6 +88,7 @@ Player::~Player() {
 		context.camera()->removeTarget(GameCamera::TargetPriority::MEDIUM);
 		context.triggers()->erase_trigger(hitbox);
 		context.triggers()->erase_trigger(hurtbox);
+		context.scene()->remove(sprite);
 	}
 }
 

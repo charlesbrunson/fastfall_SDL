@@ -3,6 +3,17 @@
 
 namespace ff {
 
+
+ShapeRectangle::ShapeRectangle()
+	: m_verts{ ff::Primitive::TRIANGLE_STRIP, 4 },
+	m_outline_verts{ ff::Primitive::LINE_LOOP, 4 },
+	m_color{ ff::Color::Transparent },
+	m_lineColor{ ff::Color::Transparent },
+	m_area{ 0.f, 0.f, 0.f, 0.f }
+{
+
+}
+
 ShapeRectangle::ShapeRectangle(Rectf area, Color color, Color lineColor)
 	: m_verts{ ff::Primitive::TRIANGLE_STRIP, 4 },
 	m_outline_verts{ ff::Primitive::LINE_LOOP, 4 },
@@ -38,7 +49,7 @@ void ShapeRectangle::setSize(float sizeX, float sizeY) {
 	setSize(glm::fvec2{ sizeX, sizeY });
 }
 
-glm::fvec2 ShapeRectangle::getSize() {
+glm::fvec2 ShapeRectangle::getSize() const {
 	return m_area.getSize();
 }
 
@@ -76,7 +87,7 @@ void ShapeRectangle::setColor(ff::Color color) {
 	//m_verts.glTransfer();
 }
 
-ff::Color ShapeRectangle::getColor() {
+ff::Color ShapeRectangle::getColor() const {
 	return m_color;
 }
 
@@ -89,7 +100,7 @@ void ShapeRectangle::setOutlineColor(ff::Color color) {
 	//m_outline_verts.glTransfer();
 }
 
-ff::Color ShapeRectangle::getOutlineColor() {
+ff::Color ShapeRectangle::getOutlineColor() const {
 	return m_lineColor;
 }
 

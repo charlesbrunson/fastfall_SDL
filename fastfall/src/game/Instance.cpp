@@ -11,7 +11,8 @@ GameInstance::GameInstance(InstanceID instance) :
 	activeLevel(nullptr),
 	objMan(instance),
 	colMan(instance),
-	triMan(instance)
+	triMan(instance),
+	sceneMan(instance)
 {
 
 }
@@ -59,11 +60,35 @@ bool GameInstance::addLevel(const LevelAsset& levelRef) {
 
 	if (r.second && !activeLevel) {
 		activeLevel = r.first->first;
+		populateSceneFromLevel(*r.first->second);
 	}
 	return r.second;
 }
 
+void GameInstance::populateSceneFromLevel(Level& lvl) {
+	int bg_count = lvl.getBGLayers().size();
+	//int fg_count = lvl.getFGLayers().size();
 
+	sceneMan.clearType(SceneType::Level);
+
+	for (int bg_ndx = 0; auto& layer : lvl.getBGLayers()) {
+		//LOG_INFO("{}", 1 + bg_ndx);
+		sceneMan.add(SceneType::Level, layer, bg_count - bg_ndx);
+		bg_ndx++;
+	}
+
+	
+	for (int fg_ndx = 0; auto& layer : lvl.getFGLayers()) {
+		//LOG_INFO("{}", -fg_ndx);
+		sceneMan.add(SceneType::Level, layer, -fg_ndx);
+		fg_ndx++;
+	}
+	sceneMan.set_bg_color(lvl.getBGColor());
+	sceneMan.set_size(lvl.size());
+
+}
+
+/*
 bool GameInstance::enableScissor(const RenderTarget& target, Vec2f viewPos) {
 	glEnable(GL_SCISSOR_TEST);
 
@@ -104,6 +129,7 @@ bool GameInstance::enableScissor(const RenderTarget& target, Vec2f viewPos) {
 void GameInstance::disableScissor() {
 	glDisable(GL_SCISSOR_TEST);
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 

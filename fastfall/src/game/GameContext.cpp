@@ -156,4 +156,18 @@ TriggerManager* TriggerContext::operator-> () {
 	return &Instance(id)->getTrigger();
 }
 
+// SceneContext
+
+SceneContext::SceneContext(InstanceID instanceID) :
+	id(instanceID)
+{ }
+
+
+SceneManager& SceneContext::get() const {
+	return Instance(id)->getScene();
+}
+SceneManager* SceneContext::operator-> () {
+	return &Instance(id)->getScene();
+}
+
 }
