@@ -456,13 +456,12 @@ void Engine::cleanRunnables() {
 }
 
 void Engine::sleep() {
-    clock.sleepUntilTick(window && settings.vsyncEnabled);
     if (window) {
         displayStart = std::chrono::steady_clock::now();
         window->display();
         displayTime = std::chrono::steady_clock::now() - displayStart;
-                
     }
+    clock.sleepUntilTick(!window);
 }
 
 // -------------------------------------------
@@ -791,12 +790,12 @@ void Engine::ImGui_getContent() {
     memmove(&display_y[0], &display_y[1], sizeof(float) * last);
     
     float acc = 0.f;
-    acc += clock.data().activeTime.count() * 1000.0;
+    acc += clock.data().activeTime.count() * 1000.0 - (displayTime.count() * 1000.0);
     active_y [last] = acc;
-    acc += clock.data().sleepTime.count() * 1000.0;
-    sleep_y  [last] = acc;
     acc += displayTime.count() * 1000.0;
     display_y[last] = acc;
+    acc += clock.data().sleepTime.count() * 1000.0;
+    sleep_y  [last] = acc;
 
     roller++;
     if (roller == last) {
@@ -810,8 +809,8 @@ void Engine::ImGui_getContent() {
         if (ImPlot::BeginPlot("##FPS", NULL, "tick time (ms)", ImVec2(-1, 200), ImPlotFlags_None, ImPlotAxisFlags_None, 0)) {
             ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1.f);
 
-            ImPlot::PlotShaded("display", display_x, display_y, arrsize);
             ImPlot::PlotShaded("sleep", sleep_x, sleep_y, arrsize);
+            ImPlot::PlotShaded("display", display_x, display_y, arrsize);
             ImPlot::PlotShaded("active", active_x, active_y, arrsize);
 
             ImPlot::PopStyleVar();

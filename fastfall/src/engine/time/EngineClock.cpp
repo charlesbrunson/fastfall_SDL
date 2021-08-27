@@ -111,9 +111,6 @@ secs EngineClock::tick() noexcept {
 	return sec_rep( elapsed ).count();
 }
 
-//void EngineClock::endTick() noexcept {
-//	_data.activeTime = engineClock.now() - _active_start;
-//}
 void EngineClock::reset() noexcept {
 
 	elapsed = 0ns;

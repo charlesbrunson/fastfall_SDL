@@ -87,6 +87,7 @@ void TestState::predraw(secs deltaTime) {
 
 	instance->getScene().set_bg_color(instance->getActiveLevel()->getBGColor());
 	instance->getScene().set_size(instance->getActiveLevel()->size());
+	instance->getScene().set_cam_pos(viewPos);
 }
 
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {

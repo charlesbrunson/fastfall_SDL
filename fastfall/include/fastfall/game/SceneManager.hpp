@@ -40,6 +40,8 @@ public:
 
 	void clear();
 
+	void set_cam_pos(Vec2f center);
+
 	void set_bg_color(Color color);
 	void set_size(Vec2u size);
 
@@ -61,7 +63,7 @@ private:
 	std::vector<SceneLayer> layers;
 	ShapeRectangle background;
 	Vec2f scene_size;
-
+	Vec2f cam_pos;
 
 	void draw(ff::RenderTarget& target, ff::RenderState state = RenderState()) const override;
 

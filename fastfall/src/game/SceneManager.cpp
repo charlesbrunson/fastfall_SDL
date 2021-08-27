@@ -82,18 +82,25 @@ void SceneManager::clearType(SceneType scene_type) {
 
 }
 
+void SceneManager::set_cam_pos(Vec2f center) {
+	cam_pos = center;
+}
+
 void SceneManager::set_bg_color(Color color) {
 	background.setColor(color);
 }
 
 void SceneManager::set_size(Vec2u size) {
 	scene_size = Vec2f{ size } *TILESIZE_F;
-	background.setSize(scene_size);
+
+	// pixel buffer prevent visual artifacts at the edges of the level
+	background.setPosition(Vec2f{ -1.f, -1.f });
+	background.setSize(scene_size + Vec2f{2.f, 2.f});
 }
 
 void SceneManager::draw(ff::RenderTarget& target, ff::RenderState state) const {
 
-	enableScissor(target, target.getView().getCenter());
+	enableScissor(target, cam_pos);
 	bool scissor_enabled = true;
 
 	target.draw(background, state);
