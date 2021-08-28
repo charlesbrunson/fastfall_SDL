@@ -1,5 +1,7 @@
 #include "fastfall/game/trigger/Trigger.hpp"
 
+#include "fastfall/game/InstanceInterface.hpp"
+
 namespace ff {
 
 void Trigger::set_owning_object(std::optional<GameObject*> object) {
@@ -93,6 +95,32 @@ void Trigger::trigger(const TriggerPull& confirm) {
 		activated = true;
 		on_trigger(confirm);
 	}
+}
+
+
+Trigger_ptr::Trigger_ptr(GameContext context)
+	: m_context(context)
+	, m_trigger(instance::trig_create_trigger(context))
+{
+
+}
+Trigger_ptr::Trigger_ptr(
+	GameContext context,
+	Rectf area,
+	std::unordered_set<TriggerTag> self_flags,
+	std::unordered_set<TriggerTag> filter_flags,
+	GameObject* owner,
+	Trigger::Overlap overlap
+) 
+	: m_context(context)
+	, m_trigger(
+		instance::trig_create_trigger(context, area, self_flags, filter_flags, owner, overlap)
+	)
+{
+
+}
+Trigger_ptr::~Trigger_ptr() {
+	instance::trig_erase_trigger(m_context, m_trigger);
 }
 
 const TriggerTag ttag_generic = "generic";

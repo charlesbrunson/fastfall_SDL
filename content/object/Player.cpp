@@ -1,13 +1,6 @@
 
 #include "Player.hpp"
 
-/*
-#include "fastfall/game/CollisionManager.hpp"
-#include "fastfall/game/TriggerManager.hpp"
-#include "fastfall/game/SceneManager.hpp"
-#include "fastfall/game/GameCamera.hpp"
-*/
-
 #include "fastfall/game/InstanceInterface.hpp"
 
 #include <functional>
@@ -40,13 +33,10 @@ using namespace constants;
 
 Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& type) 
 	: GameObject{ instance, ref, type }
+	, box(		instance, Vec2f(ref.position), Vec2f(8.f, 28.f), grav_normal)
+	, hitbox(	instance, box->getBox(), { "hitbox" },	{},			  this)
+	, hurtbox(	instance, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
 {
-	// collision box
-	//box = context.collision()->create_collidable(
-	//	Vec2f(ref.position), Vec2f(8.f, 28.f), grav_normal);
-	box = instance::phys_create_collidable(
-		context, Vec2f(ref.position), Vec2f(8.f, 28.f), grav_normal);
-
 	// surface tracker
 	ground = &box->create_tracker(
 		Angle::Degree(-135), Angle::Degree(-45), 
@@ -69,13 +59,6 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 		});
 
 	// triggers
-
-	hitbox = instance::trig_create_trigger(
-		context, box->getBox(), { "hitbox" }, {}, this);
-
-	hurtbox = instance::trig_create_trigger(
-		context, box->getBox(), { "hurtbox" }, { "hitbox" }, this);
-
 	hurtbox->set_trigger_callback(
 		[](const TriggerPull& pull) {
 			if (auto owner = pull.trigger.get().get_owner()) 
@@ -99,15 +82,12 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 
 	instance::scene_add(context, SceneType::Object, sprite);
 
-	drawPriority = 0;
+	//drawPriority = 0;
 };
 
 Player::~Player() {
 	if (context.valid()) {
-		instance::phys_erase_collidable(context, box);
 		instance::cam_remove_target(context, GameCamera::TargetPriority::MEDIUM);
-		instance::trig_erase_trigger(context, hitbox);
-		instance::trig_erase_trigger(context, hurtbox);
 		instance::scene_remove(context, sprite);
 	}
 }
@@ -282,6 +262,20 @@ void Player::update(secs deltaTime) {
 	sprite.update(deltaTime);
 	hitbox->update(box->getBox());
 	hurtbox->update();
+}
+
+Player::CmdResponse Player::do_command(ObjCmd cmd, const std::any& payload) 
+{
+	if (constexpr auto CMD = ObjCmd::NoOp; cmd == CMD)
+	{
+		LOG_INFO("It's me!");
+		return respond<CMD>(true);
+	}
+	if (constexpr auto CMD = ObjCmd::GetPosition; cmd == CMD)
+	{
+		return respond<CMD>(box->getPosition());
+	}
+	return GameObject::do_command(cmd, payload);
 }
 
 void Player::predraw(secs deltaTime) {

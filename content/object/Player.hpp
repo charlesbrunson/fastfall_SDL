@@ -6,10 +6,8 @@
 
 #include "fastfall/engine/input.hpp"
 #include "fastfall/util/log.hpp"
-#include "fastfall/game/phys/Raycast.hpp"
 
 #include "fastfall/render/AnimatedSprite.hpp"
-#include "fastfall/resource/Resources.hpp"
 
 #include "fastfall/game/trigger/Trigger.hpp"
 
@@ -31,30 +29,18 @@ public:
 
 	void ImGui_Inspect() override;
 
-
-
 protected:
 
-	CmdResponse do_command(ObjCmd cmd, const std::any& payload) override {
-		if (constexpr auto CMD = ObjCmd::NoOp; cmd == CMD)
-		{
-			LOG_INFO("It's me!");
-			return respond<CMD>(true);
-		}
-		if (constexpr auto CMD = ObjCmd::GetPosition; cmd == CMD)
-		{
-			return respond<CMD>(box->getPosition());
-		}
-		return GameObject::do_command(cmd, payload);
-	}
+	CmdResponse do_command(ObjCmd cmd, const std::any& payload) override;
+
+	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 
 	AnimatedSprite sprite;
 
-	Collidable* box;
+	Collidable_ptr box;
 	SurfaceTracker* ground;
 
-	Trigger* hurtbox;
-	Trigger* hitbox;
+	Trigger_ptr hurtbox;
+	Trigger_ptr hitbox;
 
-	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 };

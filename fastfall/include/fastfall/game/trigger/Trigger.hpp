@@ -9,6 +9,8 @@
 #include <unordered_set>
 #include <map>
 
+#include "fastfall/game/GameContext.hpp"
+
 namespace ff {
 
 class GameObject;
@@ -98,5 +100,27 @@ extern const TriggerTag ttag_generic;
 extern const TriggerTag ttag_hitbox;
 extern const TriggerTag ttag_hurtbox;
 extern const TriggerTag ttag_pushbox;
+
+
+struct Trigger_ptr {
+	Trigger_ptr(GameContext context);
+	Trigger_ptr(
+		GameContext context,
+		Rectf area,
+		std::unordered_set<TriggerTag> self_flags = {},
+		std::unordered_set<TriggerTag> filter_flags = {},
+		GameObject* owner = nullptr,
+		Trigger::Overlap overlap = Trigger::Overlap::Partial
+	);
+	~Trigger_ptr();
+
+	Trigger* operator->() { return m_trigger; }
+	Trigger& get() { return *m_trigger; };
+	GameContext context() { return m_context; };
+
+private:
+	Trigger* m_trigger;
+	GameContext m_context;
+};
 
 }

@@ -38,13 +38,12 @@ std::optional<T> cmd_accepted(const std::pair<Response, T>& resp) {
 	return resp.first == Response::Accepted ? std::make_optional(resp.second) : std::nullopt;
 }
 
+
+
 template<class Enum>
 requires std::is_enum_v<Enum>
 class Commandable {
 protected:
-
-
-
 
 	struct CmdResponse {
 	private:

@@ -135,7 +135,6 @@ public:
 };
 
 
-
 class GameObject : public Drawable, public Commandable<ObjCmd> {
 public:
 
