@@ -43,6 +43,8 @@ public:
 	void addObject(std::unique_ptr<GameObject>&& obj);
 
 	inline std::list<std::unique_ptr<GameObject>>& getObjects() { return objects; };
+	inline const std::list<std::unique_ptr<GameObject>>& getObjects() const { return objects; };
+
 	inline unsigned getInstanceID() { return instanceID; };
 
 	inline const ObjectDrawList& getObjectDrawList(bool foreground = false) const noexcept {

@@ -11,7 +11,7 @@
 
 #include "imgui.h"
 
-#include "fastfall/game/InstanceID.hpp"
+//#include "fastfall/game/InstanceID.hpp"
 #include "fastfall/game/GameContext.hpp"
 
 #include "fastfall/render/Drawable.hpp"
@@ -67,6 +67,7 @@ struct ObjectType {
 	bool test(ObjectRef& ref) const;
 };
 
+class GameObject;
 
 class GameObjectLibrary {
 private:

@@ -41,6 +41,10 @@ protected:
 			LOG_INFO("It's me!");
 			return respond<CMD>(true);
 		}
+		if (constexpr auto CMD = ObjCmd::GetPosition; cmd == CMD)
+		{
+			return respond<CMD>(box->getPosition());
+		}
 		return GameObject::do_command(cmd, payload);
 	}
 

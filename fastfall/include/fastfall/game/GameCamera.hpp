@@ -47,7 +47,7 @@ public:
 	void removeTarget(TargetPriority priority);
 	void removeAllTargets();
 
-	const std::array<Target, 3>& getTargets() {
+	const std::array<Target, 3>& getTargets() const {
 		return targets;
 	}
 

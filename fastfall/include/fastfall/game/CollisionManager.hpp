@@ -21,13 +21,8 @@
 
 namespace ff {
 
-template<typename T>
-concept ColliderType = std::is_base_of_v<ColliderRegion, T>;
-
-
 class CollisionManager {
-private:
-
+public:
 	struct CollidableData {
 		CollidableData(Collidable&& col) :
 			collidable(col)
@@ -40,11 +35,13 @@ private:
 		std::vector<RegionArbiter> regionArbiters;
 	};
 
+private:
 	plf::colony<CollidableData> collidables;
-
 	std::vector<std::unique_ptr<ColliderRegion>> regions;
 
 public:
+
+
 
 	CollisionManager(unsigned instance);
 

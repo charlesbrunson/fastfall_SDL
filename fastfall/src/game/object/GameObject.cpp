@@ -10,6 +10,8 @@
 #include "fastfall/game/Instance.hpp"
 #include "fastfall/game/GameObjectManager.hpp"
 
+#include "fastfall/game/InstanceInterface.hpp"
+
 #include <assert.h>
 #include <functional>
 #include <set>
@@ -23,8 +25,8 @@ void GameObjectLibrary::build(GameContext instance, const ObjectRef& ref) {
 	if (r != getBuilder().end()) {
 		obj = r->builder(instance, ref, r->constraints);
 
-		if (obj && instance.valid()) {
-			instance.objects().add(std::move(obj));
+		if (obj) {
+			instance::obj_add(instance, std::move(obj));
 		}
 		else if (!obj) {
 			LOG_ERR_("Object reference invalid, unable to create");

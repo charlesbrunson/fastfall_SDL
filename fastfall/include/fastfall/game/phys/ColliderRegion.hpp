@@ -75,4 +75,7 @@ private:
 
 };
 
+template<typename T>
+concept ColliderType = std::is_base_of_v<ColliderRegion, T>;
+
 }

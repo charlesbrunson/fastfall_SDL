@@ -7,6 +7,8 @@
 
 #include "fastfall/game/CollisionManager.hpp"
 
+#include "fastfall/game/InstanceInterface.hpp"
+
 namespace ff {
 
 void debugDrawRaycast(std::optional<RaycastHit> result, Linef raycastLine) {
@@ -137,7 +139,7 @@ std::optional<RaycastHit> raycastRegion(ColliderRegion* region, const Rectf& ray
 }
 
 
-std::optional<RaycastHit> raycast(CollisionContext phys_context, const Vec2f& origin, Cardinal direction, float dist, float backoff) {
+std::optional<RaycastHit> raycast(GameContext context, const Vec2f& origin, Cardinal direction, float dist, float backoff) {
 
 	float distance = abs(dist) > RAY_MAX_DIST ? RAY_MAX_DIST : abs(dist);
 	float backoff_ = -abs(backoff);
@@ -165,8 +167,7 @@ std::optional<RaycastHit> raycast(CollisionContext phys_context, const Vec2f& or
 
 	std::vector<std::pair<Rectf, const ColliderQuad*>> buffer;
 
-	//const auto* colliders = phys_context.get().getColliders();
-	const auto& colliders = phys_context.get().get_colliders();
+	const auto& colliders = *instance::phys_get_colliders(context);
 
 	std::optional<RaycastHit> result{};
 

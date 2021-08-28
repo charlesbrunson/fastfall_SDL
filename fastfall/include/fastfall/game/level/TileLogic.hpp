@@ -1,5 +1,7 @@
 #pragma once
 
+#include "fastfall/engine/time/time.hpp"
+
 #include "fastfall/game/GameContext.hpp"
 #include "fastfall/resource/asset/TilesetAsset.hpp"
 
@@ -8,6 +10,7 @@
 #include <functional>
 
 #include "fastfall/game/level/Tile.hpp"
+#include "fastfall/game/phys/collision/Contact.hpp"
 
 namespace ff {
 

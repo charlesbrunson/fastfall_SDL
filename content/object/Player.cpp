@@ -1,10 +1,14 @@
 
 #include "Player.hpp"
 
+/*
 #include "fastfall/game/CollisionManager.hpp"
 #include "fastfall/game/TriggerManager.hpp"
 #include "fastfall/game/SceneManager.hpp"
 #include "fastfall/game/GameCamera.hpp"
+*/
+
+#include "fastfall/game/InstanceInterface.hpp"
 
 #include <functional>
 
@@ -38,10 +42,15 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 	: GameObject{ instance, ref, type }
 {
 	// collision box
-	box = context.collision()->create_collidable(Vec2f(ref.position), Vec2f(8.f, 28.f), grav_normal);
+	//box = context.collision()->create_collidable(
+	//	Vec2f(ref.position), Vec2f(8.f, 28.f), grav_normal);
+	box = instance::phys_create_collidable(
+		context, Vec2f(ref.position), Vec2f(8.f, 28.f), grav_normal);
 
 	// surface tracker
-	ground = &box->create_tracker(Angle::Degree(-135), Angle::Degree(-45), {
+	ground = &box->create_tracker(
+		Angle::Degree(-135), Angle::Degree(-45), 
+		{
 			.move_with_platforms = true,
 			.slope_sticking = true,
 			.slope_wall_stop = true,
@@ -50,7 +59,9 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 		});
 
 	// camera target
-	context.camera()->addTarget({
+	instance::cam_add_target(
+		context,
+		{
 			.movingTarget = &box->getPosition(),
 			.type = GameCamera::TargetType::MOVING,
 			.offset = Vec2f(0, -16),
@@ -58,16 +69,26 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 		});
 
 	// triggers
-	hitbox = context.triggers()->create_trigger(box->getBox(), { "hitbox" }, {}, this);
-	hurtbox = context.triggers()->create_trigger(box->getBox(), { "hurtbox" }, { "hitbox" }, this);
-	hurtbox->set_trigger_callback([](const TriggerPull& pull) {
-			if (auto owner = pull.trigger.get().get_owner()) {
-				if (GameObject* obj = *owner; obj->getType().group_tags.contains("player")) {
-					switch (pull.state) {
-					case Trigger::State::Entry: LOG_INFO("ENTER"); obj->command<ObjCmd::NoOp>(); break;
-					case Trigger::State::Loop:  LOG_INFO("LOOP");  break;
-					case Trigger::State::Exit:  LOG_INFO("EXIT");  break;
+
+	hitbox = instance::trig_create_trigger(
+		context, box->getBox(), { "hitbox" }, {}, this);
+
+	hurtbox = instance::trig_create_trigger(
+		context, box->getBox(), { "hurtbox" }, { "hitbox" }, this);
+
+	hurtbox->set_trigger_callback(
+		[](const TriggerPull& pull) {
+			if (auto owner = pull.trigger.get().get_owner()) 
+			{
+				if (GameObject* obj = *owner; 
+					obj->getType().group_tags.contains("player")
+					&& pull.state == Trigger::State::Entry)
+				{
+					if (auto rpayload = cmd_accepted(obj->command<ObjCmd::GetPosition>()))
+					{
+						LOG_INFO("position: {}", rpayload->to_string());
 					}
+
 				}
 			}
 		});
@@ -76,19 +97,18 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 	sprite.set_anim(idle);
 	sprite.set_pos(box->getPosition());
 
-	context.scene()->add(SceneType::Object, sprite);
-
+	instance::scene_add(context, SceneType::Object, sprite);
 
 	drawPriority = 0;
 };
 
 Player::~Player() {
 	if (context.valid()) {
-		context.collision()->erase_collidable(box);
-		context.camera()->removeTarget(GameCamera::TargetPriority::MEDIUM);
-		context.triggers()->erase_trigger(hitbox);
-		context.triggers()->erase_trigger(hurtbox);
-		context.scene()->remove(sprite);
+		instance::phys_erase_collidable(context, box);
+		instance::cam_remove_target(context, GameCamera::TargetPriority::MEDIUM);
+		instance::trig_erase_trigger(context, hitbox);
+		instance::trig_erase_trigger(context, hurtbox);
+		instance::scene_remove(context, sprite);
 	}
 }
 

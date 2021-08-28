@@ -22,6 +22,6 @@ struct RaycastHit {
 	const ColliderSurface* surface;
 };
 
-std::optional<RaycastHit> raycast(CollisionContext phys_context, const Vec2f& origin, Cardinal direction, float dist = 100.f, float backoff = -1.f);
+std::optional<RaycastHit> raycast(GameContext context, const Vec2f& origin, Cardinal direction, float dist = 100.f, float backoff = -1.f);
 
 }

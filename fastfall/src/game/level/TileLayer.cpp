@@ -11,6 +11,8 @@
 #include "fastfall/render/ShapeRectangle.hpp"
 #include "fastfall/game/CollisionManager.hpp"
 
+#include "fastfall/game/InstanceInterface.hpp"
+
 #include <assert.h>
 
 namespace ff {
@@ -169,7 +171,8 @@ TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 
 TileLayer::~TileLayer() {
 	if (m_context.valid() && collision) {
-		m_context.collision().get().erase_collider(collision);
+		//m_context.collision().get().erase_collider(collision);
+		instance::phys_erase_collider(m_context, collision);
 		collision = nullptr;
 	}
 }
@@ -203,8 +206,10 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 		}
 	}
 
-	if (hasCollision)
-		collision = m_context.collision().get().create_collider<ColliderTileMap>(Vec2i(size.x, size.y), true);
+	if (hasCollision) {
+		//collision = m_context.collision().get().create_collider<ColliderTileMap>(Vec2i(size.x, size.y), true);
+		collision = instance::phys_create_collider<ColliderTileMap>(m_context, Vec2i(size.x, size.y), true);
+	}
 
 	for (const auto& i : layerData.tileLayer->tiles) {
 		TilesetAsset* ta = Resources::get<TilesetAsset>(*i.second.tilesetName);
@@ -292,11 +297,12 @@ void TileLayer::predraw(secs deltaTime) {
 
 
 	Rectf visible;
-	GameCamera& cam = m_context.camera().get();
-	visible.width = GAME_W_F * cam.zoomFactor;
-	visible.height = GAME_H_F * cam.zoomFactor;
-	visible.left = m_context.camera().get().currentPosition.x - (visible.width / 2.f);
-	visible.top = m_context.camera().get().currentPosition.y - (visible.height / 2.f);
+	Vec2f cam_pos = instance::cam_get_pos(m_context);
+	float cam_zoom = instance::cam_get_zoom(m_context);
+	visible.width = GAME_W_F * cam_zoom;
+	visible.height = GAME_H_F * cam_zoom;
+	visible.left = cam_pos.x - (visible.width / 2.f);
+	visible.top = cam_pos.y - (visible.height / 2.f);
 	for (auto& verts : tileVertices) {
 		verts.varray.visibility = visible;
 	}
@@ -306,8 +312,8 @@ void TileLayer::predraw(secs deltaTime) {
 	Vec2f pSize = Vec2f{ size } *TILESIZE_F;
 	if (has_parallax) {
 		parallax_offset = Vec2f{
-			m_context.camera()->currentPosition.x * parallax.camFactor.x,
-			m_context.camera()->currentPosition.y * parallax.camFactor.y
+			cam_pos.x * parallax.camFactor.x,
+			cam_pos.y * parallax.camFactor.y
 		} - parallax.initOffset;
 
 		for (auto& vta_pair : tileVertices) {

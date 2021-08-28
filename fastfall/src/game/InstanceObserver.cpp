@@ -9,13 +9,15 @@
 #include "fastfall/game/phys/collision/Contact.hpp"
 #include "fastfall/render/DebugDraw.hpp"
 
+#include "fastfall/game/InstanceInterface.hpp"
+
 namespace ff {
 
 unsigned comboInstance = 0u;
 InstanceID instanceID{ 1u };
 
 void collisionContent(GameContext context) {
-	CollisionManager* man = &context.collision().get();//&Instance(instance)->getCollision();
+	//CollisionManager* man = &context.collision().get();//&Instance(instance)->getCollision();
 
 	// TODO
 	
@@ -45,7 +47,7 @@ void collisionContent(GameContext context) {
 	ImGui::Separator();
 	ImGui::Text("Collidables");
 
-	auto& collidables = man->get_collidables();
+	auto& collidables = *instance::phys_get_collidables(context); //man->get_collidables();
 	for (auto& coldata : collidables) {
 		auto& col = coldata.collidable;
 
@@ -225,7 +227,7 @@ void collisionContent(GameContext context) {
 			ImGui::TreePop();
 		}
 	}
-	auto& colliders = man->get_colliders();
+	auto& colliders = *instance::phys_get_colliders(context);;
 	for (auto& col : colliders) {
 		if (ImGui::TreeNode((void*)(&col), "Collider %d", col->get_ID().value)) {
 
@@ -251,11 +253,8 @@ void levelContent(GameContext context) {
 		ImGui::Text("Collision = %s", tile.hasCollision ? "true" : "false");
 		ImGui::Text("Parallax = %s", tile.isParallax() ? "true" : "false");
 		ImGui::Text("Scrolling = %s", tile.hasScrollX() || tile.hasScrollY() ? "true" : "false");
-
-
-
-
 	};
+
 	constexpr auto displayObjectRef = [](ObjectRef& obj) {
 		//ImGui::Checkbox("Hidden", &layer.hidden);
 
@@ -285,7 +284,7 @@ void levelContent(GameContext context) {
 	};
 
 
-	for (auto& lvlpair : context.levels().get_all()) { // Instance(instance)->getAllLevels()) {
+	for (auto& lvlpair : *instance::lvl_get_all(context)) { // Instance(instance)->getAllLevels()) {
 
 		Level* lvl = lvlpair.second.get();
 
@@ -337,7 +336,7 @@ void levelContent(GameContext context) {
 }
 
 void objectContent(GameContext context) {
-	GameObjectManager* man = &context.objects().get(); //&Instance(instance)->getObject();
+	const GameObjectManager* man = instance::obj_get_man(context); //&Instance(instance)->getObject();
 
 	ImGui::Text("Object Count: %3lu", man->getObjects().size());
 
@@ -360,15 +359,23 @@ void objectContent(GameContext context) {
 void cameraContent(GameContext context) {
 	//GameCamera* man = &Instance(instance)->getCamera();
 
-	GameCamera* man = &context.camera().get();
+	//GameCamera* man = &context.camera().get();
+	const GameCamera* man = instance::cam_get_man(context);
 
-	ImGui::Text("Center (%3.2f, %3.2f)", man->currentPosition.x, man->currentPosition.y);
-	ImGui::Checkbox("Lock Position", &man->lockPosition);
+	Vec2f center = instance::cam_get_pos(context);
 
-	float pos[2] = { man->currentPosition.x, man->currentPosition.y };
+	ImGui::Text("Center (%3.2f, %3.2f)", center.x, center.y);
+
+	bool lock = instance::cam_get_lock_enabled(context);
+	if (ImGui::Checkbox("Lock Position", &lock)) {
+		instance::cam_set_lock_enabled(context, lock);
+	}
+
+
+	float pos[2] = { center.x, center.y };
 
 	if (ImGui::DragFloat2("Set Pos", pos)) {
-		man->currentPosition = Vec2f(pos[0], pos[1]);
+		instance::cam_set_pos(context, Vec2f{ pos[0], pos[1] });
 	}
 
 
@@ -393,14 +400,15 @@ void cameraContent(GameContext context) {
 
 		ImGui::Separator();
 	}
-	if (ImGui::SliderFloat("Zoom", &man->zoomFactor, 0.25f, 3.f, "%.2f")) {
-		man->zoomFactor = roundf(man->zoomFactor * 4.f) / 4.f;
+	float zoom = instance::cam_get_zoom(context);
+	if (ImGui::SliderFloat("Zoom", &zoom, 0.25f, 3.f, "%.2f")) {
+		instance::cam_set_zoom(context, roundf(zoom * 4.f) / 4.f);
 	}
 
 
 	ImGui::SameLine();
 	if (ImGui::Button("Reset")) {
-		man->zoomFactor = 1.f;
+		instance::cam_set_zoom(context, 1.f);
 	}
 }
 
@@ -491,7 +499,7 @@ void InstanceObserver::ImGui_getExtraContent() {
 	GameContext context{ instanceID };
 
 	if (context.valid()) {
-		for (auto& obj : context.objects().get().getObjects()) {
+		for (auto& obj : instance::obj_get_man(context)->getObjects()) {
 			if (obj->showInspect && ImGui::Begin(obj->getTypeName().c_str(), &obj->showInspect)) {
 				obj->ImGui_Inspect();
 				ImGui::End();

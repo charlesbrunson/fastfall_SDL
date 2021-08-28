@@ -8,6 +8,8 @@
 
 #include "fastfall/render/ShapeRectangle.hpp"
 
+#include "fastfall/game/InstanceInterface.hpp"
+
 using namespace ff;
 
 class BasicPlatform : public GameObject {
@@ -60,7 +62,8 @@ public:
 		colliderRect.width = ref.width;
 		colliderRect.height = ref.height;
 
-		collider = context.collision().get().create_collider<ColliderSimple>(colliderRect);
+		//collider = context.collision().get().create_collider<ColliderSimple>(colliderRect);
+		collider = instance::phys_create_collider<ColliderSimple>(context, colliderRect);
 		if (has_path)
 			collider->teleport(waypoints_origin + Vec2f(waypoints->at(waypoint_ndx)));
 		else {
@@ -69,12 +72,14 @@ public:
 
 		hasCollider = true;
 
-		context.scene()->add(SceneType::Object, shape, 1);
+		//context.scene()->add(SceneType::Object, shape, 1);
+		instance::scene_add(context, SceneType::Object, shape, 1);
 
 	}
 
 	~BasicPlatform() {
-		context.collision().get().erase_collider(collider);
+		instance::phys_erase_collider(context, collider);
+		//context.collision().get().erase_collider(collider);
 	}
 
 	std::unique_ptr<GameObject> clone() const override {
