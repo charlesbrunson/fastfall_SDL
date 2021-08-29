@@ -9,17 +9,16 @@
 #include "fastfall/render/ShapeRectangle.hpp"
 
 #include "fastfall/game/InstanceInterface.hpp"
+#include "fastfall/game/object/ObjectComponents.hpp"
 
 using namespace ff;
 
 class BasicPlatform : public GameObject {
 public:
-	BasicPlatform(GameContext instance, const ObjectRef& ref, const ObjectType& type) :
-		GameObject(instance, ref, type),
-		shape{
-			Rectf{},
-			Color{0x285cc4FF} 
-		}
+	BasicPlatform(GameContext instance, const ObjectRef& ref, const ObjectType& type) 
+		: GameObject(instance, ref, type)
+		, shape{	Rectf{}, Color{0x285cc4FF} }
+		, collider(instance, Rectf{ 0.f, 0.f, (float)ref.width, (float)ref.height })
 	{
 		for (auto& [propName, propValue] : ref.properties) {
 			if (propName == "path") {
@@ -63,7 +62,7 @@ public:
 		colliderRect.height = ref.height;
 
 		//collider = context.collision().get().create_collider<ColliderSimple>(colliderRect);
-		collider = instance::phys_create_collider<ColliderSimple>(context, colliderRect);
+		//collider = instance::phys_create_collider<ColliderSimple>(context, colliderRect);
 		if (has_path)
 			collider->teleport(waypoints_origin + Vec2f(waypoints->at(waypoint_ndx)));
 		else {
@@ -78,7 +77,7 @@ public:
 	}
 
 	~BasicPlatform() {
-		instance::phys_erase_collider(context, collider);
+		//instance::phys_erase_collider(context, collider.get());
 		//context.collision().get().erase_collider(collider);
 	}
 
@@ -153,7 +152,8 @@ protected:
 	float progress;
 	bool reverser = false;
 
-	ColliderSimple* collider;
+	Collider_ptr<ColliderSimple> collider;
+	//ColliderSimple* collider;
 
 	ShapeRectangle shape;
 

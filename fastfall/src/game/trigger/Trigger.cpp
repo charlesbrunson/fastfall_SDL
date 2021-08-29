@@ -97,32 +97,6 @@ void Trigger::trigger(const TriggerPull& confirm) {
 	}
 }
 
-
-Trigger_ptr::Trigger_ptr(GameContext context)
-	: m_context(context)
-	, m_trigger(instance::trig_create_trigger(context))
-{
-
-}
-Trigger_ptr::Trigger_ptr(
-	GameContext context,
-	Rectf area,
-	std::unordered_set<TriggerTag> self_flags,
-	std::unordered_set<TriggerTag> filter_flags,
-	GameObject* owner,
-	Trigger::Overlap overlap
-) 
-	: m_context(context)
-	, m_trigger(
-		instance::trig_create_trigger(context, area, self_flags, filter_flags, owner, overlap)
-	)
-{
-
-}
-Trigger_ptr::~Trigger_ptr() {
-	instance::trig_erase_trigger(m_context, m_trigger);
-}
-
 const TriggerTag ttag_generic = "generic";
 const TriggerTag ttag_hitbox  = "hitbox";
 const TriggerTag ttag_hurtbox = "hurtbox";

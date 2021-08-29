@@ -36,6 +36,7 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 	, box(		instance, Vec2f(ref.position), Vec2f(8.f, 28.f), grav_normal)
 	, hitbox(	instance, box->getBox(), { "hitbox" },	{},			  this)
 	, hurtbox(	instance, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
+	, sprite(instance, AnimatedSprite{}, SceneType::Object)
 {
 	// surface tracker
 	ground = &box->create_tracker(
@@ -77,18 +78,13 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 		});
 
 	// sprite
-	sprite.set_anim(idle);
-	sprite.set_pos(box->getPosition());
-
-	instance::scene_add(context, SceneType::Object, sprite);
-
-	//drawPriority = 0;
+	sprite->set_anim(idle);
+	sprite->set_pos(box->getPosition());
 };
 
 Player::~Player() {
 	if (context.valid()) {
 		instance::cam_remove_target(context, GameCamera::TargetPriority::MEDIUM);
-		instance::scene_remove(context, sprite);
 	}
 }
 
@@ -105,7 +101,7 @@ void Player::update(secs deltaTime) {
 
 	int wishx = (int)Input::isHeld(InputType::RIGHT) - (int)Input::isHeld(InputType::LEFT);
 
-	sprite.set_playback(1.f);
+	sprite->set_playback(1.f);
 
 	box->set_gravity(grav_normal);
 
@@ -121,7 +117,7 @@ void Player::update(secs deltaTime) {
 		if (ground->get_contact_time() == 0.f) {
 
 			ground->settings.max_speed = std::max(norm_speed, std::min(std::abs(speed), max_speed));
-			sprite.set_anim(land);
+			sprite->set_anim(land);
 		}
 		else {
 			ground->settings.max_speed = std::max(norm_speed, std::min(std::abs(speed), ground->settings.max_speed));
@@ -136,18 +132,18 @@ void Player::update(secs deltaTime) {
 
 		if (abs(speed) <= 100.f && wishx == 0
 			|| abs(speed) <= 5.f && wishx != 0) {
-			sprite.set_anim_if_not(idle);
+			sprite->set_anim_if_not(idle);
 		}
 		else {
 
 
 			if ((wishx < 0) == (movex < 0)) {
 				if (wishx != 0) {
-					sprite.set_hflip(movex < 0);
+					sprite->set_hflip(movex < 0);
 				}
 
-				sprite.set_anim_if_not(run);
-				sprite.set_playback(
+				sprite->set_anim_if_not(run);
+				sprite->set_playback(
 					std::clamp(abs(speed) / 150.f, 0.5f, 2.f)
 				);
 			}
@@ -157,7 +153,7 @@ void Player::update(secs deltaTime) {
 		if (Input::isPressed(InputType::JUMP, 0.1f)) {
 			Input::confirmPress(InputType::JUMP);
 
-			sprite.set_anim(jump);
+			sprite->set_anim(jump);
 			ground->settings.slope_sticking = false;
 
 			Vec2f jumpVel = Vec2f{ box->get_vel().x, jumpVelY} ;
@@ -176,7 +172,7 @@ void Player::update(secs deltaTime) {
 
 
 			if (wishx != 0) {
-				sprite.set_hflip(wishx < 0);
+				sprite->set_hflip(wishx < 0);
 			}
 
 		}
@@ -187,14 +183,14 @@ void Player::update(secs deltaTime) {
 			bool shouldbrake = nowishx || turning;
 
 			if (movex != 0 && abs(speed) > 100.f && shouldbrake) {
-				AnimID brakeStyle = sprite.get_hflip() == (movex < 0) ? brakef.id() : brakeb.id();
+				AnimID brakeStyle = sprite->get_hflip() == (movex < 0) ? brakef.id() : brakeb.id();
 
 				if (abs(speed) > 300.f) {
-					sprite.set_anim(brakeStyle);
+					sprite->set_anim(brakeStyle);
 				}
-				else if (!(sprite.is_playing(brakeStyle) && sprite.get_frame() == 0)) {
-					sprite.set_anim(brakeStyle);
-					sprite.set_frame(1);
+				else if (!(sprite->is_playing(brakeStyle) && sprite->get_frame() == 0)) {
+					sprite->set_anim(brakeStyle);
+					sprite->set_frame(1);
 				}
 			}
 
@@ -226,15 +222,15 @@ void Player::update(secs deltaTime) {
 		box->add_accelY(600.f * wishy);
 
 		if (ground->get_air_time() > 0.05
-			&& !sprite.is_playing_any({ jump, fall }))
+			&& !sprite->is_playing_any({ jump, fall }))
 		{
-			sprite.set_anim(fall);
-			sprite.set_frame(2);
+			sprite->set_anim(fall);
+			sprite->set_frame(2);
 		}
-		else if (sprite.is_complete(jump)
+		else if (sprite->is_complete(jump)
 			&& box->get_vel().y > -100.f) 
 		{
-			sprite.set_anim(fall);
+			sprite->set_anim(fall);
 		}
 
 		ground->settings.slope_sticking = false;
@@ -259,7 +255,7 @@ void Player::update(secs deltaTime) {
 	}
 
 	box->update(deltaTime);
-	sprite.update(deltaTime);
+	sprite->update(deltaTime);
 	hitbox->update(box->getBox());
 	hurtbox->update();
 }
@@ -279,8 +275,8 @@ Player::CmdResponse Player::do_command(ObjCmd cmd, const std::any& payload)
 }
 
 void Player::predraw(secs deltaTime) {
-	sprite.set_pos(box->getPosition());
-	sprite.predraw(deltaTime);
+	sprite->set_pos(box->getPosition());
+	sprite->predraw(deltaTime);
 }
 
 void Player::ImGui_Inspect() {
@@ -290,5 +286,5 @@ void Player::ImGui_Inspect() {
 }
 
 void Player::draw(RenderTarget& target, RenderState states) const {
-	target.draw(sprite, states);
+	target.draw(*sprite, states);
 }

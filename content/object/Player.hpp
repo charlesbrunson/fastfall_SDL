@@ -9,7 +9,7 @@
 
 #include "fastfall/render/AnimatedSprite.hpp"
 
-#include "fastfall/game/trigger/Trigger.hpp"
+#include "fastfall/game/object/ObjectComponents.hpp"
 
 #include <cmath>
 
@@ -35,7 +35,7 @@ protected:
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 
-	AnimatedSprite sprite;
+	Scene_ptr<AnimatedSprite> sprite;
 
 	Collidable_ptr box;
 	SurfaceTracker* ground;

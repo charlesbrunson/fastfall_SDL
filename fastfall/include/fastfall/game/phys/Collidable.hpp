@@ -139,18 +139,5 @@ private:
 };
 
 
-struct Collidable_ptr {
-	Collidable_ptr(GameContext context);
-	Collidable_ptr(GameContext context, Vec2f init_pos, Vec2f init_size, Vec2f init_grav = Vec2f{});
-	~Collidable_ptr();
-
-	Collidable* operator->() { return m_collidable; }
-	Collidable& get() { return *m_collidable; };
-	GameContext context() { return m_context; };
-
-private:
-	Collidable* m_collidable;
-	GameContext m_context;
-};
 
 }
