@@ -4,7 +4,25 @@
 
 #include "fastfall/engine/config.hpp"
 
+#include "fastfall/game/InstanceInterface.hpp"
+
 namespace ff {
+
+
+CameraTarget::CameraTarget(GameContext context, CamTargetPriority priority, bool add_to_cam)
+	: m_context(context)
+	, m_priority(priority)
+{
+	if (add_to_cam) {
+		instance::cam_add_target(m_context, this);
+	}
+}
+
+CameraTarget::~CameraTarget() {
+	if (has_camera) {
+		instance::cam_remove_target(m_context, this);
+	}
+}
 
 GameCamera::GameCamera(Vec2f initPos) :
 	currentPosition(initPos)
@@ -14,27 +32,31 @@ GameCamera::GameCamera(Vec2f initPos) :
 
 void GameCamera::update(secs deltaTime) {
 
-	if (deltaTime > 0.0 && !lockPosition) {
+	if (deltaTime > 0.0) {
 
-		for (int i = 2; i >= 0; i--) {
-			if (targets[i].type != TargetType::NONE) {
-				if (targets[i].type == TargetType::MOVING) {
-					currentPosition = *targets[i].movingTarget + targets[i].offset;
-				}
-				else if (targets[i].type == TargetType::STATIC) {
-					currentPosition = targets[i].staticTarget + targets[i].offset;
-				}
-				break;
-			}
-
-			targets[i].offsetPrev = targets[i].offset;
+		for (auto target : targets) {
+			target->update(deltaTime);
 		}
 
+		if (active_target && active_target != targets.back()) {
+			active_target->m_state = CamTargetState::Inactive;
+			targets.back()->m_state = CamTargetState::Active;
+			active_target = targets.back();
+		}
+		else if (!active_target && targets.size() > 0) {
+			targets.back()->m_state = CamTargetState::Active;
+			active_target = targets.back();
+		}
+		else if (targets.empty()) {
+			active_target = nullptr;
+		}
+
+		if (active_target && !lockPosition) {
+			currentPosition = active_target->get_target_pos();
+		}
 	}
 
-
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::CAMERA_VISIBLE) && !debug_draw::repeat((void*)this, currentPosition)) {
-
 
 		debug_draw::set_offset(currentPosition);
 
@@ -43,7 +65,8 @@ void GameCamera::update(secs deltaTime) {
 			Vec2f{GAME_W_F, GAME_H_F}
 		};
 
-		auto& visible_box = createDebugDrawable<VertexArray, debug_draw::Type::CAMERA_VISIBLE>((const void*)this, Primitive::LINE_LOOP, 4);
+		auto& visible_box = createDebugDrawable<VertexArray, debug_draw::Type::CAMERA_VISIBLE>(
+			(const void*)this, Primitive::LINE_LOOP, 4);
 
 		for (int i = 0; i < visible_box.size(); i++) {
 			visible_box[i].color = Color::White;
@@ -53,21 +76,83 @@ void GameCamera::update(secs deltaTime) {
 		visible_box[2].pos = math::rect_botright(area);
 		visible_box[3].pos = math::rect_botleft(area);
 
+
+		auto& current_crosshair = createDebugDrawable<VertexArray, debug_draw::Type::CAMERA_VISIBLE>(
+			(const void*)this, Primitive::LINE_LOOP, 4);
+		for (int i = 0; i < current_crosshair.size(); i++) {
+			current_crosshair[i].color = Color::White;
+		}
+		current_crosshair[0].pos = Vec2f{ -2.f,  0.f };
+		current_crosshair[1].pos = Vec2f{ 0.f, -2.f };
+		current_crosshair[2].pos = Vec2f{ 2.f,  0.f };
+		current_crosshair[3].pos = Vec2f{ 0.f,  2.f };
+
 		debug_draw::set_offset();
 	}
+
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::CAMERA_TARGET)) {
+		for (auto target : targets) {
+			Vec2f pos = target->get_target_pos();
+			if (!debug_draw::repeat((void*)target, pos)) {
+
+				debug_draw::set_offset(pos);
+
+				auto& target_crosshair = createDebugDrawable<VertexArray, debug_draw::Type::CAMERA_TARGET>(
+					(const void*)target, Primitive::LINES, 4);
+
+				for (int i = 0; i < target_crosshair.size(); i++) {
+					target_crosshair[i].color = Color::White;
+				}
+				target_crosshair[0].pos = Vec2f{ -2.f,  0.f };
+				target_crosshair[1].pos = Vec2f{  2.f,  0.f };
+				target_crosshair[2].pos = Vec2f{  0.f, -2.f };
+				target_crosshair[3].pos = Vec2f{  0.f,  2.f };
+
+				debug_draw::set_offset();
+			}
+		}
+	}
+
+
 }
 
-void GameCamera::addTarget(GameCamera::Target target) {
-	targets[static_cast<size_t>(target.priority)] = target;
+
+void GameCamera::addTarget(CameraTarget* target) {
+	auto iter_pair = std::equal_range(
+		targets.begin(), targets.end(),
+		target,
+		[](const CameraTarget* lhs, const CameraTarget* rhs) {
+			return lhs->get_priority() < rhs->get_priority();
+		});
+
+	targets.insert(iter_pair.second, target);
+	target->has_camera = true;
 }
-void GameCamera::removeTarget(TargetPriority priority) {
-	targets[static_cast<size_t>(priority)].type = TargetType::NONE;
+bool GameCamera::removeTarget(CameraTarget* target) {
+
+	auto iter = std::find(targets.begin(), targets.end(), target);
+	bool has_target = iter != targets.end();
+	if (has_target) {
+		if (active_target == target) {
+			active_target = nullptr;
+		}
+		targets.erase(iter);
+		target->has_camera = false;
+	}
+	return has_target;
 }
+
 
 void GameCamera::removeAllTargets() {
-	for (size_t i = 0; i < TARGET_COUNT; i++) {
-		targets[i].type = TargetType::NONE;
+	for (auto target : targets) {
+		target->has_camera = false;
 	}
+	targets.clear();
+	active_target = nullptr;
+}
+
+const std::vector<CameraTarget*>& GameCamera::getTargets() const {
+	return targets;
 }
 
 }

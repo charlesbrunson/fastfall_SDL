@@ -149,14 +149,15 @@ namespace ff::instance {
 		}
 		return nullptr;
 	}
-	void cam_add_target(GameContext context, GameCamera::Target target) {
+
+	void cam_add_target(GameContext context, CameraTarget* target) {
 		if (auto* inst = getInstance(context)) {
 			inst->getCamera().addTarget(target);
 		}
 	}
-	void cam_remove_target(GameContext context, GameCamera::TargetPriority priority) {
+	void cam_remove_target(GameContext context, CameraTarget* target) {
 		if (auto* inst = getInstance(context)) {
-			inst->getCamera().removeTarget(priority);
+			inst->getCamera().removeTarget(target);
 		}
 	}
 	Vec2f cam_get_pos(GameContext context) {

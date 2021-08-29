@@ -10,6 +10,7 @@
 #include "fastfall/render/AnimatedSprite.hpp"
 
 #include "fastfall/game/object/ObjectComponents.hpp"
+#include "fastfall/game/camera/SimpleCamTarget.hpp"
 
 #include <cmath>
 
@@ -42,5 +43,7 @@ protected:
 
 	Trigger_ptr hurtbox;
 	Trigger_ptr hitbox;
+
+	SimpleCamTarget cam_target;
 
 };

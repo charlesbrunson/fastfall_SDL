@@ -37,6 +37,7 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 	, hitbox(	instance, box->getBox(), { "hitbox" },	{},			  this)
 	, hurtbox(	instance, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
 	, sprite(instance, AnimatedSprite{}, SceneType::Object)
+	, cam_target(instance, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
 {
 	// surface tracker
 	ground = &box->create_tracker(
@@ -50,6 +51,7 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 		});
 
 	// camera target
+	/*
 	instance::cam_add_target(
 		context,
 		{
@@ -58,6 +60,7 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 			.offset = Vec2f(0, -16),
 			.priority = GameCamera::TargetPriority::MEDIUM,
 		});
+	*/
 
 	// triggers
 	hurtbox->set_trigger_callback(
@@ -83,9 +86,11 @@ Player::Player(GameContext instance, const ObjectRef& ref, const ObjectType& typ
 };
 
 Player::~Player() {
+	/*
 	if (context.valid()) {
 		instance::cam_remove_target(context, GameCamera::TargetPriority::MEDIUM);
 	}
+	*/
 }
 
 std::unique_ptr<GameObject> Player::clone() const {

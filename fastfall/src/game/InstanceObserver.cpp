@@ -385,7 +385,7 @@ void cameraContent(GameContext context) {
 	for (unsigned i = 0; i < targets.size(); i++) {
 		auto& target = targets[i];
 
-
+		/*
 		if (target.type == GameCamera::TargetType::MOVING) {
 			ImGui::Text("Target: Moving(%3.2f, %3.2f)", target.movingTarget->x, target.movingTarget->y);
 		}
@@ -395,8 +395,25 @@ void cameraContent(GameContext context) {
 		else {
 			ImGui::Text("Target: Invalid");
 		}
-		ImGui::Text("Offset (%3.2f, %3.2f)", target.offset.x, target.offset.y);
-		ImGui::Text("Target Priority: %u", target.priority);
+		*/
+		//ImGui::Text("Offset (%3.2f, %3.2f)", target.offset.x, target.offset.y);
+		//ImGui::Text("Target Priority: %u", target.priority);
+
+
+		ImGui::Text("Target Active: %s", 
+			(target->get_state() == CamTargetState::Active ? "Active" : "Inactive")
+		);
+		Vec2f pos = target->get_target_pos();
+		ImGui::Text("Target Position: (%3.2f, %3.2f)", pos.x, pos.y);
+
+		const char* priority_str;
+		switch (target->get_priority()) {
+		case CamTargetPriority::Low:	priority_str = "Low";	 break;
+		case CamTargetPriority::Medium: priority_str = "Medium"; break;
+		case CamTargetPriority::High:	priority_str = "High";	 break;
+		}
+		ImGui::Text("Target Priority: %s", priority_str);
+
 
 		ImGui::Separator();
 	}
