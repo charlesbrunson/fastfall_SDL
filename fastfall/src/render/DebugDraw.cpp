@@ -47,6 +47,7 @@ bool typeEnable[] = {
 	false,	// TILELAYER_AREA
 	false,	// TILELAYER_CHUNK
 	false,	// CAMERA_VISIBLE
+	false,	// CAMERA_TARGET
 	true,	// TRIGGER_AREA
 };
 constexpr unsigned typeEnableCount = (sizeof(typeEnable) / sizeof(typeEnable[0]));

@@ -28,7 +28,9 @@ add_executable(test_project
 	"content/tilelogic/AnimLogic.hpp"
 	"content/tilelogic/AnimLogic.cpp"
 	"content/types.hpp"
-	"content/types.cpp")
+	"content/types.cpp"
+	"content/camera/SimpleCamTarget.hpp"
+	"content/camera/SimpleCamTarget.cpp")
 
 target_link_libraries(test_project PRIVATE 
 	fastfall

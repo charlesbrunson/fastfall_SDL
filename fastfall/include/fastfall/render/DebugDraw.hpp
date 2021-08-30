@@ -25,6 +25,7 @@ namespace debug_draw {
 		TILELAYER_CHUNK,
 
 		CAMERA_VISIBLE,
+		CAMERA_TARGET,
 
 		TRIGGER_AREA,
 

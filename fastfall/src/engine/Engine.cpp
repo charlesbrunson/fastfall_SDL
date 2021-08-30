@@ -932,6 +932,7 @@ void DebugDrawImgui::ImGui_getContent() {
         "TILELAYER_AREA",
         "TILELAYER_CHUNK",
         "CAMERA_VISIBLE",
+        "CAMERA_TARGET",
         "TRIGGER_AREA",
     };
     static_assert((sizeof(names) / sizeof(names[0])) == static_cast<unsigned>(debug_draw::Type::LAST), "fix me");
