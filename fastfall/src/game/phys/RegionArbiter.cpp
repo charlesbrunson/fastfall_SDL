@@ -11,7 +11,9 @@ void RegionArbiter::updateRegion(Rectf bounds) {
 
 	// check for stale (out of bounds) quads to remove
 	for (auto q = prevQuads.cbegin(); q != prevQuads.cend(); q++) {
-		if (!bounds.intersects(q->first)) {
+		//if (!bounds.intersects(q->first)) {
+		if (!bounds.touches(q->first)) { // fixes oneway collision?
+
 			// just exited this quad
 			//quadArbiters.erase(q->second);
 			auto quad_iter = quadArbiters.find(q->second);

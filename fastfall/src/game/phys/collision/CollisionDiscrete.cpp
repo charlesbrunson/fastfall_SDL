@@ -439,7 +439,7 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
 
 	// if this is a oneway, invalidate it if the collider's previous position is not above it
 	if (!collidePrevious && cQuad.isOneWay(Cardinal::NORTH)) {
-		axis.axisValid = math::rect_botleft(cPrev).y /*- 1.f*/ <= tMid.y - tHalf.y;
+		axis.axisValid = math::rect_botleft(cPrev).y <= tMid.y - tHalf.y;
 	}
 
 	return axis;
@@ -457,7 +457,7 @@ CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcep
 	// if this is a oneway, invalidate it if the collider's previous position is not below it
 	if (!collidePrevious && cQuad.isOneWay(Cardinal::SOUTH)) {
 		//LOG_INFO("{} >= {}", math::rect_topleft(cPrev).y, tMid.y + tHalf.y);
-		axis.axisValid = math::rect_topleft(cPrev).y /*+ 1.f*/ >= tMid.y + tHalf.y;
+		axis.axisValid = math::rect_topleft(cPrev).y >= tMid.y + tHalf.y;
 	}
 
 	return axis;
