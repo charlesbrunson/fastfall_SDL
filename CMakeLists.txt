@@ -23,6 +23,10 @@ add_executable(test_project
 	"content/object/BasicPlatform.cpp" 
 	"content/object/Player.cpp" 
 	"content/object/Player.hpp" 
+	"content/object/plr_states/PlayerAir.hpp" 
+	"content/object/plr_states/PlayerAir.cpp" 
+	"content/object/PlayerConstants.hpp" 
+	"content/object/PlayerConstants.cpp"
 	"content/TestState.cpp" 
 	"content/TestState.hpp" 
 	"content/tilelogic/AnimLogic.hpp"
@@ -30,7 +34,7 @@ add_executable(test_project
 	"content/types.hpp"
 	"content/types.cpp"
 	"content/camera/SimpleCamTarget.hpp"
-	"content/camera/SimpleCamTarget.cpp")
+	"content/camera/SimpleCamTarget.cpp" "content/object/plr_states/PlayerGround.hpp" "content/object/plr_states/PlayerGround.cpp")
 
 target_link_libraries(test_project PRIVATE 
 	fastfall
