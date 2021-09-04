@@ -17,35 +17,6 @@ Arbiter::Arbiter(Collidable* col_dable, const ColliderQuad* col_der, const Colli
 	region = col_region;
 }
 
-/*
-Arbiter::Arbiter(Arbiter&& arb) noexcept :
-	collision(std::move(arb.collision))
-{
-
-	//std::swap(collision, arb.collision);
-
-	aliveTimer = arb.aliveTimer;
-	touchTimer = arb.touchTimer;
-
-	collidable = arb.collidable;
-	collider = arb.collider;
-	region = arb.region;
-	recalcCounter = arb.recalcCounter;
-}
-
-
-Arbiter& Arbiter::operator= (Arbiter&& arb) noexcept {
-	collision = std::move(arb.collision);
-
-	aliveTimer = arb.aliveTimer;
-	touchTimer = arb.touchTimer;
-
-	collidable = arb.collidable;
-	collider = arb.collider;
-	region = arb.region;
-	recalcCounter = arb.recalcCounter;
-}
-*/
 
 void Arbiter::setApplied() {
 	collision.setAxisApplied(collision.getContact().ortho_normal);

@@ -14,7 +14,10 @@ namespace ff {
 void debugDrawRaycast(std::optional<RaycastHit> result, Linef raycastLine) {
 
 	if (result.has_value()) {
+		const auto& hit = result.value();
+
 		auto& rayX = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINES, 8);
+
 		rayX[0].color = Color::Red;
 		rayX[1].color = Color::Red;
 		rayX[2].color = Color::Red;
@@ -23,14 +26,15 @@ void debugDrawRaycast(std::optional<RaycastHit> result, Linef raycastLine) {
 		rayX[5].color = Color::Red;
 		rayX[6].color = Color::Red;
 		rayX[7].color = Color::Red;
-		rayX[0].pos = result.value().impact + Vec2f(-2.f, -2.f);
-		rayX[1].pos = result.value().impact + Vec2f(2.f, 2.f);
-		rayX[2].pos = result.value().impact + Vec2f(2.f, -2.f);
-		rayX[3].pos = result.value().impact + Vec2f(-2.f, 2.f);
-		rayX[4].pos = result.value().origin;
-		rayX[5].pos = result.value().impact;
-		rayX[6].pos = result.value().surface->surface.p1 + result.value().region->getPosition();
-		rayX[7].pos = result.value().surface->surface.p2 + result.value().region->getPosition();
+
+		rayX[0].pos = hit.impact + Vec2f(-2.f, -2.f);
+		rayX[1].pos = hit.impact + Vec2f(2.f, 2.f);
+		rayX[2].pos = hit.impact + Vec2f(2.f, -2.f);
+		rayX[3].pos = hit.impact + Vec2f(-2.f, 2.f);
+		rayX[4].pos = hit.origin;
+		rayX[5].pos = hit.impact;
+		rayX[6].pos = hit.surface->surface.p1 + result.value().region->getPosition();
+		rayX[7].pos = hit.surface->surface.p2 + result.value().region->getPosition();
 	}
 	else {
 		auto& empty = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINE_LOOP, 4);

@@ -46,7 +46,7 @@ Player::Player(GameContext context, const ObjectRef& ref, const ObjectType& type
 					obj->getType().group_tags.contains("player")
 					&& pull.state == Trigger::State::Entry)
 				{
-					if (auto rpayload = cmd_accepted(obj->command<ObjCmd::GetPosition>()))
+					if (auto rpayload = obj->command<ObjCmd::GetPosition>().payload())
 					{
 						LOG_INFO("position: {}", rpayload->to_string());
 					}
@@ -119,12 +119,11 @@ void Player::update(secs deltaTime) {
 
 Player::CmdResponse Player::do_command(ObjCmd cmd, const std::any& payload) 
 {
-	if (constexpr auto CMD = ObjCmd::NoOp; cmd == CMD)
+	if (const auto CMD = ObjCmd::NoOp; cmd == CMD)
 	{
-		LOG_INFO("It's me!");
 		return respond<CMD>(true);
 	}
-	if (constexpr auto CMD = ObjCmd::GetPosition; cmd == CMD)
+	if (const auto CMD = ObjCmd::GetPosition; cmd == CMD)
 	{
 		return respond<CMD>(box->getPosition());
 	}

@@ -20,6 +20,8 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime) {
 	plr.box->set_gravity(constants::grav_normal);
 
 	if (!plr.ground->has_contact()) {
+
+
 		if (plr.box->get_vel().y > -100.f) {
 			plr.box->setSlipV(6.f);
 		}
