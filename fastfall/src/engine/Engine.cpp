@@ -477,7 +477,7 @@ void Engine::handleEvents(bool* timeWasted)
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-                
+
         if (ImGui_ImplSDL2_ProcessEvent(&event)) {
             if (ImGui::GetIO().WantCaptureMouse && (event.type & SDL_MOUSEMOTION) > 0) {
                 continue;
@@ -678,7 +678,7 @@ void Engine::resizeWindow(
     int offY = (finalSize.y - trueY) / 2;
 
     View v = window->getView();
-    
+
     v.setViewport({
         (float)offX,
         (float)offY,

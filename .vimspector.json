@@ -1,0 +1,15 @@
+{
+    "configurations": {
+        "test_project": {
+            "adapter": "vscode-cpptools",
+            "configuration": {
+                "Mimode": "gdb",
+                "args": [],
+                "cwd": "${workspaceRoot}",
+                "program": "/home/cbru/fastfall_SDL/cmake-build-Debug/test_project",
+                "request": "launch",
+                "type": "cppdbg"
+            }
+        }
+    }
+}

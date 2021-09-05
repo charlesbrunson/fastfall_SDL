@@ -1,4 +1,3 @@
-
 #include "Player.hpp"
 #include "PlayerConstants.hpp"
 
@@ -40,17 +39,15 @@ Player::Player(GameContext context, const ObjectRef& ref, const ObjectType& type
 	// triggers
 	hurtbox->set_trigger_callback(
 		[](const TriggerPull& pull) {
-			if (auto owner = pull.trigger.get().get_owner()) 
+			if (auto owner = pull.trigger->get_owner();
+				pull.state == Trigger::State::Entry
+				&& owner.has_value() 
+				&& owner.value()->getType().group_tags.contains("player"))
 			{
-				if (GameObject* obj = *owner; 
-					obj->getType().group_tags.contains("player")
-					&& pull.state == Trigger::State::Entry)
+				GameObject* obj = *owner;
+				if (auto rpayload = obj->command<ObjCmd::GetPosition>().payload())
 				{
-					if (auto rpayload = obj->command<ObjCmd::GetPosition>().payload())
-					{
-						LOG_INFO("position: {}", rpayload->to_string());
-					}
-
+					LOG_INFO("position: {}", rpayload->to_string());
 				}
 			}
 		});
@@ -92,18 +89,8 @@ void Player::update(secs deltaTime) {
 			curr_state->exit(*this, next_state.get());
 			curr_state.swap(next_state);
 			curr_state->enter(*this, next_state.get());
-			//curr_state->update(deltaTime);
 		}
 	}
-
-	/*
-	if (Input::isPressed(InputType::ATTACK)) {
-		box->setSize(Vec2f(box->getBox().getSize()) + Vec2f(1.f, 1.f));
-	}
-	if (Input::isPressed(InputType::DASH)) {
-		box->setSize(Vec2f(box->getBox().getSize()) + Vec2f(-1.f, -1.f));
-	}
-	*/
 
 	// blink
 	if (Input::getMouseInView() && Input::isPressed(InputType::MOUSE1)) {
@@ -137,7 +124,7 @@ void Player::predraw(secs deltaTime) {
 
 void Player::ImGui_Inspect() {
 	ImGui::Text("Hello World!");
-	ImGui::Text("Current State: %d %s", curr_state->get_id(), curr_state->get_name());
+	ImGui::Text("Current State: %d %s", curr_state->get_id(), curr_state->get_name().data());
 	ImGui::Text("Position(%3.2f, %3.2f)", box->getPosition().x, box->getPosition().y);
 	ImGui::Text("Velocity(%3.2f, %3.2f)", box->get_vel().x, box->get_vel().y);
 }

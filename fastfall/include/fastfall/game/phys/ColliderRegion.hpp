@@ -27,6 +27,7 @@ public:
 		id = ColliderID{ colliderIDCounter++ };
 		assert(id.value != ColliderID::NO_ID);
 	}
+	virtual ~ColliderRegion() {};
 
 	virtual void getQuads(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& buffer) const = 0;
 

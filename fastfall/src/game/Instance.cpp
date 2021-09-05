@@ -26,14 +26,16 @@ void GameInstance::clear() {
 	activeLevel = nullptr;
 	currentLevels.clear();
 	objMan.clear();
+	sceneMan.clear();
 	camera.removeAllTargets();
 }
 
 void GameInstance::reset() {
 
 	//activeLevel = nullptr;
-	camera.removeAllTargets();
 	objMan.clear();
+	sceneMan.clear();
+	camera.removeAllTargets();
 	for (auto& lvl : currentLevels) {
 		if (lvl.second->name()) {
 			auto* asset = Resources::get<LevelAsset>(*lvl.second->name());
@@ -45,6 +47,12 @@ void GameInstance::reset() {
 
 	Level* lvl = getActiveLevel();
 	assert(lvl);
+	
+	if (lvl) {
+		populateSceneFromLevel(*lvl);
+	}
+
+
 	//if (lvl) {
 
 		//if (!lvl->getFGLayers().empty())

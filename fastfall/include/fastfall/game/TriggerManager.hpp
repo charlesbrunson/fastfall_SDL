@@ -10,7 +10,7 @@ namespace ff {
 
 class TriggerManager {
 public:
-	using Trigger_sptr = std::shared_ptr<Trigger>;
+	//using Trigger_sptr = std::unique_ptr<Trigger>;
 
 	TriggerManager(unsigned instance);
 
@@ -26,13 +26,13 @@ public:
 
 	void update(secs deltaTime);
 
-	const std::vector<Trigger_sptr>& get_triggers() { return triggers; };
+	const plf::colony<Trigger>& get_triggers() { return triggers; };
 
 private:
 
-	void compareTriggers(Trigger_sptr& A, Trigger_sptr& B, secs deltaTime);
+	void compareTriggers(Trigger& A, Trigger& B, secs deltaTime);
 
-	std::vector<Trigger_sptr> triggers;
+	plf::colony<Trigger> triggers;
 
 	unsigned instanceID;
 

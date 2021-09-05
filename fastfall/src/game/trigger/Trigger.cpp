@@ -12,12 +12,12 @@ void Trigger::set_trigger_callback(TriggerFn&& trigger_fn) {
 	on_trigger = std::move(trigger_fn);
 }
 
-std::optional<TriggerPull> Trigger::triggerable_by(const std::shared_ptr<Trigger>& trigger, secs delta_time) {
+std::optional<TriggerPull> Trigger::triggerable_by(const Trigger& trigger, secs delta_time) {
 	Rectf intersection;
-	area.intersects(trigger->area, intersection);
+	area.intersects(trigger.area, intersection);
 
 	bool result = false;
-	for (auto tag : trigger->self_flags) {
+	for (auto tag : trigger.self_flags) {
 		if (filter_flags.contains(tag)) {
 			result = true;
 			break;
@@ -33,12 +33,12 @@ std::optional<TriggerPull> Trigger::triggerable_by(const std::shared_ptr<Trigger
 			result = intersection.width == 0.f && intersection.height == 0.f;
 			break;
 		case Overlap::Inside:
-			result = intersection == area || intersection == trigger->area;
+			result = intersection == area || intersection == trigger.area;
 			break;
 		}
 	}
 
-	auto driver_iter = drivers.find(trigger.get());
+	auto driver_iter = drivers.find(&trigger);
 
 	std::optional<TriggerPull> pull = std::nullopt;
 	if (result && is_enabled()) {
@@ -51,19 +51,19 @@ std::optional<TriggerPull> Trigger::triggerable_by(const std::shared_ptr<Trigger
 			pull = TriggerPull{
 				.duration = driver_iter->second.duration,
 				.state = State::Loop,
-				.trigger = std::cref(*trigger)
+				.trigger = &trigger
 			};
 		}
 		else {
 
 			// start
-			driver_iter = drivers.emplace(trigger.get(), TriggerData{}).first;
+			driver_iter = drivers.emplace(&trigger, TriggerData{}).first;
 			driver_iter->second.duration.delta = delta_time;
 
 			pull = TriggerPull{
 				.duration = driver_iter->second.duration,
 				.state = State::Entry,
-				.trigger = std::cref(*trigger)
+				.trigger = &trigger
 			};
 		}
 	}
@@ -73,7 +73,7 @@ std::optional<TriggerPull> Trigger::triggerable_by(const std::shared_ptr<Trigger
 		pull = TriggerPull{
 			.duration = driver_iter->second.duration,
 			.state = State::Exit,
-			.trigger = std::cref(*trigger)
+			.trigger = &trigger
 		};
 		drivers.erase(driver_iter);
 	}

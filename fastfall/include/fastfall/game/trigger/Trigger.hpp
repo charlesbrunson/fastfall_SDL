@@ -57,7 +57,7 @@ public:
 
 	std::optional<GameObject*> get_owner() const { return owner; };
 
-	std::optional<TriggerPull> triggerable_by(const std::shared_ptr<Trigger>& trigger, secs delta_time);
+	std::optional<TriggerPull> triggerable_by(const Trigger& trigger, secs delta_time);
 	void trigger(const TriggerPull& confirm);
 
 	//bool trigger(const Trigger& trigger);
@@ -93,7 +93,7 @@ private:
 struct TriggerPull {
 	Trigger::Duration duration;
 	Trigger::State state = Trigger::State::None;
-	std::reference_wrapper<const Trigger> trigger;
+	const Trigger* trigger;
 };
 
 extern const TriggerTag ttag_generic;

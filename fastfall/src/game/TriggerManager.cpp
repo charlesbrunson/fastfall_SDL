@@ -29,7 +29,7 @@ TriggerManager::TriggerManager(unsigned instance)
 }
 
 Trigger* TriggerManager::create_trigger() {
-	return triggers.emplace_back(std::make_shared<Trigger>()).get();
+	return &*triggers.emplace();
 }
 
 Trigger* TriggerManager::create_trigger(
@@ -39,7 +39,10 @@ Trigger* TriggerManager::create_trigger(
 	GameObject* owner,
 	Trigger::Overlap overlap
 ) {
-	Trigger* trigger = triggers.emplace_back(std::make_shared<Trigger>()).get();
+
+
+	Trigger* trigger = &*triggers.emplace();
+	//Trigger* trigger = &triggers.emplace_back(Trigger{});
 	trigger->self_flags = self_flags;
 	trigger->filter_flags = filter_flags;
 	trigger->overlap = overlap;
@@ -50,8 +53,8 @@ Trigger* TriggerManager::create_trigger(
 
 bool TriggerManager::erase_trigger(Trigger* trigger) {
 
-	auto it = std::find_if(triggers.begin(), triggers.end(), [trigger](const std::shared_ptr<Trigger>& sptr) {
-			return trigger == sptr.get();
+	auto it = std::find_if(triggers.begin(), triggers.end(), [trigger](const Trigger& m_trigger) {
+			return trigger == &m_trigger;
 		});
 
 	if (it != triggers.end()) {
@@ -73,17 +76,17 @@ void TriggerManager::update(secs deltaTime) {
 
 		if (debug_draw::hasTypeEnabled(debug_draw::Type::TRIGGER_AREA)) {
 			for (auto& tr : triggers) {
-				debugDrawTrigger(*tr);
+				debugDrawTrigger(tr);
 			}
 		}
 	}
 
 }
 
-void TriggerManager::compareTriggers(Trigger_sptr& A, Trigger_sptr& B, secs deltaTime) {
+void TriggerManager::compareTriggers(Trigger& A, Trigger& B, secs deltaTime) {
 
-	if (auto pull = A->triggerable_by(B, deltaTime)) {
-		A->trigger(pull.value());
+	if (auto pull = A.triggerable_by(B, deltaTime)) {
+		A.trigger(pull.value());
 	}
 }
 

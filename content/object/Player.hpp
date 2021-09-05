@@ -49,6 +49,8 @@ enum class PlayerStateID {
 
 class PlayerState {
 public:
+	virtual ~PlayerState() {};
+
 	virtual void enter(Player& plr, PlayerState* from) {};
 	virtual PlayerStateID update(Player& plr, secs deltaTime) = 0;
 	virtual void exit(Player& plr, PlayerState* to) {};

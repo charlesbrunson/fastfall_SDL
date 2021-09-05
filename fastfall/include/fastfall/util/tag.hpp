@@ -5,13 +5,17 @@
 #include <sstream>
 #include <concepts>
 #include <algorithm>
+#include <type_traits>
 
 namespace ff {
 
 template<typename T>
-requires requires (T t) {
-	{ T::TagType } -> std::convertible_to<std::string_view>;
-}
+concept is_tag = requires (T t, std::string_view tag_name) {
+	tag_name = T::TagType;
+};
+
+template<typename T>
+requires is_tag<T>
 struct Tag {
 private:
 
@@ -29,7 +33,7 @@ public:
 
 	constexpr Tag() = default;
 	constexpr Tag(const char* tag) : Tag(std::string(tag)) {};
-	constexpr Tag(std::string tag)
+	Tag(std::string tag)
 	{
 		if (tag.empty())
 			return;
@@ -54,7 +58,7 @@ public:
 
 	constexpr std::string_view tag_type_str() const { return T::TagType; }
 	constexpr std::string_view tag_name_str() const { return str; }
-	constexpr std::string to_string() const {
+	std::string to_string() const {
 		std::stringstream ss;
 		ss << T::TagType << ":" << (str.empty() ? "NIL" : str);
 		return ss.str();

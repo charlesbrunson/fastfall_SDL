@@ -22,25 +22,14 @@ using return_type = ReturnType;														\
 
 
 template<class Enum, Enum T> inline constexpr bool is_command_v = command<Enum, T>::is_command::value;
-template<class Enum, Enum T> using cmd_payload_t = command<Enum, T>::payload_type;
-template<class Enum, Enum T> using cmd_return_t = command<Enum, T>::return_type;
+template<class Enum, Enum T> using cmd_payload_t = typename command<Enum, T>::payload_type;
+template<class Enum, Enum T> using cmd_return_t = typename command<Enum, T>::return_type;
 
 enum class Response {
 	Accepted,
 	Rejected,
 	Unhandled
 };
-
-/*
-constexpr inline bool cmd_accepted(Response resp) {
-	return resp == Response::Accepted;
-}
-
-template<typename T>
-std::optional<T> cmd_accepted(const std::pair<Response, T>& resp) {
-	return resp.first == Response::Accepted ? std::make_optional(resp.second) : std::nullopt;
-}
-*/
 
 template<typename T>
 struct CmdRetPayload {
@@ -109,9 +98,9 @@ protected:
 		Response response;
 		std::any payload;
 
-		template<class Enum>
-		requires std::is_enum_v<Enum>
-			friend class Commandable;
+		//template<class Enum>
+		//requires std::is_enum_v<Enum>
+		friend class Commandable;
 	};
 
 	template<Enum C>
