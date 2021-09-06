@@ -79,6 +79,8 @@ public:
 	static void unloadAll();
 	static bool buildPackFile(const std::string& packFilename);
 
+	// attempt to reload out of date assets, returns true if needed
+	static bool reloadOutOfDateAssets();
 
 	void ImGui_getContent();
 };

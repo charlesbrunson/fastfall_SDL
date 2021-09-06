@@ -15,12 +15,9 @@ public:
 		return tex;
 	}
 
-	bool loadFromFile(const std::string& relpath) override { return false; };
+	bool loadFromFile(const std::string& path_to_image) override;
 
-	bool reloadFromFile() override {
-		//TODO
-		return false;
-	};
+	bool reloadFromFile() override;
 
 	void ImGui_getContent() override;
 

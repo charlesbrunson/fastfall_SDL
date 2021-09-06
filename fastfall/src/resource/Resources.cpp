@@ -517,15 +517,30 @@ void Resources::addLoadedToWatcher() {
 	assert(resource.loadMethod != AssetSource::PACK_FILE);
 
 	for (auto& [key, val] : resource.sprites) {
-		ResourceWatcher::add_watch(val->getFilePath() + val->getAssetName() + spriteExt, val.get());
-		ResourceWatcher::add_watch(val->getTexPath(), val.get());
+		ResourceWatcher::add_watch(
+			val.get(),
+			{
+				val->getFilePath() + val->getAssetName() + spriteExt,
+				val->getTexPath()
+			}
+		);
 	}
 	for (auto& [key, val] : resource.tilesets) {
-		ResourceWatcher::add_watch(val->getFilePath() + val->getAssetName() + tilesetExt, val.get());
-		ResourceWatcher::add_watch(val->getTexPath(), val.get());
+		ResourceWatcher::add_watch(
+			val.get(),
+			{
+				val->getFilePath() + val->getAssetName() + tilesetExt,
+				val->getTexPath()
+			}
+		);
 	}
 	for (auto& [key, val] : resource.levels) {
-		ResourceWatcher::add_watch(val->getFilePath() + val->getAssetName() + levelExt, val.get());
+		ResourceWatcher::add_watch(
+			val.get(),
+			{ 
+				val->getFilePath() + val->getAssetName() + levelExt
+			}
+		);
 	}
 }
 
@@ -544,6 +559,29 @@ void Resources::loadControllerDB() {
 		}
 		loadedControllerDB = true;
 	}
+}
+
+
+bool Resources::reloadOutOfDateAssets()
+{
+	bool reloaded_any = false;
+
+	assert(resource.loadMethod != AssetSource::PACK_FILE);
+
+	for (auto& [key, val] : resource.sprites) {
+		if (val->isOutOfDate() && val->isLoaded()) 
+		{
+			reloaded_any = true;
+
+			LOG_INFO("Reloading asset \"{}\"", val->getAssetName());
+			bool reloaded = val->reloadFromFile();
+			if (!reloaded) {
+				LOG_ERR_("Failed to reload asset");
+			}
+			val->setOutOfDate(false);
+		}
+	}
+	return reloaded_any;
 }
 
 }

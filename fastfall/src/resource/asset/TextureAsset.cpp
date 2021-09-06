@@ -19,6 +19,33 @@ TextureAsset::TextureAsset(const std::string& filename) :
 }
 
 
+bool TextureAsset::loadFromFile(const std::string& path_to_image) {
+	fullpath = path_to_image;
+
+	if (loaded) {
+		ff::Texture n_tex;
+		bool n_loaded = n_tex.loadFromFile(fullpath);
+		if (n_loaded) {
+			tex = std::move(n_tex);
+		}
+	}
+	else {
+		loaded = tex.loadFromFile(fullpath);
+	}
+
+	return loaded;
+}
+
+bool TextureAsset::reloadFromFile() {
+
+	ff::Texture n_tex;
+	bool n_loaded = n_tex.loadFromFile(fullpath);
+	if (n_loaded) {
+		tex = std::move(n_tex);
+	}
+	return n_loaded;
+}
+
 void TextureAsset::ImGui_getContent() {
 	ImGui::Text("%s", getAssetName().c_str());
 	ImGui::SameLine(ImGui::GetWindowWidth() - 100);

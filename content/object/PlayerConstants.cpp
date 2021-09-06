@@ -16,13 +16,17 @@ namespace plr::anim {
 
 namespace plr::constants {
 
-	const Friction braking{ .stationary = 1.2f, .kinetic = 0.8f };
-	const Friction moving{ .stationary = 0.f,  .kinetic = 0.f };
+	Friction braking{ .stationary = 1.2f, .kinetic = 0.8f };
+	Friction moving{ .stationary = 0.f,  .kinetic = 0.f };
 
-	const float max_speed = 500.f;
-	const float norm_speed = 200.f;
-	const float jumpVelY = -200.f;
+	Default<float> max_speed = 500.f;
+	Default<float> norm_speed = 200.f;
+	Default<float> jumpVelY = -200.f;
 
-	const Vec2f grav_normal{ 0.f, 500.f };
-	const Vec2f grav_light{ 0.f, 350.f };
+	Default<float> ground_accel = 1200.f;
+	Default<float> ground_high_decel = 300.f;
+	Default<float> ground_idle_decel = 450.f;
+
+	Default<Vec2f> grav_normal = Vec2f{ 0.f, 500.f };
+	Default<Vec2f> grav_light = Vec2f{ 0.f, 350.f };
 }

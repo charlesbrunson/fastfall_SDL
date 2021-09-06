@@ -42,10 +42,7 @@ public:
 	bool loadFromFlat(const flat::resources::SpriteAssetF* builder);
 	flatbuffers::Offset<flat::resources::SpriteAssetF> writeToFlat(flatbuffers::FlatBufferBuilder& builder) const;
 
-	bool reloadFromFile() override {
-		//TODO
-		return false;
-	};
+	bool reloadFromFile() override;
 
 	// returns a pointer to the animation, or nullptr if not found
 	//const Animation* getAnimation(const std::string_view animName) const;

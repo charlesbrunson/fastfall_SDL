@@ -25,6 +25,7 @@ Player::Player(GameContext context, const ObjectRef& ref, const ObjectType& type
 	, cam_target(context, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
 	, curr_state(new PlayerGroundState())
 {
+
 	// surface tracker
 	ground = &box->create_tracker(
 		Angle::Degree(-135), Angle::Degree(-45), 
@@ -34,6 +35,7 @@ Player::Player(GameContext context, const ObjectRef& ref, const ObjectType& type
 			.slope_wall_stop = true,
 			.has_friction = true,
 			.stick_angle_max = Angle::Degree(90),
+			.max_speed = constants::norm_speed,
 		});
 
 	// triggers
@@ -68,13 +70,10 @@ std::unique_ptr<GameObject> Player::clone() const {
 
 void Player::update(secs deltaTime) {
 
-
-
-
 	if (curr_state) {
 		PlayerStateID n_id = curr_state->update(*this, deltaTime);
 
-		if (n_id != curr_state->get_id()) {
+		if (n_id != PlayerStateID::Continue) {
 
 			std::unique_ptr<PlayerState> next_state;
 			switch (n_id) {
@@ -123,10 +122,36 @@ void Player::predraw(secs deltaTime) {
 }
 
 void Player::ImGui_Inspect() {
-	ImGui::Text("Hello World!");
-	ImGui::Text("Current State: %d %s", curr_state->get_id(), curr_state->get_name().data());
-	ImGui::Text("Position(%3.2f, %3.2f)", box->getPosition().x, box->getPosition().y);
-	ImGui::Text("Velocity(%3.2f, %3.2f)", box->get_vel().x, box->get_vel().y);
+	using namespace ImGui;
+
+	Text("Current State: %d %s", curr_state->get_id(), curr_state->get_name().data());
+	Text("Position(%3.2f, %3.2f)", box->getPosition().x, box->getPosition().y);
+	Text("Velocity(%3.2f, %3.2f)", box->get_vel().x, box->get_vel().y);
+
+	Separator();
+
+	DragFloat("Max Speed", &constants::max_speed.get(), 1.f, 0.f, 1000.f);
+	SameLine(GetWindowWidth() - 60);
+	if (SmallButton("reset##1")) { 
+		constants::max_speed.restore();
+	}
+
+	if (DragFloat("Normal Speed", &constants::norm_speed.get(), 1.f, 0.f, 500.f)) {
+		if (constants::norm_speed > ground->settings.max_speed) {
+			ground->settings.max_speed = constants::norm_speed;
+		}
+	}
+	SameLine(GetWindowWidth() - 60);
+	if (SmallButton("reset##2")) {
+		constants::norm_speed.restore();
+	}
+
+	DragFloat("Jump Vel", &constants::jumpVelY.get(), 1.f, -1000.f, 0.f);
+	SameLine(GetWindowWidth() - 60);
+	if (SmallButton("reset##3")) { 
+		constants::jumpVelY.restore();
+	}
+
 }
 
 void Player::draw(RenderTarget& target, RenderState states) const {

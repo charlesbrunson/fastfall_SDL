@@ -73,10 +73,13 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
+	Resources::addLoadedToWatcher();
+	ResourceWatcher::start_watch_thread();
+
 	Engine::init(
 		std::move(window),
 		EngineRunnable(std::make_unique<TestState>()),
-		Vec2u(400, 300),
+		Vec2u{ 320u, 240u } *3u,
 		getSettings()
 	);
 
@@ -87,6 +90,9 @@ int main(int argc, char* argv[])
 		LOG_ERR_("Could not initialize engine");
 		return EXIT_FAILURE;
 	}
+
+	ResourceWatcher::stop_watch_thread();
+	ResourceWatcher::join_watch_thread();
 
 #if not defined(__EMSCRIPTEN__)
 	Resources::unloadAll();

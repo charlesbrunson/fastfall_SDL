@@ -54,7 +54,7 @@ TestState::TestState()
 }
 
 TestState::~TestState() {
-	DestroyInstance(instance->getInstanceID());
+	ff::DestroyInstance(instance->getInstanceID());
 }
 
 void TestState::update(secs deltaTime) {

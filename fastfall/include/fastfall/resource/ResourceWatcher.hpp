@@ -11,30 +11,42 @@ namespace ff {
 
 class ResourceWatcher {
 public:
-	static void add_watch(const std::filesystem::path& file, Asset* asset);
+	// adds resource to list to watch
+	static void add_watch(Asset* asset, const std::vector<std::filesystem::path>& file );
 
+	// removes resource from list to watch
 	static void remove_watch(Asset* asset);
 
+	// clears list of watched resources
 	static void clear_watch();
 
+	// starts the watch thread
 	static void start_watch_thread();
 
+	// signals watch thread to stop
 	static void stop_watch_thread();
 
+	// waits for watch thread to stop
 	static void join_watch_thread();
 
+	static bool is_watch_running() { return is_watching; };
 
 private:
 
-	struct Watchable {
-		std::filesystem::path file;
-		std::filesystem::file_time_type last_modified;
+	struct File {
+		File() {};
+		File(std::filesystem::path t_file);
 
-		//std::string asset_name;
-		Asset* asset;
+		std::filesystem::path path;
+		std::filesystem::file_time_type last_modified;
 	};
 
-	static std::pair<bool, std::filesystem::file_time_type> is_file_modified(Watchable& watch);
+	struct Watchable {
+		Asset* asset;
+		std::vector<File> files;
+	};
+
+	static std::pair<bool, std::filesystem::file_time_type> is_file_modified(File& file);
 
 	static std::mutex watchable_mut;
 	static std::vector<Watchable> watchables;

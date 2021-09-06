@@ -29,8 +29,12 @@ public:
 
 	bool reloadFromFile() override {
 		//TODO
+
+
+
+
 		return false;
-	};
+	}
 
 	Tile getTile(Vec2u texPos) const;
 	inline const Vec2u& getTileSize() { return texTileSize; };

@@ -22,11 +22,6 @@ public:
 
 	void ImGui_Inspect() override;
 
-	enum class State {
-		Ground,
-		Air
-	};
-
 	ff::Scene_ptr<ff::AnimatedSprite> sprite;
 	ff::Collidable_ptr box;
 	ff::SurfaceTracker* ground;
@@ -43,6 +38,7 @@ protected:
 };
 
 enum class PlayerStateID {
+	Continue,
 	Ground,
 	Air
 };

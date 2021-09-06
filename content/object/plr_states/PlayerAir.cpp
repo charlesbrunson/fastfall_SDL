@@ -7,9 +7,8 @@ using namespace ff;
 
 using namespace plr;
 
-void PlayerAirState::enter(Player& plr, PlayerState* from) {
-
-	//plr.ground->settings.has_friction = false;
+void PlayerAirState::enter(Player& plr, PlayerState* from) 
+{
 }
 
 PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime) {
@@ -20,6 +19,7 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime) {
 	plr.box->set_gravity(constants::grav_normal);
 
 	if (!plr.ground->has_contact()) {
+		plr.ground->settings.slope_sticking = false;
 
 
 		if (plr.box->get_vel().y > -100.f) {
@@ -32,12 +32,6 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime) {
 		if (abs(plr.box->get_vel().y) < 50.f) {
 			plr.box->set_gravity(constants::grav_light);
 		}
-
-		/*
-		// flight control
-		int wishy = (int)Input::isHeld(InputType::DOWN) - (int)Input::isHeld(InputType::UP);
-		plr.box->add_accelY(600.f * wishy);
-		*/
 
 		if (plr.ground->get_air_time() > 0.05) {
 
@@ -53,25 +47,23 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime) {
 			}
 		}
 
-		plr.ground->settings.slope_sticking = false;
 
 		// air control
 		if (wishx != 0 && (abs(plr.box->get_vel().x) < 150.f ||
 			plr.box->get_vel().x < 0.f != wishx < 0.f)) {
 			plr.box->add_accelX(500.f * wishx);
 		}
+		prevVelY = plr.box->get_vel().y;
 	}
 	else {
+		if (prevVelY > 150.f) {
+			plr.sprite->set_anim(anim::land);
+		}
 		return PlayerStateID::Ground;
 	}
-	return get_id();
+	return PlayerStateID::Continue;
 }
 
-void PlayerAirState::exit(Player& plr, PlayerState* to) {
-
-	float speed = plr.ground->traverse_get_speed();
-	plr.ground->settings.max_speed =
-		std::max(constants::norm_speed,
-			std::min(std::abs(speed), constants::max_speed)
-		);
+void PlayerAirState::exit(Player& plr, PlayerState* to) 
+{
 }

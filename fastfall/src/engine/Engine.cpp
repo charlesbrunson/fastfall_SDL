@@ -16,6 +16,8 @@
 
 #include "fastfall/engine/input.hpp"
 
+#include "fastfall/resource/ResourceWatcher.hpp"
+
 #include <iostream>
 
 #include "fastfall/resource/Resources.hpp"
@@ -170,6 +172,8 @@ bool Engine::run_singleThread()
     running = true;
 
     while (isRunning() && !runnables.empty()) {
+
+
         updateTimer();
 
         Input::update(deltaTime);
@@ -368,8 +372,15 @@ void Engine::updateTimer() {
         }
 
     }
-    log::set_tick(clock.getTickCount());
 
+    if (ResourceWatcher::is_watch_running()) {
+        if (Resources::reloadOutOfDateAssets()) {
+           // clock.tick();
+        }
+    }
+
+    log::set_tick(clock.getTickCount());
+    
     //update deltatime
     deltaTime = std::min(elapsedTime, maxDeltaTime);
     if (deltaTime > 0.0) {

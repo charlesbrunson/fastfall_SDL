@@ -24,6 +24,7 @@ TextureRef::TextureRef()
 
 }
 
+
 void TextureRef::bind() const {
 	if (texture) {
 		texture->bind();
@@ -55,6 +56,31 @@ Texture::~Texture() {
 	if (texture_id != 0) {
 		glCheck(glDeleteTextures(1, &texture_id));
 	}
+}
+
+
+Texture::Texture(Texture&& tex) noexcept
+	: m_size{ tex.m_size }
+	, m_invSize{ tex.m_invSize }
+{
+	if (texture_id != 0) {
+		glCheck(glDeleteTextures(1, &texture_id));
+		texture_id = 0;
+	}
+	std::swap(texture_id, tex.texture_id);
+}
+
+Texture& Texture::operator=(Texture&& tex) noexcept
+{
+	m_size = tex.m_size;
+	m_invSize = tex.m_invSize;
+
+	if (texture_id != 0) {
+		glCheck(glDeleteTextures(1, &texture_id));
+		texture_id = 0;
+	}
+	std::swap(texture_id, tex.texture_id);
+	return *this;
 }
 
 bool Texture::loadFromFile(const std::string_view filename) {

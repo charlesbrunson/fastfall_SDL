@@ -98,11 +98,8 @@ bool SpriteAsset::loadFromFile(const std::string& relpath) {
 					if (texLoaded)
 						throw parse_error("too many sprite sources", nullptr);
 
-					fullpath = relpath + std::string(source_attr->value());
-					if (!tex.loadFromFile(fullpath))
+					if (!TextureAsset::loadFromFile(relpath + std::string(source_attr->value())))
 						throw parse_error("could not load sprite source", nullptr);
-
-
 
 					texLoaded = true;
 
@@ -130,6 +127,22 @@ bool SpriteAsset::loadFromFile(const std::string& relpath) {
 
 	loaded = r;
 	return r;
+}
+
+
+bool SpriteAsset::reloadFromFile() {
+	/*
+	if (TextureAsset::reloadFromFile()) {
+
+		// reload anims
+
+		return true;
+	}
+	*/
+
+	return loadFromFile(assetFilePath);
+
+	//return false;
 }
 
 bool AnimCompiler::parseAnimation(xml_node<>* animationNode, SpriteAsset& asset) {
@@ -205,9 +218,6 @@ bool AnimCompiler::parseAnimation(xml_node<>* animationNode, SpriteAsset& asset)
 }
 void SpriteAsset::ImGui_getContent() {
 	TextureAsset::ImGui_getContent();
-
-
-
 }
 
 bool SpriteAsset::loadFromFlat(const flat::resources::SpriteAssetF* builder) {

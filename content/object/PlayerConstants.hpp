@@ -3,6 +3,7 @@
 #include "fastfall/resource/asset/AnimAsset.hpp"
 #include "fastfall/game/phys/collidable/SurfaceTracker.hpp"
 
+#include "fastfall/util/Default.hpp"
 
 namespace plr::anim {
 
@@ -18,13 +19,17 @@ namespace plr::anim {
 
 namespace plr::constants {
 
-	extern const ff::Friction braking;
-	extern const ff::Friction moving;
+	extern ff::Friction braking;
+	extern ff::Friction moving;
 
-	extern const float max_speed;
-	extern const float norm_speed;
-	extern const float jumpVelY;
+	extern ff::Default<float> max_speed;
+	extern ff::Default<float> norm_speed;
+	extern ff::Default<float> jumpVelY;
 
-	extern const ff::Vec2f grav_normal;
-	extern const ff::Vec2f grav_light;
+	extern ff::Default<float> ground_accel;
+	extern ff::Default<float> ground_high_decel;
+	extern ff::Default<float> ground_idle_decel;
+
+	extern ff::Default<ff::Vec2f> grav_normal;
+	extern ff::Default<ff::Vec2f> grav_light;
 }

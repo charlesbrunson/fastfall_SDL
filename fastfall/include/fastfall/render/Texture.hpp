@@ -43,8 +43,8 @@ public:
 	Texture(const Texture&) = delete;
 	Texture& operator=(const Texture&) = delete;
 
-	Texture(Texture&&) = default;
-	Texture& operator=(Texture&&) = default;
+	Texture(Texture&& tex) noexcept;
+	Texture& operator=(Texture&& tex) noexcept;
 
 	bool loadFromFile(const std::string_view filename);
 	bool loadFromStream(const void* data, short length);

@@ -18,14 +18,30 @@ std::filesystem::file_time_type check_modified_time(const std::filesystem::path&
 	return std::filesystem::last_write_time(file);
 }
 
-void ResourceWatcher::add_watch(const std::filesystem::path& file, Asset* asset) {
+ResourceWatcher::File::File(std::filesystem::path t_file) 
+	: path(t_file)
+	, last_modified(check_modified_time(t_file))
+{
+}
+
+
+void ResourceWatcher::add_watch(Asset* asset, const std::vector<std::filesystem::path>& files) {
 	std::scoped_lock<std::mutex> lock(watchable_mut);
 
 	watchables.push_back(
 		Watchable{
-			.file = file,
-			.last_modified = check_modified_time(file),
 			.asset = asset
+		}
+	);
+
+	
+	std::transform(
+		files.begin(),
+		files.end(),
+		std::back_inserter(watchables.back().files),
+		[asset](const std::filesystem::path& path) -> File {
+			LOG_INFO("\"{}\" added to resource watch for asset \"{}\"", path.string(), asset->getAssetName());
+			return File{ path };
 		}
 	);
 }
@@ -64,11 +80,11 @@ void ResourceWatcher::join_watch_thread() {
 	watcher.join();
 }
 
-std::pair<bool, std::filesystem::file_time_type> ResourceWatcher::is_file_modified(Watchable& watch) {
+std::pair<bool, std::filesystem::file_time_type> ResourceWatcher::is_file_modified(File& file) {
 
-	std::filesystem::file_time_type mod_time = check_modified_time(watch.file);
+	std::filesystem::file_time_type mod_time = check_modified_time(file.path);
 
-	return std::make_pair(mod_time > watch.last_modified, mod_time);
+	return std::make_pair(mod_time > file.last_modified, mod_time);
 }
 
 void ResourceWatcher::routine_watch() {
@@ -81,19 +97,26 @@ void ResourceWatcher::routine_watch() {
 		to_update.clear();
 
 		for (auto& watchable : watchables) {
-			if (auto [mod, time] = is_file_modified(watchable); mod) {
-				watchable.last_modified = time;
 
-				LOG_INFO("\"{}\" has been updated", watchable.file.string());
+			bool is_modified = false;
 
-				//watchable.asset->reloadFromFile();
+			for (auto& file : watchable.files) 
+			{
+				if (auto [mod, time] = is_file_modified(file); mod)
+				{
+					file.last_modified = time;
+					is_modified = true;
+				}
+			}
+			if (is_modified) {
 				to_update.insert(watchable.asset);
+				LOG_INFO("Asset \"{}\" is outdated", watchable.asset->getAssetName());
 			}
 		}
 		for (Asset* asset : to_update) {
-			asset->reloadFromFile();
+			asset->setOutOfDate(true);
 		}
-		std::this_thread::sleep_for(1s);
+		std::this_thread::sleep_for(0.5s);
 	}
 
 	is_watching = false;

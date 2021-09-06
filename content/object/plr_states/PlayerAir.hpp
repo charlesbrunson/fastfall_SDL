@@ -14,4 +14,6 @@ public:
 	constexpr std::string_view get_name() const override {
 		return "air";
 	}
+protected:
+	float prevVelY = 0.f;
 };

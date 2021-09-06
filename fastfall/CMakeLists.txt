@@ -113,11 +113,10 @@ set(FF_HEADERS
 add_library (fastfall STATIC ${FF_SOURCES} ${FF_HEADERS} "include/fastfall/game/trigger/Trigger.hpp")
 
 
-message(STATUS "BBBBBBBBBBBBBBBBBBBBBB ${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "FASTFALL COMPILER   -- ${CMAKE_CXX_COMPILER_ID}")
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 	target_compile_options(fastfall PUBLIC -Wno-deprecated-volatile)
 	if(NOT EMSCRIPTEN)
-		message(STATUS "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA help!")
 		target_compile_options(fastfall PUBLIC -stdlib=libc++)
 		target_link_options(fastfall PUBLIC -lz)
 		target_link_options(fastfall PUBLIC -lc++)
@@ -128,6 +127,14 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 		set_target_properties(fastfall PROPERTIES COMPILE_FLAGS ${USE_FLAGS})
 	endif()
 endif()
+
+if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" AND EMSCRIPTEN)
+	message(STATUS "FASTFALL EMSCRIPTEN -- ON")
+else()
+	message(STATUS "FASTFALL EMSCRIPTEN -- OFF")
+endif()
+
+
 
 # depends on compiled flatbuffers headers
 add_dependencies(fastfall fbs_compiled)

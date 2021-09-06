@@ -29,7 +29,7 @@ public:
 	bool reloadFromFile() override {
 		//TODO
 		return false;
-	};
+	}
 
 	inline Color getBGColor() const { return backgroundColor; };
 	inline const Vec2u& getTileDimensions() const { return lvlTileSize; };

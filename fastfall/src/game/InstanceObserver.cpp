@@ -115,6 +115,9 @@ void collisionContent(GameContext context) {
 					ImGui::Text("Traversal Speed"); ImGui::NextColumn();
 					ImGui::Text("%3.2f", tracker->traverse_get_speed()); ImGui::NextColumn();
 
+					ImGui::Text("Max Speed"); ImGui::NextColumn();
+					ImGui::Text("%3.2f", tracker->settings.max_speed); ImGui::NextColumn();
+
 					if (tracker->get_contact().has_value()) {
 						const PersistantContact& c = tracker->get_contact().value();
 
