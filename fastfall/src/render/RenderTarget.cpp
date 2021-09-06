@@ -19,6 +19,8 @@ void RenderTarget::clear(Color clearColor) {
 	auto clamped = glm::fvec4{ clearColor.toVec4() } / 255.f;
 	glClearColor(clamped[0], clamped[1], clamped[2], clamped[3]);
 	glClear(GL_COLOR_BUFFER_BIT);
+	justCleared = true;
+	//LOG_INFO("cleared");
 }
 
 
@@ -81,14 +83,19 @@ void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 		applyUniforms(Transform::combine(varray.getTransform(), state.transform), state);
 	}
 
-	if (state.texture.get()->getID() != previousRender->texture.get()->getID()) {
+	if (state.texture.get()->getID() != previousRender->texture.get()->getID() || justCleared) {
 		applyTexture(state.texture);
 	}
+
+	//GLint whichID;
+	//glGetIntegerv(GL_TEXTURE_BINDING_2D, &whichID);
+	//LOG_INFO("drawing with texture: {}", whichID);
 
 	glCheck(glBindVertexArray(varray.gl.m_array));
 	glCheck(glDrawArrays(static_cast<GLenum>(varray.m_primitive), 0, varray.size()));
 
 	previousRender = state;
+	justCleared = false;
 }
 
 // ------------------------------------------------------

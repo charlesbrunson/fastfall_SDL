@@ -48,6 +48,8 @@ protected:
 
 	GLuint m_FBO = 0; // default framebuffer
 
+	bool justCleared = true;
+
 private:
 	void bindFramebuffer() const;
 

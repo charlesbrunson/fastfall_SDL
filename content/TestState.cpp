@@ -50,6 +50,8 @@ TestState::TestState()
 
 	stateID = ff::EngineStateID::TEST_STATE;
 
+	instance->getScene().set_bg_color(instance->getActiveLevel()->getBGColor());
+	instance->getScene().set_size(instance->getActiveLevel()->size());
 
 }
 
@@ -85,8 +87,6 @@ void TestState::predraw(secs deltaTime) {
 	viewPos = instance->getCamera().currentPosition;
 	viewZoom = instance->getCamera().zoomFactor;
 
-	instance->getScene().set_bg_color(instance->getActiveLevel()->getBGColor());
-	instance->getScene().set_size(instance->getActiveLevel()->size());
 	instance->getScene().set_cam_pos(viewPos);
 }
 

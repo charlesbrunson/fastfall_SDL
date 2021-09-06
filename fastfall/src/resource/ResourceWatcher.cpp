@@ -40,7 +40,16 @@ void ResourceWatcher::add_watch(Asset* asset, const std::vector<std::filesystem:
 		files.end(),
 		std::back_inserter(watchables.back().files),
 		[asset](const std::filesystem::path& path) -> File {
-			LOG_INFO("\"{}\" added to resource watch for asset \"{}\"", path.string(), asset->getAssetName());
+			namespace fs = std::filesystem;
+
+			fs::path root = path.parent_path();
+			while (root.stem().generic_string() != "data" || root == path.root_directory()) {
+				root = root.parent_path();
+			}
+
+			std::string relative_pathstr = path.generic_string().substr(root.generic_string().length() + 1);
+
+			LOG_INFO("{:20} watching file \"{}\"", asset->getAssetName(), relative_pathstr);
 			return File{ path };
 		}
 	);

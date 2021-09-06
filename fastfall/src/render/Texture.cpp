@@ -28,6 +28,8 @@ TextureRef::TextureRef()
 void TextureRef::bind() const {
 	if (texture) {
 		texture->bind();
+		//LOG_INFO("bound tex id: {}{}", texture->getID(),
+		//	texture->getNullTexture().getID() == texture->getID() ? " (null)" : "");
 	}
 	else {
 		Texture::getNullTexture().bind();

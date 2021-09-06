@@ -100,8 +100,7 @@ void SceneManager::set_size(Vec2u size) {
 
 void SceneManager::draw(ff::RenderTarget& target, ff::RenderState state) const {
 
-	enableScissor(target, cam_pos);
-	bool scissor_enabled = true;
+	bool scissor_enabled = enableScissor(target, cam_pos);
 
 	target.draw(background, state);
 
