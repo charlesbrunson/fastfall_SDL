@@ -72,22 +72,15 @@ void Player::update(secs deltaTime) {
 
 	if (curr_state) {
 		PlayerStateID n_id = curr_state->update(*this, deltaTime);
-
-		if (n_id != PlayerStateID::Continue) {
-
-			std::unique_ptr<PlayerState> next_state;
-			switch (n_id) {
-			case PlayerStateID::Ground:	
-				next_state = std::make_unique<PlayerGroundState>();
-				break;
-			case PlayerStateID::Air:	
-				next_state = std::make_unique<PlayerAirState>();
-				break;
-			}
-
-			curr_state->exit(*this, next_state.get());
-			curr_state.swap(next_state);
-			curr_state->enter(*this, next_state.get());
+		switch (n_id) {
+		case PlayerStateID::Continue:
+			break;
+		case PlayerStateID::Ground:	
+			state_transition<PlayerGroundState>();
+			break;
+		case PlayerStateID::Air:	
+			state_transition<PlayerAirState>();
+			break;
 		}
 	}
 

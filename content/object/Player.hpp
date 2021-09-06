@@ -32,6 +32,10 @@ public:
 protected:
 	std::unique_ptr<PlayerState> curr_state;
 
+	template<typename T>
+		requires std::is_base_of_v<PlayerState, T>
+	void state_transition();
+
 	CmdResponse do_command(ff::ObjCmd cmd, const std::any& payload) override;
 
 	void draw(ff::RenderTarget& target, ff::RenderState states = ff::RenderState()) const override;
@@ -54,3 +58,15 @@ public:
 	virtual constexpr PlayerStateID get_id() const = 0;
 	virtual constexpr std::string_view get_name() const = 0;
 };
+
+template<typename T>
+	requires std::is_base_of_v<PlayerState, T>
+void Player::state_transition() {
+	std::unique_ptr<PlayerState> next_state = 
+		std::make_unique<T>();
+
+	curr_state->exit(*this, next_state.get());
+	curr_state.swap(next_state);
+	curr_state->enter(*this, next_state.get());
+}
+
