@@ -224,13 +224,10 @@ bool Engine::run_doubleThread()
 
     std::barrier<> bar{ 2 };
 
+    running = true;
+    clock.reset();
     std::thread stateWorker(&Engine::runUpdate, this, &bar);
 
-    //std::chrono::time_point<std::chrono::steady_clock> displayStart;
-
-    running = true;
-
-    clock.reset();
     while (isRunning() && !runnables.empty()) {
         updateTimer();
 

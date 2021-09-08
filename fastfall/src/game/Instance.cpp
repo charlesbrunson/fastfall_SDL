@@ -23,11 +23,11 @@ GameInstance::~GameInstance() {
 }
 
 void GameInstance::clear() {
-	activeLevel = nullptr;
-	currentLevels.clear();
 	objMan.clear();
 	sceneMan.clear();
 	camera.removeAllTargets();
+	activeLevel = nullptr;
+	currentLevels.clear();
 }
 
 void GameInstance::reset() {
@@ -88,49 +88,6 @@ void GameInstance::populateSceneFromLevel(Level& lvl) {
 
 }
 
-/*
-bool GameInstance::enableScissor(const RenderTarget& target, Vec2f viewPos) {
-	glEnable(GL_SCISSOR_TEST);
-
-	glm::fvec4 scissor;
-	View view = target.getView();
-	scissor = view.getViewport();
-
-	Vec2f vpOff{ view.getViewport()[0], view.getViewport()[1] };
-	Vec2f vpSize{ view.getViewport()[2], view.getViewport()[3] };
-
-	if (getActiveLevel()) {
-		float zoom = view.getViewport()[2] / view.getSize().x;
-
-		glm::fvec2 levelsize = Vec2f{ getActiveLevel()->size() } *TILESIZE_F;
-		glm::fvec2 campos = viewPos;
-		glm::fvec2 campos2window = vpOff + (vpSize / 2.f);
-		glm::fvec2 lvlbotleft2cam{ campos.x, levelsize.y - campos.y };
-		glm::fvec2 levelbotleft2window = campos2window - (lvlbotleft2cam * zoom);
-
-		scissor[0] = roundf(std::max(scissor[0], levelbotleft2window.x));
-		scissor[1] = roundf(std::max(scissor[1], levelbotleft2window.y));
-
-		scissor[2] = std::min(vpOff.x + vpSize.x, levelbotleft2window.x + (levelsize.x * zoom)) - scissor[0];
-		scissor[3] = std::min(vpOff.y + vpSize.y, levelbotleft2window.y + (levelsize.y * zoom)) - scissor[1];
-
-		scissor[2] = roundf(std::max(scissor[2], 0.f));
-		scissor[3] = roundf(std::max(scissor[3], 0.f));
-	}
-	glScissor(
-		scissor[0], 
-		scissor[1], 
-		scissor[2],
-		scissor[3]
-	);
-	return scissor[2] > 0.f && scissor[3] > 0.f;
-}
-
-void GameInstance::disableScissor() {
-	glDisable(GL_SCISSOR_TEST);
-}
-*/
-
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 std::map<InstanceID, GameInstance> instances;
@@ -147,7 +104,8 @@ GameInstance* Instance(InstanceID id) {
 
 GameInstance* CreateInstance() {
 	InstanceID id{ instanceCounter };
-	auto [iter, emplaced] = instances.emplace(id, id); // instanceCounter, GameInstance(instanceCounter)
+
+	auto [iter, emplaced] = instances.emplace(id, id);
 
 	instanceCounter++;
 	if (emplaced)
@@ -157,6 +115,11 @@ GameInstance* CreateInstance() {
 }
 
 void DestroyInstance(InstanceID id) {
+	if (auto* inst = Instance(id))
+	{
+		// clear first for a cleaner exit
+		inst->clear();	
+	}
 	instances.erase(id);
 }
 
