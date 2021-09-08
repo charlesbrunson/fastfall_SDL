@@ -295,13 +295,15 @@ Vec2f SurfaceTracker::postmove_update(Vec2f wish_pos, secs deltaTime) {
 		}
 
 		if (next) {
-			Angle diff = math::angle(next->surface) - math::angle(contact.collider.surface);
 
-			if ((math::angle(next->surface) != math::angle(contact.collider.surface)) &&
-				is_angle_in_range(math::angle(next->surface) - Angle::Degree(90.f)) &&
-				abs(diff.degrees()) < abs(settings.stick_angle_max.degrees())
-				) {
+			Angle next_ang = math::angle(next->surface);
+			Angle curr_ang = math::angle(contact.collider.surface);
+			Angle diff = next_ang - curr_ang;
 
+			if (next_ang.radians() != curr_ang.radians()
+				&& is_angle_in_range(next_ang - Angle::Degree(90.f)) 
+				&& abs(diff.degrees()) < abs(settings.stick_angle_max.degrees())) 
+			{
 				Vec2f hyp = wish_pos - ((goingRight ? next->surface.p1 : next->surface.p2) + regionOffset);
 				Angle theta = math::angle(hyp) - math::angle(next->surface);
 
