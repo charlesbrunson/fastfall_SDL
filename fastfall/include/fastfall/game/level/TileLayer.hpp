@@ -94,7 +94,6 @@ protected:
 
 	struct TVArrayT {
 		const TilesetAsset* tileset;
-		//TileVertexArray varray;
 		ChunkVertexArray varray;
 	};
 	std::vector<TVArrayT> tileVertices;

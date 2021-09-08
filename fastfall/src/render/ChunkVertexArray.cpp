@@ -171,6 +171,45 @@ void ChunkVertexArray::reset_scroll() {
 
 void ChunkVertexArray::predraw() {
 
+	// update draw flags for all chunks
+	for (auto& chunk : m_chunks) {
+		chunk.draw_flags = DrawFlags::NoDraw;
+
+		Rectf chunk_local{
+			scroll + Vec2f{(float)chunk.chunk_pos.x * m_chunk_size.x, (float)chunk.chunk_pos.y * m_chunk_size.y} * TILESIZE_F,
+			Vec2f{chunk.chunk_size} *TILESIZE_F
+		};
+
+		Rectf bounds{ Vec2f{}, Vec2f{m_size} * TILESIZE_F };
+
+		bool in_x = scroll.x == 0.f || chunk_local.left + chunk_local.width <= bounds.left + bounds.width;
+		bool in_partial_x = in_x || chunk_local.left < bounds.left + bounds.width;
+
+		bool in_y = scroll.y == 0.f || chunk_local.top + chunk_local.height <= bounds.top + bounds.height;
+		bool in_partial_y = in_y || chunk_local.top < bounds.top + bounds.height;
+
+		if (in_partial_x && in_partial_y
+			&& (!use_visible_rect || visibility.intersects(getChunkBounds(chunk))))
+		{
+			chunk.draw_flags |= DrawFlags::Draw;
+		}
+		if (in_partial_x && !in_y
+			&& (!use_visible_rect || visibility.intersects(getChunkBounds(chunk, Vec2f{ 0.f, -bounds.height }))))
+		{
+			chunk.draw_flags |= DrawFlags::DrawOffsetY;
+		}
+		if (in_partial_y && !in_x
+			&& (!use_visible_rect || visibility.intersects(getChunkBounds(chunk, Vec2f{ -bounds.width, 0.f }))))
+		{
+			chunk.draw_flags |= DrawFlags::DrawOffsetX;
+		}
+		if (!in_x && !in_y
+			&& (!use_visible_rect || visibility.intersects(getChunkBounds(chunk, Vec2f{ -bounds.width, -bounds.height }))))
+		{
+			chunk.draw_flags |= (DrawFlags::DrawOffsetXY);
+		}
+	}
+
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_CHUNK)) {
 		for (const auto& chunk : m_chunks) {
 			if (!debug_draw::repeat((void*)&chunk, offset + scroll)) {
@@ -196,7 +235,6 @@ void ChunkVertexArray::predraw() {
 			}
 		}
 
-
 		if (!debug_draw::repeat((void*)this, offset)) {
 
 			debug_draw::set_offset(offset);
@@ -218,80 +256,54 @@ void ChunkVertexArray::predraw() {
 
 			debug_draw::set_offset();
 		}
-
 	}
 }
 
 
 void ChunkVertexArray::draw(RenderTarget& target, RenderState states) const {
 	
-	auto draw_offset_chunk = [this](RenderTarget& t_target, RenderState t_states, const Chunk& t_chunk, Vec2f t_offset) {
-
-		if (use_visible_rect) {
-			Rectf chunk_bound{
-				t_offset + offset + scroll + Vec2f{(float)t_chunk.chunk_pos.x * m_chunk_size.x, (float)t_chunk.chunk_pos.y * m_chunk_size.y} *TILESIZE_F,
-				Vec2f{t_chunk.chunk_size} *TILESIZE_F
-			};
-
-			if (visibility.intersects(chunk_bound)) {
-				if (t_offset != Vec2f{}) {
-					RenderState mirror = t_states;
-					mirror.transform = Transform::combine(t_states.transform, Transform(t_offset));
-					t_target.draw(t_chunk.tva, mirror);
-				}
-				else {
-					t_target.draw(t_chunk.tva, t_states);
-				}
-			}
-		}
-		else {
-			if (t_offset != Vec2f{}) {
-				RenderState mirror = t_states;
-				mirror.transform = Transform::combine(t_states.transform, Transform(t_offset));
-				t_target.draw(t_chunk.tva, mirror);
-			}
-			else {
-				t_target.draw(t_chunk.tva, t_states);
-			}
-		}
-	};
-
-	auto draw_chunk = [this, &draw_offset_chunk](RenderTarget& t_target, RenderState t_states, const Chunk& t_chunk) {
-
-		Rectf chunk_local{
-			scroll + Vec2f{(float)t_chunk.chunk_pos.x * m_chunk_size.x, (float)t_chunk.chunk_pos.y * m_chunk_size.y} *TILESIZE_F,
-			Vec2f{t_chunk.chunk_size} *TILESIZE_F
-		};
-
-		Rectf bounds{ Vec2f{}, Vec2f{m_size} *TILESIZE_F };
-
-		bool in_x = scroll.x == 0.f || chunk_local.left + chunk_local.width <= bounds.left + bounds.width;
-		bool in_partial_x = in_x || chunk_local.left < bounds.left + bounds.width;
-
-		bool in_y = scroll.y == 0.f || chunk_local.top + chunk_local.height <= bounds.top + bounds.height;
-		bool in_partial_y = in_y || chunk_local.top < bounds.top + bounds.height;
-
-		if (in_partial_x && in_partial_y) {
-			draw_offset_chunk(t_target, t_states, t_chunk, Vec2f{});
-		}
-		if (in_partial_x && !in_y) {
-			draw_offset_chunk(t_target, t_states, t_chunk, Vec2f{ 0.f, -bounds.height });
-		}
-		if (in_partial_y && !in_x) {
-			draw_offset_chunk(t_target, t_states, t_chunk, Vec2f{ -bounds.width, 0.f });
-		}
-		if (!in_x && !in_y) {
-			draw_offset_chunk(t_target, t_states, t_chunk, Vec2f{ -bounds.width, -bounds.height });
-		}
-	};
-
 	states.texture = m_tex;
 	states.transform = Transform::combine(states.transform, Transform{ offset + scroll });
 
+	Vec2f offset{ m_size * TILESIZE_F };
+	RenderState shift = states;
 
 	for (const auto& chunk : m_chunks) {
-		draw_chunk(target, states, chunk);
+		if ((chunk.draw_flags & DrawFlags::Draw) > 0) 
+		{
+			target.draw(chunk.tva, states);
+		}
+		if ((chunk.draw_flags & DrawFlags::DrawOffsetY) > 0) 
+		{
+			shift.transform = states.transform.translate({ 0.f, -offset.y });
+			target.draw(chunk.tva, shift);
+		}
+		if ((chunk.draw_flags & DrawFlags::DrawOffsetX) > 0) 
+		{
+			shift.transform = states.transform.translate({ -offset.x, 0.f });
+			target.draw(chunk.tva, shift);
+		}
+		if ((chunk.draw_flags & DrawFlags::DrawOffsetXY) > 0) 
+		{
+			shift.transform = states.transform.translate({ -offset.x, -offset.y });
+			target.draw(chunk.tva, shift);
+		}
 	}
+}
+
+
+Rectf ChunkVertexArray::getChunkBounds(const Chunk& chunk, Vec2f draw_offset) const noexcept {
+	return Rectf{
+		draw_offset + offset + scroll + Vec2f{(float)chunk.chunk_pos.x * m_chunk_size.x, (float)chunk.chunk_pos.y * m_chunk_size.y} *TILESIZE_F,
+		Vec2f{chunk.chunk_size} *TILESIZE_F
+	};
+}
+
+Rectf ChunkVertexArray::getChunkLocalBounds(const Chunk& chunk) const noexcept {
+	return Rectf{
+			scroll + Vec2f{(float)chunk.chunk_pos.x * m_chunk_size.x, (float)chunk.chunk_pos.y * m_chunk_size.y} *TILESIZE_F,
+			Vec2f{chunk.chunk_size} *TILESIZE_F
+	};
 }
 
 }

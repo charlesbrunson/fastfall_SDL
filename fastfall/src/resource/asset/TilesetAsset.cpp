@@ -95,8 +95,6 @@ void TilesetAsset::parseTileProperties(xml_node<>* propsNode, Tile& t) {
 	state.owner = this;
 	state.tile = &t;
 
-	//TileLogicData logic;
-
 	while (propNode) {
 		if (strcmp("property", propNode->name()) != 0)
 			throw parse_error("not a property", nullptr);
@@ -320,6 +318,27 @@ Tile TilesetAsset::getTile(Vec2u texPos) const {
 	}
 }
 
+std::optional<TileLogicData> TilesetAsset::getTileLogic(Vec2u position) const {
+	if (auto it = logicData.find(position); it != logicData.end()) {
+		return it->second;
+	}
+	return std::nullopt;
+}
+
+const TileMaterial& TilesetAsset::getMaterial(Vec2u position) const {
+	if (auto it = matData.find(position); it != matData.end()) {
+		return Tile::getMaterial(it->second);
+	}
+	return Tile::standardMat;
+}
+
+
+void TilesetAsset::setTileLogic(Vec2u position, const TileLogicData& logic) {
+	logicData.insert(std::make_pair(position, logic));
+}
+void TilesetAsset::setTileMaterial(Vec2u position, const std::string& material) {
+	matData.insert(std::make_pair(position, material));
+}
 
 void TilesetAsset::ImGui_getContent() {
 	TextureAsset::ImGui_getContent();

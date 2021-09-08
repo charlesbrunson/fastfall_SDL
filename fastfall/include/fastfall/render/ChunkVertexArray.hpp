@@ -38,11 +38,25 @@ public:
 	Rectf visibility;
 
 private:
+
+	enum DrawFlags : unsigned char {
+		NoDraw = 0,
+		Draw = 1 << 0,
+		DrawOffsetY = 1 << 1,
+		DrawOffsetX = 1 << 2,
+		DrawOffsetXY = 1 << 3
+	};
+
+
 	struct Chunk {
+		unsigned char draw_flags;
 		Vec2u chunk_pos;
 		Vec2u chunk_size;
 		TileVertexArray tva;
 	};
+
+	Rectf getChunkBounds(const Chunk& chunk, Vec2f draw_offset = Vec2f{}) const noexcept;
+	Rectf getChunkLocalBounds(const Chunk& chunk) const noexcept;
 
 	Vec2f scroll;
 

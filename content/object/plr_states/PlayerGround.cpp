@@ -24,7 +24,7 @@ void PlayerGroundState::enter(Player& plr, PlayerState* from)
 
 	float speed = plr.ground->traverse_get_speed();
 	plr.ground->settings.max_speed =
-		math::clamp(std::abs(speed), constants::norm_speed.get(), plr.ground->settings.max_speed);
+		math::clamp(std::abs(speed), constants::norm_speed.get(), constants::max_speed.get());
 }
 
 PlayerStateID PlayerGroundState::update(Player& plr, secs deltaTime)
@@ -154,4 +154,5 @@ void PlayerGroundState::accel(Player& plr, const move_t& move)
 
 void PlayerGroundState::exit(Player& plr, PlayerState* to)
 {
+	plr.ground->settings.max_speed = 0.f;
 }

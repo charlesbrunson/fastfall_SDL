@@ -250,7 +250,6 @@ bool TileLayer::handlePreContact(Vec2i pos, const Contact& contact, secs duratio
 		|| pos.y < 0 || pos.y >= size.y)
 		return true;
 
-
 	unsigned ndx = pos.y * size.x + pos.x;
 	bool r = true;
 	if (pos2data.at(ndx).logic_id != TILEDATA_NONE) {

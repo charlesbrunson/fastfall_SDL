@@ -32,10 +32,23 @@ namespace ff {
 		updateMatrix();
 	};
 
-	void Transform::setRotation(float rotation) { 
-		m_rotation = rotation; 
+	void Transform::setRotation(float radians) { 
+		m_rotation = radians;
 		updateMatrix();
 	};
+
+	Transform Transform::translate(glm::fvec2 shift) const noexcept {
+		return Transform::combine(*this, Transform(shift));
+	}
+	Transform Transform::rotate(float radians) const noexcept {
+		return Transform::combine(*this, Transform({}, {}, {}, radians));
+	}
+	Transform Transform::magnify(float scale) const noexcept {
+		return Transform::combine(*this, Transform({}, {}, glm::fvec2{ scale, scale }, 0.f));
+	}
+	Transform Transform::magnify(glm::fvec2 scale) const noexcept {
+		return Transform::combine(*this, Transform({}, {}, scale, 0.f));
+	}
 
 	void Transform::updateMatrix() {
 		m_transform_mat = glm::translate(glm::mat3(1.0f), m_position * glm::fvec2(1.f, -1.f));

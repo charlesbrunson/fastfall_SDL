@@ -29,10 +29,6 @@ public:
 
 	bool reloadFromFile() override {
 		//TODO
-
-
-
-
 		return false;
 	}
 
@@ -45,28 +41,14 @@ public:
 
 	int getTilesetRefIndex(std::string_view tileset_name);
 
-	std::optional<TileLogicData> getTileLogic(Vec2u position) const {
-		if (auto it = logicData.find(position); it != logicData.end()) {
-			return it->second;
-		}
-		return std::nullopt;
-	}
+	std::optional<TileLogicData> getTileLogic(Vec2u position) const;
 
-	const TileMaterial& getMaterial(Vec2u position) const {
-		if (auto it = matData.find(position); it != matData.end()) {
-			return Tile::getMaterial(it->second);
-		}
-		return Tile::standardMat;
-	}
+	const TileMaterial& getMaterial(Vec2u position) const;
 
 protected:
 
-	void setTileLogic(Vec2u position, const TileLogicData& logic) {
-		logicData.insert(std::make_pair(position, logic));
-	}
-	void setTileMaterial(Vec2u position, const std::string& material) {
-		matData.insert(std::make_pair(position, material));
-	}
+	void setTileLogic(Vec2u position, const TileLogicData& logic);
+	void setTileMaterial(Vec2u position, const std::string& material);
 
 	void parseTileProperties(rapidxml::xml_node<>* propsNode, Tile& t);
 

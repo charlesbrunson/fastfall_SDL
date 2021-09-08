@@ -125,7 +125,7 @@ void ResourceWatcher::routine_watch() {
 		for (Asset* asset : to_update) {
 			asset->setOutOfDate(true);
 		}
-		std::this_thread::sleep_for(0.5s);
+		std::this_thread::sleep_for(1s);
 	}
 
 	is_watching = false;
