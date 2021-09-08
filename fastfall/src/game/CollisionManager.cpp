@@ -5,12 +5,6 @@
 
 #include <algorithm>
 #include <set>
-//#include <ranges>
-
-//#include "Engine.hpp"
-
-//#include "phys/collision/Collision.hpp"
-//#include "phys/collision/CollisionQuad.hpp"
 
 #include "fastfall/game/phys/CollisionSolver.hpp"
 #include "fastfall/game/Instance.hpp"
