@@ -16,6 +16,9 @@ struct DebugDrawable {
 
 bool isEnabled = true;
 
+
+
+
 std::deque<DebugDrawable> debugDrawListA;
 std::deque<DebugDrawable> debugDrawListB;
 

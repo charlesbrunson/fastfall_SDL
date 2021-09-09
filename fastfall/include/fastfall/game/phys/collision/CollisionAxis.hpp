@@ -27,6 +27,10 @@ public:
 		contact.collider = initData.surface;
 	}
 
+	CollisionAxis()
+	{
+	}
+
 	// the contact on this axis
 	Contact contact;
 

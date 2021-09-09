@@ -10,8 +10,12 @@ namespace plr::anim {
 	extern ff::AnimIDRef idle;
 	extern ff::AnimIDRef land;
 	extern ff::AnimIDRef run;
+
 	extern ff::AnimIDRef jump;
 	extern ff::AnimIDRef fall;
+
+	extern ff::AnimIDRef jump_f;
+	extern ff::AnimIDRef fall_f;
 
 	extern ff::AnimIDRef brakeb;
 	extern ff::AnimIDRef brakef;

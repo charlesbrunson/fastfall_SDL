@@ -7,8 +7,12 @@ namespace plr::anim {
 	AnimIDRef idle("player", "idle");
 	AnimIDRef land("player", "land");
 	AnimIDRef run("player", "running");
+
 	AnimIDRef jump("player", "jump");
 	AnimIDRef fall("player", "fall");
+
+	AnimIDRef jump_f("player", "jump_f");
+	AnimIDRef fall_f("player", "fall_f");
 
 	AnimIDRef brakeb("player", "brake_back");
 	AnimIDRef brakef("player", "brake_front");

@@ -96,7 +96,17 @@ void PlayerGroundState::update_anim(Player& plr, const move_t& move)
 void PlayerGroundState::jump(Player& plr, const move_t& move)
 {
 
-	plr.sprite->set_anim(anim::jump);
+	//if (abs(plr.ground->traverse_get_speed()) >= (constants::norm_speed / 2.f))
+	if ( (move.wishx != 0 && abs(plr.ground->traverse_get_speed()) >= 100.f)
+		|| abs(plr.ground->traverse_get_speed()) >= constants::norm_speed - 10.f)
+	{
+		plr.sprite->set_anim(anim::jump_f);
+	}
+	else 
+	{
+		plr.sprite->set_anim(anim::jump);
+	}
+
 	plr.ground->settings.slope_sticking = false;
 
 	Vec2f jumpVel = Vec2f{ plr.box->get_vel().x, constants::jumpVelY };

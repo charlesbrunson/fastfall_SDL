@@ -318,11 +318,11 @@ Tile TilesetAsset::getTile(Vec2u texPos) const {
 	}
 }
 
-std::optional<TileLogicData> TilesetAsset::getTileLogic(Vec2u position) const {
+const TileLogicData* TilesetAsset::getTileLogic(Vec2u position) const {
 	if (auto it = logicData.find(position); it != logicData.end()) {
-		return it->second;
+		return &it->second;
 	}
-	return std::nullopt;
+	return nullptr;
 }
 
 const TileMaterial& TilesetAsset::getMaterial(Vec2u position) const {

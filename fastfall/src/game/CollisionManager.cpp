@@ -4,6 +4,7 @@
 #include "fastfall/util/log.hpp"
 
 #include <algorithm>
+#include <execution>
 #include <set>
 
 #include "fastfall/game/phys/CollisionSolver.hpp"
@@ -79,9 +80,60 @@ bool CollisionManager::erase_collider(ColliderRegion* region) {
 
 void CollisionManager::broadPhase(secs deltaTime) {
 
-	std::vector<std::pair<Rectf, const ColliderQuad*>> buffer;
-	buffer.reserve(32);
+	//std::vector<std::pair<Rectf, const ColliderQuad*>> buffer;
+	//buffer.reserve(32);
 
+	//std::for_each(std::execution)
+
+	std::for_each(
+		std::execution::par_unseq, 
+		std::begin(collidables), std::end(collidables),
+
+		[this, deltaTime](CollidableData& colData) {
+			Rectf body_rect(colData.collidable.getBox());
+
+			// using double for this as float can lead to infinite loop due to floating point inaccuracy when pushing boundary
+			Rectf body_bound(colData.collidable.getBoundingBox());
+			Rectf push_bound(body_bound);
+
+			std::vector<const Arbiter*> updatedBuffer;
+
+			static auto is_updated = [](std::vector<const Arbiter*>& updated, const Arbiter* arbiter) {
+				return std::find(updated.cbegin(), updated.cend(), arbiter) != updated.end();
+			};
+
+			do {
+				body_bound = push_bound;
+				std::array<float, 4u> boundDist = {
+					body_rect.top - body_bound.top,												// NORTH
+					(body_bound.left + body_bound.width) - (body_rect.left + body_rect.width),	// EAST
+					(body_bound.top + body_bound.height) - (body_rect.top + body_rect.height),	// SOUTH
+					body_rect.left - body_bound.left											// WEST
+				};
+
+				updateRegionArbiters(colData);
+
+				// try to push out collidable bounds
+				for (auto& regionArb : colData.regionArbiters) {
+					for (auto& [quad, arbiter] : regionArb.getQuadArbiters()) {
+
+						// if this arbiter hasn't pushed before, update it
+						if (!is_updated(updatedBuffer, &arbiter)) {
+							arbiter.update(deltaTime);
+							updatedBuffer.push_back(&arbiter);
+						}
+
+						updatePushBound(push_bound, boundDist, arbiter.getContactPtr());
+
+					}
+				}
+
+			} while (body_bound != push_bound);
+		}
+	);
+
+
+	/*
 	for (auto& colData : collidables) {
 
 		Rectf body_rect(colData.collidable.getBox() );
@@ -126,12 +178,12 @@ void CollisionManager::broadPhase(secs deltaTime) {
 
 		} while (body_bound != push_bound);
 	}
-
+	*/
 };
 
 void CollisionManager::updateRegionArbiters(CollidableData& data) {
 
-	for (auto& region : regions) {
+	for (const auto& region : regions) {
 
 		auto arbiter = std::lower_bound(
 			data.regionArbiters.begin(),

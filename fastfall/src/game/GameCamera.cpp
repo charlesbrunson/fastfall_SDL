@@ -80,21 +80,29 @@ void GameCamera::update(secs deltaTime) {
 	}
 
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::CAMERA_TARGET)) {
-		debug_draw::set_offset(currentPosition);
 
-		auto& current_crosshair = createDebugDrawable<VertexArray, debug_draw::Type::CAMERA_TARGET>(
-			(const void*)this, Primitive::LINE_LOOP, 4);
-		for (int i = 0; i < current_crosshair.size(); i++) {
-			current_crosshair[i].color = Color::White;
+		if (!debug_draw::repeat((void*)this, currentPosition)) {
+
+			debug_draw::set_offset(currentPosition);
+
+			auto& current_crosshair = createDebugDrawable<VertexArray, debug_draw::Type::CAMERA_TARGET>(
+				(const void*)this, Primitive::LINE_LOOP, 4);
+
+			LOG_INFO("{}", (void*)this);
+			for (int i = 0; i < current_crosshair.size(); i++) {
+				current_crosshair[i].color = Color::White;
+			}
+			current_crosshair[0].pos = Vec2f{ -2.f,  0.f };
+			current_crosshair[1].pos = Vec2f{ 0.f, -2.f };
+			current_crosshair[2].pos = Vec2f{ 2.f,  0.f };
+			current_crosshair[3].pos = Vec2f{ 0.f,  2.f };
+
 		}
-		current_crosshair[0].pos = Vec2f{ -2.f,  0.f };
-		current_crosshair[1].pos = Vec2f{ 0.f, -2.f };
-		current_crosshair[2].pos = Vec2f{ 2.f,  0.f };
-		current_crosshair[3].pos = Vec2f{ 0.f,  2.f };
 
 		for (auto target : targets) {
 			Vec2f pos = target->get_target_pos();
 			if (!debug_draw::repeat((void*)target, pos)) {
+				LOG_INFO("{}", (void*)target);
 
 				debug_draw::set_offset(pos);
 

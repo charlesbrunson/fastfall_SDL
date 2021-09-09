@@ -191,7 +191,7 @@ void ChunkVertexArray::predraw() {
 		if (in_partial_x && in_partial_y
 			&& (!use_visible_rect || visibility.intersects(getChunkBounds(chunk))))
 		{
-			chunk.draw_flags |= DrawFlags::Draw;
+			chunk.draw_flags = DrawFlags::Draw;
 		}
 		if (in_partial_x && !in_y
 			&& (!use_visible_rect || visibility.intersects(getChunkBounds(chunk, Vec2f{ 0.f, -bounds.height }))))
@@ -265,29 +265,51 @@ void ChunkVertexArray::draw(RenderTarget& target, RenderState states) const {
 	states.texture = m_tex;
 	states.transform = Transform::combine(states.transform, Transform{ offset + scroll });
 
-	Vec2f offset{ m_size * TILESIZE_F };
+	//Vec2f offset{ m_size * TILESIZE_F };
 	RenderState shift = states;
 
+	const std::array<glm::fvec2, 4> offsets{
+		glm::fvec2{ 0.f, 0.f},
+		glm::fvec2{ 0.f, m_size.y * TILESIZE },
+		glm::fvec2{ m_size.x * TILESIZE, 0.f },
+		glm::fvec2{ m_size.x * TILESIZE, m_size.y * TILESIZE }
+	};
+
 	for (const auto& chunk : m_chunks) {
-		if ((chunk.draw_flags & DrawFlags::Draw) > 0) 
+
+		unsigned off_ndx = 0u;
+		for (unsigned flag = chunk.draw_flags; 
+			flag > 0u; 
+			flag >>= 1, off_ndx++) 
+		{
+
+			if (flag & 1) {
+				shift.transform = states.transform.translate(-offsets[off_ndx]);
+				target.draw(chunk.tva, shift);
+			}
+		}
+
+		/*
+		if (chunk.draw_flags & DrawFlags::Draw) 
 		{
 			target.draw(chunk.tva, states);
 		}
-		if ((chunk.draw_flags & DrawFlags::DrawOffsetY) > 0) 
+		if (chunk.draw_flags & DrawFlags::DrawOffsetY) 
 		{
 			shift.transform = states.transform.translate({ 0.f, -offset.y });
 			target.draw(chunk.tva, shift);
 		}
-		if ((chunk.draw_flags & DrawFlags::DrawOffsetX) > 0) 
+		if (chunk.draw_flags & DrawFlags::DrawOffsetX) 
 		{
 			shift.transform = states.transform.translate({ -offset.x, 0.f });
 			target.draw(chunk.tva, shift);
 		}
-		if ((chunk.draw_flags & DrawFlags::DrawOffsetXY) > 0) 
+		if (chunk.draw_flags & DrawFlags::DrawOffsetXY) 
 		{
 			shift.transform = states.transform.translate({ -offset.x, -offset.y });
 			target.draw(chunk.tva, shift);
 		}
+		*/
 	}
 }
 

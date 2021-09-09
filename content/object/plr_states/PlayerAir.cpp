@@ -35,15 +35,23 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime) {
 
 		if (plr.ground->get_air_time() > 0.05) {
 
-			if (!plr.sprite->is_playing_any({ anim::jump, anim::fall }))
+			if (!plr.sprite->is_playing_any({ 
+					anim::jump, anim::fall,
+					anim::jump_f, anim::fall_f,
+				}))
 			{
 				plr.sprite->set_anim(anim::fall);
 				plr.sprite->set_frame(2);
 			}
-			else if (plr.sprite->is_complete(anim::jump)
-				&& plr.box->get_vel().y > -100.f)
+			else if (plr.box->get_vel().y > -100.f
+				&& plr.sprite->is_complete(anim::jump)) 
 			{
 				plr.sprite->set_anim(anim::fall);
+			}
+			else if (plr.box->get_vel().y > -150.f
+				&& plr.sprite->is_complete(anim::jump_f)) 
+			{
+				plr.sprite->set_anim(anim::fall_f);
 			}
 		}
 

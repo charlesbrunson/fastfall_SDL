@@ -409,7 +409,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 
 	if (useLogic) {
 
-		if (auto logic = tileset.getTileLogic(texposition); logic.has_value()) {
+		if (auto logic = tileset.getTileLogic(texposition)) {
 			auto it = std::find_if(tileLogic.begin(), tileLogic.end(), [&logic](const std::unique_ptr<TileLogic>& log) {
 				return logic->logicType == log->getName();
 				});

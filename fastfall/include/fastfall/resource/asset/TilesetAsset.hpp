@@ -41,7 +41,7 @@ public:
 
 	int getTilesetRefIndex(std::string_view tileset_name);
 
-	std::optional<TileLogicData> getTileLogic(Vec2u position) const;
+	const TileLogicData* getTileLogic(Vec2u position) const;
 
 	const TileMaterial& getMaterial(Vec2u position) const;
 

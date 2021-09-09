@@ -72,16 +72,29 @@
 	</animation>
 	
 	<animation name="jump_f">
-		<area   x="0" y="112" w="32" h="48" />
-		<origin x="16" y="41" />
-		<framerate count="2" defaultMS="83.3333333333"/>
+		<area   x="0" y="112" w="32" h="32" />
+		<origin x="16" y="32" />
+		<framerate>
+			<frame>120</frame>
+			<frame>120</frame>
+		</framerate>
 		<loop>1</loop>
 	</animation>
 	
 	<animation name="fall_f">
-		<area   x="64" y="112" w="32" h="48" />
-		<origin x="16" y="41" />
-		<framerate count="4" defaultMS="83.3333333333"/>
+		<area   x="64" y="112" w="32" h="32" />
+		<origin x="16" y="32" />
+		<framerate>
+			<frame>80</frame>
+			<frame>60</frame>
+			<frame>40</frame>
+			<frame>40</frame>
+			<frame>40</frame>
+			<frame>60</frame>
+			<frame>60</frame>
+			<frame>80</frame>
+			<frame>80</frame>
+		</framerate>
 		<loop>1</loop>
 	</animation>
 </sprite>

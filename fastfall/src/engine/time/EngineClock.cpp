@@ -43,7 +43,12 @@ unsigned EngineClock::getInstantFPS() const noexcept {
 }
 
 void EngineClock::sleepUntilTick(bool nosleep) noexcept {
+
+	secs PREV_TIME = _data.activeTime.count();
+
 	_data.activeTime = engineClock.now() - _active_start;
+
+	secs TIME = _data.activeTime.count();
 	if (fpsUnlimited)
 		return;
 
