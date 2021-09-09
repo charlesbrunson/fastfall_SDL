@@ -97,6 +97,15 @@
 		</framerate>
 		<loop>1</loop>
 	</animation>
+	
+	<animation name="dash">
+		<area   x="288" y="0" w="32" h="32" />
+		<origin x="16" y="32" />
+		<framerate>
+			<frame>80</frame>
+		</framerate>
+		<loop>1</loop>
+	</animation>
 </sprite>
 
 

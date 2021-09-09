@@ -1,5 +1,5 @@
 #include "PlayerAir.hpp"
-#include "../PlayerConstants.hpp"
+#include "../PlayerCommon.hpp"
 
 #include "fastfall/engine/input.hpp"
 
@@ -44,12 +44,14 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime) {
 				plr.sprite->set_frame(2);
 			}
 			else if (plr.box->get_vel().y > -100.f
-				&& plr.sprite->is_complete(anim::jump)) 
+				&& plr.sprite->is_playing(anim::jump)
+				) 
 			{
 				plr.sprite->set_anim(anim::fall);
 			}
-			else if (plr.box->get_vel().y > -150.f
-				&& plr.sprite->is_complete(anim::jump_f)) 
+			else if (plr.box->get_vel().y > -100.f
+				&& plr.sprite->is_playing(anim::jump_f)
+				) 
 			{
 				plr.sprite->set_anim(anim::fall_f);
 			}

@@ -32,7 +32,7 @@ TileLayer::TileLayer(const TileLayer& tile)
 	size = tile.size;
 	hasCollision = tile.hasCollision;
 	collision = tile.collision;
-	tileVertices = tile.tileVertices;
+	chunks = tile.chunks;
 	pos2data = tile.pos2data;
 	has_parallax = tile.has_parallax;
 	parallax = tile.parallax;
@@ -62,7 +62,7 @@ TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	size = tile.size;
 	hasCollision = tile.hasCollision;
 	collision = tile.collision;
-	tileVertices = tile.tileVertices;
+	chunks = tile.chunks;
 	pos2data = tile.pos2data;
 	has_parallax = tile.has_parallax;
 	parallax = tile.parallax;
@@ -95,7 +95,7 @@ TileLayer::TileLayer(TileLayer&& tile) noexcept
 	hasCollision = tile.hasCollision;
 	std::swap(collision, tile.collision);
 	std::swap(pos2data, tile.pos2data);
-	tileVertices.swap(tile.tileVertices);
+	chunks.swap(tile.chunks);
 	has_parallax = tile.has_parallax;
 	std::swap(parallax, tile.parallax);
 	std::swap(scrollRate, tile.scrollRate);
@@ -135,7 +135,7 @@ TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	hasCollision = tile.hasCollision;
 	std::swap(collision, tile.collision);
 	std::swap(pos2data, tile.pos2data);
-	tileVertices.swap(tile.tileVertices);
+	chunks.swap(tile.chunks);
 	has_parallax = tile.has_parallax;
 	std::swap(parallax, tile.parallax);
 	std::swap(scrollRate, tile.scrollRate);
@@ -232,11 +232,7 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 				std::placeholders::_1, std::placeholders::_2)
 		);
 	}
-
-
-
 }
-
 
 void TileLayer::update(secs deltaTime) {
 	for (auto& logic : tileLogic) {
@@ -302,7 +298,7 @@ void TileLayer::predraw(secs deltaTime) {
 	visible.height = GAME_H_F * cam_zoom;
 	visible.left = cam_pos.x - (visible.width / 2.f);
 	visible.top = cam_pos.y - (visible.height / 2.f);
-	for (auto& verts : tileVertices) {
+	for (auto& verts : chunks) {
 		verts.varray.visibility = visible;
 	}
 
@@ -315,7 +311,7 @@ void TileLayer::predraw(secs deltaTime) {
 			cam_pos.y * parallax.camFactor.y
 		} - parallax.initOffset;
 
-		for (auto& vta_pair : tileVertices) {
+		for (auto& vta_pair : chunks) {
 			vta_pair.varray.offset = parallax_offset;
 		}
 	}
@@ -324,7 +320,7 @@ void TileLayer::predraw(secs deltaTime) {
 	if (hasScrollX() || hasScrollY()) {
 		Vec2f scroll_delta = scrollRate * deltaTime;
 
-		for (auto& vta_pair : tileVertices) {
+		for (auto& vta_pair : chunks) {
 			vta_pair.varray.add_scroll(scroll_delta);
 		}
 	}
@@ -349,7 +345,7 @@ void TileLayer::predraw(secs deltaTime) {
 	}
 
 	if (!hidden) {
-		for (auto& vta_pair : tileVertices) {
+		for (auto& vta_pair : chunks) {
 			vta_pair.varray.predraw();
 		}
 	}
@@ -363,7 +359,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 	uint8_t tileset_ndx = pos2data.at(ndx).tileset_id;
 	uint8_t logic_ndx = pos2data.at(ndx).logic_id;
 	if (tileset_ndx != TILEDATA_NONE) {
-		tileVertices.at(tileset_ndx).varray.blank(position);
+		chunks.at(tileset_ndx).varray.blank(position);
 		pos2data.at(ndx).tileset_id = TILEDATA_NONE;
 	}
 	if (useLogic && logic_ndx != TILEDATA_NONE) {
@@ -373,30 +369,30 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 	//pos2data.at(ndx) = TileData{};
 
 	// find tilearray or create it
-	auto vertarr = std::find_if(tileVertices.begin(), tileVertices.end(), [&tileset](const TVArrayT& tva) {
+	auto vertarr = std::find_if(chunks.begin(), chunks.end(), [&tileset](const ChunkVA& tva) {
 		return tva.tileset == &tileset;
 		});
-	if (vertarr == tileVertices.end()) {
+	if (vertarr == chunks.end()) {
 
-		if (tileVertices.size() < UINT8_MAX - 1) {
+		if (chunks.size() < UINT8_MAX - 1) {
 
-			tileVertices.push_back(TVArrayT{
+			chunks.push_back(ChunkVA{
 					.tileset = &tileset,
 					.varray = ChunkVertexArray(size, Vec2u{GAME_TILE_W / 2u, GAME_TILE_H / 2u})
 				});
 
-			tileVertices.back().varray.setTexture(tileset.getTexture());
-			tileVertices.back().varray.setTile(position, texposition);
-			tileVertices.back().varray.use_visible_rect = true;
-			tileset_ndx = tileVertices.size() - 1;
+			chunks.back().varray.setTexture(tileset.getTexture());
+			chunks.back().varray.setTile(position, texposition);
+			chunks.back().varray.use_visible_rect = true;
+			tileset_ndx = chunks.size() - 1;
 		}
 		else {
-			LOG_ERR_("Cannot set tile, tilelayer has reached max tileset references: {}", tileVertices.size());
+			LOG_ERR_("Cannot set tile, tilelayer has reached max tileset references: {}", chunks.size());
 		}
 	}
 	else {
 		vertarr->varray.setTile(position, texposition);
-		tileset_ndx = std::distance(tileVertices.begin(), vertarr);
+		tileset_ndx = std::distance(chunks.begin(), vertarr);
 	}
 
 	// set new tiledata
@@ -409,9 +405,9 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 
 	if (useLogic) {
 
-		if (auto logic = tileset.getTileLogic(texposition)) {
+		if (auto [logic, args] = tileset.getTileLogic(texposition); !logic.empty()) {
 			auto it = std::find_if(tileLogic.begin(), tileLogic.end(), [&logic](const std::unique_ptr<TileLogic>& log) {
-				return logic->logicType == log->getName();
+				return logic == log->getName();
 				});
 
 			Tile t = tileset.getTile(texposition);
@@ -420,16 +416,16 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 
 				if (tileLogic.size() < UINT8_MAX - 1) {
 
-					auto logic_ptr = TileLogic::create(m_context, logic->logicType);
+					auto logic_ptr = TileLogic::create(m_context, logic);
 					if (logic_ptr) {
 
 						tileLogic.push_back(std::move(logic_ptr));
-						tileLogic.back()->addTile(position, t, logic->logicArg);
+						tileLogic.back()->addTile(position, t, args.data());
 						pos2data.at(ndx).logic_id = tileLogic.size() - 1;
 
 					}
 					else {
-						LOG_WARN("could not create tile logic type: {}", logic->logicType);
+						LOG_WARN("could not create tile logic type: {}", logic);
 					}
 				}
 				else {
@@ -437,7 +433,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 				}
 			}
 			else {
-				it->get()->addTile(position, t, logic->logicArg);
+				it->get()->addTile(position, t, args.data());
 				pos2data.at(ndx).logic_id = std::distance(tileLogic.begin(), it);
 			}
 		}
@@ -451,7 +447,7 @@ void TileLayer::removeTile(const Vec2u& position) {
 	unsigned ndx = position.y * size.x + position.x;
 
 	if (pos2data.at(ndx).tileset_id != TILEDATA_NONE) {
-		tileVertices.at(pos2data.at(ndx).tileset_id).varray.blank(position);
+		chunks.at(pos2data.at(ndx).tileset_id).varray.blank(position);
 	}
 	if (pos2data.at(ndx).logic_id != TILEDATA_NONE) {
 		tileLogic.at(pos2data.at(ndx).logic_id)->removeTile(position);
@@ -465,7 +461,7 @@ void TileLayer::removeTile(const Vec2u& position) {
 void TileLayer::clear() {
 	ref = nullptr;
 	pos2data.clear();
-	tileVertices.clear();
+	chunks.clear();
 	if (collision)
 		collision->clear();
 }
@@ -474,7 +470,7 @@ void TileLayer::draw(RenderTarget& target, RenderState states) const {
 	states.transform = Transform::combine(states.transform, Transform(offset));
 
 	if (!hidden) {
-		for (auto& layer : tileVertices) {
+		for (auto& layer : chunks) {
 			states.texture = layer.varray.getTexture();
 
 			target.draw(layer.varray, states);
