@@ -81,8 +81,12 @@ void TestState::update(secs deltaTime) {
 }
 
 void TestState::predraw(secs deltaTime) {
+	//std::scoped_lock lock(instance->reset_mutex);
+
+	if (instance->want_reset)
+		instance->reset();
+
 	instance->getObject().predraw(deltaTime);
-	//instance->getCollision().predraw(deltaTime);
 	instance->getActiveLevel()->predraw(deltaTime);
 	viewPos = instance->getCamera().currentPosition;
 	viewZoom = instance->getCamera().zoomFactor;
@@ -94,38 +98,4 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
 
 	target.draw(instance->getScene(), state);
 
-	/*
-	if (instance->enableScissor(target, viewPos)) {
-
-		Vec2f size = Vec2f{ instance->getActiveLevel()->size() } *TILESIZE_F;
-
-		
-		ff::ShapeRectangle bgRect(
-			ff::Rectf(ff::Vec2f{0.f, 0.f}, ff::Vec2f(size)),
-			instance->getActiveLevel()->getBGColor()
-		);
-		target.draw(bgRect, state);
-		
-
-		for (auto& bg : instance->getActiveLevel()->getBGLayers()) {
-			target.draw(bg, state);
-		}
-		
-	}
-	instance->disableScissor();
-
-	target.draw(instance->getObject().getObjectDrawList(false), state);
-
-	bool firstFG = true;
-	for (auto& fg : instance->getActiveLevel()->getFGLayers()) {
-
-		target.draw(fg, state);
-
-		if (firstFG) {
-			firstFG = false;
-			target.draw(instance->getObject().getObjectDrawList(true), state);
-		}
-	}
-
-	*/
 }

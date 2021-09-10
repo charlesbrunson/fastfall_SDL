@@ -578,11 +578,13 @@ bool Resources::reloadOutOfDateAssets()
 				bool reloaded = val->reloadFromFile();
 				val->setOutOfDate(false);
 
+				log::scope sc;
 				if (reloaded) {
 					assets_changed.push_back(val.get());
+					LOG_INFO("... complete!");
 				}
 				else {
-					LOG_ERR_("Failed to reload asset");
+					LOG_ERR_("... failed to reload asset");
 				}
 			}
 		}
