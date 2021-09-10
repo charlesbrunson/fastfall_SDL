@@ -77,7 +77,8 @@ bool SpriteAsset::loadFromFile(const std::string& relpath) {
 	if (charPtr) {
 		char* xmlContent = charPtr.get();
 
-		xml_document<>* doc = new xml_document<>();
+		auto doc = std::make_unique<xml_document<>>();
+
 		try {
 			doc->parse<0>(xmlContent);
 			xml_node<>* index = doc->first_node("sprite");
@@ -118,7 +119,6 @@ bool SpriteAsset::loadFromFile(const std::string& relpath) {
 			std::cout << assetName << ": " << err.what() << std::endl;
 			r = false;
 		}
-		delete doc;
 	}
 	else {
 		std::cout << "Could not open file: " << relpath + assetName + spriteExt << std::endl;

@@ -9,15 +9,11 @@ BasicPlatform::BasicPlatform(ff::GameContext instance, const ff::ObjectRef& ref,
 {
 	for (auto& [propName, propValue] : ref.properties) {
 		if (propName == "path") {
-			ff::object_id obj = std::atoi(propValue.c_str());
-			if (obj != ff::object_null) {
-				auto layer = ref.getLayer();
-				auto c_iter = layer->objects.find(obj);
+			ff::object_id path_id = std::atoi(propValue.c_str());
 
-				if (c_iter != layer->objects.end()) {
-					waypoints_origin = ff::Vec2f{ c_iter->second.position };
-					waypoints = &c_iter->second.points;
-				}
+			if (auto ref_opt = ref.getObjectInLayer(path_id)) {
+				waypoints_origin = ff::Vec2f{ ref_opt->get().position };
+				waypoints = &ref_opt->get().points;
 			}
 		}
 		else if (propName == "max_velocity") {

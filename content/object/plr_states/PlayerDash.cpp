@@ -33,18 +33,62 @@ void apply_dash_vel(Player& plr, float min_vel) {
 
 }
 
+PlayerStateID dash_jump(Player& plr, const move_t& move) {
+	/*
+	if (move.wishx == 0) {
+		plr.ground->traverse_set_speed(constants::norm_speed * (plr.sprite->get_hflip() ? -1.f : 1.f));
+	}
+	else if (move.wishx > 0 == move.movex > 0) {
+		plr.ground->traverse_set_speed(end_velx * (plr.sprite->get_hflip() ? -1.f : 1.f));
+	}
+	else if (move.wishx > 0 != move.movex > 0) {
+		plr.ground->traverse_set_speed(100.f * (plr.sprite->get_hflip() ? -1.f : 1.f));
+	}
+	*/
+	return action::jump(plr, move);
+}
+
+const AnimIDRef& select_dash_anim(const Player& plr)
+{
+	if (plr.ground->has_contact()) {
+		Vec2f cNorm = plr.ground->get_contact()->collider_normal;
+		Angle ang = math::angle(cNorm) + Angle::Radian((float)PI_F / 2.f);
+
+		if (plr.sprite->get_hflip()) {
+			ang = -ang;
+		}
+
+		if (ang.degrees() > 40.f) {
+			return anim::dash_n2;
+		}
+		else if (ang.degrees() > 20.f) {
+			return anim::dash_n1;
+		}
+		else if (ang.degrees() == 0.f) {
+			return anim::dash_0;
+		}
+		else if (ang.degrees() < -40.f) {
+			return anim::dash_p2;
+		}
+		else if (ang.degrees() < -20.f) {
+			return anim::dash_p1;
+		}
+	}
+	return anim::dash_0;
+}
+
 void PlayerDashState::enter(Player& plr, PlayerState* from)
 {
 
 	ground_flag = plr.ground->has_contact();
 	
 	if (ground_flag) {
-		plr.sprite->set_anim(anim::dash);
+		plr.sprite->set_anim_if_not(select_dash_anim(plr).id());
 		dash_speed = plr.ground->traverse_get_speed();
 	}
 
 	plr.ground->settings.slope_sticking = false;
-	plr.ground->settings.use_surf_vel = false;
+	plr.ground->settings.use_surf_vel = true;
 }
 
 PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
@@ -54,10 +98,12 @@ PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
 		plr.box->set_gravity(constants::grav_normal);
 		apply_dash_vel(plr, get_dash_vel(dash_time, dash_speed));
 
+		plr.sprite->set_anim_if_not(select_dash_anim(plr).id());
+
 		if (Input::isPressed(InputType::JUMP, 0.1f))
 		{
 			Input::confirmPress(InputType::JUMP);
-			return action::jump(plr, move_t(plr));
+			return dash_jump(plr, move_t(plr));
 		}
 	}
 	else {
@@ -67,7 +113,7 @@ PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
 			if (Input::isPressed(InputType::JUMP, 0.1f))
 			{
 				Input::confirmPress(InputType::JUMP);
-				return action::jump(plr, move_t(plr));
+				return dash_jump(plr, move_t(plr));
 			}
 
 			dash_air_time += deltaTime;

@@ -21,7 +21,12 @@ namespace plr::anim {
 	AnimIDRef land("player", "land");
 	AnimIDRef run("player", "running");
 
-	AnimIDRef dash("player", "dash");
+	//AnimIDRef dash("player", "dash");
+	AnimIDRef dash_n2("player", "dash-2");
+	AnimIDRef dash_n1("player", "dash-1");
+	AnimIDRef dash_0 ("player", "dash0");
+	AnimIDRef dash_p1("player", "dash+1");
+	AnimIDRef dash_p2("player", "dash+2");
 
 	AnimIDRef jump("player", "jump");
 	AnimIDRef fall("player", "fall");

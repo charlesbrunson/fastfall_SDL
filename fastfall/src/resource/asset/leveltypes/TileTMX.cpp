@@ -94,24 +94,24 @@ void parseLayerTiles(xml_node<>* dataNode, TileLayerRef& layer, const TilesetMap
 			for (auto& tileset : tilesets) {
 
 				if (tileset.first > tilesetgid) {
-					t.tilesetName = &tilesets.at(fgid);
+					t.tilesetName = tilesets.at(fgid);
 					break;
 				}
 				fgid = tileset.first;
 			}
-			if (!t.tilesetName)
-				t.tilesetName = &tilesets.at(fgid);
+			if (!t.tilesetName.data())
+				t.tilesetName = tilesets.at(fgid);
 
-			TilesetAsset* tileAsset = Resources::get<TilesetAsset>(*t.tilesetName);
+			TilesetAsset* tileAsset = Resources::get<TilesetAsset>(t.tilesetName);
 			int columns = tileAsset->getTileSize().x;
 
 			Vec2u texture_pos;
 			texture_pos.x = ((tilesetgid - fgid) % columns);
 			texture_pos.y = ((tilesetgid - fgid) / columns);
 			t.texPos = texture_pos;
+			t.tilePos = tilepos;
 
-			layer.tiles.insert(std::make_pair(tilepos, t));
-			//layer.collision.setTile(tilepos, tileAsset->getTile(t.texPos).shape);
+			layer.tiles.push_back(std::move(t));
 		}
 
 		tilepos.x++;
@@ -126,15 +126,18 @@ void parseLayerTiles(xml_node<>* dataNode, TileLayerRef& layer, const TilesetMap
 
 LayerRef TileTMX::parse(xml_node<>* layerNode, const TilesetMap& tilesets) {
 
-	LayerRef layer(LayerType::TILELAYER);
+	LayerRef layer(LayerRef::Type::Tile);
 
 	layer.id = atoi(layerNode->first_attribute("id")->value());
-	layer.tileLayer->tileSize.x = atoi(layerNode->first_attribute("width")->value());
-	layer.tileLayer->tileSize.y = atoi(layerNode->first_attribute("height")->value());
 
-	parseLayerProperties(layerNode->first_node("properties"), *layer.tileLayer.get());
+	TileLayerRef& tileLayer = std::get<TileLayerRef>(layer.layer);
 
-	parseLayerTiles(layerNode->first_node("data"), *layer.tileLayer.get(), tilesets);
+
+	tileLayer.tileSize.x = atoi(layerNode->first_attribute("width")->value());
+	tileLayer.tileSize.y = atoi(layerNode->first_attribute("height")->value());
+
+	parseLayerProperties(layerNode->first_node("properties"), tileLayer);
+	parseLayerTiles(layerNode->first_node("data"), tileLayer, tilesets);
 
 	return layer;
 }

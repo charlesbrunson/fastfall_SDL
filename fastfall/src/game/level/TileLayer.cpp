@@ -179,19 +179,21 @@ TileLayer::~TileLayer() {
 
 void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 	clear();
-	assert(layerData.type == LayerType::TILELAYER);
+	assert(layerData.type == LayerRef::Type::Tile);
+
+	auto& tileLayer = std::get<TileLayerRef>(layerData.layer);
 
 	ref = &layerData;
 	hasCollision = initCollision;
 	layerID = layerData.id;
 
-	size.x = layerData.tileLayer->innerSize.x == 0 ? layerData.tileLayer->tileSize.x : layerData.tileLayer->innerSize.x;
-	size.y = layerData.tileLayer->innerSize.y == 0 ? layerData.tileLayer->tileSize.y : layerData.tileLayer->innerSize.y;
+	size.x = tileLayer.innerSize.x == 0 ? tileLayer.tileSize.x : tileLayer.innerSize.x;
+	size.y = tileLayer.innerSize.y == 0 ? tileLayer.tileSize.y : tileLayer.innerSize.y;
 
 	pos2data.resize(size.x * size.y, TileData{});
 
-	has_parallax = layerData.tileLayer->has_parallax;
-	scrollRate = layerData.tileLayer->scrollrate;
+	has_parallax = tileLayer.has_parallax;
+	scrollRate = tileLayer.scrollrate;
 
 	// calc parallax factors
 	if (has_parallax) {
@@ -199,10 +201,10 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 		parallax.initOffset.y = (float)(std::min(size.y, GAME_TILE_H) * TILESIZE) / 2.f;
 		parallax.camFactor = Vec2f{1.f, 1.f};
 		if (size.x > GAME_TILE_W) {
-			parallax.camFactor.x = 1.f - ((float)(size.x - GAME_TILE_W) / (float)layerData.tileLayer->tileSize.x);
+			parallax.camFactor.x = 1.f - ((float)(size.x - GAME_TILE_W) / (float)tileLayer.tileSize.x);
 		}
 		if (size.y > GAME_TILE_H) {
-			parallax.camFactor.y = 1.f - ((float)(size.y - GAME_TILE_H) / (float)layerData.tileLayer->tileSize.y);
+			parallax.camFactor.y = 1.f - ((float)(size.y - GAME_TILE_H) / (float)tileLayer.tileSize.y);
 		}
 	}
 
@@ -211,13 +213,13 @@ void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
 		collision = instance::phys_create_collider<ColliderTileMap>(m_context, Vec2i(size.x, size.y), true);
 	}
 
-	for (const auto& i : layerData.tileLayer->tiles) {
-		TilesetAsset* ta = Resources::get<TilesetAsset>(*i.second.tilesetName);
+	for (const auto& i : tileLayer.tiles) {
+		TilesetAsset* ta = Resources::get<TilesetAsset>(i.tilesetName);
 		if (ta) {
-			setTile(i.first, i.second.texPos, *ta);
+			setTile(i.tilePos, i.texPos, *ta);
 		}
 		else {
-			LOG_ERR_("unknown tileset {}", *i.second.tilesetName);
+			LOG_ERR_("unknown tileset {}", i.tilesetName);
 		}
 	}
 

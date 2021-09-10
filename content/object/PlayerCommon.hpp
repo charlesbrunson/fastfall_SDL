@@ -20,7 +20,11 @@ namespace plr::anim {
 	extern ff::AnimIDRef land;
 	extern ff::AnimIDRef run;
 
-	extern ff::AnimIDRef dash;
+	extern ff::AnimIDRef dash_n2;
+	extern ff::AnimIDRef dash_n1;
+	extern ff::AnimIDRef dash_0;
+	extern ff::AnimIDRef dash_p1;
+	extern ff::AnimIDRef dash_p2;
 
 	extern ff::AnimIDRef jump;
 	extern ff::AnimIDRef fall;

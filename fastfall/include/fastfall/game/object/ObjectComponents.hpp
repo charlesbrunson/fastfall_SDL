@@ -10,7 +10,9 @@ struct Collidable_ptr {
 	~Collidable_ptr();
 
 	Collidable* operator->() { return m_collidable; }
+	const Collidable* operator->() const { return m_collidable; }
 	Collidable& get() { return *m_collidable; };
+	const Collidable& get() const { return *m_collidable; };
 	GameContext context() { return m_context; };
 
 private:
@@ -32,7 +34,9 @@ struct Collider_ptr {
 	}
 
 	T* operator->() { return m_collider; }
+	const T* operator->() const { return m_collider; }
 	T& get() { return *m_collider; };
+	const T& get() const { return *m_collider; };
 	GameContext context() { return m_context; };
 
 private:
@@ -54,7 +58,9 @@ struct Trigger_ptr {
 	~Trigger_ptr();
 
 	Trigger* operator->() { return m_trigger; }
+	const Trigger* operator->() const { return m_trigger; }
 	Trigger& get() { return *m_trigger; };
+	const Trigger& get() const { return *m_trigger; };
 	GameContext context() { return m_context; };
 
 private:
@@ -86,7 +92,9 @@ struct Scene_ptr {
 	T& operator* () { return drawable; };
 	const T& operator* () const { return drawable; };
 	T* operator->() { return &drawable; }
+	const T* operator->() const { return &drawable; }
 	T& get() { return drawable; };
+	const T& get() const { return drawable; };
 	GameContext context() { return m_context; };
 
 private:

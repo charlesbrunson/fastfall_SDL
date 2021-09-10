@@ -130,8 +130,8 @@ bool LevelAsset::loadFromFile(const std::string& relpath) {
 	std::unique_ptr<char[]> charPtr = readXML(assetFilePath + assetName + levelExt);
 	if (charPtr) {
 		char* xmlContent = charPtr.get();
-
-		xml_document<>* doc = new xml_document<>();
+		
+		auto doc = std::make_unique<xml_document<>>();
 
 		try {
 			doc->parse<0>(xmlContent);
@@ -157,7 +157,7 @@ bool LevelAsset::loadFromFile(const std::string& relpath) {
 				if (strcmp(layerNode->name(), "layer") == 0) {
 
 					layers.push_back(TileTMX::parse(layerNode, tilesetDeps));
-					assert(layers.back().tileLayer->tileSize == lvlTileSize);
+					assert(std::get<TileLayerRef>(layers.back().layer).tileSize == lvlTileSize);
 				}
 				else if (strcmp(layerNode->name(), "objectgroup") == 0) {
 					assert(!hasObjectLayer);
@@ -174,8 +174,6 @@ bool LevelAsset::loadFromFile(const std::string& relpath) {
 			std::cout << assetName << ": " << err.what() << std::endl;
 			r = false;
 		}
-
-		delete doc;
 	}
 	else {
 		std::cout << "Could not open file: " << relpath + assetName + levelExt << std::endl;
@@ -191,6 +189,8 @@ bool LevelAsset::loadFromFile(const std::string& relpath) {
 
 bool LevelAsset::loadFromFlat(const flat::resources::LevelAssetF* builder) {
 
+
+	/*
 	using namespace flat::resources;
 	using namespace flat::math;
 
@@ -286,10 +286,13 @@ bool LevelAsset::loadFromFlat(const flat::resources::LevelAssetF* builder) {
 
 	loaded = true;
 	return true;
+	*/
+	return false;
 }
 
 flatbuffers::Offset<flat::resources::LevelAssetF> LevelAsset::writeToFlat(flatbuffers::FlatBufferBuilder& builder) const {
 
+	/*
 	using namespace flat::resources;
 	using namespace flat::math;
 
@@ -440,10 +443,27 @@ flatbuffers::Offset<flat::resources::LevelAssetF> LevelAsset::writeToFlat(flatbu
 	lvlBuilder.add_tilesetDeps(flat_tilesetDeps);
 	lvlBuilder.add_borders(borderCardinalBits);
 	return lvlBuilder.Finish();
+	*/
+	return false;
 }
 
 void LevelAsset::ImGui_getContent() {
 	ImGui::Text("[%3u, %3u] %s", lvlTileSize.x, lvlTileSize.y, getAssetName().c_str());
+}
+
+std::optional<std::reference_wrapper<const ObjectRef>> ObjectRef::getObjectInLayer(object_id other_id) const {
+	if (other_id != object_null && other_objects != nullptr) {
+		auto it = std::find_if(
+			other_objects->begin(), other_objects->end(), 
+			[other_id](const ObjectRef& ref) {
+				return ref.id == other_id;
+			});
+
+		if (it != other_objects->end()) {
+			return *it;
+		}
+	}
+	return std::nullopt;
 }
 
 }

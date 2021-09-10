@@ -101,11 +101,11 @@ void Level::init(const LevelAsset& levelData) {
 
 	bool bg = true;
 	for (auto i = levelData.getLayerRefs()->begin(); i != levelData.getLayerRefs()->end(); i++) {
-		if (i->type == LayerType::OBJECTLAYER) {
+		if (i->type == LayerRef::Type::Object) {
 			bg = false;
 			objLayer.initFromAsset(context, *i);
 		}
-		else if (i->type == LayerType::TILELAYER) {
+		else if (i->type == LayerRef::Type::Tile) {
 			(bg ? bgLayers : fgLayers).push_back(
 				TileLayer(*i, context, (!bg && fgLayers.empty()))
 			);

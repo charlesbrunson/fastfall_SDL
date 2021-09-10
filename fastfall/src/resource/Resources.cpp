@@ -397,15 +397,16 @@ bool loadFromIndex(const std::string& indexFile) {
 		std::streamsize len = ndxStream.tellg();
 		ndxStream.seekg(0, std::ios::beg);
 
-		char* indexContent = new char[len + 1];
+		auto indexContent = std::make_unique<char[]>(len + 1);
 
-		ndxStream.read(indexContent, len);
+		ndxStream.read(&indexContent[0], len);
 		indexContent[len] = '\0';
 		ndxStream.close();
 
-		xml_document<>* doc = new xml_document<>();
+		auto doc = std::make_unique<xml_document<>>();
+
 		try {
-			doc->parse<0>(indexContent);
+			doc->parse<0>(&indexContent[0]);
 
 			xml_node<>* index = doc->first_node("index");
 
@@ -440,8 +441,6 @@ bool loadFromIndex(const std::string& indexFile) {
 			LOG_ERR_(err.what());
 			r = false;
 		}
-		delete doc;
-		delete[] indexContent;
 
 		//LOG_INFO("Index file closed");
 	}

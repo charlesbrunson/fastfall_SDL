@@ -50,7 +50,7 @@ public:
 	inline void  set_pos(Vec2f pos) noexcept { position = pos; };
 	inline Vec2f get_pos()          noexcept { return position; };
 
-	inline bool get_hflip()				noexcept {
+	inline bool get_hflip()	const noexcept {
 		return hflip;
 	};
 	inline void set_hflip(bool flipped) noexcept {

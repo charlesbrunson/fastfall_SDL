@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <variant>
 
 namespace ff {
 
@@ -18,89 +19,98 @@ using TilesetMap = std::map<gid, std::string>;
 // represents a tile
 struct TileRef {
 	gid tile_id = GID_INVALID;
+	Vec2u tilePos;
 	Vec2u texPos;
-	const std::string* tilesetName = nullptr;
+	//const std::string* tilesetName = nullptr;
+	std::string_view tilesetName;
 };
-
-using object_id = unsigned int;
-constexpr object_id object_null = 0;
 
 // represents a layer of tile data
 struct TileLayerRef {
-
 	bool has_parallax = false;
 	Vec2u innerSize;
 	Vec2u tileSize;
-
 	Vec2f scrollrate;
-
-	std::map<Vec2u, TileRef> tiles;
-
-	//bool isActive = false;
+	std::vector<TileRef> tiles;
 };
 
 struct ObjectLayerRef;
 
-class ObjectRef {
-public:
-	ObjectRef(ObjectLayerRef* layer) : layerRef(layer) {
+using object_id = unsigned int;
+constexpr object_id object_null = 0;
 
-	};
-	ObjectRef() = delete;
+struct ObjectRef {
 
-	object_id id;
+	object_id id = object_null;
 	std::string name;
-	size_t type; // hash of type string
+	size_t type = 0; // hash of type string
 	Vec2i position;
 	unsigned width = 0u;
 	unsigned height = 0u;
 	std::vector<std::pair<std::string, std::string>> properties;
 	std::vector<Vec2i> points;
 
-	inline const ObjectLayerRef* getLayer() const { return layerRef; };
+	std::optional<std::reference_wrapper<const ObjectRef>> getObjectInLayer(object_id other_id) const;
 
-protected:
-	const ObjectLayerRef* layerRef = nullptr;
+	inline constexpr void set_other_objs(const std::vector<ObjectRef>* objs) { other_objects = objs; };
+
+private:
+	const std::vector<ObjectRef>* other_objects = nullptr;
+
 };
 
 struct ObjectLayerRef {
-	std::map<object_id, ObjectRef> objects;
-};
-
-enum class LayerType {
-	TILELAYER,
-	OBJECTLAYER
+	std::vector<ObjectRef> objects;
 };
 
 class LayerRef {
 public:
-	LayerRef(LayerType Type) :
+	enum class Type {
+		Tile,
+		Object
+	};
+
+	LayerRef(Type Type) :
 		type(Type)
 	{
-		if (type == LayerType::TILELAYER) {
-			tileLayer = std::make_unique<TileLayerRef>();
+		if (type == Type::Tile) {
+			layer = TileLayerRef{};
 		}
 		else {
-			objLayer = std::make_unique<ObjectLayerRef>();
+			layer = ObjectLayerRef{};
 		}
-	}
-	~LayerRef() {
-
 	}
 
 	LayerRef(LayerRef&& ref) noexcept
+		: layer(std::move(ref.layer))
 	{
 		id = ref.id;
 		type = ref.type;
-		tileLayer.swap(ref.tileLayer);
-		objLayer.swap(ref.objLayer);
+
+		if (type == Type::Object) {
+			auto& objects = asObjLayer().objects;
+			for (auto& obj : objects) {
+				obj.set_other_objs(&objects);
+			}
+		}
 	}
 
 	unsigned int id = 0;
+	Type type;
 
-	std::unique_ptr<TileLayerRef> tileLayer = nullptr;
-	std::unique_ptr<ObjectLayerRef> objLayer = nullptr;
-	LayerType type;
+	constexpr TileLayerRef& asTileLayer() {
+		return std::get<TileLayerRef>(layer);
+	}
+	constexpr ObjectLayerRef& asObjLayer() {
+		return std::get<ObjectLayerRef>(layer);
+	}
+	constexpr const TileLayerRef& asTileLayer() const {
+		return std::get<TileLayerRef>(layer);
+	}
+	constexpr const ObjectLayerRef& asObjLayer() const {
+		return std::get<ObjectLayerRef>(layer);
+	}
+	std::variant<TileLayerRef, ObjectLayerRef> layer;
 };
 
 }

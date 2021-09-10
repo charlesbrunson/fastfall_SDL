@@ -58,13 +58,13 @@ void ObjectLayer::update(secs deltaTime) {
 
 
 void ObjectLayer::initFromAsset(GameContext context, const LayerRef& layerData) {
-	assert(layerData.type == LayerType::OBJECTLAYER);
+	assert(layerData.type == LayerRef::Type::Object);
 	layerID = layerData.id;
 	ref = &layerData;
 
-	for (auto& objRef : layerData.objLayer.get()->objects) {
-		if (objRef.second.type != 0) {
-			GameObjectLibrary::build(context, objRef.second);
+	for (auto& objRef : std::get<ObjectLayerRef>(layerData.layer).objects) {
+		if (objRef.type != 0) {
+			GameObjectLibrary::build(context, objRef);
 		}
 	}
 }

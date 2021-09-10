@@ -74,7 +74,8 @@ std::vector<Vec2i> parsePoints(xml_node<>* polylineNode) {
 void parseObjectRefs(xml_node<>* objectNode, ObjectLayerRef& objLayer) {
 
 	while (objectNode) {
-		ObjectRef obj(&objLayer);
+		ObjectRef obj;
+		obj.set_other_objs(&objLayer.objects);
 
 		obj.id = atoi(objectNode->first_attribute("id")->value());
 
@@ -112,7 +113,7 @@ void parseObjectRefs(xml_node<>* objectNode, ObjectLayerRef& objLayer) {
 		obj.properties = parseProperties(objectNode->first_node("properties"));
 		obj.points = parsePoints(objectNode->first_node("polyline"));
 
-		objLayer.objects.insert(std::make_pair(obj.id, obj));
+		objLayer.objects.push_back(std::move(obj));
 
 		objectNode = objectNode->next_sibling();
 	}
@@ -122,12 +123,9 @@ void parseObjectRefs(xml_node<>* objectNode, ObjectLayerRef& objLayer) {
 /////////////////////////////////////////////////////////////
 
 LayerRef ObjectTMX::parse(xml_node<>* layerNode) {
-	LayerRef layer(LayerType::OBJECTLAYER);
-
+	LayerRef layer(LayerRef::Type::Object);
 	layer.id = atoi(layerNode->first_attribute("id")->value());
-
-	parseObjectRefs(layerNode->first_node("object"), *layer.objLayer);
-
+	parseObjectRefs(layerNode->first_node("object"), std::get<ObjectLayerRef>(layer.layer));
 	return layer;
 }
 
