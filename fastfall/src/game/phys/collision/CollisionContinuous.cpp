@@ -49,10 +49,10 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 	contact = Contact{};
 	copiedContact = nullptr;
 
-	auto& pAxes = prevCollision.getCollisionAxes();
-	auto& cAxes = currCollision.getCollisionAxes();
+	unsigned pCount = prevCollision.getAxisCount();
+	unsigned cCount = currCollision.getAxisCount();
 
-	assert(pAxes.size() == cAxes.size());
+	assert(pCount == cCount);
 
 	float firstExit = 1.f;
 	float lastEntry = 0.f;
@@ -73,11 +73,9 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 	float root;
 	int resolve = -1;
 
-	assert(pAxes.size() == cAxes.size());
-
-	for (size_t i = 0; i < cAxes.size(); i++) {
-		pAxis = &pAxes.at(i);
-		cAxis = &cAxes.at(i);
+	for (unsigned i = 0; i < cCount; i++) {
+		pAxis = &prevCollision.getCollisionAxis(i);
+		cAxis = &currCollision.getCollisionAxis(i);
 
 		pIntersects = pAxis->is_intersecting() && !pAxis->applied;
 		cIntersects = cAxis->is_intersecting();
@@ -148,8 +146,8 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 		resolve = 2;
 	}
 	else {
-		if (alwaysColliding && lastAxisCollided >= 0 && cAxes.at(lastAxisCollided).applied) {
-			auto& axis = cAxes.at(lastAxisCollided);
+		if (alwaysColliding && lastAxisCollided >= 0 && currCollision.getCollisionAxis(lastAxisCollided).applied) {
+			auto& axis = currCollision.getCollisionAxis(lastAxisCollided);
 
 			copiedContact = &axis.contact;
 			contact = axis.contact;
@@ -217,39 +215,42 @@ std::optional<Contact> CollisionContinuous::getVerticalSlipContact(float leeway)
 	if (contact.ortho_normal.y != 0.f)
 		return std::nullopt;
 
-	auto& cAxes = currCollision.getCollisionAxes();
-
-	auto nAxis = std::find_if(cAxes.begin(), cAxes.end(), [](const auto& axis) {return axis.dir == Cardinal::NORTH; });
-	auto sAxis = std::find_if(cAxes.begin(), cAxes.end(), [](const auto& axis) {return axis.dir == Cardinal::SOUTH; });
+	const CollisionAxis* nAxis = nullptr;
+	const CollisionAxis* sAxis = nullptr;
+	for (unsigned ndx = 0u; ndx < currCollision.getAxisCount(); ndx++) {
+		auto& axis = currCollision.getCollisionAxis(ndx);
+		if (!nAxis && axis.dir == Cardinal::NORTH) {
+			nAxis = &axis;
+		}
+		else if (!sAxis && axis.dir == Cardinal::SOUTH) {
+			sAxis = &axis;
+		}
+	}
 
 	bool canNorth = false;
 	bool canSouth = false;
 
-	if (nAxis->is_collider_valid() && nAxis != cAxes.end() && nAxis->contact.separation - leeway < 0.f) {
+	if (nAxis && nAxis->is_collider_valid() && nAxis->contact.separation - leeway < 0.f) {
 		canNorth = true;
 	}
-	if (sAxis->is_collider_valid() && sAxis != cAxes.end() && sAxis->contact.separation - leeway < 0.f) {
+	if (sAxis && sAxis->is_collider_valid() && sAxis->contact.separation - leeway < 0.f) {
 		canSouth = true;
 	}
 
-	else if (canNorth && canSouth) {
-		//LOG_INFO("SLIP BOTH");
-
+	if (canNorth && canSouth) {
+		// select based on separation
 		canNorth = sAxis->contact.separation > nAxis->contact.separation;
 		canSouth = !canNorth;
 	}
 
 	if (canNorth && !canSouth) {
-		//LOG_INFO("SLIP NORTH");
 		Contact c = nAxis->contact;
 		c.isSlip = true;
 		c.hasImpactTime = contact.hasImpactTime;
 		c.impactTime = contact.impactTime;
 		return c;
 	}
-
 	else if (!canNorth && canSouth) {
-		//LOG_INFO("SLIP SOUTH");
 		Contact c = sAxis->contact;
 		c.isSlip = true;
 		c.hasImpactTime = contact.hasImpactTime;
