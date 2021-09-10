@@ -14,6 +14,8 @@
 
 #include "fastfall/render/RenderTarget.hpp"
 
+#include <mutex>
+
 namespace ff {
 
 class GameInstance {
@@ -43,11 +45,8 @@ public:
 	inline GameContext getContext() const noexcept { return GameContext{ instanceID }; };
 
 	
-	/*
-	bool enableScissor(const RenderTarget& target, Vec2f viewPos);
-	void disableScissor();
-	*/
 
+	bool want_reset = false;
 
 private:
 	InstanceID instanceID;

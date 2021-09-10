@@ -8,6 +8,7 @@
 #include "CollisionAxis.hpp"
 
 #include <assert.h>
+#include <array>
 
 namespace ff {
 
@@ -36,7 +37,7 @@ public:
 		}
 	}
 
-	inline const std::vector<CollisionAxis>& getCollisionAxes() { return axes; };
+	inline const std::array<CollisionAxis, 5>& getCollisionAxes() { return axes; };
 
 	void reset(const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion, bool collidePreviousFrame);
 
@@ -106,7 +107,8 @@ protected:
 	bool valley_NW = false;
 	bool valley_SW = false;
 
-	std::vector<CollisionAxis> axes;
+	std::array<CollisionAxis, 5> axes; // 5 axes in worst case
+	unsigned axis_count = 0;
 
 	inline float getYforX(const Linef& onLine, float X) {
 		Vec2f v = math::vector(onLine);

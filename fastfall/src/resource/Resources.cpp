@@ -15,6 +15,7 @@ using namespace rapidxml;
 #include "fastfall/schema/resource-flat.hpp"
 
 #include "fastfall/resource/ResourceWatcher.hpp"
+#include "fastfall/resource/ResourceSubscriber.hpp"
 
 #ifndef FF_DATAPATH
 #if defined(DEBUG)
@@ -564,24 +565,46 @@ void Resources::loadControllerDB() {
 
 bool Resources::reloadOutOfDateAssets()
 {
-	bool reloaded_any = false;
-
 	assert(resource.loadMethod != AssetSource::PACK_FILE);
 
-	for (auto& [key, val] : resource.sprites) {
-		if (val->isOutOfDate() && val->isLoaded()) 
-		{
-			reloaded_any = true;
+	constexpr auto reloadAssets = 
+		[]<typename T>(ff::AssetMap<T>& map, std::vector<const Asset*>& assets_changed)
+	{
+		for (auto& [key, val] : map) {
+			if (val->isOutOfDate() && val->isLoaded())
+			{
+				LOG_INFO("Reloading asset \"{}\"", val->getAssetName());
 
-			LOG_INFO("Reloading asset \"{}\"", val->getAssetName());
-			bool reloaded = val->reloadFromFile();
-			if (!reloaded) {
-				LOG_ERR_("Failed to reload asset");
+				bool reloaded = val->reloadFromFile();
+				val->setOutOfDate(false);
+
+				log::scope sc;
+				if (reloaded) {
+					assets_changed.push_back(val.get());
+					LOG_INFO("... complete!");
+				}
+				else {
+					LOG_ERR_("... failed to reload asset");
+				}
 			}
-			val->setOutOfDate(false);
+		}
+	};
+
+
+	std::vector<const Asset*> assets_changed;
+	reloadAssets(resource.sprites, assets_changed);
+	reloadAssets(resource.tilesets, assets_changed);
+	reloadAssets(resource.levels, assets_changed);
+
+	for (auto asset : assets_changed) {
+		for (auto subscriber : ResourceSubscriber::getAll()) {
+			if (subscriber->is_subscribed(asset)) {
+				subscriber->notifyReloadedAsset(asset);
+			}
 		}
 	}
-	return reloaded_any;
+
+	return assets_changed.size() > 0;
 }
 
 }

@@ -1,8 +1,9 @@
 #include "Player.hpp"
-#include "PlayerConstants.hpp"
+#include "PlayerCommon.hpp"
 
 #include "plr_states/PlayerAir.hpp"
 #include "plr_states/PlayerGround.hpp"
+#include "plr_states/PlayerDash.hpp"
 
 #include "fastfall/engine/input.hpp"
 
@@ -34,6 +35,7 @@ Player::Player(GameContext context, const ObjectRef& ref, const ObjectType& type
 			.slope_sticking = true,
 			.slope_wall_stop = true,
 			.has_friction = true,
+			.use_surf_vel = true,
 			.stick_angle_max = Angle::Degree(90),
 			.max_speed = constants::norm_speed,
 		});
@@ -80,6 +82,9 @@ void Player::update(secs deltaTime) {
 			break;
 		case PlayerStateID::Air:	
 			state_transition<PlayerAirState>();
+			break;
+		case PlayerStateID::Dash:
+			state_transition<PlayerDashState>();
 			break;
 		}
 	}

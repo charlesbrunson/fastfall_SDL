@@ -92,11 +92,11 @@ protected:
 
 	std::vector<TileData> pos2data;
 
-	struct TVArrayT {
+	struct ChunkVA {
 		const TilesetAsset* tileset;
 		ChunkVertexArray varray;
 	};
-	std::vector<TVArrayT> tileVertices;
+	std::vector<ChunkVA> chunks;
 
 	ColliderTileMap* collision = nullptr;
 

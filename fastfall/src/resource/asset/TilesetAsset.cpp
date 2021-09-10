@@ -11,71 +11,66 @@
 #include <assert.h>
 #include <fstream>
 
-//#include <ranges>
-
-
-
 namespace ff {
 
-
-
-struct TileState {
-	TilesetAsset* owner;
-	Tile* tile;
-	TileLogicData logic;
-	std::string material;
-};
-
-std::map<std::string, void(*)(TileState&, char*)> tileProperties
+const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char*)> TilesetAsset::tileProperties
 {
-	{"shape", [](TileState& state, char* value)
+	{"shape", [](TilesetAsset& asset, TileData& state, char* value)
 	{
-		state.tile->shape = TileShape(value);
+		state.tile.shape = TileShape(value);
 	}},
 
-	{"logic", [](TileState& state, char* value)
+	{"logic", [](TilesetAsset& asset, TileData& state, char* value)
 	{
-		state.logic.logicType = value;
-	}},
-	{"logic_arg", [](TileState& state, char* value)
-	{
-		state.logic.logicArg = value;
-	}},
-	{"next_x", [](TileState& state, char* value)
-	{
-		state.tile->next_offset.x = std::stoi(value);
+		state.has_prop_bits |= TileHasProp::HasLogic;
+		state.tileLogicNdx = asset.addLogicType(value);
 
 	}},
-	{"next_y", [](TileState& state, char* value)
+	{"logic_arg", [](TilesetAsset& asset, TileData& state, char* value)
 	{
-		state.tile->next_offset.y = std::stoi(value);
-
-	}},
-	{"next_tileset", [](TileState& state, char* value)
-	{
-		if (strlen(value) > 0 && strcmp(state.owner->getAssetName().c_str(), value) != 0) {
-			state.tile->next_tileset = state.owner->getTilesetRefIndex(value);
+		if (state.has_prop_bits & TileHasProp::HasLogic)
+		{
+			state.has_prop_bits |= TileHasProp::HasLogicArgs;
+			state.tileLogicParamNdx = asset.addLogicArgs(state.tileLogicNdx, value);
+		}
+		else 
+		{
+			LOG_ERR_("Tileset: {}, unknown logic type for args at {}", asset.getAssetName(), state.tile.pos.to_string());
 		}
 	}},
-	{"material", [](TileState& state, char* value)
+	{"next_x", [](TilesetAsset& asset, TileData& state, char* value)
 	{
-		state.material = value;
-
-		//state.tile->material = getTileMaterial(value);
+		state.tile.next_offset.x = std::stoi(value);
 	}},
-	{"material_facing", [](TileState& state, char* value)
+	{"next_y", [](TilesetAsset& asset, TileData& state, char* value)
+	{
+		state.tile.next_offset.y = std::stoi(value);
+	}},
+	{"next_tileset", [](TilesetAsset& asset, TileData& state, char* value)
+	{
+		if (strlen(value) > 0 && strcmp(asset.getAssetName().c_str(), value) != 0) {
+
+			state.tile.next_tileset = asset.getTilesetRefIndex(value);
+		}
+	}},
+	{"material", [](TilesetAsset& asset, TileData& state, char* value)
+	{
+		state.has_prop_bits |= TileHasProp::HasMaterial;
+		state.tileMatNdx = asset.addMaterial(value);
+	}},
+	{"material_facing", [](TilesetAsset& asset, TileData& state, char* value)
 	{
 		if (strcmp(value, "north")) {
-			state.tile->matFacing = Cardinal::NORTH;
+			state.tile.matFacing = Cardinal::NORTH;
 		}
 		else if (strcmp(value, "east")) {
-			state.tile->matFacing = Cardinal::EAST;
+			state.tile.matFacing = Cardinal::EAST;
 		}
 		else if (strcmp(value, "south")) {
-			state.tile->matFacing = Cardinal::SOUTH;
+			state.tile.matFacing = Cardinal::SOUTH;
 		}
 		else if (strcmp(value, "west")) {
-			state.tile->matFacing = Cardinal::WEST;
+			state.tile.matFacing = Cardinal::WEST;
 		}
 	}}
 
@@ -85,42 +80,61 @@ std::map<std::string, void(*)(TileState&, char*)> tileProperties
 TilesetAsset::TilesetAsset(const std::string& filename) :
 	TextureAsset(filename)
 {
-
 }
 
-void TilesetAsset::parseTileProperties(xml_node<>* propsNode, Tile& t) {
-	xml_node<>* propNode = propsNode->first_node();
+unsigned TilesetAsset::addLogicType(std::string type)
+{
+	unsigned count = 0;
+	auto logic_it = std::find_if(tileLogic.begin(), tileLogic.end(),
+		[&type, &count](const TilesetLogic& t_logic) {
+			if (t_logic.logicType != type) {
+				count++;
+			}
+			return t_logic.logicType == type;
+		});
 
-	TileState state;
-	state.owner = this;
-	state.tile = &t;
-
-	while (propNode) {
-		if (strcmp("property", propNode->name()) != 0)
-			throw parse_error("not a property", nullptr);
-
-		char* name = propNode->first_attribute("name")->value();
-		char* value = propNode->first_attribute("value")->value();
-
-		auto prop = tileProperties.find(name);
-		if (prop != tileProperties.end()) {
-			prop->second(state, value);
-		}
-		else {
-			LOG_WARN("unknown tile property: {} = {}", name, value);
-		}
-
-		propNode = propNode->next_sibling();
+	if (logic_it == tileLogic.end()) {
+		count = tileLogic.size();
+		tileLogic.push_back({ type, {} });
 	}
-
-	if (!state.logic.logicType.empty()) {
-		setTileLogic(t.pos, state.logic);
-	}
-	if (!state.material.empty()) {
-		setTileMaterial(t.pos, state.material);
-	}
+	return count;
 }
+unsigned TilesetAsset::addLogicArgs(unsigned logicType, std::string args)
+{
+	unsigned count = 0;
+	auto& logicArgs = tileLogic.at(logicType).logicArg;
 
+	auto args_it = std::find_if(logicArgs.begin(), logicArgs.end(),
+		[&args, &count](const std::string& t_args) {
+			if (t_args != args) {
+				count++;
+			}
+			return t_args == args;
+		});
+
+	if (args_it == logicArgs.end()) {
+		count = logicArgs.size();
+		logicArgs.push_back(args);
+	}
+	return count;
+}
+unsigned TilesetAsset::addMaterial(std::string mat)
+{
+	unsigned count = 0;
+	auto mat_it = std::find_if(tileMat.begin(), tileMat.end(),
+		[&mat, &count](const std::string& t_mat) {
+			if (t_mat != mat) {
+				count++;
+			}
+			return t_mat == mat;
+		});
+
+	if (mat_it == tileMat.end()) {
+		count = tileMat.size();
+		tileMat.push_back(mat);
+	}
+	return count;
+}
 
 int TilesetAsset::getTilesetRefIndex(std::string_view tileset_name) {
 	auto r = std::find(tilesetRef.begin(), tilesetRef.end(), tileset_name);
@@ -133,11 +147,74 @@ int TilesetAsset::getTilesetRefIndex(std::string_view tileset_name) {
 	}
 }
 
+void TilesetAsset::loadFromFile_TileProperties(xml_node<>* propsNode, TileData& t) {
+	xml_node<>* propNode = propsNode->first_node();
+	while (propNode) {
+		if (strcmp("property", propNode->name()) != 0)
+			throw parse_error("not a property", nullptr);
+
+		char* name = propNode->first_attribute("name")->value();
+		char* value = propNode->first_attribute("value")->value();
+
+		auto prop = tileProperties.find(name);
+		if (prop != tileProperties.end()) {
+			prop->second(*this, t, value);
+		}
+		else {
+			LOG_WARN("unknown tile property: {} = {}", name, value);
+		}
+
+		propNode = propNode->next_sibling();
+	}
+}
+
+
+void TilesetAsset::loadFromFile_Header(xml_node<>* tileset_node, const std::string_view& relpath)
+{
+	int columns = atoi(tileset_node->first_attribute("columns")->value());
+	if (columns == 0)
+		throw parse_error("columns == 0", nullptr);
+
+	xml_node<>* imgNode = tileset_node->first_node("image");
+	if (!imgNode)
+		throw parse_error("no image node", nullptr);
+
+	std::string source = imgNode->first_attribute("source")->value();
+	fullpath = std::string(relpath) + source;
+	if (!tex.loadFromFile(fullpath))
+		throw parse_error("could not load sprite source", nullptr);
+
+	texTileSize = Vec2u(tex.size()) / TILESIZE;
+
+}
+
+void TilesetAsset::loadFromFile_Tile(xml_node<>* tile_node)
+{
+	int id = atoi(tile_node->first_attribute("id")->value());
+
+	TileData& t = tiles[id];
+	t.has_prop_bits |= TileHasProp::HasTile;
+	t.tile.pos = Vec2u{ id % texTileSize.x, id / texTileSize.x };
+	t.tile.origin = this;
+
+	xml_node<>* propNode = tile_node->first_node("properties");
+	loadFromFile_TileProperties(propNode, t);
+
+	tiles[get_ndx(t.tile.pos)] = t;
+}
+
 bool TilesetAsset::loadFromFile(const std::string& relpath) {
 
 	bool texLoaded = false;
 
 	assetFilePath = relpath;
+	
+	tiles.reset();
+	tilesetRef.clear();
+	tileLogic.clear();
+	tileMat.clear();
+
+	texTileSize = Vec2u{};
 
 	bool r = true;
 	std::unique_ptr<char[]> charPtr = readXML(assetFilePath + assetName + tilesetExt);
@@ -150,40 +227,15 @@ bool TilesetAsset::loadFromFile(const std::string& relpath) {
 			doc->parse<0>(xmlContent);
 
 			xml_node<>* tilesetNode = doc->first_node("tileset");
-			if (!tilesetNode)
-				throw parse_error("no tileset node", nullptr);
+			loadFromFile_Header(tilesetNode, relpath);
 
-			int columns = atoi(tilesetNode->first_attribute("columns")->value());
-			if (columns == 0)
-				throw parse_error("columns == 0", nullptr);
-
-			xml_node<>* imgNode = tilesetNode->first_node("image");
-			if (!imgNode)
-				throw parse_error("no image node", nullptr);
-
-			std::string source = imgNode->first_attribute("source")->value();
-			fullpath = relpath + source;
-			if (!tex.loadFromFile(fullpath))
-				throw parse_error("could not load sprite source", nullptr);
-
-			texTileSize = Vec2u(tex.size()) / TILESIZE;
-
-			//assert(texTileSize.x <= Vector2s::MAX);
+			tiles = std::make_unique<TileData[]>((size_t)texTileSize.x * texTileSize.y);
 
 			// parse tiles
 			xml_node<>* tileNode = tilesetNode->first_node("tile");
 			while (tileNode) {
-				Tile t;
 
-				int id = atoi(tileNode->first_attribute("id")->value());
-
-				t.pos = Vec2u(id % columns, id / columns);
-				t.origin = this;
-
-				xml_node<>* propNode = tileNode->first_node("properties");
-				parseTileProperties(propNode, t);
-
-				tileData.insert(std::make_pair(t.pos, t));
+				loadFromFile_Tile(tileNode);
 				tileNode = tileNode->next_sibling();
 			}
 		}
@@ -202,9 +254,32 @@ bool TilesetAsset::loadFromFile(const std::string& relpath) {
 	return r;
 }
 
+bool TilesetAsset::reloadFromFile() {
+	bool loaded = false;
+	try {
+		TilesetAsset n_tile{getAssetName()};
+		
+		if (n_tile.loadFromFile(assetFilePath)) {
+			*this = std::move(n_tile);
 
-bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder) {
+			for (size_t ndx = 0; ndx < texTileSize.x * texTileSize.y; ndx++) {
+				tiles[ndx].tile.origin = this;
+			}
 
+			loaded = true;
+		}
+	}
+	catch (std::exception)
+	{
+	}
+	return loaded;
+}
+
+bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder) 
+{
+	// TODO
+
+	/*
 	assetName = builder->name()->c_str();
 	texTileSize = Vec2u(builder->tileSize()->x(), builder->tileSize()->y());
 
@@ -241,9 +316,15 @@ bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder) {
 
 	loaded = tex.loadFromStream(builder->image()->Data(), builder->image()->size());
 	return loaded;
+	*/
+	return false;
 }
 
-flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(flatbuffers::FlatBufferBuilder& builder) const {
+flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(flatbuffers::FlatBufferBuilder& builder) const 
+{
+	// TODO
+
+	/*
 	using namespace flat::resources;
 	using namespace flat::math;
 
@@ -297,47 +378,59 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 	tileBuilder.add_tilesetRefs(flat_refs);
 	tileBuilder.add_tilesetLogics(logicdata);
 	return tileBuilder.Finish();
+	*/
+	return false;
 }
 
 Tile TilesetAsset::getTile(Vec2u texPos) const {
 	// assert this is actually on our texture
-	assert(texPos.x < texTileSize.x&& texPos.y < texTileSize.y);
+	assert(texPos.x < texTileSize.x && texPos.y < texTileSize.y);
 
-	auto r = tileData.find(texPos);
+	auto& r = tiles[get_ndx(texPos)];
 
-	if (r != tileData.end()) {
-		return r->second;
+	if (r.has_prop_bits & TileHasProp::HasTile) {
+		return r.tile;
 	}
 	else {
 		// create a default, empty tile here
-		auto t = Tile();
-		t.origin = this;
-		t.pos = texPos;
-		t.shape.type = TileShape::Type::EMPTY;
-		return t;
+		return Tile{
+			.pos = texPos,
+			.shape = TileShape(TileShape::Type::EMPTY, false, false),
+			.origin = this,
+		};
 	}
 }
 
-std::optional<TileLogicData> TilesetAsset::getTileLogic(Vec2u position) const {
-	if (auto it = logicData.find(position); it != logicData.end()) {
-		return it->second;
+TilesetAsset::TileLogicData TilesetAsset::getTileLogic(Vec2u position) const {
+	// assert this is actually on our texture
+	assert(position.x < texTileSize.x&& position.y < texTileSize.y);
+
+	const auto& r = tiles[get_ndx(position)];
+
+	TileLogicData data;
+
+	if (r.has_prop_bits & TileHasProp::HasLogic) {
+		data.logic_type = tileLogic.at(r.tileLogicNdx).logicType;
+		if (r.has_prop_bits & TileHasProp::HasLogicArgs) {
+			data.logic_args = tileLogic.at(r.tileLogicNdx).logicArg.at(r.tileLogicParamNdx);
+		}
 	}
-	return std::nullopt;
+	return data;
 }
 
 const TileMaterial& TilesetAsset::getMaterial(Vec2u position) const {
-	if (auto it = matData.find(position); it != matData.end()) {
-		return Tile::getMaterial(it->second);
+	// assert this is actually on our texture
+	assert(position.x < texTileSize.x&& position.y < texTileSize.y);
+
+	auto& r = tiles[get_ndx(position)];
+
+	if (r.has_prop_bits & TileHasProp::HasMaterial) 
+	{
+		return Tile::getMaterial(tileMat.at(r.tileMatNdx));
 	}
-	return Tile::standardMat;
-}
-
-
-void TilesetAsset::setTileLogic(Vec2u position, const TileLogicData& logic) {
-	logicData.insert(std::make_pair(position, logic));
-}
-void TilesetAsset::setTileMaterial(Vec2u position, const std::string& material) {
-	matData.insert(std::make_pair(position, material));
+	else {
+		return Tile::standardMat;
+	}
 }
 
 void TilesetAsset::ImGui_getContent() {

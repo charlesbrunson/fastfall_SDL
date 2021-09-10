@@ -15,7 +15,7 @@ struct Collidable_ptr {
 
 private:
 	Collidable* m_collidable;
-	GameContext m_context;
+	const GameContext m_context;
 };
 
 template<ColliderType T>
@@ -37,7 +37,7 @@ struct Collider_ptr {
 
 private:
 	T* m_collider;
-	GameContext m_context;
+	const GameContext m_context;
 };
 
 
@@ -59,7 +59,7 @@ struct Trigger_ptr {
 
 private:
 	Trigger* m_trigger;
-	GameContext m_context;
+	const GameContext m_context;
 };
 
 template<class T>
@@ -91,7 +91,7 @@ struct Scene_ptr {
 
 private:
 	T drawable;
-	GameContext m_context;
+	const GameContext m_context;
 
 };
 

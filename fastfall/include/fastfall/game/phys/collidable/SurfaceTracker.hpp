@@ -59,6 +59,12 @@ public:
 	inline Angle get_angle_max() { return angle_max; };
 	inline bool get_angle_inclusive() { return angle_inclusive; };
 
+	inline void set_angle_range(Angle ang_min, Angle ang_max, bool inclusive = true) { 
+		angle_min = ang_min; 
+		angle_max = ang_max; 
+		angle_inclusive = inclusive;
+	};
+
 	const std::optional<PersistantContact>& get_contact() { return currentContact; };
 
 	void start_touch(PersistantContact& contact);
@@ -79,6 +85,7 @@ public:
 		bool slope_sticking = false;
 		bool slope_wall_stop = false;
 		bool has_friction = false;
+		bool use_surf_vel = false;
 
 		Angle stick_angle_max;
 		Friction surface_friction;
@@ -119,9 +126,9 @@ private:
 
 	// applicable range
 	// based on contact surface_normal
-	const Angle angle_min;
-	const Angle angle_max;
-	const bool angle_inclusive;
+	Angle angle_min;
+	Angle angle_max;
+	bool angle_inclusive;
 
 	Collidable* owner = nullptr;
 };

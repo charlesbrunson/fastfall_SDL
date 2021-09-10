@@ -44,7 +44,8 @@ protected:
 enum class PlayerStateID {
 	Continue,
 	Ground,
-	Air
+	Air,
+	Dash
 };
 
 class PlayerState {

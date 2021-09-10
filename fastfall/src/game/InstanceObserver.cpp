@@ -482,11 +482,7 @@ void InstanceObserver::ImGui_getContent() {
 	ImGui::SameLine();
 	if (ImGui::Button("Reset")) {
 
-		//sf::Clock check;
-
-		Instance(instanceID)->reset();
-		//LOG_INFO("Reset Instance: {}ms", check.getElapsedTime().asMilliseconds());
-
+		Instance(instanceID)->want_reset = true;
 	}
 
 	ImGui::Separator();

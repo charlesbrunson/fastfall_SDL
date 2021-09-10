@@ -32,7 +32,6 @@ void GameInstance::clear() {
 
 void GameInstance::reset() {
 
-	//activeLevel = nullptr;
 	objMan.clear();
 	sceneMan.clear();
 	camera.removeAllTargets();
@@ -51,7 +50,7 @@ void GameInstance::reset() {
 	if (lvl) {
 		populateSceneFromLevel(*lvl);
 	}
-
+	want_reset = false;
 }
 
 

@@ -1,17 +1,32 @@
 #pragma once 
 
-#include "fastfall/resource/asset/AnimAsset.hpp"
-#include "fastfall/game/phys/collidable/SurfaceTracker.hpp"
 
+#include "Player.hpp"
 #include "fastfall/util/Default.hpp"
+
+namespace plr {
+	struct move_t {
+		move_t(const Player& plr);
+
+		float speed = 0.f;
+		int movex = 0;
+		int wishx = 0;
+	};
+}
 
 namespace plr::anim {
 
 	extern ff::AnimIDRef idle;
 	extern ff::AnimIDRef land;
 	extern ff::AnimIDRef run;
+
+	extern ff::AnimIDRef dash;
+
 	extern ff::AnimIDRef jump;
 	extern ff::AnimIDRef fall;
+
+	extern ff::AnimIDRef jump_f;
+	extern ff::AnimIDRef fall_f;
 
 	extern ff::AnimIDRef brakeb;
 	extern ff::AnimIDRef brakef;
@@ -32,4 +47,9 @@ namespace plr::constants {
 
 	extern ff::Default<ff::Vec2f> grav_normal;
 	extern ff::Default<ff::Vec2f> grav_light;
+}
+
+namespace plr::action {
+	PlayerStateID jump(Player& plr, const move_t& move);
+	PlayerStateID dash(Player& plr, const move_t& move);
 }

@@ -21,12 +21,14 @@ add_executable(test_project
 	"EmptyState.hpp"
 	"content/object/Player.cpp" 
 	"content/object/Player.hpp" 
-	"content/object/PlayerConstants.hpp" 
-	"content/object/PlayerConstants.cpp"
+	"content/object/PlayerCommon.hpp" 
+	"content/object/PlayerCommon.cpp" 
 	"content/object/plr_states/PlayerAir.hpp" 
 	"content/object/plr_states/PlayerAir.cpp" 
 	"content/object/plr_states/PlayerGround.hpp"
 	"content/object/plr_states/PlayerGround.cpp"
+	"content/object/plr_states/PlayerDash.hpp"
+	"content/object/plr_states/PlayerDash.cpp"
 	"content/object/BasicPlatform.hpp" 
 	"content/object/BasicPlatform.cpp" 
 	"content/TestState.cpp" 
@@ -36,7 +38,7 @@ add_executable(test_project
 	"content/types.hpp"
 	"content/types.cpp"
 	"content/camera/SimpleCamTarget.hpp"
-	"content/camera/SimpleCamTarget.cpp"  )
+	"content/camera/SimpleCamTarget.cpp")
 
 target_link_libraries(test_project PRIVATE 
 	fastfall

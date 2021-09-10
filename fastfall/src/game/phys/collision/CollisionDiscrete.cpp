@@ -5,14 +5,14 @@
 
 namespace ff {
 
-CollisionDiscrete::CollisionDiscrete(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion, bool collidePreviousFrame) :
-	cAble(collidable),
-	cTile(collisionTile),
-	cQuad(*collisionTile),
-	collidePrevious(collidePreviousFrame),
-	region(colliderRegion)
+	CollisionDiscrete::CollisionDiscrete(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion, bool collidePreviousFrame) :
+		cAble(collidable),
+		cTile(collisionTile),
+		cQuad(*collisionTile),
+		collidePrevious(collidePreviousFrame),
+		region(colliderRegion)
 {
-	axes.reserve(8u);
+	//axes.reserve(8u);
 	reset(collisionTile, colliderRegion, collidePreviousFrame);
 }
 
@@ -89,8 +89,9 @@ void CollisionDiscrete::reset(const ColliderQuad* collisionTile, const ColliderR
 }
 
 void CollisionDiscrete::createAxes() noexcept {
-	axes.clear();
+	//axes.clear();
 
+	axis_count = 0;
 	bool hasFloor = false;
 	bool hasCeil = false;
 	bool hasEast = false;
@@ -244,11 +245,12 @@ void CollisionDiscrete::createAxes() noexcept {
 		fake.surface.p2 = math::rect_topleft(tArea);
 		verticals[vSize++] = AxisPreStep{ .dir = Cardinal::WEST, .surface = fake, .is_real = false, .is_valid = false, .quadNdx = 255u };
 	}
+	//LOG_INFO("{} {}", hSize, vSize);
 
 	for (size_t i = 0u; i < hSize; i++) {
 		switch (non_verticals[i].dir) {
-		case Cardinal::NORTH: axes.push_back(createFloor(non_verticals[i])); break;
-		case Cardinal::SOUTH: axes.push_back(createCeil(non_verticals[i])); break;
+		case Cardinal::NORTH: axes[axis_count++] = createFloor(non_verticals[i]); break;
+		case Cardinal::SOUTH: axes[axis_count++] = createCeil(non_verticals[i]); break;
 
 		// dont handle EAST or WEST
 		default: break;
@@ -258,11 +260,11 @@ void CollisionDiscrete::createAxes() noexcept {
 		switch (verticals[i].dir) {
 		case Cardinal::EAST:
 			if ((hasEast && hasEastCorner && verticals[i].is_real) || (!hasEast || !hasEastCorner))
-				axes.push_back(createEastWall(verticals[i]));
+				axes[axis_count++] = createEastWall(verticals[i]);
 			break;
 		case Cardinal::WEST:
 			if ((hasWest && hasWestCorner && verticals[i].is_real) || (!hasWest || !hasWestCorner))
-				axes.push_back(createWestWall(verticals[i]));
+				axes[axis_count++] = createWestWall(verticals[i]);
 			break;
 		// dont handle NORTH or SOUTH
 		default: break;
@@ -276,7 +278,11 @@ void CollisionDiscrete::updateContact() noexcept {
 	initCollidableData();
 
 	// calculate separation, position, collider_normal
-	for (auto& axis : axes) {
+	//for (auto& axis : axes) {
+	for (unsigned i = 0; i < axis_count; i++)
+	{
+		auto& axis = axes[i];
+
 		if (axis.dir == Cardinal::NORTH) {
 
 			float Y = tArea.top;
@@ -345,7 +351,12 @@ void CollisionDiscrete::evalContact() noexcept {
 
 	bool hasContact = true;
 	unsigned noContactCounter = 0u;
-	for (auto& axis : axes) {
+	//for (auto& axis : axes) {
+	for (unsigned i = 0; i < axis_count; i++)
+	{
+		auto& axis = axes[i];
+
+
 		// some post-processing
 		if (axis.dir == Cardinal::NORTH) {
 			// follow up on valley check
@@ -386,7 +397,9 @@ void CollisionDiscrete::evalContact() noexcept {
 	CollisionAxis* secondPick = nullptr; // determine best orthogonal movement to touch
 
 	if (noContactCounter == 0u) {
-		for (auto& axis : axes) {
+		for (unsigned i = 0; i < axis_count; i++)
+		{
+			auto& axis = axes[i];
 
 			auto sepCmp = [](auto& axis, auto* best) -> bool {
 				return !best || (axis.contact.separation < best->contact.separation);
@@ -398,7 +411,9 @@ void CollisionDiscrete::evalContact() noexcept {
 		}
 	}
 	else if (noContactCounter == 1u) {
-		for (auto& axis : axes) {
+		for (unsigned i = 0; i < axis_count; i++)
+		{
+			auto& axis = axes[i];
 			if (axis.is_collider_valid() &&
 				!axis.is_intersecting()) {
 				secondPick = &axis;
@@ -485,7 +500,8 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 	}
 
 	// check if north or south axis has a valley in it 
-	bool has_valley = !axis.is_collider_valid() && std::any_of(axes.begin(), axes.end(),
+	bool has_valley = !axis.is_collider_valid() && std::any_of(std::begin(axes), std::begin(axes) + axis_count,
+
 		[this](CollisionAxis& other_axis) {
 			if (other_axis.dir == Cardinal::NORTH && other_axis.is_collider_real()) {
 				ColliderSurface& surf = other_axis.contact.collider;
@@ -537,7 +553,7 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 	}
 
 	// check if north or south axis has a valley in it 
-	bool has_valley = !axis.is_collider_valid() && std::any_of(axes.begin(), axes.end(),
+	bool has_valley = !axis.is_collider_valid() && std::any_of(std::begin(axes), std::begin(axes) + axis_count,
 		[this](CollisionAxis& other_axis) {
 			if (other_axis.dir == Cardinal::NORTH && other_axis.is_collider_real()) {
 				ColliderSurface& surf = other_axis.contact.collider;
