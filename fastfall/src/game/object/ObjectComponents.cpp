@@ -46,4 +46,5 @@ Trigger_ptr::~Trigger_ptr() {
 	instance::trig_erase_trigger(m_context, m_trigger);
 }
 
+
 }

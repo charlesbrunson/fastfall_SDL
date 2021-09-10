@@ -131,8 +131,6 @@ private:
 	Vec2f accel_accum;
 	Vec2f decel_accum;
 
-
-
 	std::vector<PersistantContact> currContacts;
 	std::vector<std::unique_ptr<SurfaceTracker>> trackers;
 

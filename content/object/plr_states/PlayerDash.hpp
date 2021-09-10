@@ -16,6 +16,9 @@ public:
 	}
 protected:
 	secs dash_time = 0.0;
+	secs dash_air_time = 0.0;
+
+	float dash_speed = 0.f;
 
 	bool ground_flag = false;
 };

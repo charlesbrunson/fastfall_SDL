@@ -62,39 +62,46 @@ namespace plr::action {
 
 	PlayerStateID jump(Player& plr, const move_t& move)
 	{
+		Vec2f contact_normal = Vec2f{0.f, -1.f};
+		Vec2f contact_velocity = Vec2f{};
+
 		if (plr.ground->has_contact()) {
-			if ((move.wishx != 0 && abs(plr.ground->traverse_get_speed()) >= 100.f)
-				|| abs(plr.ground->traverse_get_speed()) >= constants::norm_speed - 10.f)
-			{
-				plr.sprite->set_anim(anim::jump_f);
-				if (move.movex != 0) {
-					plr.sprite->set_hflip(move.movex < 0);
-				}
-			}
-			else
-			{
-				plr.sprite->set_anim(anim::jump);
-				if (move.wishx != 0) {
-					plr.sprite->set_hflip(move.wishx < 0);
-				}
-			}
-
-			plr.ground->settings.slope_sticking = false;
-
-			Vec2f jumpVel = Vec2f{ plr.box->get_vel().x, constants::jumpVelY };
-			Angle jump_ang = math::angle(jumpVel) - math::angle(plr.ground->get_contact()->collider_normal);
-
-			// from perpendicular to the ground
-			static const Angle min_jump_ang = Angle::Degree(60);
-
-			if (jump_ang < -min_jump_ang) {
-				jumpVel = math::rotate(jumpVel, -jump_ang - min_jump_ang);
-			}
-			else if (jump_ang > min_jump_ang) {
-				jumpVel = math::rotate(jumpVel, -jump_ang + min_jump_ang);
-			}
-			plr.box->set_vel(jumpVel + Vec2f{ 0.f, plr.ground->get_contact()->velocity.y });
+			contact_normal = plr.ground->get_contact()->collider_normal;
+			contact_velocity = plr.ground->get_contact()->velocity;
 		}
+
+		if ((move.wishx != 0 && abs(plr.ground->traverse_get_speed()) >= 100.f)
+			|| abs(plr.ground->traverse_get_speed()) >= constants::norm_speed - 10.f)
+		{
+			plr.sprite->set_anim(anim::jump_f);
+			if (move.movex != 0) {
+				plr.sprite->set_hflip(move.movex < 0);
+			}
+		}
+		else
+		{
+			plr.sprite->set_anim(anim::jump);
+			if (move.wishx != 0) {
+				plr.sprite->set_hflip(move.wishx < 0);
+			}
+		}
+
+		plr.ground->settings.slope_sticking = false;
+
+		Vec2f jumpVel = Vec2f{ plr.box->get_vel().x, constants::jumpVelY };
+		Angle jump_ang = math::angle(jumpVel) - math::angle(contact_normal);
+
+		// from perpendicular to the ground
+		static const Angle min_jump_ang = Angle::Degree(60);
+
+		if (jump_ang < -min_jump_ang) {
+			jumpVel = math::rotate(jumpVel, -jump_ang - min_jump_ang);
+		}
+		else if (jump_ang > min_jump_ang) {
+			jumpVel = math::rotate(jumpVel, -jump_ang + min_jump_ang);
+		}
+		plr.box->set_vel(jumpVel + Vec2f{ 0.f, contact_velocity.y });
+
 		return PlayerStateID::Air;
 	}
 }

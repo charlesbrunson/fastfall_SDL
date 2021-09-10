@@ -19,7 +19,8 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime) {
 	plr.box->set_gravity(constants::grav_normal);
 
 	if (!plr.ground->has_contact()) {
-		plr.ground->settings.slope_sticking = false;
+
+		plr.ground->settings.slope_sticking = plr.box->get_vel().y > -50.f;
 
 
 		if (plr.box->get_vel().y > -100.f) {
