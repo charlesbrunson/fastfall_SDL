@@ -1,5 +1,7 @@
 
 #include "fastfall/render.hpp"
+#include "backends/imgui_impl_opengl3.h"
+#include "backends/imgui_impl_sdl.h"
 #include "fastfall/render/opengl.hpp"
 #include "fastfall/render/Window.hpp"
 
@@ -9,6 +11,7 @@
 #include "detail/error.hpp"
 
 #include "SDL_image.h"
+#include "imgui.h"
 
 #include <iostream>
 #include <stack>
@@ -86,6 +89,11 @@ bool FFinit()
 void FFquit()
 {
     assert(renderInitialized);
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
+	ImGui::DestroyContext();
+
     IMG_Quit();
     SDL_Quit();
     renderInitialized = false;

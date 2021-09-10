@@ -1,5 +1,16 @@
 {
     "configurations": {
+        "all": {
+            "adapter": "",
+            "configuration": {
+                "Mimode": "",
+                "args": [],
+                "cwd": "${workspaceRoot}",
+                "program": "",
+                "request": "launch",
+                "type": ""
+            }
+        },
         "test_project": {
             "adapter": "vscode-cpptools",
             "configuration": {

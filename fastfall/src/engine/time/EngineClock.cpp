@@ -13,7 +13,13 @@ using namespace std::chrono;
 EngineClock::EngineClock(unsigned int fps, bool steady):
 	steadyTick(steady)
 {
-	reset();
+	elapsed = 0ns;
+	elapsedAcc = 0ns;
+
+	tickCounter = 0;
+	tickMissCounter = 0;
+	cur_tick = 0;
+
 	setTargetFPS(fps);
 }
 
