@@ -125,9 +125,17 @@ namespace ff {
 				case Cardinal::SOUTH: for (unsigned x = 0; x < size.x; x++) setTile(Vec2i(x, size.y), shape); break;
 				case Cardinal::WEST:  for (unsigned y = 0; y < size.y; y++) setTile(Vec2i(-1, y), shape); break;
 				}
-				applyChanges();
+			}
+			else {
+				switch (side) {
+				case Cardinal::NORTH: for (unsigned x = 0; x < size.x; x++) removeTile(Vec2i(x, -1)); break;
+				case Cardinal::EAST:  for (unsigned y = 0; y < size.y; y++) removeTile(Vec2i(size.x, y)); break;
+				case Cardinal::SOUTH: for (unsigned x = 0; x < size.x; x++) removeTile(Vec2i(x, size.y)); break;
+				case Cardinal::WEST:  for (unsigned y = 0; y < size.y; y++) removeTile(Vec2i(-1, y)); break;
+				}
 			}
 		}
+		applyChanges();
 	}
 
 	std::pair<bool, bool> ColliderTileMap::cullTouchingSurfaces(ColliderSurface& lhs, ColliderSurface& rhs) {

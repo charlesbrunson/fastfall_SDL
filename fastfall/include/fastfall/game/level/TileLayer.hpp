@@ -22,7 +22,7 @@ namespace ff {
 
 class TileLayer : public Drawable {
 public:
-	TileLayer(const LayerRef& layerData, GameContext context, bool initCollision = false);
+	TileLayer(GameContext context, unsigned id, const TileLayerRef& layerData, bool initCollision = false);
 	TileLayer(const TileLayer& tile);
 	TileLayer(TileLayer&& tile) noexcept;
 	TileLayer& operator=(const TileLayer& tile);
@@ -30,7 +30,7 @@ public:
 
 	~TileLayer();
 
-	void initFromAsset(const LayerRef& layerData, bool initCollision = false);
+	void initFromAsset(const TileLayerRef& layerData, unsigned id, bool initCollision = false);
 
 	void setTile(const Vec2u& position, const Vec2u& texposition, const TilesetAsset& tileset, bool useLogic = true);
 	void removeTile(const Vec2u& position);
@@ -64,7 +64,7 @@ protected:
 
 	unsigned int layerID;
 
-	const LayerRef* ref;
+	const TileLayerRef* ref;
 
 	Vec2u size;
 	Vec2f offset;

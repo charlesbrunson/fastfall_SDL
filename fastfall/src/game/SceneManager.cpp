@@ -112,6 +112,10 @@ void SceneManager::draw(ff::RenderTarget& target, ff::RenderState state) const {
 			scissor_enabled = false;
 			disableScissor();
 		}
+		else if (!scissor_enabled && layer.layer_id > 0)
+		{
+			continue;
+		}
 
 		for (auto& scene_drawable : layer.drawables) {
 			target.draw(*scene_drawable.drawable, state);
@@ -126,7 +130,6 @@ void SceneManager::draw(ff::RenderTarget& target, ff::RenderState state) const {
 
 
 bool SceneManager::enableScissor(const RenderTarget& target, Vec2f viewPos) const {
-	glEnable(GL_SCISSOR_TEST);
 
 	glm::fvec4 scissor;
 	View view = target.getView();
@@ -153,12 +156,16 @@ bool SceneManager::enableScissor(const RenderTarget& target, Vec2f viewPos) cons
 		scissor[2] = roundf(std::max(scissor[2], 0.f));
 		scissor[3] = roundf(std::max(scissor[3], 0.f));
 	}
-	glScissor(
-		scissor[0],
-		scissor[1],
-		scissor[2],
-		scissor[3]
-	);
+
+	if (scissor[2] > 0.f && scissor[3] > 0.f) {
+		glScissor(
+			scissor[0],
+			scissor[1],
+			scissor[2],
+			scissor[3]
+		);
+		glEnable(GL_SCISSOR_TEST);
+	}
 	return scissor[2] > 0.f && scissor[3] > 0.f;
 }
 

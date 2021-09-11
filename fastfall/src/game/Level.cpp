@@ -13,24 +13,18 @@ namespace ff {
 Level::Level(GameContext context) :
 	context(context),
 	objLayer(),
-	levelName(nullptr),
 	bordersCardinalBits(0u)
 {
-	//LevelObserver::registerLevel(this);
+
 }
 
 Level::Level(GameContext context, const LevelAsset& levelData) :
 	context(context),
-	objLayer(),
-	levelName(nullptr)
+	objLayer()
 {
-	//LevelObserver::registerLevel(this);
 	init(levelData);
 }
 
-Level::~Level() {
-	//LevelObserver::unregisterLevel(this);
-}
 
 void Level::update(secs deltaTime) {
 	if (deltaTime == 0.0)
@@ -54,7 +48,6 @@ void Level::update(secs deltaTime) {
 }
 
 void Level::predraw(secs deltaTime) {
-	//objLayer.getObjMan().predraw(deltaTime);
 
 	for (auto& fg : fgLayers) {
 		fg.predraw(deltaTime);
@@ -65,31 +58,8 @@ void Level::predraw(secs deltaTime) {
 	}
 }
 
-/*
-void Level::draw(RenderTarget& target, RenderState states) const {
-
-	for (auto it = bgLayers.begin(); it != bgLayers.end(); it++) {
-		target.draw(*it, states);
-	}
-
-	// draw bg objs
-	//auto objMan = &Instance(instance)->getObject();
-	//target.draw(objMan->getObjectDrawList(), states);
-
-	for (auto it = fgLayers.begin(); it != fgLayers.end(); it++) {
-
-		target.draw(*it, states);
-		if (it == fgLayers.begin()) {
-			// draw fg objs
-			//target.draw(objMan->getObjectDrawList(), states);
-
-		}
-	}
-}
-*/
-
 void Level::init(const LevelAsset& levelData) {
-	levelName = &levelData.getAssetName();
+	levelName = levelData.getAssetName();
 
 	bgColor = levelData.getBGColor();
 	levelSize = levelData.getTileDimensions();
@@ -103,11 +73,11 @@ void Level::init(const LevelAsset& levelData) {
 	for (auto i = levelData.getLayerRefs()->begin(); i != levelData.getLayerRefs()->end(); i++) {
 		if (i->type == LayerRef::Type::Object) {
 			bg = false;
-			objLayer.initFromAsset(context, *i);
+			objLayer.initFromAsset(context, i->id, i->asObjLayer());
 		}
 		else if (i->type == LayerRef::Type::Tile) {
 			(bg ? bgLayers : fgLayers).push_back(
-				TileLayer(*i, context, (!bg && fgLayers.empty()))
+				TileLayer(context, i->id, i->asTileLayer(), (!bg && fgLayers.empty()))
 			);
 		}
 	}
@@ -116,11 +86,8 @@ void Level::init(const LevelAsset& levelData) {
 		auto* colMap = fgLayers.front().getCollisionMap();
 
 		if (colMap) {
-
 			colMap->setBorders(fgLayers.front().getSize(), bordersCardinalBits);
-			//colMap->applyChanges();
 		}
-
 	}
 }
 

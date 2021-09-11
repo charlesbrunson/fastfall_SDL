@@ -18,10 +18,11 @@
 namespace ff {
 
 
-TileLayer::TileLayer(const LayerRef& layerData, GameContext context, bool initCollision)
+TileLayer::TileLayer(GameContext context, unsigned id, const TileLayerRef& layerData, bool initCollision)
 	: m_context(context)
+	, layerID(id)
 {
-	initFromAsset(layerData, initCollision);
+	initFromAsset(layerData, id, initCollision);
 }
 
 TileLayer::TileLayer(const TileLayer& tile)
@@ -177,15 +178,14 @@ TileLayer::~TileLayer() {
 	}
 }
 
-void TileLayer::initFromAsset(const LayerRef& layerData, bool initCollision) {
+void TileLayer::initFromAsset(const TileLayerRef& layerData, unsigned id, bool initCollision) {
 	clear();
-	assert(layerData.type == LayerRef::Type::Tile);
 
-	auto& tileLayer = std::get<TileLayerRef>(layerData.layer);
+	auto& tileLayer = layerData;
 
 	ref = &layerData;
 	hasCollision = initCollision;
-	layerID = layerData.id;
+	layerID = id;
 
 	size.x = tileLayer.innerSize.x == 0 ? tileLayer.tileSize.x : tileLayer.innerSize.x;
 	size.y = tileLayer.innerSize.y == 0 ? tileLayer.tileSize.y : tileLayer.innerSize.y;

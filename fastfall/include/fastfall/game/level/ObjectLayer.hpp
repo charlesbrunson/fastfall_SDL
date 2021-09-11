@@ -12,8 +12,8 @@ namespace ff {
 class ObjectLayer {
 public:
 
-	ObjectLayer(/*InstanceID instance*/);
-	ObjectLayer(GameContext context, const LayerRef& layerData);
+	ObjectLayer();
+	ObjectLayer(GameContext context, unsigned id, const ObjectLayerRef& layerData);
 
 	ObjectLayer(const ObjectLayer& obj);
 	ObjectLayer(ObjectLayer&& obj) noexcept;
@@ -23,42 +23,18 @@ public:
 
 	void update(secs deltaTime);
 
-	//void predraw(secs deltaTime) override;
-
-	void initFromAsset(GameContext context, const LayerRef& layerData);
+	void initFromAsset(GameContext context, unsigned id, const ObjectLayerRef& layerData);
 
 	void clear();
-
-	//GameObject* addObject(std::unique_ptr<GameObject>&& obj);
-	//GameObject* getObjectByID(unsigned int id);
-
-	//CollisionMap* levelCollision = nullptr;
 
 	inline bool initialized() noexcept { return ref != nullptr; };
 
 	inline unsigned int getLayerID() { return layerID; };
-	inline const LayerRef* getLayerRef() { return ref; };
-
-	/*
-	inline GameObjectManager* getObjMan() {
-		return objMan;
-	}
-	inline const GameObjectManager* getObjMan() const {
-		return objMan;
-	}
-	*/
-
+	inline const ObjectLayerRef* getLayerRef() { return ref; };
 
 private:
-	//InstanceID instanceID;
-
 	unsigned int layerID;
-
-	//void draw(sf::RenderTarget& target, sf::RenderStates states = sf::RenderStates()) const override;
-
-	const LayerRef* ref = nullptr;
-
-	//GameObjectManager* objMan = nullptr;
+	const ObjectLayerRef* ref = nullptr;
 
 };
 

@@ -126,15 +126,17 @@ PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
 		}
 	}
 
-
 	dash_time += deltaTime;
 	if (dash_time >= dash_duration) {
-		if (Input::isPressed(InputType::DASH, 0.25f))
-		{
-			Input::confirmPress(InputType::DASH);
-			return action::dash(plr, move_t(plr));
+		if (plr.ground->has_contact()) {
+			if (Input::isPressed(InputType::DASH, 0.25f))
+			{
+				Input::confirmPress(InputType::DASH);
+				return action::dash(plr, move_t(plr));
+			}
+			return PlayerStateID::Ground;
 		}
-		return plr.ground->has_contact() ? PlayerStateID::Ground : PlayerStateID::Air;
+		return PlayerStateID::Air;
 	}
 	return PlayerStateID::Continue;
 }

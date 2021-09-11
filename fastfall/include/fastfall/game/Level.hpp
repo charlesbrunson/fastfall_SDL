@@ -18,7 +18,7 @@ public:
 
 	Level(GameContext context);
 	Level(GameContext context, const LevelAsset& levelData);
-	~Level();
+	//~Level();
 
 	void init(const LevelAsset& levelData);
 
@@ -28,7 +28,7 @@ public:
 
 	inline const Color& getBGColor() const { return bgColor; };
 	inline const Vec2u& size() const { return levelSize; };
-	inline const std::string* name() const { return levelName; };
+	inline const std::string& name() const { return levelName; };
 
 
 	inline std::list<TileLayer>& getBGLayers() { return bgLayers; };
@@ -44,7 +44,7 @@ private:
 
 	//void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 
-	const std::string* levelName;
+	std::string levelName;
 	Vec2u levelSize;
 	unsigned bordersCardinalBits;
 

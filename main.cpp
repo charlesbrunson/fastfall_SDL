@@ -13,6 +13,7 @@
 #include "content/types.hpp"
 #include "content/TestState.hpp"
 
+#include "fastfall/game/level/LevelEditor.hpp"
 
 ff::EngineSettings getSettings() {
 	ff::EngineSettings settings;

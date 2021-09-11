@@ -68,7 +68,7 @@ void TestState::update(secs deltaTime) {
 		static secs timebuf = 0.0;
 		timebuf += deltaTime;
 
-		colmap->setPosition(colmap->getPosition());
+		//colmap->setPosition(colmap->getPosition());
 	}
 
 	instance->getActiveLevel()->update(deltaTime);
@@ -77,7 +77,6 @@ void TestState::update(secs deltaTime) {
 	instance->getCollision().update(deltaTime);
 	instance->getCamera().update(deltaTime);
 	
-
 }
 
 void TestState::predraw(secs deltaTime) {

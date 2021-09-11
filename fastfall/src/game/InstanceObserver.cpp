@@ -291,7 +291,7 @@ void levelContent(GameContext context) {
 
 		Level* lvl = lvlpair.second.get();
 
-		if (ImGui::CollapsingHeader(lvl->name()->c_str(), ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+		if (ImGui::CollapsingHeader(lvl->name().c_str(), ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
 
 			ImGui::Text("Instance = %u", (unsigned int)lvl->getInstanceID());
 			ImGui::Text("Dimensions = %u, %u", lvl->size().x, lvl->size().y);
@@ -309,7 +309,7 @@ void levelContent(GameContext context) {
 			
 			ObjectLayer& layer = lvl->getObjLayer();
 			if (ImGui::TreeNode((void*)(&layer), "%d. Objects  #%u", i, layer.getLayerID())) {
-				for (auto& obj : std::get<ObjectLayerRef>(layer.getLayerRef()->layer).objects) {
+				for (auto& obj : layer.getLayerRef()->objects) {
 
 					const std::string* type = GameObjectLibrary::lookupTypeName(obj.type);
 					if (ImGui::TreeNode((char*)&obj, "%s #%u", (type ? type->c_str() : "Anonymous Type"), obj.id)) {
@@ -378,6 +378,7 @@ void cameraContent(GameContext context) {
 	float pos[2] = { center.x, center.y };
 
 	if (ImGui::DragFloat2("Set Pos", pos)) {
+		instance::cam_set_lock_enabled(context, true);
 		instance::cam_set_pos(context, Vec2f{ pos[0], pos[1] });
 	}
 

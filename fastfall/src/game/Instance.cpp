@@ -36,8 +36,8 @@ void GameInstance::reset() {
 	sceneMan.clear();
 	camera.removeAllTargets();
 	for (auto& lvl : currentLevels) {
-		if (lvl.second->name()) {
-			auto* asset = Resources::get<LevelAsset>(*lvl.second->name());
+		if (!lvl.second->name().empty()) {
+			auto* asset = Resources::get<LevelAsset>(lvl.second->name());
 			if (asset) {
 				lvl.second->init(*asset);
 			}
