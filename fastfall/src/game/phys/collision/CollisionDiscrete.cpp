@@ -217,6 +217,18 @@ void CollisionDiscrete::createAxes() noexcept {
 			}
 		}
 	}
+
+	std::sort(verticals.begin(), verticals.begin() + vSize,
+		[](const AxisPreStep& lhs, const AxisPreStep& rhs) {
+			return lhs.dir < rhs.dir;
+		});
+
+	std::sort(non_verticals.begin(), non_verticals.begin() + hSize,
+		[](const AxisPreStep& lhs, const AxisPreStep& rhs) {
+			return lhs.dir < rhs.dir;
+		});
+
+
 	// generate remaining axes with bounding box
 	// these axis will only be used to determine intersection
 	// and cannot be selected for the resolving axis

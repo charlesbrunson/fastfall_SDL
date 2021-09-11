@@ -60,7 +60,7 @@ public:
 	bool reloadFromFile() override;
 
 	Tile getTile(Vec2u texPos) const;
-	inline const Vec2u& getTileSize() { return texTileSize; };
+	inline const Vec2u& getTileSize() const { return texTileSize; };
 
 	void ImGui_getContent() override;
 

@@ -50,7 +50,7 @@ public:
 
 	inline ColliderTileMap* getCollisionMap() { return collision; };
 
-	inline unsigned int getID() { return layerID; };
+	inline unsigned int getID() const { return layerID; };
 
 	inline Vec2u getSize() const noexcept { return size; };
 	inline Vec2f getOffset() const noexcept { return offset; };

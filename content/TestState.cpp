@@ -10,6 +10,8 @@
 
 #include "tilelogic/AnimLogic.hpp"
 
+#include "fastfall/game/level/LevelEditor.hpp"
+
 TestState::TestState()
 {
 
@@ -36,8 +38,8 @@ TestState::TestState()
 	}
 
 
-	instance->getActiveLevel()->resize(Vec2u{ 240, 60 });
-	instance->populateSceneFromLevel(*instance->getActiveLevel());
+	//instance->getActiveLevel()->resize(Vec2u{ 240, 60 });
+	//instance->populateSceneFromLevel(*instance->getActiveLevel());
 	instance->getActiveLevel()->update(0.0);
 	instance->getObject().update(0.0);
 	instance->getCollision().update(0.0);
@@ -47,7 +49,53 @@ TestState::TestState()
 	instance->getScene().set_bg_color(instance->getActiveLevel()->getBGColor());
 	instance->getScene().set_size(instance->getActiveLevel()->size());
 
+
 }
+
+void paint(Vec2u start, LevelEditor& edit) {
+
+	unsigned x_off = 0u;
+
+	unsigned letters[] = {
+		0b101101111101101,
+		0b111100110100111,
+		0b100100100100111,
+		0b100100100100111,
+		0b111101101101111,
+		0b000000000000000,
+		0b101101111111101,
+		0b111101101101111,
+		0b111101110101101,
+		0b100100100100111,
+		0b111101101101111,
+	};
+
+	unsigned letter_w = 3u;
+	unsigned letter_h = 5u;
+
+
+	for (unsigned str : letters)
+	{
+		for (unsigned y = 0; y < letter_h; y++) {
+			for (unsigned x = 0; x < letter_w; x++) {
+				bool paint = str & ((1 << 14) >> (x + y * letter_w));
+
+				Vec2u pos{ start };
+				pos.x += x_off + x;
+				pos.y += y;
+
+				if (paint) {
+					edit.paint_tile(pos);
+				}
+				else {
+					edit.erase_tile(pos);
+				}
+			}
+		}
+		x_off += 4;
+	}
+}
+
 
 TestState::~TestState() {
 	ff::DestroyInstance(instance->getInstanceID());
@@ -64,6 +112,8 @@ void TestState::update(secs deltaTime) {
 
 		//colmap->setPosition(colmap->getPosition());
 	}
+
+
 
 	instance->getActiveLevel()->update(deltaTime);
 	instance->getObject().update(deltaTime);
@@ -83,6 +133,20 @@ void TestState::predraw(secs deltaTime) {
 	instance->getActiveLevel()->predraw(deltaTime);
 	viewPos = instance->getCamera().currentPosition;
 	viewZoom = instance->getCamera().zoomFactor;
+
+	static secs t_buff = 0.0;
+	t_buff += deltaTime;
+
+	if (t_buff > 5.0)
+	{
+		LevelEditor edit{ instance->getActiveLevel() };
+		edit.select_tileset("tile_test");
+		edit.select_tile(Vec2u{ 0u, 0u });
+		edit.select_layer(1);
+
+		paint(Vec2u{ 6u, 4u }, edit);
+	}
+
 
 	instance->getScene().set_cam_pos(viewPos);
 }

@@ -426,7 +426,7 @@ void cameraContent(GameContext context) {
 		ImGui::Separator();
 	}
 	float zoom = instance::cam_get_zoom(context);
-	if (ImGui::SliderFloat("Zoom", &zoom, 0.25f, 3.f, "%.2f")) {
+	if (ImGui::SliderFloat("Zoom", &zoom, 0.25f, 4.f, "%.2f")) {
 		instance::cam_set_zoom(context, roundf(zoom * 4.f) / 4.f);
 	}
 

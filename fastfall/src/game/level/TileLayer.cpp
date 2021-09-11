@@ -299,19 +299,14 @@ void TileLayer::predraw(secs deltaTime) {
 			const TileLogicCommand& cmd = ptr->nextCommand();
 
 			unsigned ndx = cmd.position.x + size.x * cmd.position.y;
-			if (pos2data.at(ndx).has_tile) {
-				if (cmd.type == TileLogicCommand::Type::Set) {
-					setTile(cmd.position, cmd.texposition, cmd.tileset, cmd.updateLogic);
-				}
-				else if (cmd.type == TileLogicCommand::Type::Remove) {
-					removeTile(cmd.position);
-				}
-				changed = true;
+			if (cmd.type == TileLogicCommand::Type::Set) {
+				setTile(cmd.position, cmd.texposition, cmd.tileset, cmd.updateLogic);
 			}
-			else {
-				ptr->removeTile(cmd.position);
+			else if (pos2data.at(ndx).has_tile && cmd.type == TileLogicCommand::Type::Remove) {
+				removeTile(cmd.position);
 			}
-
+			changed = true;
+			
 			ptr->popCommand();
 		}
 	}
