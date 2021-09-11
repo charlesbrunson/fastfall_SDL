@@ -30,7 +30,7 @@ void Level::update(secs deltaTime) {
 	if (deltaTime == 0.0)
 		return;
 
-	objLayer.update(deltaTime);
+	//objLayer.update(deltaTime);
 
 	for (auto& fg : fgLayers) {
 		fg.update(deltaTime);
@@ -60,7 +60,6 @@ void Level::predraw(secs deltaTime) {
 
 void Level::init(const LevelAsset& levelData) {
 	levelName = levelData.getAssetName();
-
 	bgColor = levelData.getBGColor();
 	levelSize = levelData.getTileDimensions();
 	bordersCardinalBits = levelData.getBorder();
@@ -70,6 +69,22 @@ void Level::init(const LevelAsset& levelData) {
 	objLayer.clear();
 
 	bool bg = true;
+	unsigned bg_count = 0u;
+	unsigned fg_count = 0u;
+	for (auto& layerRef : *levelData.getLayerRefs()) 
+	{
+		if (layerRef.type == LayerRef::Type::Tile) {
+			(bg ? bg_count++ : fg_count++);
+		}
+		else {
+			bg = false;
+		}
+	}
+
+	fgLayers.reserve(fg_count);
+	bgLayers.reserve(bg_count);
+
+	bg = true;
 	for (auto i = levelData.getLayerRefs()->begin(); i != levelData.getLayerRefs()->end(); i++) {
 		if (i->type == LayerRef::Type::Object) {
 			bg = false;
@@ -77,7 +92,7 @@ void Level::init(const LevelAsset& levelData) {
 		}
 		else if (i->type == LayerRef::Type::Tile) {
 			(bg ? bgLayers : fgLayers).push_back(
-				TileLayer(context, i->id, i->asTileLayer(), (!bg && fgLayers.empty()))
+				TileLayer(context, i->id, i->asTileLayer(), (!bg && fgLayers.empty()) )
 			);
 		}
 	}

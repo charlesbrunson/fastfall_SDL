@@ -3,6 +3,7 @@
 //#include "util/Updatable.hpp"
 #include "fastfall/resource/asset/LevelAssetTypes.hpp"
 #include "fastfall/game/phys/Collidable.hpp"
+#include "fastfall/resource/asset/AnimAssetTypes.hpp"
 
 #include <functional>
 #include <type_traits>
@@ -60,9 +61,12 @@ struct ObjectTypeProperty {
 
 struct ObjectType {
 	std::string typeName;
+	std::optional<AnimIDRef> anim;
 	Vec2u tile_size = { 0u, 0u };
 	std::set<ObjectGroupTag> group_tags;
 	std::set<ObjectTypeProperty> properties;
+
+
 
 	bool test(ObjectRef& ref) const;
 };

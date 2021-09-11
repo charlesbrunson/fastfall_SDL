@@ -75,7 +75,6 @@ void parseObjectRefs(xml_node<>* objectNode, ObjectLayerRef& objLayer) {
 
 	while (objectNode) {
 		ObjectRef obj;
-		obj.set_other_objs(&objLayer.objects);
 
 		obj.id = atoi(objectNode->first_attribute("id")->value());
 

@@ -65,7 +65,7 @@ bool TriggerManager::erase_trigger(Trigger* trigger) {
 
 void TriggerManager::update(secs deltaTime) {
 	
-	if (deltaTime > 0.f) {
+	if (deltaTime > 0.f && triggers.size() > 1) {
 		for (auto it1 = triggers.begin(); it1 != (--triggers.end()); it1++) {
 			auto it2 = it1; it2++;
 			for (; it2 != triggers.end(); it2++) {
@@ -73,11 +73,11 @@ void TriggerManager::update(secs deltaTime) {
 				compareTriggers(*it2, *it1, deltaTime);
 			}
 		}
+	}
 
-		if (debug_draw::hasTypeEnabled(debug_draw::Type::TRIGGER_AREA)) {
-			for (auto& tr : triggers) {
-				debugDrawTrigger(tr);
-			}
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::TRIGGER_AREA)) {
+		for (auto& tr : triggers) {
+			debugDrawTrigger(tr);
 		}
 	}
 

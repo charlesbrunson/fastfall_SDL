@@ -6,22 +6,6 @@
 namespace ff {
 
 
-AnimIDRef::AnimIDRef(std::string_view sprite, std::string_view anim)
-	: m_sprite(sprite), m_anim(anim)
-{
-
-}
-
-AnimID AnimIDRef::id() const {
-	if (m_id == AnimID::NONE) {
-		m_id = Resources::get_animation_id(m_sprite, m_anim);
-	}
-	return m_id;
-};
-
-AnimID AnimID::NONE = AnimID{ 0 };
-unsigned int AnimID::counter = 0;
-
 Animation::Animation(const SpriteAsset* sprite, AnimID my_id) :
 	my_sprite(sprite),
 	anim_id(my_id)

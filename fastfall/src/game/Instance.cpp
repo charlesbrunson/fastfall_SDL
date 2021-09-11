@@ -49,17 +49,21 @@ void GameInstance::reset() {
 
 	if (lvl) {
 		populateSceneFromLevel(*lvl);
+		lvl->getObjLayer().createObjects(GameContext{ instanceID });
 	}
 	want_reset = false;
 }
 
 
 bool GameInstance::addLevel(const LevelAsset& levelRef) {
-	auto r = currentLevels.emplace(std::make_pair(&levelRef.getAssetName(), std::make_unique<Level>(GameContext{ getInstanceID() }, levelRef)));
+
+	GameContext context{ getInstanceID() };
+	auto r = currentLevels.emplace(std::make_pair(&levelRef.getAssetName(), std::make_unique<Level>(context, levelRef)));
 
 	if (r.second && !activeLevel) {
 		activeLevel = r.first->first;
 		populateSceneFromLevel(*r.first->second);
+		r.first->second->getObjLayer().createObjects(context);
 	}
 	return r.second;
 }

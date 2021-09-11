@@ -26,10 +26,7 @@ public:
 	bool loadFromFlat(const flat::resources::LevelAssetF* builder);
 	flatbuffers::Offset<flat::resources::LevelAssetF> writeToFlat(flatbuffers::FlatBufferBuilder& builder) const;
 
-	bool reloadFromFile() override {
-		//TODO
-		return false;
-	}
+	bool reloadFromFile() override;
 
 	inline Color getBGColor() const { return backgroundColor; };
 	inline const Vec2u& getTileDimensions() const { return lvlTileSize; };

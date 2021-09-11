@@ -18,6 +18,8 @@ public:
 	[[nodiscard]]
 	static LevelEditor create_level(std::string name = "New Level", Vec2u tile_size = MIN_LEVEL_SIZE);
 
+	static void sync_with_asset(Level* lvl, LevelAsset* asset);
+
 	void select_layer(unsigned id);
 	void insert_layer(unsigned before_id);
 
@@ -26,11 +28,14 @@ public:
 
 	void select_tileset(std::string_view tileset_name);
 	void select_tileset(const TilesetAsset* tileset);
+	void select_tile(Vec2u tileset_pos);
 
 	void set_name(std::string name);
 	void set_bg_color(Color bg_color);
 
-	void set_boundaries(bool north, bool east, bool south, bool west);
+	void set_boundary(bool north, bool east, bool south, bool west);
+
+	void create_object(ObjectRef ref);
 
 protected:
 	constexpr LevelEditor() {};
@@ -45,8 +50,7 @@ protected:
 		None,
 		Object,
 		Tile
-	};
-	LayerType curr_layer_type = LayerType::None;
+	} curr_layer_type = LayerType::None;
 
 	const TilesetAsset* curr_tileset = nullptr;
 	Vec2u tileset_pos;

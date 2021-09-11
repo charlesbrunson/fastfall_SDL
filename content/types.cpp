@@ -50,6 +50,7 @@ void game_InitTypes() {
 	GameObjectLibrary::addType<Player>(
 	{
 		.typeName = "Player",
+		.anim = std::make_optional(AnimIDRef{"player", "idle"}),
 		.tile_size = { 1u, 2u },
 		.group_tags = {
 			"player"

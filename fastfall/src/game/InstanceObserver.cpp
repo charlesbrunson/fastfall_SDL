@@ -297,9 +297,13 @@ void levelContent(GameContext context) {
 			ImGui::Text("Dimensions = %u, %u", lvl->size().x, lvl->size().y);
 			ImGui::Text("BG Color = (%3u, %3u, %3u)", lvl->getBGColor().r, lvl->getBGColor().g, lvl->getBGColor().b);
 
+			constexpr const char* bg_label  = "%2d. Background            #%u";
+			constexpr const char* obj_label = "%2d. Objects               #%u";
+			constexpr const char* fg_label  = "%2d. Foreground%s           #%u";
+
 			int i = 0;
 			for (TileLayer& layer : lvl->getBGLayers()) {
-				if (ImGui::TreeNode((void*)(&layer), "%d. Background  #%u", i, layer.getID())) {
+				if (ImGui::TreeNode((void*)(&layer), bg_label, i, layer.getID())) {
 					displayTileLayer(layer);
 
 					ImGui::TreePop();
@@ -308,8 +312,8 @@ void levelContent(GameContext context) {
 			}
 			
 			ObjectLayer& layer = lvl->getObjLayer();
-			if (ImGui::TreeNode((void*)(&layer), "%d. Objects  #%u", i, layer.getLayerID())) {
-				for (auto& obj : layer.getLayerRef()->objects) {
+			if (ImGui::TreeNode((void*)(&layer), obj_label, i, layer.getLayerID())) {
+				for (auto& obj : layer.getObjectRefs()) {
 
 					const std::string* type = GameObjectLibrary::lookupTypeName(obj.type);
 					if (ImGui::TreeNode((char*)&obj, "%s #%u", (type ? type->c_str() : "Anonymous Type"), obj.id)) {
@@ -326,7 +330,7 @@ void levelContent(GameContext context) {
 			i++;
 			
 			for (TileLayer& layer : lvl->getFGLayers()) {
-				if (ImGui::TreeNode((void*)(&layer), "%d. Foreground%s #%u", i, layer.hasCollision ? "*" : " ", layer.getID())) {
+				if (ImGui::TreeNode((void*)(&layer), fg_label, i, layer.hasCollision ? "*" : " ", layer.getID())) {
 
 					displayTileLayer(layer);
 

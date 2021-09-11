@@ -64,8 +64,6 @@ protected:
 
 	unsigned int layerID;
 
-	const TileLayerRef* ref;
-
 	Vec2u size;
 	Vec2f offset;
 

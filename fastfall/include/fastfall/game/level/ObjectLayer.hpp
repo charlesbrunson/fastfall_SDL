@@ -21,20 +21,23 @@ public:
 	ObjectLayer& operator=(const ObjectLayer& obj);
 	ObjectLayer& operator=(ObjectLayer&& obj) noexcept;
 
-	void update(secs deltaTime);
-
 	void initFromAsset(GameContext context, unsigned id, const ObjectLayerRef& layerData);
 
 	void clear();
 
-	inline bool initialized() noexcept { return ref != nullptr; };
+	void createObjects(GameContext context);
 
 	inline unsigned int getLayerID() { return layerID; };
-	inline const ObjectLayerRef* getLayerRef() { return ref; };
+	inline const std::vector<ObjectRef>& getObjectRefs() { return object_refs; };
+
+	const ObjectRef* getRefByID(unsigned obj_id) const;
+
+	void addObjectRef(ObjectRef ref);
+	bool removeObjectRef(object_id id);
 
 private:
 	unsigned int layerID;
-	const ObjectLayerRef* ref = nullptr;
+	std::vector<ObjectRef> object_refs;
 
 };
 

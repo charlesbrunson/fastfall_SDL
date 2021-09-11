@@ -13,12 +13,11 @@
 
 namespace ff {
 
-class Level  /* : public Drawable */ {
+class Level  {
 public:
 
 	Level(GameContext context);
 	Level(GameContext context, const LevelAsset& levelData);
-	//~Level();
 
 	void init(const LevelAsset& levelData);
 
@@ -31,28 +30,28 @@ public:
 	inline const std::string& name() const { return levelName; };
 
 
-	inline std::list<TileLayer>& getBGLayers() { return bgLayers; };
-	inline std::list<TileLayer>& getFGLayers() { return fgLayers; };
+	inline std::vector<TileLayer>& getBGLayers() { return bgLayers; };
+	inline std::vector<TileLayer>& getFGLayers() { return fgLayers; };
+
+	const inline std::vector<TileLayer>& getBGLayers() const { return bgLayers; };
+	const inline std::vector<TileLayer>& getFGLayers() const { return fgLayers; };
+
 	inline ObjectLayer& getObjLayer() { return objLayer; };
+	const inline ObjectLayer& getObjLayer() const { return objLayer; };
 
 	inline InstanceID getInstanceID() { return context.getID(); };
 
 private:
-	//static unsigned instanceCounter;
-
 	GameContext context;
 
-	//void draw(RenderTarget& target, RenderState states = RenderState()) const override;
-
 	std::string levelName;
+	Color bgColor;
 	Vec2u levelSize;
 	unsigned bordersCardinalBits;
 
-	Color bgColor;
-
-	std::list<TileLayer> bgLayers;
+	std::vector<TileLayer> bgLayers;
 	ObjectLayer objLayer;
-	std::list<TileLayer> fgLayers;
+	std::vector<TileLayer> fgLayers;
 
 };
 

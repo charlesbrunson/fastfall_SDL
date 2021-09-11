@@ -29,7 +29,6 @@ TileLayer::TileLayer(const TileLayer& tile)
 	: m_context(tile.m_context) 
 {
 	layerID = tile.layerID;
-	ref = tile.ref;
 	size = tile.size;
 	hasCollision = tile.hasCollision;
 	collision = tile.collision;
@@ -59,7 +58,6 @@ TileLayer::TileLayer(const TileLayer& tile)
 TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	m_context = tile.m_context;
 	layerID = tile.layerID;
-	ref = tile.ref;
 	size = tile.size;
 	hasCollision = tile.hasCollision;
 	collision = tile.collision;
@@ -91,7 +89,6 @@ TileLayer::TileLayer(TileLayer&& tile) noexcept
 	: m_context(tile.m_context)
 {
 	layerID = tile.layerID;
-	ref = tile.ref;
 	size = tile.size;
 	hasCollision = tile.hasCollision;
 	std::swap(collision, tile.collision);
@@ -131,7 +128,6 @@ TileLayer::TileLayer(TileLayer&& tile) noexcept
 TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	m_context = tile.m_context;
 	layerID = tile.layerID;
-	ref = tile.ref;
 	size = tile.size;
 	hasCollision = tile.hasCollision;
 	std::swap(collision, tile.collision);
@@ -183,7 +179,7 @@ void TileLayer::initFromAsset(const TileLayerRef& layerData, unsigned id, bool i
 
 	auto& tileLayer = layerData;
 
-	ref = &layerData;
+	//ref = &layerData;
 	hasCollision = initCollision;
 	layerID = id;
 
@@ -209,7 +205,6 @@ void TileLayer::initFromAsset(const TileLayerRef& layerData, unsigned id, bool i
 	}
 
 	if (hasCollision) {
-		//collision = m_context.collision().get().create_collider<ColliderTileMap>(Vec2i(size.x, size.y), true);
 		collision = instance::phys_create_collider<ColliderTileMap>(m_context, Vec2i(size.x, size.y), true);
 	}
 
@@ -368,7 +363,6 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 		tileLogic.at(logic_ndx)->removeTile(position);
 		pos2data.at(ndx).logic_id = TILEDATA_NONE;
 	}
-	//pos2data.at(ndx) = TileData{};
 
 	// find tilearray or create it
 	auto vertarr = std::find_if(chunks.begin(), chunks.end(), [&tileset](const ChunkVA& tva) {
@@ -396,9 +390,6 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 		vertarr->varray.setTile(position, texposition);
 		tileset_ndx = std::distance(chunks.begin(), vertarr);
 	}
-
-	// set new tiledata
-	//pos2data.at(ndx) = TileData{};
 
 	if (hasCollision) {
 		Tile t = tileset.getTile(texposition);
@@ -447,8 +438,6 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 
 }
 void TileLayer::removeTile(const Vec2u& position) {
-	//auto iter1 = pos2tileset.find(position);
-
 	unsigned ndx = position.y * size.x + position.x;
 
 	if (pos2data.at(ndx).tileset_id != TILEDATA_NONE) {
@@ -464,7 +453,6 @@ void TileLayer::removeTile(const Vec2u& position) {
 	}
 }
 void TileLayer::clear() {
-	ref = nullptr;
 	pos2data.clear();
 	chunks.clear();
 	if (collision)

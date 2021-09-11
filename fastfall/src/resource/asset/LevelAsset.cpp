@@ -184,6 +184,24 @@ bool LevelAsset::loadFromFile(const std::string& relpath) {
 	return true;
 }
 
+bool LevelAsset::reloadFromFile() {
+
+	bool loaded = false;
+	try {
+		LevelAsset n_level{ getAssetName() };
+
+		if (n_level.loadFromFile(assetFilePath)) {
+			*this = std::move(n_level);
+
+			loaded = true;
+		}
+	}
+	catch (std::exception)
+	{
+	}
+	return loaded;
+}
+
 
 
 
@@ -451,19 +469,5 @@ void LevelAsset::ImGui_getContent() {
 	ImGui::Text("[%3u, %3u] %s", lvlTileSize.x, lvlTileSize.y, getAssetName().c_str());
 }
 
-std::optional<std::reference_wrapper<const ObjectRef>> ObjectRef::getObjectInLayer(object_id other_id) const {
-	if (other_id != object_null && other_objects != nullptr) {
-		auto it = std::find_if(
-			other_objects->begin(), other_objects->end(), 
-			[other_id](const ObjectRef& ref) {
-				return ref.id == other_id;
-			});
-
-		if (it != other_objects->end()) {
-			return *it;
-		}
-	}
-	return std::nullopt;
-}
 
 }

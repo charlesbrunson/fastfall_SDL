@@ -5,7 +5,7 @@ namespace ff {
 ObjectLayer::ObjectLayer()
 	: layerID(0)
 {
-	//objMan = &Instance(instance)->getObject();
+
 }
 ObjectLayer::ObjectLayer(GameContext context, unsigned id, const ObjectLayerRef& layerData)
 	: layerID(id)
@@ -16,44 +16,86 @@ ObjectLayer::ObjectLayer(GameContext context, unsigned id, const ObjectLayerRef&
 ObjectLayer::ObjectLayer(const ObjectLayer& obj)
 	: layerID(obj.layerID)
 {
-	ref = obj.ref;
+	object_refs = obj.object_refs;
 }
 ObjectLayer::ObjectLayer(ObjectLayer&& obj) noexcept 
 	: layerID(obj.layerID)
 {
-	ref = obj.ref;
+	object_refs = std::move(obj.object_refs);
 }
 
 ObjectLayer& ObjectLayer::operator=(const ObjectLayer& obj) 
 {
-	ref = obj.ref;
+	object_refs = obj.object_refs;
 	return *this;
 }
-ObjectLayer& ObjectLayer::operator=(ObjectLayer&& obj) noexcept {
-	ref = obj.ref;
+ObjectLayer& ObjectLayer::operator=(ObjectLayer&& obj) noexcept 
+{
+	object_refs = std::move(obj.object_refs);
 	return *this;
 }
-
-void ObjectLayer::update(secs deltaTime) {
-
-}
-
 
 void ObjectLayer::initFromAsset(GameContext context, unsigned id, const ObjectLayerRef& layerData)
 {
 	layerID = id;
-	ref = &layerData;
+	object_refs = layerData.objects;
+}
 
-	for (auto& objRef : layerData.objects) {
+
+const ObjectRef* ObjectLayer::getRefByID(unsigned obj_id) const {
+	const ObjectRef* ref = nullptr;
+
+	if (obj_id != object_null) {
+		auto it = std::find_if(
+			object_refs.begin(), object_refs.end(),
+			[obj_id](const ObjectRef& ref) {
+				return ref.id == obj_id;
+			});
+
+		if (it != object_refs.end()) {
+			ref = &*it;
+		}
+	}
+	return ref;
+}
+
+void ObjectLayer::addObjectRef(ObjectRef ref) {
+	if (object_refs.empty()) {
+		ref.id = 1;
+	}
+	else {
+		ref.id = object_refs.back().id + 1;
+	}
+	object_refs.push_back(ref);
+}
+
+bool ObjectLayer::removeObjectRef(object_id id) {
+
+	if (id != object_null) {
+		auto it = std::find_if(
+			object_refs.begin(), object_refs.end(),
+			[id](const ObjectRef& ref) {
+				return ref.id == id;
+			});
+
+		if (it != object_refs.end()) {
+			object_refs.erase(it);
+			return true;
+		}
+	}
+	return false;
+}
+
+void ObjectLayer::createObjects(GameContext context) {
+	for (auto& objRef : object_refs) {
 		if (objRef.type != 0) {
 			GameObjectLibrary::build(context, objRef);
 		}
 	}
 }
 
-
 void ObjectLayer::clear() {
-
+	object_refs.clear();
 }
 
 }

@@ -49,14 +49,6 @@ struct ObjectRef {
 	unsigned height = 0u;
 	std::vector<std::pair<std::string, std::string>> properties;
 	std::vector<Vec2i> points;
-
-	std::optional<std::reference_wrapper<const ObjectRef>> getObjectInLayer(object_id other_id) const;
-
-	inline constexpr void set_other_objs(const std::vector<ObjectRef>* objs) { other_objects = objs; };
-
-private:
-	const std::vector<ObjectRef>* other_objects = nullptr;
-
 };
 
 struct ObjectLayerRef {
@@ -86,13 +78,6 @@ public:
 	{
 		id = ref.id;
 		type = ref.type;
-
-		if (type == Type::Object) {
-			auto& objects = asObjLayer().objects;
-			for (auto& obj : objects) {
-				obj.set_other_objs(&objects);
-			}
-		}
 	}
 
 	unsigned int id = 0;

@@ -1,5 +1,7 @@
 #include "BasicPlatform.hpp"
 
+#include "fastfall/game/InstanceInterface.hpp"
+
 constexpr ff::Color platformColor = ff::Color{ 0x285cc4FF };
 
 BasicPlatform::BasicPlatform(ff::GameContext instance, const ff::ObjectRef& ref, const ff::ObjectType& type)
@@ -11,9 +13,11 @@ BasicPlatform::BasicPlatform(ff::GameContext instance, const ff::ObjectRef& ref,
 		if (propName == "path") {
 			ff::object_id path_id = std::atoi(propValue.c_str());
 
-			if (auto ref_opt = ref.getObjectInLayer(path_id)) {
-				waypoints_origin = ff::Vec2f{ ref_opt->get().position };
-				waypoints = &ref_opt->get().points;
+			if (auto lvl = ff::instance::lvl_get_active(context)) {
+				if (auto ref_ptr = lvl->getObjLayer().getRefByID(path_id)) {
+					waypoints_origin = ff::Vec2f{ ref_ptr->position };
+					waypoints = &ref_ptr->points;
+				}
 			}
 		}
 		else if (propName == "max_velocity") {
