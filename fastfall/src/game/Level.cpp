@@ -97,13 +97,49 @@ void Level::init(const LevelAsset& levelData) {
 		}
 	}
 
+	set_borders(bordersCardinalBits);
+
+}
+
+
+void Level::set_borders(unsigned bordersCardinalBits)
+{
 	if (!fgLayers.empty()) {
 		auto* colMap = fgLayers.front().getCollisionMap();
 
 		if (colMap) {
-			colMap->setBorders(fgLayers.front().getSize(), bordersCardinalBits);
+			colMap->setBorders(levelSize, bordersCardinalBits);
 		}
 	}
+}
+
+void Level::resize(Vec2u n_size)
+{
+	bordersCardinalBits;
+	set_borders(0u);
+	for (auto& layer : bgLayers) {
+		Vec2u layer_size{
+			std::min(n_size.x, layer.getSize().x),
+			std::min(n_size.y, layer.getSize().y),
+		};
+
+		TileLayer n_layer{ context, layer.getID(), layer_size, layer.hasCollision };
+		n_layer.shallow_copy(layer, Rectu{ Vec2u{}, Vec2u{layer_size} }, n_size);
+		layer = std::move(n_layer);
+	}
+	for (auto& layer : fgLayers) {
+		Vec2u layer_size{
+			std::min(n_size.x, layer.getSize().x),
+			std::min(n_size.y, layer.getSize().y),
+		};
+
+		TileLayer n_layer{ context, layer.getID(), n_size, layer.hasCollision };
+		n_layer.shallow_copy(layer, Rectu{ Vec2u{}, Vec2u{layer_size} }, n_size);
+		layer = std::move(n_layer);
+	}
+	levelSize = n_size;
+	set_borders(bordersCardinalBits);
+	return;
 }
 
 }

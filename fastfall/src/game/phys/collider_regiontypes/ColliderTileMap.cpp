@@ -258,7 +258,7 @@ namespace ff {
 			for (int xx = change_min.x; xx <= change_max.x; xx++) {
 				for (int yy = change_min.y; yy <= change_max.y; yy++) {
 
-					if (impacted[yy * size.x + xx]) {
+					if (impacted[(size_t)yy * size.x + xx]) {
 
 						updateGhosts(Vec2i{ size_min.x + xx , size_min.y + yy });
 					}
@@ -282,7 +282,7 @@ namespace ff {
 
 				if (quad_adj && (tile_adj->shape.shapeTouches & cardinalBit[side.oppositeCard])) {
 
-					ColliderQuad original = tile_adj->toQuad();// (tile_adj.get().position, tile_adjacent->getShape());
+					ColliderQuad original = tile_adj->toQuad(getTileIndex(change.position + side.gridoffset));// (tile_adj.get().position, tile_adjacent->getShape());
 
 					const ColliderSurface* originalSurf = original.getSurface(side.oppositeCard);
 					if (originalSurf) {

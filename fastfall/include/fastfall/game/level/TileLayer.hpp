@@ -22,6 +22,8 @@ namespace ff {
 
 class TileLayer : public Drawable {
 public:
+
+	TileLayer(GameContext context, unsigned id, Vec2u size, bool initCollision = false);
 	TileLayer(GameContext context, unsigned id, const TileLayerRef& layerData, bool initCollision = false);
 	TileLayer(const TileLayer& tile);
 	TileLayer(TileLayer&& tile) noexcept;
@@ -35,6 +37,12 @@ public:
 	void setTile(const Vec2u& position, const Vec2u& texposition, const TilesetAsset& tileset, bool useLogic = true);
 	void removeTile(const Vec2u& position);
 	void clear();
+
+	void shallow_copy(const TileLayer& layer, Rectu area, Vec2u lvlSize);
+
+	void set_parallax(bool enabled, Vec2u levelTileSize = Vec2u{});
+	void set_scrollrate(Vec2f rate);
+
 
 	void update(secs deltaTime);
 
@@ -86,6 +94,8 @@ protected:
 	struct TileData {
 		uint8_t tileset_id = TILEDATA_NONE;
 		uint8_t logic_id = TILEDATA_NONE;
+		Vec2u tex_pos;
+		bool has_tile = false;
 	};
 
 	std::vector<TileData> pos2data;

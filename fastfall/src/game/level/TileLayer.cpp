@@ -18,6 +18,18 @@
 namespace ff {
 
 
+TileLayer::TileLayer(GameContext context, unsigned id, Vec2u size, bool initCollision)
+	: m_context(context)
+	, layerID(id)
+	, size(size)
+	, hasCollision(initCollision)
+{
+	pos2data.resize((size_t)size.x * size.y, TileData{});
+	if (hasCollision) {
+		collision = instance::phys_create_collider<ColliderTileMap>(m_context, Vec2i(size.x, size.y), true);
+	}
+}
+
 TileLayer::TileLayer(GameContext context, unsigned id, const TileLayerRef& layerData, bool initCollision)
 	: m_context(context)
 	, layerID(id)
@@ -186,23 +198,15 @@ void TileLayer::initFromAsset(const TileLayerRef& layerData, unsigned id, bool i
 	size.x = tileLayer.innerSize.x == 0 ? tileLayer.tileSize.x : tileLayer.innerSize.x;
 	size.y = tileLayer.innerSize.y == 0 ? tileLayer.tileSize.y : tileLayer.innerSize.y;
 
-	pos2data.resize(size.x * size.y, TileData{});
+	pos2data.resize((size_t)size.x * size.y, TileData{});
 
-	has_parallax = tileLayer.has_parallax;
 	scrollRate = tileLayer.scrollrate;
 
 	// calc parallax factors
-	if (has_parallax) {
-		parallax.initOffset.x = (float)(std::min(size.x, GAME_TILE_W) * TILESIZE) / 2.f;
-		parallax.initOffset.y = (float)(std::min(size.y, GAME_TILE_H) * TILESIZE) / 2.f;
-		parallax.camFactor = Vec2f{1.f, 1.f};
-		if (size.x > GAME_TILE_W) {
-			parallax.camFactor.x = 1.f - ((float)(size.x - GAME_TILE_W) / (float)tileLayer.tileSize.x);
-		}
-		if (size.y > GAME_TILE_H) {
-			parallax.camFactor.y = 1.f - ((float)(size.y - GAME_TILE_H) / (float)tileLayer.tileSize.y);
-		}
-	}
+	
+
+	set_parallax(tileLayer.has_parallax, tileLayer.tileSize);
+	set_scrollrate(tileLayer.scrollrate);
 
 	if (hasCollision) {
 		collision = instance::phys_create_collider<ColliderTileMap>(m_context, Vec2i(size.x, size.y), true);
@@ -237,6 +241,26 @@ void TileLayer::update(secs deltaTime) {
 	}
 }
 
+
+void TileLayer::set_parallax(bool enabled, Vec2u levelTileSize)
+{
+	has_parallax = enabled;
+	if (has_parallax) {
+		parallax.initOffset.x = (float)(std::min(size.x, GAME_TILE_W) * TILESIZE) / 2.f;
+		parallax.initOffset.y = (float)(std::min(size.y, GAME_TILE_H) * TILESIZE) / 2.f;
+		parallax.camFactor = Vec2f{ 1.f, 1.f };
+		if (size.x > GAME_TILE_W) {
+			parallax.camFactor.x = 1.f - ((float)(size.x - GAME_TILE_W) / (float)levelTileSize.x);
+		}
+		if (size.y > GAME_TILE_H) {
+			parallax.camFactor.y = 1.f - ((float)(size.y - GAME_TILE_H) / (float)levelTileSize.y);
+		}
+	}
+}
+void TileLayer::set_scrollrate(Vec2f rate)
+{
+	scrollRate = rate;
+}
 
 bool TileLayer::handlePreContact(Vec2i pos, const Contact& contact, secs duration) {
 	if (pos.x < 0 || pos.x >= size.x
@@ -273,13 +297,21 @@ void TileLayer::predraw(secs deltaTime) {
 		while (ptr->hasNextCommand()) {
 
 			const TileLogicCommand& cmd = ptr->nextCommand();
-			if (cmd.type == TileLogicCommand::Type::Set) {
-				setTile(cmd.position, cmd.texposition, cmd.tileset, cmd.updateLogic);
+
+			unsigned ndx = cmd.position.x + size.x * cmd.position.y;
+			if (pos2data.at(ndx).has_tile) {
+				if (cmd.type == TileLogicCommand::Type::Set) {
+					setTile(cmd.position, cmd.texposition, cmd.tileset, cmd.updateLogic);
+				}
+				else if (cmd.type == TileLogicCommand::Type::Remove) {
+					removeTile(cmd.position);
+				}
+				changed = true;
 			}
-			else if (cmd.type == TileLogicCommand::Type::Remove) {
-				removeTile(cmd.position);
+			else {
+				ptr->removeTile(cmd.position);
 			}
-			changed = true;
+
 			ptr->popCommand();
 		}
 	}
@@ -355,6 +387,10 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 	unsigned ndx = position.y * size.x + position.x;
 	uint8_t tileset_ndx = pos2data.at(ndx).tileset_id;
 	uint8_t logic_ndx = pos2data.at(ndx).logic_id;
+
+	pos2data.at(ndx).tex_pos = texposition;
+	pos2data.at(ndx).has_tile = true;
+
 	if (tileset_ndx != TILEDATA_NONE) {
 		chunks.at(tileset_ndx).varray.blank(position);
 		pos2data.at(ndx).tileset_id = TILEDATA_NONE;
@@ -380,7 +416,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 			chunks.back().varray.setTexture(tileset.getTexture());
 			chunks.back().varray.setTile(position, texposition);
 			chunks.back().varray.use_visible_rect = true;
-			tileset_ndx = chunks.size() - 1;
+			pos2data.at(ndx).tileset_id = chunks.size() - 1;
 		}
 		else {
 			LOG_ERR_("Cannot set tile, tilelayer has reached max tileset references: {}", chunks.size());
@@ -388,7 +424,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 	}
 	else {
 		vertarr->varray.setTile(position, texposition);
-		tileset_ndx = std::distance(chunks.begin(), vertarr);
+		pos2data.at(ndx).tileset_id = std::distance(chunks.begin(), vertarr);
 	}
 
 	if (hasCollision) {
@@ -433,9 +469,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 				pos2data.at(ndx).logic_id = std::distance(tileLogic.begin(), it);
 			}
 		}
-
 	}
-
 }
 void TileLayer::removeTile(const Vec2u& position) {
 	unsigned ndx = position.y * size.x + position.x;
@@ -457,6 +491,38 @@ void TileLayer::clear() {
 	chunks.clear();
 	if (collision)
 		collision->clear();
+}
+
+
+void TileLayer::shallow_copy(const TileLayer& layer, Rectu area, Vec2u lvlSize)
+{
+
+	set_parallax(layer.has_parallax, lvlSize);
+	set_scrollrate(layer.scrollRate);
+
+	for (unsigned y = area.left; y < area.left + area.width; y++) {
+		for (unsigned x = area.left; x < area.left + area.width; x++) {
+			if (layer.size.x <= x || layer.size.y <= y)
+				continue;
+
+			Vec2u pos{ x,y };
+			unsigned ndx = pos.y * layer.size.x + pos.x;
+			if (!layer.pos2data.at(ndx).has_tile)
+				continue;
+
+			const TilesetAsset* tileset = nullptr;
+
+			Vec2u tex_pos = layer.pos2data.at(ndx).tex_pos;
+
+			if (layer.pos2data.at(ndx).tileset_id != UINT8_MAX) {
+				tileset = layer.chunks.at(layer.pos2data.at(ndx).tileset_id).tileset;
+			}
+			if (!tileset)
+				continue;
+
+			setTile(pos, tex_pos, *tileset);
+		}
+	}
 }
 
 void TileLayer::draw(RenderTarget& target, RenderState states) const {

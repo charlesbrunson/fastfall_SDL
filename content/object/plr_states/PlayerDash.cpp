@@ -94,6 +94,7 @@ void PlayerDashState::enter(Player& plr, PlayerState* from)
 PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
 {
 	if (plr.ground->has_contact()) {
+		plr.box->setSlipNone();
 		ground_flag = true;
 		plr.box->set_gravity(constants::grav_normal);
 		apply_dash_vel(plr, get_dash_vel(dash_time, dash_speed));
@@ -107,6 +108,7 @@ PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
 		}
 	}
 	else {
+		plr.box->setSlipV(6.f);
 		plr.box->set_gravity(Vec2f{});
 		if (ground_flag) {
 
@@ -118,6 +120,8 @@ PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
 
 			dash_air_time += deltaTime;
 			if (dash_air_time >= 0.1) {
+				plr.sprite->set_anim(anim::fall_f);
+				plr.sprite->set_frame(1);
 				return PlayerStateID::Air;
 			}
 		}
@@ -136,6 +140,9 @@ PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
 			}
 			return PlayerStateID::Ground;
 		}
+
+		plr.sprite->set_anim(anim::fall_f);
+		plr.sprite->set_frame(1);
 		return PlayerStateID::Air;
 	}
 	return PlayerStateID::Continue;

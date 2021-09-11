@@ -139,8 +139,9 @@ void ChunkVertexArray::blank(Vec2u at) {
 	innerPos.x = at.x % m_chunk_size.x;
 	innerPos.y = at.y % m_chunk_size.y;
 
-	auto iter = std::upper_bound(m_chunks.begin(), m_chunks.end(), chunkPos, [](const Vec2u& pos, const Chunk& chunk) {
-		return chunk.chunk_pos <= pos;
+	auto iter = std::find_if(m_chunks.begin(), m_chunks.end(),
+		[chunkPos](const Chunk& chunk) {
+			return chunk.chunk_pos == chunkPos;
 		});
 
 	if (iter->chunk_pos == chunkPos) {

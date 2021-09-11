@@ -44,6 +44,7 @@ public:
 
 	inline GameContext getContext() const noexcept { return GameContext{ instanceID }; };
 
+	void populateSceneFromLevel(Level& lvl);
 	
 
 	bool want_reset = false;
@@ -64,7 +65,6 @@ private:
 	TriggerManager triMan;
 	SceneManager sceneMan;
 
-	void populateSceneFromLevel(Level& lvl);
 
 };
 

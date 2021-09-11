@@ -66,8 +66,6 @@ struct ObjectType {
 	std::set<ObjectGroupTag> group_tags;
 	std::set<ObjectTypeProperty> properties;
 
-
-
 	bool test(ObjectRef& ref) const;
 };
 

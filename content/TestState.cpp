@@ -27,23 +27,17 @@ TestState::TestState()
 		assert(lvl);
 		if (lvl) {
 
-			//if (!lvl->getFGLayers().empty()) {
-
-
-
-				//instance->getCollision().addColliderRegion(lvl->getFGLayers().begin()->getCollisionMap());
-			//}
-
 			float xf = static_cast<float>(lvl->size().x);
 			float yf = static_cast<float>(lvl->size().y);
 			viewPos = ff::Vec2f(xf, yf) * TILESIZE_F / 2.f;
 
-			//clearColor = lvl->getBGColor();
 			clearColor = ff::Color{ 0x141013FF };
 		}
 	}
 
 
+	instance->getActiveLevel()->resize(Vec2u{ 240, 60 });
+	instance->populateSceneFromLevel(*instance->getActiveLevel());
 	instance->getActiveLevel()->update(0.0);
 	instance->getObject().update(0.0);
 	instance->getCollision().update(0.0);

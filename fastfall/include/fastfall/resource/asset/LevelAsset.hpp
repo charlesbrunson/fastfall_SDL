@@ -39,17 +39,13 @@ public:
 	void ImGui_getContent() override;
 
 protected:
-	//void generateCollisionForLayer(LayerRef& ref);
-
 	Color backgroundColor;
 	Vec2u lvlTileSize;
 
-	// first gid, std::string
 	TilesetMap tilesetDeps;
 	std::vector<LayerRef> layers;
 
 	unsigned borderCardinalBits = 0u;
-
 };
 
 template<>

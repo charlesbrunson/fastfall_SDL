@@ -29,6 +29,11 @@ public:
 	inline const Vec2u& size() const { return levelSize; };
 	inline const std::string& name() const { return levelName; };
 
+	void set_name(std::string name) { levelName = name; };
+	void set_bg_color(Color color) { bgColor = color; };
+
+	void set_borders(unsigned bordersCardinalBits);
+	void resize(Vec2u n_size);
 
 	inline std::vector<TileLayer>& getBGLayers() { return bgLayers; };
 	inline std::vector<TileLayer>& getFGLayers() { return fgLayers; };
