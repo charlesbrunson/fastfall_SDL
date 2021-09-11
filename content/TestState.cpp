@@ -37,9 +37,6 @@ TestState::TestState()
 		}
 	}
 
-
-	//instance->getActiveLevel()->resize(Vec2u{ 240, 60 });
-	//instance->populateSceneFromLevel(*instance->getActiveLevel());
 	instance->getActiveLevel()->update(0.0);
 	instance->getObject().update(0.0);
 	instance->getCollision().update(0.0);
@@ -51,51 +48,6 @@ TestState::TestState()
 
 
 }
-
-void paint(Vec2u start, LevelEditor& edit) {
-
-	unsigned x_off = 0u;
-
-	unsigned letters[] = {
-		0b101101111101101,
-		0b111100110100111,
-		0b100100100100111,
-		0b100100100100111,
-		0b111101101101111,
-		0b000000000000000,
-		0b101101111111101,
-		0b111101101101111,
-		0b111101110101101,
-		0b100100100100111,
-		0b111101101101111,
-	};
-
-	unsigned letter_w = 3u;
-	unsigned letter_h = 5u;
-
-
-	for (unsigned str : letters)
-	{
-		for (unsigned y = 0; y < letter_h; y++) {
-			for (unsigned x = 0; x < letter_w; x++) {
-				bool paint = str & ((1 << 14) >> (x + y * letter_w));
-
-				Vec2u pos{ start };
-				pos.x += x_off + x;
-				pos.y += y;
-
-				if (paint) {
-					edit.paint_tile(pos);
-				}
-				else {
-					edit.erase_tile(pos);
-				}
-			}
-		}
-		x_off += 4;
-	}
-}
-
 
 TestState::~TestState() {
 	ff::DestroyInstance(instance->getInstanceID());
@@ -109,11 +61,7 @@ void TestState::update(secs deltaTime) {
 		
 		static secs timebuf = 0.0;
 		timebuf += deltaTime;
-
-		//colmap->setPosition(colmap->getPosition());
 	}
-
-
 
 	instance->getActiveLevel()->update(deltaTime);
 	instance->getObject().update(deltaTime);
@@ -121,11 +69,48 @@ void TestState::update(secs deltaTime) {
 	instance->getCollision().update(deltaTime);
 	instance->getCamera().update(deltaTime);
 	
+
+	if (Input::getMouseInView() && Input::isHeld(InputType::MOUSE1)) 
+	{
+		Level* lvl = instance->getActiveLevel();
+		Vec2f mpos = Input::getMouseWorldPosition();
+		Vec2u tpos = Vec2u{ mpos / TILESIZE_F };
+
+		if (Rectf{ Vec2f{}, Vec2f{lvl->size()} *TILESIZE_F }.contains(mpos) && (!painting ||  last_paint != tpos)) {
+
+			LevelEditor edit{ lvl };
+			edit.select_layer(1);
+			edit.select_tileset("tile_test");
+			edit.select_tile(Vec2u{});
+			edit.paint_tile(tpos);
+		}
+		last_paint = tpos;
+		painting = true;
+	}
+	else if (Input::getMouseInView() && Input::isHeld(InputType::MOUSE2))
+	{
+		Level* lvl = instance->getActiveLevel();
+		Vec2f mpos = Input::getMouseWorldPosition();
+		Vec2u tpos = Vec2u{ mpos / TILESIZE_F };
+
+		if (Rectf{ Vec2f{}, Vec2f{lvl->size()} *TILESIZE_F }.contains(mpos) && (!painting || last_paint != tpos)) {
+
+			LevelEditor edit{ lvl };
+			edit.select_layer(1);
+			edit.select_tileset("tile_test");
+			edit.select_tile(Vec2u{});
+			edit.erase_tile(tpos);
+		}
+		last_paint = tpos;
+		painting = true;
+	}
+	else {
+		painting = false;
+	}
+
 }
 
 void TestState::predraw(secs deltaTime) {
-	//std::scoped_lock lock(instance->reset_mutex);
-
 	if (instance->want_reset)
 		instance->reset();
 
@@ -133,20 +118,6 @@ void TestState::predraw(secs deltaTime) {
 	instance->getActiveLevel()->predraw(deltaTime);
 	viewPos = instance->getCamera().currentPosition;
 	viewZoom = instance->getCamera().zoomFactor;
-
-	static secs t_buff = 0.0;
-	t_buff += deltaTime;
-
-	if (t_buff > 5.0)
-	{
-		LevelEditor edit{ instance->getActiveLevel() };
-		edit.select_tileset("tile_test");
-		edit.select_tile(Vec2u{ 0u, 0u });
-		edit.select_layer(1);
-
-		paint(Vec2u{ 6u, 4u }, edit);
-	}
-
 
 	instance->getScene().set_cam_pos(viewPos);
 }

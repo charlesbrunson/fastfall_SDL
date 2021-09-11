@@ -62,6 +62,7 @@ namespace ff {
 
 		if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER)) {
 			debugDrawQuad(validCollisionSize, &tileCollisionMap[0], getPosition(), this, update_debugDraw);
+			update_debugDraw = false;
 		}
 	}
 
@@ -282,7 +283,8 @@ namespace ff {
 
 				if (quad_adj && (tile_adj->shape.shapeTouches & cardinalBit[side.oppositeCard])) {
 
-					ColliderQuad original = tile_adj->toQuad(getTileIndex(change.position + side.gridoffset));// (tile_adj.get().position, tile_adjacent->getShape());
+					//ColliderQuad original = tile_adj->toQuad(getTileIndex(change.position + side.gridoffset));
+					ColliderQuad original = tile_adj->toQuad(quad_adj->getID());
 
 					const ColliderSurface* originalSurf = original.getSurface(side.oppositeCard);
 					if (originalSurf) {
@@ -296,6 +298,7 @@ namespace ff {
 		}
 
 		if (quad->hasAnySurface()) {
+			quad->clearSurfaces();
 			validCollisionSize--;
 		}
 

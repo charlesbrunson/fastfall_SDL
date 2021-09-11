@@ -73,7 +73,7 @@ const TextureRef& ChunkVertexArray::getTexture() const noexcept {
 	return m_tex;
 }
 
-void ChunkVertexArray::setTile(Vec2u at, Vec2u texPos) {
+void ChunkVertexArray::do_setTile(Vec2u at, Vec2u texPos) {
 	Vec2u chunkPos;
 	chunkPos.x = at.x / m_chunk_size.x;
 	chunkPos.y = at.y / m_chunk_size.y;
@@ -103,7 +103,6 @@ void ChunkVertexArray::setTile(Vec2u at, Vec2u texPos) {
 		m_chunks.back().tva.setTile(innerPos, texPos);
 		m_chunks.back().tva.offset = Vec2f{ (float)chunkPos.x * m_chunk_size.x, (float)chunkPos.y * m_chunk_size.y } * TILESIZE_F;
 
-		//LOG_INFO("add back {}", chunkPos.to_string());
 	}
 	else if (iter->chunk_pos != chunkPos) {
 
@@ -121,15 +120,13 @@ void ChunkVertexArray::setTile(Vec2u at, Vec2u texPos) {
 		iter->tva.setTile(innerPos, texPos);
 		iter->tva.offset = Vec2f{ (float)chunkPos.x * m_chunk_size.x, (float)chunkPos.y * m_chunk_size.y } * TILESIZE_F;
 
-		//LOG_INFO("add insert {}", chunkPos.to_string());
 	}
 	else {
 		iter->tva.setTile(innerPos, texPos);
-		//LOG_INFO("set");
 	}
 }
 
-void ChunkVertexArray::blank(Vec2u at) {
+void ChunkVertexArray::do_blank(Vec2u at) {
 
 	Vec2u chunkPos;
 	chunkPos.x = at.x / m_chunk_size.x;
@@ -149,7 +146,7 @@ void ChunkVertexArray::blank(Vec2u at) {
 	}
 }
 
-void ChunkVertexArray::clear() {
+void ChunkVertexArray::do_clear() {
 	m_chunks.clear();
 }
 
@@ -171,6 +168,21 @@ void ChunkVertexArray::reset_scroll() {
 }
 
 void ChunkVertexArray::predraw() {
+
+	while (!commands.empty()) {
+		switch (commands.front().type) {
+		case Command::Type::Set:
+			do_setTile(commands.front().tile_pos, commands.front().tex_pos);
+			break;
+		case Command::Type::Blank:
+			do_blank(commands.front().tile_pos);
+			break;
+		case Command::Type::Clear:
+			do_clear();
+			break;
+		}
+		commands.pop();
+	}
 
 	// update draw flags for all chunks
 	for (auto& chunk : m_chunks) {

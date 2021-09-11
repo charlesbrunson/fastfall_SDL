@@ -28,4 +28,6 @@ private:
 
 	ff::GameInstance* instance;
 
+	bool painting = false;
+	ff::Vec2u last_paint;
 };

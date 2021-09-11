@@ -18,6 +18,7 @@ private:
 
 	int evalContact(secs deltaTime);
 
+	ColliderQuad prevTile;
 	const ColliderQuad* cTile;
 	const Collidable* cAble;
 	const ColliderRegion* region;

@@ -90,10 +90,12 @@ void Player::update(secs deltaTime) {
 	}
 
 	// blink
+	/*
 	if (Input::getMouseInView() && Input::isPressed(InputType::MOUSE1)) {
 		box->teleport(Input::getMouseWorldPosition());
 		box->set_vel(Vec2f{});
 	}
+	*/
 
 	box->update(deltaTime);
 	sprite->update(deltaTime);

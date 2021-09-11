@@ -8,14 +8,14 @@
 
 //#include <SFML/Graphics.hpp>
 
+#include <mutex>
+
 namespace ff {
 
 class TileVertexArray : public Drawable {
 public:
 	TileVertexArray();
 	TileVertexArray(Vec2u arr_size);
-
-	~TileVertexArray();
 
 	void setTexture(const Texture& texture) noexcept;
 	const TextureRef& getTexture() const noexcept;

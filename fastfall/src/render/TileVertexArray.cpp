@@ -12,11 +12,13 @@ namespace ff {
 
 constexpr unsigned VERTICES_PER_TILE = 6;
 
+
 TileVertexArray::TileVertexArray()
 	: verts(ff::Primitive::TRIANGLES) 
 {
 	tex = TextureRef{};
 }
+
 TileVertexArray::TileVertexArray(Vec2u arr_size)
 	: verts(ff::Primitive::TRIANGLES)
 {
@@ -24,10 +26,6 @@ TileVertexArray::TileVertexArray(Vec2u arr_size)
 	size = arr_size;
 
 	tiles.reserve((size_t)size.x * size.y);
-}
-
-TileVertexArray::~TileVertexArray() {
-
 }
 
 void TileVertexArray::setTexture(const Texture& texture) noexcept {
@@ -73,12 +71,6 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 	auto pos = glm::fvec2(at.x, at.y);
 	auto texpos = glm::fvec2(texPos.x, texPos.y);
 
-	/*
-	pos += glm::fvec2(rotation_offset.x, rotation_offset.y);
-	if (pos.x >= size.x) pos.x -= size.x;
-	if (pos.y >= size.y) pos.y -= size.y;
-	*/
-
 	constexpr std::array<glm::fvec2, 6> offsets{
 		glm::fvec2(0.f, 0.f),
 		glm::fvec2(1.f, 0.f),
@@ -119,7 +111,7 @@ void TileVertexArray::blank(Vec2u at) {
 
 	if (iter != tiles.end()) {
 		size_t ndx = std::distance(tiles.begin(), iter) * VERTICES_PER_TILE;
-		
+
 		for (int i = 0; i < VERTICES_PER_TILE; i++) {
 			verts[ndx + i].color.a = 0;
 		}

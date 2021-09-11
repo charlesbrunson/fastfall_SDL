@@ -7,8 +7,8 @@
 namespace ff {
 
 
-void debug_impl(ColliderQuad* quad, VertexArray& array, size_t startNdx) {
-	static auto normal = [](Line<float> line) -> Vec2f {
+constexpr void debug_impl(ColliderQuad* quad, VertexArray& array, size_t startNdx) {
+	constexpr auto normal = [](Line<float> line) -> Vec2f {
 		Vec2f v = (line.p2 - line.p1);
 
 		v /= sqrtf(v.x * v.x + v.y * v.y);
@@ -19,7 +19,7 @@ void debug_impl(ColliderQuad* quad, VertexArray& array, size_t startNdx) {
 		return v;
 	};
 
-	constexpr static unsigned colors[4] = {
+	constexpr unsigned colors[4] = {
 		0xFF0000FF, // red, north
 		0x00FF00FF, // green, east
 		0x0000FFFF, // blue, south
@@ -69,10 +69,6 @@ void debugDrawQuad(ColliderQuad& quad, Vec2f offset, const void* sign, bool alwa
 
 	auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDER>(sign, Primitive::TRIANGLES, 24);
 
-	//std::unique_ptr<Drawable> ptr = std::make_unique<VertexArray>(Primitive::TRIANGLES, 24);
-	//VertexArray& draw = *static_cast<VertexArray*>(ptr.get());
-	//debug_draw::add(std::move(ptr), debug_draw::Type::COLLISION_COLLIDER, sign);
-
 	debug_impl(&quad, draw, 0);
 
 	debug_draw::set_offset();
@@ -91,10 +87,6 @@ void debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset, const void* s
 	debug_draw::set_offset(offset);
 
 	auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDER>(sign, Primitive::TRIANGLES, count * 24);
-
-	//std::unique_ptr<Drawable> ptr = std::make_unique<VertexArray>(Primitive::TRIANGLES, count * 24);
-	//VertexArray& draw = *static_cast<VertexArray*>(ptr.get());
-	//debug_draw::add(std::move(ptr), debug_draw::Type::COLLISION_COLLIDER, sign);
 
 	size_t ndx = 0;
 	for (size_t i = 0; i < count; ndx++) {

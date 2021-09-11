@@ -29,6 +29,12 @@ public:
 		{
 
 		}
+		friend inline bool operator==(const QuadSurface& lhs, const QuadSurface& rhs) {
+			return lhs.hasSurface == rhs.hasSurface
+				&& lhs.collider.surface == rhs.collider.surface;
+		}
+
+
 
 		bool hasSurface = false;
 		ColliderSurface collider;
@@ -51,6 +57,12 @@ public:
 
 	void removeSurface(Cardinal side);
 
+	inline void clearSurfaces() noexcept {
+		surfaces[0].hasSurface = false;
+		surfaces[1].hasSurface = false;
+		surfaces[2].hasSurface = false;
+		surfaces[3].hasSurface = false;
+	}
 
 	inline bool hasAnySurface() const noexcept {
 		return
@@ -74,6 +86,24 @@ public:
 		assert(id >= 0);
 		quad_id = id;
 	};
+
+	friend inline bool operator==(const ColliderQuad& lhs, const ColliderQuad& rhs) {
+		/*
+		return lhs.hasOneWay == rhs.hasOneWay
+			&& lhs.hasBoundary == rhs.hasBoundary
+			&& lhs.oneWayDir == rhs.oneWayDir
+			&& lhs.surfaces[0] == rhs.surfaces[0]
+			&& lhs.surfaces[1] == rhs.surfaces[1]
+			&& lhs.surfaces[2] == rhs.surfaces[2]
+			&& lhs.surfaces[3] == rhs.surfaces[3]
+			&& lhs.material == rhs.material
+			&& lhs.matFacing == rhs.matFacing;
+		*/
+		return lhs.surfaces[0] == rhs.surfaces[0]
+			&& lhs.surfaces[1] == rhs.surfaces[1]
+			&& lhs.surfaces[2] == rhs.surfaces[2]
+			&& lhs.surfaces[3] == rhs.surfaces[3];
+	}
 
 	//protected:
 

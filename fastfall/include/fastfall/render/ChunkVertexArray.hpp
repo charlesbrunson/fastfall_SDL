@@ -3,6 +3,7 @@
 #include "TileVertexArray.hpp"
 
 #include <vector>
+#include <queue>
 
 namespace ff {
 
@@ -20,10 +21,16 @@ public:
 
 	void setTexture(const Texture& texture) noexcept;
 	const TextureRef& getTexture() const noexcept;
-	void setTile(Vec2u at, Vec2u texPos);
 
-	void blank(Vec2u at);
-	void clear();
+	void setTile(Vec2u at, Vec2u texPos) { 
+		commands.push(Command{ .type = Command::Type::Set, .tile_pos = at, .tex_pos = texPos }); 
+	};
+	void blank(Vec2u at) {
+		commands.push(Command{ .type = Command::Type::Blank, .tile_pos = at });
+	};
+	void clear() {
+		commands.push(Command{ .type = Command::Type::Clear });
+	};
 
 	inline bool empty() noexcept { return m_chunks.empty(); };
 
@@ -38,6 +45,11 @@ public:
 	Rectf visibility;
 
 private:
+
+	void do_setTile(Vec2u at, Vec2u texPos);
+	void do_blank(Vec2u at);
+	void do_clear();
+
 
 	enum DrawFlags : unsigned char {
 		NoDraw = 0,
@@ -65,6 +77,18 @@ private:
 
 	TextureRef m_tex;
 	std::vector<Chunk> m_chunks;
+
+	struct Command {
+		enum class Type {
+			Set,
+			Blank,
+			Clear
+		} type;
+
+		Vec2u tile_pos;
+		Vec2u tex_pos;
+	};
+	std::queue<Command> commands;
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 };
