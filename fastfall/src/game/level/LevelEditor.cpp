@@ -62,6 +62,7 @@ bool LevelEditor::paint_tile(Vec2u pos)
 {
 	if (auto* layer = get_layer(layer_id, is_layer_bg); layer && curr_tileset) {
 		layer->setTile(pos, tileset_pos, *curr_tileset);
+		return true;
 	}
 	return false;
 }
@@ -69,6 +70,7 @@ bool LevelEditor::erase_tile(Vec2u pos)
 {
 	if (auto* layer = get_layer(layer_id, is_layer_bg)) {
 		layer->removeTile(pos);
+		return true;
 	}
 	return false;
 }
@@ -86,6 +88,7 @@ bool LevelEditor::select_tile(Vec2u tile_pos)
 		&& tile_pos.y < curr_tileset->getTileSize().y)
 	{
 		tileset_pos = tile_pos;
+		return true;
 	}
 	return false;
 }
