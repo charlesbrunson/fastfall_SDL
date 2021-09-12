@@ -88,8 +88,8 @@ void CollisionDiscrete::reset(const ColliderQuad* collisionTile, const ColliderR
 	evalContact();
 }
 
-void CollisionDiscrete::createAxes() noexcept {
-	//axes.clear();
+void CollisionDiscrete::createAxes() noexcept 
+{
 
 	axis_count = 0;
 	bool hasFloor = false;
@@ -132,7 +132,7 @@ void CollisionDiscrete::createAxes() noexcept {
 			non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::NORTH, .surface = surf, .is_real = true, .is_valid = true, .quadNdx = ndx };
 
 			if (surface.hasSurface && !math::is_horizontal(v)) {
-				if (surf.ghostp3.x <= surf.surface.p2.x && surf.ghostp3.y >= surf.surface.p2.y /*&& surf.surface.p2.y > surf.surface.p1.y*/) {
+				if (surf.ghostp3.x <= surf.surface.p2.x && surf.ghostp3.y >= surf.surface.p2.y) {
 					//east corner
 					if (!hasEastCorner) {
 						hasEastCorner = true;
@@ -146,7 +146,7 @@ void CollisionDiscrete::createAxes() noexcept {
 					}
 
 				}
-				if (surf.ghostp0.x >= surf.surface.p1.x && surf.ghostp0.y >= surf.surface.p1.y /*&& surf.surface.p1.y > surf.surface.p2.y*/) {
+				if (surf.ghostp0.x >= surf.surface.p1.x && surf.ghostp0.y >= surf.surface.p1.y) {
 					//west corner
 					if (!hasWestCorner) {
 						hasWestCorner = true;
@@ -160,16 +160,6 @@ void CollisionDiscrete::createAxes() noexcept {
 					}
 				}
 
-				// east peak
-				/*
-				if (math::is_vertical(Linef(surf.surface.p2, surf.ghostp3)) && surf.surface.p2.y < surf.ghostp3.y) {
-					LOG_INFO("EAST N PEAK");
-				}
-				// west peak
-				else if (math::is_vertical(Linef(surf.ghostp0, surf.surface.p1)) && surf.surface.p1.y < surf.ghostp0.y) {
-					LOG_INFO("WEST N PEAK");
-				}
-				*/
 			}
 		}
 		else {
@@ -177,7 +167,7 @@ void CollisionDiscrete::createAxes() noexcept {
 			non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::SOUTH, .surface = surf, .is_real = true, .is_valid = true, .quadNdx = ndx };
 
 			if (surface.hasSurface && !math::is_horizontal(v)) {
-				if (surf.ghostp0.x <= surf.surface.p1.x && surf.ghostp0.y <= surf.surface.p1.y /*&& surf.surface.p1.y < surf.surface.p2.y*/) {
+				if (surf.ghostp0.x <= surf.surface.p1.x && surf.ghostp0.y <= surf.surface.p1.y) {
 					//east corner
 					if (!hasEastCorner) {
 						hasEastCorner = true;
@@ -190,7 +180,7 @@ void CollisionDiscrete::createAxes() noexcept {
 						verticals[vSize++] = AxisPreStep{ .dir = Cardinal::EAST, .surface = corner, .is_real = false, .is_valid = true, .quadNdx = ndx };
 					}
 				}
-				if (surf.ghostp3.x >= surf.surface.p2.x && surf.ghostp3.y <= surf.surface.p2.y /*&& surf.surface.p2.y < surf.surface.p1.y*/) {
+				if (surf.ghostp3.x >= surf.surface.p2.x && surf.ghostp3.y <= surf.surface.p2.y) {
 					//west corner
 					if (!hasWestCorner) {
 						hasWestCorner = true;
@@ -203,30 +193,9 @@ void CollisionDiscrete::createAxes() noexcept {
 						verticals[vSize++] = AxisPreStep{ .dir = Cardinal::WEST, .surface = corner, .is_real = false, .is_valid = true, .quadNdx = ndx };
 					}
 				}
-
-				// west peak
-				/*
-				if (math::is_vertical(Linef(surf.surface.p2, surf.ghostp3)) && surf.surface.p2.y > surf.ghostp3.y) {
-					LOG_INFO("WEST S PEAK");
-				}
-				// east peak
-				else if (math::is_vertical(Linef(surf.ghostp0, surf.surface.p1)) && surf.surface.p1.y > surf.ghostp0.y) {
-					LOG_INFO("EAST S PEAK");
-				}
-				*/
 			}
 		}
 	}
-
-	std::sort(verticals.begin(), verticals.begin() + vSize,
-		[](const AxisPreStep& lhs, const AxisPreStep& rhs) {
-			return lhs.dir < rhs.dir;
-		});
-
-	std::sort(non_verticals.begin(), non_verticals.begin() + hSize,
-		[](const AxisPreStep& lhs, const AxisPreStep& rhs) {
-			return lhs.dir < rhs.dir;
-		});
 
 
 	// generate remaining axes with bounding box
@@ -257,7 +226,16 @@ void CollisionDiscrete::createAxes() noexcept {
 		fake.surface.p2 = math::rect_topleft(tArea);
 		verticals[vSize++] = AxisPreStep{ .dir = Cardinal::WEST, .surface = fake, .is_real = false, .is_valid = false, .quadNdx = 255u };
 	}
-	//LOG_INFO("{} {}", hSize, vSize);
+
+	std::sort(verticals.begin(), verticals.begin() + vSize,
+		[](const AxisPreStep& lhs, const AxisPreStep& rhs) {
+			return lhs.dir < rhs.dir;
+		});
+
+	std::sort(non_verticals.begin(), non_verticals.begin() + hSize,
+		[](const AxisPreStep& lhs, const AxisPreStep& rhs) {
+			return lhs.dir < rhs.dir;
+		});
 
 	for (size_t i = 0u; i < hSize; i++) {
 		switch (non_verticals[i].dir) {

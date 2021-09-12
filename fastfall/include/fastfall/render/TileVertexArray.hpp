@@ -6,10 +6,6 @@
 #include "fastfall/render/VertexArray.hpp"
 #include "fastfall/render/Drawable.hpp"
 
-//#include <SFML/Graphics.hpp>
-
-#include <mutex>
-
 namespace ff {
 
 class TileVertexArray : public Drawable {

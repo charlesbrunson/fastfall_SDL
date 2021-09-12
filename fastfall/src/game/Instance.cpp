@@ -20,6 +20,7 @@ GameInstance::GameInstance(InstanceID instance) :
 
 GameInstance::~GameInstance() {
 	clear();
+	debug_draw::clear();
 }
 
 void GameInstance::clear() {
@@ -28,12 +29,15 @@ void GameInstance::clear() {
 	camera.removeAllTargets();
 	activeLevel = nullptr;
 	currentLevels.clear();
+
+	debug_draw::clear();
 }
 
 void GameInstance::reset() {
 
 	objMan.clear();
 	sceneMan.clear();
+	debug_draw::clear();
 	camera.removeAllTargets();
 	for (auto& lvl : currentLevels) {
 		if (!lvl.second->name().empty()) {

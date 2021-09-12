@@ -69,37 +69,28 @@ void TestState::update(secs deltaTime) {
 	instance->getCollision().update(deltaTime);
 	instance->getCamera().update(deltaTime);
 	
-
-	if (Input::getMouseInView() && Input::isHeld(InputType::MOUSE1)) 
+	if (Input::getMouseInView() && (Input::isHeld(InputType::MOUSE1) || Input::isHeld(InputType::MOUSE2)))
 	{
 		Level* lvl = instance->getActiveLevel();
 		Vec2f mpos = Input::getMouseWorldPosition();
+
 		Vec2u tpos = Vec2u{ mpos / TILESIZE_F };
 
-		if (Rectf{ Vec2f{}, Vec2f{lvl->size()} *TILESIZE_F }.contains(mpos) && (!painting ||  last_paint != tpos)) {
+		if (Rectf{ Vec2f{}, Vec2f{lvl->size()} *TILESIZE_F }.contains(mpos)
+			&& (!painting || (last_paint != tpos)))
+		{
 
 			LevelEditor edit{ lvl };
 			edit.select_layer(1);
 			edit.select_tileset("tile_test");
 			edit.select_tile(Vec2u{});
-			edit.paint_tile(tpos);
-		}
-		last_paint = tpos;
-		painting = true;
-	}
-	else if (Input::getMouseInView() && Input::isHeld(InputType::MOUSE2))
-	{
-		Level* lvl = instance->getActiveLevel();
-		Vec2f mpos = Input::getMouseWorldPosition();
-		Vec2u tpos = Vec2u{ mpos / TILESIZE_F };
-
-		if (Rectf{ Vec2f{}, Vec2f{lvl->size()} *TILESIZE_F }.contains(mpos) && (!painting || last_paint != tpos)) {
-
-			LevelEditor edit{ lvl };
-			edit.select_layer(1);
-			edit.select_tileset("tile_test");
-			edit.select_tile(Vec2u{});
-			edit.erase_tile(tpos);
+			if (Input::isHeld(InputType::MOUSE1))
+			{
+				edit.paint_tile(tpos);
+			}
+			else {
+				edit.erase_tile(tpos);
+			}
 		}
 		last_paint = tpos;
 		painting = true;

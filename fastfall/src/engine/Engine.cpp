@@ -426,7 +426,7 @@ void Engine::predrawRunnables() {
     for (auto& run : runnables) {
         run.getStateHandle().getActiveState()->predraw(deltaTime);
     }
-    if (settings.showDebug && deltaTime > 0.0)
+    if (settings.showDebug)
         debug_draw::swapDrawLists();
 }
 
@@ -813,6 +813,7 @@ void Engine::ImGui_getContent() {
 
     if (ImGui::CollapsingHeader("Framerate Graph", ImGuiTreeNodeFlags_DefaultOpen)) {
 
+        
         ImPlot::SetNextPlotLimits(0.0, (arrsize - 1), 0.0, denom * 2.f, ImGuiCond_Always);
         if (ImPlot::BeginPlot("##FPS", NULL, "tick time (ms)", ImVec2(-1, 200), ImPlotFlags_None, ImPlotAxisFlags_None, 0)) {
             ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1.f);
@@ -832,6 +833,7 @@ void Engine::ImGui_getContent() {
 
             ImPlot::EndPlot();
         }
+        
 
     }
 
@@ -844,12 +846,16 @@ void Engine::ImGui_getContent() {
     ImGui::Text("Tick#:%6d | ", clock.data().tickTotal);
     ImGui::SameLine();
     ImGui::Text("Tick Miss:%2d | ", clock.data().tickMissPerSec);
-    ImGui::SameLine();
+   // ImGui::SameLine();
     static float tickMS = 0.f;
     if (roller == 0) {
         tickMS = clock.data().activeTime.count() * 1000.f;
     }
-    ImGui::Text("ActiveMS:%2.1f | ", tickMS);
+    ImGui::Text("Tick MS:%2.1f | ", tickMS);
+
+    ImGui::SameLine();
+
+    ImGui::Text("Active MS:%2.1f | ", active_y[100]);
 
     ImGui::Separator();
 

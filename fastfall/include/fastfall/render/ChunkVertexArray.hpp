@@ -11,13 +11,14 @@ namespace ff {
 class ChunkVertexArray : public Drawable {
 public:
 	ChunkVertexArray(Vec2u t_size, Vec2u t_max_chunk_size);
+
+	/*
 	ChunkVertexArray(const ChunkVertexArray& rhs);
 	ChunkVertexArray(ChunkVertexArray&& rhs);
 
 	ChunkVertexArray& operator= (const ChunkVertexArray& rhs);
 	ChunkVertexArray& operator= (ChunkVertexArray&& rhs);
-
-
+	*/
 
 	void setTexture(const Texture& texture) noexcept;
 	const TextureRef& getTexture() const noexcept;
@@ -58,7 +59,6 @@ private:
 		DrawOffsetX = 1 << 2,
 		DrawOffsetXY = 1 << 3
 	};
-
 
 	struct Chunk {
 		unsigned char draw_flags;

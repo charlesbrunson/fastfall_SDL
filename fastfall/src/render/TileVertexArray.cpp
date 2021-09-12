@@ -12,7 +12,6 @@ namespace ff {
 
 constexpr unsigned VERTICES_PER_TILE = 6;
 
-
 TileVertexArray::TileVertexArray()
 	: verts(ff::Primitive::TRIANGLES) 
 {

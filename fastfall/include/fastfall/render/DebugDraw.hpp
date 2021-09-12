@@ -49,6 +49,7 @@ namespace debug_draw {
 
 	bool repeat(const void* signature, Vec2f offset);
 
+	void clear();
 };
 
 // wrapper for declaring drawable for debugging

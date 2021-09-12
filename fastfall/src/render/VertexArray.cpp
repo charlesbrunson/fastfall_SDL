@@ -14,32 +14,48 @@ VertexArray::VertexArray(Primitive primitive_type, size_t size, VertexUsage usag
 
 }
 
+VertexArray::~VertexArray() {
+	ff::glStaleVertexArrays(gl.m_array);
+	ff::glStaleVertexBuffers(gl.m_buffer);
+}
+
 VertexArray::VertexArray(const VertexArray& varray) {
 
 	m_usage = varray.m_usage;
 	m_primitive = varray.m_primitive;
 	m_vec = varray.m_vec;
+	//gl.sync = false;
 }
 VertexArray& VertexArray::operator= (const VertexArray& varray) {
 
 	m_usage = varray.m_usage;
 	m_primitive = varray.m_primitive;
 	m_vec = varray.m_vec;
+	//gl.sync = false;
 
 	return *this;
 }
 
 VertexArray::VertexArray(VertexArray&& varray) noexcept {
-	swap(varray);
+	std::swap(gl, varray.gl);
+
+	m_usage = varray.m_usage;
+	m_primitive = varray.m_primitive;
+
+	m_vec = std::move(varray.m_vec);
 }
 
 VertexArray& VertexArray::operator= (VertexArray&& varray) noexcept {
-	swap(varray);
+	std::swap(gl, varray.gl);
+
+	m_usage = varray.m_usage;
+	m_primitive = varray.m_primitive;
+
+	m_vec = std::move(varray.m_vec);
 	return *this;
 }
 
 void VertexArray::swap(VertexArray& varray) {
-	std::swap(gl, varray.gl);
 	std::swap(gl, varray.gl);
 
 	m_usage = varray.m_usage;
@@ -48,10 +64,6 @@ void VertexArray::swap(VertexArray& varray) {
 	std::swap(m_vec, varray.m_vec);
 }
 
-VertexArray::~VertexArray() {
-	ff::glStaleVertexArrays(gl.m_array);
-	ff::glStaleVertexBuffers(gl.m_buffer);
-}
 
 void VertexArray::glTransfer() const {
 

@@ -14,6 +14,7 @@ ChunkVertexArray::ChunkVertexArray(Vec2u t_size, Vec2u t_max_chunk_size)
 }
 
 
+/*
 ChunkVertexArray::ChunkVertexArray(const ChunkVertexArray& rhs)
 	: offset(rhs.offset)
 	, use_visible_rect(rhs.use_visible_rect)
@@ -59,7 +60,7 @@ ChunkVertexArray& ChunkVertexArray::operator= (ChunkVertexArray&& rhs) {
 
 	return *this;
 }
-
+*/
 
 
 void ChunkVertexArray::setTexture(const Texture& texture) noexcept {
@@ -82,18 +83,18 @@ void ChunkVertexArray::do_setTile(Vec2u at, Vec2u texPos) {
 	innerPos.x = at.x % m_chunk_size.x;
 	innerPos.y = at.y % m_chunk_size.y;
 
+	Vec2u nSize;
+	nSize.x = std::min(m_chunk_size.x, m_size.x - m_chunk_size.x * chunkPos.x);
+	nSize.y = std::min(m_chunk_size.y, m_size.y - m_chunk_size.y * chunkPos.y);
+
 	auto iter = std::upper_bound(m_chunks.begin(), m_chunks.end(), chunkPos, [](const Vec2u& pos, const Chunk& chunk) {
 		return pos <= chunk.chunk_pos;
 		});
 
 	if (iter == m_chunks.end()) {
+		//LOG_INFO("CHUNK END");
 
-		Vec2u nSize;
-		nSize.x = std::min(m_chunk_size.x, m_size.x - m_chunk_size.x * chunkPos.x);
-		nSize.y = std::min(m_chunk_size.y, m_size.y - m_chunk_size.y * chunkPos.y);
-
-
-		m_chunks.push_back(Chunk{
+		m_chunks.emplace_back(Chunk{
 			.chunk_pos = chunkPos,
 			.chunk_size = nSize,
 			.tva = TileVertexArray{nSize}
@@ -105,12 +106,9 @@ void ChunkVertexArray::do_setTile(Vec2u at, Vec2u texPos) {
 
 	}
 	else if (iter->chunk_pos != chunkPos) {
+		//LOG_INFO("CHUNK INSERT {}", chunkPos.to_string());
 
-		Vec2u nSize;
-		nSize.x = std::min(m_chunk_size.x, m_size.x - m_chunk_size.x * chunkPos.x);
-		nSize.y = std::min(m_chunk_size.y, m_size.y - m_chunk_size.y * chunkPos.y);
-
-		iter = m_chunks.insert(iter, Chunk{
+		iter = m_chunks.emplace(iter, Chunk{
 			.chunk_pos = chunkPos,
 			.chunk_size = nSize,
 			.tva = TileVertexArray{nSize}
@@ -122,6 +120,7 @@ void ChunkVertexArray::do_setTile(Vec2u at, Vec2u texPos) {
 
 	}
 	else {
+		//LOG_INFO("CHUNK AT {}", iter->chunk_pos.to_string());
 		iter->tva.setTile(innerPos, texPos);
 	}
 }
@@ -141,7 +140,7 @@ void ChunkVertexArray::do_blank(Vec2u at) {
 			return chunk.chunk_pos == chunkPos;
 		});
 
-	if (iter->chunk_pos == chunkPos) {
+	if (iter != m_chunks.end() && iter->chunk_pos == chunkPos) {
 		iter->tva.blank(innerPos);
 	}
 }

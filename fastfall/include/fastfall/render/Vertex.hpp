@@ -10,6 +10,7 @@ struct Vertex {
 
 
 
+	/*
 	Vertex()
 		: pos{ 0.f, 0.f },
 		tex_pos{ 0.f, 0.f },
@@ -25,6 +26,7 @@ struct Vertex {
 	{
 
 	}
+	*/
 
 	glm::fvec2 pos;
 	ff::Color color;

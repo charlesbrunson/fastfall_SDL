@@ -87,7 +87,14 @@ void debug_draw::add(std::unique_ptr<Drawable>&& drawable, Type type, const void
 		inactiveList->push_back(DebugDrawable{ current_offset, std::move(drawable), type, signature });
 }
 
+void debug_draw::clear() {
+	inactiveList->clear();
+	repeatList.clear();
+}
+
 bool debug_draw::repeat(const void* signature, Vec2f offset) {
+	if (!signature)
+		return false;
 
 	auto iter = std::find_if(activeList->begin(), activeList->end(), [&signature](const DebugDrawable& debug) {
 			return debug.signature == signature;
