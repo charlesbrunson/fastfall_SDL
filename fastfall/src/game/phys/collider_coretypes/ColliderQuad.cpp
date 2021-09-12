@@ -3,6 +3,7 @@
 #include "fastfall/render/DebugDraw.hpp"
 #include "fastfall/render/VertexArray.hpp"
 
+#include "fastfall/util/log.hpp"
 
 namespace ff {
 
@@ -83,6 +84,8 @@ void debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset, const void* s
 	if (!always_redraw && sign && debug_draw::repeat(sign, offset)) {
 		return;
 	}
+
+	//LOG_INFO("redraw quad debug: {}", count);
 
 	debug_draw::set_offset(offset);
 

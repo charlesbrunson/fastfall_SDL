@@ -135,6 +135,14 @@ private:
 
 	bool hasBorder;
 	size_t validCollisionSize = 0;
+	void incr_valid_collision() {
+		validCollisionSize++;
+		update_debugDraw = true;
+	}
+	void decr_valid_collision() {
+		validCollisionSize--;
+		update_debugDraw = true;
+	}
 
 	std::unique_ptr<ColliderQuad[]> tileCollisionMap;
 	std::unique_ptr<TileTable[]>    tileShapeMap;

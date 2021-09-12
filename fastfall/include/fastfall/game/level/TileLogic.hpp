@@ -8,6 +8,7 @@
 #include <queue>
 #include <string_view>
 #include <functional>
+#include <concepts>
 
 #include "fastfall/game/level/Tile.hpp"
 #include "fastfall/game/phys/collision/Contact.hpp"
@@ -45,6 +46,19 @@ protected:
 
 	inline void pushCommand(const TileLogicCommand& cmd) {
 		commands.push(cmd);
+	}
+
+	template<class Callable>
+	requires std::is_invocable_r_v<bool, Callable, const TileLogicCommand&>
+	void erase_command_if(Callable&& callable) {
+		std::queue<TileLogicCommand> tmp_commands;
+		std::swap(tmp_commands, commands);
+		while (!tmp_commands.empty()) {
+			if (!callable(tmp_commands.front())) {
+				commands.push(std::move(tmp_commands.front()));
+			}
+			tmp_commands.pop();
+		}
 	}
 
 public:

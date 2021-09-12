@@ -62,7 +62,8 @@ namespace ff {
 
 		if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER)) {
 			debugDrawQuad(validCollisionSize, &tileCollisionMap[0], getPosition(), this, update_debugDraw);
-			update_debugDraw = false;
+			if (update_debugDraw)
+				update_debugDraw = false;
 		}
 	}
 
@@ -196,13 +197,9 @@ namespace ff {
 	}
 
 	void ColliderTileMap::applyChanges() {
-		if (editQueue.empty()) {
-			update_debugDraw = false;
+		if (editQueue.empty())
 			return;
-		}
-		else {
-			update_debugDraw = true;
-		}
+
 
 		Vec2i size = size_max - size_min;
 		std::vector<bool> impacted(size.x * size.y);
@@ -249,6 +246,7 @@ namespace ff {
 				}
 			}
 
+			//LOG_INFO("drawable quad: {}", validCollisionSize);
 			editQueue.pop();
 			any_change |= has_change;
 		}
@@ -276,6 +274,7 @@ namespace ff {
 		if (!quad)
 			return false;
 
+
 		unsigned shapeTouchBits = tile->shape.shapeTouches;
 		for (const auto& side : sides) {
 			if (shapeTouchBits & cardinalBit[side.toCard]) {
@@ -288,8 +287,9 @@ namespace ff {
 
 					const ColliderSurface* originalSurf = original.getSurface(side.oppositeCard);
 					if (originalSurf) {
-						if (!quad_adj->hasAnySurface())
-							validCollisionSize++;
+						if (!quad_adj->hasAnySurface()) {
+							incr_valid_collision();
+						}
 
 						quad_adj->setSurface(side.oppositeCard, *originalSurf);
 					}
@@ -299,10 +299,11 @@ namespace ff {
 
 		if (quad->hasAnySurface()) {
 			quad->clearSurfaces();
-			validCollisionSize--;
+			decr_valid_collision();
 		}
 
 		tileShapeMap[getTileIndex(change.position)].hasTile = false;
+		tileShapeMap[getTileIndex(change.position)].tile.shape = TileShape{};
 		return true;
 	}
 	bool ColliderTileMap::applySetTile(const Edit& change) {
@@ -311,49 +312,82 @@ namespace ff {
 		ColliderTile nTile(change.position, change.toShape, change.material, change.matFacing);
 		ColliderQuad nQuad = nTile.toQuad(ndx);
 
+		bool changed_geometry;
+		bool changed_material;
+
 		if (auto [quad, tile] = getTile(change.position); quad) {
 
-			if (tile->shape.type == nTile.shape.type
-				&& (tile->shape.hflipped == nTile.shape.hflipped)
-				&& (tile->shape.vflipped == nTile.shape.vflipped)
-				) {
+			// tile exists at this position
+			changed_geometry =
+				tile->shape.type != nTile.shape.type
+				|| tile->shape.hflipped != nTile.shape.hflipped
+				|| tile->shape.vflipped != nTile.shape.vflipped;
+
+			changed_material =
+				changed_geometry 
+				|| (tile->mat != nTile.mat
+					|| tile->matFacing != nTile.matFacing);
+
+			if (!changed_geometry && !changed_material) 
+			{
 				// no impact to collision map
 				return false;
 			}
 			else {
+				// remove existing tile first
 				applyRemoveTile(Edit{ change.position, true });
 			}
 		}
 
-		if (nTile.shape.type == TileShape::Type::EMPTY)
+		if (nTile.shape.type == TileShape::Type::EMPTY) {
+			tileShapeMap[ndx].hasTile = false;
+			tileShapeMap[ndx].tile = nTile;
+			tileCollisionMap[ndx] = nQuad;
 			return true;
+		}
 
-		unsigned shapeTouchBits = nTile.shape.shapeTouches;
-		for (const auto& side : sides) {
-			if (shapeTouchBits & cardinalBit[side.toCard]) {
+		const ColliderTile empty_tile = ColliderTile{};
+
+		changed_geometry =
+			empty_tile.shape.type != nTile.shape.type
+			|| empty_tile.shape.hflipped != nTile.shape.hflipped
+			|| empty_tile.shape.vflipped != nTile.shape.vflipped;
+
+		changed_material =
+			changed_geometry
+			&& (empty_tile.mat != nTile.mat
+				|| empty_tile.matFacing != nTile.matFacing);
+
+		
+		if (changed_geometry) {
+
+			unsigned shapeTouchBits = nTile.shape.shapeTouches;
+			for (const auto& side : sides) {
+				if (shapeTouchBits & cardinalBit[side.toCard]) {
 
 
-				auto [quad_adj, tile_adj] = getTile(change.position + side.gridoffset);
+					auto [quad_adj, tile_adj] = getTile(change.position + side.gridoffset);
 
-				if (quad_adj && (tile_adj->shape.shapeTouches & cardinalBit[side.oppositeCard])) {
+					if (quad_adj && (tile_adj->shape.shapeTouches & cardinalBit[side.oppositeCard])) {
 
-					ColliderSurface* added = nQuad.getSurface(side.toCard);
-					ColliderSurface* adjacent = quad_adj->getSurface(side.oppositeCard);
+						ColliderSurface* added = nQuad.getSurface(side.toCard);
+						ColliderSurface* adjacent = quad_adj->getSurface(side.oppositeCard);
 
-					if (added == nullptr || adjacent == nullptr) {
-						//LOG_WARN("missing surface");
-						continue;
-					}
+						if (added == nullptr || adjacent == nullptr) {
+							continue;
+						}
 
-					auto [first, second] = cullTouchingSurfaces(*added, *adjacent);
+						auto [first, second] = cullTouchingSurfaces(*added, *adjacent);
 
-					if (first) {
-						nQuad.removeSurface(side.toCard);
-					}
-					if (second) {
-						quad_adj->removeSurface(side.oppositeCard);
-						if (!quad_adj->hasAnySurface()) {
-							validCollisionSize--;
+						if (first) {
+							nQuad.removeSurface(side.toCard);
+						}
+						if (second) {
+							quad_adj->removeSurface(side.oppositeCard);
+
+							if (!quad_adj->hasAnySurface()) {
+								decr_valid_collision();
+							}
 						}
 					}
 				}
@@ -361,7 +395,7 @@ namespace ff {
 		}
 
 		if (nQuad.hasAnySurface()) {
-			validCollisionSize++;
+			incr_valid_collision();
 		}
 
 		tileShapeMap[ndx].hasTile = true;

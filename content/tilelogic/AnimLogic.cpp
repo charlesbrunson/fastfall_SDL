@@ -16,7 +16,10 @@ void AnimLogic::removeTile(Vec2u tilePos) {
 	tile_timers.erase(std::find_if(tile_timers.begin(), tile_timers.end(), [&tilePos](TileTimer& timer) {
 			return timer.tile_impacted == tilePos;
 		}));
-	
+
+	erase_command_if([&tilePos](const TileLogicCommand& cmd) {
+			return cmd.position == tilePos;
+		});
 }
 
 void AnimLogic::update(secs deltaTime) {
@@ -27,6 +30,7 @@ void AnimLogic::update(secs deltaTime) {
 		});
 
 	if (iter != tile_timers.end()) {
+		//LOG_INFO("update");
 		for (auto timer = iter; timer != tile_timers.end(); timer++) {
 
 			Vec2u tex_pos;

@@ -83,13 +83,16 @@ void TestState::update(secs deltaTime) {
 			LevelEditor edit{ lvl };
 			edit.select_layer(1);
 			edit.select_tileset("tile_test");
-			edit.select_tile(Vec2u{});
+			edit.select_tile(Vec2u{8, 0});
+			//edit.select_tile(Vec2u{0, 0});
 			if (Input::isHeld(InputType::MOUSE1))
 			{
 				edit.paint_tile(tpos);
+				LOG_INFO("paint");
 			}
 			else {
 				edit.erase_tile(tpos);
+				LOG_INFO("erase");
 			}
 		}
 		last_paint = tpos;

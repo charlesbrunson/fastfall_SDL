@@ -19,6 +19,7 @@ private:
 		secs time_to_anim;
 		Vec2u tile_impacted;
 		Tile tile;
+		bool discard = false;
 	};
 
 	std::vector<TileTimer> tile_timers;
