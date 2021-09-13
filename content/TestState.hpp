@@ -10,6 +10,8 @@
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/game/Instance.hpp"
 
+#include "fastfall/game/level/LevelEditor.hpp"
+
 class TestState : public ff::EngineState {
 public:
 	TestState();
@@ -30,4 +32,13 @@ private:
 
 	bool painting = false;
 	ff::Vec2u last_paint;
+
+	std::unique_ptr<ff::LevelEditor> edit;
+
+	std::unique_ptr<Uint8[]> prevKeys;
+
+	const Uint8* currKeys = nullptr;
+	int key_count;
+
+
 };

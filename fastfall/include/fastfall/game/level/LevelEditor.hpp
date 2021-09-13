@@ -86,10 +86,10 @@ public:
 	// CONSTRUCTORS
 
 	// attach to existing level
-	LevelEditor(Level& lvl);
+	LevelEditor(Level& lvl, bool show_imgui);
 
 	// create a new level
-	LevelEditor(GameContext context, std::string name = "New Level", Vec2u tile_size = MIN_LEVEL_SIZE); 
+	LevelEditor(GameContext context, bool show_imgui, std::string name = "New Level", Vec2u tile_size = MIN_LEVEL_SIZE);
 
 	// LAYERS
 
@@ -156,7 +156,13 @@ public:
 
 	*/
 
+	std::optional<Vec2u> get_tile() const { return tileset_pos; };
+	const TilesetAsset* get_tileset() const { return curr_tileset; };
+
+
 protected:
+
+	bool display_imgui = false;
 
 	// internal
 	bool applyCommand(const EditCommand& cmd);

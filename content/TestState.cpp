@@ -10,7 +10,6 @@
 
 #include "tilelogic/AnimLogic.hpp"
 
-#include "fastfall/game/level/LevelEditor.hpp"
 
 TestState::TestState()
 {
@@ -30,11 +29,44 @@ TestState::TestState()
 
 	stateID = ff::EngineStateID::TEST_STATE;
 	clearColor = ff::Color{ 0x141013FF };
+
+	edit = std::make_unique<LevelEditor>( *instance->getActiveLevel(), false );
+	edit->select_layer(LayerPosition::Foreground());
+	edit->select_tileset("tile_test");
+	edit->select_tile(Vec2u{ 0, 0 });
+
+	/*
+	currKeys = SDL_GetKeyboardState(&key_count);
+	if (currKeys) {
+		prevKeys = std::make_unique<Uint8[]>(key_count);
+		std::memcpy(&prevKeys[0], currKeys, key_count);
+	}
+	*/
 }
 
 TestState::~TestState() {
 	ff::DestroyInstance(instance->getInstanceID());
 }
+
+
+template<typename Call>
+struct OnKey {
+	const Uint8* curr;
+	const Uint8* prev;
+	SDL_Scancode code;
+	Call fn;
+
+	OnKey(const Uint8* cu, const Uint8* pr, SDL_Scancode c, Call f)
+		: curr(cu), prev(pr), code(c), fn(f)
+	{
+	}
+
+	void operator()() {
+		if (curr[SDL_Scancode] && !prev[SDL_Scancode]) {
+			fn();
+		}
+	}
+};
 
 void TestState::update(secs deltaTime) {
 
@@ -44,38 +76,73 @@ void TestState::update(secs deltaTime) {
 	instance->getTrigger().update(deltaTime);
 	instance->getCollision().update(deltaTime);
 	instance->getCamera().update(deltaTime);
-	
-	if (Input::getMouseInView() && (Input::isHeld(InputType::MOUSE1) || Input::isHeld(InputType::MOUSE2)))
+
+	currKeys = SDL_GetKeyboardState(&key_count);
+
+	if (edit) 
 	{
-		Level* lvl = instance->getActiveLevel();
-		Vec2f mpos = Input::getMouseWorldPosition();
+		static auto onKeyPressed = [this](SDL_Scancode c, auto&& callable) {
+			if (currKeys && prevKeys && currKeys[c] && !prevKeys[c]) {
+				callable();
+			}
+		};
 
-		Vec2u tpos = Vec2u{ mpos / TILESIZE_F };
+		static auto tileOnKeyPressed = [this](SDL_Scancode c, Vec2i dir) {
+			onKeyPressed(c, [this, dir]() {
+				auto tileset = edit->get_tileset();
+				auto tile = edit->get_tile();
+				if (tileset && tile) {
+					Vec2u tile_pos = tile.value();
 
-		if (Rectf{ Vec2f{}, Vec2f{lvl->size()} *TILESIZE_F }.contains(mpos)
-			&& (!painting || (last_paint != tpos)))
+					tile_pos.x = (tile_pos.x + dir.x) % tileset->getTileSize().x;
+					tile_pos.y = (tile_pos.y + dir.y) % tileset->getTileSize().y;
+
+					edit->select_tile(tile_pos);
+				}
+				else {
+					edit->select_tile(Vec2u{ 0, 0 });
+				}
+				LOG_INFO("tile pos = {}", edit->get_tile()->to_string());
+			});
+		};
+
+		tileOnKeyPressed(SDL_SCANCODE_LEFT,  Vec2i{ -1,  0 });
+		tileOnKeyPressed(SDL_SCANCODE_RIGHT, Vec2i{  1,  0 });
+		tileOnKeyPressed(SDL_SCANCODE_UP,    Vec2i{  0, -1 });
+		tileOnKeyPressed(SDL_SCANCODE_DOWN,  Vec2i{  0,  1 });
+		
+
+
+
+		if (Input::getMouseInView() && (Input::isHeld(InputType::MOUSE1) || Input::isHeld(InputType::MOUSE2)))
 		{
+			Level* lvl = instance->getActiveLevel();
+			Vec2f mpos = Input::getMouseWorldPosition();
 
-			LevelEditor edit{ *lvl };
-			edit.select_layer(LayerPosition::Foreground());
-			edit.select_tileset("tile_test");
-			edit.select_tile(Vec2u{0, 0});
+			Vec2u tpos = Vec2u{ mpos / TILESIZE_F };
 
-			if (Input::isHeld(InputType::MOUSE1))
+			if (Rectf{ Vec2f{}, Vec2f{lvl->size()} *TILESIZE_F }.contains(mpos)
+				&& (!painting || (last_paint != tpos)))
 			{
-				edit.paint_tile(tpos);
-				LOG_INFO("paint");
+
+				Input::isHeld(InputType::MOUSE1)
+					? edit->paint_tile(tpos)
+					: edit->erase_tile(tpos);
+
 			}
-			else {
-				edit.erase_tile(tpos);
-				LOG_INFO("erase");
-			}
+
+			last_paint = tpos;
+			painting = true;
 		}
-		last_paint = tpos;
-		painting = true;
+		else {
+			painting = false;
+		}
 	}
-	else {
-		painting = false;
+
+	if (currKeys) {
+		if (!prevKeys)
+			prevKeys = std::make_unique<Uint8[]>(key_count);
+		std::memcpy(&prevKeys[0], currKeys, key_count);
 	}
 }
 

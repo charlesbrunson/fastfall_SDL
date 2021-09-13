@@ -5,13 +5,15 @@
 namespace ff {
 
 
-LevelEditor::LevelEditor(Level& lvl) 
+LevelEditor::LevelEditor(Level& lvl, bool show_imgui) 
+	: display_imgui(show_imgui)
 {
 	level = &lvl;
 	assert(level);
 }
 
-LevelEditor::LevelEditor(GameContext context, std::string name, Vec2u tile_size)
+LevelEditor::LevelEditor(GameContext context, bool show_imgui, std::string name, Vec2u tile_size)
+	: display_imgui(show_imgui)
 {
 	assert(tile_size.x >= LevelEditor::MIN_LEVEL_SIZE.x);
 	assert(tile_size.y >= LevelEditor::MIN_LEVEL_SIZE.y);
