@@ -12,6 +12,8 @@
 
 #include "fastfall/game/level/LevelEditor.hpp"
 
+#include "fastfall/render/Sprite.hpp"
+
 class TestState : public ff::EngineState {
 public:
 	TestState();
@@ -40,5 +42,7 @@ private:
 	const Uint8* currKeys = nullptr;
 	int key_count;
 
+	ff::Sprite tile_ghost;
+	ff::Vec2u tpos;
 
 };

@@ -48,28 +48,7 @@ TestState::~TestState() {
 	ff::DestroyInstance(instance->getInstanceID());
 }
 
-
-template<typename Call>
-struct OnKey {
-	const Uint8* curr;
-	const Uint8* prev;
-	SDL_Scancode code;
-	Call fn;
-
-	OnKey(const Uint8* cu, const Uint8* pr, SDL_Scancode c, Call f)
-		: curr(cu), prev(pr), code(c), fn(f)
-	{
-	}
-
-	void operator()() {
-		if (curr[SDL_Scancode] && !prev[SDL_Scancode]) {
-			fn();
-		}
-	}
-};
-
 void TestState::update(secs deltaTime) {
-
 
 	instance->getActiveLevel()->update(deltaTime);
 	instance->getObject().update(deltaTime);
@@ -81,6 +60,10 @@ void TestState::update(secs deltaTime) {
 
 	if (edit) 
 	{
+
+		Vec2f mpos = Input::getMouseWorldPosition();
+		tpos = Vec2u{ mpos / TILESIZE_F };
+
 		static auto onKeyPressed = [this](SDL_Scancode c, auto&& callable) {
 			if (currKeys && prevKeys && currKeys[c] && !prevKeys[c]) {
 				callable();
@@ -96,7 +79,6 @@ void TestState::update(secs deltaTime) {
 
 					tile_pos.x = (tile_pos.x + dir.x) % tileset->getTileSize().x;
 					tile_pos.y = (tile_pos.y + dir.y) % tileset->getTileSize().y;
-
 					edit->select_tile(tile_pos);
 				}
 				else {
@@ -111,17 +93,11 @@ void TestState::update(secs deltaTime) {
 		tileOnKeyPressed(SDL_SCANCODE_UP,    Vec2i{  0, -1 });
 		tileOnKeyPressed(SDL_SCANCODE_DOWN,  Vec2i{  0,  1 });
 		
-
-
-
 		if (Input::getMouseInView() && (Input::isHeld(InputType::MOUSE1) || Input::isHeld(InputType::MOUSE2)))
 		{
 			Level* lvl = instance->getActiveLevel();
-			Vec2f mpos = Input::getMouseWorldPosition();
 
-			Vec2u tpos = Vec2u{ mpos / TILESIZE_F };
-
-			if (Rectf{ Vec2f{}, Vec2f{lvl->size()} *TILESIZE_F }.contains(mpos)
+			if (Rectf{ Vec2f{}, Vec2f{lvl->size()} * TILESIZE_F }.contains(mpos)
 				&& (!painting || (last_paint != tpos)))
 			{
 
@@ -156,10 +132,32 @@ void TestState::predraw(secs deltaTime) {
 	viewZoom = instance->getCamera().zoomFactor;
 
 	instance->getScene().set_cam_pos(viewPos);
+
+	if (edit) {
+		auto tileset = edit->get_tileset();
+		auto tile = edit->get_tile();
+		if (tileset && tile) {
+			tile_ghost.setColor(ff::Color::White().alpha(80));
+			tile_ghost.setTexture(&tileset->getTexture());
+			tile_ghost.setTextureRect(Rectf{
+					Vec2f{ *tile } * TILESIZE_F,
+					Vec2f{ 1, 1 } * TILESIZE_F
+				});
+			tile_ghost.setPosition(Vec2f{ tpos } * TILESIZE_F);
+			tile_ghost.setSize({ TILESIZE_F, TILESIZE_F });
+
+
+		}
+		else {
+			tile_ghost.setColor(ff::Color::Transparent);
+		}
+	}
+
+
 }
 
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
 
 	target.draw(instance->getScene(), state);
-
+	target.draw(tile_ghost, state);
 }
