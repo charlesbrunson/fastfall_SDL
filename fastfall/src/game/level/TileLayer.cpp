@@ -235,7 +235,62 @@ void TileLayer::initFromAsset(const TileLayerRef& layerData, unsigned id, bool i
 	}
 }
 
+void TileLayer::enable_collision()
+{
+	if (m_context.valid() && !collision) {
+		collision = instance::phys_create_collider<ColliderTileMap>(m_context, Vec2i(size.x, size.y), true);
+		hasCollision = true;
+
+		for (unsigned i = 0u; i < pos2data.size(); i++) {
+			auto& tile_data = pos2data.at(i);
+
+			if (tile_data.has_tile && tile_data.tileset_id != TILEDATA_NONE)
+			{
+				Vec2i pos{
+					(int)(i % size.x),
+					(int)(i / size.x)
+				};
+
+				const TilesetAsset* tileset = chunks.at(tile_data.tileset_id).tileset;
+
+				Tile tile = tileset->getTile(tile_data.tex_pos);
+
+				collision->setTile(
+					pos, 
+					tile.shape,
+					&tileset->getMaterial(tile_data.tex_pos),
+					tile.matFacing
+				);
+			}
+		}
+		collision->applyChanges();
+
+		collision->set_on_precontact(
+			std::bind(&TileLayer::handlePreContact, this,
+				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+		);
+		collision->set_on_postcontact(
+			std::bind(&TileLayer::handlePostContact, this,
+				std::placeholders::_1, std::placeholders::_2)
+		);
+	}
+}
+
+void TileLayer::remove_collision()
+{
+	if (m_context.valid() && collision) {
+		instance::phys_erase_collider(m_context, collision);
+
+	}
+	collision = nullptr;
+	hasCollision = false;
+}
+
 void TileLayer::update(secs deltaTime) {
+	if (collision) {
+		collision->update(deltaTime);
+	}
+
 	for (auto& logic : tileLogic) {
 		logic->update(deltaTime);
 	}

@@ -253,7 +253,7 @@ void levelContent(GameContext context) {
 
 	constexpr auto displayTileLayer = [](TileLayer& tile) {
 		ImGui::Checkbox("Hidden", &tile.hidden);
-		ImGui::Text("Collision = %s", tile.hasCollision ? "true" : "false");
+		ImGui::Text("Collision = %s", tile.has_collision() ? "true" : "false");
 		ImGui::Text("Parallax = %s", tile.isParallax() ? "true" : "false");
 		ImGui::Text("Scrolling = %s", tile.hasScrollX() || tile.hasScrollY() ? "true" : "false");
 	};
@@ -301,18 +301,26 @@ void levelContent(GameContext context) {
 			constexpr const char* obj_label = "%2d. Objects               #%u";
 			constexpr const char* fg_label  = "%2d. Foreground%s           #%u";
 
-			int i = 0;
-			for (TileLayer& layer : lvl->getBGLayers()) {
-				if (ImGui::TreeNode((void*)(&layer), bg_label, i, layer.getID())) {
-					displayTileLayer(layer);
+			auto it = lvl->getTileLayers().begin();
+			for (; it != lvl->getTileLayers().end() && it->position < 0; it++) {
+				if (ImGui::TreeNode(
+					(void*)(&*it), 
+					bg_label, 
+					it->position, 
+					it->tilelayer.getID())) 
+				{
+					displayTileLayer(it->tilelayer);
 
 					ImGui::TreePop();
 				}
-				i++;
 			}
-			
 			ObjectLayer& layer = lvl->getObjLayer();
-			if (ImGui::TreeNode((void*)(&layer), obj_label, i, layer.getLayerID())) {
+			if (ImGui::TreeNode(
+				(void*)(&layer), 
+				obj_label, 
+				0, 
+				layer.getLayerID())) 
+			{
 				for (auto& obj : layer.getObjectRefs()) {
 
 					const std::string* type = GameObjectLibrary::lookupTypeName(obj.type);
@@ -327,17 +335,21 @@ void levelContent(GameContext context) {
 				}
 				ImGui::TreePop();
 			}
-			i++;
-			
-			for (TileLayer& layer : lvl->getFGLayers()) {
-				if (ImGui::TreeNode((void*)(&layer), fg_label, i, layer.hasCollision ? "*" : " ", layer.getID())) {
+			for (; it != lvl->getTileLayers().end(); it++) {
+				if (ImGui::TreeNode(
+					(void*)(&layer), 
+					fg_label, 
+					it->position, 
+					it->tilelayer.has_collision() ? "*" : " ", 
+					it->tilelayer.getID())) 
+				{
 
-					displayTileLayer(layer);
+					displayTileLayer(it->tilelayer);
 
 					ImGui::TreePop();
 				}
-				i++;
 			}
+
 		}
 	}
 }

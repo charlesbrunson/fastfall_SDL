@@ -88,7 +88,7 @@ void GameCamera::update(secs deltaTime) {
 			auto& current_crosshair = createDebugDrawable<VertexArray, debug_draw::Type::CAMERA_TARGET>(
 				(const void*)this, Primitive::LINE_LOOP, 4);
 
-			LOG_INFO("{}", (void*)this);
+			//LOG_INFO("{}", (void*)this);
 			for (int i = 0; i < current_crosshair.size(); i++) {
 				current_crosshair[i].color = Color::White;
 			}
@@ -102,7 +102,7 @@ void GameCamera::update(secs deltaTime) {
 		for (auto target : targets) {
 			Vec2f pos = target->get_target_pos();
 			if (!debug_draw::repeat((void*)target, pos)) {
-				LOG_INFO("{}", (void*)target);
+				//LOG_INFO("{}", (void*)target);
 
 				debug_draw::set_offset(pos);
 

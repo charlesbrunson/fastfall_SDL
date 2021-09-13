@@ -30,31 +30,15 @@ void Level::update(secs deltaTime) {
 	if (deltaTime == 0.0)
 		return;
 
-	//objLayer.update(deltaTime);
-
-	for (auto& fg : fgLayers) {
-		fg.update(deltaTime);
-	}
-
-	for (auto& bg : bgLayers) {
-		bg.update(deltaTime);
-	}
-
-#ifdef DEBUG
-	if (fgLayers.begin()->hasCollision) {
-		fgLayers.begin()->getCollisionMap()->update(deltaTime);
-	}
-#endif
+	for (auto& [pos, layer] : layers) {
+		layer.update(deltaTime);
+	}	
 }
 
 void Level::predraw(secs deltaTime) {
 
-	for (auto& fg : fgLayers) {
-		fg.predraw(deltaTime);
-	}
-
-	for (auto& bg : bgLayers) {
-		bg.predraw(deltaTime);
+	for (auto& [pos, layer] : layers) {
+		layer.predraw(deltaTime);
 	}
 }
 
@@ -64,50 +48,140 @@ void Level::init(const LevelAsset& levelData) {
 	levelSize = levelData.getTileDimensions();
 	bordersCardinalBits = levelData.getBorder();
 
-	fgLayers.clear();
-	bgLayers.clear();
+	layers.clear();
 	objLayer.clear();
+	fg1_layer_ndx = 0;
 
+	// count the layers first
 	bool bg = true;
-	unsigned bg_count = 0u;
-	unsigned fg_count = 0u;
-	for (auto& layerRef : *levelData.getLayerRefs()) 
+	int bg_count = 0u;
+	int fg_count = 0u;
+	for (auto& layerRef : *levelData.getLayerRefs())
 	{
-		if (layerRef.type == LayerRef::Type::Tile) {
-			(bg ? bg_count++ : fg_count++);
-		}
-		else {
-			bg = false;
-		}
-	}
-
-	fgLayers.reserve(fg_count);
-	bgLayers.reserve(bg_count);
-
-	bg = true;
-	for (auto i = levelData.getLayerRefs()->begin(); i != levelData.getLayerRefs()->end(); i++) {
-		if (i->type == LayerRef::Type::Object) {
-			bg = false;
-			objLayer.initFromAsset(context, i->id, i->asObjLayer());
-		}
-		else if (i->type == LayerRef::Type::Tile) {
-			(bg ? bgLayers : fgLayers).push_back(
-				TileLayer(context, i->id, i->asTileLayer(), (!bg && fgLayers.empty()) )
-			);
+		switch (layerRef.type)
+		{
+			using enum LayerRef::Type;
+		case Object: 
+			bg = false; 
+			break;
+		case Tile: 
+			(bg ? bg_count : fg_count)++;
+			break;
 		}
 	}
 
-	set_borders(bordersCardinalBits);
+	layers.reserve((size_t)bg_count + fg_count);
+	//fg1_layer_ndx = bg_count;
 
+	// start building the layers
+	int count = 0;
+	for (auto& layerRef : *levelData.getLayerRefs())
+	{
+		switch (layerRef.type)
+		{
+			using enum LayerRef::Type;
+		case Object:
+			objLayer.initFromAsset(context, layerRef.id, layerRef.asObjLayer());
+			break;
+		case Tile:
+			/*
+			layers.push_back({
+					.position = count - bg_count,
+					.tilelayer = TileLayer(context, layerRef.id, layerRef.asTileLayer(), (count - bg_count == 0))
+				});
+			*/
+			bool is_bg = count - bg_count < 0;
+			bool has_collision = (count - bg_count == 0);
+			insertTileLayer({
+					.position = (is_bg ? -1 : count - bg_count),
+					.tilelayer = TileLayer(context, layerRef.id, layerRef.asTileLayer(), has_collision)
+				});
+			count++;
+			break;
+		}
+	}
+
+	// apply borders
+	if (bordersCardinalBits) {
+		set_borders(bordersCardinalBits);
+	}
 }
 
 
+void Level::insertTileLayer(LevelLayer&& layer)
+{
+	if (layer.position < 0) {
+		auto it = std::upper_bound(
+			layers.begin(), layers.end(),
+			layer.position,
+			[](int pos, const LevelLayer& lvllayer) {
+				return lvllayer.position > pos;
+			});
+
+		layers.insert(it, std::move(layer));
+
+		fg1_layer_ndx++;
+		for (int i = -fg1_layer_ndx; i < 0; i++) {
+			layers.at(i + fg1_layer_ndx).position = i;
+
+		}
+	}
+	else {
+		auto it = std::upper_bound(
+			layers.begin(), layers.end(),
+			layer.position,
+			[](int pos, const LevelLayer& lvllayer) {
+				return lvllayer.position > pos;
+			});
+
+		layers.insert(it, std::move(layer));
+		for (int i = 0; i < (layers.size() - fg1_layer_ndx); i++) {
+			layers.at(i + fg1_layer_ndx).position = i;
+
+			if (i == 0 && !layers.at(i + fg1_layer_ndx).tilelayer.has_collision())
+			{
+				layers.at(i + fg1_layer_ndx).tilelayer.enable_collision();
+			}
+			else if (i > 0 && layers.at(i + fg1_layer_ndx).tilelayer.has_collision())
+			{
+				layers.at(i + fg1_layer_ndx).tilelayer.remove_collision();
+			}
+		}
+	}
+}
+void Level::removeTileLayer(int position)
+{
+	auto it = std::find_if(
+		layers.begin(), layers.end(),
+		[position](const LevelLayer& lvllayer) {
+			return lvllayer.position == position;
+		});
+
+	if (it != layers.end())
+	{
+		layers.erase(it);
+		if (position < 0) {
+			fg1_layer_ndx;
+		}
+
+		for (int i = 0; i < layers.size(); i++) 
+		{
+			layers.at(i + fg1_layer_ndx).position = i - fg1_layer_ndx;
+		}
+
+		if (layers.size() > fg1_layer_ndx && !layers.at(0).tilelayer.has_collision()) 
+		{
+			layers.at(fg1_layer_ndx).tilelayer.enable_collision();
+		}
+	}
+}
+
 void Level::set_borders(unsigned bordersCardinalBits)
 {
-	if (!fgLayers.empty()) {
-		auto* colMap = fgLayers.front().getCollisionMap();
-
-		if (colMap) {
+	if (layers.size() > fg1_layer_ndx) 
+	{
+		if (auto* colMap = layers.at(fg1_layer_ndx).tilelayer.getCollisionMap()) 
+		{
 			colMap->setBorders(levelSize, bordersCardinalBits);
 		}
 	}
@@ -117,26 +191,21 @@ void Level::resize(Vec2u n_size)
 {
 	bordersCardinalBits;
 	set_borders(0u);
-	for (auto& layer : bgLayers) {
+
+	for (auto& [pos, layer] : layers)
+	{
+
 		Vec2u layer_size{
 			std::min(n_size.x, layer.getSize().x),
 			std::min(n_size.y, layer.getSize().y),
 		};
 
-		TileLayer n_layer{ context, layer.getID(), layer_size, layer.hasCollision };
+		TileLayer n_layer{ context, layer.getID(), (pos < 0 ? layer_size : n_size), layer.has_collision() };
 		n_layer.shallow_copy(layer, Rectu{ Vec2u{}, Vec2u{layer_size} }, n_size);
 		layer = std::move(n_layer);
-	}
-	for (auto& layer : fgLayers) {
-		Vec2u layer_size{
-			std::min(n_size.x, layer.getSize().x),
-			std::min(n_size.y, layer.getSize().y),
-		};
 
-		TileLayer n_layer{ context, layer.getID(), n_size, layer.hasCollision };
-		n_layer.shallow_copy(layer, Rectu{ Vec2u{}, Vec2u{layer_size} }, n_size);
-		layer = std::move(n_layer);
 	}
+
 	levelSize = n_size;
 	set_borders(bordersCardinalBits);
 	return;

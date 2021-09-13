@@ -47,6 +47,10 @@ TestState::TestState()
 	instance->getScene().set_size(instance->getActiveLevel()->size());
 
 
+	ff::Level* lvl = instance->getActiveLevel();
+	lvl->getTileLayers().at(lvl->getFGStartNdx()).tilelayer.remove_collision();
+	lvl->getTileLayers().at(lvl->getFGStartNdx()).tilelayer.enable_collision();
+	lvl->set_borders(0xF);
 }
 
 TestState::~TestState() {
@@ -55,19 +59,13 @@ TestState::~TestState() {
 
 void TestState::update(secs deltaTime) {
 
-	if (deltaTime > 0.0) {
-		auto* tile = &*instance->getActiveLevel()->getFGLayers().begin();
-		auto colmap = tile->getCollisionMap();
-		
-		static secs timebuf = 0.0;
-		timebuf += deltaTime;
-	}
 
 	instance->getActiveLevel()->update(deltaTime);
 	instance->getObject().update(deltaTime);
 	instance->getTrigger().update(deltaTime);
 	instance->getCollision().update(deltaTime);
 	instance->getCamera().update(deltaTime);
+	
 	
 	if (Input::getMouseInView() && (Input::isHeld(InputType::MOUSE1) || Input::isHeld(InputType::MOUSE2)))
 	{
@@ -80,11 +78,11 @@ void TestState::update(secs deltaTime) {
 			&& (!painting || (last_paint != tpos)))
 		{
 
-			LevelEditor edit{ lvl };
-			edit.select_layer(1);
+			LevelEditor edit{ *lvl };
+			edit.select_layer(LayerPosition::TileAt(0));
 			edit.select_tileset("tile_test");
 			edit.select_tile(Vec2u{8, 0});
-			//edit.select_tile(Vec2u{0, 0});
+
 			if (Input::isHeld(InputType::MOUSE1))
 			{
 				edit.paint_tile(tpos);
@@ -101,7 +99,6 @@ void TestState::update(secs deltaTime) {
 	else {
 		painting = false;
 	}
-
 }
 
 void TestState::predraw(secs deltaTime) {

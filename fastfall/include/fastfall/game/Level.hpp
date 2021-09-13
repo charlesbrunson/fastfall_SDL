@@ -10,11 +10,27 @@
 #include "fastfall/render/Drawable.hpp"
 
 #include <list>
+#include <concepts>
 
 namespace ff {
 
+struct LevelLayer {
+
+	//-2 = second background layer (first draw)
+	//-1 = first background layer  (second draw)
+	// 0 = first foreground layer  (third draw)
+	// etc
+	int position;
+
+	TileLayer tilelayer;
+};
+
 class Level  {
+private:
+
 public:
+
+
 
 	Level(GameContext context);
 	Level(GameContext context, const LevelAsset& levelData);
@@ -35,11 +51,13 @@ public:
 	void set_borders(unsigned bordersCardinalBits);
 	void resize(Vec2u n_size);
 
-	inline std::vector<TileLayer>& getBGLayers() { return bgLayers; };
-	inline std::vector<TileLayer>& getFGLayers() { return fgLayers; };
 
-	const inline std::vector<TileLayer>& getBGLayers() const { return bgLayers; };
-	const inline std::vector<TileLayer>& getFGLayers() const { return fgLayers; };
+	std::vector<LevelLayer>& getTileLayers() { return layers; };
+	const std::vector<LevelLayer>& getTileLayers() const { return layers; };
+	int getFGStartNdx() const { return fg1_layer_ndx; };
+
+	void insertTileLayer(LevelLayer&& layer);
+	void removeTileLayer(int position);
 
 	inline ObjectLayer& getObjLayer() { return objLayer; };
 	const inline ObjectLayer& getObjLayer() const { return objLayer; };
@@ -54,9 +72,11 @@ private:
 	Vec2u levelSize;
 	unsigned bordersCardinalBits;
 
-	std::vector<TileLayer> bgLayers;
+	std::vector<LevelLayer> layers;
+
+	int fg1_layer_ndx = 0;
+
 	ObjectLayer objLayer;
-	std::vector<TileLayer> fgLayers;
 
 };
 

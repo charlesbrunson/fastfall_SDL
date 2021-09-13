@@ -9,41 +9,76 @@
 namespace ff {
 
 struct LayerPosition {
-	enum class Position {
-		AtLayer,
+	enum class Type {
+		At,
 		Start,
 		End
 	} type;
-	unsigned at_layer_id;
+	int position;
 
-	static LayerPosition Begin() {
+	static LayerPosition TileStart() {
 		return LayerPosition{
-			.type = Position::Start,
-			.at_layer_id = 0u
+			.type = Type::Start,
+			.position = 0
 		};
 	};
-	static LayerPosition End() {
+	static LayerPosition TileEnd() {
 		return LayerPosition{
-			.type = Position::End,
-			.at_layer_id = 0u
+			.type = Type::End,
+			.position = 0
 		};
 	};
-	static LayerPosition At(unsigned layer_id) {
+	static LayerPosition TileAt(int layer_pos) {
 		return LayerPosition{
-			.type = Position::AtLayer,
-			.at_layer_id = layer_id
+			.type = Type::At,
+			.position = layer_pos
 		};
 	};
 };
 
 class LevelEditor {
+private:
+	// internal types
+
+	struct SelectLayerCmd { LayerPosition layerpos; };
+	struct CreateLayerCmd { LayerPosition layerpos; };
+	struct MoveLayerCmd { LayerPosition layerpos; };
+
+	struct PaintTileCmd { Vec2u pos; };
+	struct EraseTileCmd { Vec2u pos; };
+
+	struct SelectTilesetCmd { std::string_view name; };
+	struct SelectTileCmd { Vec2u tileset_pos; };
+
+	struct SetNameCmd { std::string_view name; };
+	struct SetBGColorCmd { Color color; };
+	struct SetBoundary { bool north; bool east; bool south; bool west; };
+
+	//struct CreateObjCmd { ObjectRef ref; };
+
+	using EditCommand = std::variant<
+		SelectLayerCmd,
+		CreateLayerCmd,
+		MoveLayerCmd,
+
+		PaintTileCmd,
+		EraseTileCmd,
+
+		SelectTilesetCmd,
+		SelectTileCmd,
+
+		SetNameCmd,
+		SetBGColorCmd,
+		SetBoundary
+	>;
+
 public:
 	constexpr static Vec2u MIN_LEVEL_SIZE = Vec2u{ GAME_TILE_W, GAME_TILE_H };
 
 	// CONSTRUCTORS
 
 	// attach to existing level
-	LevelEditor(Level* lvl);
+	LevelEditor(Level& lvl);
 
 	// create a new level
 	LevelEditor(GameContext context, std::string name = "New Level", Vec2u tile_size = MIN_LEVEL_SIZE); 
@@ -54,7 +89,9 @@ public:
 	bool create_layer(LayerPosition layer_pos); 
 
 	// select layer at positon (start and end specify the first and last layer, respectively)
-	bool select_layer(LayerPosition layer_pos); 
+	bool select_layer(LayerPosition layer_pos);
+	void select_obj_layer();
+	void deselect_layer();
 
 	// move selected layer to new position
 	// retains selection of moved layer
@@ -72,9 +109,11 @@ public:
 
 	// selects tileset for painting tiles
 	bool select_tileset(std::string_view tileset_name);
+	void deselect_tileset();
 
 	// selects tile from selected tileset for painting tiles
 	bool select_tile(Vec2u tile_pos);
+	void deselect_tile();
 
 	// LEVEL PROPERTIES
 
@@ -87,8 +126,10 @@ public:
 	// changes level's boundary collision
 	bool set_boundary(bool north, bool east, bool south, bool west);
 
-	// OBJECTS
+	// OBJECTS - TODO LATER
 
+	/*
+	
 	// selects existing object ref
 	bool select_object(object_id id);
 
@@ -101,67 +142,21 @@ public:
 	// removes selected object ref
 	bool remove_object();
 
-	// ADDT'L
-
-	// selection state
-	unsigned get_selected_layer_id();
-	LayerPosition get_selected_layer_pos();
-	const TileLayer& get_selected_layer();
-
-	const TilesetAsset* get_selected_tileset();
-
-	Vec2u get_selected_tile();
-
-	const ObjectRef& get_selected_object();
-
-	// other
-	const TileLayer& get_layer(LayerPosition layer_pos);
+	*/
 
 protected:
 
-	struct SelectLayerCmd	{ unsigned layer_id; };
-	struct InsertLayerCmd	{ unsigned layer_id; };
-	struct PaintTileCmd		{ Vec2u pos; };
-	struct EraseTileCmd		{ Vec2u pos; };
-	struct SelectTilesetCmd { std::string_view name; };
-	struct SelectTileCmd	{ Vec2u tileset_pos; };
-	struct SetNameCmd		{ std::string_view name; };
-	struct SetBGColorCmd	{ Color color; };
-	struct SetBoundary		{ bool north; bool east; bool south; bool west; };
-	struct CreateObjCmd		{ ObjectRef ref; };
-
-	using EditCommand = std::variant<
-		SelectLayerCmd,
-		InsertLayerCmd,
-		PaintTileCmd,
-		EraseTileCmd,
-		SelectTilesetCmd,
-		SelectTileCmd,
-		SetNameCmd,
-		SetBGColorCmd,
-		SetBoundary,
-		CreateObjCmd
-	>;
-
+	// internal
 	bool applyCommand(const EditCommand& cmd);
 
-	TileLayer* get_layer(unsigned id, bool is_bg);
-
 	std::unique_ptr<Level> created_level = nullptr;
-	Level* level = nullptr;
+	Level* level = nullptr;								// pointer to level being edited, may point externally or to created_level
 
-	unsigned layer_id = 0;
-	unsigned layer_counter = 0;
-	bool is_layer_bg = false;
+	bool obj_layer_selected = false;
+	LevelLayer* curr_layer = nullptr;					// current tile layer
 
-	enum class LayerType {
-		None,
-		Object,
-		Tile
-	} curr_layer_type = LayerType::None;
-
-	const TilesetAsset* curr_tileset = nullptr;
-	Vec2u tileset_pos;
+	const TilesetAsset* curr_tileset = nullptr;			// current tileset
+	std::optional<Vec2u> tileset_pos = std::nullopt;	// current tile from tileset
 
 };
 

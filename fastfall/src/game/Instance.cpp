@@ -72,27 +72,15 @@ bool GameInstance::addLevel(const LevelAsset& levelRef) {
 	return r.second;
 }
 
-void GameInstance::populateSceneFromLevel(Level& lvl) {
-	int bg_count = lvl.getBGLayers().size();
-	//int fg_count = lvl.getFGLayers().size();
-
+void GameInstance::populateSceneFromLevel(Level& lvl)
+{
 	sceneMan.clearType(SceneType::Level);
-
-	for (int bg_ndx = 0; auto& layer : lvl.getBGLayers()) {
-		//LOG_INFO("{}", 1 + bg_ndx);
-		sceneMan.add(SceneType::Level, layer, bg_count - bg_ndx);
-		bg_ndx++;
-	}
-
-	
-	for (int fg_ndx = 0; auto& layer : lvl.getFGLayers()) {
-		//LOG_INFO("{}", -fg_ndx);
-		sceneMan.add(SceneType::Level, layer, -fg_ndx);
-		fg_ndx++;
+	for (auto& layer : lvl.getTileLayers())
+	{
+		sceneMan.add(SceneType::Level, layer.tilelayer, layer.position);
 	}
 	sceneMan.set_bg_color(lvl.getBGColor());
 	sceneMan.set_size(lvl.size());
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

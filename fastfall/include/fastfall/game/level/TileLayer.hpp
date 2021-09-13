@@ -60,10 +60,16 @@ public:
 	inline bool hasScrollX() const noexcept { return scrollRate.x != 0.f; };
 	inline bool hasScrollY() const noexcept { return scrollRate.y != 0.f; };
 
+	void enable_collision();
+	void remove_collision();
+
+	bool has_collision() const { return hasCollision; };
+
 	bool hidden = false;
-	bool hasCollision = false;
 
 protected:
+
+	bool hasCollision = false;
 
 	bool handlePreContact(Vec2i pos, const Contact& contact, secs duration);
 	void handlePostContact(Vec2i pos, const PersistantContact& contact);

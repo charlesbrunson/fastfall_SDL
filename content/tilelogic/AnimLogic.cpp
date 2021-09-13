@@ -6,6 +6,7 @@ using namespace ff;
 
 void AnimLogic::addTile(Vec2u tilePos, Tile tile, std::string arg) {
 	tile_timers.push_back(TileTimer{});
+
 	tile_timers.back().time_to_anim = ms_to_secs(std::stoi(arg));
 	tile_timers.back().tile_impacted = tilePos;
 	tile_timers.back().tile = tile;
@@ -23,6 +24,8 @@ void AnimLogic::removeTile(Vec2u tilePos) {
 }
 
 void AnimLogic::update(secs deltaTime) {
+
+	upTime += deltaTime;
 
 	auto iter = std::partition(tile_timers.begin(), tile_timers.end(), [&deltaTime](TileTimer& timer) {
 		timer.time_to_anim -= deltaTime;

@@ -22,6 +22,8 @@ private:
 		bool discard = false;
 	};
 
+	secs upTime = 0.0;
+
 	std::vector<TileTimer> tile_timers;
 
 };

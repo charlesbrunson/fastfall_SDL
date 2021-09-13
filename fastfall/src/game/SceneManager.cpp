@@ -13,9 +13,11 @@ SceneManager::SceneManager(unsigned instance)
 }
 
 void SceneManager::add(SceneType scene_type, Drawable& drawable, Layer layer, Priority priority) {
-	auto layer_iter = std::find_if(layers.begin(), layers.end(),
-		[layer](SceneLayer& t_layer) {
-			return t_layer.layer_id <= layer;
+	auto layer_iter = std::upper_bound(
+		layers.begin(), layers.end(),
+		layer,
+		[](Layer layer, const SceneLayer& sceneLayer) {
+			return layer < sceneLayer.layer_id;
 		});
 
 	if (layer_iter == layers.end() || layer_iter->layer_id != layer) {
@@ -108,11 +110,11 @@ void SceneManager::draw(ff::RenderTarget& target, ff::RenderState state) const {
 	for (auto& layer : layers) {
 		//LOG_INFO("{}", layer.layer_id);
 
-		if (scissor_enabled && layer.layer_id <= 0) {
+		if (scissor_enabled && layer.layer_id >= 0) {
 			scissor_enabled = false;
 			disableScissor();
 		}
-		else if (!scissor_enabled && layer.layer_id > 0)
+		else if (!scissor_enabled && layer.layer_id < 0)
 		{
 			continue;
 		}
