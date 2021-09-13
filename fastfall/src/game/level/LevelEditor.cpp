@@ -27,6 +27,36 @@ LevelEditor::LevelEditor(GameContext context, std::string name, Vec2u tile_size)
 // create layer at position, selects it
 bool LevelEditor::create_layer(LayerPosition layer_pos)
 {
+	int layer_count = level->getTileLayers().size();
+	int fgNdx = level->getFGStartNdx();
+
+	if (layer_pos.position >= (layer_count - fgNdx))
+	{
+		layer_pos.type = LayerPosition::Type::End;
+	}
+	else if (layer_pos.position < (-fgNdx))
+	{
+		layer_pos.type = LayerPosition::Type::Start;
+	}
+
+	switch (layer_pos.type)
+	{
+		using enum LayerPosition::Type;
+	case Start:
+		layer_pos.position = -fgNdx - 1;
+		break;
+	case End:
+		layer_pos.position = layer_count - fgNdx + 1;
+		break;
+	case At:
+		break;
+	}
+
+	level->insertTileLayer(LevelLayer{
+		.position = layer_pos.position,
+		.tilelayer = TileLayer{level->getContext(), 0, level->size() } // todo get an actual id
+		});
+
 	return false;
 }
 
@@ -85,17 +115,29 @@ void LevelEditor::deselect_layer()
 // retains selection of moved layer
 bool LevelEditor::move_layer(LayerPosition layer_pos)
 {
+
+
 	if (obj_layer_selected)
 	{
 		// ...
 	}
 	else if (curr_layer)
 	{
-
+		// ...
 	}
 	return false;
 }
 
+// erases selected layer
+// deselects layer
+bool LevelEditor::erase_layer()
+{
+	if (curr_layer)
+	{
+
+	}
+	return false;
+}
 
 // TILES
 
@@ -103,8 +145,14 @@ bool LevelEditor::move_layer(LayerPosition layer_pos)
 bool LevelEditor::paint_tile(Vec2u pos)
 {
 	if (curr_layer && curr_tileset && tileset_pos) {
-		curr_layer->tilelayer.setTile(pos, *tileset_pos, *curr_tileset);
-		return true;
+		Vec2u size = curr_layer->tilelayer.getSize();
+
+		if (pos.x < size.x && pos.y < size.y) 
+		{
+			curr_layer->tilelayer.setTile(pos, *tileset_pos, *curr_tileset);
+			return true;
+
+		}
 	}
 	return false;
 }
@@ -113,8 +161,13 @@ bool LevelEditor::paint_tile(Vec2u pos)
 bool LevelEditor::erase_tile(Vec2u pos)
 {
 	if (curr_layer) {
-		curr_layer->tilelayer.removeTile(pos);
-		return true;
+		Vec2u size = curr_layer->tilelayer.getSize();
+
+		if (pos.x < size.x && pos.y < size.y)
+		{
+			curr_layer->tilelayer.removeTile(pos);
+			return true;
+		}
 	}
 	return false;
 }
@@ -197,7 +250,8 @@ bool LevelEditor::applyCommand(const EditCommand& cmd)
 		overloaded{
 			[this](SelectLayerCmd	cmd) { return select_layer(cmd.layerpos); },
 			[this](CreateLayerCmd	cmd) { return create_layer(cmd.layerpos); },
-			[this](MoveLayerCmd		cmd) { return create_layer(cmd.layerpos); },
+			[this](MoveLayerCmd		cmd) { return move_layer(cmd.layerpos); },
+			[this](EraseLayerCmd	cmd) { return erase_layer(); },
 
 			[this](PaintTileCmd		cmd) { return paint_tile(cmd.pos); },
 			[this](EraseTileCmd		cmd) { return erase_tile(cmd.pos); },

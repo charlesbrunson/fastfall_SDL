@@ -382,7 +382,7 @@ void TileLayer::predraw(secs deltaTime) {
 	}
 
 	// parallax update
-	Vec2f parallax_offset;
+	parallax_offset = Vec2f{};
 	Vec2f pSize = Vec2f{ size } *TILESIZE_F;
 	if (has_parallax) {
 		parallax_offset = Vec2f{

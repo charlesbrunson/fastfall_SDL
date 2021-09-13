@@ -56,13 +56,15 @@ public:
 	const std::vector<LevelLayer>& getTileLayers() const { return layers; };
 	int getFGStartNdx() const { return fg1_layer_ndx; };
 
-	void insertTileLayer(LevelLayer&& layer);
+	LevelLayer& insertTileLayer(LevelLayer&& layer);
 	void removeTileLayer(int position);
 
 	inline ObjectLayer& getObjLayer() { return objLayer; };
 	const inline ObjectLayer& getObjLayer() const { return objLayer; };
 
 	inline InstanceID getInstanceID() { return context.getID(); };
+
+	GameContext getContext() { return context; }
 
 private:
 	GameContext context;

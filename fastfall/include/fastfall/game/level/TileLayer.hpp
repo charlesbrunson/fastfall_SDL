@@ -60,6 +60,8 @@ public:
 	inline bool hasScrollX() const noexcept { return scrollRate.x != 0.f; };
 	inline bool hasScrollY() const noexcept { return scrollRate.y != 0.f; };
 
+	Vec2f worldToLocalCoord(Vec2f world_pos);
+
 	void enable_collision();
 	void remove_collision();
 
@@ -81,18 +83,18 @@ protected:
 	Vec2u size;
 	Vec2f offset;
 
-	Vec2f scroll_offset;
-	Vec2f scroll_rollover;
-
 	// parallax data
 	bool has_parallax = false;
 	struct ParallaxState {
 		Vec2f initOffset;
 		Vec2f camFactor;
 	} parallax;
+	Vec2f parallax_offset;
 
 	// scroll data
+	Vec2f scroll_rollover;
 	Vec2f scrollRate;
+	Vec2f scroll_offset;
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 

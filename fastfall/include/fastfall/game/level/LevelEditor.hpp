@@ -16,22 +16,28 @@ struct LayerPosition {
 	} type;
 	int position;
 
-	static LayerPosition TileStart() {
+	static LayerPosition Start() {
 		return LayerPosition{
 			.type = Type::Start,
 			.position = 0
 		};
 	};
-	static LayerPosition TileEnd() {
+	static LayerPosition End() {
 		return LayerPosition{
 			.type = Type::End,
 			.position = 0
 		};
 	};
-	static LayerPosition TileAt(int layer_pos) {
+	static LayerPosition At(int layer_pos) {
 		return LayerPosition{
 			.type = Type::At,
 			.position = layer_pos
+		};
+	};
+	static LayerPosition Foreground() {
+		return LayerPosition{
+			.type = Type::At,
+			.position = 0
 		};
 	};
 };
@@ -43,6 +49,7 @@ private:
 	struct SelectLayerCmd { LayerPosition layerpos; };
 	struct CreateLayerCmd { LayerPosition layerpos; };
 	struct MoveLayerCmd { LayerPosition layerpos; };
+	struct EraseLayerCmd { };
 
 	struct PaintTileCmd { Vec2u pos; };
 	struct EraseTileCmd { Vec2u pos; };
@@ -60,6 +67,7 @@ private:
 		SelectLayerCmd,
 		CreateLayerCmd,
 		MoveLayerCmd,
+		EraseLayerCmd,
 
 		PaintTileCmd,
 		EraseTileCmd,
@@ -96,6 +104,10 @@ public:
 	// move selected layer to new position
 	// retains selection of moved layer
 	bool move_layer(LayerPosition layer_pos);   
+
+	// erases selected layer
+	// deselects layer
+	bool erase_layer();
 
 	// TILES
 

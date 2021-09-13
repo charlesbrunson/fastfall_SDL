@@ -108,8 +108,10 @@ void Level::init(const LevelAsset& levelData) {
 }
 
 
-void Level::insertTileLayer(LevelLayer&& layer)
+LevelLayer& Level::insertTileLayer(LevelLayer&& layer)
 {
+
+	std::vector<LevelLayer>::iterator ret;
 	if (layer.position < 0) {
 		auto it = std::upper_bound(
 			layers.begin(), layers.end(),
@@ -118,7 +120,7 @@ void Level::insertTileLayer(LevelLayer&& layer)
 				return lvllayer.position > pos;
 			});
 
-		layers.insert(it, std::move(layer));
+		ret = layers.insert(it, std::move(layer));
 
 		fg1_layer_ndx++;
 		for (int i = -fg1_layer_ndx; i < 0; i++) {
@@ -134,7 +136,7 @@ void Level::insertTileLayer(LevelLayer&& layer)
 				return lvllayer.position > pos;
 			});
 
-		layers.insert(it, std::move(layer));
+		ret = layers.insert(it, std::move(layer));
 		for (int i = 0; i < (layers.size() - fg1_layer_ndx); i++) {
 			layers.at(i + fg1_layer_ndx).position = i;
 
@@ -148,6 +150,7 @@ void Level::insertTileLayer(LevelLayer&& layer)
 			}
 		}
 	}
+	return *ret;
 }
 void Level::removeTileLayer(int position)
 {

@@ -14,43 +14,22 @@
 
 TestState::TestState()
 {
-
-
 	instance = ff::CreateInstance();
 	instanceID = instance->getInstanceID();
 	assert(instance);
 
-	ff::LevelAsset* lvlptr = ff::Resources::get<ff::LevelAsset>("map_test");
-	assert(lvlptr);
-	if (lvlptr) {
+	if (ff::LevelAsset* lvlptr = ff::Resources::get<ff::LevelAsset>("map_test"))
+	{
 		instance->addLevel(*lvlptr);
-
-		ff::Level* lvl = instance->getActiveLevel();
-		assert(lvl);
-		if (lvl) {
-
-			float xf = static_cast<float>(lvl->size().x);
-			float yf = static_cast<float>(lvl->size().y);
-			viewPos = ff::Vec2f(xf, yf) * TILESIZE_F / 2.f;
-
-			clearColor = ff::Color{ 0x141013FF };
-		}
 	}
+	assert(instance->getActiveLevel());
 
 	instance->getActiveLevel()->update(0.0);
 	instance->getObject().update(0.0);
 	instance->getCollision().update(0.0);
 
 	stateID = ff::EngineStateID::TEST_STATE;
-
-	instance->getScene().set_bg_color(instance->getActiveLevel()->getBGColor());
-	instance->getScene().set_size(instance->getActiveLevel()->size());
-
-
-	ff::Level* lvl = instance->getActiveLevel();
-	lvl->getTileLayers().at(lvl->getFGStartNdx()).tilelayer.remove_collision();
-	lvl->getTileLayers().at(lvl->getFGStartNdx()).tilelayer.enable_collision();
-	lvl->set_borders(0xF);
+	clearColor = ff::Color{ 0x141013FF };
 }
 
 TestState::~TestState() {
@@ -66,7 +45,6 @@ void TestState::update(secs deltaTime) {
 	instance->getCollision().update(deltaTime);
 	instance->getCamera().update(deltaTime);
 	
-	
 	if (Input::getMouseInView() && (Input::isHeld(InputType::MOUSE1) || Input::isHeld(InputType::MOUSE2)))
 	{
 		Level* lvl = instance->getActiveLevel();
@@ -79,9 +57,9 @@ void TestState::update(secs deltaTime) {
 		{
 
 			LevelEditor edit{ *lvl };
-			edit.select_layer(LayerPosition::TileAt(0));
+			edit.select_layer(LayerPosition::Foreground());
 			edit.select_tileset("tile_test");
-			edit.select_tile(Vec2u{8, 0});
+			edit.select_tile(Vec2u{0, 0});
 
 			if (Input::isHeld(InputType::MOUSE1))
 			{

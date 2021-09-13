@@ -38,9 +38,6 @@ void SceneManager::add(SceneType scene_type, Drawable& drawable, Layer layer, Pr
 				return lhs.priority != rhs.priority ? lhs.priority < rhs.priority : lhs.type != SceneType::Object && rhs.type == SceneType::Object;
 			}
 		);
-
-
-	//layer_iter->drawables
 }
 
 void SceneManager::remove(Drawable& drawable) {

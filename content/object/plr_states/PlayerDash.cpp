@@ -87,7 +87,8 @@ void PlayerDashState::enter(Player& plr, PlayerState* from)
 		dash_speed = plr.ground->traverse_get_speed();
 	}
 
-	plr.ground->settings.slope_sticking = false;
+	//plr.ground->settings.slope_sticking = false;
+
 	plr.ground->settings.use_surf_vel = true;
 }
 
@@ -156,6 +157,6 @@ void PlayerDashState::exit(Player& plr, PlayerState* to)
 		apply_dash_vel(plr, end_velx);
 	}
 
-	plr.ground->settings.slope_sticking = true;
+	//plr.ground->settings.slope_sticking = true;
 	plr.ground->settings.use_surf_vel = true;
 }
