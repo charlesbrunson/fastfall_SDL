@@ -12,6 +12,9 @@
 
 #include "fastfall/engine/config.hpp"
 
+#include "fastfall/game/Instance.hpp"
+#include "fastfall/game/level/LevelEditor.hpp"
+
 #include <sstream>
 #include <algorithm>
 #include <functional>
@@ -192,8 +195,26 @@ bool LevelAsset::reloadFromFile() {
 
 		if (n_level.loadFromFile(assetFilePath)) {
 			*this = std::move(n_level);
-
 			loaded = true;
+
+
+			for (auto& [id, inst] : AllInstances())
+			{
+				Level* active = inst.getActiveLevel();
+				for (auto& [name, lvl_uptr] : inst.getAllLevels())
+				{
+					if (lvl_uptr.get() == active) {
+						LevelEditor edit(*lvl_uptr.get(), false);
+						LOG_INFO("Applying reloaded level asset to active level");
+						edit.applyLevelAsset(this);
+						inst.populateSceneFromLevel(*lvl_uptr);
+					}
+					else {
+						LOG_INFO("Reinit inactive level with reloaded level asset");
+						lvl_uptr->init(*this);
+					}
+				}
+			}
 		}
 	}
 	catch (std::exception)

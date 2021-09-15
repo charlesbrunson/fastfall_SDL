@@ -10,6 +10,13 @@ LevelEditor::LevelEditor(Level& lvl, bool show_imgui)
 {
 	level = &lvl;
 	assert(level);
+	if (!level->hasEditorHooked) {
+		level->hasEditorHooked = true;
+	}
+	else {
+		LOG_WARN("editor failed to hook level, already hooked");
+		level = nullptr;
+	}
 }
 
 LevelEditor::LevelEditor(GameContext context, bool show_imgui, std::string name, Vec2u tile_size)
@@ -24,11 +31,22 @@ LevelEditor::LevelEditor(GameContext context, bool show_imgui, std::string name,
 	assert(level);
 }
 
+LevelEditor::~LevelEditor() {
+	if (level->hasEditorHooked) {
+		level->hasEditorHooked = false;
+	}
+	else {
+		LOG_WARN("editor failed to unhook level, already unhooked");
+	}
+}
+
 // LAYERS
 
 // create layer at position, selects it
 bool LevelEditor::create_layer(LayerPosition layer_pos)
 {
+	if (!level) return false;
+
 	int layer_count = level->getTileLayers().size();
 	int fgNdx = level->getFGStartNdx();
 
@@ -43,14 +61,13 @@ bool LevelEditor::create_layer(LayerPosition layer_pos)
 
 	switch (layer_pos.type)
 	{
-		using enum LayerPosition::Type;
-	case Start:
+	case LayerPosition::Type::Start:
 		layer_pos.position = -fgNdx - 1;
 		break;
-	case End:
+	case LayerPosition::Type::End:
 		layer_pos.position = layer_count - fgNdx + 1;
 		break;
-	case At:
+	case LayerPosition::Type::At:
 		break;
 	}
 
@@ -65,6 +82,8 @@ bool LevelEditor::create_layer(LayerPosition layer_pos)
 // select layer at positon (start and end specify the first and last layer, respectively)
 bool LevelEditor::select_layer(LayerPosition layer_pos)
 {
+	if (!level) return false;
+
 	int layer_count = level->getTileLayers().size();
 	if (layer_count == 0)
 		return false;
@@ -82,14 +101,13 @@ bool LevelEditor::select_layer(LayerPosition layer_pos)
 
 	switch (layer_pos.type)
 	{
-		using enum LayerPosition::Type;
-	case Start:
+	case LayerPosition::Type::Start:
 		curr_layer = &level->getTileLayers().at(0);
 		break;
-	case End:
+	case LayerPosition::Type::End:
 		curr_layer = &level->getTileLayers().back();
 		break;
-	case At:
+	case LayerPosition::Type::At:
 		curr_layer = &level->getTileLayers().at((size_t)(layer_pos.position + fgNdx));
 		break;
 	}
@@ -118,6 +136,8 @@ void LevelEditor::deselect_layer()
 bool LevelEditor::move_layer(LayerPosition layer_pos)
 {
 
+	if (!level) return false;
+
 
 	if (obj_layer_selected)
 	{
@@ -134,6 +154,8 @@ bool LevelEditor::move_layer(LayerPosition layer_pos)
 // deselects layer
 bool LevelEditor::erase_layer()
 {
+	if (!level) return false;
+
 	if (curr_layer)
 	{
 
@@ -146,6 +168,8 @@ bool LevelEditor::erase_layer()
 // paints tile onto selected layer, using selected tileset and tile
 bool LevelEditor::paint_tile(Vec2u pos)
 {
+	if (!level) return false;
+
 	if (curr_layer && curr_tileset && tileset_pos) {
 		Vec2u size = curr_layer->tilelayer.getSize();
 
@@ -162,6 +186,8 @@ bool LevelEditor::paint_tile(Vec2u pos)
 // paints tile onto selected layer
 bool LevelEditor::erase_tile(Vec2u pos)
 {
+	if (!level) return false;
+
 	if (curr_layer) {
 		Vec2u size = curr_layer->tilelayer.getSize();
 
@@ -179,6 +205,8 @@ bool LevelEditor::erase_tile(Vec2u pos)
 // selects tileset for painting tiles
 bool LevelEditor::select_tileset(std::string_view tileset_name)
 {
+	if (!level) return false;
+
 	curr_tileset = Resources::get<TilesetAsset>(tileset_name);
 	deselect_tile();
 	return curr_tileset != nullptr;
@@ -193,6 +221,8 @@ void LevelEditor::deselect_tileset()
 // selects tile from selected tileset for painting tiles
 bool LevelEditor::select_tile(Vec2u tile_pos)
 {
+	if (!level) return false;
+
 	if (curr_tileset 
 		&& tile_pos.x < curr_tileset->getTileSize().x
 		&& tile_pos.y < curr_tileset->getTileSize().y)
@@ -213,6 +243,8 @@ void LevelEditor::deselect_tile()
 // changes level's name
 bool LevelEditor::set_name(std::string name)
 {
+	if (!level) return false;
+
 	level->set_name(name);
 	return true;
 }
@@ -220,6 +252,8 @@ bool LevelEditor::set_name(std::string name)
 // changes level's background color
 bool LevelEditor::set_bg_color(Color bg_color)
 {
+	if (!level) return false;
+
 	level->set_bg_color(bg_color);
 	return true;
 }
@@ -227,6 +261,8 @@ bool LevelEditor::set_bg_color(Color bg_color)
 // changes level's boundary collision
 bool LevelEditor::set_boundary(bool north, bool east, bool south, bool west)
 {
+	if (!level) return false;
+
 	unsigned bits = 
 		  (north ? cardinalToBits(Cardinal::NORTH) : 0u)
 		| (east  ? cardinalToBits(Cardinal::EAST)  : 0u)
@@ -237,56 +273,100 @@ bool LevelEditor::set_boundary(bool north, bool east, bool south, bool west)
 	level->set_borders(bits);
 	return true;
 }
-
-
-
-// helper type for the visitor #4
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-// explicit deduction guide (not needed as of C++20)
-template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
-
-
-bool LevelEditor::applyCommand(const EditCommand& cmd)
+bool LevelEditor::set_boundary(unsigned cardinalBits)
 {
-	return std::visit(
-		overloaded{
-			[this](SelectLayerCmd	cmd) { return select_layer(cmd.layerpos); },
-			[this](CreateLayerCmd	cmd) { return create_layer(cmd.layerpos); },
-			[this](MoveLayerCmd		cmd) { return move_layer(cmd.layerpos); },
-			[this](EraseLayerCmd	cmd) { return erase_layer(); },
+	if (!level) return false;
 
-			[this](PaintTileCmd		cmd) { return paint_tile(cmd.pos); },
-			[this](EraseTileCmd		cmd) { return erase_tile(cmd.pos); },
-
-			[this](SelectTilesetCmd	cmd) { return select_tileset(cmd.name); },
-			[this](SelectTileCmd	cmd) { return select_tile(cmd.tileset_pos); },
-
-			[this](SetNameCmd		cmd) { return set_name(std::string(cmd.name)); },
-			[this](SetBGColorCmd	cmd) { return set_bg_color(cmd.color); },
-			[this](SetBoundary		cmd) { return set_boundary(cmd.north, cmd.east, cmd.south, cmd.west); }
-		},
-		cmd
-	);
+	level->set_borders(0u);
+	level->set_borders(cardinalBits);
+	return true;
 }
 
+bool LevelEditor::set_size(Vec2u size)
+{
+	if (level && level->size() != size) {
+		level->resize(size);
+		return true;
+	}
+	return false;
+}
+
+bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
+{
+	if (!level) return false;
+
+	// step 1: level size and other properties
+	if (level->name() != asset->getAssetName())
+	{
+		set_name(asset->getAssetName());
+	}
+	
+	if (level->size() != asset->getTileDimensions())
+	{
+		set_size(asset->getTileDimensions());	
+	}
+
+	if (level->getBGColor() != asset->getBGColor())
+	{
+		set_bg_color(asset->getBGColor());
+	}
+
+	// step 2: correct layers and ordering
+
+	// get the layer ids & order from the asset
+	std::vector<unsigned> asset_ids;
+	std::transform(asset->getLayerRefs()->begin(), asset->getLayerRefs()->end(),
+			std::back_inserter(asset_ids), 
+			[](const LayerRef& layer) -> unsigned {
+				return layer.type == LayerRef::Type::Tile ? layer.id : 0; // mark obj layer as zero
+			});
+
+	unsigned asset_fg_ndx = std::distance(asset_ids.cbegin(), std::find(asset_ids.cbegin(), asset_ids.cend(), 0));
+
+	unsigned level_ndx = 0;
+	auto& layers = level->getTileLayers();
+
+	std::set<unsigned> nLayers;
+	for (unsigned asset_ndx = 0; asset_ndx < asset_ids.size(); asset_ndx++)
+	{
+		unsigned asset_layer_id = asset_ids[asset_ndx];
+
+		if (layers[level_ndx].tilelayer.getID() != asset_layer_id)
+		{
+			// try to find the correct id in the level
+			auto it = std::find_if(layers.begin() + level_ndx, layers.end(),
+					[asset_layer_id](const LevelLayer& layer) {
+						return layer.tilelayer.getID() == asset_layer_id;
+					});
+
+			int layer_pos = (int)asset_ndx - asset_fg_ndx;
+			bool is_bg = layer_pos < 0;
+
+			if (it != layers.end()) {
+				select_layer(LayerPosition::At(it->position));
+				move_layer(LayerPosition::At(layer_pos));
+			}
+			else {
+				create_layer(LayerPosition::At(layer_pos));		
+				curr_layer->tilelayer = TileLayer{
+					level->getContext(),
+					asset_layer_id,
+					asset->getLayerRefs()->at(asset_ndx).asTileLayer(),	
+					layer_pos == 0
+				};
+			}
+		}
+	}
 
 
+	// step 3: per layer check each tile
 
+	// step 4: check objects
 
+	// step 5: apply boundary
+	set_boundary(asset->getBorder());
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	return true;
+}
 
 }

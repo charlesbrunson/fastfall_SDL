@@ -6,6 +6,8 @@
 #include <string_view>
 #include <variant>
 
+#include <iterator>
+
 namespace ff {
 
 struct LayerPosition {
@@ -44,6 +46,7 @@ struct LayerPosition {
 
 class LevelEditor {
 private:
+	/*
 	// internal types
 
 	struct SelectLayerCmd { LayerPosition layerpos; };
@@ -79,6 +82,7 @@ private:
 		SetBGColorCmd,
 		SetBoundary
 	>;
+	*/
 
 public:
 	constexpr static Vec2u MIN_LEVEL_SIZE = Vec2u{ GAME_TILE_W, GAME_TILE_H };
@@ -90,6 +94,8 @@ public:
 
 	// create a new level
 	LevelEditor(GameContext context, bool show_imgui, std::string name = "New Level", Vec2u tile_size = MIN_LEVEL_SIZE);
+
+	~LevelEditor();
 
 	// LAYERS
 
@@ -137,6 +143,9 @@ public:
 
 	// changes level's boundary collision
 	bool set_boundary(bool north, bool east, bool south, bool west);
+	bool set_boundary(unsigned cardinalBits);
+
+	bool set_size(Vec2u size);
 
 	// OBJECTS - TODO LATER
 
@@ -159,13 +168,13 @@ public:
 	std::optional<Vec2u> get_tile() const { return tileset_pos; };
 	const TilesetAsset* get_tileset() const { return curr_tileset; };
 
+	bool applyLevelAsset(const LevelAsset* asset);
 
 protected:
 
 	bool display_imgui = false;
 
 	// internal
-	bool applyCommand(const EditCommand& cmd);
 
 	std::unique_ptr<Level> created_level = nullptr;
 	Level* level = nullptr;								// pointer to level being edited, may point externally or to created_level

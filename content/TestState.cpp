@@ -30,18 +30,10 @@ TestState::TestState()
 	stateID = ff::EngineStateID::TEST_STATE;
 	clearColor = ff::Color{ 0x141013FF };
 
-	edit = std::make_unique<LevelEditor>( *instance->getActiveLevel(), false );
-	edit->select_layer(LayerPosition::Foreground());
-	edit->select_tileset("tile_test");
-	edit->select_tile(Vec2u{ 0, 0 });
-
-	/*
-	currKeys = SDL_GetKeyboardState(&key_count);
-	if (currKeys) {
-		prevKeys = std::make_unique<Uint8[]>(key_count);
-		std::memcpy(&prevKeys[0], currKeys, key_count);
-	}
-	*/
+	//edit = std::make_unique<LevelEditor>( *instance->getActiveLevel(), false );
+	//edit->select_layer(LayerPosition::Foreground());
+	//edit->select_tileset("tile_test");
+	//edit->select_tile(Vec2u{ 0, 0 });
 }
 
 TestState::~TestState() {
@@ -60,7 +52,6 @@ void TestState::update(secs deltaTime) {
 
 	if (edit) 
 	{
-
 		Vec2f mpos = Input::getMouseWorldPosition();
 		tpos = Vec2u{ mpos / TILESIZE_F };
 

@@ -235,15 +235,21 @@ bool Engine::run_doubleThread()
 
         bar.arrive_and_wait();
 
+        // do update/draw
+
         updateView();
 
         drawRunnables();
 
         bar.arrive_and_wait();
 
+		// predraw
+
         updateImGui();
 
-        bar.arrive_and_wait();
+        //bar.arrive_and_wait();
+
+		// clean
 
         ff::glDeleteStale();
 
@@ -278,16 +284,21 @@ void Engine::runUpdate(std::barrier<>* bar) {
 
         bar->arrive_and_wait();
 
-        // do update
+        // update/draw
+	
         updateRunnables();
 
         bar->arrive_and_wait();
+
+		// predraw
 
         predrawRunnables();
 
         updateStateHandler();
 
-        bar->arrive_and_wait();
+        //bar->arrive_and_wait();
+
+		// cleanup
 
         cleanRunnables();
     }

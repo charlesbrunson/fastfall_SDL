@@ -60,11 +60,10 @@ void Level::init(const LevelAsset& levelData) {
 	{
 		switch (layerRef.type)
 		{
-			using enum LayerRef::Type;
-		case Object: 
+		case LayerRef::Type::Object: 
 			bg = false; 
 			break;
-		case Tile: 
+		case LayerRef::Type::Tile: 
 			(bg ? bg_count : fg_count)++;
 			break;
 		}
@@ -79,17 +78,10 @@ void Level::init(const LevelAsset& levelData) {
 	{
 		switch (layerRef.type)
 		{
-			using enum LayerRef::Type;
-		case Object:
+		case LayerRef::Type::Object:
 			objLayer.initFromAsset(context, layerRef.id, layerRef.asObjLayer());
 			break;
-		case Tile:
-			/*
-			layers.push_back({
-					.position = count - bg_count,
-					.tilelayer = TileLayer(context, layerRef.id, layerRef.asTileLayer(), (count - bg_count == 0))
-				});
-			*/
+		case LayerRef::Type::Tile:
 			bool is_bg = count - bg_count < 0;
 			bool has_collision = (count - bg_count == 0);
 			insertTileLayer({
@@ -164,7 +156,7 @@ void Level::removeTileLayer(int position)
 	{
 		layers.erase(it);
 		if (position < 0) {
-			fg1_layer_ndx;
+			fg1_layer_ndx--;
 		}
 
 		for (int i = 0; i < layers.size(); i++) 
@@ -192,7 +184,7 @@ void Level::set_borders(unsigned bordersCardinalBits)
 
 void Level::resize(Vec2u n_size)
 {
-	bordersCardinalBits;
+	//bordersCardinalBits;
 	set_borders(0u);
 
 	for (auto& [pos, layer] : layers)

@@ -29,9 +29,6 @@ class Level  {
 private:
 
 public:
-
-
-
 	Level(GameContext context);
 	Level(GameContext context, const LevelAsset& levelData);
 
@@ -66,7 +63,10 @@ public:
 
 	GameContext getContext() { return context; }
 
+	bool hasEditorHooked = false;
+
 private:
+
 	GameContext context;
 
 	std::string levelName;
