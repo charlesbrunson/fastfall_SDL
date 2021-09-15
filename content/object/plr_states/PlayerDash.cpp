@@ -134,9 +134,11 @@ PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
 	dash_time += deltaTime;
 	if (dash_time >= dash_duration) {
 		if (plr.ground->has_contact()) {
-			if (Input::isPressed(InputType::DASH, 0.25f))
+
+			LOG_INFO("{}", plr.ground->traverse_get_speed());
+			if (Input::isHeld(InputType::DASH))
 			{
-				Input::confirmPress(InputType::DASH);
+				//Input::confirmPress(InputType::DASH);
 				return action::dash(plr, move_t(plr));
 			}
 			return PlayerStateID::Ground;

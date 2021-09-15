@@ -47,17 +47,10 @@ bool LevelEditor::create_layer(LayerPosition layer_pos)
 {
 	if (!level) return false;
 
+	layer_pos.update(level);
+
 	int layer_count = level->getTileLayers().size();
 	int fgNdx = level->getFGStartNdx();
-
-	if (layer_pos.position >= (layer_count - fgNdx))
-	{
-		layer_pos.type = LayerPosition::Type::End;
-	}
-	else if (layer_pos.position < (-fgNdx))
-	{
-		layer_pos.type = LayerPosition::Type::Start;
-	}
 
 	switch (layer_pos.type)
 	{
@@ -71,12 +64,12 @@ bool LevelEditor::create_layer(LayerPosition layer_pos)
 		break;
 	}
 
-	level->insertTileLayer(LevelLayer{
+	curr_layer = &level->insertTileLayer(LevelLayer{
 		.position = layer_pos.position,
 		.tilelayer = TileLayer{level->getContext(), 0, level->size() } // todo get an actual id
 		});
 
-	return false;
+	return true;
 }
 
 // select layer at positon (start and end specify the first and last layer, respectively)
@@ -84,20 +77,7 @@ bool LevelEditor::select_layer(LayerPosition layer_pos)
 {
 	if (!level) return false;
 
-	int layer_count = level->getTileLayers().size();
-	if (layer_count == 0)
-		return false;
-
-	int fgNdx = level->getFGStartNdx();
-
-	if (layer_pos.position >= (layer_count - fgNdx))
-	{
-		layer_pos.type = LayerPosition::Type::End;
-	}
-	else if (layer_pos.position < (-fgNdx)) 
-	{
-		layer_pos.type = LayerPosition::Type::Start;
-	}
+	layer_pos.update(level);
 
 	switch (layer_pos.type)
 	{
@@ -108,7 +88,7 @@ bool LevelEditor::select_layer(LayerPosition layer_pos)
 		curr_layer = &level->getTileLayers().back();
 		break;
 	case LayerPosition::Type::At:
-		curr_layer = &level->getTileLayers().at((size_t)(layer_pos.position + fgNdx));
+		curr_layer = &level->getTileLayers().at((size_t)(layer_pos.position + level->getFGStartNdx()));
 		break;
 	}
 
@@ -138,6 +118,9 @@ bool LevelEditor::move_layer(LayerPosition layer_pos)
 
 	if (!level) return false;
 
+	layer_pos.update(level);
+	int layer_count = level->getTileLayers().size();
+	int fgNdx = level->getFGStartNdx();
 
 	if (obj_layer_selected)
 	{
@@ -145,7 +128,15 @@ bool LevelEditor::move_layer(LayerPosition layer_pos)
 	}
 	else if (curr_layer)
 	{
-		// ...
+		TileLayer layer = std::move(curr_layer->tilelayer);
+		level->removeTileLayer(curr_layer->position);
+		level->insertTileLayer(
+			LevelLayer{
+				.position = layer_pos.position,
+				.tilelayer = std::move(layer)
+			}
+		);
+		return true;
 	}
 	return false;
 }
@@ -330,12 +321,19 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 	for (unsigned asset_ndx = 0; asset_ndx < asset_ids.size(); asset_ndx++)
 	{
 		unsigned asset_layer_id = asset_ids[asset_ndx];
+		if (asset_layer_id == 0) {
+			LOG_INFO("object layer", asset_layer_id);
+			continue;
+		};
+
+		LOG_INFO("checking {}", asset_layer_id);
 
 		if (layers[level_ndx].tilelayer.getID() != asset_layer_id)
 		{
 			// try to find the correct id in the level
-			auto it = std::find_if(layers.begin() + level_ndx, layers.end(),
+			auto it = std::find_if(layers.begin(), layers.end(),
 					[asset_layer_id](const LevelLayer& layer) {
+						LOG_INFO("{}", layer.tilelayer.getID());
 						return layer.tilelayer.getID() == asset_layer_id;
 					});
 
@@ -343,19 +341,31 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 			bool is_bg = layer_pos < 0;
 
 			if (it != layers.end()) {
-				select_layer(LayerPosition::At(it->position));
-				move_layer(LayerPosition::At(layer_pos));
+				LOG_INFO("id:{} wrong position", asset_layer_id);
+
+				if (select_layer(LayerPosition::At(it->position))) 
+				{
+					move_layer(LayerPosition::At(layer_pos));
+				}
 			}
 			else {
-				create_layer(LayerPosition::At(layer_pos));		
-				curr_layer->tilelayer = TileLayer{
-					level->getContext(),
-					asset_layer_id,
-					asset->getLayerRefs()->at(asset_ndx).asTileLayer(),	
-					layer_pos == 0
-				};
+				LOG_INFO("id:{} doesn't exist", asset_layer_id);
+				if (create_layer(LayerPosition::At(layer_pos)))
+				{
+					curr_layer->tilelayer = TileLayer{
+						level->getContext(),
+						asset_layer_id,
+						asset->getLayerRefs()->at(asset_ndx).asTileLayer(),
+						layer_pos == 0
+					};
+					nLayers.insert(asset_layer_id);
+				}
 			}
 		}
+		else {
+			LOG_INFO("id:{} location good", asset_layer_id);
+		}
+		level_ndx++;
 	}
 
 
