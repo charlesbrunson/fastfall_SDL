@@ -135,6 +135,7 @@ LayerRef TileTMX::parse(xml_node<>* layerNode, const TilesetMap& tilesets) {
 
 	tileLayer.tileSize.x = atoi(layerNode->first_attribute("width")->value());
 	tileLayer.tileSize.y = atoi(layerNode->first_attribute("height")->value());
+	tileLayer.innerSize = tileLayer.tileSize;
 
 	parseLayerProperties(layerNode->first_node("properties"), tileLayer);
 	parseLayerTiles(layerNode->first_node("data"), tileLayer, tilesets);

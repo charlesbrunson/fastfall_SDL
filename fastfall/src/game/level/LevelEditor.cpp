@@ -2,6 +2,8 @@
 
 #include "fastfall/resource/Resources.hpp"
 
+#include <chrono>
+
 namespace ff {
 
 
@@ -198,8 +200,10 @@ bool LevelEditor::select_tileset(std::string_view tileset_name)
 {
 	if (!level) return false;
 
-	curr_tileset = Resources::get<TilesetAsset>(tileset_name);
-	deselect_tile();
+	if (!curr_tileset || curr_tileset->getAssetName() != tileset_name) {
+		curr_tileset = Resources::get<TilesetAsset>(tileset_name);
+		deselect_tile();
+	}
 	return curr_tileset != nullptr;
 }
 
@@ -286,6 +290,8 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 {
 	if (!level) return false;
 
+	auto start = std::chrono::system_clock::now();
+
 	// step 1: level size and other properties
 	if (level->name() != asset->getAssetName())
 	{
@@ -368,13 +374,60 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		level_ndx++;
 	}
 
-
 	// step 3: per layer check each tile
+	auto it = asset->getLayerRefs()->begin();
+	for (auto& layer : layers) 
+	{
+		if (nLayers.contains(layer.tilelayer.getID())) {
+			continue;
+		}
+
+		if (it->type == LayerRef::Type::Object)
+			it++;
+
+		const TileLayerRef& tile_ref = it->asTileLayer();
+		unsigned tile_ndx = 0;
+
+		unsigned width = tile_ref.innerSize.x;
+		unsigned height = tile_ref.innerSize.y;
+
+		select_layer(LayerPosition::At(layer.position));
+
+		for (unsigned yy = 0; yy < height; yy++) {
+			for (unsigned xx = 0; xx < width; xx++) {
+
+				Vec2u pos{ xx, yy };
+				size_t ndx = xx + yy * width;
+
+				if (tile_ndx >= tile_ref.tiles.size())
+					break;
+
+				if (auto& tile = tile_ref.tiles.at(tile_ndx); tile.tilePos == pos) {
+					select_tileset(tile.tilesetName);
+					select_tile(tile.texPos);
+					paint_tile(pos);
+					tile_ndx++;
+				}
+				else {
+					erase_tile(pos);
+				}
+			}
+		}
+
+		if (layer.tilelayer.has_collision())
+			layer.tilelayer.getCollisionMap()->applyChanges();
+
+		it++;
+	}
 
 	// step 4: check objects
 
 	// step 5: apply boundary
 	set_boundary(asset->getBorder());
+
+	std::chrono::duration<double> duration = std::chrono::system_clock::now() - start;
+	LOG_INFO("apply duration: {}s", duration.count());
+
 
 	return true;
 }
