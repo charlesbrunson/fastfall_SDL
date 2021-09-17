@@ -198,12 +198,7 @@ bool LevelAsset::reloadFromFile() {
 					lvl_uptr->init(*this);
 				}
 			}
-
 		}
-	}
-	catch (std::exception err)
-	{
-		LOG_ERR_("{}", err.what());
 	}
 	return loaded;
 }

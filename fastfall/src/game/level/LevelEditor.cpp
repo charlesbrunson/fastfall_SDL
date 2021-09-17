@@ -387,8 +387,8 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		const TileLayerRef& tile_ref = it->asTileLayer();
 		unsigned tile_ndx = 0;
 
-		unsigned width = tile_ref.innerSize.x;
-		unsigned height = tile_ref.innerSize.y;
+		unsigned width = tile_ref.tileSize.x;
+		unsigned height = tile_ref.tileSize.y;
 
 		select_layer(LayerPosition::At(layer.position));
 
