@@ -43,25 +43,22 @@ TileLayer::TileLayer(const TileLayer& tile)
 	chunks = tile.chunks;
 	pos2data = tile.pos2data;
 
-	hasParallax = tile.hasParallax;
 	parallax = tile.parallax;
-
-	hasScroll = tile.hasScroll;
-	scrollRate = tile.scrollRate;
+	scroll = tile.scroll;
 
 	tileLogic.clear();
 	for (const auto& logic : tile.tileLogic) {
 		tileLogic.push_back(TileLogic::create(m_context, logic->getName()));
 	}
 
-	if (tile.hasCollision) {
-		set_collision(tile.hasCollision, tile.collision_border);
+	if (tile.collision.enabled) {
+		set_collision(tile.collision.enabled, tile.collision.border);
 		
-		collision->set_on_precontact(
+		collision.tilemap_ptr->set_on_precontact(
 			std::bind(&TileLayer::handlePreContact, this,
 				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
 		);
-		collision->set_on_postcontact(
+		collision.tilemap_ptr->set_on_postcontact(
 			std::bind(&TileLayer::handlePostContact, this,
 				std::placeholders::_1, std::placeholders::_2)
 		);
@@ -76,25 +73,22 @@ TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	chunks = tile.chunks;
 	pos2data = tile.pos2data;
 
-	hasParallax = tile.hasParallax;
 	parallax = tile.parallax;
-
-	hasScroll = tile.hasScroll;
-	scrollRate = tile.scrollRate;
+	scroll = tile.scroll;
 
 	tileLogic.clear();
 	for (const auto& logic : tile.tileLogic) {
 		tileLogic.push_back(TileLogic::create(m_context, logic->getName()));
 	}
 
-	if (tile.hasCollision) {
-		set_collision(tile.hasCollision, tile.collision_border);
+	if (tile.collision.enabled) {
+		set_collision(tile.collision.enabled, tile.collision.border);
 
-		collision->set_on_precontact(
+		collision.tilemap_ptr->set_on_precontact(
 			std::bind(&TileLayer::handlePreContact, this,
 				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
 		);
-		collision->set_on_postcontact(
+		collision.tilemap_ptr->set_on_postcontact(
 			std::bind(&TileLayer::handlePostContact, this,
 				std::placeholders::_1, std::placeholders::_2)
 		);
@@ -110,42 +104,32 @@ TileLayer::TileLayer(TileLayer&& tile) noexcept
 	std::swap(pos2data, tile.pos2data);
 	chunks.swap(tile.chunks);
 
-	hasCollision = tile.hasCollision;
-	collision_border = tile.collision_border;
-	std::swap(collision, tile.collision);
-
-	hasParallax = tile.hasParallax;
 	std::swap(parallax, tile.parallax);
-
-	hasScroll = tile.hasScroll;
-	std::swap(scrollRate, tile.scrollRate);
-
+	std::swap(scroll, tile.scroll);
+	std::swap(collision, tile.collision);
 	std::swap(tileLogic, tile.tileLogic);
 
-
-	if (collision) {
-		collision->set_on_precontact(
+	if (collision.enabled) {
+		collision.tilemap_ptr->set_on_precontact(
 			std::bind(&TileLayer::handlePreContact, this,
 				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
 		);
-		collision->set_on_postcontact(
+		collision.tilemap_ptr->set_on_postcontact(
 			std::bind(&TileLayer::handlePostContact, this,
 				std::placeholders::_1, std::placeholders::_2)
 		);
 	}
 
-	if (tile.collision) {
-		tile.collision->set_on_precontact(
+	if (tile.collision.enabled) {
+		tile.collision.tilemap_ptr->set_on_precontact(
 			std::bind(&TileLayer::handlePreContact, &tile,
 				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
 		);
-		tile.collision->set_on_postcontact(
+		tile.collision.tilemap_ptr->set_on_postcontact(
 			std::bind(&TileLayer::handlePostContact, &tile,
 				std::placeholders::_1, std::placeholders::_2)
 		);
 	}
-
-
 }
 TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	m_context = tile.m_context;
@@ -154,50 +138,41 @@ TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	std::swap(pos2data, tile.pos2data);
 	chunks.swap(tile.chunks);
 
-	hasCollision = tile.hasCollision;
-	collision_border = tile.collision_border;
-	std::swap(collision, tile.collision);
-
-	hasParallax = tile.hasParallax;
 	std::swap(parallax, tile.parallax);
-
-	hasScroll = tile.hasScroll;
-	std::swap(scrollRate, tile.scrollRate);
-
+	std::swap(scroll, tile.scroll);
+	std::swap(collision, tile.collision);
 	std::swap(tileLogic, tile.tileLogic);
 
-	if (collision) {
-		collision->set_on_precontact(
+	if (collision.enabled) {
+		collision.tilemap_ptr->set_on_precontact(
 			std::bind(&TileLayer::handlePreContact, this,
 				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
 		);
-		collision->set_on_postcontact(
+		collision.tilemap_ptr->set_on_postcontact(
 			std::bind(&TileLayer::handlePostContact, this,
 				std::placeholders::_1, std::placeholders::_2)
 		);
 	}
 
-
-	if (tile.collision) {
-		tile.collision->set_on_precontact(
+	if (tile.collision.enabled) {
+		tile.collision.tilemap_ptr->set_on_precontact(
 			std::bind(&TileLayer::handlePreContact, &tile,
 				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
 		);
-		tile.collision->set_on_postcontact(
+		tile.collision.tilemap_ptr->set_on_postcontact(
 			std::bind(&TileLayer::handlePostContact, &tile,
 				std::placeholders::_1, std::placeholders::_2)
 		);
 	}
-
 	return *this;
 }
 
 
 TileLayer::~TileLayer() {
-	if (m_context.valid() && collision) {
+	if (m_context.valid() && collision.enabled) {
 		//m_context.collision().get().erase_collider(collision);
-		instance::phys_erase_collider(m_context, collision);
-		collision = nullptr;
+		instance::phys_erase_collider(m_context, collision.tilemap_ptr);
+		collision.tilemap_ptr = nullptr;
 	}
 }
 
@@ -223,22 +198,31 @@ void TileLayer::initFromAsset(const TileLayerRef& layerData, unsigned id) {
 
 	set_collision(tileLayer.has_collision, tileLayer.collision_border_bits);
 	set_parallax(tileLayer.has_parallax, tileLayer.parallaxSize);
-	set_scrollrate(tileLayer.has_scroll, tileLayer.scrollrate);
+	set_scroll(tileLayer.has_scroll, tileLayer.scrollrate);
 }
 
-void TileLayer::set_collision(bool enabled, unsigned border) 
+void TileLayer::update(secs deltaTime) {
+	if (collision.enabled) {
+		collision.tilemap_ptr->update(deltaTime);
+	}
+	for (auto& logic : tileLogic) {
+		logic->update(deltaTime);
+	}
+}
+
+bool TileLayer::set_collision(bool enabled, unsigned border)
 {
-	if (enabled && (hasScroll || hasParallax)) {
+	if (enabled && (scroll.enabled || parallax.enabled)) {
 		LOG_ERR_("Cannot enable collision on layer with scrolling or parallax");
-		return;
+		return false;
 	}
 
-	if (enabled && !hasCollision) 
+	if (enabled && !collision.enabled) 
 	{
-		if (m_context.valid() && !collision) {
-			collision = instance::phys_create_collider<ColliderTileMap>(m_context, Vec2i(size.x, size.y), true);
-			hasCollision = true;
-			collision_border = border;
+		if (m_context.valid() && !collision.tilemap_ptr) {
+			collision.tilemap_ptr = instance::phys_create_collider<ColliderTileMap>(m_context, Vec2i(size.x, size.y), true);
+			collision.enabled = true;
+			collision.border = border;
 
 			for (unsigned i = 0u; i < pos2data.size(); i++) {
 				auto& tile_data = pos2data.at(i);
@@ -250,7 +234,7 @@ void TileLayer::set_collision(bool enabled, unsigned border)
 
 					Tile tile = tileset->getTile(tile_data.tex_pos);
 
-					collision->setTile(
+					collision.tilemap_ptr->setTile(
 						Vec2i{ (int)(i % size.x), (int)(i / size.x) },
 						tile.shape,
 						&tileset->getMaterial(tile_data.tex_pos),
@@ -258,61 +242,52 @@ void TileLayer::set_collision(bool enabled, unsigned border)
 					);
 				}
 			}
-			collision->setBorders(size, collision_border);
-			collision->applyChanges();
+			collision.tilemap_ptr->setBorders(size, collision.border);
+			collision.tilemap_ptr->applyChanges();
 
-			collision->set_on_precontact(
+			collision.tilemap_ptr->set_on_precontact(
 				std::bind(&TileLayer::handlePreContact, this,
 					std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
 			);
-			collision->set_on_postcontact(
+			collision.tilemap_ptr->set_on_postcontact(
 				std::bind(&TileLayer::handlePostContact, this,
 					std::placeholders::_1, std::placeholders::_2)
 			);
 		}
 	}
-	else if (!enabled && hasCollision)
+	else if (!enabled && collision.enabled)
 	{
-		if (m_context.valid() && collision) {
-			instance::phys_erase_collider(m_context, collision);
+		if (m_context.valid() && collision.tilemap_ptr) {
+			instance::phys_erase_collider(m_context, collision.tilemap_ptr);
 
 		}
-		collision = nullptr;
-		hasCollision = false;
+		collision.tilemap_ptr = nullptr;
+		collision.enabled = false;
 	}
-}
-
-void TileLayer::update(secs deltaTime) {
-	if (collision) {
-		collision->update(deltaTime);
-	}
-	for (auto& logic : tileLogic) {
-		logic->update(deltaTime);
-	}
+	return true;
 }
 
 
-void TileLayer::set_parallax(bool enabled, Vec2u parallax_size)
+bool TileLayer::set_parallax(bool enabled, Vec2u parallax_size)
 {
-	if (enabled && hasCollision) {
+	if (enabled && collision.enabled) {
 		LOG_ERR_("Cannot enable parallax on layer with collision");
-		return;
+		return false;
 	}
 
-	bool updateChunks = hasParallax != enabled;
-	bool updateChunk = updateChunk || (hasParallax &&  parallax_size != parallaxSize);
+	bool updateChunks = parallax.enabled != enabled || (parallax.enabled && parallax_size != parallax.size);
 
-	hasParallax = enabled;
-	parallaxSize = parallax_size;
-	if (hasParallax) {
-		parallax.initOffset.x = (float)(std::min(size.x, GAME_TILE_W) * TILESIZE) / 2.f;
-		parallax.initOffset.y = (float)(std::min(size.y, GAME_TILE_H) * TILESIZE) / 2.f;
-		parallax.camFactor = Vec2f{ 1.f, 1.f };
+	parallax.enabled = enabled;
+	parallax.size = parallax_size;
+	if (parallax.enabled) {
+		parallax.init_offset.x = (float)(std::min(size.x, GAME_TILE_W) * TILESIZE) / 2.f;
+		parallax.init_offset.y = (float)(std::min(size.y, GAME_TILE_H) * TILESIZE) / 2.f;
+		parallax.cam_factor = Vec2f{ 1.f, 1.f };
 		if (size.x > GAME_TILE_W) {
-			parallax.camFactor.x = 1.f - ((float)(parallaxSize.x - GAME_TILE_W) / (float)size.x);
+			parallax.cam_factor.x = 1.f - ((float)(parallax.size.x - GAME_TILE_W) / (float)size.x);
 		}
 		if (size.y > GAME_TILE_H) {
-			parallax.camFactor.y = 1.f - ((float)(parallax_size.y - GAME_TILE_H) / (float)size.y);
+			parallax.cam_factor.y = 1.f - ((float)(parallax.size.y - GAME_TILE_H) / (float)size.y);
 		}
 	}
 	else {
@@ -323,17 +298,19 @@ void TileLayer::set_parallax(bool enabled, Vec2u parallax_size)
 	}
 
 	for (auto& chunk : chunks) {
-		chunk.varray.set_size(hasParallax ? parallaxSize : size);
+		chunk.varray.set_size(parallax.enabled ? parallax.size : size);
 	}
+	return true;
 }
-void TileLayer::set_scrollrate(bool enabled, Vec2f rate)
+bool TileLayer::set_scroll(bool enabled, Vec2f rate)
 {
-	if (enabled && hasCollision) {
+	if (enabled && collision.enabled) {
 		LOG_ERR_("Cannot enable scrolling on layer with collision");
-		return;
+		return false;
 	}
-	hasScroll = enabled;
-	scrollRate = rate;
+	scroll.enabled = enabled;
+	scroll.rate = rate;
+	return true;
 }
 
 bool TileLayer::handlePreContact(Vec2i pos, const Contact& contact, secs duration) {
@@ -385,8 +362,8 @@ void TileLayer::predraw(secs deltaTime) {
 		}
 	}
 
-	if (changed && hasCollision)
-		collision->applyChanges();
+	if (changed && collision.enabled)
+		collision.tilemap_ptr->applyChanges();
 
 
 
@@ -402,25 +379,21 @@ void TileLayer::predraw(secs deltaTime) {
 	}
 
 	// parallax update
-	Vec2f pSize;
-	if (hasParallax) {
-		parallax_offset = Vec2f{};
-		pSize = Vec2f{ size } *TILESIZE_F;
-		if (hasParallax) {
-			parallax_offset = Vec2f{
-				cam_pos.x * parallax.camFactor.x,
-				cam_pos.y * parallax.camFactor.y
-			} - parallax.initOffset;
+	if (parallax.enabled) {
 
-			for (auto& vta_pair : chunks) {
-				vta_pair.varray.offset = parallax_offset;
-			}
+		parallax.offset = Vec2f{ 
+			cam_pos.x * parallax.cam_factor.x, 
+			cam_pos.y * parallax.cam_factor.y 
+		} - parallax.init_offset;
+
+		for (auto& vta_pair : chunks) {
+			vta_pair.varray.offset = parallax.offset;
 		}
 	}
 
 	// scroll update
-	if (hasScroll) {
-		Vec2f scroll_delta = scrollRate * deltaTime;
+	if (scroll.enabled) {
+		Vec2f scroll_delta = scroll.rate * deltaTime;
 
 		for (auto& vta_pair : chunks) {
 			vta_pair.varray.add_scroll(scroll_delta);
@@ -429,16 +402,18 @@ void TileLayer::predraw(secs deltaTime) {
 
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_AREA))
 	{
+		Vec2f pSize = Vec2f{ size } * TILESIZE_F;
+
 		size_t ptr = (size_t)this;
-		if (!debug_draw::repeat((void*)(ptr), parallax_offset)) {
-			debug_draw::set_offset(parallax_offset);
+		if (!debug_draw::repeat((void*)(ptr), parallax.offset)) {
+			debug_draw::set_offset(parallax.offset);
 			auto& drawable1 = createDebugDrawable<ShapeRectangle, debug_draw::Type::TILELAYER_AREA>(
 				(const void*)(ptr), Rectf({ 0, 0 }, pSize), Color::Transparent, Color::Red
 			);
 			debug_draw::set_offset();
 		}
-		if (!debug_draw::repeat((void*)(ptr + 1), parallax_offset + scroll_offset)) {
-			debug_draw::set_offset(parallax_offset + scroll_offset);
+		if (!debug_draw::repeat((void*)(ptr + 1), parallax.offset + scroll.offset)) {
+			debug_draw::set_offset(parallax.offset + scroll.offset);
 			auto& drawable2 = createDebugDrawable<ShapeRectangle, debug_draw::Type::TILELAYER_AREA>(
 				(const void*)(ptr + 1), Rectf({ 0, 0 }, pSize), Color::Transparent, Color::Green
 			);
@@ -484,7 +459,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 			chunks.push_back(ChunkVA{
 					.tileset = &tileset,
 					.varray = ChunkVertexArray(
-							hasParallax ? parallaxSize : size, 
+							parallax.enabled ? parallax.size : size, 
 							Vec2u{GAME_TILE_W / 2u, GAME_TILE_H / 2u}
 						)
 				});
@@ -503,9 +478,9 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 		pos2data.at(ndx).tileset_id = std::distance(chunks.begin(), vertarr);
 	}
 
-	if (hasCollision) {
+	if (collision.enabled) {
 		Tile t = tileset.getTile(texposition);
-		collision->setTile(
+		collision.tilemap_ptr->setTile(
 			Vec2i(position), 
 			t.shape, 
 			&tileset.getMaterial(texposition), 
@@ -561,24 +536,21 @@ void TileLayer::removeTile(const Vec2u& position) {
 	}
 	pos2data.at(ndx) = TileData{};
 
-	if (hasCollision) {
-		collision->removeTile(Vec2i(position));
+	if (collision.enabled) {
+		collision.tilemap_ptr->removeTile(Vec2i(position));
 	}
 }
 
 void TileLayer::clear() {
 	pos2data.clear();
 	chunks.clear();
-	if (collision)
-		collision->clear();
+	if (collision.enabled)
+		collision.tilemap_ptr->clear();
 }
 
 void TileLayer::shallow_copy(const TileLayer& layer, Rectu area, Vec2u lvlSize)
 {
-	set_parallax(layer.hasParallax, layer.parallaxSize);
-	set_scrollrate(layer.hasScroll, layer.scrollRate);
-
-	for (unsigned y = area.left; y < area.left + area.width; y++) {
+	for (unsigned y = area.top; y < area.top + area.height; y++) {
 		for (unsigned x = area.left; x < area.left + area.width; x++) {
 			if (layer.size.x <= x || layer.size.y <= y)
 				continue;
@@ -601,7 +573,6 @@ void TileLayer::shallow_copy(const TileLayer& layer, Rectu area, Vec2u lvlSize)
 			setTile(pos, tex_pos, *tileset);
 		}
 	}
-	set_collision(layer.hasCollision, layer.collision_border);
 }
 
 void TileLayer::draw(RenderTarget& target, RenderState states) const {

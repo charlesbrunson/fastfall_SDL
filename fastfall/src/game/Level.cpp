@@ -12,8 +12,7 @@ namespace ff {
 
 Level::Level(GameContext context) :
 	context(context),
-	objLayer(),
-	bordersCardinalBits(0u)
+	objLayer()
 {
 
 }
@@ -46,7 +45,6 @@ void Level::init(const LevelAsset& levelData) {
 	levelName = levelData.getAssetName();
 	bgColor = levelData.getBGColor();
 	levelSize = levelData.getTileDimensions();
-	bordersCardinalBits = levelData.getBorder();
 
 	layers.clear();
 	objLayer.clear();
@@ -91,17 +89,11 @@ void Level::init(const LevelAsset& levelData) {
 			break;
 		}
 	}
-
-	// apply borders
-	if (bordersCardinalBits) {
-		set_borders(bordersCardinalBits);
-	}
 }
 
 
 LevelLayer& Level::insertTileLayer(LevelLayer&& layer)
 {
-
 	std::vector<LevelLayer>::iterator ret;
 	if (layer.position < 0) {
 		auto it = std::upper_bound(
@@ -156,38 +148,28 @@ void Level::removeTileLayer(int position)
 }
 
 
-void Level::set_borders(unsigned bordersCardinalBits)
-{
-	if (layers.size() > fg1_layer_ndx) 
-	{
-		if (auto* colMap = layers.at(fg1_layer_ndx).tilelayer.getCollisionMap()) 
-		{
-			colMap->setBorders(levelSize, bordersCardinalBits);
-		}
-	}
-}
-
 void Level::resize(Vec2u n_size)
 {
-	//bordersCardinalBits;
-	set_borders(0u);
-
 	for (auto& [pos, layer] : layers)
 	{
-
 		Vec2u layer_size{
 			std::min(n_size.x, layer.getSize().x),
-			std::min(n_size.y, layer.getSize().y),
+			std::min(n_size.y, layer.getSize().y)
 		};
 
-		TileLayer n_layer{ context, layer.getID(), (pos < 0 ? layer_size : n_size) };
+		Vec2u parallax_size{
+			std::min(n_size.x, layer.get_parallax_size().x),
+			std::min(n_size.y, layer.get_parallax_size().y)
+		};
+
+		TileLayer n_layer{ context, layer.getID(), n_size };
+		n_layer.set_collision(layer.has_collision(), layer.get_collision_border());
+		n_layer.set_scroll(layer.has_scroll(), layer.get_scrollrate());
+		n_layer.set_parallax(layer.has_parallax(), parallax_size);
 		n_layer.shallow_copy(layer, Rectu{ Vec2u{}, Vec2u{layer_size} }, n_size);
 		layer = std::move(n_layer);
-
 	}
-
 	levelSize = n_size;
-	set_borders(bordersCardinalBits);
 	return;
 }
 

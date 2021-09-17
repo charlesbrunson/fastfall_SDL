@@ -42,41 +42,36 @@ public:
 	inline const Vec2u& size() const { return levelSize; };
 	inline const std::string& name() const { return levelName; };
 
-	void set_name(std::string name) { levelName = name; };
-	void set_bg_color(Color color) { bgColor = color; };
-
-	void set_borders(unsigned bordersCardinalBits);
-	void resize(Vec2u n_size);
-
-
 	std::vector<LevelLayer>& getTileLayers() { return layers; };
 	const std::vector<LevelLayer>& getTileLayers() const { return layers; };
 	int getFGStartNdx() const { return fg1_layer_ndx; };
 
-	LevelLayer& insertTileLayer(LevelLayer&& layer);
-	void removeTileLayer(int position);
-
 	inline ObjectLayer& getObjLayer() { return objLayer; };
 	const inline ObjectLayer& getObjLayer() const { return objLayer; };
 
+	GameContext getContext() { return context; }
 	inline InstanceID getInstanceID() { return context.getID(); };
 
-	GameContext getContext() { return context; }
+
+
+	void resize(Vec2u n_size);
+	void set_name(std::string name) { levelName = name; };
+	void set_bg_color(Color color) { bgColor = color; };
+
+	LevelLayer& insertTileLayer(LevelLayer&& layer);
+	void removeTileLayer(int position);
 
 	bool hasEditorHooked = false;
 
 private:
-
 	GameContext context;
 
 	std::string levelName;
 	Color bgColor;
 	Vec2u levelSize;
-	unsigned bordersCardinalBits;
-
-	std::vector<LevelLayer> layers;
 
 	int fg1_layer_ndx = 0;
+	std::vector<LevelLayer> layers;
 
 	ObjectLayer objLayer;
 

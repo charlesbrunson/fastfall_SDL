@@ -22,18 +22,20 @@ TestState::TestState()
 		instance->addLevel(*lvlptr);
 	}
 	assert(instance->getActiveLevel());
+	Level* lvl = instance->getActiveLevel();
 
-	instance->getActiveLevel()->update(0.0);
+	lvl->update(0.0);
 	instance->getObject().update(0.0);
 	instance->getCollision().update(0.0);
 
 	stateID = ff::EngineStateID::TEST_STATE;
 	clearColor = ff::Color{ 0x141013FF };
 
-	//edit = std::make_unique<LevelEditor>( *instance->getActiveLevel(), false );
-	//edit->select_layer(LayerPosition::Foreground());
-	//edit->select_tileset("tile_test");
-	//edit->select_tile(Vec2u{ 0, 0 });
+	edit = std::make_unique<LevelEditor>( *lvl, false );
+	edit->select_layer(LayerPosition::Foreground());
+	edit->select_tileset("tile_test");
+	edit->select_tile(Vec2u{ 0, 0 });
+
 }
 
 TestState::~TestState() {
@@ -119,16 +121,20 @@ void TestState::predraw(secs deltaTime) {
 
 	instance->getObject().predraw(deltaTime);
 	instance->getActiveLevel()->predraw(deltaTime);
+
 	viewPos = instance->getCamera().currentPosition;
 	viewZoom = instance->getCamera().zoomFactor;
 
 	instance->getScene().set_cam_pos(viewPos);
 
 	tile_ghost.setColor(ff::Color::Transparent);
-	if (edit) {
+	if (edit) 
+	{
 		auto tileset = edit->get_tileset();
 		auto tile = edit->get_tile();
-		if (tileset && tile) {
+
+		if (tileset && tile) 
+		{
 			tile_ghost.setColor(ff::Color::White().alpha(80));
 			tile_ghost.setTexture(&tileset->getTexture());
 			tile_ghost.setTextureRect(Rectf{
@@ -137,16 +143,12 @@ void TestState::predraw(secs deltaTime) {
 				});
 			tile_ghost.setPosition(Vec2f{ tpos } * TILESIZE_F);
 			tile_ghost.setSize({ TILESIZE_F, TILESIZE_F });
-
-
 		}
 	}
-
-
 }
 
-void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const {
-
+void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const 
+{
 	target.draw(instance->getScene(), state);
 	target.draw(tile_ghost, state);
 }

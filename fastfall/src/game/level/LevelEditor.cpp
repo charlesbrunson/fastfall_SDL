@@ -147,11 +147,33 @@ bool LevelEditor::move_layer(LayerPosition layer_pos)
 // deselects layer
 bool LevelEditor::erase_layer()
 {
-	if (!level) return false;
-
-	if (curr_layer)
+	if (level && curr_layer)
 	{
+		// TODO
+	}
+	return false;
+}
 
+// LAYER PROPERTIES
+
+bool LevelEditor::layer_set_collision(bool enabled, unsigned borderBits)
+{
+	if (level && curr_layer) {
+		return curr_layer->tilelayer.set_collision(enabled, borderBits);
+	}
+	return false;
+}
+bool LevelEditor::layer_set_scroll(bool enabled, Vec2f scroll_rate)
+{
+	if (level && curr_layer) {
+		return curr_layer->tilelayer.set_scroll(enabled, scroll_rate);
+	}
+	return false;
+}
+bool LevelEditor::layer_set_parallax(bool enabled, Vec2u parallax_size)
+{
+	if (level && curr_layer) {
+		return curr_layer->tilelayer.set_parallax(enabled, parallax_size);
 	}
 	return false;
 }
@@ -254,6 +276,7 @@ bool LevelEditor::set_bg_color(Color bg_color)
 }
 
 // changes level's boundary collision
+/*
 bool LevelEditor::set_boundary(bool north, bool east, bool south, bool west)
 {
 	if (!level) return false;
@@ -276,6 +299,7 @@ bool LevelEditor::set_boundary(unsigned cardinalBits)
 	level->set_borders(cardinalBits);
 	return true;
 }
+*/
 
 bool LevelEditor::set_size(Vec2u size)
 {
@@ -420,9 +444,6 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 	}
 
 	// step 4: check objects
-
-	// step 5: apply boundary
-	set_boundary(asset->getBorder());
 
 	std::chrono::duration<double> duration = std::chrono::system_clock::now() - start;
 	LOG_INFO("apply duration: {}s", duration.count());

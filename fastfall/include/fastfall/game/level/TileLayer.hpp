@@ -42,15 +42,12 @@ public:
 
 	void shallow_copy(const TileLayer& layer, Rectu area, Vec2u lvlSize);
 
-	void set_collision(bool enabled, unsigned border = 0u);
-	void set_parallax(bool enabled, Vec2u parallax_size = Vec2u{});
-	void set_scrollrate(bool enabled, Vec2f rate = Vec2f{});
-
+	bool set_collision(bool enabled, unsigned border = 0u);
+	bool set_parallax(bool enabled, Vec2u parallax_size = Vec2u{});
+	bool set_scroll(bool enabled, Vec2f rate = Vec2f{});
 
 	void update(secs deltaTime);
 	void predraw(secs deltaTime);
-
-	inline ColliderTileMap* getCollisionMap() { return collision; };
 
 	inline unsigned int getID() const { return layerID; };
 
@@ -58,14 +55,17 @@ public:
 	inline Vec2f getOffset() const noexcept { return offset; };
 	inline void  setOffset(Vec2f off) noexcept { offset = off; };
 
-	inline bool isParallax() const noexcept { return hasParallax; };
-	inline bool isScroll() const noexcept { return hasScroll; };
+	inline bool has_parallax() const noexcept { return parallax.enabled; };
+	inline Vec2u get_parallax_size() const noexcept { return parallax.size; };
 
-	inline Vec2f getScrollRate() const noexcept { return scrollRate; };
+	inline bool has_scroll() const noexcept { return scroll.enabled; };
+	inline Vec2f get_scrollrate() const noexcept { return scroll.rate; };
+
+	inline bool has_collision() const { return collision.enabled; };
+	inline unsigned get_collision_border() const { return collision.border; };
+	inline ColliderTileMap* getCollisionMap() { return collision.tilemap_ptr; };
 
 	Vec2f worldToLocalCoord(Vec2f world_pos);
-
-	bool has_collision() const { return hasCollision; };
 
 	bool hidden = false;
 
@@ -84,19 +84,28 @@ protected:
 	Vec2f offset;
 
 	// parallax data
-	bool hasParallax = false;
-	Vec2u parallaxSize;
-	struct ParallaxState {
-		Vec2f initOffset;
-		Vec2f camFactor;
+	struct parallax_t {
+		bool  enabled = false;
+		Vec2u size;
+		Vec2f init_offset;
+		Vec2f cam_factor;
+		Vec2f offset;
 	} parallax;
-	Vec2f parallax_offset;
 
 	// scroll data
-	bool hasScroll = false;
-	Vec2f scrollRate;
-	Vec2f scroll_offset;
-	Vec2f scroll_rollover;
+	struct scroll_t {
+		bool enabled = false;
+		Vec2f rate;
+		Vec2f offset;
+		Vec2f rollover;
+	} scroll;
+
+	// collision
+	struct collision_t {
+		bool enabled = false;
+		unsigned border = 0u;
+		ColliderTileMap* tilemap_ptr = nullptr;
+	} collision;
 
 	// tile data
 	static constexpr int TILEDATA_NONE = UINT8_MAX;
@@ -114,11 +123,6 @@ protected:
 		ChunkVertexArray varray;
 	};
 	std::vector<ChunkVA> chunks;
-
-	// collision
-	bool hasCollision = false;
-	unsigned collision_border = 0u;
-	ColliderTileMap* collision = nullptr;
 
 	// logic
 	std::vector<std::pair<Vec2u, unsigned>> tile2logic;

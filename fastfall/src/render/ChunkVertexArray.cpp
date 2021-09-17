@@ -251,28 +251,6 @@ void ChunkVertexArray::draw(RenderTarget& target, RenderState states) const {
 				target.draw(chunk.tva, shift);
 			}
 		}
-
-		/*
-		if (chunk.draw_flags & DrawFlags::Draw) 
-		{
-			target.draw(chunk.tva, states);
-		}
-		if (chunk.draw_flags & DrawFlags::DrawOffsetY) 
-		{
-			shift.transform = states.transform.translate({ 0.f, -offset.y });
-			target.draw(chunk.tva, shift);
-		}
-		if (chunk.draw_flags & DrawFlags::DrawOffsetX) 
-		{
-			shift.transform = states.transform.translate({ -offset.x, 0.f });
-			target.draw(chunk.tva, shift);
-		}
-		if (chunk.draw_flags & DrawFlags::DrawOffsetXY) 
-		{
-			shift.transform = states.transform.translate({ -offset.x, -offset.y });
-			target.draw(chunk.tva, shift);
-		}
-		*/
 	}
 }
 

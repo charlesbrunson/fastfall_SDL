@@ -126,6 +126,7 @@ public:
 	void select_obj_layer();
 	void deselect_layer();
 
+
 	// move selected layer to new position
 	// retains selection of moved layer
 	bool move_layer(LayerPosition layer_pos);
@@ -133,6 +134,12 @@ public:
 	// erases selected layer
 	// deselects layer
 	bool erase_layer();
+
+	// LAYER PROPERTIES
+
+	bool layer_set_collision(bool enabled, unsigned borderBits = 0u);
+	bool layer_set_scroll(bool enabled, Vec2f scroll_rate = Vec2f{});
+	bool layer_set_parallax(bool enabled, Vec2u parallax_size = Vec2u{});
 
 	// TILES
 
@@ -161,8 +168,8 @@ public:
 	bool set_bg_color(Color bg_color);
 
 	// changes level's boundary collision
-	bool set_boundary(bool north, bool east, bool south, bool west);
-	bool set_boundary(unsigned cardinalBits);
+	//bool set_boundary(bool north, bool east, bool south, bool west);
+	//bool set_boundary(unsigned cardinalBits);
 
 	bool set_size(Vec2u size);
 
