@@ -174,29 +174,28 @@ bool LevelAsset::loadFromFile(const std::string& relpath) {
 bool LevelAsset::reloadFromFile() {
 
 	bool loaded = false;
-	try {
-		LevelAsset n_level{ getAssetName() };
 
-		if (n_level.loadFromFile(assetFilePath)) {
-			*this = std::move(n_level);
-			loaded = true;
+	LevelAsset n_level{ getAssetName() };
+
+	if (n_level.loadFromFile(assetFilePath)) {
+		*this = std::move(n_level);
+		loaded = true;
 
 
-			for (auto& [id, inst] : AllInstances())
+		for (auto& [id, inst] : AllInstances())
+		{
+			Level* active = inst.getActiveLevel();
+			for (auto& [name, lvl_uptr] : inst.getAllLevels())
 			{
-				Level* active = inst.getActiveLevel();
-				for (auto& [name, lvl_uptr] : inst.getAllLevels())
-				{
-					if (lvl_uptr.get() == active) {
-						LevelEditor edit(*lvl_uptr.get(), false);
-						LOG_INFO("Applying reloaded level asset to active level");
-						edit.applyLevelAsset(this);
-						inst.populateSceneFromLevel(*lvl_uptr);
-					}
-					else {
-						LOG_INFO("Reinit inactive level with reloaded level asset");
-						lvl_uptr->init(*this);
-					}
+				if (lvl_uptr.get() == active) {
+					LevelEditor edit(*lvl_uptr.get(), false);
+					LOG_INFO("Applying reloaded level asset to active level");
+					edit.applyLevelAsset(this);
+					inst.populateSceneFromLevel(*lvl_uptr);
+				}
+				else {
+					LOG_INFO("Reinit inactive level with reloaded level asset");
+					lvl_uptr->init(*this);
 				}
 			}
 

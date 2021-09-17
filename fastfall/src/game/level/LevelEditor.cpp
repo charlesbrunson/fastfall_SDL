@@ -2,6 +2,8 @@
 
 #include "fastfall/resource/Resources.hpp"
 
+#include <chrono>
+
 namespace ff {
 
 
@@ -47,17 +49,10 @@ bool LevelEditor::create_layer(LayerPosition layer_pos)
 {
 	if (!level) return false;
 
+	layer_pos.update(level);
+
 	int layer_count = level->getTileLayers().size();
 	int fgNdx = level->getFGStartNdx();
-
-	if (layer_pos.position >= (layer_count - fgNdx))
-	{
-		layer_pos.type = LayerPosition::Type::End;
-	}
-	else if (layer_pos.position < (-fgNdx))
-	{
-		layer_pos.type = LayerPosition::Type::Start;
-	}
 
 	switch (layer_pos.type)
 	{
@@ -71,12 +66,12 @@ bool LevelEditor::create_layer(LayerPosition layer_pos)
 		break;
 	}
 
-	level->insertTileLayer(LevelLayer{
+	curr_layer = &level->insertTileLayer(LevelLayer{
 		.position = layer_pos.position,
 		.tilelayer = TileLayer{level->getContext(), 0, level->size() } // todo get an actual id
 		});
 
-	return false;
+	return true;
 }
 
 // select layer at positon (start and end specify the first and last layer, respectively)
@@ -84,20 +79,7 @@ bool LevelEditor::select_layer(LayerPosition layer_pos)
 {
 	if (!level) return false;
 
-	int layer_count = level->getTileLayers().size();
-	if (layer_count == 0)
-		return false;
-
-	int fgNdx = level->getFGStartNdx();
-
-	if (layer_pos.position >= (layer_count - fgNdx))
-	{
-		layer_pos.type = LayerPosition::Type::End;
-	}
-	else if (layer_pos.position < (-fgNdx)) 
-	{
-		layer_pos.type = LayerPosition::Type::Start;
-	}
+	layer_pos.update(level);
 
 	switch (layer_pos.type)
 	{
@@ -108,7 +90,7 @@ bool LevelEditor::select_layer(LayerPosition layer_pos)
 		curr_layer = &level->getTileLayers().back();
 		break;
 	case LayerPosition::Type::At:
-		curr_layer = &level->getTileLayers().at((size_t)(layer_pos.position + fgNdx));
+		curr_layer = &level->getTileLayers().at((size_t)(layer_pos.position + level->getFGStartNdx()));
 		break;
 	}
 
@@ -138,6 +120,9 @@ bool LevelEditor::move_layer(LayerPosition layer_pos)
 
 	if (!level) return false;
 
+	layer_pos.update(level);
+	int layer_count = level->getTileLayers().size();
+	int fgNdx = level->getFGStartNdx();
 
 	if (obj_layer_selected)
 	{
@@ -145,7 +130,15 @@ bool LevelEditor::move_layer(LayerPosition layer_pos)
 	}
 	else if (curr_layer)
 	{
-		// ...
+		TileLayer layer = std::move(curr_layer->tilelayer);
+		level->removeTileLayer(curr_layer->position);
+		level->insertTileLayer(
+			LevelLayer{
+				.position = layer_pos.position,
+				.tilelayer = std::move(layer)
+			}
+		);
+		return true;
 	}
 	return false;
 }
@@ -207,8 +200,10 @@ bool LevelEditor::select_tileset(std::string_view tileset_name)
 {
 	if (!level) return false;
 
-	curr_tileset = Resources::get<TilesetAsset>(tileset_name);
-	deselect_tile();
+	if (!curr_tileset || curr_tileset->getAssetName() != tileset_name) {
+		curr_tileset = Resources::get<TilesetAsset>(tileset_name);
+		deselect_tile();
+	}
 	return curr_tileset != nullptr;
 }
 
@@ -295,6 +290,8 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 {
 	if (!level) return false;
 
+	auto start = std::chrono::system_clock::now();
+
 	// step 1: level size and other properties
 	if (level->name() != asset->getAssetName())
 	{
@@ -330,12 +327,19 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 	for (unsigned asset_ndx = 0; asset_ndx < asset_ids.size(); asset_ndx++)
 	{
 		unsigned asset_layer_id = asset_ids[asset_ndx];
+		if (asset_layer_id == 0) {
+			LOG_INFO("object layer", asset_layer_id);
+			continue;
+		};
+
+		LOG_INFO("checking {}", asset_layer_id);
 
 		if (layers[level_ndx].tilelayer.getID() != asset_layer_id)
 		{
 			// try to find the correct id in the level
-			auto it = std::find_if(layers.begin() + level_ndx, layers.end(),
+			auto it = std::find_if(layers.begin(), layers.end(),
 					[asset_layer_id](const LevelLayer& layer) {
+						LOG_INFO("{}", layer.tilelayer.getID());
 						return layer.tilelayer.getID() == asset_layer_id;
 					});
 
@@ -343,27 +347,86 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 			bool is_bg = layer_pos < 0;
 
 			if (it != layers.end()) {
-				select_layer(LayerPosition::At(it->position));
-				move_layer(LayerPosition::At(layer_pos));
+				LOG_INFO("id:{} wrong position", asset_layer_id);
+
+				if (select_layer(LayerPosition::At(it->position))) 
+				{
+					move_layer(LayerPosition::At(layer_pos));
+				}
 			}
 			else {
-				create_layer(LayerPosition::At(layer_pos));		
-				curr_layer->tilelayer = TileLayer{
-					level->getContext(),
-					asset_layer_id,
-					asset->getLayerRefs()->at(asset_ndx).asTileLayer()
-				};
+				LOG_INFO("id:{} doesn't exist", asset_layer_id);
+				if (create_layer(LayerPosition::At(layer_pos)))
+				{
+					curr_layer->tilelayer = TileLayer{
+						level->getContext(),
+						asset_layer_id,
+						asset->getLayerRefs()->at(asset_ndx).asTileLayer(),
+					};
+					nLayers.insert(asset_layer_id);
+				}
 			}
 		}
+		else {
+			LOG_INFO("id:{} location good", asset_layer_id);
+		}
+		level_ndx++;
 	}
 
-
 	// step 3: per layer check each tile
+	auto it = asset->getLayerRefs()->begin();
+	for (auto& layer : layers) 
+	{
+		if (nLayers.contains(layer.tilelayer.getID())) {
+			continue;
+		}
+
+		if (it->type == LayerRef::Type::Object)
+			it++;
+
+		const TileLayerRef& tile_ref = it->asTileLayer();
+		unsigned tile_ndx = 0;
+
+		unsigned width = tile_ref.innerSize.x;
+		unsigned height = tile_ref.innerSize.y;
+
+		select_layer(LayerPosition::At(layer.position));
+
+		for (unsigned yy = 0; yy < height; yy++) {
+			for (unsigned xx = 0; xx < width; xx++) {
+
+				Vec2u pos{ xx, yy };
+				size_t ndx = xx + yy * width;
+
+				if (tile_ndx >= tile_ref.tiles.size())
+					break;
+
+				if (auto& tile = tile_ref.tiles.at(tile_ndx); tile.tilePos == pos) {
+					select_tileset(tile.tilesetName);
+					select_tile(tile.texPos);
+					paint_tile(pos);
+					tile_ndx++;
+				}
+				else {
+					erase_tile(pos);
+				}
+			}
+		}
+
+		if (layer.tilelayer.has_collision())
+			layer.tilelayer.getCollisionMap()->applyChanges();
+
+		it++;
+	}
 
 	// step 4: check objects
 
 	// step 5: apply boundary
 	set_boundary(asset->getBorder());
+
+	std::chrono::duration<double> duration = std::chrono::system_clock::now() - start;
+	LOG_INFO("apply duration: {}s", duration.count());
+
 
 	return true;
 }

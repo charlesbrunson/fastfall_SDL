@@ -124,6 +124,7 @@ void TestState::predraw(secs deltaTime) {
 
 	instance->getScene().set_cam_pos(viewPos);
 
+	tile_ghost.setColor(ff::Color::Transparent);
 	if (edit) {
 		auto tileset = edit->get_tileset();
 		auto tile = edit->get_tile();
@@ -138,9 +139,6 @@ void TestState::predraw(secs deltaTime) {
 			tile_ghost.setSize({ TILESIZE_F, TILESIZE_F });
 
 
-		}
-		else {
-			tile_ghost.setColor(ff::Color::Transparent);
 		}
 	}
 

@@ -150,10 +150,11 @@ void Level::removeTileLayer(int position)
 
 		for (int i = 0; i < layers.size(); i++) 
 		{
-			layers.at(i + fg1_layer_ndx).position = i - fg1_layer_ndx;
+			layers.at(i).position = i - fg1_layer_ndx;
 		}
 	}
 }
+
 
 void Level::set_borders(unsigned bordersCardinalBits)
 {

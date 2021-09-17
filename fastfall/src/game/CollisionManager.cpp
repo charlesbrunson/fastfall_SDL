@@ -61,6 +61,17 @@ bool CollisionManager::erase_collidable(Collidable* collidable) {
 
 bool CollisionManager::erase_collider(ColliderRegion* region) {
 
+	for (auto& collidableData : collidables) {
+		collidableData.regionArbiters.erase(
+			std::remove_if(collidableData.regionArbiters.begin(), collidableData.regionArbiters.end(),
+				[region](const RegionArbiter& arb) -> bool {
+					return arb.getRegion() == region;
+				}
+			),
+			collidableData.regionArbiters.end()
+		);
+	}
+
 	auto it = std::find_if(regions.begin(), regions.end(),
 		[&region](const std::unique_ptr<ColliderRegion>& rptr) {
 			return rptr.get() == region;

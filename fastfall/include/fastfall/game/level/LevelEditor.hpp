@@ -18,6 +18,25 @@ struct LayerPosition {
 	} type;
 	int position;
 
+	void update(const Level* lvl) {
+		int layer_count = lvl->getTileLayers().size();
+		if (layer_count == 0) {
+			position = 0;
+			return;
+		}
+
+		int fgNdx = lvl->getFGStartNdx();
+
+		if (position >= (layer_count - fgNdx))
+		{
+			type = LayerPosition::Type::End;
+		}
+		else if (position < (-fgNdx))
+		{
+			type = LayerPosition::Type::Start;
+		}
+	}
+
 	static LayerPosition Start() {
 		return LayerPosition{
 			.type = Type::Start,
