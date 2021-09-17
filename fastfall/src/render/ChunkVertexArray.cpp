@@ -14,55 +14,6 @@ ChunkVertexArray::ChunkVertexArray(Vec2u t_size, Vec2u t_max_chunk_size)
 }
 
 
-/*
-ChunkVertexArray::ChunkVertexArray(const ChunkVertexArray& rhs)
-	: offset(rhs.offset)
-	, use_visible_rect(rhs.use_visible_rect)
-	, visibility(rhs.visibility)
-	, m_size(rhs.m_size)
-	, m_chunk_size(rhs.m_chunk_size)
-	, m_tex(rhs.m_tex)
-	, m_chunks(rhs.m_chunks)
-{
-
-}
-ChunkVertexArray::ChunkVertexArray(ChunkVertexArray&& rhs)
-	: offset(rhs.offset)
-	, use_visible_rect(rhs.use_visible_rect)
-	, visibility(rhs.visibility)
-	, m_size(rhs.m_size)
-	, m_chunk_size(rhs.m_chunk_size)
-	, m_tex(rhs.m_tex)
-	, m_chunks(std::move(rhs.m_chunks))
-{
-
-}
-
-ChunkVertexArray& ChunkVertexArray::operator= (const ChunkVertexArray& rhs) {
-	offset = rhs.offset;
-	use_visible_rect = rhs.use_visible_rect;
-	visibility = rhs.visibility;
-	m_size = rhs.m_size;
-	m_chunk_size = rhs.m_chunk_size;
-	m_tex = rhs.m_tex;
-	m_chunks = rhs.m_chunks;
-
-	return *this;
-}
-ChunkVertexArray& ChunkVertexArray::operator= (ChunkVertexArray&& rhs) {
-	offset = rhs.offset;
-	use_visible_rect = rhs.use_visible_rect;
-	visibility = rhs.visibility;
-	m_size = rhs.m_size;
-	m_chunk_size = rhs.m_chunk_size;
-	m_tex = rhs.m_tex;
-	m_chunks = std::move(rhs.m_chunks);
-
-	return *this;
-}
-*/
-
-
 void ChunkVertexArray::setTexture(const Texture& texture) noexcept {
 	m_tex = texture;
 	for (auto& chunk : m_chunks) {

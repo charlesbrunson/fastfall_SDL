@@ -255,7 +255,7 @@ void levelContent(GameContext context) {
 		ImGui::Checkbox("Hidden", &tile.hidden);
 		ImGui::Text("Collision = %s", tile.has_collision() ? "true" : "false");
 		ImGui::Text("Parallax = %s", tile.isParallax() ? "true" : "false");
-		ImGui::Text("Scrolling = %s", tile.hasScrollX() || tile.hasScrollY() ? "true" : "false");
+		ImGui::Text("Scrolling = %s", tile.isScroll() ? "true" : "false");
 	};
 
 	constexpr auto displayObjectRef = [](const ObjectRef& obj) {

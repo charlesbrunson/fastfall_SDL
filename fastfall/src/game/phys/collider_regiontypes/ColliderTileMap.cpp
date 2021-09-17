@@ -137,7 +137,7 @@ namespace ff {
 				}
 			}
 		}
-		applyChanges();
+		//applyChanges();
 	}
 
 	std::pair<bool, bool> ColliderTileMap::cullTouchingSurfaces(ColliderSurface& lhs, ColliderSurface& rhs) {

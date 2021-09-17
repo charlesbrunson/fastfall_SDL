@@ -18,19 +18,24 @@ using TilesetMap = std::map<gid, std::string>;
 
 // represents a tile
 struct TileRef {
-	gid tile_id = GID_INVALID;
+	//gid tile_id = GID_INVALID;
 	Vec2u tilePos;
 	Vec2u texPos;
-	//const std::string* tilesetName = nullptr;
+
 	std::string_view tilesetName;
 };
 
 // represents a layer of tile data
 struct TileLayerRef {
 	bool has_parallax = false;
-	Vec2u innerSize;
+	bool has_scroll;
+	bool has_collision = false;
+	unsigned collision_border_bits = 0u;
+
+	Vec2u parallaxSize;
 	Vec2u tileSize;
 	Vec2f scrollrate;
+
 	std::vector<TileRef> tiles;
 };
 

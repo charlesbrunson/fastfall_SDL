@@ -83,10 +83,9 @@ void Level::init(const LevelAsset& levelData) {
 			break;
 		case LayerRef::Type::Tile:
 			bool is_bg = count - bg_count < 0;
-			bool has_collision = (count - bg_count == 0);
 			insertTileLayer({
 					.position = (is_bg ? -1 : count - bg_count),
-					.tilelayer = TileLayer(context, layerRef.id, layerRef.asTileLayer(), has_collision)
+					.tilelayer = TileLayer(context, layerRef.id, layerRef.asTileLayer())
 				});
 			count++;
 			break;
@@ -117,7 +116,6 @@ LevelLayer& Level::insertTileLayer(LevelLayer&& layer)
 		fg1_layer_ndx++;
 		for (int i = -fg1_layer_ndx; i < 0; i++) {
 			layers.at(i + fg1_layer_ndx).position = i;
-
 		}
 	}
 	else {
@@ -131,15 +129,6 @@ LevelLayer& Level::insertTileLayer(LevelLayer&& layer)
 		ret = layers.insert(it, std::move(layer));
 		for (int i = 0; i < (layers.size() - fg1_layer_ndx); i++) {
 			layers.at(i + fg1_layer_ndx).position = i;
-
-			if (i == 0 && !layers.at(i + fg1_layer_ndx).tilelayer.has_collision())
-			{
-				layers.at(i + fg1_layer_ndx).tilelayer.enable_collision();
-			}
-			else if (i > 0 && layers.at(i + fg1_layer_ndx).tilelayer.has_collision())
-			{
-				layers.at(i + fg1_layer_ndx).tilelayer.remove_collision();
-			}
 		}
 	}
 	return *ret;
@@ -162,11 +151,6 @@ void Level::removeTileLayer(int position)
 		for (int i = 0; i < layers.size(); i++) 
 		{
 			layers.at(i + fg1_layer_ndx).position = i - fg1_layer_ndx;
-		}
-
-		if (layers.size() > fg1_layer_ndx && !layers.at(0).tilelayer.has_collision()) 
-		{
-			layers.at(fg1_layer_ndx).tilelayer.enable_collision();
 		}
 	}
 }
@@ -195,7 +179,7 @@ void Level::resize(Vec2u n_size)
 			std::min(n_size.y, layer.getSize().y),
 		};
 
-		TileLayer n_layer{ context, layer.getID(), (pos < 0 ? layer_size : n_size), layer.has_collision() };
+		TileLayer n_layer{ context, layer.getID(), (pos < 0 ? layer_size : n_size) };
 		n_layer.shallow_copy(layer, Rectu{ Vec2u{}, Vec2u{layer_size} }, n_size);
 		layer = std::move(n_layer);
 

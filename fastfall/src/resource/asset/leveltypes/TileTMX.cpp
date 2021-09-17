@@ -11,26 +11,43 @@
 namespace ff {
 
 void parseLayerProperties(xml_node<>* propNode, TileLayerRef& layer) {
-
 	const static std::map < std::string, void(*)(TileLayerRef&, char*) > validLayerProps{
-		// inner size
-		{"sizex", [](TileLayerRef& layer, char* val) {
-			layer.innerSize.x = atoi(val);
+		// collision
+		{"collision", [](TileLayerRef& layer, char* val) {
+			layer.has_collision = strcmp(val, "true") == 0;
 		}},
-		{"sizey", [](TileLayerRef& layer, char* val) {
-			layer.innerSize.y = atoi(val);
+		{"collision_border", [](TileLayerRef& layer, char* val) {
+			std::string str(val);
+			layer.collision_border_bits = 0u;
+			for (char c : str) {
+				switch (c) {
+				case 'N': layer.collision_border_bits |= cardinalToBits(Cardinal::NORTH); break;
+				case 'E': layer.collision_border_bits |= cardinalToBits(Cardinal::EAST);  break;
+				case 'S': layer.collision_border_bits |= cardinalToBits(Cardinal::SOUTH); break;
+				case 'W': layer.collision_border_bits |= cardinalToBits(Cardinal::WEST);  break;
+				}
+			}
 		}},
 
 		// parallax flag
 		{"parallax", [](TileLayerRef& layer, char* val) {
 			layer.has_parallax = strcmp(val, "true") == 0;
 		}},
+		{"parallax_sizex", [](TileLayerRef& layer, char* val) {
+			layer.parallaxSize.x = atoi(val);
+		}},
+		{"parallax_sizey", [](TileLayerRef& layer, char* val) {
+			layer.parallaxSize.y = atoi(val);
+		}},
 
 		// layer scrolling
-		{"scrollx_vel", [](TileLayerRef& layer, char* val) {
+		{"scroll", [](TileLayerRef& layer, char* val) {
+			layer.has_scroll = strcmp(val, "true") == 0;
+		}},
+		{"scroll_velx", [](TileLayerRef& layer, char* val) {
 			layer.scrollrate.x = atof(val);
 		}},
-		{"scrolly_vel", [](TileLayerRef& layer, char* val) {
+		{"scroll_vely", [](TileLayerRef& layer, char* val) {
 			layer.scrollrate.y = atof(val);
 		}},
 	};
@@ -53,10 +70,8 @@ void parseLayerProperties(xml_node<>* propNode, TileLayerRef& layer) {
 
 void parseLayerTiles(xml_node<>* dataNode, TileLayerRef& layer, const TilesetMap& tilesets) {
 
-	// flags set by TMX filetype
-	static constexpr unsigned FLIPPED_HORIZONTALLY_FLAG = 0x80000000;
-	static constexpr unsigned FLIPPED_VERTICALLY_FLAG = 0x40000000;
-	static constexpr unsigned FLIPPED_DIAGONALLY_FLAG = 0x20000000;
+	// flip flags set by TMX filetype
+	static constexpr unsigned FLIPPED_FLAGS = 0xE0000000;
 
 	//assert this is encoded as base64
 	assert(dataNode && strcmp("base64", dataNode->first_attribute("encoding")->value()) == 0);
@@ -78,16 +93,14 @@ void parseLayerTiles(xml_node<>* dataNode, TileLayerRef& layer, const TilesetMap
 			data[i + 3] << 24;
 
 		// dont need these
-		tilesetgid &= ~(FLIPPED_HORIZONTALLY_FLAG |
-			FLIPPED_VERTICALLY_FLAG |
-			FLIPPED_DIAGONALLY_FLAG);
+		tilesetgid &= ~FLIPPED_FLAGS;
 
 		if (tilesetgid > 0 
-			&& (layer.innerSize.x == 0 || tilepos.x < layer.innerSize.x)
-			&& (layer.innerSize.y == 0 || tilepos.y < layer.innerSize.y)
-			) {
+			&& (layer.parallaxSize.x == 0 || tilepos.x < layer.parallaxSize.x)
+			&& (layer.parallaxSize.y == 0 || tilepos.y < layer.parallaxSize.y)) 
+		{
 			TileRef t;
-			t.tile_id = tilesetgid;
+			//t.tile_id = tilesetgid;
 
 			// calc tileset dependency and tex position
 			gid fgid = tilesets.cbegin()->first;
@@ -132,11 +145,18 @@ LayerRef TileTMX::parse(xml_node<>* layerNode, const TilesetMap& tilesets) {
 
 	TileLayerRef& tileLayer = std::get<TileLayerRef>(layer.layer);
 
-
 	tileLayer.tileSize.x = atoi(layerNode->first_attribute("width")->value());
 	tileLayer.tileSize.y = atoi(layerNode->first_attribute("height")->value());
 
 	parseLayerProperties(layerNode->first_node("properties"), tileLayer);
+
+	if (tileLayer.has_collision && (tileLayer.has_scroll || tileLayer.has_parallax)) {
+		throw "compilation failure: cannot have a tile layer with collision and with scrolling or parallax";
+	}
+	if (tileLayer.has_parallax && tileLayer.parallaxSize == Vec2u{}) {
+		throw "compilation failure: parallax set but size is not defined";
+	}
+
 	parseLayerTiles(layerNode->first_node("data"), tileLayer, tilesets);
 
 	return layer;

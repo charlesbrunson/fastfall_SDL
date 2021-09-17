@@ -351,8 +351,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 				curr_layer->tilelayer = TileLayer{
 					level->getContext(),
 					asset_layer_id,
-					asset->getLayerRefs()->at(asset_ndx).asTileLayer(),	
-					layer_pos == 0
+					asset->getLayerRefs()->at(asset_ndx).asTileLayer()
 				};
 			}
 		}

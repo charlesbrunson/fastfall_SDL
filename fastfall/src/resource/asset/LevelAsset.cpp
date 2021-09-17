@@ -35,8 +35,8 @@ LevelAsset::LevelAsset(const std::string& filename) :
 struct LevelProperties {
 	Vec2u size;
 	Color bgColor;
-	unsigned borderCardinalBits = 0u;
 };
+
 LevelProperties tmxParseLevelProperties(xml_node<>* mapNode) {
 
 	xml_attribute<>* mapAttr = mapNode->first_attribute();
@@ -64,20 +64,6 @@ LevelProperties tmxParseLevelProperties(xml_node<>* mapNode) {
 			ss >> colorhex;
 
 			prop.bgColor = Color(colorhex);
-		}},
-		{"border", [](LevelProperties& prop, char* val) {
-			std::string str(val);
-			prop.borderCardinalBits = 0u;
-
-			for (char c : str) {
-				switch (c) {
-				case 'N': prop.borderCardinalBits |= cardinalToBits(Cardinal::NORTH); break;
-				case 'E': prop.borderCardinalBits |= cardinalToBits(Cardinal::EAST);  break;
-				case 'S': prop.borderCardinalBits |= cardinalToBits(Cardinal::SOUTH); break;
-				case 'W': prop.borderCardinalBits |= cardinalToBits(Cardinal::WEST);  break;
-				}
-			}
-
 		}}
 	};
 	LevelProperties prop;
@@ -146,8 +132,6 @@ bool LevelAsset::loadFromFile(const std::string& relpath) {
 			LevelProperties lvlprop = tmxParseLevelProperties(mapNode);
 			lvlTileSize = lvlprop.size;
 			backgroundColor = lvlprop.bgColor;
-			borderCardinalBits = lvlprop.borderCardinalBits;
-
 
 			// parse tilesets
 			tilesetDeps = TilesetTMX::parse(mapNode->first_node("tileset"));
@@ -215,10 +199,12 @@ bool LevelAsset::reloadFromFile() {
 					}
 				}
 			}
+
 		}
 	}
-	catch (std::exception)
+	catch (std::exception err)
 	{
+		LOG_ERR_("{}", err.what());
 	}
 	return loaded;
 }

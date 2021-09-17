@@ -109,7 +109,7 @@ public:
 
 	// move selected layer to new position
 	// retains selection of moved layer
-	bool move_layer(LayerPosition layer_pos);   
+	bool move_layer(LayerPosition layer_pos);
 
 	// erases selected layer
 	// deselects layer

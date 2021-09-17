@@ -33,6 +33,8 @@ public:
 		commands.push(Command{ .type = Command::Type::Clear });
 	};
 
+	void set_size(Vec2u size) { m_size = size; };
+
 	inline bool empty() noexcept { return m_chunks.empty(); };
 
 	void add_scroll(Vec2f scroll_amount);
