@@ -27,9 +27,9 @@ struct TileRef {
 
 // represents a layer of tile data
 struct TileLayerRef {
-	bool has_parallax = false;
-	bool has_scroll;
-	bool has_collision = false;
+	bool has_parallax	= false;
+	bool has_scroll		= false;
+	bool has_collision	= false;
 	unsigned collision_border_bits = 0u;
 
 	Vec2u parallaxSize;

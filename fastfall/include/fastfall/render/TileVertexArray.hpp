@@ -17,18 +17,20 @@ public:
 	const TextureRef& getTexture() const noexcept;
 	void setTile(Vec2u at, Vec2u texPos);
 
+	void resize(Vec2u size);
+
 	void erase(Vec2u at);
 	void blank(Vec2u at);
 	void clear();
 
-	inline bool empty() noexcept { return tiles.empty(); };
+	inline bool empty() noexcept { return m_tiles.empty(); };
 
 	Vec2f offset;
 
 protected:
 
-	TextureRef tex;
-	Vec2u size;
+	TextureRef m_tex;
+	Vec2u m_size;
 
 	struct Tile {
 		Tile() {};
@@ -39,8 +41,8 @@ protected:
 		Vec2u tex_position;
 	};
 
-	std::vector<Tile>    tiles;
-	VertexArray verts;
+	std::vector<Tile> m_tiles;
+	VertexArray m_verts;
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 

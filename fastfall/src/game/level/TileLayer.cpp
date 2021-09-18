@@ -102,8 +102,7 @@ TileLayer::TileLayer(TileLayer&& tile) noexcept
 	layerID = tile.layerID;
 	size = tile.size;
 	std::swap(pos2data, tile.pos2data);
-	chunks.swap(tile.chunks);
-
+	std::swap(chunks, tile.chunks);
 	std::swap(parallax, tile.parallax);
 	std::swap(scroll, tile.scroll);
 	std::swap(collision, tile.collision);
@@ -136,8 +135,7 @@ TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	layerID = tile.layerID;
 	size = tile.size;
 	std::swap(pos2data, tile.pos2data);
-	chunks.swap(tile.chunks);
-
+	std::swap(chunks, tile.chunks);
 	std::swap(parallax, tile.parallax);
 	std::swap(scroll, tile.scroll);
 	std::swap(collision, tile.collision);

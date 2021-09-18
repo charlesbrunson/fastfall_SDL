@@ -422,7 +422,9 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 
 		it++;
 
-		LOG_INFO("updated layer #{}: total {} paints, {} erases", layer.tilelayer.getID(), paint_count, erase_count);
+		layer.tilelayer.predraw(0.0);
+
+		LOG_INFO("updated layer #{}: {} tile affected", layer.tilelayer.getID(), paint_count + erase_count);
 	}
 
 	// step 4: check objects

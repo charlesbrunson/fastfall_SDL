@@ -12,14 +12,6 @@ class ChunkVertexArray : public Drawable {
 public:
 	ChunkVertexArray(Vec2u t_size, Vec2u t_max_chunk_size);
 
-	/*
-	ChunkVertexArray(const ChunkVertexArray& rhs);
-	ChunkVertexArray(ChunkVertexArray&& rhs);
-
-	ChunkVertexArray& operator= (const ChunkVertexArray& rhs);
-	ChunkVertexArray& operator= (ChunkVertexArray&& rhs);
-	*/
-
 	void setTexture(const Texture& texture) noexcept;
 	const TextureRef& getTexture() const noexcept;
 
@@ -33,7 +25,7 @@ public:
 		commands.push(Command{ .type = Command::Type::Clear });
 	};
 
-	void set_size(Vec2u size) { m_size = size; };
+	void set_size(Vec2u size);
 
 	inline bool empty() noexcept { return m_chunks.empty(); };
 

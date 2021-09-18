@@ -13,55 +13,62 @@ namespace ff {
 constexpr unsigned VERTICES_PER_TILE = 6;
 
 TileVertexArray::TileVertexArray()
-	: verts(ff::Primitive::TRIANGLES) 
+	: m_verts(ff::Primitive::TRIANGLES)
 {
-	tex = TextureRef{};
+	m_tex = TextureRef{};
 }
 
 TileVertexArray::TileVertexArray(Vec2u arr_size)
-	: verts(ff::Primitive::TRIANGLES)
+	: m_verts(ff::Primitive::TRIANGLES)
 {
-	tex = TextureRef{};
-	size = arr_size;
+	m_tex = TextureRef{};
+	m_size = arr_size;
 
-	tiles.reserve((size_t)size.x * size.y);
+	m_tiles.reserve((size_t)m_size.x * m_size.y);
 }
 
 void TileVertexArray::setTexture(const Texture& texture) noexcept {
-	tex = texture;
+	m_tex = texture;
+}
+
+void TileVertexArray::resize(Vec2u size)
+{
+	m_size = size;
+	m_tiles.reserve((size_t)m_size.x * m_size.y);
 }
 
 const TextureRef& TileVertexArray::getTexture() const noexcept {
-	return tex;
+	return m_tex;
 }
-void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
-	assert(at.x <= size.x && at.y <= size.y);
 
-	auto tile = std::upper_bound(tiles.begin(), tiles.end(), Tile{ at, texPos },
+void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
+	assert(at.x <= m_size.x && at.y <= m_size.y);
+
+	auto tile = std::upper_bound(m_tiles.begin(), m_tiles.end(), Tile{ at, texPos },
 		[](const Tile& lhs, const Tile& rhs) {
 			return lhs.position <= rhs.position;
 		});
 
 	size_t vndx;
-	if (tile == tiles.end()) {
-		tiles.resize(tiles.size() + 1);
-		tile = tiles.end() - 1;
+	if (tile == m_tiles.end()) {
+		m_tiles.resize(m_tiles.size() + 1);
+		tile = m_tiles.end() - 1;
 
-		verts.insert(verts.size(), VERTICES_PER_TILE);
+		m_verts.insert(m_verts.size(), VERTICES_PER_TILE);
 
-		vndx = verts.size() - VERTICES_PER_TILE;
+		vndx = m_verts.size() - VERTICES_PER_TILE;
 	}
 	else if (tile->position != at) {
-		tile = tiles.insert(tile, Tile());
+		tile = m_tiles.insert(tile, Tile());
 
-		ptrdiff_t distance = (std::distance(tiles.begin(), tile) * VERTICES_PER_TILE);
+		ptrdiff_t distance = (std::distance(m_tiles.begin(), tile) * VERTICES_PER_TILE);
 
-		verts.insert(distance, VERTICES_PER_TILE);
+		m_verts.insert(distance, VERTICES_PER_TILE);
 
 		vndx = distance;
 	}
 	else {
-		vndx = std::distance(tiles.begin(), tile) * VERTICES_PER_TILE;
+		vndx = std::distance(m_tiles.begin(), tile) * VERTICES_PER_TILE;
 	}
 	
 	tile->position = at;
@@ -80,56 +87,56 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 	};
 
 	for (int i = 0; i < VERTICES_PER_TILE; i++) {
-		verts[vndx + i].color = Color::White;
-		verts[vndx + i].pos = (pos + offsets[i]) * TILESIZE_F;
-		verts[vndx + i].tex_pos = (texpos + offsets[i]) * TILESIZE_F * tex.get()->inverseSize();
+		m_verts[vndx + i].color = Color::White;
+		m_verts[vndx + i].pos = (pos + offsets[i]) * TILESIZE_F;
+		m_verts[vndx + i].tex_pos = (texpos + offsets[i]) * TILESIZE_F * m_tex.get()->inverseSize();
 	}
 }
-
 
 void TileVertexArray::erase(Vec2u at) {
-	auto iter = std::find_if(tiles.begin(), tiles.end(),
+	auto iter = std::find_if(m_tiles.begin(), m_tiles.end(),
 		[&at](const Tile& t) {
 			return t.position == at;
 		}
 	);
 
-	if (iter != tiles.end()) {
-		int ndx = std::distance(tiles.begin(), iter) * VERTICES_PER_TILE;
-		tiles.erase(iter);
-		verts.erase(ndx, VERTICES_PER_TILE);
+	if (iter != m_tiles.end()) {
+		int ndx = std::distance(m_tiles.begin(), iter) * VERTICES_PER_TILE;
+		m_tiles.erase(iter);
+		m_verts.erase(ndx, VERTICES_PER_TILE);
 	}
 }
+
 void TileVertexArray::blank(Vec2u at) {
 
-	auto iter = std::find_if(tiles.begin(), tiles.end(),
+	auto iter = std::find_if(m_tiles.begin(), m_tiles.end(),
 		[&at](const Tile& t) {
 			return t.position == at;
 		}
 	);
 
-	if (iter != tiles.end()) {
-		size_t ndx = std::distance(tiles.begin(), iter) * VERTICES_PER_TILE;
+	if (iter != m_tiles.end()) {
+		size_t ndx = std::distance(m_tiles.begin(), iter) * VERTICES_PER_TILE;
 
 		for (int i = 0; i < VERTICES_PER_TILE; i++) {
-			verts[ndx + i].color.a = 0;
+			m_verts[ndx + i].color.a = 0;
 		}
 	}
 }
 
 void TileVertexArray::clear() {
-	tiles.clear();
-	verts.clear();
+	m_tiles.clear();
+	m_verts.clear();
 }
 
 void TileVertexArray::draw(RenderTarget& target, RenderState states) const {
-	if (verts.empty())
+	if (m_verts.empty())
 		return;
 
 	states.transform = Transform::combine(states.transform, Transform(offset));
-	states.texture = tex;
+	states.texture = m_tex;
 
-	target.draw(verts, states);
+	target.draw(m_verts, states);
 }
 
 }

@@ -25,6 +25,34 @@ const TextureRef& ChunkVertexArray::getTexture() const noexcept {
 	return m_tex;
 }
 
+
+void ChunkVertexArray::set_size(Vec2u size) {
+
+	for (auto it = m_chunks.begin(); it != m_chunks.end(); ) {
+		bool incr = false;
+
+		if (it->chunk_size.x < m_chunk_size.x
+			|| it->chunk_size.y < m_chunk_size.y)
+		{
+
+			Vec2u nSize;
+			nSize.x = std::min(m_chunk_size.x, m_size.x - m_chunk_size.x * it->chunk_pos.x);
+			nSize.y = std::min(m_chunk_size.y, m_size.y - m_chunk_size.y * it->chunk_pos.y);
+
+			if (nSize.x <= 0 || nSize.y <= 0) {
+				it = m_chunks.erase(it);
+				incr = true;
+			}
+			else {
+				it->tva.resize(nSize);
+			}
+		}
+		if (!incr)
+			it++;
+	}
+	m_size = size;
+}
+
 void ChunkVertexArray::do_setTile(Vec2u at, Vec2u texPos) {
 	Vec2u chunkPos;
 	chunkPos.x = at.x / m_chunk_size.x;
