@@ -290,7 +290,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 
 	auto start = std::chrono::system_clock::now();
 
-	// step 1: level size and other properties
+	// step 1: level properties
 	if (level->name() != asset->getAssetName())
 	{
 		set_name(asset->getAssetName());
@@ -306,7 +306,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		set_bg_color(asset->getBGColor());
 	}
 
-	// step 2: correct layers and ordering
+	// step 2: correct layer ordering
 
 	// get the layer ids & order from the asset
 	std::vector<unsigned> asset_ids;
@@ -364,7 +364,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		level_ndx++;
 	}
 
-	// step 3: per layer check each tile
+	// step 3: per layer update
 	auto it = asset->getLayerRefs()->begin();
 	for (auto& layer : layers) 
 	{
@@ -378,14 +378,52 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		const TileLayerRef& tile_ref = it->asTileLayer();
 
 		unsigned tile_ndx = 0;
-		unsigned width = tile_ref.tileSize.x;
-		unsigned height = tile_ref.tileSize.y;
-
-		select_layer(LayerPosition::At(layer.position));
+		unsigned width    = tile_ref.tileSize.x;
+		unsigned height   = tile_ref.tileSize.y;
 
 		unsigned paint_count = 0;
 		unsigned erase_count = 0;
 
+		select_layer(LayerPosition::At(layer.position));
+
+		// disable layer properties
+		if (layer.tilelayer.has_collision() && !tile_ref.has_collision)
+		{
+			layer.tilelayer.set_collision(false);
+			LOG_INFO("disable collision");
+		}
+		if (layer.tilelayer.has_scroll() && !tile_ref.has_scroll)
+		{
+			layer.tilelayer.set_scroll(false);
+			LOG_INFO("disable scroll");
+		}
+		if (layer.tilelayer.has_parallax() && !tile_ref.has_scroll)
+		{
+			layer.tilelayer.set_parallax(false);
+			LOG_INFO("disable parallax");
+		}
+
+		// enable or update layer properties
+		if ((!layer.tilelayer.has_collision() && tile_ref.has_collision) ||
+			(tile_ref.has_collision && (layer.tilelayer.get_collision_border() != tile_ref.collision_border_bits)))
+		{
+			layer.tilelayer.set_collision(true, tile_ref.collision_border_bits);
+			LOG_INFO("enable collision");
+		}
+		if ((!layer.tilelayer.has_scroll() && tile_ref.has_scroll) ||
+			(tile_ref.has_scroll && (layer.tilelayer.get_scrollrate() != tile_ref.scrollrate)))
+		{
+			layer.tilelayer.set_scroll(true, tile_ref.scrollrate);
+			LOG_INFO("enable scroll");
+		}
+		if ((!layer.tilelayer.has_parallax() && tile_ref.has_parallax) ||
+			(tile_ref.has_parallax && (layer.tilelayer.get_parallax_size() != tile_ref.parallaxSize)))
+		{
+			layer.tilelayer.set_parallax(true, tile_ref.parallaxSize);
+			LOG_INFO("enable parallax");
+		}
+
+		// update tiles
 		for (unsigned yy = 0; yy < height; yy++) {
 			for (unsigned xx = 0; xx < width; xx++) {
 
@@ -417,12 +455,11 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 			}
 		}
 
-		if (layer.tilelayer.has_collision())
-			layer.tilelayer.getCollisionMap()->applyChanges();
 
-		it++;
-
+		// predraw to apply changes
 		layer.tilelayer.predraw(0.0);
+
+		it++; // increment to next tilelayer ref
 
 		LOG_INFO("updated layer #{}: {} tile affected", layer.tilelayer.getID(), paint_count + erase_count);
 	}

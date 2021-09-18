@@ -306,6 +306,15 @@ bool TileLayer::set_scroll(bool enabled, Vec2f rate)
 		LOG_ERR_("Cannot enable scrolling on layer with collision");
 		return false;
 	}
+
+	if (scroll.enabled && !enabled)
+	{
+		scroll.offset = Vec2f{};
+		for (auto& vta_pair : chunks) {
+			vta_pair.varray.reset_scroll();
+		}
+	}
+
 	scroll.enabled = enabled;
 	scroll.rate = rate;
 	return true;
