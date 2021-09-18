@@ -8,21 +8,19 @@ namespace ff {
 
 
 LevelEditor::LevelEditor(Level& lvl, bool show_imgui) 
-	: display_imgui(show_imgui)
 {
 	level = &lvl;
 	assert(level);
-	if (!level->hasEditorHooked) {
-		level->hasEditorHooked = true;
-	}
-	else {
-		LOG_WARN("editor failed to hook level, already hooked");
-		level = nullptr;
-	}
+//	if (!level->hasEditorHooked) {
+//		//level->hasEditorHooked = true;
+//	}
+//	else {
+//		LOG_WARN("editor failed to hook level, already hooked");
+//		level = nullptr;
+//	}
 }
 
 LevelEditor::LevelEditor(GameContext context, bool show_imgui, std::string name, Vec2u tile_size)
-	: display_imgui(show_imgui)
 {
 	assert(tile_size.x >= LevelEditor::MIN_LEVEL_SIZE.x);
 	assert(tile_size.y >= LevelEditor::MIN_LEVEL_SIZE.y);
@@ -34,12 +32,14 @@ LevelEditor::LevelEditor(GameContext context, bool show_imgui, std::string name,
 }
 
 LevelEditor::~LevelEditor() {
-	if (level->hasEditorHooked) {
-		level->hasEditorHooked = false;
-	}
-	else {
-		LOG_WARN("editor failed to unhook level, already unhooked");
-	}
+//	if (level) {
+//		if (level->hasEditorHooked) {
+//			//level->hasEditorHooked = false;
+//		}
+//		else {
+//			LOG_WARN("editor failed to unhook level, already unhooked");
+//		}
+//	}
 }
 
 // LAYERS
@@ -149,7 +149,7 @@ bool LevelEditor::erase_layer()
 {
 	if (level && curr_layer)
 	{
-		// TODO
+		level->removeTileLayer(curr_layer->position);	
 	}
 	return false;
 }
@@ -275,32 +275,6 @@ bool LevelEditor::set_bg_color(Color bg_color)
 	return true;
 }
 
-// changes level's boundary collision
-/*
-bool LevelEditor::set_boundary(bool north, bool east, bool south, bool west)
-{
-	if (!level) return false;
-
-	unsigned bits = 
-		  (north ? cardinalToBits(Cardinal::NORTH) : 0u)
-		| (east  ? cardinalToBits(Cardinal::EAST)  : 0u)
-		| (south ? cardinalToBits(Cardinal::SOUTH) : 0u)
-		| (west  ? cardinalToBits(Cardinal::WEST)  : 0u);
-
-	level->set_borders(0u);
-	level->set_borders(bits);
-	return true;
-}
-bool LevelEditor::set_boundary(unsigned cardinalBits)
-{
-	if (!level) return false;
-
-	level->set_borders(0u);
-	level->set_borders(cardinalBits);
-	return true;
-}
-*/
-
 bool LevelEditor::set_size(Vec2u size)
 {
 	if (level && level->size() != size) {
@@ -344,26 +318,22 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 
 	unsigned asset_fg_ndx = std::distance(asset_ids.cbegin(), std::find(asset_ids.cbegin(), asset_ids.cend(), 0));
 
-	unsigned level_ndx = 0;
 	auto& layers = level->getTileLayers();
 
+	unsigned level_ndx = 0;
 	std::set<unsigned> nLayers;
 	for (unsigned asset_ndx = 0; asset_ndx < asset_ids.size(); asset_ndx++)
 	{
 		unsigned asset_layer_id = asset_ids[asset_ndx];
 		if (asset_layer_id == 0) {
-			LOG_INFO("object layer", asset_layer_id);
 			continue;
 		};
-
-		LOG_INFO("checking {}", asset_layer_id);
 
 		if (layers[level_ndx].tilelayer.getID() != asset_layer_id)
 		{
 			// try to find the correct id in the level
 			auto it = std::find_if(layers.begin(), layers.end(),
 					[asset_layer_id](const LevelLayer& layer) {
-						LOG_INFO("{}", layer.tilelayer.getID());
 						return layer.tilelayer.getID() == asset_layer_id;
 					});
 
@@ -391,9 +361,6 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 				}
 			}
 		}
-		else {
-			LOG_INFO("id:{} location good", asset_layer_id);
-		}
 		level_ndx++;
 	}
 
@@ -409,12 +376,15 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 			it++;
 
 		const TileLayerRef& tile_ref = it->asTileLayer();
-		unsigned tile_ndx = 0;
 
+		unsigned tile_ndx = 0;
 		unsigned width = tile_ref.tileSize.x;
 		unsigned height = tile_ref.tileSize.y;
 
 		select_layer(LayerPosition::At(layer.position));
+
+		unsigned paint_count = 0;
+		unsigned erase_count = 0;
 
 		for (unsigned yy = 0; yy < height; yy++) {
 			for (unsigned xx = 0; xx < width; xx++) {
@@ -425,13 +395,23 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 				if (tile_ndx >= tile_ref.tiles.size())
 					break;
 
+				auto& tilelayer = layer.tilelayer;
+
 				if (auto& tile = tile_ref.tiles.at(tile_ndx); tile.tilePos == pos) {
-					select_tileset(tile.tilesetName);
-					select_tile(tile.texPos);
-					paint_tile(pos);
+
+					if ( (!tilelayer.hasTileAt(pos))
+						|| (tilelayer.getTileTexPos(pos).value() != tile.texPos)
+						|| (tilelayer.getTileTileset(pos)->getAssetName() != tile.tilesetName)) 
+					{
+						paint_count++;
+						select_tileset(tile.tilesetName);
+						select_tile(tile.texPos);
+						paint_tile(pos);
+					}
 					tile_ndx++;
 				}
-				else {
+				else if (tilelayer.hasTileAt(pos)) {
+					erase_count++;
 					erase_tile(pos);
 				}
 			}
@@ -441,9 +421,13 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 			layer.tilelayer.getCollisionMap()->applyChanges();
 
 		it++;
+
+		LOG_INFO("updated layer #{}: total {} paints, {} erases", layer.tilelayer.getID(), paint_count, erase_count);
 	}
 
 	// step 4: check objects
+
+
 
 	std::chrono::duration<double> duration = std::chrono::system_clock::now() - start;
 	LOG_INFO("apply duration: {}s", duration.count());

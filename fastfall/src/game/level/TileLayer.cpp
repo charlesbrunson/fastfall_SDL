@@ -575,6 +575,36 @@ void TileLayer::shallow_copy(const TileLayer& layer, Rectu area, Vec2u lvlSize)
 	}
 }
 
+bool TileLayer::hasTileAt(Vec2u tile_pos)
+{
+	unsigned ndx = tile_pos.y * size.x + tile_pos.x;
+	if (tile_pos.x < size.x && tile_pos.y < size.y) 
+	{
+		return pos2data.at(ndx).has_tile;
+	}
+	return false;
+}
+
+std::optional<Vec2u> TileLayer::getTileTexPos(Vec2u tile_pos)
+{
+	unsigned ndx = tile_pos.y * size.x + tile_pos.x;
+	if (hasTileAt(tile_pos))
+	{
+		return pos2data.at(ndx).tex_pos;
+	}
+	return std::nullopt;
+}
+
+const TilesetAsset* TileLayer::getTileTileset(Vec2u tile_pos)
+{
+	unsigned ndx = tile_pos.y * size.x + tile_pos.x;
+	if (hasTileAt(tile_pos) && pos2data.at(ndx).tileset_id != TILEDATA_NONE)
+	{
+		return chunks.at(pos2data.at(ndx).tileset_id).tileset;
+	}
+	return nullptr;
+}
+
 void TileLayer::draw(RenderTarget& target, RenderState states) const {
 	states.transform = Transform::combine(states.transform, Transform(offset));
 

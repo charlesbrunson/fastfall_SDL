@@ -64,45 +64,6 @@ struct LayerPosition {
 };
 
 class LevelEditor {
-private:
-	/*
-	// internal types
-
-	struct SelectLayerCmd { LayerPosition layerpos; };
-	struct CreateLayerCmd { LayerPosition layerpos; };
-	struct MoveLayerCmd { LayerPosition layerpos; };
-	struct EraseLayerCmd { };
-
-	struct PaintTileCmd { Vec2u pos; };
-	struct EraseTileCmd { Vec2u pos; };
-
-	struct SelectTilesetCmd { std::string_view name; };
-	struct SelectTileCmd { Vec2u tileset_pos; };
-
-	struct SetNameCmd { std::string_view name; };
-	struct SetBGColorCmd { Color color; };
-	struct SetBoundary { bool north; bool east; bool south; bool west; };
-
-	//struct CreateObjCmd { ObjectRef ref; };
-
-	using EditCommand = std::variant<
-		SelectLayerCmd,
-		CreateLayerCmd,
-		MoveLayerCmd,
-		EraseLayerCmd,
-
-		PaintTileCmd,
-		EraseTileCmd,
-
-		SelectTilesetCmd,
-		SelectTileCmd,
-
-		SetNameCmd,
-		SetBGColorCmd,
-		SetBoundary
-	>;
-	*/
-
 public:
 	constexpr static Vec2u MIN_LEVEL_SIZE = Vec2u{ GAME_TILE_W, GAME_TILE_H };
 
@@ -125,7 +86,6 @@ public:
 	bool select_layer(LayerPosition layer_pos);
 	void select_obj_layer();
 	void deselect_layer();
-
 
 	// move selected layer to new position
 	// retains selection of moved layer
@@ -167,10 +127,7 @@ public:
 	// changes level's background color
 	bool set_bg_color(Color bg_color);
 
-	// changes level's boundary collision
-	//bool set_boundary(bool north, bool east, bool south, bool west);
-	//bool set_boundary(unsigned cardinalBits);
-
+	// resizes level
 	bool set_size(Vec2u size);
 
 	// OBJECTS - TODO LATER
@@ -198,10 +155,6 @@ public:
 
 protected:
 
-	bool display_imgui = false;
-
-	// internal
-
 	std::unique_ptr<Level> created_level = nullptr;
 	Level* level = nullptr;								// pointer to level being edited, may point externally or to created_level
 
@@ -210,7 +163,6 @@ protected:
 
 	const TilesetAsset* curr_tileset = nullptr;			// current tileset
 	std::optional<Vec2u> tileset_pos = std::nullopt;	// current tile from tileset
-
 };
 
 
