@@ -87,6 +87,7 @@ public:
 
 	inline const EngineStateAction& getEngineAction() noexcept { return eAct; };
 
+	/*
 	template<
 		typename T,
 		typename... Ts,
@@ -95,7 +96,11 @@ public:
 		!std::is_same<EngineState, std::decay_t<T>>::value
 		>::type
 	>
-		void createState(Ts&&... params) {
+	*/
+	template<typename T, typename... Ts>
+		requires std::is_base_of_v<EngineState, std::decay_t<T>>
+			&& (!std::is_same_v<EngineState, std::decay_t<T>>)
+	void createState(Ts&&... params) {
 
 		// protect states down chain from getting dropped
 		assert(!nextState.get());

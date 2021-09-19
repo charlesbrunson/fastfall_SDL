@@ -77,6 +77,21 @@ public:
 
 	~LevelEditor();
 
+	bool is_attached() {
+		return level && level->is_attached(this);
+	}
+
+	bool reattach() {
+		if (level) {
+			level->attach(this);
+
+			// references may be stale
+			bool obj_layer_selected = false;
+			LevelLayer* curr_layer = nullptr;
+		}
+		return level;
+	}
+
 	// LAYERS
 
 	// create layer at position, selects it

@@ -54,6 +54,9 @@ void TestState::update(secs deltaTime) {
 
 	if (edit) 
 	{
+		if (!edit->is_attached())
+			edit->reattach();
+
 		Vec2f mpos = Input::getMouseWorldPosition();
 		tpos = Vec2u{ mpos / TILESIZE_F };
 

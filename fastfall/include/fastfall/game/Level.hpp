@@ -14,6 +14,8 @@
 
 namespace ff {
 
+class LevelEditor;
+
 struct LevelLayer {
 
 	//-2 = second background layer (first draw)
@@ -52,6 +54,20 @@ public:
 	GameContext getContext() { return context; }
 	inline InstanceID getInstanceID() { return context.getID(); };
 
+	bool is_attached(LevelEditor* editor) { return editor == attached_editor; };
+
+	bool attach(LevelEditor* editor) { 
+		bool already_attached = is_attached(editor);
+		attached_editor = editor; 
+		return already_attached;
+	};
+
+	void detach(LevelEditor* editor) { 
+		if (is_attached(editor)) 
+		{ 
+			attached_editor = nullptr; 
+		} 
+	};
 
 
 	void resize(Vec2u n_size);
@@ -64,6 +80,8 @@ public:
 	bool hasEditorHooked = false;
 
 private:
+	const LevelEditor* attached_editor = nullptr;
+
 	GameContext context;
 
 	std::string levelName;
