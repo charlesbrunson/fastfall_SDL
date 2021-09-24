@@ -11,6 +11,11 @@ namespace plr {
 		float speed = 0.f;
 		int movex = 0;
 		int wishx = 0;
+
+		// relative to facing direction
+		float rel_speed = 0.f;
+		int rel_movex = 0;
+		int rel_wishx = 0;
 	};
 }
 
@@ -27,10 +32,12 @@ namespace plr::anim {
 	extern ff::AnimIDRef dash_p2;
 
 	extern ff::AnimIDRef jump;
-	extern ff::AnimIDRef fall;
-
 	extern ff::AnimIDRef jump_f;
+	extern ff::AnimIDRef jump_b;
+
+	extern ff::AnimIDRef fall;
 	extern ff::AnimIDRef fall_f;
+	extern ff::AnimIDRef fall_b;
 
 	extern ff::AnimIDRef brakeb;
 	extern ff::AnimIDRef brakef;

@@ -13,6 +13,11 @@ plr::move_t::move_t(const Player& plr)
 	speed = plr.ground->traverse_get_speed();
 	movex = (speed == 0.f ? 0 : (speed < 0.f ? -1 : 1));
 	speed = abs(speed);
+
+	int flipper = (plr.sprite->get_hflip() ? -1 : 1);
+	rel_speed = speed * flipper;
+	rel_movex = movex * flipper;
+	rel_wishx = wishx * flipper;
 }
 
 namespace plr::anim {
@@ -29,10 +34,12 @@ namespace plr::anim {
 	AnimIDRef dash_p2("player", "dash+2");
 
 	AnimIDRef jump("player", "jump");
-	AnimIDRef fall("player", "fall");
-
 	AnimIDRef jump_f("player", "jump_f");
+	AnimIDRef jump_b("player", "jump_b");
+
+	AnimIDRef fall("player", "fall");
 	AnimIDRef fall_f("player", "fall_f");
+	AnimIDRef fall_b("player", "fall_b");
 
 	AnimIDRef brakeb("player", "brake_back");
 	AnimIDRef brakef("player", "brake_front");

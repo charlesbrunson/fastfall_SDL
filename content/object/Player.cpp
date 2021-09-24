@@ -152,6 +152,11 @@ void Player::ImGui_Inspect() {
 		constants::jumpVelY.restore();
 	}
 
+	Separator();
+
+	if (curr_state) {
+		curr_state->get_imgui(*this);
+	}
 }
 
 void Player::draw(RenderTarget& target, RenderState states) const {

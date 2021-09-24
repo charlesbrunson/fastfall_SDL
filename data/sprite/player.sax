@@ -95,6 +95,30 @@
 		<loop>1</loop>
 	</animation>
 	
+	<animation name="jump_b">
+		<area   x="0" y="144" w="32" h="32" />
+		<origin x="16" y="32" />
+		<framerate count="2" defaultMS="120"/>
+		<loop>1</loop>
+	</animation>
+	
+	<animation name="fall_b">
+		<area   x="64" y="144" w="32" h="32" />
+		<origin x="16" y="32" />
+		<framerate>
+			<frame>80</frame>
+			<frame>60</frame>
+			<frame>40</frame>
+			<frame>40</frame>
+			<frame>40</frame>
+			<frame>60</frame>
+			<frame>60</frame>
+			<frame>80</frame>
+			<frame>80</frame>
+		</framerate>
+		<loop>1</loop>
+	</animation>
+	
 	<animation name="dash-2">
 		<area   x="288" y="0" w="32" h="32" />
 		<origin x="16" y="32" />

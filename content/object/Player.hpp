@@ -58,6 +58,8 @@ public:
 
 	virtual constexpr PlayerStateID get_id() const = 0;
 	virtual constexpr std::string_view get_name() const = 0;
+
+	virtual void get_imgui(Player& plr) {};
 };
 
 template<typename T>

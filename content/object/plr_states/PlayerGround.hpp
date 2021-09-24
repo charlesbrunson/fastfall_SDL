@@ -14,4 +14,6 @@ public:
 	constexpr std::string_view get_name() const override {
 		return "ground";
 	}
+
+	virtual void get_imgui(Player& plr);
 };

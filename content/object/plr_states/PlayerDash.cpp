@@ -155,10 +155,12 @@ void PlayerDashState::exit(Player& plr, PlayerState* to)
 {
 	plr.box->set_gravity(constants::grav_normal);
 
-	if (to->get_id() == PlayerStateID::Ground) {
-		apply_dash_vel(plr, end_velx);
-	}
+	if (to && to->get_id() != PlayerStateID::Dash) {
 
-	//plr.ground->settings.slope_sticking = true;
-	plr.ground->settings.use_surf_vel = true;
+		if (to->get_id() == PlayerStateID::Ground) {
+			apply_dash_vel(plr, end_velx);
+		}
+
+		plr.ground->settings.use_surf_vel = true;
+	}
 }
