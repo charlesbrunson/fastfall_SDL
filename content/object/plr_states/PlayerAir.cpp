@@ -39,6 +39,7 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime) {
 			if (!plr.sprite->is_playing_any({ 
 					anim::jump, anim::fall,
 					anim::jump_f, anim::fall_f,
+					anim::jump_b, anim::fall_b,
 				}))
 			{
 				plr.sprite->set_anim(anim::fall);
@@ -55,6 +56,12 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime) {
 				) 
 			{
 				plr.sprite->set_anim(anim::fall_f);
+			}
+			else if (plr.box->get_vel().y > -100.f
+				&& plr.sprite->is_playing(anim::jump_b)
+				) 
+			{
+				plr.sprite->set_anim(anim::fall_b);
 			}
 		}
 

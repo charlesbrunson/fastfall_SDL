@@ -13,6 +13,7 @@ namespace plr {
 		int wishx = 0;
 
 		// relative to facing direction
+		int facing = 0;
 		float rel_speed = 0.f;
 		int rel_movex = 0;
 		int rel_wishx = 0;

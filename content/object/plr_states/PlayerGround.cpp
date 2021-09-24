@@ -19,34 +19,6 @@ void PlayerGroundState::enter(Player& plr, PlayerState* from)
 
 }
 
-struct ground_move_t 
-{
-	ground_move_t(Player& plr) 
-	{
-		if (plr.ground->traverse_get_speed() != 0.f) {
-			r_move = plr.ground->traverse_get_speed() > 0 ? 1 : -1;
-
-			if (plr.sprite->get_hflip()) 
-				r_move *= -1;
-		}
-
-		r_wish = 0;
-		if (Input::isHeld(InputType::RIGHT)) r_wish++;
-		if (Input::isHeld(InputType::LEFT))  r_wish--;
-
-		if (plr.sprite->get_hflip()) 
-			r_wish *= -1;
-	}
-
-	int r_move = 0;
-	int r_wish = 0;
-
-	bool is_braking_f() { return r_move > 0 && r_wish <= 0; }
-	bool is_braking_b() { return r_move < 0 && r_wish >= 0; }
-
-};
-
-
 PlayerStateID PlayerGroundState::update(Player& plr, secs deltaTime)
 {
 	plr.sprite->set_playback(1.f);
@@ -72,22 +44,34 @@ PlayerStateID PlayerGroundState::update(Player& plr, secs deltaTime)
 			plr.ground->traverse_add_decel(constants::ground_high_decel);
 		}
 
-		auto accel = [&plr](int dir) {
+		auto accel = [&plr, &move](int dir) 
+		{
 			plr.ground->traverse_add_accel(dir * constants::ground_accel);
 			plr.ground->settings.surface_friction = constants::moving;
-		}; 
+		};
 
-		auto brake = [&plr, &move](bool hard) 
+		auto brake = [&plr, &move](bool is_idle) 
 		{
 			if (move.speed > 100.f) {
-				plr.sprite->set_anim(
-					move.rel_movex < move.rel_wishx ? anim::brakeb : anim::brakef
-				);
+				if (move.facing == move.movex) {
+					plr.sprite->set_anim(
+						move.rel_movex < move.rel_wishx ? anim::brakeb : anim::brakef
+					);
+				}
+				else {
+					plr.sprite->set_anim(
+						move.rel_movex < move.rel_wishx ? anim::brakef : anim::brakeb
+					);
+				}
+				if (move.speed <= 300.f) {
+					plr.sprite->set_frame(1);
+				}
 			}
+
 			plr.ground->settings.surface_friction = constants::braking;
 
 			plr.ground->traverse_add_decel(
-				hard ? constants::ground_high_decel : constants::ground_idle_decel
+				is_idle ? constants::ground_idle_decel : constants::ground_high_decel
 			);
 		};
 
@@ -97,23 +81,33 @@ PlayerStateID PlayerGroundState::update(Player& plr, secs deltaTime)
 
 				if (move.rel_wishx == move.rel_movex) 
 				{
-					plr.ground->settings.surface_friction = constants::moving;
+					if (move.movex != move.facing && move.speed > 100.f) {
+						brake(false);
+					}
+					else {
 
-					plr.sprite->set_hflip(move.wishx < 0);
-					accel(move.wishx);
-					plr.sprite->set_anim_if_not(anim::run);
-					plr.sprite->set_playback(
-						std::clamp(move.speed / 150.f, 0.5f, 2.f)
-					);
+						plr.ground->settings.surface_friction = constants::moving;
+
+						plr.sprite->set_hflip(move.wishx < 0);
+						accel(move.wishx);
+						plr.sprite->set_anim_if_not(anim::run);
+						plr.sprite->set_playback(
+							std::clamp(move.speed / 150.f, 0.5f, 1.5f)
+						);
+					}
 				}
-				else  
+				else
 				{
+					if (move.speed < 50.f) {
+						plr.ground->traverse_set_speed(0.f);
+					}
+
 					brake(true);
 				}
 			}
 			else {
-				plr.sprite->set_hflip(move.wishx < 0);
 				accel(move.wishx);
+				plr.sprite->set_hflip(move.wishx < 0);
 				plr.sprite->set_anim_if_not(anim::run);
 			}
 		}
@@ -121,14 +115,11 @@ PlayerStateID PlayerGroundState::update(Player& plr, secs deltaTime)
 
 			if (move.movex != 0) {
 
-				if (move.rel_wishx == move.rel_movex) 
+				if (move.speed < 25.f) 
 				{
 					plr.sprite->set_anim_if_not(anim::idle);
 				}
-				else 
-				{
-					brake(false);
-				}
+				brake(false);
 			}
 			else {
 				plr.sprite->set_anim_if_not(anim::idle);
@@ -136,70 +127,6 @@ PlayerStateID PlayerGroundState::update(Player& plr, secs deltaTime)
 
 			plr.ground->settings.surface_friction = constants::braking;
 		}
-
-
-
-		//update_anim(plr, move);
-		/*
-		if (move.speed <= 100.f && move.wishx == 0
-			|| move.speed <= 5.f && move.wishx != 0) 
-		{
-			plr.sprite->set_anim_if_not(anim::idle);
-		}
-		else {
-
-
-
-
-
-			if ((move.wishx < 0) == (move.movex < 0)) {
-				if (move.wishx != 0) {
-					plr.sprite->set_hflip(move.movex < 0);
-				}
-
-				plr.sprite->set_anim_if_not(anim::run);
-				plr.sprite->set_playback(
-					std::clamp(move.speed / 150.f, 0.5f, 2.f)
-				);
-			}
-		}
-		*/
-
-
-		/*
-		bool turning = move.wishx != 0 && ((move.movex < 0) != (move.wishx < 0));
-		bool nowishx = move.wishx == 0;
-		bool shouldbrake = nowishx || turning;
-
-		if (move.movex != 0 && move.speed > 100.f && shouldbrake) {
-			AnimID brakeStyle =
-				plr.sprite->get_hflip() == (move.movex < 0) ?
-				anim::brakef.id() :
-				anim::brakeb.id();
-
-			if (move.speed > 300.f) {
-				plr.sprite->set_anim(brakeStyle);
-			}
-			else if (!(plr.sprite->is_playing(brakeStyle) && plr.sprite->get_frame() == 0)) {
-				plr.sprite->set_anim(brakeStyle);
-				plr.sprite->set_frame(1);
-			}
-		}
-
-		if (move.wishx != 0) {
-			plr.ground->traverse_add_accel(move.wishx * constants::ground_accel);
-			plr.ground->settings.surface_friction =
-				turning || nowishx ?
-				constants::braking :
-				constants::moving;
-		}
-		else if (plr.ground->settings.has_friction) {
-			plr.ground->traverse_add_decel(constants::ground_idle_decel);
-			plr.ground->settings.surface_friction = constants::braking;
-		}
-		*/
-
-
 
 		// jumping
 		if (Input::isPressed(InputType::JUMP, 0.1f)) 
@@ -209,13 +136,12 @@ PlayerStateID PlayerGroundState::update(Player& plr, secs deltaTime)
 		}
 
 		// dashing
-		/*
 		if (Input::isPressed(InputType::DASH, 0.25f))
 		{
 			Input::confirmPress(InputType::DASH);
 			return action::dash(plr, move);
 		}
-		*/
+		
 	}
 	else {
 		return PlayerStateID::Air;
@@ -230,39 +156,4 @@ void PlayerGroundState::exit(Player& plr, PlayerState* to)
 
 void PlayerGroundState::get_imgui(Player& plr)
 {
-	ground_move_t m(plr);
-	ImGui::Text("r_move: %d", m.r_move);
-	ImGui::Text("r_wish: %d", m.r_wish);
-	ImGui::Text("braking_f: %d", m.is_braking_f());
-	ImGui::Text("braking_b: %d", m.is_braking_b());
 }
-
-void accel(Player& plr, const move_t& move)
-{
-
-	int r_move = 0;
-	int r_wish = 0;
-
-	if (plr.ground->traverse_get_speed() != 0.f) {
-		r_move = plr.ground->traverse_get_speed() > 0 ? 1 : -1;
-
-		if (plr.sprite->get_hflip())
-			r_move *= -1;
-	}
-
-	r_wish = 0;
-	if (Input::isHeld(InputType::RIGHT)) r_wish++;
-	if (Input::isHeld(InputType::LEFT))  r_wish--;
-
-	if (plr.sprite->get_hflip())
-		r_wish *= -1;
-
-	bool is_braking_f = r_move > 0 && r_wish <= 0;
-	bool is_braking_b = r_move < 0 && r_wish >= 0;
-
-
-
-	/*
-	*/
-}
-

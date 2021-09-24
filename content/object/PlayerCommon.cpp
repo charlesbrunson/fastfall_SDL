@@ -10,14 +10,18 @@ plr::move_t::move_t(const Player& plr)
 	if (Input::isHeld(InputType::RIGHT)) wishx++;
 	if (Input::isHeld(InputType::LEFT))  wishx--;
 
+	int flipper = (plr.sprite->get_hflip() ? -1 : 1);
+
 	speed = plr.ground->traverse_get_speed();
+	rel_speed = speed * flipper;
+
 	movex = (speed == 0.f ? 0 : (speed < 0.f ? -1 : 1));
 	speed = abs(speed);
 
-	int flipper = (plr.sprite->get_hflip() ? -1 : 1);
-	rel_speed = speed * flipper;
 	rel_movex = movex * flipper;
 	rel_wishx = wishx * flipper;
+
+	facing = flipper;
 }
 
 namespace plr::anim {
@@ -48,7 +52,7 @@ namespace plr::anim {
 namespace plr::constants {
 
 	Friction braking{ .stationary = 1.2f, .kinetic = 0.8f };
-	Friction moving{ .stationary = 0.f,  .kinetic = 0.f };
+	Friction moving { .stationary = 0.0f, .kinetic = 0.0f };
 
 	Default<float> max_speed = 500.f;
 	Default<float> norm_speed = 180.f;
@@ -82,20 +86,24 @@ namespace plr::action {
 			contact_velocity = plr.ground->get_contact()->velocity;
 		}
 
-		if ((move.wishx != 0 && abs(plr.ground->traverse_get_speed()) >= 100.f)
-			|| abs(plr.ground->traverse_get_speed()) >= constants::norm_speed - 10.f)
+		LOG_INFO("--------------");
+		LOG_INFO("{}", move.rel_movex);
+		LOG_INFO("{}", move.rel_wishx);
+		LOG_INFO("{}", move.rel_speed);
+
+		if ((move.rel_wishx > 0 && move.rel_speed >= 100.f)
+			|| move.rel_speed >= constants::norm_speed - 10.f)
 		{
 			plr.sprite->set_anim(anim::jump_f);
-			if (move.movex != 0) {
-				plr.sprite->set_hflip(move.movex < 0);
-			}
+		}
+		else if ((move.rel_wishx < 0 && move.rel_speed < 100.f) 
+				|| move.rel_speed < 0)
+		{
+			plr.sprite->set_anim(anim::jump_b);
 		}
 		else
 		{
 			plr.sprite->set_anim(anim::jump);
-			if (move.wishx != 0) {
-				plr.sprite->set_hflip(move.wishx < 0);
-			}
 		}
 
 		plr.ground->settings.slope_sticking = false;

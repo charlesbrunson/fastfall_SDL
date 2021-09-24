@@ -15,5 +15,5 @@ public:
 		return "ground";
 	}
 
-	virtual void get_imgui(Player& plr);
+	void get_imgui(Player& plr) override;
 };
