@@ -74,7 +74,14 @@ PlayerStateID PlayerGroundState::update(Player& plr, secs deltaTime)
 			plr.ground->traverse_add_accel(move.wishx * constants::ground_accel);
 			plr.ground->settings.surface_friction = constants::moving;
 
-			plr.sprite->set_hflip(move.wishx < 0);
+			if (plr.sprite->get_hflip() != (move.wishx < 0)) {
+				move.facing = !move.facing;
+				move.rel_movex *= -1;
+				move.rel_speed *= -1;
+				move.rel_wishx *= -1;
+				plr.sprite->set_hflip(move.wishx < 0);
+			}
+
 			plr.sprite->set_anim_if_not(anim::run);
 			plr.sprite->set_playback(
 				std::clamp(move.speed / 150.f, 0.5f, 1.5f)

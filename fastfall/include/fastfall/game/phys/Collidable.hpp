@@ -126,6 +126,8 @@ private:
 	Vec2f vel;
 	Vec2f pVel;
 
+	Vec2f friction;
+
 	Vec2f acc;
 	Vec2f gravity_acc;
 	Vec2f accel_accum;

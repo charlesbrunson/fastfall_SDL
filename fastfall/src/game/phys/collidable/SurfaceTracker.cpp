@@ -437,9 +437,10 @@ float SurfaceTracker::traverse_get_speed() {
 		return owner->get_vel().x;
 	}
 
+	Vec2f surfVel = (settings.use_surf_vel ? currentContact->getSurfaceVel() : Vec2f{});
+
 	Vec2f surf = math::vector(currentContact->collider.surface);
-	Vec2f proj = math::projection(owner->get_vel(), surf) 
-		- (settings.use_surf_vel ? currentContact->getSurfaceVel() : Vec2f{});
+	Vec2f proj = math::projection(owner->get_vel(), surf) - surfVel;
 
 	if (proj.x == 0.f) {
 		return 0.f;

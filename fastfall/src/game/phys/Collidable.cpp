@@ -217,7 +217,7 @@ void Collidable::init(Vec2f position, Vec2f size, Vec2f gravity) {
 
 void Collidable::update(secs deltaTime) {
 
-
+	vel -= friction;
 	acc = accel_accum;
 
 	for (auto& tracker : trackers) {
@@ -426,14 +426,15 @@ void Collidable::process_current_frame() {
 	if (trackers.empty())
 		return;
 
-	Vec2f friction;
+	//Vec2f friction;
+	friction = Vec2f{};
 	for (auto& tracker : trackers) {
 		tracker->process_contacts(currContacts);
 		friction += tracker->get_friction(pVel);
 	}
 	Vec2f prev = vel;
 
-	vel -= friction;
+	//vel -= friction;
 }
 
 
