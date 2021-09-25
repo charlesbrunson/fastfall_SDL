@@ -39,11 +39,11 @@ namespace plr::anim {
 
 	AnimIDRef jump("player", "jump");
 	AnimIDRef jump_f("player", "jump_f");
-	AnimIDRef jump_b("player", "jump_b");
+	//AnimIDRef jump_b("player", "jump_b");
 
 	AnimIDRef fall("player", "fall");
 	AnimIDRef fall_f("player", "fall_f");
-	AnimIDRef fall_b("player", "fall_b");
+	//AnimIDRef fall_b("player", "fall_b");
 
 	AnimIDRef brakeb("player", "brake_back");
 	AnimIDRef brakef("player", "brake_front");
@@ -86,25 +86,32 @@ namespace plr::action {
 			contact_velocity = plr.ground->get_contact()->velocity;
 		}
 
-		LOG_INFO("--------------");
-		LOG_INFO("{}", move.rel_movex);
-		LOG_INFO("{}", move.rel_wishx);
-		LOG_INFO("{}", move.rel_speed);
 
-		if ((move.rel_wishx > 0 && move.rel_speed >= 100.f)
-			|| move.rel_speed >= constants::norm_speed - 10.f)
+		float neutral_min_vx = -50.f;
+		float neutral_max_vx = constants::norm_speed - 5.f;
+
+		if (move.rel_speed > neutral_max_vx) 
 		{
+			// running jump
+
 			plr.sprite->set_anim(anim::jump_f);
 		}
-		else if ((move.rel_wishx < 0 && move.rel_speed < 100.f) 
-				|| move.rel_speed < 0)
-		{
-			plr.sprite->set_anim(anim::jump_b);
-		}
-		else
-		{
+		else if (move.rel_speed >= neutral_min_vx) {
+			// neutral jump
+
+			if (move.speed < 100.f && move.wishx != 0) {
+				plr.ground->traverse_set_speed(plr.ground->traverse_get_speed() + 50.f * move.wishx);
+			}
 			plr.sprite->set_anim(anim::jump);
+
 		}
+		else if (move.rel_speed < neutral_min_vx)
+		{
+			//back jump
+			plr.sprite->set_hflip(!plr.sprite->get_hflip());
+			plr.sprite->set_anim(anim::jump_f);
+		}
+
 
 		plr.ground->settings.slope_sticking = false;
 

@@ -53,16 +53,10 @@ PlayerStateID PlayerGroundState::update(Player& plr, secs deltaTime)
 		auto brake = [&plr, &move](bool is_idle) 
 		{
 			if (move.speed > 100.f) {
-				if (move.facing == move.movex) {
-					plr.sprite->set_anim(
-						move.rel_movex < move.rel_wishx ? anim::brakeb : anim::brakef
-					);
-				}
-				else {
-					plr.sprite->set_anim(
-						move.rel_movex < move.rel_wishx ? anim::brakef : anim::brakeb
-					);
-				}
+				plr.sprite->set_anim(
+					move.rel_movex < 0 ? anim::brakeb : anim::brakef
+				);
+
 				if (move.speed <= 300.f) {
 					plr.sprite->set_frame(1);
 				}
@@ -75,53 +69,55 @@ PlayerStateID PlayerGroundState::update(Player& plr, secs deltaTime)
 			);
 		};
 
-		if (move.wishx != 0) {
+		auto run = [&plr, &move]() 
+		{
+			plr.ground->traverse_add_accel(move.wishx * constants::ground_accel);
+			plr.ground->settings.surface_friction = constants::moving;
 
-			if (move.movex != 0) {
+			plr.sprite->set_hflip(move.wishx < 0);
+			plr.sprite->set_anim_if_not(anim::run);
+			plr.sprite->set_playback(
+				std::clamp(move.speed / 150.f, 0.5f, 1.5f)
+			);
+		};
 
+		if (move.wishx != 0) 
+		{
+			if (move.movex != 0) 
+			{
 				if (move.rel_wishx == move.rel_movex) 
 				{
 					if (move.movex != move.facing && move.speed > 100.f) {
 						brake(false);
 					}
 					else {
-
-						plr.ground->settings.surface_friction = constants::moving;
-
-						plr.sprite->set_hflip(move.wishx < 0);
-						accel(move.wishx);
-						plr.sprite->set_anim_if_not(anim::run);
-						plr.sprite->set_playback(
-							std::clamp(move.speed / 150.f, 0.5f, 1.5f)
-						);
+						run();
 					}
 				}
 				else
 				{
-					if (move.speed < 50.f) {
+					if (move.speed < 25.f) {
 						plr.ground->traverse_set_speed(0.f);
 					}
-
 					brake(true);
 				}
 			}
 			else {
-				accel(move.wishx);
-				plr.sprite->set_hflip(move.wishx < 0);
-				plr.sprite->set_anim_if_not(anim::run);
+				run();
 			}
 		}
-		else {
-
-			if (move.movex != 0) {
-
+		else 
+		{
+			if (move.movex != 0) 
+			{
 				if (move.speed < 25.f) 
 				{
 					plr.sprite->set_anim_if_not(anim::idle);
 				}
 				brake(false);
 			}
-			else {
+			else 
+			{
 				plr.sprite->set_anim_if_not(anim::idle);
 			}
 

@@ -7,7 +7,7 @@ using namespace ff;
 
 using namespace plr;
 
-constexpr secs dash_duration = 0.20;
+constexpr secs dash_duration = 0.25;
 
 constexpr float start_velx = 240.f;
 constexpr float end_velx = 240.f;
@@ -135,12 +135,14 @@ PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
 	if (dash_time >= dash_duration) {
 		if (plr.ground->has_contact()) {
 
+			/*
 			LOG_INFO("{}", plr.ground->traverse_get_speed());
 			if (Input::isHeld(InputType::DASH))
 			{
 				//Input::confirmPress(InputType::DASH);
 				return action::dash(plr, move_t(plr));
 			}
+			*/
 			return PlayerStateID::Ground;
 		}
 
@@ -155,12 +157,9 @@ void PlayerDashState::exit(Player& plr, PlayerState* to)
 {
 	plr.box->set_gravity(constants::grav_normal);
 
-	if (to && to->get_id() != PlayerStateID::Dash) {
-
-		if (to->get_id() == PlayerStateID::Ground) {
-			apply_dash_vel(plr, end_velx);
-		}
-
-		plr.ground->settings.use_surf_vel = true;
+	if (to->get_id() == PlayerStateID::Ground) {
+		apply_dash_vel(plr, end_velx);
 	}
+
+	plr.ground->settings.use_surf_vel = true;
 }

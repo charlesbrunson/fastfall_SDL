@@ -34,11 +34,11 @@ namespace plr::anim {
 
 	extern ff::AnimIDRef jump;
 	extern ff::AnimIDRef jump_f;
-	extern ff::AnimIDRef jump_b;
+	//extern ff::AnimIDRef jump_b;
 
 	extern ff::AnimIDRef fall;
 	extern ff::AnimIDRef fall_f;
-	extern ff::AnimIDRef fall_b;
+	//extern ff::AnimIDRef fall_b;
 
 	extern ff::AnimIDRef brakeb;
 	extern ff::AnimIDRef brakef;
