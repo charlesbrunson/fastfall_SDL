@@ -285,10 +285,10 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 	{
 		set_name(asset->getAssetName());
 	}
-	
+
 	if (level->size() != asset->getTileDimensions())
 	{
-		set_size(asset->getTileDimensions());	
+		set_size(asset->getTileDimensions());
 	}
 
 	if (level->getBGColor() != asset->getBGColor())
@@ -301,57 +301,161 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 	// get the layer ids & order from the asset
 	std::vector<unsigned> asset_ids;
 	std::transform(asset->getLayerRefs()->begin(), asset->getLayerRefs()->end(),
-			std::back_inserter(asset_ids), 
-			[](const LayerRef& layer) -> unsigned {
-				return layer.type == LayerRef::Type::Tile ? layer.id : 0; // mark obj layer as zero
-			});
+		std::back_inserter(asset_ids),
+		[](const LayerRef& layer) -> unsigned {
+			return layer.type == LayerRef::Type::Tile ? layer.id : 0; // mark obj layer as zero
+		});
 
 	unsigned asset_fg_ndx = std::distance(asset_ids.cbegin(), std::find(asset_ids.cbegin(), asset_ids.cend(), 0));
 
 	auto& layers = level->getTileLayers();
-
-	unsigned level_ndx = 0;
 	std::set<unsigned> nLayers;
-	for (unsigned asset_ndx = 0; asset_ndx < asset_ids.size(); asset_ndx++)
+
+	auto create = [this, &nLayers, asset](LayerPosition pos, unsigned ndx, unsigned id) -> bool {
+		bool ret;
+		ret = create_layer(pos);
+
+		assert(ret);
+
+		curr_layer->tilelayer = TileLayer{
+			level->getContext(),
+			id,
+			asset->getLayerRefs()->at(ndx).asTileLayer()
+		};
+		nLayers.insert(id);
+
+		return ret;
+	};
+
+
+	{
+		std::stringstream ss;
+		unsigned i = 0;
+		for (auto& layer : layers) {
+			ss << layer.tilelayer.getID() << " ";
+			i++;
+		}
+		LOG_INFO("level layer order: {}", ss.str());
+	}
+	{
+		std::stringstream ss;
+		for (unsigned id : asset_ids) {
+			ss << id << " ";
+		}
+		LOG_INFO("asset layer order: {}", ss.str());
+	}
+
+	for (unsigned asset_ndx = 0; asset_ndx < asset_ids.size(); )
 	{
 		unsigned asset_layer_id = asset_ids[asset_ndx];
-		if (asset_layer_id == 0) {
+		int asset_pos = (int)asset_ndx - asset_fg_ndx;
+
+		std::stringstream ss;
+
+		unsigned layer_ndx = asset_ndx - (asset_pos > 0 ? 1 : 0); // remove object layer
+
+		if (asset_layer_id == 0) // object layer
+		{
+			LOG_INFO("---OBJECT LAYER---")
+			asset_ndx++;
 			continue;
 		};
 
-		if (layers[level_ndx].tilelayer.getID() != asset_layer_id)
+
+		LOG_INFO("asset ndx: {}, layer id: {}, exp pos: {}", asset_ndx, asset_layer_id, asset_pos);
+
+		log::scope sc;
+
+		if (layer_ndx >= layers.size())
 		{
-			// try to find the correct id in the level
-			auto it = std::find_if(layers.begin(), layers.end(),
-					[asset_layer_id](const LevelLayer& layer) {
-						return layer.tilelayer.getID() == asset_layer_id;
+			LOG_INFO("creating layer {} at end", asset_layer_id);
+
+			// create layer
+			create(LayerPosition::End(), asset_ndx, asset_layer_id);
+			asset_ndx++;
+		}
+		else
+		{
+			int position = layers.at(layer_ndx).position;
+			auto& layer = layers.at(layer_ndx).tilelayer;
+
+			if (layer.getID() != asset_layer_id || position != asset_pos)
+			{
+
+				auto asset_has_level_layer_it = std::find_if(asset_ids.begin(), asset_ids.end(), [&layer](unsigned id) {
+						return layer.getID() == id;
 					});
 
-			int layer_pos = (int)asset_ndx - asset_fg_ndx;
-			bool is_bg = layer_pos < 0;
+				auto level_has_asset_layer_it = std::find_if(layers.begin(), layers.end(), [asset_layer_id](LevelLayer& t_layer) {
+						return t_layer.tilelayer.getID() == asset_layer_id;
+					});
 
-			if (it != layers.end()) {
-				LOG_INFO("id:{} wrong position", asset_layer_id);
+				bool asset_has_level_layer = asset_has_level_layer_it != asset_ids.end();
+				bool level_has_asset_layer = level_has_asset_layer_it != layers.end();
 
-				if (select_layer(LayerPosition::At(it->position))) 
+
+				LOG_INFO("layer id mismatch, level layer = {}, asset:{}, level:{}", layer.getID(), asset_has_level_layer, level_has_asset_layer);
+
+
+				if (asset_has_level_layer && level_has_asset_layer)
 				{
-					move_layer(LayerPosition::At(layer_pos));
+					// out of order
+					if (select_layer(LayerPosition::At(level_has_asset_layer_it->position)))
+					{
+
+						LOG_INFO(" -- moving layer {} (at {}) to {}",
+							level_has_asset_layer_it->tilelayer.getID(),
+							level_has_asset_layer_it->position,
+							asset_pos
+						);
+
+
+						// TODO PICK THE RIGHT POSITION TO MOVE TO:
+						move_layer(LayerPosition::At(asset_pos));
+					}
+					asset_ndx++;
+
+				}
+				else if (!asset_has_level_layer)
+				{
+					//erase layer
+					if (select_layer(LayerPosition::At(position)))
+					{
+						LOG_INFO(" -- erasing layer {} at {}",
+							curr_layer->tilelayer.getID(),
+							position
+						);
+						erase_layer();
+					}
+				}
+				else if (!level_has_asset_layer)
+				{
+					// create layer
+					LOG_INFO(" -- creating layer {} at {}",
+						asset_layer_id,
+						asset_pos
+					);
+					create(LayerPosition::At(asset_pos), asset_ndx, asset_layer_id);
+					asset_ndx++;
 				}
 			}
 			else {
-				LOG_INFO("id:{} doesn't exist", asset_layer_id);
-				if (create_layer(LayerPosition::At(layer_pos)))
-				{
-					curr_layer->tilelayer = TileLayer{
-						level->getContext(),
-						asset_layer_id,
-						asset->getLayerRefs()->at(asset_ndx).asTileLayer(),
-					};
-					nLayers.insert(asset_layer_id);
-				}
+				LOG_INFO("layer id match, level layer = {}", layer.getID());
+				asset_ndx++;
 			}
 		}
-		level_ndx++;
+
+		
+		{
+			std::stringstream ss;
+			unsigned i = 0;
+			for (auto& layer : layers) {
+				ss << layer.tilelayer.getID() << (i == layer_ndx ? "|" : " ");
+				i++;
+			}
+			LOG_INFO("level layer order: {}", ss.str());
+		}
+
 	}
 
 	// step 3: per layer update
@@ -359,11 +463,15 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 	for (auto& layer : layers) 
 	{
 		if (nLayers.contains(layer.tilelayer.getID())) {
+			// this is a created layer, no need to update
+			it++;
 			continue;
 		}
 
 		if (it->type == LayerRef::Type::Object)
 			it++;
+
+		assert(layer.tilelayer.getID() == it->id);
 
 		const TileLayerRef& tile_ref = it->asTileLayer();
 
@@ -418,7 +526,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 			for (unsigned xx = 0; xx < width; xx++) {
 
 				Vec2u pos{ xx, yy };
-				size_t ndx = xx + yy * width;
+				//size_t ndx = (size_t)xx + yy * width;
 
 				if (tile_ndx >= tile_ref.tiles.size())
 					break;
@@ -453,6 +561,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 
 		LOG_INFO("updated layer #{}: {} tile affected", layer.tilelayer.getID(), paint_count + erase_count);
 	}
+
 
 	// step 4: check objects
 

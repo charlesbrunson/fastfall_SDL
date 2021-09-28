@@ -104,7 +104,7 @@ PlayerStateID PlayerGroundState::update(Player& plr, secs deltaTime)
 				else
 				{
 					if (move.speed < 25.f) {
-						plr.ground->traverse_set_speed(0.f);
+						plr.ground->traverse_set_speed(move.wishx * 25.f);
 					}
 					brake(true);
 				}

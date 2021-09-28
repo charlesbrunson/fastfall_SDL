@@ -29,7 +29,7 @@ void InputState::deactivate() {
 	if (activeCounter <= 0) {
 		activeCounter = 0;
 		active = false;
-		confirmed = false;
+		//confirmed = false;
 		firstFrame = false;
 		lastHoldDuration = lastPressed;
 		lastPressed = 0.0;
