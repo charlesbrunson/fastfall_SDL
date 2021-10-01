@@ -113,11 +113,11 @@ public:
 	}
 	static std::unique_ptr<TileLogic> create(GameContext context, std::string_view typeName);
 
-private:
+	virtual std::unique_ptr<TileLogic> clone(GameContext n_context) = 0;
 
+private:
 	using Map = std::map<std::string, TileLogicType, std::less<>>;
 	using Iterator = std::map<std::string, TileLogicType>::iterator;
-
 
 	static Map& getMap() {
 		static Map factories;

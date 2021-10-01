@@ -32,7 +32,7 @@ TestState::TestState()
 	clearColor = ff::Color{ 0x141013FF };
 
 	edit = std::make_unique<LevelEditor>( *lvl, false );
-	edit->select_layer(LayerPosition::Foreground());
+	edit->select_layer(-1);
 	edit->select_tileset("tile_test");
 	edit->select_tile(Vec2u{ 0, 0 });
 
@@ -54,8 +54,10 @@ void TestState::update(secs deltaTime) {
 
 	if (edit) 
 	{
-		if (!edit->is_attached())
+		if (!edit->is_attached()) {
 			edit->reattach();
+		}
+		edit->select_layer(-1);
 
 		Vec2f mpos = Input::getMouseWorldPosition();
 		tpos = Vec2u{ mpos / TILESIZE_F };

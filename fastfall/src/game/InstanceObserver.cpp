@@ -301,8 +301,8 @@ void levelContent(GameContext context) {
 			constexpr const char* obj_label = "%2d. Objects               #%u";
 			constexpr const char* fg_label  = "%2d. Foreground%s           #%u";
 
-			auto it = lvl->getTileLayers().begin();
-			for (; it != lvl->getTileLayers().end() && it->position < 0; it++) {
+			auto it = lvl->get_layers().get_tile_layers().begin();
+			for (; it != lvl->get_layers().get_tile_layers().end() && it->position < 0; it++) {
 				if (ImGui::TreeNode(
 					(void*)(&*it), 
 					bg_label, 
@@ -314,7 +314,7 @@ void levelContent(GameContext context) {
 					ImGui::TreePop();
 				}
 			}
-			ObjectLayer& layer = lvl->getObjLayer();
+			ObjectLayer& layer = lvl->get_layers().get_obj_layer();
 			if (ImGui::TreeNode(
 				(void*)(&layer), 
 				obj_label, 
@@ -335,7 +335,7 @@ void levelContent(GameContext context) {
 				}
 				ImGui::TreePop();
 			}
-			for (; it != lvl->getTileLayers().end(); it++) {
+			for (; it != lvl->get_layers().get_tile_layers().end(); it++) {
 				if (ImGui::TreeNode(
 					(void*)(&layer), 
 					fg_label, 

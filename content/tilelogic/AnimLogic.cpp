@@ -14,9 +14,11 @@ void AnimLogic::addTile(Vec2u tilePos, Tile tile, std::string arg) {
 
 void AnimLogic::removeTile(Vec2u tilePos) {
 		
-	tile_timers.erase(std::find_if(tile_timers.begin(), tile_timers.end(), [&tilePos](TileTimer& timer) {
+	if (!tile_timers.empty()) {
+		tile_timers.erase(std::find_if(tile_timers.begin(), tile_timers.end(), [&tilePos](TileTimer& timer) {
 			return timer.tile_impacted == tilePos;
-		}));
+			}));
+	}
 
 	erase_command_if([&tilePos](const TileLogicCommand& cmd) {
 			return cmd.position == tilePos;
@@ -73,6 +75,13 @@ void AnimLogic::update(secs deltaTime) {
 
 		tile_timers.erase(iter, tile_timers.end());
 	}
+}
+
+
+std::unique_ptr<TileLogic> AnimLogic::clone(GameContext n_context) {
+	std::unique_ptr<TileLogic> ptr = std::make_unique<AnimLogic>(n_context);
+	*(AnimLogic*)ptr.get() = *this;
+	return ptr;
 }
 
 

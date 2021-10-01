@@ -51,9 +51,13 @@ public:
     LevelTileLayer* tile_layer_at(position_t pos);
 
     std::vector<LevelTileLayer>& get_tile_layers() { return tile_layers; }
+    const std::vector<LevelTileLayer>& get_tile_layers() const { return tile_layers; }
+
     ObjectLayer& get_obj_layer() { return obj_layer; };
-    int get_fg_count() { return fg_count; };
-    int get_bg_count() { return bg_count; };
+    const ObjectLayer& get_obj_layer() const { return obj_layer; };
+
+    int get_fg_count() const  { return fg_count; };
+    int get_bg_count() const  { return bg_count; };
 
     std::string to_string();
 

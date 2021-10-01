@@ -48,7 +48,7 @@ TileLayer::TileLayer(const TileLayer& tile)
 
 	tileLogic.clear();
 	for (const auto& logic : tile.tileLogic) {
-		tileLogic.push_back(TileLogic::create(m_context, logic->getName()));
+		tileLogic.push_back(logic->clone(m_context));
 	}
 
 	if (tile.collision.enabled) {
@@ -78,7 +78,7 @@ TileLayer& TileLayer::operator=(const TileLayer& tile) {
 
 	tileLogic.clear();
 	for (const auto& logic : tile.tileLogic) {
-		tileLogic.push_back(TileLogic::create(m_context, logic->getName()));
+		tileLogic.push_back(logic->clone(m_context));
 	}
 
 	if (tile.collision.enabled) {

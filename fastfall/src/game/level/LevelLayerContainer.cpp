@@ -118,7 +118,7 @@ LevelLayerContainer::position_t LevelLayerContainer::push_fg_front(const TileLay
 
 LevelLayerContainer::position_t LevelLayerContainer::push_fg_front(TileLayer&& layer)
 {
-    return insert(fg_count + 1, layer);
+    return insert(fg_count + 1, std::move(layer));
 }
 
 LevelLayerContainer::position_t LevelLayerContainer::push_fg_back(const TileLayer& layer)
@@ -128,7 +128,7 @@ LevelLayerContainer::position_t LevelLayerContainer::push_fg_back(const TileLaye
 
 LevelLayerContainer::position_t LevelLayerContainer::push_fg_back(TileLayer&& layer)
 {
-    return insert(1, layer);
+    return insert(1, std::move(layer));
 }
 
 LevelLayerContainer::position_t LevelLayerContainer::push_bg_front(const TileLayer& layer)
@@ -138,7 +138,7 @@ LevelLayerContainer::position_t LevelLayerContainer::push_bg_front(const TileLay
 
 LevelLayerContainer::position_t LevelLayerContainer::push_bg_front(TileLayer&& layer)
 {
-    return insert(-1, layer);
+    return insert(-1, std::move(layer));
 }
 
 LevelLayerContainer::position_t LevelLayerContainer::push_bg_back(const TileLayer& layer)
@@ -148,7 +148,7 @@ LevelLayerContainer::position_t LevelLayerContainer::push_bg_back(const TileLaye
 
 LevelLayerContainer::position_t LevelLayerContainer::push_bg_back(TileLayer&& layer)
 {
-    return insert(-bg_count - 1, layer);
+    return insert(-bg_count - 1, std::move(layer));
 }
 
 LevelLayerContainer::position_t LevelLayerContainer::swap_next(position_t pos)
@@ -158,7 +158,6 @@ LevelLayerContainer::position_t LevelLayerContainer::swap_next(position_t pos)
     if (pos == 0) {
         if (fg_count > 0) {
             swap_prev(1);
-            return 0;
         }
     }
     else {
@@ -188,6 +187,7 @@ LevelLayerContainer::position_t LevelLayerContainer::swap_next(position_t pos)
             }
         }
     }
+    return pos;
 }
 
 LevelLayerContainer::position_t LevelLayerContainer::swap_prev(position_t pos)

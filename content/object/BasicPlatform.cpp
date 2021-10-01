@@ -14,7 +14,7 @@ BasicPlatform::BasicPlatform(ff::GameContext instance, const ff::ObjectRef& ref,
 			ff::object_id path_id = std::atoi(propValue.c_str());
 
 			if (auto lvl = ff::instance::lvl_get_active(context)) {
-				if (auto ref_ptr = lvl->getObjLayer().getRefByID(path_id)) {
+				if (auto ref_ptr = lvl->get_layers().get_obj_layer().getRefByID(path_id)) {
 					waypoints_origin = ff::Vec2f{ ref_ptr->position };
 					waypoints = &ref_ptr->points;
 				}

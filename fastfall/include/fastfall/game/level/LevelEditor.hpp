@@ -11,60 +11,6 @@
 namespace ff {
 
 
-struct LayerPosition {
-	enum class Type {
-		At,
-		Start,
-		End
-	} type;
-	int position;
-
-	void update(const Level* lvl) {
-		int layer_count = lvl->get_layers().size();
-		if (layer_count == 0) {
-			position = 0;
-			return;
-		}
-
-		int fgNdx = lvl->getFGStartNdx();
-
-		if (position >= (layer_count - fgNdx))
-		{
-			type = LayerPosition::Type::End;
-		}
-		else if (position < (-fgNdx))
-		{
-			type = LayerPosition::Type::Start;
-		}
-	}
-
-	static LayerPosition Start() {
-		return LayerPosition{
-			.type = Type::Start,
-			.position = 0
-		};
-	};
-	static LayerPosition End() {
-		return LayerPosition{
-			.type = Type::End,
-			.position = 0
-		};
-	};
-	static LayerPosition At(int layer_pos) {
-		return LayerPosition{
-			.type = Type::At,
-			.position = layer_pos
-		};
-	};
-	static LayerPosition Foreground() {
-		return LayerPosition{
-			.type = Type::At,
-			.position = 0
-		};
-	};
-};
-
-
 class LevelEditor {
 public:
 	constexpr static Vec2u MIN_LEVEL_SIZE = Vec2u{ GAME_TILE_W, GAME_TILE_H };
@@ -97,16 +43,16 @@ public:
 	// LAYERS
 
 	// create layer at position, selects it
-	bool create_layer(LayerPosition layer_pos); 
+	bool create_layer(int layer_pos); 
 
 	// select layer at positon (start and end specify the first and last layer, respectively)
-	bool select_layer(LayerPosition layer_pos);
+	bool select_layer(int layer_pos);
 	void select_obj_layer();
 	void deselect_layer();
 
 	// move selected layer to new position
 	// retains selection of moved layer
-	bool move_layer(LayerPosition layer_pos);
+	bool move_layer(int layer_pos);
 
 	// erases selected layer
 	// deselects layer

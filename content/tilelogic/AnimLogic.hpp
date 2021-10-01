@@ -14,6 +14,9 @@ public:
 	void removeTile(Vec2u tilePos) override;
 	void update(secs deltaTime) override;
 
+
+	std::unique_ptr<TileLogic> clone(GameContext n_context) override;
+
 private:
 	struct TileTimer {
 		secs time_to_anim;

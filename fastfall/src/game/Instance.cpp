@@ -53,7 +53,7 @@ void GameInstance::reset() {
 
 	if (lvl) {
 		populateSceneFromLevel(*lvl);
-		lvl->getObjLayer().createObjects(GameContext{ instanceID });
+		lvl->get_layers().get_obj_layer().createObjects(GameContext{ instanceID });
 	}
 	want_reset = false;
 }
@@ -67,7 +67,7 @@ bool GameInstance::addLevel(const LevelAsset& levelRef) {
 	if (r.second && !activeLevel) {
 		activeLevel = r.first->first;
 		populateSceneFromLevel(*r.first->second);
-		r.first->second->getObjLayer().createObjects(context);
+		r.first->second->get_layers().get_obj_layer().createObjects(context);
 	}
 	return r.second;
 }
@@ -75,7 +75,8 @@ bool GameInstance::addLevel(const LevelAsset& levelRef) {
 void GameInstance::populateSceneFromLevel(Level& lvl)
 {
 	sceneMan.clearType(SceneType::Level);
-	for (auto& layer : lvl.getTileLayers())
+	auto& tile_layers = lvl.get_layers().get_tile_layers();
+	for (auto& layer : tile_layers)
 	{
 		sceneMan.add(SceneType::Level, layer.tilelayer, layer.position);
 	}
