@@ -10,6 +10,7 @@
 
 namespace ff {
 
+
 struct LayerPosition {
 	enum class Type {
 		At,
@@ -19,7 +20,7 @@ struct LayerPosition {
 	int position;
 
 	void update(const Level* lvl) {
-		int layer_count = lvl->getTileLayers().size();
+		int layer_count = lvl->get_layers().size();
 		if (layer_count == 0) {
 			position = 0;
 			return;
@@ -63,6 +64,7 @@ struct LayerPosition {
 	};
 };
 
+
 class LevelEditor {
 public:
 	constexpr static Vec2u MIN_LEVEL_SIZE = Vec2u{ GAME_TILE_W, GAME_TILE_H };
@@ -86,8 +88,8 @@ public:
 			level->attach(this);
 
 			// references may be stale
-			bool obj_layer_selected = false;
-			LevelLayer* curr_layer = nullptr;
+			obj_layer_selected = false;
+			curr_layer = nullptr;
 		}
 		return level;
 	}
@@ -174,7 +176,7 @@ protected:
 	Level* level = nullptr;								// pointer to level being edited, may point externally or to created_level
 
 	bool obj_layer_selected = false;
-	LevelLayer* curr_layer = nullptr;					// current tile layer
+	LevelTileLayer* curr_layer = nullptr;				// current tile layer
 
 	const TilesetAsset* curr_tileset = nullptr;			// current tileset
 	std::optional<Vec2u> tileset_pos = std::nullopt;	// current tile from tileset

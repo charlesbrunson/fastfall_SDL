@@ -10,16 +10,16 @@
 
 namespace ff {
 
+// LEVEL
+
 Level::Level(GameContext context) :
-	context(context),
-	objLayer()
+	context(context)
 {
 
 }
 
 Level::Level(GameContext context, const LevelAsset& levelData) :
-	context(context),
-	objLayer()
+	context(context)
 {
 	init(levelData);
 }
@@ -29,14 +29,14 @@ void Level::update(secs deltaTime) {
 	if (deltaTime == 0.0)
 		return;
 
-	for (auto& [pos, layer] : layers) {
+	for (auto& [pos, layer] : layers.get_tile_layers()) {
 		layer.update(deltaTime);
 	}	
 }
 
 void Level::predraw(secs deltaTime) {
 
-	for (auto& [pos, layer] : layers) {
+	for (auto& [pos, layer] : layers.get_tile_layers()) {
 		layer.predraw(deltaTime);
 	}
 }
@@ -47,28 +47,22 @@ void Level::init(const LevelAsset& levelData) {
 	levelSize = levelData.getTileDimensions();
 
 	layers.clear();
-	objLayer.clear();
-	fg1_layer_ndx = 0;
 
 	// count the layers first
-	bool bg = true;
 	int bg_count = 0u;
 	int fg_count = 0u;
+	bool is_bg = true;
 	for (auto& layerRef : *levelData.getLayerRefs())
 	{
-		switch (layerRef.type)
-		{
-		case LayerRef::Type::Object: 
-			bg = false; 
-			break;
-		case LayerRef::Type::Tile: 
-			(bg ? bg_count : fg_count)++;
-			break;
+		if (layerRef.type == LayerRef::Type::Tile) {
+			(is_bg ? bg_count : fg_count)++;
+		}
+		else {
+			is_bg = false;
 		}
 	}
 
-	layers.reserve((size_t)bg_count + fg_count);
-	//fg1_layer_ndx = bg_count;
+	layers.get_tile_layers().reserve((size_t)bg_count + fg_count);
 
 	// start building the layers
 	int count = 0;
@@ -77,80 +71,26 @@ void Level::init(const LevelAsset& levelData) {
 		switch (layerRef.type)
 		{
 		case LayerRef::Type::Object:
-			objLayer.initFromAsset(context, layerRef.id, layerRef.asObjLayer());
+			layers.get_obj_layer().initFromAsset(context, layerRef.id, layerRef.asObjLayer());
 			break;
 		case LayerRef::Type::Tile:
 			bool is_bg = count - bg_count < 0;
-			insertTileLayer({
-					.position = (is_bg ? -1 : count - bg_count),
-					.tilelayer = TileLayer(context, layerRef.id, layerRef.asTileLayer())
-				});
+
+			if (is_bg) {
+				layers.push_bg_front(TileLayer{ context, layerRef.id, layerRef.asTileLayer() });
+			}
+			else {
+				layers.push_fg_front(TileLayer{ context, layerRef.id, layerRef.asTileLayer() });
+			}
 			count++;
 			break;
 		}
 	}
 }
 
-
-LevelLayer& Level::insertTileLayer(LevelLayer&& layer)
-{
-	std::vector<LevelLayer>::iterator ret;
-	if (layer.position < 0) {
-		auto it = std::upper_bound(
-			layers.begin(), layers.end(),
-			layer.position,
-			[](int pos, const LevelLayer& lvllayer) {
-				return lvllayer.position > pos;
-			});
-
-		ret = layers.insert(it, std::move(layer));
-
-		fg1_layer_ndx++;
-		for (int i = -fg1_layer_ndx; i < 0; i++) {
-			layers.at(i + fg1_layer_ndx).position = i;
-		}
-	}
-	else {
-		auto it = std::upper_bound(
-			layers.begin(), layers.end(),
-			layer.position,
-			[](int pos, const LevelLayer& lvllayer) {
-				return lvllayer.position > pos;
-			});
-
-		ret = layers.insert(it, std::move(layer));
-		for (int i = 0; i < (layers.size() - fg1_layer_ndx); i++) {
-			layers.at(i + fg1_layer_ndx).position = i;
-		}
-	}
-	return *ret;
-}
-void Level::removeTileLayer(int position)
-{
-	auto it = std::find_if(
-		layers.begin(), layers.end(),
-		[position](const LevelLayer& lvllayer) {
-			return lvllayer.position == position;
-		});
-
-	if (it != layers.end())
-	{
-		layers.erase(it);
-		if (position < 0) {
-			fg1_layer_ndx--;
-		}
-
-		for (int i = 0; i < layers.size(); i++) 
-		{
-			layers.at(i).position = i - fg1_layer_ndx;
-		}
-	}
-}
-
-
 void Level::resize(Vec2u n_size)
 {
-	for (auto& [pos, layer] : layers)
+	for (auto& [pos, layer] : layers.get_tile_layers())
 	{
 		Vec2u layer_size{
 			std::min(n_size.x, layer.getSize().x),
