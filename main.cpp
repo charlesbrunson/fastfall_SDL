@@ -68,14 +68,19 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 	
-	bool result = Resources::loadAll(Resources::AssetSource::INDEX_FILE, "fileindex.xml");
+	
+	//Resources::loadAll(Resources::AssetSource::INDEX_FILE, "fileindex.xml");
+	//Resources::buildPackFile("data.pack");
+	//Resources::unloadAll();
+
+	bool result = Resources::loadAll(Resources::AssetSource::PACK_FILE, "data.pack");
 	if (!result) {
 		LOG_ERR_("Could not load assets");
 		return EXIT_FAILURE;
 	}
 
-	Resources::addLoadedToWatcher();
-	ResourceWatcher::start_watch_thread();
+	//Resources::addLoadedToWatcher();
+	//ResourceWatcher::start_watch_thread();
 
 	Engine::init(
 		std::move(window),
@@ -92,8 +97,8 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	ResourceWatcher::stop_watch_thread();
-	ResourceWatcher::join_watch_thread();
+	//ResourceWatcher::stop_watch_thread();
+	//ResourceWatcher::join_watch_thread();
 
 #if not defined(__EMSCRIPTEN__)
 	Resources::unloadAll();

@@ -34,8 +34,6 @@ public:
 	inline const TilesetMap* getTilesetDependencies() const { return &tilesetDeps; };
 	inline const std::vector<LayerRef>* getLayerRefs() const { return &layers; };
 
-	//inline unsigned getBorder() const { return borderCardinalBits; };
-
 	void ImGui_getContent() override;
 
 protected:
@@ -44,8 +42,6 @@ protected:
 
 	TilesetMap tilesetDeps;
 	std::vector<LayerRef> layers;
-
-	//unsigned borderCardinalBits = 0u;
 };
 
 template<>

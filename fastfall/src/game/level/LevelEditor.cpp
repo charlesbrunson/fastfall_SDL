@@ -293,7 +293,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 	}
 
 	// step 2: correct layer ordering
-	// 
+
 	// get the layer ids & order from the asset
 	std::vector<int> asset_ids;
 	std::transform(asset->getLayerRefs()->begin(), asset->getLayerRefs()->end(),
@@ -302,10 +302,30 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 			return layer.type == LayerRef::Type::Tile ? layer.id : 0; // mark obj layer as zero
 		});
 
+
 	// erase ids not present in asset_ids
-	std::erase_if(level->get_layers().get_tile_layers(), [&asset_ids](const LevelTileLayer& layer) {
-		return std::find(asset_ids.begin(), asset_ids.end(), layer.tilelayer.getID()) == asset_ids.end();
-		});
+	for (int i = 1; i <= level->get_layers().get_fg_count(); i++)
+	{
+		int id = level->get_layers().tile_layer_at(i)->tilelayer.getID();
+
+		auto asset_it = std::find(asset_ids.begin(), asset_ids.end(), id);
+		if (asset_it == asset_ids.end())
+		{
+			level->get_layers().erase(i);
+			i--;
+		}
+	}
+	for (int i = -1; i >= -level->get_layers().get_bg_count(); i--)
+	{
+		int id = level->get_layers().tile_layer_at(i)->tilelayer.getID();
+
+		auto asset_it = std::find(asset_ids.begin(), asset_ids.end(), id);
+		if (asset_it == asset_ids.end())
+		{
+			level->get_layers().erase(i);
+			i++;
+		}
+	}
 
 	// create layers not present in level
 	std::set<unsigned> nLayers;

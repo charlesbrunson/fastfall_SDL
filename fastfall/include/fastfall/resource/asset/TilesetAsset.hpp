@@ -36,11 +36,11 @@ protected:
 		std::vector<std::string> logicArg;
 	};
 
+	Vec2u texTileSize;
 	std::unique_ptr<TileData[]> tiles;
 	std::vector<std::string> tilesetRef;	// name of tileset reference
 	std::vector<TilesetLogic> tileLogic;	// name and params of tile logic
 	std::vector<std::string> tileMat;		// name of material
-	Vec2u texTileSize;
 
 	const static std::map<std::string, void(*)(TilesetAsset&, TileData&, char*)> tileProperties;
 

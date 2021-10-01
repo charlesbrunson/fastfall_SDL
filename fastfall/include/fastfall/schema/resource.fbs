@@ -25,21 +25,22 @@ table ObjectLayerF {
 }
 
 struct TileRefF {
-	gid:int;
+	gid:uint;
 	tilePos:math.Vec2Fu;
 	texPos:math.Vec2Fu;
-	tilesetName:uint;
-
 }
 
 table TileLayerF {
-	has_parallax:bool;
+	has_parallax:bool = false;
+	has_scroll:bool = false;
+	has_collision:bool = false;
+
+	collision_border:uint = 0;
+	parallaxSize:math.Vec2Fu;
+	tileSize:math.Vec2Fu;
 	scrollrate:math.Vec2Ff;
 
-	innerSize:math.Vec2Fu;
-	tileSize:math.Vec2Fu (required);
 	tiles:[TileRefF];
-	tilesetsReq:[string];
 }
 
 union AnyLayerF {
@@ -60,7 +61,7 @@ table LevelTilesetDepF {
 
 table LevelAssetF {
 	name:string (required);
-	bgColor:math.ColorF (required);
+	bgColor:uint;
 	lvlSize:math.Vec2Fu (required);
 	layers:[LevelLayerF];
 	tilesetDeps:[LevelTilesetDepF];
@@ -79,23 +80,32 @@ struct TileShapeF {
 struct TileF {
 	pos:math.Vec2Fu;
 	shape:TileShapeF;
+	facing:math.CardinalF;
 	next_offset:math.Vec2Fi;
 	next_tilesetNdx:int;
 }
 
+struct TileDataF {
+	tile:TileF;
+	has_prop_bits:ubyte = 0;
+	logic_ndx:uint;
+	logic_arg_ndx:uint;
+	material_ndx:uint;
+}
+
 table TilesetLogicF {
-	pos:math.Vec2Fu (required);
 	logic:string (required);
-	logic_arg:string;
+	logic_arg:[string];
 }
 
 table TilesetAssetF {
 	name:string (required);
+	tileSize:math.Vec2Fu (required);
+	tileData:[TileDataF];
+	tilesets:[string];
+	materials:[string];
+	logics:[TilesetLogicF];
 	image:[byte] (required);
-	tileSize:math.Vec2Fu;
-	tileData:[TileF];
-	tilesetRefs:[string];
-	tilesetLogics:[TilesetLogicF];
 }
 
 // SPRITE ASSET
@@ -116,8 +126,8 @@ table AnimationAssetF {
 
 table SpriteAssetF {
 	name:string (required);
-	image:[byte] (required);
 	animations:[AnimationAssetF];
+	image:[byte] (required);
 }
 
 // ROOT

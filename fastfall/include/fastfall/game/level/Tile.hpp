@@ -117,13 +117,13 @@ class Tile {
 public:
 	Vec2u pos;
 	TileShape shape;
-	const TilesetAsset* origin = nullptr;
-
 	Cardinal matFacing = Cardinal::NORTH;
 
 	// tile next reference
 	Vec2i next_offset;
 	int next_tileset = SAME_TILESET;
+
+	const TilesetAsset* origin = nullptr;
 
 	bool has_next_tileset() const {
 		return next_tileset != SAME_TILESET;

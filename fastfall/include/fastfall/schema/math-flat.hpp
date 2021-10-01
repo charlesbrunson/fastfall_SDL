@@ -23,8 +23,6 @@ struct RectFi;
 
 struct RectFf;
 
-struct ColorF;
-
 enum CardinalF {
   CardinalF_NORTH = 0,
   CardinalF_EAST = 1,
@@ -234,38 +232,6 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) RectFf FLATBUFFERS_FINAL_CLASS {
   }
 };
 FLATBUFFERS_STRUCT_END(RectFf, 16);
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) ColorF FLATBUFFERS_FINAL_CLASS {
- private:
-  uint8_t r_;
-  uint8_t g_;
-  uint8_t b_;
-  uint8_t a_;
-
- public:
-  ColorF() {
-    memset(static_cast<void *>(this), 0, sizeof(ColorF));
-  }
-  ColorF(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a)
-      : r_(flatbuffers::EndianScalar(_r)),
-        g_(flatbuffers::EndianScalar(_g)),
-        b_(flatbuffers::EndianScalar(_b)),
-        a_(flatbuffers::EndianScalar(_a)) {
-  }
-  uint8_t r() const {
-    return flatbuffers::EndianScalar(r_);
-  }
-  uint8_t g() const {
-    return flatbuffers::EndianScalar(g_);
-  }
-  uint8_t b() const {
-    return flatbuffers::EndianScalar(b_);
-  }
-  uint8_t a() const {
-    return flatbuffers::EndianScalar(a_);
-  }
-};
-FLATBUFFERS_STRUCT_END(ColorF, 4);
 
 }  // namespace math
 }  // namespace flat

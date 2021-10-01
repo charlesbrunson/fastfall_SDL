@@ -331,8 +331,8 @@ bool Resources::buildPackFile(const std::string& packFilename) {
 			file.write(
 				(char*)data,
 				std::min(
-					128ll,
-					static_cast<long long>(end - data)
+					(ptrdiff_t)(128),
+					(ptrdiff_t)(end - data)
 				)
 			);
 			data += 128;

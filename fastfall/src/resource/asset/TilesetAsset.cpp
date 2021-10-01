@@ -279,107 +279,151 @@ bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder)
 {
 	// TODO
 
-	/*
 	assetName = builder->name()->c_str();
 	texTileSize = Vec2u(builder->tileSize()->x(), builder->tileSize()->y());
 
-	tileData.clear();
-	tilesetRef.clear();
-	logicData.clear();
+	tilesetRef.clear();	
+	tileLogic.clear();
+	tileMat.clear();
 
-	for (auto tileR : *builder->tilesetRefs()) {
-		tilesetRef.push_back(tileR->str());
+	tiles = std::make_unique<TileData[]>((size_t)texTileSize.x * texTileSize.y);
+
+	// load tilesets
+	for (auto tileset : *builder->tilesets()) {
+		tilesetRef.push_back(tileset->str());
 	}
 
-	for (auto logicR : *builder->tilesetLogics()) {
-		Vec2u pos{ logicR->pos()->x(), logicR->pos()->y() };
-		logicData.insert(std::make_pair(pos, 
-			TileLogicData{
-				.logicType = logicR->logic()->str(), 
-				.logicArg = logicR->logic_arg()->str()
-			}
-		));
+	// load materials
+	for (auto material : *builder->materials()) {
+		tileMat.push_back(material->str());
 	}
 
-	for (auto tileT = builder->tileData()->begin(); tileT != builder->tileData()->end(); tileT++) {
-		Tile tile;
-		tile.origin = this;
-		tile.pos = Vec2u(tileT->pos().x(), tileT->pos().y());
-		tile.shape.type = static_cast<TileShape::Type>(tileT->shape().type());
-		tile.shape.shapeTouches = tileT->shape().shapeTouches();
-		tile.shape.hflipped = tileT->shape().hflip();
-		tile.shape.vflipped = tileT->shape().vflip();
-		tile.next_offset = Vec2i(tileT->next_offset().x(), tileT->next_offset().y());
-		tile.next_tileset = tileT->next_tilesetNdx();
-		tileData.insert(std::make_pair(tile.pos, tile));
+	// load logics
+	for (auto logic : *builder->logics()) {
+		tileLogic.push_back(TilesetLogic{
+			.logicType = logic->logic()->str()
+			});
+		for (auto arg : *logic->logic_arg()) {
+			tileLogic.back().logicArg.push_back(arg->str());
+		}
+	}
+
+	// load tile data
+	size_t ndx = 0;
+	for (auto tile_data : *builder->tileData()) {
+		TileData& t = tiles[ndx];
+
+		// shape
+		t.tile.shape.type			= static_cast<TileShape::Type>(tile_data->tile().shape().type());
+		t.tile.shape.shapeTouches	= tile_data->tile().shape().shapeTouches();
+		t.tile.shape.hflipped		= tile_data->tile().shape().hflip();
+		t.tile.shape.vflipped		= tile_data->tile().shape().vflip();
+
+		// tile
+		t.tile.pos			= Vec2u{ tile_data->tile().pos().x(), tile_data->tile().pos().y() };
+		t.tile.matFacing	= static_cast<Cardinal>(tile_data->tile().facing());
+		t.tile.next_offset	= Vec2i{ tile_data->tile().next_offset().x(), tile_data->tile().next_offset().y() };
+		t.tile.next_tileset = tile_data->tile().next_tilesetNdx();
+		t.tile.origin = this;
+
+		// tile data
+		t.has_prop_bits		= tile_data->has_prop_bits();
+		t.tileLogicNdx		= tile_data->logic_ndx();
+		t.tileLogicParamNdx = tile_data->logic_arg_ndx();
+		t.tileMatNdx		= tile_data->material_ndx();
+
+
+		ndx++;
 	}
 
 	loaded = tex.loadFromStream(builder->image()->Data(), builder->image()->size());
 	return loaded;
-	*/
-	return false;
 }
 
 flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(flatbuffers::FlatBufferBuilder& builder) const 
 {
-	// TODO
-
-	/*
 	using namespace flat::resources;
 	using namespace flat::math;
 
-	std::vector<flatbuffers::Offset<TilesetLogicF>> logicdata_vec;
-	for (const auto& [position, data] : logicData) {
-		TilesetLogicFBuilder logics(builder);
-		Vec2Fu pos{ position.x, position.y };
-
-		logics.add_pos(&pos);
-		logics.add_logic(builder.CreateString(data.logicType));
-		logics.add_logic_arg(builder.CreateString(data.logicArg));
-		logicdata_vec.push_back(logics.Finish());
-	}
-	auto logicdata = builder.CreateVector(logicdata_vec);
-
-	auto flat_refs = builder.CreateVectorOfStrings(tilesetRef);
-
-	std::vector<TileF> tiledata;
-	for (const auto& tile : tileData) {
-		Vec2Fu pos{ tile.second.pos.x, tile.second.pos.y };
-
-		TileShapeF shape(
-			static_cast<uint32_t>(tile.second.shape.type),
-			tile.second.shape.shapeTouches,
-			tile.second.shape.hflipped,
-			tile.second.shape.vflipped
-		);
-
-		Vec2Fi next{ tile.second.next_offset.x, tile.second.next_offset.y };
-
-		TileF t{ pos, shape, next, tile.second.next_tileset };
-		tiledata.push_back(t);
-
-	}
-	auto flat_tiledata = builder.CreateVectorOfStructs(tiledata);
-
-
+	// write name
 	auto flat_assetName = builder.CreateString(assetName);
 
+	// write tile size
+	Vec2Fu flat_tileSize{ texTileSize.x, texTileSize.y };
+
+	// write tiles
+	std::vector<TileDataF> tiledata_vec;
+	for (unsigned yy = 0; yy < texTileSize.y; yy++) {
+		for (unsigned xx = 0; xx < texTileSize.x; xx++) {
+			Vec2u pos{ xx, yy };
+			Vec2Fu flat_pos{ xx, yy };
+
+			TileData* t = &tiles[get_ndx(pos)];
+
+			TileShapeF flat_shape{
+				static_cast<uint32_t>(t->tile.shape.type),
+				t->tile.shape.shapeTouches,
+				t->tile.shape.hflipped,
+				t->tile.shape.vflipped
+			};
+			Vec2Fi flat_next{ t->tile.next_offset.x, t->tile.next_offset.y };
+
+			TileF flat_tile{ 
+				flat_pos, 
+				flat_shape, 
+				static_cast<CardinalF>(t->tile.matFacing),
+				flat_next, 
+				t->tile.next_tileset 
+			};
+
+			TileDataF tiledata{
+				flat_tile,
+				t->has_prop_bits,
+				t->tileLogicNdx,
+				t->tileLogicParamNdx,
+				t->tileMatNdx
+			};
+			tiledata_vec.push_back(tiledata);
+		}
+	}
+	auto flat_tiledata = builder.CreateVectorOfStructs(tiledata_vec);
+
+	// write tilesets
+	auto flat_tilesets	= builder.CreateVectorOfStrings(tilesetRef);
+
+	// write materials
+	auto flat_materials = builder.CreateVectorOfStrings(tileMat);
+
+	// write logic
+	std::vector<flatbuffers::Offset<TilesetLogicF>> logic_vec;
+	for (auto& logic : tileLogic)
+	{
+		auto flat_type = builder.CreateString(logic.logicType);
+		auto flat_args = builder.CreateVectorOfStrings(logic.logicArg);
+
+		TilesetLogicFBuilder flat_logic_builder(builder);
+		flat_logic_builder.add_logic(flat_type);
+		flat_logic_builder.add_logic_arg(flat_args);
+		logic_vec.push_back(flat_logic_builder.Finish());
+	}
+	auto flat_logic = builder.CreateVector(logic_vec);
+
+	// write image data
 	assert(!fullpath.empty());
 	std::vector<int8_t> texData = readFile(fullpath.c_str());
 	auto flat_texdata = builder.CreateVector(texData);
 
-	Vec2Fu flat_tileSize(texTileSize.x, texTileSize.y);
-
+	// finish
 	TilesetAssetFBuilder tileBuilder(builder);
 	tileBuilder.add_name(flat_assetName);
 	tileBuilder.add_image(flat_texdata);
 	tileBuilder.add_tileSize(&flat_tileSize);
 	tileBuilder.add_tileData(flat_tiledata);
-	tileBuilder.add_tilesetRefs(flat_refs);
-	tileBuilder.add_tilesetLogics(logicdata);
+	tileBuilder.add_tilesets(flat_tilesets);
+	tileBuilder.add_materials(flat_materials);
+	tileBuilder.add_logics(flat_logic);
 	return tileBuilder.Finish();
-	*/
-	return false;
+
 }
 
 Tile TilesetAsset::getTile(Vec2u texPos) const {
@@ -403,7 +447,7 @@ Tile TilesetAsset::getTile(Vec2u texPos) const {
 
 TilesetAsset::TileLogicData TilesetAsset::getTileLogic(Vec2u position) const {
 	// assert this is actually on our texture
-	assert(position.x < texTileSize.x&& position.y < texTileSize.y);
+	assert(position.x < texTileSize.x && position.y < texTileSize.y);
 
 	const auto& r = tiles[get_ndx(position)];
 

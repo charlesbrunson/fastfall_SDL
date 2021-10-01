@@ -10,15 +10,15 @@
 
 namespace ff {
 
-static constexpr unsigned GID_INVALID = 0xFFFFFFFF;
-using gid = unsigned int;
+static constexpr unsigned GID_INVALID = UINT32_MAX;
+using gid = uint32_t;
 
 // map of the first gid mapped to the tileset name
 using TilesetMap = std::map<gid, std::string>;
 
 // represents a tile
 struct TileRef {
-	//gid tile_id = GID_INVALID;
+	gid tile_id = GID_INVALID;
 	Vec2u tilePos;
 	Vec2u texPos;
 

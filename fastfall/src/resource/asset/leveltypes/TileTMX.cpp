@@ -121,6 +121,7 @@ void parseLayerTiles(xml_node<>* dataNode, TileLayerRef& layer, const TilesetMap
 			Vec2u texture_pos;
 			texture_pos.x = ((tilesetgid - fgid) % columns);
 			texture_pos.y = ((tilesetgid - fgid) / columns);
+			t.tile_id = tilesetgid;
 			t.texPos = texture_pos;
 			t.tilePos = tilepos;
 

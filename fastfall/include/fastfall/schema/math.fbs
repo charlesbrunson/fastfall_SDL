@@ -4,16 +4,16 @@ namespace flat.math;
 // common Vec2 types
 
 struct Vec2Fi {
-	x:int;
-	y:int;
+	x:int = 0;
+	y:int = 0;
 }
 struct Vec2Ff {
-	x:float;
-	y:float;
+	x:float = 0;
+	y:float = 0;
 }
 struct Vec2Fu {
-	x:uint;
-	y:uint;
+	x:uint = 0;
+	y:uint = 0;
 }
 
 // common Line types
@@ -28,7 +28,7 @@ struct LineFf {
 
 // cardinals
 
-enum CardinalF : byte { 
+enum CardinalF : ubyte { 
 	NORTH = 0,
 	EAST  = 1,
 	SOUTH = 2,
@@ -38,24 +38,15 @@ enum CardinalF : byte {
 // Rects
 
 struct RectFi {
-	left:int;
-	top:int;
-	width:int;
-	height:int;
+	left:int = 0;
+	top:int = 0;
+	width:int = 0;
+	height:int = 0;
 }
 
 struct RectFf {
-	left:float;
-	top:float;
-	width:float;
-	height:float;
-}
-
-// color
-
-struct ColorF {
-	r:uint8 = 0;
-	g:uint8 = 0;
-	b:uint8 = 0;
-	a:uint8 = 0;
+	left:float = 0;
+	top:float = 0;
+	width:float = 0;
+	height:float = 0;
 }
