@@ -32,7 +32,7 @@ TestState::TestState()
 	clearColor = ff::Color{ 0x141013FF };
 
 	edit = std::make_unique<LevelEditor>( *lvl, false );
-	edit->select_layer(-1);
+	edit->select_layer(-2);
 	edit->select_tileset("tile_test");
 	edit->select_tile(Vec2u{ 0, 0 });
 
@@ -57,10 +57,29 @@ void TestState::update(secs deltaTime) {
 		if (!edit->is_attached()) {
 			edit->reattach();
 		}
-		edit->select_layer(-1);
+		edit->select_layer(-2);
 
 		Vec2f mpos = Input::getMouseWorldPosition();
-		tpos = Vec2u{ mpos / TILESIZE_F };
+		Vec2f layer_offset = edit->get_tile_layer()->tilelayer.get_total_offset();
+		mirror = Vec2f{};
+		if (mpos.x - layer_offset.x < 0.f) {
+			if (edit->get_tile_layer()->tilelayer.has_parallax())
+				mirror.x = edit->get_tile_layer()->tilelayer.get_parallax_size().x;
+			else
+				mirror.x = edit->get_tile_layer()->tilelayer.getSize().x;
+		}
+		if (mpos.y - layer_offset.y < 0.f) {
+			if (edit->get_tile_layer()->tilelayer.has_parallax())
+				mirror.y = edit->get_tile_layer()->tilelayer.get_parallax_size().y;
+			else
+				mirror.y = edit->get_tile_layer()->tilelayer.getSize().y;
+		}
+		mirror *= TILESIZE_F;
+		Vec2f total = mpos + mirror - layer_offset;
+		tpos = Vec2i{ total / TILESIZE_F };
+
+		//LOG_INFO("{} TILE {}", total.to_string(), tpos.to_string());
+
 
 		static auto onKeyPressed = [this](SDL_Scancode c, auto&& callable) {
 			if (currKeys && prevKeys && currKeys[c] && !prevKeys[c]) {
@@ -100,8 +119,8 @@ void TestState::update(secs deltaTime) {
 			{
 
 				Input::isHeld(InputType::MOUSE1)
-					? edit->paint_tile(tpos)
-					: edit->erase_tile(tpos);
+					? edit->paint_tile(Vec2u{ tpos })
+					: edit->erase_tile(Vec2u{ tpos });
 
 			}
 
@@ -140,13 +159,16 @@ void TestState::predraw(secs deltaTime) {
 
 		if (tileset && tile) 
 		{
+
+			Vec2f layer_offset = edit->get_tile_layer()->tilelayer.get_total_offset();
+
 			tile_ghost.setColor(ff::Color::White().alpha(80));
 			tile_ghost.setTexture(&tileset->getTexture());
 			tile_ghost.setTextureRect(Rectf{
 					Vec2f{ *tile } * TILESIZE_F,
 					Vec2f{ 1, 1 } * TILESIZE_F
 				});
-			tile_ghost.setPosition(Vec2f{ tpos } * TILESIZE_F);
+			tile_ghost.setPosition(Vec2f{ tpos } * TILESIZE_F - mirror + layer_offset);
 			tile_ghost.setSize({ TILESIZE_F, TILESIZE_F });
 		}
 	}

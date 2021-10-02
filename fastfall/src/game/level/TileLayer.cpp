@@ -311,7 +311,7 @@ bool TileLayer::set_scroll(bool enabled, Vec2f rate)
 	{
 		scroll.offset = Vec2f{};
 		for (auto& vta_pair : chunks) {
-			vta_pair.varray.reset_scroll();
+			vta_pair.varray.scroll = Vec2f{};
 		}
 	}
 
@@ -402,8 +402,20 @@ void TileLayer::predraw(secs deltaTime) {
 	if (scroll.enabled) {
 		Vec2f scroll_delta = scroll.rate * deltaTime;
 
+
+		scroll.offset += scroll_delta;
+
+		Vec2f sizef = Vec2f{ parallax.enabled ? parallax.size : size } * TILESIZE_F;
+
+		while (scroll.offset.x < 0.f) scroll.offset.x += sizef.x;
+		while (scroll.offset.x >= sizef.x) scroll.offset.x -= sizef.x;
+
+		while (scroll.offset.y < 0.f) scroll.offset.y += sizef.y;
+		while (scroll.offset.y >= sizef.y) scroll.offset.y -= sizef.y;
+
+
 		for (auto& vta_pair : chunks) {
-			vta_pair.varray.add_scroll(scroll_delta);
+			vta_pair.varray.scroll = scroll.offset;
 		}
 	}
 
@@ -467,7 +479,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 					.tileset = &tileset,
 					.varray = ChunkVertexArray(
 							parallax.enabled ? parallax.size : size, 
-							Vec2u{GAME_TILE_W / 2u, GAME_TILE_H / 2u}
+							kChunkSize
 						)
 				});
 

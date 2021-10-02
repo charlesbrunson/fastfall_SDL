@@ -29,12 +29,13 @@ public:
 
 	inline bool empty() noexcept { return m_chunks.empty(); };
 
-	void add_scroll(Vec2f scroll_amount);
-	void reset_scroll();
+	//void add_scroll(Vec2f scroll_amount);
+	//void reset_scroll();
 
 	void predraw();
 
 	Vec2f offset;
+	Vec2f scroll;
 
 	bool use_visible_rect = false;
 	Rectf visibility;
@@ -64,7 +65,6 @@ private:
 	Rectf getChunkBounds(const Chunk& chunk, Vec2f draw_offset = Vec2f{}) const noexcept;
 	Rectf getChunkLocalBounds(const Chunk& chunk) const noexcept;
 
-	Vec2f scroll;
 
 	Vec2u m_size;
 	Vec2u m_chunk_size;

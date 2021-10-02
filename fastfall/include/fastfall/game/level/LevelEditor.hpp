@@ -113,6 +113,7 @@ public:
 
 	std::optional<Vec2u> get_tile() const { return tileset_pos; };
 	const TilesetAsset* get_tileset() const { return curr_tileset; };
+	const LevelTileLayer* get_tile_layer() const { return curr_layer; }
 
 	bool applyLevelAsset(const LevelAsset* asset);
 

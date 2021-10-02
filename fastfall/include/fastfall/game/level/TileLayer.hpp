@@ -81,6 +81,10 @@ public:
 
 	Vec2f worldToLocalCoord(Vec2f world_pos);
 
+	Vec2f get_parallax_offset() const { return parallax.offset; };
+	Vec2f get_scroll_offset() const { return scroll.offset; };
+	Vec2f get_total_offset() const { return parallax.offset + scroll.offset; };
+
 	bool hidden = false;
 
 protected:
@@ -134,6 +138,8 @@ protected:
 	// logic
 	std::vector<std::pair<Vec2u, unsigned>> tile2logic;
 	std::vector<std::unique_ptr<TileLogic>> tileLogic;
+
+	constexpr static Vec2u kChunkSize = Vec2u{ GAME_TILE_W / 2u, GAME_TILE_H / 2u };
 };
 
 }

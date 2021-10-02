@@ -33,7 +33,7 @@ private:
 	ff::GameInstance* instance;
 
 	bool painting = false;
-	ff::Vec2u last_paint;
+	ff::Vec2i last_paint;
 
 	std::unique_ptr<ff::LevelEditor> edit;
 
@@ -43,6 +43,8 @@ private:
 	int key_count;
 
 	ff::Sprite tile_ghost;
-	ff::Vec2u tpos;
+
+	ff::Vec2f mirror;
+	ff::Vec2i tpos;
 
 };

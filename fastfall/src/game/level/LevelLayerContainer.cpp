@@ -62,7 +62,6 @@ LevelTileLayer* LevelLayerContainer::tile_layer_at(position_t pos) {
 LevelLayerContainer::position_t LevelLayerContainer::insert(
     position_t pos, TileLayer&& layer)
 {
-    std::cout << "adding layer: " << layer.getID() << std::endl;
     assert(pos != OBJECT_LAYER_POS);
     assert(pos >= -bg_count - 1 && pos <= fg_count + 1);
 

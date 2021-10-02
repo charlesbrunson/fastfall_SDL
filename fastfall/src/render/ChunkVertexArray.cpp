@@ -128,6 +128,7 @@ void ChunkVertexArray::do_clear() {
 	m_chunks.clear();
 }
 
+/*
 void ChunkVertexArray::add_scroll(Vec2f scroll_amount) {
 	scroll += scroll_amount;
 
@@ -144,6 +145,7 @@ void ChunkVertexArray::add_scroll(Vec2f scroll_amount) {
 void ChunkVertexArray::reset_scroll() {
 	scroll = Vec2f{};
 }
+*/
 
 void ChunkVertexArray::predraw() {
 
