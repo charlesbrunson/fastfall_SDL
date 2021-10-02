@@ -58,11 +58,26 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime) {
 			}
 		}
 
+		move_t move(plr);
 
 		// air control
-		if (wishx != 0 && (abs(plr.box->get_vel().x) < 150.f ||
-			plr.box->get_vel().x < 0.f != wishx < 0.f)) {
-			plr.box->add_accelX(500.f * wishx);
+		if (move.rel_wishx != 0)
+		{
+			float air_control_hi = plr.box->get_vel().y < 100.f && plr.box->get_vel().y > -100.f ? 500.f : 300.f;
+			float air_control_lo = plr.box->get_vel().y < 100.f && plr.box->get_vel().y > -100.f ? 400.f : 250.f;
+
+
+			if (move.speed < 150.f )
+			{
+				plr.box->add_accelX(air_control_hi * move.wishx);
+			}
+			else if (move.rel_speed >= 150.f && move.rel_wishx < 0) 
+			{
+				plr.box->add_accelX(air_control_lo * move.wishx);
+			}
+		}
+		else {
+			plr.box->add_decelX(50.f);
 		}
 		prevVelY = plr.box->get_vel().y;
 	}
