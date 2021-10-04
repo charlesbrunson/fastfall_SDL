@@ -44,6 +44,8 @@ private:
 
 	ff::Sprite tile_ghost;
 
+	int layer = -1;
+
 	ff::Vec2f mirror;
 	ff::Vec2i tpos;
 

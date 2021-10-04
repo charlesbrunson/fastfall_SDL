@@ -23,8 +23,9 @@ public:
 	// create a new level
 	LevelEditor(GameContext context, bool show_imgui, std::string name = "New Level", Vec2u tile_size = MIN_LEVEL_SIZE);
 
-	~LevelEditor();
 
+
+	/*
 	bool is_attached() {
 		return level && level->is_attached(this);
 	}
@@ -39,6 +40,7 @@ public:
 		}
 		return level;
 	}
+	*/
 
 	// LAYERS
 

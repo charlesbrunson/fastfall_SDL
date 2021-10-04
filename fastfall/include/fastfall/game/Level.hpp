@@ -33,21 +33,6 @@ public:
 	GameContext getContext() { return context; }
 	inline InstanceID getInstanceID() { return context.getID(); };
 
-	bool is_attached(LevelEditor* editor) { return editor == attached_editor; };
-
-	bool attach(LevelEditor* editor) { 
-		bool already_attached = is_attached(editor);
-		attached_editor = editor; 
-		return already_attached;
-	};
-
-	void detach(LevelEditor* editor) { 
-		if (is_attached(editor)) 
-		{ 
-			attached_editor = nullptr; 
-		} 
-	};
-
 	void resize(Vec2u n_size);
 	void set_name(std::string name) { levelName = name; };
 	void set_bg_color(Color color) { bgColor = color; };
@@ -58,8 +43,6 @@ public:
 	bool hasEditorHooked = false;
 
 private:
-	const LevelEditor* attached_editor = nullptr;
-
 	GameContext context;
 
 	std::string levelName;

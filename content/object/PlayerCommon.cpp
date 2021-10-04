@@ -108,10 +108,14 @@ namespace plr::action {
 		else if (move.rel_speed < neutral_min_vx)
 		{
 			//back jump
-			plr.sprite->set_hflip(!plr.sprite->get_hflip());
-			plr.sprite->set_anim(anim::jump_f);
+			if (move.rel_wishx < 0) {
+				plr.sprite->set_hflip(!plr.sprite->get_hflip());
+				plr.sprite->set_anim(anim::jump_f);
+			}
+			else {
+				plr.sprite->set_anim(anim::jump);
+			}
 		}
-
 
 		plr.ground->settings.slope_sticking = false;
 

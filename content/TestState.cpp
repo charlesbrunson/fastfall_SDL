@@ -13,6 +13,9 @@
 
 TestState::TestState()
 {
+	stateID = ff::EngineStateID::TEST_STATE;
+	clearColor = ff::Color{ 0x141013FF };
+
 	instance = ff::CreateInstance();
 	instanceID = instance->getInstanceID();
 	assert(instance);
@@ -28,11 +31,9 @@ TestState::TestState()
 	instance->getObject().update(0.0);
 	instance->getCollision().update(0.0);
 
-	stateID = ff::EngineStateID::TEST_STATE;
-	clearColor = ff::Color{ 0x141013FF };
 
 	edit = std::make_unique<LevelEditor>( *lvl, false );
-	edit->select_layer(-2);
+	edit->select_layer(-1);
 	edit->select_tileset("tile_test");
 	edit->select_tile(Vec2u{ 0, 0 });
 
@@ -54,32 +55,18 @@ void TestState::update(secs deltaTime) {
 
 	if (edit) 
 	{
+		/*
 		if (!edit->is_attached()) {
 			edit->reattach();
+			edit->select_layer(layer);
 		}
-		edit->select_layer(-2);
+		*/
+
+
+		const TileLayer& tilelayer = edit->get_tile_layer()->tilelayer;
 
 		Vec2f mpos = Input::getMouseWorldPosition();
-		Vec2f layer_offset = edit->get_tile_layer()->tilelayer.get_total_offset();
-		mirror = Vec2f{};
-		if (mpos.x - layer_offset.x < 0.f) {
-			if (edit->get_tile_layer()->tilelayer.has_parallax())
-				mirror.x = edit->get_tile_layer()->tilelayer.get_parallax_size().x;
-			else
-				mirror.x = edit->get_tile_layer()->tilelayer.getSize().x;
-		}
-		if (mpos.y - layer_offset.y < 0.f) {
-			if (edit->get_tile_layer()->tilelayer.has_parallax())
-				mirror.y = edit->get_tile_layer()->tilelayer.get_parallax_size().y;
-			else
-				mirror.y = edit->get_tile_layer()->tilelayer.getSize().y;
-		}
-		mirror *= TILESIZE_F;
-		Vec2f total = mpos + mirror - layer_offset;
-		tpos = Vec2i{ total / TILESIZE_F };
-
-		//LOG_INFO("{} TILE {}", total.to_string(), tpos.to_string());
-
+		tpos = tilelayer.getTileFromWorldPos(mpos).value_or(Vec2i{});
 
 		static auto onKeyPressed = [this](SDL_Scancode c, auto&& callable) {
 			if (currKeys && prevKeys && currKeys[c] && !prevKeys[c]) {
@@ -104,12 +91,31 @@ void TestState::update(secs deltaTime) {
 				LOG_INFO("tile pos = {}", edit->get_tile()->to_string());
 			});
 		};
+		static auto layerOnKeyPressed = [this](SDL_Scancode c, int i) {
+			onKeyPressed(c, [this, i]() {
+				int curr_layer = edit->get_tile_layer()->position;
+
+				int n_layer = curr_layer + i;
+				if (n_layer == 0) {
+					n_layer = n_layer + (i > 0 ? 1 : -1);
+				}
+
+				if (!edit->select_layer(n_layer)) {
+					edit->select_layer(curr_layer);
+				}
+				layer = edit->get_tile_layer()->position;
+				LOG_INFO("layer = {}", layer);
+			});
+		};
 
 		tileOnKeyPressed(SDL_SCANCODE_LEFT,  Vec2i{ -1,  0 });
 		tileOnKeyPressed(SDL_SCANCODE_RIGHT, Vec2i{  1,  0 });
 		tileOnKeyPressed(SDL_SCANCODE_UP,    Vec2i{  0, -1 });
 		tileOnKeyPressed(SDL_SCANCODE_DOWN,  Vec2i{  0,  1 });
-		
+
+		layerOnKeyPressed(SDL_SCANCODE_KP_MINUS, -1);
+		layerOnKeyPressed(SDL_SCANCODE_KP_PLUS, 1);
+
 		if (Input::getMouseInView() && (Input::isHeld(InputType::MOUSE1) || Input::isHeld(InputType::MOUSE2)))
 		{
 			Level* lvl = instance->getActiveLevel();
@@ -117,7 +123,6 @@ void TestState::update(secs deltaTime) {
 			if (Rectf{ Vec2f{}, Vec2f{lvl->size()} * TILESIZE_F }.contains(mpos)
 				&& (!painting || (last_paint != tpos)))
 			{
-
 				Input::isHeld(InputType::MOUSE1)
 					? edit->paint_tile(Vec2u{ tpos })
 					: edit->erase_tile(Vec2u{ tpos });
@@ -160,16 +165,16 @@ void TestState::predraw(secs deltaTime) {
 		if (tileset && tile) 
 		{
 
-			Vec2f layer_offset = edit->get_tile_layer()->tilelayer.get_total_offset();
+			const TileLayer& tilelayer = edit->get_tile_layer()->tilelayer;
+			tile_ghost.setPosition(tilelayer.getWorldPosFromTilePos(tpos));
 
+			tile_ghost.setSize({ TILESIZE_F, TILESIZE_F });
 			tile_ghost.setColor(ff::Color::White().alpha(80));
 			tile_ghost.setTexture(&tileset->getTexture());
 			tile_ghost.setTextureRect(Rectf{
 					Vec2f{ *tile } * TILESIZE_F,
 					Vec2f{ 1, 1 } * TILESIZE_F
 				});
-			tile_ghost.setPosition(Vec2f{ tpos } * TILESIZE_F - mirror + layer_offset);
-			tile_ghost.setSize({ TILESIZE_F, TILESIZE_F });
 		}
 	}
 }

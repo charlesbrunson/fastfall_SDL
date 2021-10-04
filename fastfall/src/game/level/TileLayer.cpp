@@ -19,12 +19,12 @@
 namespace ff {
 
 
-TileLayer::TileLayer(GameContext context, unsigned id, Vec2u size)
+TileLayer::TileLayer(GameContext context, unsigned id, Vec2u levelsize)
 	: m_context(context)
 	, layerID(id)
-	, size(size)
+	, level_size(levelsize)
 {
-	pos2data.resize((size_t)size.x * size.y, TileData{});
+	pos2data.resize((size_t)level_size.x * level_size.y, TileData{});
 }
 
 TileLayer::TileLayer(GameContext context, unsigned id, const TileLayerRef& layerData)
@@ -38,7 +38,7 @@ TileLayer::TileLayer(const TileLayer& tile)
 	: m_context(tile.m_context) 
 {
 	layerID = tile.layerID;
-	size = tile.size;
+	level_size = tile.level_size;
 
 	chunks = tile.chunks;
 	pos2data = tile.pos2data;
@@ -68,7 +68,7 @@ TileLayer::TileLayer(const TileLayer& tile)
 TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	m_context = tile.m_context;
 	layerID = tile.layerID;
-	size = tile.size;
+	level_size = tile.level_size;
 
 	chunks = tile.chunks;
 	pos2data = tile.pos2data;
@@ -100,7 +100,7 @@ TileLayer::TileLayer(TileLayer&& tile) noexcept
 	: m_context(tile.m_context)
 {
 	layerID = tile.layerID;
-	size = tile.size;
+	level_size = tile.level_size;
 	std::swap(pos2data, tile.pos2data);
 	std::swap(chunks, tile.chunks);
 	std::swap(parallax, tile.parallax);
@@ -133,7 +133,7 @@ TileLayer::TileLayer(TileLayer&& tile) noexcept
 TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	m_context = tile.m_context;
 	layerID = tile.layerID;
-	size = tile.size;
+	level_size = tile.level_size;
 	std::swap(pos2data, tile.pos2data);
 	std::swap(chunks, tile.chunks);
 	std::swap(parallax, tile.parallax);
@@ -181,8 +181,8 @@ void TileLayer::initFromAsset(const TileLayerRef& layerData, unsigned id) {
 
 	layerID = id;
 
-	size = layerData.tileSize;
-	pos2data.resize((size_t)size.x * size.y, TileData{});
+	level_size = layerData.tileSize;
+	pos2data.resize((size_t)level_size.x * level_size.y, TileData{});
 
 	for (const auto& i : tileLayer.tiles) {
 		TilesetAsset* ta = Resources::get<TilesetAsset>(i.tilesetName);
@@ -218,7 +218,7 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 	if (enabled && !collision.enabled) 
 	{
 		if (m_context.valid() && !collision.tilemap_ptr) {
-			collision.tilemap_ptr = instance::phys_create_collider<ColliderTileMap>(m_context, Vec2i(size.x, size.y), true);
+			collision.tilemap_ptr = instance::phys_create_collider<ColliderTileMap>(m_context, Vec2i(level_size.x, level_size.y), true);
 			collision.enabled = true;
 			collision.border = border;
 
@@ -233,14 +233,14 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 					Tile tile = tileset->getTile(tile_data.tex_pos);
 
 					collision.tilemap_ptr->setTile(
-						Vec2i{ (int)(i % size.x), (int)(i / size.x) },
+						Vec2i{ (int)(i % level_size.x), (int)(i / level_size.x) },
 						tile.shape,
 						&tileset->getMaterial(tile_data.tex_pos),
 						tile.matFacing
 					);
 				}
 			}
-			collision.tilemap_ptr->setBorders(size, collision.border);
+			collision.tilemap_ptr->setBorders(level_size, collision.border);
 			collision.tilemap_ptr->applyChanges();
 
 			collision.tilemap_ptr->set_on_precontact(
@@ -278,14 +278,14 @@ bool TileLayer::set_parallax(bool enabled, Vec2u parallax_size)
 	parallax.enabled = enabled;
 	parallax.size = parallax_size;
 	if (parallax.enabled) {
-		parallax.init_offset.x = (float)(std::min(size.x, GAME_TILE_W) * TILESIZE) / 2.f;
-		parallax.init_offset.y = (float)(std::min(size.y, GAME_TILE_H) * TILESIZE) / 2.f;
+		parallax.init_offset.x = (float)(std::min(level_size.x, GAME_TILE_W) * TILESIZE) / 2.f;
+		parallax.init_offset.y = (float)(std::min(level_size.y, GAME_TILE_H) * TILESIZE) / 2.f;
 		parallax.cam_factor = Vec2f{ 1.f, 1.f };
-		if (size.x > GAME_TILE_W) {
-			parallax.cam_factor.x = 1.f - ((float)(parallax.size.x - GAME_TILE_W) / (float)size.x);
+		if (level_size.x > GAME_TILE_W) {
+			parallax.cam_factor.x = 1.f - ((float)(parallax.size.x - GAME_TILE_W) / (float)level_size.x);
 		}
-		if (size.y > GAME_TILE_H) {
-			parallax.cam_factor.y = 1.f - ((float)(parallax.size.y - GAME_TILE_H) / (float)size.y);
+		if (level_size.y > GAME_TILE_H) {
+			parallax.cam_factor.y = 1.f - ((float)(parallax.size.y - GAME_TILE_H) / (float)level_size.y);
 		}
 	}
 	else {
@@ -296,7 +296,7 @@ bool TileLayer::set_parallax(bool enabled, Vec2u parallax_size)
 	}
 
 	for (auto& chunk : chunks) {
-		chunk.varray.set_size(parallax.enabled ? parallax.size : size);
+		chunk.varray.set_size(get_size());
 	}
 	return true;
 }
@@ -321,11 +321,11 @@ bool TileLayer::set_scroll(bool enabled, Vec2f rate)
 }
 
 bool TileLayer::handlePreContact(Vec2i pos, const Contact& contact, secs duration) {
-	if (pos.x < 0 || pos.x >= size.x
-		|| pos.y < 0 || pos.y >= size.y)
+	if (pos.x < 0 || pos.x >= level_size.x
+		|| pos.y < 0 || pos.y >= level_size.y)
 		return true;
 
-	unsigned ndx = pos.y * size.x + pos.x;
+	unsigned ndx = pos.y * level_size.x + pos.x;
 	bool r = true;
 	if (pos2data.at(ndx).logic_id != TILEDATA_NONE) {
 		r = tileLogic.at(pos2data.at(ndx).logic_id)->on_precontact(pos, contact, duration);
@@ -334,11 +334,11 @@ bool TileLayer::handlePreContact(Vec2i pos, const Contact& contact, secs duratio
 }
 
 void TileLayer::handlePostContact(Vec2i pos, const PersistantContact& contact) {
-	if (pos.x < 0 || pos.x >= size.x
-		|| pos.y < 0 || pos.y >= size.y)
+	if (pos.x < 0 || pos.x >= level_size.x
+		|| pos.y < 0 || pos.y >= level_size.y)
 		return;
 
-	unsigned ndx = pos.y * size.x + pos.x;
+	unsigned ndx = pos.y * level_size.x + pos.x;
 	if (pos2data.at(ndx).logic_id != TILEDATA_NONE) {
 		tileLogic.at(pos2data.at(ndx).logic_id)->on_postcontact(pos, contact);
 	}
@@ -356,7 +356,7 @@ void TileLayer::predraw(secs deltaTime) {
 
 			const TileLogicCommand& cmd = ptr->nextCommand();
 
-			unsigned ndx = cmd.position.x + size.x * cmd.position.y;
+			unsigned ndx = cmd.position.x + level_size.x * cmd.position.y;
 			if (cmd.type == TileLogicCommand::Type::Set) {
 				setTile(cmd.position, cmd.texposition, cmd.tileset, cmd.updateLogic);
 			}
@@ -405,7 +405,7 @@ void TileLayer::predraw(secs deltaTime) {
 
 		scroll.offset += scroll_delta;
 
-		Vec2f sizef = Vec2f{ parallax.enabled ? parallax.size : size } * TILESIZE_F;
+		Vec2f sizef = Vec2f{ get_size() } * TILESIZE_F;
 
 		while (scroll.offset.x < 0.f) scroll.offset.x += sizef.x;
 		while (scroll.offset.x >= sizef.x) scroll.offset.x -= sizef.x;
@@ -421,7 +421,7 @@ void TileLayer::predraw(secs deltaTime) {
 
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_AREA))
 	{
-		Vec2f pSize = Vec2f{ size } * TILESIZE_F;
+		Vec2f pSize = Vec2f{ level_size } * TILESIZE_F;
 
 		size_t ptr = (size_t)this;
 		if (!debug_draw::repeat((void*)(ptr), parallax.offset)) {
@@ -451,7 +451,7 @@ void TileLayer::predraw(secs deltaTime) {
 void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const TilesetAsset& tileset, bool useLogic) {
 
 	// blank existing tile at that position
-	unsigned ndx = position.y * size.x + position.x;
+	unsigned ndx = position.y * level_size.x + position.x;
 	uint8_t tileset_ndx = pos2data.at(ndx).tileset_id;
 	uint8_t logic_ndx = pos2data.at(ndx).logic_id;
 
@@ -478,7 +478,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 			chunks.push_back(ChunkVA{
 					.tileset = &tileset,
 					.varray = ChunkVertexArray(
-							parallax.enabled ? parallax.size : size, 
+							get_size(),
 							kChunkSize
 						)
 				});
@@ -545,7 +545,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 }
 
 void TileLayer::removeTile(const Vec2u& position) {
-	unsigned ndx = position.y * size.x + position.x;
+	unsigned ndx = position.y * level_size.x + position.x;
 
 	if (pos2data.at(ndx).tileset_id != TILEDATA_NONE) {
 		chunks.at(pos2data.at(ndx).tileset_id).varray.blank(position);
@@ -571,11 +571,11 @@ void TileLayer::shallow_copy(const TileLayer& layer, Rectu area, Vec2u lvlSize)
 {
 	for (unsigned y = area.top; y < area.top + area.height; y++) {
 		for (unsigned x = area.left; x < area.left + area.width; x++) {
-			if (layer.size.x <= x || layer.size.y <= y)
+			if (layer.level_size.x <= x || layer.level_size.y <= y)
 				continue;
 
 			Vec2u pos{ x,y };
-			unsigned ndx = pos.y * layer.size.x + pos.x;
+			unsigned ndx = pos.y * layer.level_size.x + pos.x;
 			if (!layer.pos2data.at(ndx).has_tile)
 				continue;
 
@@ -596,8 +596,8 @@ void TileLayer::shallow_copy(const TileLayer& layer, Rectu area, Vec2u lvlSize)
 
 bool TileLayer::hasTileAt(Vec2u tile_pos)
 {
-	unsigned ndx = tile_pos.y * size.x + tile_pos.x;
-	if (tile_pos.x < size.x && tile_pos.y < size.y) 
+	unsigned ndx = tile_pos.y * level_size.x + tile_pos.x;
+	if (tile_pos.x < level_size.x && tile_pos.y < level_size.y)
 	{
 		return pos2data.at(ndx).has_tile;
 	}
@@ -606,7 +606,7 @@ bool TileLayer::hasTileAt(Vec2u tile_pos)
 
 std::optional<Vec2u> TileLayer::getTileTexPos(Vec2u tile_pos)
 {
-	unsigned ndx = tile_pos.y * size.x + tile_pos.x;
+	unsigned ndx = tile_pos.y * level_size.x + tile_pos.x;
 	if (hasTileAt(tile_pos))
 	{
 		return pos2data.at(ndx).tex_pos;
@@ -616,12 +616,40 @@ std::optional<Vec2u> TileLayer::getTileTexPos(Vec2u tile_pos)
 
 const TilesetAsset* TileLayer::getTileTileset(Vec2u tile_pos)
 {
-	unsigned ndx = tile_pos.y * size.x + tile_pos.x;
+	unsigned ndx = tile_pos.y * level_size.x + tile_pos.x;
 	if (hasTileAt(tile_pos) && pos2data.at(ndx).tileset_id != TILEDATA_NONE)
 	{
 		return chunks.at(pos2data.at(ndx).tileset_id).tileset;
 	}
 	return nullptr;
+}
+
+
+Vec2f TileLayer::getWorldPosFromTilePos(Vec2i tile_pos) const {
+
+
+	Vec2f pos = Vec2f{ tile_pos * TILESIZE };
+	pos += get_total_offset();
+
+	if (pos.x >= get_size().x * TILESIZE_F) pos.x -= get_size().x * TILESIZE_F;
+	if (pos.y >= get_size().y * TILESIZE_F) pos.y -= get_size().y * TILESIZE_F;
+
+	return pos;
+}
+
+std::optional<Vec2i> TileLayer::getTileFromWorldPos(Vec2f position) const {
+	position -= get_total_offset();
+
+	position.x = floorf(position.x / TILESIZE_F);
+	position.y = floorf(position.y / TILESIZE_F);
+
+	Vec2i tile_pos = Vec2i{ position };
+
+	if (tile_pos.x < 0) tile_pos.x += get_size().x;
+	if (tile_pos.y < 0) tile_pos.y += get_size().y;
+
+	return tile_pos;
+
 }
 
 void TileLayer::draw(RenderTarget& target, RenderState states) const {

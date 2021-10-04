@@ -31,7 +31,7 @@ private:
 	};
 public:
 
-	TileLayer(GameContext context, unsigned id, Vec2u size);
+	TileLayer(GameContext context, unsigned id, Vec2u levelsize);
 	TileLayer(GameContext context, unsigned id, const TileLayerRef& layerData);
 
 	TileLayer(const TileLayer& tile);
@@ -59,7 +59,9 @@ public:
 
 	inline unsigned int getID() const { return layerID; };
 
-	inline Vec2u getSize() const noexcept { return size; };
+	inline Vec2u get_level_size() const noexcept { return level_size; };
+	inline Vec2u get_size() const noexcept { return parallax.enabled ? parallax.size : level_size; };
+
 	inline Vec2f getOffset() const noexcept { return offset; };
 	inline void  setOffset(Vec2f off) noexcept { offset = off; };
 
@@ -78,6 +80,10 @@ public:
 	bool hasTileAt(Vec2u tile_pos);
 	std::optional<Vec2u> getTileTexPos(Vec2u tile_pos);
 	const TilesetAsset* getTileTileset(Vec2u tile_pos);
+
+	Vec2f getWorldPosFromTilePos(Vec2i tile_pos) const;
+	std::optional<Vec2i> getTileFromWorldPos (Vec2f position) const;
+
 
 	Vec2f worldToLocalCoord(Vec2f world_pos);
 
@@ -98,7 +104,7 @@ protected:
 	GameContext m_context;
 	unsigned int layerID;
 
-	Vec2u size;
+	Vec2u level_size;
 	Vec2f offset;
 
 	// parallax data

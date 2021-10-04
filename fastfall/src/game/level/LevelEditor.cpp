@@ -12,7 +12,6 @@ LevelEditor::LevelEditor(Level& lvl, bool show_imgui)
 	level = &lvl;
 	assert(level);
 
-	level->attach(this);
 }
 
 LevelEditor::LevelEditor(GameContext context, bool show_imgui, std::string name, Vec2u tile_size)
@@ -26,18 +25,13 @@ LevelEditor::LevelEditor(GameContext context, bool show_imgui, std::string name,
 	assert(level);
 }
 
-LevelEditor::~LevelEditor() {
-	if (level) {
-		level->detach(this);
-	}
-}
 
 // LAYERS
 
 // create layer at position, selects it
 bool LevelEditor::create_layer(int layer_pos)
 {
-	if (!is_attached()) return false;
+	if (!level) return false;
 
 	int bg_count = level->get_layers().get_bg_count();
 	int fg_count = level->get_layers().get_fg_count();
@@ -57,7 +51,7 @@ bool LevelEditor::create_layer(int layer_pos)
 // select layer at positon (start and end specify the first and last layer, respectively)
 bool LevelEditor::select_layer(int layer_pos)
 {
-	if (!is_attached()) return false;
+	if (!level) return false;
 
 	int bg_count = level->get_layers().get_bg_count();
 	int fg_count = level->get_layers().get_fg_count();
@@ -94,7 +88,7 @@ void LevelEditor::deselect_layer()
 bool LevelEditor::move_layer(int layer_pos)
 {
 
-	if (!is_attached()) return false;
+	if (!level) return false;
 
 
 	if (obj_layer_selected)
@@ -169,10 +163,10 @@ bool LevelEditor::layer_set_parallax(bool enabled, Vec2u parallax_size)
 // paints tile onto selected layer, using selected tileset and tile
 bool LevelEditor::paint_tile(Vec2u pos)
 {
-	if (!is_attached()) return false;
+	if (!level) return false;
 
 	if (curr_layer && curr_tileset && tileset_pos) {
-		Vec2u size = curr_layer->tilelayer.getSize();
+		Vec2u size = curr_layer->tilelayer.get_level_size();
 
 		if (pos.x < size.x && pos.y < size.y) 
 		{
@@ -187,10 +181,10 @@ bool LevelEditor::paint_tile(Vec2u pos)
 // paints tile onto selected layer
 bool LevelEditor::erase_tile(Vec2u pos)
 {
-	if (!is_attached()) return false;
+	if (!level) return false;
 
 	if (curr_layer) {
-		Vec2u size = curr_layer->tilelayer.getSize();
+		Vec2u size = curr_layer->tilelayer.get_level_size();
 
 		if (pos.x < size.x && pos.y < size.y)
 		{
@@ -206,7 +200,7 @@ bool LevelEditor::erase_tile(Vec2u pos)
 // selects tileset for painting tiles
 bool LevelEditor::select_tileset(std::string_view tileset_name)
 {
-	if (!is_attached()) return false;
+	if (!level) return false;
 
 	if (!curr_tileset || curr_tileset->getAssetName() != tileset_name) {
 		curr_tileset = Resources::get<TilesetAsset>(tileset_name);
@@ -224,7 +218,7 @@ void LevelEditor::deselect_tileset()
 // selects tile from selected tileset for painting tiles
 bool LevelEditor::select_tile(Vec2u tile_pos)
 {
-	if (!is_attached()) return false;
+	if (!level) return false;
 
 	if (curr_tileset 
 		&& tile_pos.x < curr_tileset->getTileSize().x
@@ -246,7 +240,7 @@ void LevelEditor::deselect_tile()
 // changes level's name
 bool LevelEditor::set_name(std::string name)
 {
-	if (!is_attached()) return false;
+	if (!level) return false;
 
 	level->set_name(name);
 	return true;
@@ -255,7 +249,7 @@ bool LevelEditor::set_name(std::string name)
 // changes level's background color
 bool LevelEditor::set_bg_color(Color bg_color)
 {
-	if (!is_attached()) return false;
+	if (!level) return false;
 
 	level->set_bg_color(bg_color);
 	return true;
@@ -272,7 +266,7 @@ bool LevelEditor::set_size(Vec2u size)
 
 bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 {
-	if (!is_attached()) return false;
+	if (!level) return false;
 
 	auto start = std::chrono::system_clock::now();
 

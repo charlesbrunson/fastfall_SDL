@@ -93,8 +93,8 @@ void Level::resize(Vec2u n_size)
 	for (auto& [pos, layer] : layers.get_tile_layers())
 	{
 		Vec2u layer_size{
-			std::min(n_size.x, layer.getSize().x),
-			std::min(n_size.y, layer.getSize().y)
+			std::min(n_size.x, layer.get_level_size().x),
+			std::min(n_size.y, layer.get_level_size().y)
 		};
 
 		Vec2u parallax_size{
