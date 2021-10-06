@@ -13,6 +13,7 @@
 #include "fastfall/engine/config.hpp"
 
 #include "fastfall/game/Instance.hpp"
+#include "fastfall/game/InstanceInterface.hpp"
 #include "fastfall/game/level/LevelEditor.hpp"
 
 #include <sstream>
@@ -36,6 +37,8 @@ struct LevelProperties {
 	Vec2u size;
 	Color bgColor;
 };
+
+
 
 LevelProperties tmxParseLevelProperties(xml_node<>* mapNode) {
 
@@ -178,11 +181,8 @@ bool LevelAsset::reloadFromFile() {
 	LevelAsset n_level{ getAssetName() };
 
 	try {
-		if (n_level.loadFromFile(assetFilePath)) {
+		if (loaded = n_level.loadFromFile(assetFilePath)) {
 			*this = std::move(n_level);
-			loaded = true;
-
-
 		}
 	}
 	catch (std::exception err)

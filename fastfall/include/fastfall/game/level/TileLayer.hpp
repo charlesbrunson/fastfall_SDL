@@ -121,7 +121,6 @@ protected:
 		bool enabled = false;
 		Vec2f rate;
 		Vec2f offset;
-		//Vec2f rollover;
 	} scroll;
 
 	// collision

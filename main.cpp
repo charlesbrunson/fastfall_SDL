@@ -101,10 +101,9 @@ int main(int argc, char* argv[])
 	ResourceWatcher::join_watch_thread();
 
 #if not defined(__EMSCRIPTEN__)
-	Resources::unloadAll();
 	Engine::shutdown();
-
 	ImGuiFrame::getInstance().clear();
+	Resources::unloadAll();
 
 	FFquit();
 #endif

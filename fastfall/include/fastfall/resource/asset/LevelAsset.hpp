@@ -1,5 +1,6 @@
 #pragma once
 
+#include <set>
 
 #include "fastfall/resource/Asset.hpp"
 #include "fastfall/util/math.hpp"
@@ -16,7 +17,6 @@ namespace ff {
 // max size of a level in either direction
 // really arbitrary right now
 constexpr int LEVEL_DIMENSION_MAX = 256;
-
 
 class LevelAsset : public Asset {
 public:

@@ -29,24 +29,26 @@ void Level::update(secs deltaTime) {
 	if (deltaTime == 0.0)
 		return;
 
-	for (auto& [pos, layer] : layers.get_tile_layers()) {
+	for (auto& [pos, layer] : layers) {
 		layer.update(deltaTime);
 	}	
 }
 
 void Level::predraw(secs deltaTime) {
 
-	for (auto& [pos, layer] : layers.get_tile_layers()) {
+	for (auto& [pos, layer] : layers) {
 		layer.predraw(deltaTime);
 	}
 }
 
-void Level::init(const LevelAsset& levelData) {
+void Level::init(const LevelAsset& levelData) 
+{
+	layers.clear_all();
+
 	levelName = levelData.getAssetName();
 	bgColor = levelData.getBGColor();
 	levelSize = levelData.getTileDimensions();
 
-	layers.clear_all();
 
 	// count the layers first
 	int bg_count = 0u;
@@ -90,7 +92,7 @@ void Level::init(const LevelAsset& levelData) {
 
 void Level::resize(Vec2u n_size)
 {
-	for (auto& [pos, layer] : layers.get_tile_layers())
+	for (auto& [pos, layer] : layers)
 	{
 		Vec2u layer_size{
 			std::min(n_size.x, layer.get_level_size().x),

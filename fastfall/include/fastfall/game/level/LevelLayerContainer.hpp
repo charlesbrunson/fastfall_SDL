@@ -318,35 +318,8 @@ public:
     int get_fg_count() const  { return fg_count; };
     int get_bg_count() const  { return bg_count; };
 
-    std::string to_string() 
-    {
-        std::stringstream ss;
-        ss << std::endl << "size: " << tile_layers.size() << ", bg_count: " 
-            << bg_count << ", fg_count: " << fg_count << std::endl;
-
-        ss << "position: ";
-        auto it = tile_layers.begin();
-        for (; it != tile_layers.end() && it->position < 0; it++) {
-            ss << it->position << " ";
-        }
-        ss << "[0] ";
-        for (; it != tile_layers.end(); it++) {
-            ss << it->position << " ";
-        }
-        ss << std::endl;
-
-        ss << "id:       ";
-        it = tile_layers.begin();
-        for (; it != tile_layers.end() && it->position < 0; it++) {
-            ss << it->tilelayer.getID() << " ";
-        }
-        ss << "[0] ";
-        for (; it != tile_layers.end(); it++) {
-            ss << it->tilelayer.getID() << " ";
-        }
-        ss << std::endl << std::endl;
-        return ss.str();
-    }
+    auto begin() { return get_tile_layers().begin(); }
+    auto end() { return get_tile_layers().end(); }
 
 private:
     int bg_count = 0;
