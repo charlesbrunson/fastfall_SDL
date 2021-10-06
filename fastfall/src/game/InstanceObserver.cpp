@@ -319,7 +319,7 @@ void levelContent(GameContext context) {
 				(void*)(&layer), 
 				obj_label, 
 				0, 
-				layer.getLayerID())) 
+				layer.getID())) 
 			{
 				for (auto& obj : layer.getObjectRefs()) {
 

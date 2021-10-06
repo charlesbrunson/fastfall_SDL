@@ -115,7 +115,7 @@ public:
 
 	std::optional<Vec2u> get_tile() const { return tileset_pos; };
 	const TilesetAsset* get_tileset() const { return curr_tileset; };
-	const LevelTileLayer* get_tile_layer() const { return curr_layer; }
+	const Level::Layers::TileEntry* get_tile_layer() const { return curr_layer; }
 
 	bool applyLevelAsset(const LevelAsset* asset);
 
@@ -125,7 +125,7 @@ protected:
 	Level* level = nullptr;								// pointer to level being edited, may point externally or to created_level
 
 	bool obj_layer_selected = false;
-	LevelTileLayer* curr_layer = nullptr;				// current tile layer
+	Level::Layers::TileEntry* curr_layer = nullptr;				// current tile layer
 
 	const TilesetAsset* curr_tileset = nullptr;			// current tileset
 	std::optional<Vec2u> tileset_pos = std::nullopt;	// current tile from tileset

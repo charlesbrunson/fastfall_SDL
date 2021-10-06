@@ -17,6 +17,8 @@ class LevelEditor;
 
 class Level  {
 public:
+	using Layers = LevelLayerContainer<TileLayer, ObjectLayer>;
+
 	Level(GameContext context);
 	Level(GameContext context, const LevelAsset& levelData);
 
@@ -37,8 +39,8 @@ public:
 	void set_name(std::string name) { levelName = name; };
 	void set_bg_color(Color color) { bgColor = color; };
 
-	LevelLayerContainer& get_layers() { return layers; };
-	const LevelLayerContainer& get_layers() const { return layers; };
+	Layers& get_layers() { return layers; };
+	const Layers& get_layers() const { return layers; };
 
 	bool hasEditorHooked = false;
 
@@ -49,7 +51,7 @@ private:
 	Color bgColor;
 	Vec2u levelSize;
 
-	LevelLayerContainer layers;
+	Layers layers;
 
 };
 

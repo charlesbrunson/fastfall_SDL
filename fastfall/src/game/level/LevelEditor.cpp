@@ -36,7 +36,7 @@ bool LevelEditor::create_layer(int layer_pos)
 	int bg_count = level->get_layers().get_bg_count();
 	int fg_count = level->get_layers().get_fg_count();
 
-	if (layer_pos != LevelLayerContainer::OBJECT_LAYER_POS
+	if (layer_pos != Level::Layers::OBJECT_LAYER_POS
 		&& layer_pos >= -bg_count - 1
 		&& layer_pos <= fg_count + 1)
 	{
@@ -56,8 +56,8 @@ bool LevelEditor::select_layer(int layer_pos)
 	int bg_count = level->get_layers().get_bg_count();
 	int fg_count = level->get_layers().get_fg_count();
 
-	if (layer_pos != LevelLayerContainer::OBJECT_LAYER_POS) {
-		curr_layer = level->get_layers().tile_layer_at(layer_pos);
+	if (layer_pos != Level::Layers::OBJECT_LAYER_POS) {
+		curr_layer = level->get_layers().get_tile_layer_at(layer_pos);
 		obj_layer_selected = false;
 	}
 	else {
@@ -300,7 +300,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 	// erase ids not present in asset_ids
 	for (int i = 1; i <= level->get_layers().get_fg_count(); i++)
 	{
-		int id = level->get_layers().tile_layer_at(i)->tilelayer.getID();
+		int id = level->get_layers().get_tile_layer_at(i)->tilelayer.getID();
 
 		auto asset_it = std::find(asset_ids.begin(), asset_ids.end(), id);
 		if (asset_it == asset_ids.end())
@@ -311,7 +311,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 	}
 	for (int i = -1; i >= -level->get_layers().get_bg_count(); i--)
 	{
-		int id = level->get_layers().tile_layer_at(i)->tilelayer.getID();
+		int id = level->get_layers().get_tile_layer_at(i)->tilelayer.getID();
 
 		auto asset_it = std::find(asset_ids.begin(), asset_ids.end(), id);
 		if (asset_it == asset_ids.end())
@@ -333,7 +333,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 			bool exists_in_level = std::any_of(
 				level->get_layers().get_tile_layers().begin(),
 				level->get_layers().get_tile_layers().end(),
-				[&layer_ref](const LevelTileLayer& layer) {
+				[&layer_ref](const Level::Layers::TileEntry& layer) {
 					return layer_ref.id == layer.tilelayer.getID();
 				}
 			);

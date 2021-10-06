@@ -27,7 +27,7 @@ public:
 
 	void createObjects(GameContext context);
 
-	inline unsigned int getLayerID() { return layerID; };
+	inline unsigned int getID() { return layerID; };
 	inline const std::vector<ObjectRef>& getObjectRefs() { return object_refs; };
 
 	const ObjectRef* getRefByID(unsigned obj_id) const;

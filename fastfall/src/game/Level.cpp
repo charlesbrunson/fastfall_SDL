@@ -46,7 +46,7 @@ void Level::init(const LevelAsset& levelData) {
 	bgColor = levelData.getBGColor();
 	levelSize = levelData.getTileDimensions();
 
-	layers.clear();
+	layers.clear_all();
 
 	// count the layers first
 	int bg_count = 0u;
