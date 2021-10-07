@@ -64,28 +64,16 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 	}
 }
 
-void TileVertexArray::erase(Vec2u at) {
-	assert(at.x <= m_size.x && at.y <= m_size.y);
-
-	size_t vndx = (size_t)(at.x) + (size_t)(at.y * m_size.x);
-	vndx *= VERTICES_PER_TILE;
-
-	for (int i = 0; i < VERTICES_PER_TILE; i++) {
-		m_verts[vndx + i].color = Color::Transparent;
-		m_verts[vndx + i].tex_pos = glm::fvec2{ 0, 0 };
-	}
-}
-
 void TileVertexArray::blank(Vec2u at) {
 	assert(at.x <= m_size.x && at.y <= m_size.y);
 
 	size_t vndx = (size_t)(at.x) + (size_t)(at.y * m_size.x);
 	vndx *= VERTICES_PER_TILE;
 
-	for (int i = 0; i < VERTICES_PER_TILE; i++) {
-		m_verts[vndx + i].color = Color::Transparent;
-	}
+
+	memset(&m_verts[vndx], 0, sizeof(Vertex) * VERTICES_PER_TILE);
 }
+
 
 void TileVertexArray::clear() {
 	m_verts = VertexArray{ ff::Primitive::TRIANGLES, (size_t)m_size.x * m_size.y * VERTICES_PER_TILE };

@@ -19,8 +19,8 @@ public:
 
 	void resize(Vec2u size);
 
-	void erase(Vec2u at);
 	void blank(Vec2u at);
+
 	void clear();
 
 	inline bool empty() noexcept { return m_verts.empty(); };

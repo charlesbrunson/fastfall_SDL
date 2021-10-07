@@ -128,25 +128,6 @@ void ChunkVertexArray::do_clear() {
 	m_chunks.clear();
 }
 
-/*
-void ChunkVertexArray::add_scroll(Vec2f scroll_amount) {
-	scroll += scroll_amount;
-
-	Vec2f sizef{ m_size.x * TILESIZE_F, m_size.y * TILESIZE_F };
-
-	while (scroll.x < 0.f) scroll.x += sizef.x;
-	while (scroll.x >= sizef.x) scroll.x -= sizef.x;
-
-	while (scroll.y < 0.f) scroll.y += sizef.y;
-	while (scroll.y >= sizef.y) scroll.y -= sizef.y;
-
-}
-
-void ChunkVertexArray::reset_scroll() {
-	scroll = Vec2f{};
-}
-*/
-
 void ChunkVertexArray::predraw() {
 
 	while (!commands.empty()) {

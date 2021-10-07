@@ -29,9 +29,6 @@ public:
 
 	inline bool empty() noexcept { return m_chunks.empty(); };
 
-	//void add_scroll(Vec2f scroll_amount);
-	//void reset_scroll();
-
 	void predraw();
 
 	Vec2f offset;
