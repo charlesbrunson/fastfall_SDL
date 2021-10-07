@@ -72,6 +72,14 @@ void TileVertexArray::blank(Vec2u at) {
 
 
 	memset(&m_verts[vndx], 0, sizeof(Vertex) * VERTICES_PER_TILE);
+	
+	/*
+	for (int i = 0; i < VERTICES_PER_TILE; i++) {
+		m_verts[vndx + i].color = Color::Transparent;
+		m_verts[vndx + i].pos = glm::fvec2{ 0, 0 };
+		m_verts[vndx + i].tex_pos = glm::fvec2{ 0, 0 };
+	}
+	*/
 }
 
 
