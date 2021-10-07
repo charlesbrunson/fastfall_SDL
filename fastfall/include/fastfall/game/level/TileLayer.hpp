@@ -23,12 +23,37 @@ namespace ff {
 class TileLayer : public Drawable {
 private:
 	static constexpr int TILEDATA_NONE = UINT8_MAX;
+
 	struct TileData {
-		uint8_t tileset_id = TILEDATA_NONE;
-		uint8_t logic_id = TILEDATA_NONE;
-		Vec2u tex_pos;
-		bool has_tile = false;
+		TileData(size_t size)
+			: tile_count(size)
+			, has_tile(size, false)
+			, tex_pos(size)
+			, tileset_id(size, TILEDATA_NONE)
+			, logic_id(size, TILEDATA_NONE)
+		{
+		}
+		TileData() = default;
+		TileData(const TileData&) = default;
+		TileData(TileData&&) = default;
+		TileData& operator= (const TileData&) = default;
+		TileData& operator= (TileData&&) = default;
+
+		size_t tile_count = 0;
+		inline unsigned size() { return tile_count; };
+
+		inline void erase(unsigned ndx) {
+			has_tile[ndx] = false;
+			tileset_id[ndx] = TILEDATA_NONE;
+			logic_id[ndx] = TILEDATA_NONE;
+		}
+
+		std::vector<bool> has_tile;
+		std::vector<Vec2u> tex_pos;
+		std::vector<uint8_t> tileset_id;	// ndx corresponds to chunks
+		std::vector<uint8_t> logic_id;		// ndx corresponds to tileLogic
 	};
+
 public:
 
 	TileLayer(GameContext context, unsigned id, Vec2u levelsize);
@@ -75,7 +100,7 @@ public:
 	inline unsigned get_collision_border() const { return collision.border; };
 	inline ColliderTileMap* getCollisionMap() { return collision.tilemap_ptr; };
 
-	inline std::vector<TileData>& getTileData() { return pos2data; };
+	inline TileData& getTileData() { return tiles; };
 
 	bool hasTileAt(Vec2u tile_pos);
 	std::optional<Vec2u> getTileTexPos(Vec2u tile_pos);
@@ -130,8 +155,9 @@ protected:
 		ColliderTileMap* tilemap_ptr = nullptr;
 	} collision;
 
+
 	// tile data
-	std::vector<TileData> pos2data;
+	struct TileData tiles;
 
 	// chunk vertex arrays
 	struct ChunkVA {
@@ -141,7 +167,6 @@ protected:
 	std::vector<ChunkVA> chunks;
 
 	// logic
-	std::vector<std::pair<Vec2u, unsigned>> tile2logic;
 	std::vector<std::unique_ptr<TileLogic>> tileLogic;
 
 	constexpr static Vec2u kChunkSize = Vec2u{ GAME_TILE_W / 2u, GAME_TILE_H / 2u };

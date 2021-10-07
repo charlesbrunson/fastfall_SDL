@@ -23,8 +23,8 @@ TileLayer::TileLayer(GameContext context, unsigned id, Vec2u levelsize)
 	: m_context(context)
 	, layerID(id)
 	, level_size(levelsize)
+	, tiles((size_t)levelsize.x * levelsize.y)
 {
-	pos2data.resize((size_t)level_size.x * level_size.y, TileData{});
 }
 
 TileLayer::TileLayer(GameContext context, unsigned id, const TileLayerRef& layerData)
@@ -35,13 +35,13 @@ TileLayer::TileLayer(GameContext context, unsigned id, const TileLayerRef& layer
 }
 
 TileLayer::TileLayer(const TileLayer& tile)
-	: m_context(tile.m_context) 
+	: m_context(tile.m_context)
+	, tiles(tile.tiles)
 {
 	layerID = tile.layerID;
 	level_size = tile.level_size;
 
 	chunks = tile.chunks;
-	pos2data = tile.pos2data;
 
 	parallax = tile.parallax;
 	scroll = tile.scroll;
@@ -71,7 +71,7 @@ TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	level_size = tile.level_size;
 
 	chunks = tile.chunks;
-	pos2data = tile.pos2data;
+	tiles = tile.tiles;
 
 	parallax = tile.parallax;
 	scroll = tile.scroll;
@@ -101,7 +101,8 @@ TileLayer::TileLayer(TileLayer&& tile) noexcept
 {
 	layerID = tile.layerID;
 	level_size = tile.level_size;
-	std::swap(pos2data, tile.pos2data);
+
+	std::swap(tiles, tile.tiles);
 	std::swap(chunks, tile.chunks);
 	std::swap(parallax, tile.parallax);
 	std::swap(scroll, tile.scroll);
@@ -115,26 +116,17 @@ TileLayer::TileLayer(TileLayer&& tile) noexcept
 		);
 		collision.tilemap_ptr->set_on_postcontact(
 			std::bind(&TileLayer::handlePostContact, this,
-				std::placeholders::_1, std::placeholders::_2)
-		);
-	}
-
-	if (tile.collision.enabled) {
-		tile.collision.tilemap_ptr->set_on_precontact(
-			std::bind(&TileLayer::handlePreContact, &tile,
-				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
-		);
-		tile.collision.tilemap_ptr->set_on_postcontact(
-			std::bind(&TileLayer::handlePostContact, &tile,
 				std::placeholders::_1, std::placeholders::_2)
 		);
 	}
 }
 TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	m_context = tile.m_context;
+
 	layerID = tile.layerID;
 	level_size = tile.level_size;
-	std::swap(pos2data, tile.pos2data);
+
+	std::swap(tiles, tile.tiles);
 	std::swap(chunks, tile.chunks);
 	std::swap(parallax, tile.parallax);
 	std::swap(scroll, tile.scroll);
@@ -148,17 +140,6 @@ TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 		);
 		collision.tilemap_ptr->set_on_postcontact(
 			std::bind(&TileLayer::handlePostContact, this,
-				std::placeholders::_1, std::placeholders::_2)
-		);
-	}
-
-	if (tile.collision.enabled) {
-		tile.collision.tilemap_ptr->set_on_precontact(
-			std::bind(&TileLayer::handlePreContact, &tile,
-				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
-		);
-		tile.collision.tilemap_ptr->set_on_postcontact(
-			std::bind(&TileLayer::handlePostContact, &tile,
 				std::placeholders::_1, std::placeholders::_2)
 		);
 	}
@@ -168,7 +149,6 @@ TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 
 TileLayer::~TileLayer() {
 	if (m_context.valid() && collision.enabled) {
-		//m_context.collision().get().erase_collider(collision);
 		instance::phys_erase_collider(m_context, collision.tilemap_ptr);
 		collision.tilemap_ptr = nullptr;
 	}
@@ -182,7 +162,8 @@ void TileLayer::initFromAsset(const TileLayerRef& layerData, unsigned id) {
 	layerID = id;
 
 	level_size = layerData.tileSize;
-	pos2data.resize((size_t)level_size.x * level_size.y, TileData{});
+
+	tiles = TileData{ (size_t)level_size.x * level_size.y };
 
 	for (const auto& i : tileLayer.tiles) {
 		TilesetAsset* ta = Resources::get<TilesetAsset>(i.tilesetName);
@@ -222,20 +203,20 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 			collision.enabled = true;
 			collision.border = border;
 
-			for (unsigned i = 0u; i < pos2data.size(); i++) {
-				auto& tile_data = pos2data.at(i);
+			for (unsigned i = 0u; i < tiles.size(); i++) {
+				//auto& tile_data = tiles.at(i);
 
-				if (tile_data.has_tile && tile_data.tileset_id != TILEDATA_NONE)
+				if (tiles.has_tile[i] && tiles.tileset_id[i] != TILEDATA_NONE)
 				{
 
-					const TilesetAsset* tileset = chunks.at(tile_data.tileset_id).tileset;
+					const TilesetAsset* tileset = chunks.at(tiles.tileset_id[i]).tileset;
 
-					Tile tile = tileset->getTile(tile_data.tex_pos);
+					Tile tile = tileset->getTile(tiles.tex_pos[i]);
 
 					collision.tilemap_ptr->setTile(
 						Vec2i{ (int)(i % level_size.x), (int)(i / level_size.x) },
 						tile.shape,
-						&tileset->getMaterial(tile_data.tex_pos),
+						&tileset->getMaterial(tiles.tex_pos[i]),
 						tile.matFacing
 					);
 				}
@@ -327,8 +308,8 @@ bool TileLayer::handlePreContact(Vec2i pos, const Contact& contact, secs duratio
 
 	unsigned ndx = pos.y * level_size.x + pos.x;
 	bool r = true;
-	if (pos2data.at(ndx).logic_id != TILEDATA_NONE) {
-		r = tileLogic.at(pos2data.at(ndx).logic_id)->on_precontact(pos, contact, duration);
+	if (tiles.logic_id[ndx] != TILEDATA_NONE) {
+		r = tileLogic.at(tiles.logic_id[ndx])->on_precontact(pos, contact, duration);
 	}
 	return r;
 }
@@ -339,8 +320,8 @@ void TileLayer::handlePostContact(Vec2i pos, const PersistantContact& contact) {
 		return;
 
 	unsigned ndx = pos.y * level_size.x + pos.x;
-	if (pos2data.at(ndx).logic_id != TILEDATA_NONE) {
-		tileLogic.at(pos2data.at(ndx).logic_id)->on_postcontact(pos, contact);
+	if (tiles.logic_id[ndx] != TILEDATA_NONE) {
+		tileLogic.at(tiles.logic_id[ndx])->on_postcontact(pos, contact);
 	}
 }
 
@@ -360,7 +341,7 @@ void TileLayer::predraw(secs deltaTime) {
 			if (cmd.type == TileLogicCommand::Type::Set) {
 				setTile(cmd.position, cmd.texposition, cmd.tileset, cmd.updateLogic);
 			}
-			else if (pos2data.at(ndx).has_tile && cmd.type == TileLogicCommand::Type::Remove) {
+			else if (tiles.has_tile[ndx] && cmd.type == TileLogicCommand::Type::Remove) {
 				removeTile(cmd.position);
 			}
 			changed = true;
@@ -452,19 +433,19 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 
 	// blank existing tile at that position
 	unsigned ndx = position.y * level_size.x + position.x;
-	uint8_t tileset_ndx = pos2data.at(ndx).tileset_id;
-	uint8_t logic_ndx = pos2data.at(ndx).logic_id;
+	uint8_t tileset_ndx = tiles.tileset_id[ndx];
+	uint8_t logic_ndx = tiles.logic_id[ndx];
 
-	pos2data.at(ndx).tex_pos = texposition;
-	pos2data.at(ndx).has_tile = true;
+	tiles.tex_pos[ndx] = texposition;
+	tiles.has_tile[ndx] = true;
 
 	if (tileset_ndx != TILEDATA_NONE) {
-		chunks.at(tileset_ndx).varray.blank(position);
-		pos2data.at(ndx).tileset_id = TILEDATA_NONE;
+		//chunks.at(tileset_ndx).varray.blank(position);
+		tiles.tileset_id[ndx] = TILEDATA_NONE;
 	}
 	if (useLogic && logic_ndx != TILEDATA_NONE) {
 		tileLogic.at(logic_ndx)->removeTile(position);
-		pos2data.at(ndx).logic_id = TILEDATA_NONE;
+		tiles.logic_id[ndx] = TILEDATA_NONE;
 	}
 
 	// find tilearray or create it
@@ -486,7 +467,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 			chunks.back().varray.setTexture(tileset.getTexture());
 			chunks.back().varray.setTile(position, texposition);
 			chunks.back().varray.use_visible_rect = true;
-			pos2data.at(ndx).tileset_id = chunks.size() - 1;
+			tiles.tileset_id[ndx] = chunks.size() - 1;
 		}
 		else {
 			LOG_ERR_("Cannot set tile, tilelayer has reached max tileset references: {}", chunks.size());
@@ -494,7 +475,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 	}
 	else {
 		vertarr->varray.setTile(position, texposition);
-		pos2data.at(ndx).tileset_id = std::distance(chunks.begin(), vertarr);
+		tiles.tileset_id[ndx] = std::distance(chunks.begin(), vertarr);
 	}
 
 	if (collision.enabled) {
@@ -526,7 +507,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 					if (logic_ptr) {
 						tileLogic.push_back(std::move(logic_ptr));
 						tileLogic.back()->addTile(position, t, args.data());
-						pos2data.at(ndx).logic_id = tileLogic.size() - 1;
+						tiles.logic_id[ndx] = tileLogic.size() - 1;
 					}
 					else {
 						LOG_WARN("could not create tile logic type: {}", logic);
@@ -538,7 +519,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 			}
 			else {
 				it->get()->addTile(position, t, args.data());
-				pos2data.at(ndx).logic_id = std::distance(tileLogic.begin(), it);
+				tiles.logic_id[ndx] = std::distance(tileLogic.begin(), it);
 			}
 		}
 	}
@@ -547,13 +528,13 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 void TileLayer::removeTile(const Vec2u& position) {
 	unsigned ndx = position.y * level_size.x + position.x;
 
-	if (pos2data.at(ndx).tileset_id != TILEDATA_NONE) {
-		chunks.at(pos2data.at(ndx).tileset_id).varray.blank(position);
+	if (tiles.tileset_id[ndx] != TILEDATA_NONE) {
+		chunks.at(tiles.tileset_id[ndx]).varray.blank(position);
 	}
-	if (pos2data.at(ndx).logic_id != TILEDATA_NONE) {
-		tileLogic.at(pos2data.at(ndx).logic_id)->removeTile(position);
+	if (tiles.logic_id[ndx] != TILEDATA_NONE) {
+		tileLogic.at(tiles.logic_id[ndx])->removeTile(position);
 	}
-	pos2data.at(ndx) = TileData{};
+	tiles.erase(ndx);
 
 	if (collision.enabled) {
 		collision.tilemap_ptr->removeTile(Vec2i(position));
@@ -561,7 +542,8 @@ void TileLayer::removeTile(const Vec2u& position) {
 }
 
 void TileLayer::clear() {
-	pos2data.clear();
+	//pos2data.clear();
+	tiles = TileData{};
 	chunks.clear();
 	if (collision.enabled)
 		collision.tilemap_ptr->clear();
@@ -576,15 +558,15 @@ void TileLayer::shallow_copy(const TileLayer& layer, Rectu area, Vec2u lvlSize)
 
 			Vec2u pos{ x,y };
 			unsigned ndx = pos.y * layer.level_size.x + pos.x;
-			if (!layer.pos2data.at(ndx).has_tile)
+			if (!layer.tiles.has_tile[ndx])
 				continue;
 
 			const TilesetAsset* tileset = nullptr;
 
-			Vec2u tex_pos = layer.pos2data.at(ndx).tex_pos;
+			Vec2u tex_pos = layer.tiles.tex_pos[ndx];
 
-			if (layer.pos2data.at(ndx).tileset_id != UINT8_MAX) {
-				tileset = layer.chunks.at(layer.pos2data.at(ndx).tileset_id).tileset;
+			if (layer.tiles.tileset_id[ndx] != UINT8_MAX) {
+				tileset = layer.chunks.at(layer.tiles.tileset_id[ndx]).tileset;
 			}
 			if (!tileset)
 				continue;
@@ -599,7 +581,7 @@ bool TileLayer::hasTileAt(Vec2u tile_pos)
 	unsigned ndx = tile_pos.y * level_size.x + tile_pos.x;
 	if (tile_pos.x < level_size.x && tile_pos.y < level_size.y)
 	{
-		return pos2data.at(ndx).has_tile;
+		return tiles.has_tile[ndx];
 	}
 	return false;
 }
@@ -609,7 +591,7 @@ std::optional<Vec2u> TileLayer::getTileTexPos(Vec2u tile_pos)
 	unsigned ndx = tile_pos.y * level_size.x + tile_pos.x;
 	if (hasTileAt(tile_pos))
 	{
-		return pos2data.at(ndx).tex_pos;
+		return tiles.tex_pos[ndx];
 	}
 	return std::nullopt;
 }
@@ -617,9 +599,9 @@ std::optional<Vec2u> TileLayer::getTileTexPos(Vec2u tile_pos)
 const TilesetAsset* TileLayer::getTileTileset(Vec2u tile_pos)
 {
 	unsigned ndx = tile_pos.y * level_size.x + tile_pos.x;
-	if (hasTileAt(tile_pos) && pos2data.at(ndx).tileset_id != TILEDATA_NONE)
+	if (hasTileAt(tile_pos) && tiles.tileset_id[ndx] != TILEDATA_NONE)
 	{
-		return chunks.at(pos2data.at(ndx).tileset_id).tileset;
+		return chunks.at(tiles.tileset_id[ndx]).tileset;
 	}
 	return nullptr;
 }

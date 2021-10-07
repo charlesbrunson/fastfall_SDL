@@ -42,7 +42,7 @@ public:
         if (pos < 0) {
             int ndx = (pos + 1 + bg_count);
             if (tile_layers.empty()) {
-                tile_layers.push_back(
+                tile_layers.emplace_back(
                     TileEntry{ .position = pos, .tilelayer = std::move(layer) });
             }
             else {
@@ -59,7 +59,7 @@ public:
         else if (pos > 0) {
             int ndx = (pos + bg_count);
             if (tile_layers.empty() || ndx == tile_layers.size() + 1) {
-                tile_layers.push_back(
+                tile_layers.emplace_back(
                     TileEntry{ .position = pos, .tilelayer = std::move(layer) });
             }
             else {

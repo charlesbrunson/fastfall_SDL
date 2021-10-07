@@ -31,7 +31,6 @@ public:
 	inline Color getBGColor() const { return backgroundColor; };
 	inline const Vec2u& getTileDimensions() const { return lvlTileSize; };
 
-	inline const TilesetMap* getTilesetDependencies() const { return &tilesetDeps; };
 	inline const std::vector<LayerRef>* getLayerRefs() const { return &layers; };
 
 	void ImGui_getContent() override;

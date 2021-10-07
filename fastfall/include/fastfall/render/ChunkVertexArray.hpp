@@ -16,7 +16,7 @@ public:
 	const TextureRef& getTexture() const noexcept;
 
 	void setTile(Vec2u at, Vec2u texPos) { 
-		commands.push(Command{ .type = Command::Type::Set, .tile_pos = at, .tex_pos = texPos }); 
+		commands.push(Command{ .type = Command::Type::Set, .tile_pos = at, .tex_pos = texPos });
 	};
 	void blank(Vec2u at) {
 		commands.push(Command{ .type = Command::Type::Blank, .tile_pos = at });

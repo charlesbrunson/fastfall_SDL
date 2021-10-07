@@ -23,7 +23,7 @@ public:
 	void blank(Vec2u at);
 	void clear();
 
-	inline bool empty() noexcept { return m_tiles.empty(); };
+	inline bool empty() noexcept { return m_verts.empty(); };
 
 	Vec2f offset;
 
@@ -31,17 +31,6 @@ protected:
 
 	TextureRef m_tex;
 	Vec2u m_size;
-
-	struct Tile {
-		Tile() {};
-		Tile(Vec2u at, Vec2u texPos) :
-			position(at), tex_position(texPos)
-		{};
-		Vec2u position;
-		Vec2u tex_position;
-	};
-
-	std::vector<Tile> m_tiles;
 	VertexArray m_verts;
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
