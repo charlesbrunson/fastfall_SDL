@@ -8,7 +8,7 @@
 namespace ff {
 
 namespace ObjectTMX {
-	LayerData parse(xml_node<>* layerNode);
+	ObjectLayerData parse(xml_node<>* layerNode);
 }
 
 }

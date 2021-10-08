@@ -8,6 +8,9 @@
 
 #include "fastfall/render/Drawable.hpp"
 
+#include "fastfall/game/level/TileLayer.hpp"
+#include "fastfall/game/level/ObjectLayer.hpp"
+
 #include <list>
 #include <concepts>
 

@@ -121,10 +121,10 @@ void parseObjectRefs(xml_node<>* objectNode, ObjectLayerData& objLayer) {
 
 /////////////////////////////////////////////////////////////
 
-LayerData ObjectTMX::parse(xml_node<>* layerNode) {
-	LayerData layer(LayerData::Type::Object);
-	layer.id = atoi(layerNode->first_attribute("id")->value());
-	parseObjectRefs(layerNode->first_node("object"), std::get<ObjectLayerData>(layer.layer));
+ObjectLayerData ObjectTMX::parse(xml_node<>* layerNode) {
+	ObjectLayerData layer;
+	layer.layer_id = atoi(layerNode->first_attribute("id")->value());
+	parseObjectRefs(layerNode->first_node("object"), layer);
 	return layer;
 }
 

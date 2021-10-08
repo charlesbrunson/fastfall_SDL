@@ -7,10 +7,9 @@ ObjectLayer::ObjectLayer()
 {
 
 }
-ObjectLayer::ObjectLayer(GameContext context, unsigned id, const ObjectLayerData& layerData)
-	: layerID(id)
+ObjectLayer::ObjectLayer(GameContext context, const ObjectLayerData& layerData)
 {
-	initFromAsset(context, id, layerData);
+	initFromAsset(context, layerData);
 }
 
 ObjectLayer::ObjectLayer(const ObjectLayer& obj)
@@ -35,12 +34,11 @@ ObjectLayer& ObjectLayer::operator=(ObjectLayer&& obj) noexcept
 	return *this;
 }
 
-void ObjectLayer::initFromAsset(GameContext context, unsigned id, const ObjectLayerData& layerData)
+void ObjectLayer::initFromAsset(GameContext context, const ObjectLayerData& layerData)
 {
-	layerID = id;
+	layerID = layerData.getID();
 	object_refs = layerData.objects;
 }
-
 
 const ObjectData* ObjectLayer::getRefByID(unsigned obj_id) const {
 	const ObjectData* ref = nullptr;

@@ -6,7 +6,9 @@
 #include "fastfall/util/math.hpp"
 //#include "phys/CollisionMap.hpp"
 
+#include "fastfall/game/level/LevelLayerContainer.hpp"
 #include "fastfall/resource/asset/LevelAssetTypes.hpp"
+#include "fastfall/resource/asset/TileLayerData.hpp"
 #include "fastfall/render/Color.hpp"
 
 //#include <SFML/Graphics.hpp>
@@ -20,6 +22,8 @@ constexpr int LEVEL_DIMENSION_MAX = 256;
 
 class LevelAsset : public Asset {
 public:
+	using Layers = LevelLayerContainer<TileLayerData, ObjectLayerData>;
+
 	LevelAsset(const std::string& filename);
 
 	bool loadFromFile(const std::string& relpath) override;
@@ -31,7 +35,7 @@ public:
 	inline Color getBGColor() const { return backgroundColor; };
 	inline const Vec2u& getTileDimensions() const { return lvlTileSize; };
 
-	inline const std::vector<LayerData>* getLayerRefs() const { return &layers; };
+	inline const Layers& getLayerRefs() const { return layers; };
 
 	void ImGui_getContent() override;
 
@@ -39,8 +43,8 @@ protected:
 	Color backgroundColor;
 	Vec2u lvlTileSize;
 
-	//TilesetMap tilesetDeps;
-	std::vector<LayerData> layers;
+	Layers layers;
+
 };
 
 template<>

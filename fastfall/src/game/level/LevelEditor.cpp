@@ -271,93 +271,62 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 	auto start = std::chrono::system_clock::now();
 
 	// step 1: level properties
-	if (level->name() != asset->getAssetName())
-	{
-		set_name(asset->getAssetName());
-	}
-
-	if (level->size() != asset->getTileDimensions())
-	{
-		set_size(asset->getTileDimensions());
-	}
-
-	if (level->getBGColor() != asset->getBGColor())
-	{
-		set_bg_color(asset->getBGColor());
-	}
+	if (level->name()		!= asset->getAssetName())		set_name(asset->getAssetName());
+	if (level->size()		!= asset->getTileDimensions())	set_size(asset->getTileDimensions());
+	if (level->getBGColor() != asset->getBGColor())			set_bg_color(asset->getBGColor());
 
 	// step 2: correct layer ordering
 
-	// get the layer ids & order from the asset
-	std::vector<int> asset_ids;
-	std::transform(asset->getLayerRefs()->begin(), asset->getLayerRefs()->end(),
-		std::back_inserter(asset_ids),
-		[](const LayerData& layer) -> unsigned {
-			return layer.type == LayerData::Type::Tile ? layer.id : 0; // mark obj layer as zero
-		});
-
+	auto asset_ids = asset->getLayerRefs().get_id_order();
 
 	// erase ids not present in asset_ids
-	for (int i = 1; i <= level->get_layers().get_fg_count(); i++)
-	{
-		int id = level->get_layers().get_tile_layer_at(i)->tilelayer.getID();
+	auto& lvl_layers = level->get_layers();
 
+	auto erase_layer = [&](int i) -> bool
+	{
+		int id = lvl_layers.get_tile_layer_at(i)->tilelayer.getID();
 		auto asset_it = std::find(asset_ids.begin(), asset_ids.end(), id);
+
 		if (asset_it == asset_ids.end())
 		{
-			level->get_layers().erase(i);
-			i--;
+			lvl_layers.erase(i);
 		}
+		return asset_it == asset_ids.end();
+	};
+
+	for (int i = 1; i <= lvl_layers.get_fg_count(); i++)
+	{
+		if (erase_layer(i)) i--;
 	}
-	for (int i = -1; i >= -level->get_layers().get_bg_count(); i--)
+	for (int i = -1; i >= -lvl_layers.get_bg_count(); i--)
 	{
-		int id = level->get_layers().get_tile_layer_at(i)->tilelayer.getID();
-
-		auto asset_it = std::find(asset_ids.begin(), asset_ids.end(), id);
-		if (asset_it == asset_ids.end())
-		{
-			level->get_layers().erase(i);
-			i++;
-		}
+		if (erase_layer(i)) i++;
 	}
 
 	// create layers not present in level
 	std::set<unsigned> nLayers;
-	if (asset_ids.size() > level->get_layers().get_tile_layers().size()) 
+	for (auto layer_ref : asset->getLayerRefs().get_tile_layers()) 
 	{
-		for (auto& layer_ref : *asset->getLayerRefs()) 
-		{
-			if (layer_ref.type == LayerData::Type::Object)
-				continue;
-
-			bool exists_in_level = std::any_of(
-				level->get_layers().get_tile_layers().begin(),
-				level->get_layers().get_tile_layers().end(),
-				[&layer_ref](const Level::Layers::TileEntry& layer) {
-					return layer_ref.id == layer.tilelayer.getID();
-				}
-			);
-
-			if (!exists_in_level)
-			{
-				level->get_layers().push_fg_front(TileLayer{
-						level->getContext(),
-						layer_ref.id,
-						layer_ref.asTileLayer()
-					});
-				nLayers.insert(layer_ref.id);
+		bool not_in_lvl = std::none_of(
+			lvl_layers.get_tile_layers().begin(),
+			lvl_layers.get_tile_layers().end(),
+			[&layer_ref](const Level::Layers::TileEntry& layer) {
+				return layer_ref.tilelayer.getID() == layer.tilelayer.getID();
 			}
+		);
+		if (not_in_lvl)
+		{
+			lvl_layers.push_fg_front(TileLayer{ level->getContext(), layer_ref.tilelayer });
+			nLayers.insert(layer_ref.tilelayer.getID());
 		}
 	}
 
 	// reorder layers
-	level->get_layers().reorder(asset_ids);
+	lvl_layers.reorder(asset_ids);
 
 	// step 3: per layer update
-	auto it = asset->getLayerRefs()->begin();
-
-	auto& tile_layers = level->get_layers().get_tile_layers();
-	for (auto& layer : tile_layers)
+	auto it = asset->getLayerRefs().get_tile_layers().begin();
+	for (auto& layer : lvl_layers.get_tile_layers())
 	{
 		if (nLayers.contains(layer.tilelayer.getID())) {
 			// this is a created layer, no need to update
@@ -365,12 +334,9 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 			continue;
 		}
 
-		if (it->type == LayerData::Type::Object)
-			it++;
+		assert(layer.tilelayer.getID() == it->tilelayer.getID());
 
-		assert(layer.tilelayer.getID() == it->id);
-
-		const TileLayerData& tile_ref = it->asTileLayer();
+		const TileLayerData& tile_ref = it->tilelayer;
 
 
 		select_layer(layer.position);
@@ -413,7 +379,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		}
 
 		// update tiles
-		unsigned tile_ndx = 0;
+		//unsigned tile_ndx = 0;
 
 		unsigned width = tile_ref.getSize().x;
 		unsigned height = tile_ref.getSize().y;
@@ -421,22 +387,22 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		unsigned paint_count = 0;
 		unsigned erase_count = 0;
 
-		const auto& tile_data = tile_ref.getTiles();
+		const auto& tile_data = tile_ref.getTileData();
 		for (unsigned yy = 0; yy < height; yy++) {
 			for (unsigned xx = 0; xx < width; xx++) {
 
 				Vec2u pos{ xx, yy };
-				//size_t ndx = (size_t)xx + yy * width;
+				unsigned ndx = xx + yy * tile_ref.getSize().x;
 
-				if (tile_ndx >= tile_ref.getSize().x * tile_ref.getSize().x)
-					break;
+				//if (tile_ndx >= tile_ref.getSize().x * tile_ref.getSize().x)
+				//	break;
 
 				auto& tilelayer = layer.tilelayer;
 
-				if (tile_data.has_tile[tile_ndx]) 
+				if (tile_data.has_tile[ndx])
 				{
-					auto tex_pos = tile_data.tex_pos[tile_ndx];
-					auto tileset = tile_ref.getTilesetFromNdx(tile_data.tileset_ndx[tile_ndx]);
+					auto tex_pos = tile_data.tex_pos[ndx];
+					auto tileset = tile_ref.getTilesetFromNdx(tile_data.tileset_ndx[ndx]);
 
 					if ( (!tilelayer.hasTileAt(pos))
 						|| (tilelayer.getTileTexPos(pos).value() != tex_pos)
@@ -447,7 +413,6 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 						select_tile(tex_pos);
 						paint_tile(pos);
 					}
-					tile_ndx++;
 				}
 				else if (tilelayer.hasTileAt(pos)) {
 					erase_count++;
@@ -460,7 +425,8 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		// predraw to apply changes
 		layer.tilelayer.predraw(0.0);
 
-		it++; // increment to next tilelayer ref
+		// increment to next tilelayer ref
+		it++; 
 
 		LOG_INFO("updated layer #{}: {} tile affected", layer.tilelayer.getID(), paint_count + erase_count);
 	}

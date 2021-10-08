@@ -139,23 +139,30 @@ bool LevelAsset::loadFromFile(const std::string& relpath) {
 			// parse tilesets
 			TilesetMap tilesetDeps = TilesetTMX::parse(mapNode->first_node("tileset"));
 
-			bool hasObjectLayer = false;
 
 			// parse layers
+			bool hasObjectLayer = false;
 			auto layerNode = mapNode->first_node();
 			while (layerNode) {
-				if (strcmp(layerNode->name(), "layer") == 0) {
-
-					layers.push_back(TileLayerData::loadFromTMX(layerNode, tilesetDeps));
-					assert(std::get<TileLayerData>(layers.back().layer).getSize() == lvlTileSize);
+				LOG_INFO("node: {}", layerNode->name());
+				if (strcmp(layerNode->name(), "layer") == 0) 
+				{
+					if (!hasObjectLayer)
+					{
+						layers.push_bg_front(TileLayerData::loadFromTMX(layerNode, tilesetDeps));
+					}
+					else
+					{
+						layers.push_fg_front(TileLayerData::loadFromTMX(layerNode, tilesetDeps));
+					}
+					assert(layers.get_tile_layers().back().tilelayer.getSize() == lvlTileSize);
 				}
-				else if (strcmp(layerNode->name(), "objectgroup") == 0) {
+				else if (strcmp(layerNode->name(), "objectgroup") == 0) 
+				{
 					assert(!hasObjectLayer);
 					hasObjectLayer = true;
-
-					layers.push_back(ObjectTMX::parse(layerNode));
+					layers.get_obj_layer() = ObjectTMX::parse(layerNode);
 				}
-
 				layerNode = layerNode->next_sibling();
 			}
 			assert(hasObjectLayer);

@@ -6,6 +6,7 @@
 
 #include "fastfall/resource/asset/LevelAsset.hpp"
 #include "fastfall/resource/asset/TilesetAsset.hpp"
+#include "fastfall/resource/asset/TileLayerData.hpp"
 
 #include "fastfall/game/phys/collider_regiontypes/ColliderTileMap.hpp"
 //#include "fastfall/render/TileVertexArray.hpp"
@@ -58,7 +59,7 @@ private:
 public:
 
 	TileLayer(GameContext context, unsigned id, Vec2u levelsize);
-	TileLayer(GameContext context, unsigned id, const TileLayerData& layerData);
+	TileLayer(GameContext context, const TileLayerData& layerData);
 
 	TileLayer(const TileLayer& tile);
 	TileLayer& operator=(const TileLayer& tile);
@@ -68,7 +69,7 @@ public:
 
 	~TileLayer();
 
-	void initFromAsset(const TileLayerData& layerData, unsigned id);
+	void initFromAsset(const TileLayerData& layerData);
 
 	void setTile(const Vec2u& position, const Vec2u& texposition, const TilesetAsset& tileset, bool useLogic = true);
 	void removeTile(const Vec2u& position);

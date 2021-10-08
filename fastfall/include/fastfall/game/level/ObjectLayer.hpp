@@ -13,7 +13,7 @@ class ObjectLayer {
 public:
 
 	ObjectLayer();
-	ObjectLayer(GameContext context, unsigned id, const ObjectLayerData& layerData);
+	ObjectLayer(GameContext context, const ObjectLayerData& layerData);
 
 	ObjectLayer(const ObjectLayer& obj);
 	ObjectLayer(ObjectLayer&& obj) noexcept;
@@ -21,13 +21,13 @@ public:
 	ObjectLayer& operator=(const ObjectLayer& obj);
 	ObjectLayer& operator=(ObjectLayer&& obj) noexcept;
 
-	void initFromAsset(GameContext context, unsigned id, const ObjectLayerData& layerData);
+	void initFromAsset(GameContext context, const ObjectLayerData& layerData);
 
 	void clear();
 
 	void createObjects(GameContext context);
 
-	inline unsigned int getID() { return layerID; };
+	inline unsigned int getID() const { return layerID; };
 	inline const std::vector<ObjectData>& getObjectRefs() { return object_refs; };
 
 	const ObjectData* getRefByID(unsigned obj_id) const;

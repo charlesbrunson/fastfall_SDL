@@ -27,11 +27,10 @@ TileLayer::TileLayer(GameContext context, unsigned id, Vec2u levelsize)
 {
 }
 
-TileLayer::TileLayer(GameContext context, unsigned id, const TileLayerData& layerData)
+TileLayer::TileLayer(GameContext context, const TileLayerData& layerData)
 	: m_context(context)
-	, layerID(id)
 {
-	initFromAsset(layerData, id);
+	initFromAsset(layerData);
 }
 
 TileLayer::TileLayer(const TileLayer& tile)
@@ -154,27 +153,25 @@ TileLayer::~TileLayer() {
 	}
 }
 
-void TileLayer::initFromAsset(const TileLayerData& layerData, unsigned id) {
+void TileLayer::initFromAsset(const TileLayerData& layerData) {
 	clear();
 
-	auto& tileLayer = layerData;
-
-	layerID = id;
+	layerID = layerData.getID();
 
 	level_size = layerData.getSize();
 
 	tiles = TileData{ (size_t)level_size.x * level_size.y };
 
-	set_collision(tileLayer.hasCollision(), tileLayer.getCollisionBorders());
-	set_parallax(tileLayer.hasParallax(), tileLayer.getParallaxSize());
-	set_scroll(tileLayer.hasScrolling(), tileLayer.getScrollRate());
+	set_collision(layerData.hasCollision(), layerData.getCollisionBorders());
+	set_parallax(layerData.hasParallax(), layerData.getParallaxSize());
+	set_scroll(layerData.hasScrolling(), layerData.getScrollRate());
 
-	const auto& tiles = tileLayer.getTiles();
-	for (int i = 0; i < tileLayer.getSize().x * tileLayer.getSize().y; i++) {
+	const auto& tiles = layerData.getTileData();
+	for (int i = 0; i < layerData.getSize().x * layerData.getSize().y; i++) {
 		if (!tiles.has_tile[i])
 			continue;
 
-		const std::string* tileset = tileLayer.getTilesetFromNdx(tiles.tileset_ndx[i]);
+		const std::string* tileset = layerData.getTilesetFromNdx(tiles.tileset_ndx[i]);
 
 		TilesetAsset* ta = Resources::get<TilesetAsset>(*tileset);
 		if (ta) {
@@ -261,7 +258,7 @@ bool TileLayer::set_parallax(bool enabled, Vec2u parallax_size)
 		return false;
 	}
 
-	bool updateChunks = parallax.enabled != enabled || (parallax.enabled && parallax_size != parallax.size);
+	//bool updateChunks = parallax.enabled != enabled || (parallax.enabled && parallax_size != parallax.size);
 
 	parallax.enabled = enabled;
 	parallax.size = parallax_size;

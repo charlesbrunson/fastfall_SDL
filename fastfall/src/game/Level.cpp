@@ -29,14 +29,14 @@ void Level::update(secs deltaTime) {
 	if (deltaTime == 0.0)
 		return;
 
-	for (auto& [pos, layer] : layers) {
+	for (auto& [pos, layer] : layers.get_tile_layers()) {
 		layer.update(deltaTime);
 	}	
 }
 
 void Level::predraw(secs deltaTime) {
 
-	for (auto& [pos, layer] : layers) {
+	for (auto& [pos, layer] : layers.get_tile_layers()) {
 		layer.predraw(deltaTime);
 	}
 }
@@ -49,50 +49,24 @@ void Level::init(const LevelAsset& levelData)
 	bgColor = levelData.getBGColor();
 	levelSize = levelData.getTileDimensions();
 
-
-	// count the layers first
-	int bg_count = 0u;
-	int fg_count = 0u;
-	bool is_bg = true;
-	for (auto& layerRef : *levelData.getLayerRefs())
+	for (auto& layerRef : levelData.getLayerRefs().get_tile_layers())
 	{
-		if (layerRef.type == LayerData::Type::Tile) {
-			(is_bg ? bg_count : fg_count)++;
+		if (layerRef.position < 0) {
+			layers.push_bg_front(TileLayer{ context, layerRef.tilelayer });
 		}
 		else {
-			is_bg = false;
+			layers.push_fg_front(TileLayer{ context, layerRef.tilelayer });
 		}
 	}
-
-	layers.get_tile_layers().reserve((size_t)bg_count + fg_count);
-
-	// start building the layers
-	int count = 0;
-	for (auto& layerRef : *levelData.getLayerRefs())
-	{
-		switch (layerRef.type)
-		{
-		case LayerData::Type::Object:
-			layers.get_obj_layer().initFromAsset(context, layerRef.id, layerRef.asObjLayer());
-			break;
-		case LayerData::Type::Tile:
-			bool is_bg = count - bg_count < 0;
-
-			if (is_bg) {
-				layers.push_bg_front(TileLayer{ context, layerRef.id, layerRef.asTileLayer() });
-			}
-			else {
-				layers.push_fg_front(TileLayer{ context, layerRef.id, layerRef.asTileLayer() });
-			}
-			count++;
-			break;
-		}
-	}
+	layers.get_obj_layer().initFromAsset(
+		context,
+		levelData.getLayerRefs().get_obj_layer()
+	);
 }
 
 void Level::resize(Vec2u n_size)
 {
-	for (auto& [pos, layer] : layers)
+	for (auto& [pos, layer] : layers.get_tile_layers())
 	{
 		Vec2u layer_size{
 			std::min(n_size.x, layer.get_level_size().x),

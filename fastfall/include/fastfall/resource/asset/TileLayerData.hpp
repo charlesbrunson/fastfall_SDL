@@ -1,8 +1,8 @@
 
 #pragma once
 
-//#include "fastfall/resource/asset/LevelAssetTypes.hpp"
-#include "fastfall/resource/asset/TilesetAsset.hpp"
+#include "fastfall/resource/asset/LevelAssetTypes.hpp"
+//#include "fastfall/resource/asset/TilesetAsset.hpp"
 #include "fastfall/util/xml.hpp"
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/log.hpp"
@@ -13,11 +13,6 @@
 
 namespace ff {
 
-static constexpr unsigned GID_INVALID = UINT32_MAX;
-using gid = uint32_t;
-
-// map of the first gid mapped to the tileset name
-using TilesetMap = std::map<gid, std::string>;
 
 // represents a layer of tile data
 class TileLayerData {
@@ -66,7 +61,6 @@ public:
 	[[nodiscard]]
 	static TileLayerData loadFromTMX(rapidxml::xml_node<>* layerNode, const TilesetMap& tilesets);
 
-
 	void resize(Vec2u size, Vec2i offset = Vec2i{ 0, 0 });
 
 	void setParallax(bool enabled, Vec2u parallax_size = Vec2u{});
@@ -79,7 +73,7 @@ public:
 
 	void removeTile(Vec2u at);
 
-	const TileData& getTiles() const { return tiles; };
+	const TileData& getTileData() const { return tiles; };
 
 	const std::string* getTilesetFromNdx(uint8_t ndx) const {
 		return ndx < tilesets.size() ? &tilesets.at(ndx).first : nullptr;

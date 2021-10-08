@@ -37,16 +37,12 @@ void TileLayerData::resize(Vec2u size, Vec2i offset) {
 
 	for (int i = 0; i < size.x * size.y; i++)
 	{
-		if (tiles.has_tile[i])
+		Vec2i pos = Vec2i{ tiles.pos[i] } + offset;
+		if (tiles.has_tile[i]
+			&& pos.x >= 0 && pos.x < size.x
+			&& pos.y >= 0 && pos.y < size.x)
 		{
-			Vec2i pos = Vec2i{ tiles.pos[i] } + offset;
-
-			if (pos.x >= 0 && pos.x < size.x
-				&& pos.y >= 0 && pos.y < size.x)
-			{
-
-				n_data.setTile(Vec2u{ pos }, tiles.tex_pos[i], tilesets[tiles.tileset_ndx[i]].first);
-			}
+			n_data.setTile(Vec2u{ pos }, tiles.tex_pos[i], tilesets[tiles.tileset_ndx[i]].first);
 		}
 	}
 	*this = std::move(n_data);
@@ -54,7 +50,7 @@ void TileLayerData::resize(Vec2u size, Vec2i offset) {
 
 void TileLayerData::setParallax(bool enabled, Vec2u parallax_size)
 {
-	if (!has_collision || !enabled)
+	if ((enabled && !has_collision) || !enabled)
 	{
 		has_parallax = enabled;
 		parallaxSize = parallax_size;
@@ -66,7 +62,7 @@ void TileLayerData::setParallax(bool enabled, Vec2u parallax_size)
 
 void TileLayerData::setScroll(bool enabled, Vec2f scroll_rate)
 {
-	if (!has_collision || !enabled)
+	if ((enabled && !has_collision) || !enabled)
 	{
 		has_scroll = enabled;
 		scrollrate = scroll_rate;
@@ -78,7 +74,7 @@ void TileLayerData::setScroll(bool enabled, Vec2f scroll_rate)
 
 void TileLayerData::setCollision(bool enabled, unsigned border)
 {
-	if (enabled && !has_scroll && !has_parallax)
+	if ((enabled && !has_scroll && !has_parallax) || !enabled)
 	{
 		has_collision = enabled;
 		collision_border_bits = border;
@@ -105,7 +101,7 @@ void TileLayerData::setTile(Vec2u at, Vec2u tex, const std::string& tileset) {
 		tilesets.push_back(std::make_pair(tileset, 1));
 	}
 	else {
-		LOG_ERR_("unable to set tile, tileset max reached");
+		LOG_ERR_("unable to set tile, tileset max reached for layer: {}", tilesets.size());
 	}
 
 	tiles.has_tile[i] = true;
@@ -210,20 +206,18 @@ TileLayerData TileLayerData::loadFromTMX(xml_node<>* layerNode, const TilesetMap
 			if (it != validLayerProps.end()) {
 				it->second(properties, attrValue);
 			}
+			else {
+				LOG_ERR_("unknown property: {}, {}", attrName, attrValue);
+			}
 
 			prop = prop->next_sibling();
 		}
 	}
 
 	// APPLY PROPERTIES
-	if (properties.has_collision) 
-		layer.setCollision(true, properties.collision_border_bits);
-
-	if (properties.has_parallax)
-		layer.setParallax(true, properties.parallaxSize);
-
-	if (properties.has_scroll)
-		layer.setScroll(true, properties.scrollrate);
+	layer.setCollision(properties.has_collision, properties.collision_border_bits);
+	layer.setParallax(properties.has_parallax, properties.parallaxSize);
+	layer.setScroll(properties.has_scroll, properties.scrollrate);
 
 	// PARSE TILES
 	if (auto dataNode = layerNode->first_node("data"))

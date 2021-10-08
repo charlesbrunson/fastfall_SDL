@@ -9,11 +9,13 @@
 #include <memory>
 #include <variant>
 
-#include "fastfall/resource/asset/TileLayerData.hpp"
-
 namespace ff {
 
+static constexpr unsigned GID_INVALID = UINT32_MAX;
+using gid = uint32_t;
 
+// map of the first gid mapped to the tileset name
+using TilesetMap = std::map<gid, std::string>;
 
 using object_id = unsigned int;
 constexpr object_id object_null = 0;
@@ -30,61 +32,10 @@ struct ObjectData {
 };
 
 struct ObjectLayerData {
+	unsigned layer_id = 0;
 	std::vector<ObjectData> objects;
-};
 
-class LayerData {
-public:
-	enum class Type {
-		Tile,
-		Object
-	};
-
-	LayerData(Type Type) :
-		type(Type)
-	{
-		if (type == Type::Tile) {
-			layer = TileLayerData{};
-		}
-		else {
-			layer = ObjectLayerData{};
-		}
-	}
-
-	LayerData(TileLayerData&& tile) :
-		type(Type::Tile)
-	{
-		layer = std::move(tile);
-	}
-	LayerData(ObjectLayerData&& obj) :
-		type(Type::Object)
-	{
-		layer = std::move(obj);
-	}
-
-	LayerData(LayerData&& data) noexcept
-		: layer(std::move(data.layer))
-	{
-		id = data.id;
-		type = data.type;
-	}
-
-	unsigned int id = 0;
-	Type type;
-
-	constexpr TileLayerData& asTileLayer() {
-		return std::get<TileLayerData>(layer);
-	}
-	constexpr ObjectLayerData& asObjLayer() {
-		return std::get<ObjectLayerData>(layer);
-	}
-	constexpr const TileLayerData& asTileLayer() const {
-		return std::get<TileLayerData>(layer);
-	}
-	constexpr const ObjectLayerData& asObjLayer() const {
-		return std::get<ObjectLayerData>(layer);
-	}
-	std::variant<TileLayerData, ObjectLayerData> layer;
+	unsigned getID() const { return layer_id; }
 };
 
 }
