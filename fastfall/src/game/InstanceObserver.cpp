@@ -258,7 +258,7 @@ void levelContent(GameContext context) {
 		ImGui::Text("Scrolling = %s", tile.has_scroll() ? "true" : "false");
 	};
 
-	constexpr auto displayObjectRef = [](const ObjectRef& obj) {
+	constexpr auto displayObjectRef = [](const ObjectData& obj) {
 		//ImGui::Checkbox("Hidden", &layer.hidden);
 
 		ImGui::Text("Name : \"%s\"", obj.name.c_str());
@@ -323,7 +323,7 @@ void levelContent(GameContext context) {
 			{
 				for (auto& obj : layer.getObjectRefs()) {
 
-					const std::string* type = GameObjectLibrary::lookupTypeName(obj.type);
+					const std::string* type = GameObjectLibrary::lookupTypeName(obj.typehash);
 					if (ImGui::TreeNode((char*)&obj, "%s #%u", (type ? type->c_str() : "Anonymous Type"), obj.id)) {
 
 						if (ImGui::BeginChild((char*)&obj, ImVec2(0, 100), true)) {

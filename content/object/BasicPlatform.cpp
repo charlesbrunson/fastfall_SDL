@@ -4,7 +4,7 @@
 
 constexpr ff::Color platformColor = ff::Color{ 0x285cc4FF };
 
-BasicPlatform::BasicPlatform(ff::GameContext instance, const ff::ObjectRef& ref, const ff::ObjectType& type)
+BasicPlatform::BasicPlatform(ff::GameContext instance, const ff::ObjectData& ref, const ff::ObjectType& type)
 	: ff::GameObject(	instance, ref, type)
 	, shape{			instance, ff::ShapeRectangle{ ff::Rectf{}, platformColor}, ff::SceneType::Object, 1 }
 	, collider(			instance, ff::Rectf{ 0.f, 0.f, (float)ref.width, (float)ref.height })

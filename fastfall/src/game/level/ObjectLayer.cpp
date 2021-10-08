@@ -7,7 +7,7 @@ ObjectLayer::ObjectLayer()
 {
 
 }
-ObjectLayer::ObjectLayer(GameContext context, unsigned id, const ObjectLayerRef& layerData)
+ObjectLayer::ObjectLayer(GameContext context, unsigned id, const ObjectLayerData& layerData)
 	: layerID(id)
 {
 	initFromAsset(context, id, layerData);
@@ -35,20 +35,20 @@ ObjectLayer& ObjectLayer::operator=(ObjectLayer&& obj) noexcept
 	return *this;
 }
 
-void ObjectLayer::initFromAsset(GameContext context, unsigned id, const ObjectLayerRef& layerData)
+void ObjectLayer::initFromAsset(GameContext context, unsigned id, const ObjectLayerData& layerData)
 {
 	layerID = id;
 	object_refs = layerData.objects;
 }
 
 
-const ObjectRef* ObjectLayer::getRefByID(unsigned obj_id) const {
-	const ObjectRef* ref = nullptr;
+const ObjectData* ObjectLayer::getRefByID(unsigned obj_id) const {
+	const ObjectData* ref = nullptr;
 
 	if (obj_id != object_null) {
 		auto it = std::find_if(
 			object_refs.begin(), object_refs.end(),
-			[obj_id](const ObjectRef& ref) {
+			[obj_id](const ObjectData& ref) {
 				return ref.id == obj_id;
 			});
 
@@ -59,7 +59,7 @@ const ObjectRef* ObjectLayer::getRefByID(unsigned obj_id) const {
 	return ref;
 }
 
-void ObjectLayer::addObjectRef(ObjectRef ref) {
+void ObjectLayer::addObjectRef(ObjectData ref) {
 	if (object_refs.empty()) {
 		ref.id = 1;
 	}
@@ -74,7 +74,7 @@ bool ObjectLayer::removeObjectRef(object_id id) {
 	if (id != object_null) {
 		auto it = std::find_if(
 			object_refs.begin(), object_refs.end(),
-			[id](const ObjectRef& ref) {
+			[id](const ObjectData& ref) {
 				return ref.id == id;
 			});
 
@@ -88,7 +88,7 @@ bool ObjectLayer::removeObjectRef(object_id id) {
 
 void ObjectLayer::createObjects(GameContext context) {
 	for (auto& objRef : object_refs) {
-		if (objRef.type != 0) {
+		if (objRef.typehash != 0) {
 			GameObjectLibrary::build(context, objRef);
 		}
 	}

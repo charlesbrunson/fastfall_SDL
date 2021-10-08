@@ -244,8 +244,7 @@ bool SpriteAsset::loadFromFlat(const flat::resources::SpriteAssetF* builder) {
 			animT->origin()->x(),
 			animT->origin()->y()
 		);
-		anim.framerateMS.insert(anim.framerateMS.end(), animT->framerateMS()->begin(), animT->framerateMS()->end());
-
+		anim.framerateMS.insert(anim.framerateMS.end(), animT->framerate_ms()->begin(), animT->framerate_ms()->end());
 
 		anim.loop = animT->loop();
 		anim.has_chain = animT->has_chain();
@@ -286,7 +285,7 @@ flatbuffers::Offset<flat::resources::SpriteAssetF> SpriteAsset::writeToFlat(flat
 		//animBuilder.add_spr_name(assetName);
 		animBuilder.add_area(&area);
 		animBuilder.add_origin(&origin);
-		animBuilder.add_framerateMS(framerate);
+		animBuilder.add_framerate_ms(framerate);
 		animBuilder.add_loop(anim.loop);
 		animBuilder.add_has_chain(anim.has_chain);
 		if (anim.has_chain) {

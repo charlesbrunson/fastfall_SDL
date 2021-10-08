@@ -42,8 +42,9 @@ private:
 		size_t tile_count = 0;
 		inline unsigned size() { return tile_count; };
 
-		inline void erase(unsigned ndx) {
+		inline void clear(unsigned ndx) {
 			has_tile[ndx] = false;
+			tex_pos[ndx] = Vec2u{ 0, 0 };
 			tileset_id[ndx] = TILEDATA_NONE;
 			logic_id[ndx] = TILEDATA_NONE;
 		}
@@ -57,7 +58,7 @@ private:
 public:
 
 	TileLayer(GameContext context, unsigned id, Vec2u levelsize);
-	TileLayer(GameContext context, unsigned id, const TileLayerRef& layerData);
+	TileLayer(GameContext context, unsigned id, const TileLayerData& layerData);
 
 	TileLayer(const TileLayer& tile);
 	TileLayer& operator=(const TileLayer& tile);
@@ -67,7 +68,7 @@ public:
 
 	~TileLayer();
 
-	void initFromAsset(const TileLayerRef& layerData, unsigned id);
+	void initFromAsset(const TileLayerData& layerData, unsigned id);
 
 	void setTile(const Vec2u& position, const Vec2u& texposition, const TilesetAsset& tileset, bool useLogic = true);
 	void removeTile(const Vec2u& position);

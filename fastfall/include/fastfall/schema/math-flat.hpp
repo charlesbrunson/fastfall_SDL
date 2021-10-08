@@ -23,7 +23,7 @@ struct RectFi;
 
 struct RectFf;
 
-enum CardinalF {
+enum CardinalF : uint8_t {
   CardinalF_NORTH = 0,
   CardinalF_EAST = 1,
   CardinalF_SOUTH = 2,
@@ -65,8 +65,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec2Fi FLATBUFFERS_FINAL_CLASS {
   int32_t y_;
 
  public:
-  Vec2Fi() {
-    memset(static_cast<void *>(this), 0, sizeof(Vec2Fi));
+  Vec2Fi()
+      : x_(0),
+        y_(0) {
   }
   Vec2Fi(int32_t _x, int32_t _y)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -87,8 +88,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec2Ff FLATBUFFERS_FINAL_CLASS {
   float y_;
 
  public:
-  Vec2Ff() {
-    memset(static_cast<void *>(this), 0, sizeof(Vec2Ff));
+  Vec2Ff()
+      : x_(0),
+        y_(0) {
   }
   Vec2Ff(float _x, float _y)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -109,8 +111,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec2Fu FLATBUFFERS_FINAL_CLASS {
   uint32_t y_;
 
  public:
-  Vec2Fu() {
-    memset(static_cast<void *>(this), 0, sizeof(Vec2Fu));
+  Vec2Fu()
+      : x_(0),
+        y_(0) {
   }
   Vec2Fu(uint32_t _x, uint32_t _y)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -131,8 +134,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) LineFi FLATBUFFERS_FINAL_CLASS {
   flat::math::Vec2Fi p2_;
 
  public:
-  LineFi() {
-    memset(static_cast<void *>(this), 0, sizeof(LineFi));
+  LineFi()
+      : p1_(),
+        p2_() {
   }
   LineFi(const flat::math::Vec2Fi &_p1, const flat::math::Vec2Fi &_p2)
       : p1_(_p1),
@@ -153,8 +157,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) LineFf FLATBUFFERS_FINAL_CLASS {
   flat::math::Vec2Ff p2_;
 
  public:
-  LineFf() {
-    memset(static_cast<void *>(this), 0, sizeof(LineFf));
+  LineFf()
+      : p1_(),
+        p2_() {
   }
   LineFf(const flat::math::Vec2Ff &_p1, const flat::math::Vec2Ff &_p2)
       : p1_(_p1),
@@ -177,8 +182,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) RectFi FLATBUFFERS_FINAL_CLASS {
   int32_t height_;
 
  public:
-  RectFi() {
-    memset(static_cast<void *>(this), 0, sizeof(RectFi));
+  RectFi()
+      : left_(0),
+        top_(0),
+        width_(0),
+        height_(0) {
   }
   RectFi(int32_t _left, int32_t _top, int32_t _width, int32_t _height)
       : left_(flatbuffers::EndianScalar(_left)),
@@ -209,8 +217,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) RectFf FLATBUFFERS_FINAL_CLASS {
   float height_;
 
  public:
-  RectFf() {
-    memset(static_cast<void *>(this), 0, sizeof(RectFf));
+  RectFf()
+      : left_(0),
+        top_(0),
+        width_(0),
+        height_(0) {
   }
   RectFf(float _left, float _top, float _width, float _height)
       : left_(flatbuffers::EndianScalar(_left)),

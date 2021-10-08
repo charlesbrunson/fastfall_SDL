@@ -280,7 +280,7 @@ bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder)
 	// TODO
 
 	assetName = builder->name()->c_str();
-	texTileSize = Vec2u(builder->tileSize()->x(), builder->tileSize()->y());
+	texTileSize = *builder->tile_size();
 
 	tilesetRef.clear();	
 	tileLogic.clear();
@@ -310,20 +310,20 @@ bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder)
 
 	// load tile data
 	size_t ndx = 0;
-	for (auto tile_data : *builder->tileData()) {
+	for (auto tile_data : *builder->tile_data()) {
 		TileData& t = tiles[ndx];
 
 		// shape
 		t.tile.shape.type			= static_cast<TileShape::Type>(tile_data->tile().shape().type());
-		t.tile.shape.shapeTouches	= tile_data->tile().shape().shapeTouches();
+		t.tile.shape.shapeTouches	= tile_data->tile().shape().shape_touches();
 		t.tile.shape.hflipped		= tile_data->tile().shape().hflip();
 		t.tile.shape.vflipped		= tile_data->tile().shape().vflip();
 
 		// tile
-		t.tile.pos			= Vec2u{ tile_data->tile().pos().x(), tile_data->tile().pos().y() };
+		t.tile.pos			= tile_data->tile().pos();
 		t.tile.matFacing	= static_cast<Cardinal>(tile_data->tile().facing());
-		t.tile.next_offset	= Vec2i{ tile_data->tile().next_offset().x(), tile_data->tile().next_offset().y() };
-		t.tile.next_tileset = tile_data->tile().next_tilesetNdx();
+		t.tile.next_offset	= tile_data->tile().next_offset();
+		t.tile.next_tileset = tile_data->tile().next_tileset_ndx();
 		t.tile.origin = this;
 
 		// tile data
@@ -417,8 +417,8 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 	TilesetAssetFBuilder tileBuilder(builder);
 	tileBuilder.add_name(flat_assetName);
 	tileBuilder.add_image(flat_texdata);
-	tileBuilder.add_tileSize(&flat_tileSize);
-	tileBuilder.add_tileData(flat_tiledata);
+	tileBuilder.add_tile_size(&flat_tileSize);
+	tileBuilder.add_tile_data(flat_tiledata);
 	tileBuilder.add_tilesets(flat_tilesets);
 	tileBuilder.add_materials(flat_materials);
 	tileBuilder.add_logics(flat_logic);

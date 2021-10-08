@@ -18,10 +18,10 @@
 
 namespace ff {
 
-void GameObjectLibrary::build(GameContext instance, const ObjectRef& ref) {
+void GameObjectLibrary::build(GameContext instance, const ObjectData& ref) {
 	std::unique_ptr<GameObject> obj = nullptr;
 
-	auto r = getBuilder().find(ref.type);
+	auto r = getBuilder().find(ref.typehash);
 	if (r != getBuilder().end()) {
 		obj = r->builder(instance, ref, r->constraints);
 
@@ -39,7 +39,7 @@ void GameObjectLibrary::build(GameContext instance, const ObjectRef& ref) {
 	}
 	else {
 
-		LOG_ERR_("could not match object type {}", ref.type);
+		LOG_ERR_("could not match object type {}", ref.typehash);
 		LOG_ERR_("known types are:");
 		log::scope scope;
 		for (auto& type : getBuilder()) {
@@ -56,7 +56,7 @@ const std::string* GameObjectLibrary::lookupTypeName(size_t hash) {
 	return nullptr;
 }
 
-bool ObjectType::test(ObjectRef& ref) const {
+bool ObjectType::test(ObjectData& ref) const {
 	bool valid = true;
 
 

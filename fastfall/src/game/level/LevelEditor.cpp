@@ -292,8 +292,8 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 	std::vector<int> asset_ids;
 	std::transform(asset->getLayerRefs()->begin(), asset->getLayerRefs()->end(),
 		std::back_inserter(asset_ids),
-		[](const LayerRef& layer) -> unsigned {
-			return layer.type == LayerRef::Type::Tile ? layer.id : 0; // mark obj layer as zero
+		[](const LayerData& layer) -> unsigned {
+			return layer.type == LayerData::Type::Tile ? layer.id : 0; // mark obj layer as zero
 		});
 
 
@@ -327,7 +327,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 	{
 		for (auto& layer_ref : *asset->getLayerRefs()) 
 		{
-			if (layer_ref.type == LayerRef::Type::Object)
+			if (layer_ref.type == LayerData::Type::Object)
 				continue;
 
 			bool exists_in_level = std::any_of(
@@ -365,80 +365,86 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 			continue;
 		}
 
-		if (it->type == LayerRef::Type::Object)
+		if (it->type == LayerData::Type::Object)
 			it++;
 
 		assert(layer.tilelayer.getID() == it->id);
 
-		const TileLayerRef& tile_ref = it->asTileLayer();
+		const TileLayerData& tile_ref = it->asTileLayer();
 
-		unsigned tile_ndx = 0;
-		unsigned width    = tile_ref.tileSize.x;
-		unsigned height   = tile_ref.tileSize.y;
-
-		unsigned paint_count = 0;
-		unsigned erase_count = 0;
 
 		select_layer(layer.position);
 
 		// disable layer properties
-		if (layer.tilelayer.has_collision() && !tile_ref.has_collision)
+		if (layer.tilelayer.has_collision() && !tile_ref.hasCollision())
 		{
 			layer.tilelayer.set_collision(false);
 			LOG_INFO("disable collision");
 		}
-		if (layer.tilelayer.has_scroll() && !tile_ref.has_scroll)
+		if (layer.tilelayer.has_scroll() && !tile_ref.hasScrolling())
 		{
 			layer.tilelayer.set_scroll(false);
 			LOG_INFO("disable scroll");
 		}
-		if (layer.tilelayer.has_parallax() && !tile_ref.has_scroll)
+		if (layer.tilelayer.has_parallax() && !tile_ref.hasParallax())
 		{
 			layer.tilelayer.set_parallax(false);
 			LOG_INFO("disable parallax");
 		}
 
 		// enable or update layer properties
-		if ((!layer.tilelayer.has_collision() && tile_ref.has_collision) ||
-			(tile_ref.has_collision && (layer.tilelayer.get_collision_border() != tile_ref.collision_border_bits)))
+		if ((!layer.tilelayer.has_collision() && tile_ref.hasCollision()) ||
+			(tile_ref.hasCollision() && (layer.tilelayer.get_collision_border() != tile_ref.getCollisionBorders())))
 		{
-			layer.tilelayer.set_collision(true, tile_ref.collision_border_bits);
+			layer.tilelayer.set_collision(true, tile_ref.getCollisionBorders());
 			LOG_INFO("enable collision");
 		}
-		if ((!layer.tilelayer.has_scroll() && tile_ref.has_scroll) ||
-			(tile_ref.has_scroll && (layer.tilelayer.get_scrollrate() != tile_ref.scrollrate)))
+		if ((!layer.tilelayer.has_scroll() && tile_ref.hasScrolling()) ||
+			(tile_ref.hasScrolling() && (layer.tilelayer.get_scrollrate() != tile_ref.getScrollRate())))
 		{
-			layer.tilelayer.set_scroll(true, tile_ref.scrollrate);
+			layer.tilelayer.set_scroll(true, tile_ref.getScrollRate());
 			LOG_INFO("enable scroll");
 		}
-		if ((!layer.tilelayer.has_parallax() && tile_ref.has_parallax) ||
-			(tile_ref.has_parallax && (layer.tilelayer.get_parallax_size() != tile_ref.parallaxSize)))
+		if ((!layer.tilelayer.has_parallax() && tile_ref.hasParallax()) ||
+			(tile_ref.hasParallax() && (layer.tilelayer.get_parallax_size() != tile_ref.getParallaxSize())))
 		{
-			layer.tilelayer.set_parallax(true, tile_ref.parallaxSize);
+			layer.tilelayer.set_parallax(true, tile_ref.getParallaxSize());
 			LOG_INFO("enable parallax");
 		}
 
 		// update tiles
+		unsigned tile_ndx = 0;
+
+		unsigned width = tile_ref.getSize().x;
+		unsigned height = tile_ref.getSize().y;
+
+		unsigned paint_count = 0;
+		unsigned erase_count = 0;
+
+		const auto& tile_data = tile_ref.getTiles();
 		for (unsigned yy = 0; yy < height; yy++) {
 			for (unsigned xx = 0; xx < width; xx++) {
 
 				Vec2u pos{ xx, yy };
 				//size_t ndx = (size_t)xx + yy * width;
 
-				if (tile_ndx >= tile_ref.tiles.size())
+				if (tile_ndx >= tile_ref.getSize().x * tile_ref.getSize().x)
 					break;
 
 				auto& tilelayer = layer.tilelayer;
 
-				if (auto& tile = tile_ref.tiles.at(tile_ndx); tile.tilePos == pos) {
+				if (tile_data.has_tile[tile_ndx]) 
+				{
+					auto tex_pos = tile_data.tex_pos[tile_ndx];
+					auto tileset = tile_ref.getTilesetFromNdx(tile_data.tileset_ndx[tile_ndx]);
 
 					if ( (!tilelayer.hasTileAt(pos))
-						|| (tilelayer.getTileTexPos(pos).value() != tile.texPos)
-						|| (tilelayer.getTileTileset(pos)->getAssetName() != tile.tilesetName)) 
+						|| (tilelayer.getTileTexPos(pos).value() != tex_pos)
+						|| (tilelayer.getTileTileset(pos)->getAssetName() != *tileset))
 					{
 						paint_count++;
-						select_tileset(tile.tilesetName);
-						select_tile(tile.texPos);
+						select_tileset(tileset->c_str());
+						select_tile(tex_pos);
 						paint_tile(pos);
 					}
 					tile_ndx++;

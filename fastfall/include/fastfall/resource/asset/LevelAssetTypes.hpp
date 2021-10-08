@@ -2,53 +2,26 @@
 
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/Vec2.hpp"
+#include "fastfall/util/log.hpp"
 
 #include <map>
 #include <vector>
 #include <memory>
 #include <variant>
 
+#include "fastfall/resource/asset/TileLayerData.hpp"
+
 namespace ff {
 
-static constexpr unsigned GID_INVALID = UINT32_MAX;
-using gid = uint32_t;
 
-// map of the first gid mapped to the tileset name
-using TilesetMap = std::map<gid, std::string>;
-
-// represents a tile
-struct TileRef {
-	gid tile_id = GID_INVALID;
-	Vec2u tilePos;
-	Vec2u texPos;
-
-	std::string_view tilesetName;
-};
-
-// represents a layer of tile data
-struct TileLayerRef {
-	bool has_parallax	= false;
-	bool has_scroll		= false;
-	bool has_collision	= false;
-	unsigned collision_border_bits = 0u;
-
-	Vec2u parallaxSize;
-	Vec2u tileSize;
-	Vec2f scrollrate;
-
-	std::vector<TileRef> tiles;
-};
-
-struct ObjectLayerRef;
 
 using object_id = unsigned int;
 constexpr object_id object_null = 0;
 
-struct ObjectRef {
-
+struct ObjectData {
 	object_id id = object_null;
 	std::string name;
-	size_t type = 0; // hash of type string
+	size_t typehash = 0; // hash of type string
 	Vec2i position;
 	unsigned width = 0u;
 	unsigned height = 0u;
@@ -56,51 +29,62 @@ struct ObjectRef {
 	std::vector<Vec2i> points;
 };
 
-struct ObjectLayerRef {
-	std::vector<ObjectRef> objects;
+struct ObjectLayerData {
+	std::vector<ObjectData> objects;
 };
 
-class LayerRef {
+class LayerData {
 public:
 	enum class Type {
 		Tile,
 		Object
 	};
 
-	LayerRef(Type Type) :
+	LayerData(Type Type) :
 		type(Type)
 	{
 		if (type == Type::Tile) {
-			layer = TileLayerRef{};
+			layer = TileLayerData{};
 		}
 		else {
-			layer = ObjectLayerRef{};
+			layer = ObjectLayerData{};
 		}
 	}
 
-	LayerRef(LayerRef&& ref) noexcept
-		: layer(std::move(ref.layer))
+	LayerData(TileLayerData&& tile) :
+		type(Type::Tile)
 	{
-		id = ref.id;
-		type = ref.type;
+		layer = std::move(tile);
+	}
+	LayerData(ObjectLayerData&& obj) :
+		type(Type::Object)
+	{
+		layer = std::move(obj);
+	}
+
+	LayerData(LayerData&& data) noexcept
+		: layer(std::move(data.layer))
+	{
+		id = data.id;
+		type = data.type;
 	}
 
 	unsigned int id = 0;
 	Type type;
 
-	constexpr TileLayerRef& asTileLayer() {
-		return std::get<TileLayerRef>(layer);
+	constexpr TileLayerData& asTileLayer() {
+		return std::get<TileLayerData>(layer);
 	}
-	constexpr ObjectLayerRef& asObjLayer() {
-		return std::get<ObjectLayerRef>(layer);
+	constexpr ObjectLayerData& asObjLayer() {
+		return std::get<ObjectLayerData>(layer);
 	}
-	constexpr const TileLayerRef& asTileLayer() const {
-		return std::get<TileLayerRef>(layer);
+	constexpr const TileLayerData& asTileLayer() const {
+		return std::get<TileLayerData>(layer);
 	}
-	constexpr const ObjectLayerRef& asObjLayer() const {
-		return std::get<ObjectLayerRef>(layer);
+	constexpr const ObjectLayerData& asObjLayer() const {
+		return std::get<ObjectLayerData>(layer);
 	}
-	std::variant<TileLayerRef, ObjectLayerRef> layer;
+	std::variant<TileLayerData, ObjectLayerData> layer;
 };
 
 }

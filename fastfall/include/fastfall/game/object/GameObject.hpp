@@ -66,7 +66,7 @@ struct ObjectType {
 	std::set<ObjectGroupTag> group_tags;
 	std::set<ObjectTypeProperty> properties;
 
-	bool test(ObjectRef& ref) const;
+	bool test(ObjectData& ref) const;
 };
 
 class GameObject;
@@ -74,7 +74,7 @@ class GameObject;
 class GameObjectLibrary {
 private:
 
-	using ObjectTypeBuilderFn = std::function<std::unique_ptr<GameObject>(GameContext, const ObjectRef&, const ObjectType&)>;
+	using ObjectTypeBuilderFn = std::function<std::unique_ptr<GameObject>(GameContext, const ObjectData&, const ObjectType&)>;
 
 	struct ObjectTypeBuilder {
 
@@ -85,9 +85,9 @@ private:
 
 			t.hash = std::hash<std::string>{}(t.objTypeName);
 			t.constraints = std::move(constraints);
-			t.builder = [](GameContext inst, const ObjectRef& ref, const ObjectType& constraints) -> std::unique_ptr<GameObject>
+			t.builder = [](GameContext inst, const ObjectData& ref, const ObjectType& constraints) -> std::unique_ptr<GameObject>
 			{
-				ObjectRef cref = ref;
+				ObjectData cref = ref;
 				if (constraints.test(cref)) {
 					return std::make_unique<T>(inst, ref, constraints);
 				}
@@ -125,7 +125,7 @@ private:
 
 public:
 
-	static void build(GameContext instance, const ObjectRef& ref);
+	static void build(GameContext instance, const ObjectData& ref);
 
 	static const std::string* lookupTypeName(size_t hash);
 
@@ -141,9 +141,9 @@ class GameObject : public Drawable, public Commandable<ObjCmd> {
 public:
 
 
-	GameObject(GameContext instance, const ObjectRef& ref, const ObjectType& objtype) :
+	GameObject(GameContext instance, const ObjectData& ref, const ObjectType& objtype) :
 		context{ instance },
-		id{ .objID = ref.id, .type = ref.type },
+		id{ .objID = ref.id, .type = ref.typehash },
 		objRef(&ref),
 		type(&objtype)
 	{
@@ -161,7 +161,7 @@ public:
 	inline unsigned getID()               const { return id.objID; };
 	inline const std::string& getTypeName()   const { return type->typeName; };
 	inline const ObjectType& getType()   const { return *type; };
-	inline const ObjectRef& getObjectRef() const { return *objRef; };
+	inline const ObjectData& getObjectRef() const { return *objRef; };
 
 	inline GameContext getContext()       const { return context; };
 	inline int getDrawPriority() { return drawPriority; };
@@ -183,7 +183,7 @@ protected:
 	GameContext context;
 
 private:
-	const ObjectRef* const objRef;
+	const ObjectData* const objRef;
 	const ObjectType* const type;
 	GameObjectID id;
 };

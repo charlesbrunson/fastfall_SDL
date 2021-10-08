@@ -10,13 +10,14 @@
 
 namespace ff {
 
-void parseLayerProperties(xml_node<>* propNode, TileLayerRef& layer) {
-	const static std::map < std::string, void(*)(TileLayerRef&, char*) > validLayerProps{
+	/*
+void parseLayerProperties(xml_node<>* propNode, TileLayerData& layer) {
+	const static std::map < std::string, void(*)(TileLayerData&, char*) > validLayerProps{
 		// collision
-		{"collision", [](TileLayerRef& layer, char* val) {
+		{"collision", [](TileLayerData& layer, char* val) {
 			layer.has_collision = strcmp(val, "true") == 0;
 		}},
-		{"collision_border", [](TileLayerRef& layer, char* val) {
+		{"collision_border", [](TileLayerData& layer, char* val) {
 			std::string str(val);
 			layer.collision_border_bits = 0u;
 			for (char c : str) {
@@ -30,13 +31,13 @@ void parseLayerProperties(xml_node<>* propNode, TileLayerRef& layer) {
 		}},
 
 		// parallax flag
-		{"parallax", [](TileLayerRef& layer, char* val) {
+		{"parallax", [](TileLayerData& layer, char* val) {
 			layer.has_parallax = strcmp(val, "true") == 0;
 		}},
-		{"parallax_sizex", [](TileLayerRef& layer, char* val) {
+		{"parallax_sizex", [](TileLayerData& layer, char* val) {
 			layer.parallaxSize.x = atoi(val);
 		}},
-		{"parallax_sizey", [](TileLayerRef& layer, char* val) {
+		{"parallax_sizey", [](TileLayerData& layer, char* val) {
 			layer.parallaxSize.y = atoi(val);
 		}},
 
@@ -162,5 +163,5 @@ LayerRef TileTMX::parse(xml_node<>* layerNode, const TilesetMap& tilesets) {
 
 	return layer;
 }
-
+*/
 }

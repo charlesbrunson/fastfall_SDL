@@ -137,7 +137,7 @@ bool LevelAsset::loadFromFile(const std::string& relpath) {
 			backgroundColor = lvlprop.bgColor;
 
 			// parse tilesets
-			tilesetDeps = TilesetTMX::parse(mapNode->first_node("tileset"));
+			TilesetMap tilesetDeps = TilesetTMX::parse(mapNode->first_node("tileset"));
 
 			bool hasObjectLayer = false;
 
@@ -146,8 +146,8 @@ bool LevelAsset::loadFromFile(const std::string& relpath) {
 			while (layerNode) {
 				if (strcmp(layerNode->name(), "layer") == 0) {
 
-					layers.push_back(TileTMX::parse(layerNode, tilesetDeps));
-					assert(std::get<TileLayerRef>(layers.back().layer).tileSize == lvlTileSize);
+					layers.push_back(TileLayerData::loadFromTMX(layerNode, tilesetDeps));
+					assert(std::get<TileLayerData>(layers.back().layer).getSize() == lvlTileSize);
 				}
 				else if (strcmp(layerNode->name(), "objectgroup") == 0) {
 					assert(!hasObjectLayer);
@@ -217,85 +217,75 @@ bool LevelAsset::reloadFromFile() {
 
 
 bool LevelAsset::loadFromFlat(const flat::resources::LevelAssetF* builder) {
-
+	/*
 	using namespace flat::resources;
 	using namespace flat::math;
 
 	bool hasObjectLayer = false;
 
 	assetName = builder->name()->c_str();
-	backgroundColor = Color(builder->bgColor());
-	lvlTileSize = Vec2u(builder->lvlSize()->x(), builder->lvlSize()->y());
+	backgroundColor = Color(builder->bg_color());
+	lvlTileSize = *builder->lvl_size();
 
-	for (auto deps = builder->tilesetDeps()->begin(); deps != builder->tilesetDeps()->end(); deps++) {
-		tilesetDeps.insert(std::make_pair(deps->gid(), deps->tilesetName()->c_str()));
+	TilesetMap tilesetDeps;
+
+	for (auto deps = builder->tileset_deps()->begin(); deps != builder->tileset_deps()->end(); deps++) {
+		tilesetDeps.insert(std::make_pair(deps->gid(), deps->tileset_name()->c_str()));
 	}
 
 	for (auto layerT = builder->layers()->begin(); layerT != builder->layers()->end(); layerT++) {
 		if (layerT->layer_type() == AnyLayerF::AnyLayerF_TileLayerF) {
 			auto tileT = layerT->layer_as_TileLayerF();
 
-			LayerRef layerRef(LayerRef::Type::Tile);
+			LayerData layerRef(LayerData::Type::Tile);
 			layerRef.id = layerT->id();
 
-			Vec2u parallaxSize	{ tileT->parallaxSize()->x(),	tileT->parallaxSize()->y()	};
+			Vec2u parallaxSize	{ *tileT->parallax_size() };
 			Vec2u scrollrate	;
 
-			TileLayerRef tilelayer;
-			tilelayer.tileSize = { tileT->tileSize()->x(),	tileT->tileSize()->y() };
+			TileLayerData tilelayer{ layerT->id(), *tileT->tile_size() };
 
-			tilelayer.has_collision = tileT->has_collision();
-			tilelayer.has_parallax	= tileT->has_parallax();
-			tilelayer.has_scroll	= tileT->has_scroll();
+			tilelayer.setCollision(tileT->has_collision(), tileT->collision_border());
+			tilelayer.setParallax(tileT->has_parallax(), tileT->parallax_size());
+			tilelayer.setScroll(tileT->has_scroll(), tileT->scroll_rate());
 
-			tilelayer.collision_border_bits = tileT->collision_border();
-			tilelayer.parallaxSize =	{ tileT->parallaxSize()->x(),	tileT->parallaxSize()->y()	};
-			tilelayer.scrollrate =		{ tileT->scrollrate()->x(),	tileT->scrollrate()->y()		};
+			size_t count = tilelayer.getSize().x * tilelayer.getSize().y;
+			for (int i = 0; i < count; i++) {
 
-			for (auto tT = tileT->tiles()->begin(); tT != tileT->tiles()->end(); tT++) {
-				Vec2u pos(tT->tilePos().x(), tT->tilePos().y());
 
-				TileRef tileRef;
-				tileRef.tilePos = pos;
-				tileRef.texPos = Vec2u(tT->texPos().x(), tT->texPos().y());
 
-				auto it = tilesetDeps.begin();
-				auto next = tilesetDeps.begin();
+				tilelayer.setTile(
+					tileT->pos()->Get(i),
+					tileT->tex_pos()->Get(i),
+					tileT->pos()->Get(i),
 
-				for (auto it = tilesetDeps.cbegin(); it != tilesetDeps.cend(); it++) {
-					if (tT->gid() >= it->first) {
-						tileRef.tilesetName = it->second;
-					}
-					else {
-						break;
-					}
-				}
+				);
 
-				tilelayer.tiles.push_back(tileRef);
 			}
+
 			layerRef.layer = std::move(tilelayer);
 			layers.push_back(std::move(layerRef));
 		}
 		else if (layerT->layer_type() == AnyLayerF::AnyLayerF_ObjectLayerF) {
 			auto objT = layerT->layer_as_ObjectLayerF();
 
-			LayerRef layerRef(LayerRef::Type::Object);
+			LayerData layerRef(LayerData::Type::Object);
 			layerRef.id = layerT->id();
 
-			ObjectLayerRef objlayer;
+			ObjectLayerData objlayer;
 
 			for (auto tT = objT->objects()->begin(); tT != objT->objects()->end(); tT++) {
 
-				ObjectRef obj;
+				ObjectData obj;
 				obj.id = tT->id();
 				obj.name = tT->name()->c_str();
 				obj.position = Vec2i(tT->pos()->x(), tT->pos()->y());
-				obj.type = tT->type_hash();
+				obj.typehash = tT->type_hash();
 				obj.width = tT->width();
 				obj.height = tT->height();
 
 				for (auto prop = tT->properties()->begin(); prop != tT->properties()->end(); prop++) {
-					obj.properties.push_back(std::make_pair(prop->propertyName()->c_str(), prop->propertyValue()->c_str()));
+					obj.properties.push_back(std::make_pair(prop->name()->c_str(), prop->value()->c_str()));
 				}
 
 				for (auto p = tT->points()->begin(); p != tT->points()->end(); p++) {
@@ -315,9 +305,13 @@ bool LevelAsset::loadFromFlat(const flat::resources::LevelAssetF* builder) {
 
 	loaded = true;
 	return true;
+	*/
+	return false;
 }
 
 flatbuffers::Offset<flat::resources::LevelAssetF> LevelAsset::writeToFlat(flatbuffers::FlatBufferBuilder& builder) const {
+
+	/*
 
 	using namespace flat::resources;
 	using namespace flat::math;
@@ -326,62 +320,39 @@ flatbuffers::Offset<flat::resources::LevelAssetF> LevelAsset::writeToFlat(flatbu
 	Vec2Fu flat_lvlsize(lvlTileSize.x, lvlTileSize.y);
 
 
-	std::vector<flatbuffers::Offset<LevelTilesetDepF>> _tilesetDeps;
-	for (const auto& tDep : tilesetDeps) {
-
-		auto tilesetName = builder.CreateString(tDep.second);
-
-		LevelTilesetDepFBuilder dep(builder);
-		dep.add_gid(tDep.first);
-		dep.add_tilesetName(tilesetName);
-		_tilesetDeps.push_back(dep.Finish());
-	}
-	auto flat_tilesetDeps = builder.CreateVector(_tilesetDeps);
-
 
 	std::vector<flatbuffers::Offset<LevelLayerF>> _layers;
 	for (const auto& lay : layers) {
 
 		flatbuffers::Offset<void> flat_layerref;
-		if (lay.type == LayerRef::Type::Tile)
+		if (lay.type == LayerData::Type::Tile)
 		{
 
-			const TileLayerRef* tilelayer = &lay.asTileLayer();
+			const TileLayerData* tilelayer = &lay.asTileLayer();
 
-			Vec2Fu flat_tileSize{		tilelayer->tileSize.x,		tilelayer->tileSize.y		};
-			Vec2Fu flat_parallaxSize{	tilelayer->parallaxSize.x,	tilelayer->parallaxSize.y	};
-			Vec2Ff flat_scrollRate{		tilelayer->scrollrate.x,	tilelayer->scrollrate.y		};
+			Vec2Fu flat_tileSize{		tilelayer->getSize().x,			tilelayer->getSize().y			};
+			Vec2Fu flat_parallaxSize{	tilelayer->getParallaxSize().x,	tilelayer->getParallaxSize().y	};
+			Vec2Ff flat_scrollRate{		tilelayer->getScrollRate().x,	tilelayer->getScrollRate().y	};
 
-			std::vector<TileRefF> tiles;
-
-			for (const auto& tile : tilelayer->tiles) 
-			{
-				TileRefF tileref{
-					tile.tile_id,
-					Vec2Fu{ tile.tilePos.x, tile.tilePos.y	},
-					Vec2Fu{ tile.texPos.x,	tile.texPos.y	}
-				};
-				tiles.push_back(tileref);
-			}
-
-			auto flat_tiles = builder.CreateVectorOfStructs(tiles);
 
 			TileLayerFBuilder tileBuilder(builder);
 
-			tileBuilder.add_tileSize(&flat_tileSize);
-			tileBuilder.add_has_parallax(tilelayer->has_parallax);
-			tileBuilder.add_parallaxSize(&flat_parallaxSize);
-			tileBuilder.add_has_collision(tilelayer->has_collision);
-			tileBuilder.add_collision_border(tilelayer->collision_border_bits);
-			tileBuilder.add_has_scroll(tilelayer->has_scroll);
-			tileBuilder.add_scrollrate(&flat_scrollRate);
-			tileBuilder.add_tiles(flat_tiles);
+			tileBuilder.add_tile_size(&flat_tileSize);
+			tileBuilder.add_has_parallax(tilelayer->hasParallax());
+			tileBuilder.add_parallax_size(&flat_parallaxSize);
+			tileBuilder.add_has_collision(tilelayer->hasCollision());
+			tileBuilder.add_collision_border(tilelayer->getCollisionBorders());
+			tileBuilder.add_has_scroll(tilelayer->hasScrolling());
+			tileBuilder.add_scroll_rate(&flat_scrollRate);
+
+			tileBuilder.add_has_tile(builder.CreateVector(tilelayer->getTiles().has_tile));
+
 			flat_layerref = tileBuilder.Finish().Union();
 
 		}
-		else if (lay.type == LayerRef::Type::Object)
+		else if (lay.type == LayerData::Type::Object)
 		{
-			const ObjectLayerRef* objlayer = &lay.asObjLayer();
+			const ObjectLayerData* objlayer = &lay.asObjLayer();
 
 			std::vector<flatbuffers::Offset<ObjectF>> objects;
 			for (auto& obj : objlayer->objects) {
@@ -411,7 +382,7 @@ flatbuffers::Offset<flat::resources::LevelAssetF> LevelAsset::writeToFlat(flatbu
 				ObjectFBuilder objBuilder(builder);
 				objBuilder.add_id(obj.id);
 				objBuilder.add_name(flat_objname);
-				objBuilder.add_type_hash(obj.type);
+				objBuilder.add_type_hash(obj.typehash);
 				objBuilder.add_pos(&flat_pos);
 				objBuilder.add_width(obj.width);
 				objBuilder.add_height(obj.height);
@@ -428,10 +399,10 @@ flatbuffers::Offset<flat::resources::LevelAssetF> LevelAsset::writeToFlat(flatbu
 
 		LevelLayerFBuilder flat_layer(builder);
 		flat_layer.add_id(lay.id);
-		if (lay.type == LayerRef::Type::Tile) {
+		if (lay.type == LayerData::Type::Tile) {
 			flat_layer.add_layer_type(AnyLayerF_TileLayerF);
 		}
-		else if (lay.type == LayerRef::Type::Object) {
+		else if (lay.type == LayerData::Type::Object) {
 			flat_layer.add_layer_type(AnyLayerF_ObjectLayerF);
 		}
 		flat_layer.add_layer(flat_layerref);
@@ -442,11 +413,13 @@ flatbuffers::Offset<flat::resources::LevelAssetF> LevelAsset::writeToFlat(flatbu
 
 	LevelAssetFBuilder lvlBuilder(builder);
 	lvlBuilder.add_name(flat_assetName);
-	lvlBuilder.add_bgColor(backgroundColor.hex());
-	lvlBuilder.add_lvlSize(&flat_lvlsize);
+	lvlBuilder.add_bg_color(backgroundColor.hex());
+	lvlBuilder.add_lvl_size(&flat_lvlsize);
 	lvlBuilder.add_layers(flat_layers);
-	lvlBuilder.add_tilesetDeps(flat_tilesetDeps);
+	//lvlBuilder.add_tilesetDeps(flat_tilesetDeps);
 	return lvlBuilder.Finish();
+	*/
+	return false;
 }
 
 void LevelAsset::ImGui_getContent() {

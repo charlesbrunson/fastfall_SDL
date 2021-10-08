@@ -7,7 +7,7 @@
 namespace ff {
 
 namespace TileTMX {
-	LayerRef parse(xml_node<>* layerNode, const TilesetMap& tilesets);
+	//LayerData parse(xml_node<>* layerNode, const TilesetMap& tilesets);
 }
 
 }

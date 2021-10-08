@@ -17,7 +17,7 @@ using namespace plr;
 
 //using namespace plr_constants;
 
-Player::Player(GameContext context, const ObjectRef& ref, const ObjectType& type) 
+Player::Player(GameContext context, const ObjectData& ref, const ObjectType& type)
 	: GameObject{context, ref, type }
 	, box(		 context, Vec2f(ref.position), Vec2f(8.f, 28.f), constants::grav_normal)
 	, hitbox(	 context, box->getBox(), { "hitbox" }, {}, this)

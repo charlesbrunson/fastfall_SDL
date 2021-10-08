@@ -56,7 +56,7 @@ void Level::init(const LevelAsset& levelData)
 	bool is_bg = true;
 	for (auto& layerRef : *levelData.getLayerRefs())
 	{
-		if (layerRef.type == LayerRef::Type::Tile) {
+		if (layerRef.type == LayerData::Type::Tile) {
 			(is_bg ? bg_count : fg_count)++;
 		}
 		else {
@@ -72,10 +72,10 @@ void Level::init(const LevelAsset& levelData)
 	{
 		switch (layerRef.type)
 		{
-		case LayerRef::Type::Object:
+		case LayerData::Type::Object:
 			layers.get_obj_layer().initFromAsset(context, layerRef.id, layerRef.asObjLayer());
 			break;
-		case LayerRef::Type::Tile:
+		case LayerData::Type::Tile:
 			bool is_bg = count - bg_count < 0;
 
 			if (is_bg) {

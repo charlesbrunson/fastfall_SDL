@@ -2,6 +2,8 @@
 
 //#include <SFML/System.hpp>
 
+#include "fastfall/schema/math-flat.hpp"
+
 #include <glm/vec2.hpp>
 
 #include <type_traits>
@@ -27,8 +29,6 @@ public:
 
 	}
 
-
-	//template <typename P>
 	constexpr Vec2<Type>& operator=(const glm::vec<2, Type>& other)
 	{
 		x = other.x;
@@ -36,7 +36,6 @@ public:
 		return *this;
 	}
 	
-
 	template <typename T>
 	constexpr explicit Vec2(const Vec2<T>& vector) :
 		x(static_cast<Type>(vector.x)),
@@ -45,14 +44,48 @@ public:
 
 	}
 
-
-	//template <typename P>
 	constexpr Vec2(const glm::vec<2, Type>& vector) :
 		x(vector.x),
 		y(vector.y)
 	{
 
 	}
+
+	template<typename T = float>
+	requires std::is_same_v<Type, T>
+	constexpr Vec2(const flat::math::Vec2Ff& v) : x(v.x()), y(v.y()) {}
+
+	template<typename T = int>
+	requires std::is_same_v<Type, T>
+	constexpr Vec2(const flat::math::Vec2Fi& v) : x(v.x()), y(v.y()) {}
+
+	template<typename T = unsigned>
+	requires std::is_same_v<Type, T>
+	constexpr Vec2(const flat::math::Vec2Fu& v) : x(v.x()), y(v.y()) {}
+
+	template<typename T = float>
+	requires std::is_same_v<Type, T>
+	constexpr Vec2(const flat::math::Vec2Ff* v) : x(v->x()), y(v->y()) {}
+
+	template<typename T = int>
+	requires std::is_same_v<Type, T>
+	constexpr Vec2(const flat::math::Vec2Fi* v) : x(v->x()), y(v->y()) {}
+
+	template<typename T = unsigned>
+	requires std::is_same_v<Type, T>
+	constexpr Vec2(const flat::math::Vec2Fu* v) : x(v->x()), y(v->y()) {}
+
+	template<typename T = float>
+	requires std::is_same_v<Type, T>
+	constexpr Vec2<Type> operator=(const flat::math::Vec2Ff* v) { x = v->x(); y = v->y();	return *this; }
+
+	template<typename T = int>
+	requires std::is_same_v<Type, T>
+	constexpr Vec2<Type> operator=(const flat::math::Vec2Fi* v) { x = v->x(); y = v->y();	return *this; }
+
+	template<typename T = unsigned>
+	requires std::is_same_v<Type, T>
+	constexpr Vec2<Type> operator=(const flat::math::Vec2Fu* v) { x = v->x(); y = v->y();	return *this; }
 	
 	//template <typename P>
 	constexpr operator glm::vec<2, Type>() const {

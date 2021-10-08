@@ -31,7 +31,7 @@ public:
 	inline Color getBGColor() const { return backgroundColor; };
 	inline const Vec2u& getTileDimensions() const { return lvlTileSize; };
 
-	inline const std::vector<LayerRef>* getLayerRefs() const { return &layers; };
+	inline const std::vector<LayerData>* getLayerRefs() const { return &layers; };
 
 	void ImGui_getContent() override;
 
@@ -39,8 +39,8 @@ protected:
 	Color backgroundColor;
 	Vec2u lvlTileSize;
 
-	TilesetMap tilesetDeps;
-	std::vector<LayerRef> layers;
+	//TilesetMap tilesetDeps;
+	std::vector<LayerData> layers;
 };
 
 template<>

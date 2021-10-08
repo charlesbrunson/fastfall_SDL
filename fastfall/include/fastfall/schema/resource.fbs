@@ -5,8 +5,8 @@ namespace flat.resources;
 // LEVEL ASSET
 
 table PropertyF {
-	propertyName:string;
-	propertyValue:string;
+	name:string;
+	value:string;
 }
 
 table ObjectF {
@@ -24,23 +24,24 @@ table ObjectLayerF {
 	objects:[ObjectF];
 }
 
-struct TileRefF {
-	gid:uint;
-	tilePos:math.Vec2Fu;
-	texPos:math.Vec2Fu;
-}
-
 table TileLayerF {
+	layer_id:uint = 0;
+
 	has_parallax:bool = false;
 	has_scroll:bool = false;
 	has_collision:bool = false;
 
 	collision_border:uint = 0;
-	parallaxSize:math.Vec2Fu;
-	tileSize:math.Vec2Fu;
-	scrollrate:math.Vec2Ff;
+	parallax_size:math.Vec2Fu;
+	scroll_rate:math.Vec2Ff;
+	
+	tile_size:math.Vec2Fu;
+	has_tile:[bool];
+	pos:[math.Vec2Fu];
+	tex_pos:[math.Vec2Fu];
+	tileset_ndx:[uint8];
 
-	tiles:[TileRefF];
+	tilesets:[string];
 }
 
 union AnyLayerF {
@@ -56,15 +57,15 @@ table LevelLayerF {
 
 table LevelTilesetDepF {
 	gid:uint;
-	tilesetName:string;
+	tileset_name:string;
 }
 
 table LevelAssetF {
 	name:string (required);
-	bgColor:uint;
-	lvlSize:math.Vec2Fu (required);
+	bg_color:uint;
+	lvl_size:math.Vec2Fu (required);
 	layers:[LevelLayerF];
-	tilesetDeps:[LevelTilesetDepF];
+	tileset_deps:[LevelTilesetDepF];
 	borders:uint;
 }
 
@@ -72,7 +73,7 @@ table LevelAssetF {
 
 struct TileShapeF {
 	type:uint;
-	shapeTouches:uint;
+	shape_touches:uint;
 	hflip:bool;
 	vflip:bool;
 }
@@ -82,7 +83,7 @@ struct TileF {
 	shape:TileShapeF;
 	facing:math.CardinalF;
 	next_offset:math.Vec2Fi;
-	next_tilesetNdx:int;
+	next_tileset_ndx:int;
 }
 
 struct TileDataF {
@@ -100,8 +101,8 @@ table TilesetLogicF {
 
 table TilesetAssetF {
 	name:string (required);
-	tileSize:math.Vec2Fu (required);
-	tileData:[TileDataF];
+	tile_size:math.Vec2Fu (required);
+	tile_data:[TileDataF];
 	tilesets:[string];
 	materials:[string];
 	logics:[TilesetLogicF];
@@ -115,7 +116,7 @@ table AnimationAssetF {
 	name:string (required);
 	area:math.RectFi (required);
 	origin:math.Vec2Fi (required);
-	framerateMS:[uint] (required);
+	framerate_ms:[uint] (required);
 	loop:uint = 0;
 
 	has_chain:bool = false;

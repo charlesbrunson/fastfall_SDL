@@ -27,7 +27,7 @@ TileLayer::TileLayer(GameContext context, unsigned id, Vec2u levelsize)
 {
 }
 
-TileLayer::TileLayer(GameContext context, unsigned id, const TileLayerRef& layerData)
+TileLayer::TileLayer(GameContext context, unsigned id, const TileLayerData& layerData)
 	: m_context(context)
 	, layerID(id)
 {
@@ -154,30 +154,37 @@ TileLayer::~TileLayer() {
 	}
 }
 
-void TileLayer::initFromAsset(const TileLayerRef& layerData, unsigned id) {
+void TileLayer::initFromAsset(const TileLayerData& layerData, unsigned id) {
 	clear();
 
 	auto& tileLayer = layerData;
 
 	layerID = id;
 
-	level_size = layerData.tileSize;
+	level_size = layerData.getSize();
 
 	tiles = TileData{ (size_t)level_size.x * level_size.y };
 
-	for (const auto& i : tileLayer.tiles) {
-		TilesetAsset* ta = Resources::get<TilesetAsset>(i.tilesetName);
+	set_collision(tileLayer.hasCollision(), tileLayer.getCollisionBorders());
+	set_parallax(tileLayer.hasParallax(), tileLayer.getParallaxSize());
+	set_scroll(tileLayer.hasScrolling(), tileLayer.getScrollRate());
+
+	const auto& tiles = tileLayer.getTiles();
+	for (int i = 0; i < tileLayer.getSize().x * tileLayer.getSize().y; i++) {
+		if (!tiles.has_tile[i])
+			continue;
+
+		const std::string* tileset = tileLayer.getTilesetFromNdx(tiles.tileset_ndx[i]);
+
+		TilesetAsset* ta = Resources::get<TilesetAsset>(*tileset);
 		if (ta) {
-			setTile(i.tilePos, i.texPos, *ta);
+			setTile(tiles.pos[i], tiles.tex_pos[i], *ta);
 		}
 		else {
-			LOG_ERR_("unknown tileset {}", i.tilesetName);
+			LOG_ERR_("unknown tileset {}", *tileset);
 		}
 	}
 
-	set_collision(tileLayer.has_collision, tileLayer.collision_border_bits);
-	set_parallax(tileLayer.has_parallax, tileLayer.parallaxSize);
-	set_scroll(tileLayer.has_scroll, tileLayer.scrollrate);
 }
 
 void TileLayer::update(secs deltaTime) {
@@ -534,8 +541,8 @@ void TileLayer::removeTile(const Vec2u& position) {
 	if (tiles.logic_id[ndx] != TILEDATA_NONE) {
 		tileLogic.at(tiles.logic_id[ndx])->removeTile(position);
 	}
-	tiles.erase(ndx);
-
+	tiles.clear(ndx);
+	
 	if (collision.enabled) {
 		collision.tilemap_ptr->removeTile(Vec2i(position));
 	}
@@ -545,8 +552,9 @@ void TileLayer::clear() {
 	//pos2data.clear();
 	tiles = TileData{};
 	chunks.clear();
-	if (collision.enabled)
-		collision.tilemap_ptr->clear();
+	set_collision(false);
+	set_parallax(false);
+	set_scroll(false);
 }
 
 void TileLayer::shallow_copy(const TileLayer& layer, Rectu area, Vec2u lvlSize)
