@@ -13,7 +13,7 @@ namespace ff {
 
 template<typename T>
 concept HasID = requires (T x) {
-    { x.getID() } -> std::convertible_to<int>;
+    { x.getID() } -> std::same_as<unsigned>;
 };
 
 
@@ -90,7 +90,7 @@ template<HasID T, HasID O>
 void LevelLayerContainer<T, O>::clear_all() { clear_tile_layers(); clear_obj_layer(); }
 
 template<HasID T, HasID O>
-LevelLayerContainer<T, O>::position_t
+typename LevelLayerContainer<T, O>::position_t
 LevelLayerContainer<T, O>::insert(position_t pos, T&& layer)
 {
     if (pos == OBJECT_LAYER_POS || pos < -bg_count - 1 || pos > fg_count + 1)
@@ -136,44 +136,44 @@ LevelLayerContainer<T, O>::insert(position_t pos, T&& layer)
 }
 
 template<HasID T, HasID O>
-LevelLayerContainer<T, O>::position_t
+typename LevelLayerContainer<T, O>::position_t
 LevelLayerContainer<T, O>::insert(position_t pos, const T& layer) { return insert(pos, T{ layer }); }
 
 template<HasID T, HasID O>
-LevelLayerContainer<T, O>::position_t
+typename LevelLayerContainer<T, O>::position_t
 LevelLayerContainer<T, O>::push_fg_front(const T& layer) { return insert(fg_count + 1, layer); }
 
 template<HasID T, HasID O>
-LevelLayerContainer<T, O>::position_t
+typename LevelLayerContainer<T, O>::position_t
 LevelLayerContainer<T, O>::push_fg_front(T&& layer) { return insert(fg_count + 1, std::move(layer)); }
 
 
 template<HasID T, HasID O>
-LevelLayerContainer<T, O>::position_t
+typename LevelLayerContainer<T, O>::position_t
 LevelLayerContainer<T, O>::push_fg_back(const T& layer) { return insert(1, layer); }
 
 template<HasID T, HasID O>
-LevelLayerContainer<T, O>::position_t
+typename LevelLayerContainer<T, O>::position_t
 LevelLayerContainer<T, O>::push_fg_back(T&& layer) { return insert(1, std::move(layer)); }
 
 template<HasID T, HasID O>
-LevelLayerContainer<T, O>::position_t
+typename LevelLayerContainer<T, O>::position_t
 LevelLayerContainer<T, O>::push_bg_front(const T& layer) { return insert(-1, layer); }
 
 template<HasID T, HasID O>
-LevelLayerContainer<T, O>::position_t
+typename LevelLayerContainer<T, O>::position_t
 LevelLayerContainer<T, O>::push_bg_front(T&& layer) { return insert(-1, std::move(layer)); }
 
 template<HasID T, HasID O>
-LevelLayerContainer<T, O>::position_t
+typename LevelLayerContainer<T, O>::position_t
 LevelLayerContainer<T, O>::push_bg_back(const T& layer) { return insert(-bg_count - 1, layer); }
 
 template<HasID T, HasID O>
-LevelLayerContainer<T, O>::position_t
+typename LevelLayerContainer<T, O>::position_t
 LevelLayerContainer<T, O>::push_bg_back(T&& layer) { return insert(-bg_count - 1, std::move(layer)); }
 
 template<HasID T, HasID O>
-LevelLayerContainer<T, O>::position_t
+typename LevelLayerContainer<T, O>::position_t
 LevelLayerContainer<T, O>::swap_next(position_t pos)
 {
     if (pos < -bg_count - 1 || pos > fg_count + 1)
@@ -217,7 +217,7 @@ LevelLayerContainer<T, O>::swap_next(position_t pos)
 }
 
 template<HasID T, HasID O>
-LevelLayerContainer<T, O>::position_t
+typename LevelLayerContainer<T, O>::position_t
 LevelLayerContainer<T, O>::swap_prev(position_t pos)
 {
     if (pos < -bg_count - 1 || pos > fg_count + 1)

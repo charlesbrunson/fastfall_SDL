@@ -26,9 +26,6 @@ Level::Level(GameContext context, const LevelAsset& levelData) :
 
 
 void Level::update(secs deltaTime) {
-	if (deltaTime == 0.0)
-		return;
-
 	for (auto& [pos, layer] : layers.get_tile_layers()) {
 		layer.update(deltaTime);
 	}	

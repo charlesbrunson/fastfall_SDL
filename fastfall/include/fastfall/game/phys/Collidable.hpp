@@ -74,6 +74,8 @@ public:
 
 	void applyContact(const Contact& contact, ContactType type);
 
+	void debug_draw() const;
+
 	// -----------------------------------------
 
 	inline std::vector<std::unique_ptr<SurfaceTracker>>& get_trackers() noexcept { return trackers; };

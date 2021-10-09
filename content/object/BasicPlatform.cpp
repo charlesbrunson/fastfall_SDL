@@ -69,7 +69,7 @@ std::unique_ptr<ff::GameObject> BasicPlatform::clone() const {
 
 void BasicPlatform::update(secs deltaTime) {
 
-	if (has_path) {
+	if (has_path && deltaTime > 0) {
 
 
 		ff::Vec2f next_pos;

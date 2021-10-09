@@ -27,6 +27,9 @@ void CollisionManager::update(secs deltaTime) {
 			solve(colData);
 		}
 	}
+	for (auto& colData : collidables) {
+		colData.collidable.debug_draw();
+	}
 };
 
 // --------------------------------------------------------------

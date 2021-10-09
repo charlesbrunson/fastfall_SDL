@@ -462,7 +462,7 @@ CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact* basis, const 
 	float dotp1 = math::dot(basisNormal, candLine.p1 - basisLine.p2);
 	float dotp2 = math::dot(basisNormal, candLine.p2 - basisLine.p1);
 
-	bool opt1 = (dotp1 < 0.f && dotp2 < 0.f);
+	bool opt1 = (dotp1 <= 0.f && dotp2 < 0.f) || (dotp1 < 0.f && dotp2 <= 0.f);
 	bool opt2 = (!math::is_vertical(basisLine) && math::is_vertical(candLine) && dotp1 <= 0.f && dotp2 <= 0.f); // prefer selecting verticals as the ghost edge
 	bool opt3 = (basisLine == Linef(candLine.p2, candLine.p1)); // candidate is opposite of basis
 

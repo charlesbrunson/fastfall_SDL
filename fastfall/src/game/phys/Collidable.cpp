@@ -15,7 +15,7 @@
 
 namespace ff {
 
-void drawDrawCollidable(Collidable& c) {
+void drawDrawCollidable(const Collidable& c) {
 	if (!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDABLE))
 		return;
 	
@@ -62,7 +62,7 @@ void drawDrawCollidable(Collidable& c) {
 	
 }
 
-void debugDrawContact(Contact& contact) {
+void debugDrawContact(const Contact& contact) {
 
 	if (contact.position == Vec2f() ||
 		!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_CONTACT))
@@ -216,6 +216,7 @@ void Collidable::init(Vec2f position, Vec2f size, Vec2f gravity) {
 }
 
 void Collidable::update(secs deltaTime) {
+
 
 	vel -= friction;
 	acc = accel_accum;
@@ -396,7 +397,10 @@ void Collidable::set_frame(std::vector<PersistantContact>&& frame) {
 
 	process_current_frame();
 
+}
 
+void Collidable::debug_draw() const 
+{
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDABLE))
 		drawDrawCollidable(*this);
 
@@ -406,7 +410,6 @@ void Collidable::set_frame(std::vector<PersistantContact>&& frame) {
 		}
 	}
 }
-
 
 
 void Collidable::process_current_frame() {
