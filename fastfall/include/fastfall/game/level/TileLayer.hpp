@@ -111,7 +111,6 @@ public:
 	Vec2f getWorldPosFromTilePos(Vec2i tile_pos) const;
 	std::optional<Vec2i> getTileFromWorldPos (Vec2f position) const;
 
-
 	Vec2f worldToLocalCoord(Vec2f world_pos);
 
 	Vec2f get_parallax_offset() const { return parallax.offset; };
