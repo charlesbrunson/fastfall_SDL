@@ -166,7 +166,11 @@ void TestState::predraw(secs deltaTime) {
 		{
 
 			const TileLayer& tilelayer = edit->get_tile_layer()->tilelayer;
-			tile_ghost.setPosition(tilelayer.getWorldPosFromTilePos(tpos));
+			Vec2f worldpos = tilelayer.getWorldPosFromTilePos(tpos);
+
+			//LOG_INFO("{} -> {}", tpos.to_string(), worldpos.to_string());
+
+			tile_ghost.setPosition(worldpos);
 
 			tile_ghost.setSize({ TILESIZE_F, TILESIZE_F });
 			tile_ghost.setColor(ff::Color::White().alpha(80));

@@ -385,10 +385,7 @@ void TileLayer::predraw(secs deltaTime) {
 
 	// scroll update
 	if (scroll.enabled) {
-		Vec2f scroll_delta = scroll.rate * deltaTime;
-
-
-		scroll.offset += scroll_delta;
+		scroll.offset += scroll.rate * deltaTime;
 
 		Vec2f sizef = Vec2f{ get_size() } * TILESIZE_F;
 
