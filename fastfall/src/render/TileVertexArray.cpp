@@ -51,6 +51,18 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 		glm::fvec2(1.f, 0.f)
 	};
 
+	// terrible awful no good uv mapping hack
+	constexpr float uv_bias = 1.f / 16384.f;
+	constexpr std::array<glm::fvec2, 6> bias{
+		glm::fvec2( uv_bias,  uv_bias),
+		glm::fvec2(-uv_bias,  uv_bias),
+		glm::fvec2( uv_bias, -uv_bias),
+		glm::fvec2(-uv_bias, -uv_bias),
+		glm::fvec2( uv_bias, -uv_bias),
+		glm::fvec2(-uv_bias,  uv_bias)
+	};
+
+
 	auto pos = glm::fvec2(at.x, at.y);
 	auto texpos = glm::fvec2(texPos.x, texPos.y);
 
@@ -60,7 +72,9 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 	for (int i = 0; i < VERTICES_PER_TILE; i++) {
 		m_verts[vndx + i].color = Color::White;
 		m_verts[vndx + i].pos = (pos + offsets[i]) * TILESIZE_F;
-		m_verts[vndx + i].tex_pos = (texpos + offsets[i]) * TILESIZE_F * m_tex.get()->inverseSize();
+
+		glm::fvec2 tilesize {m_tex.get()->inverseSize() * TILESIZE_F};
+		m_verts[vndx + i].tex_pos = ((texpos + offsets[i]) * tilesize) + bias[i];
 	}
 }
 

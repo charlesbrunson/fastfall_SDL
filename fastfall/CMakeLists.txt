@@ -9,7 +9,12 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 add_subdirectory("external")
 
 # generate schema files with flatc
-set(FLATC "${CMAKE_CURRENT_SOURCE_DIR}/tools/flatc.exe")
+if (MSVC)
+	set(FLATC "${CMAKE_CURRENT_SOURCE_DIR}/tools/win/flatc.exe")
+elseif (UNIX)
+	set(FLATC "${CMAKE_CURRENT_SOURCE_DIR}/tools/unix/flatc")
+endif()
+
 set(SCHEMA_DIR "include/fastfall/schema")
 file(GLOB FLATC_FBS "${SCHEMA_DIR}/*.fbs")
 
