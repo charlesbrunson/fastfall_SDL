@@ -66,19 +66,19 @@ void Level::resize(Vec2u n_size)
 	for (auto& [pos, layer] : layers.get_tile_layers())
 	{
 		Vec2u layer_size{
-			std::min(n_size.x, layer.get_level_size().x),
-			std::min(n_size.y, layer.get_level_size().y)
+			std::min(n_size.x, layer.getLevelSize().x),
+			std::min(n_size.y, layer.getLevelSize().y)
 		};
 
 		Vec2u parallax_size{
-			std::min(n_size.x, layer.get_parallax_size().x),
-			std::min(n_size.y, layer.get_parallax_size().y)
+			std::min(n_size.x, layer.getParallaxSize().x),
+			std::min(n_size.y, layer.getParallaxSize().y)
 		};
 
 		TileLayer n_layer{ context, layer.getID(), n_size };
-		n_layer.set_collision(layer.has_collision(), layer.get_collision_border());
-		n_layer.set_scroll(layer.has_scroll(), layer.get_scrollrate());
-		n_layer.set_parallax(layer.has_parallax(), parallax_size);
+		n_layer.set_collision(layer.hasCollision(), layer.getCollisionBorders());
+		n_layer.set_scroll(layer.hasScrolling(), layer.getScrollRate());
+		n_layer.set_parallax(layer.hasParallax(), parallax_size);
 		n_layer.shallow_copy(layer, Rectu{ Vec2u{}, Vec2u{layer_size} }, n_size);
 		layer = std::move(n_layer);
 	}

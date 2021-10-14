@@ -39,6 +39,8 @@ private:
 
 	unsigned layer_id = 0;
 
+
+
 public:
 
 	TileLayerData();
@@ -71,9 +73,13 @@ public:
 
 	void setTile(Vec2u at, Vec2u tex, const std::string& tileset);
 
-	void removeTile(Vec2u at);
+	std::pair<bool, unsigned> removeTile(Vec2u at);
+
+	void clearTiles();
 
 	const TileData& getTileData() const { return tiles; };
+
+	inline const auto& getTilesets() const { return tilesets; };
 
 	const std::string* getTilesetFromNdx(uint8_t ndx) const {
 		return ndx < tilesets.size() ? &tilesets.at(ndx).first : nullptr;

@@ -109,14 +109,19 @@ void TileLayerData::setTile(Vec2u at, Vec2u tex, const std::string& tileset) {
 	tiles.tex_pos[i] = tex;
 }
 
-void TileLayerData::removeTile(Vec2u at)
+std::pair<bool, unsigned> TileLayerData::removeTile(Vec2u at)
 {
 	assert(at.x < tileSize.x&& at.y < tileSize.y);
 	size_t i = at.x + (at.y * tileSize.x);
 
+	bool erased = false;
+	unsigned count = 0;
+
 	if (tiles.has_tile[i])
 	{
-		tilesets[tiles.tileset_ndx[i]].second--;
+		erased = true;
+
+		count = --tilesets[tiles.tileset_ndx[i]].second;
 		if (tilesets[tiles.tileset_ndx[i]].second == 0)
 		{
 			tilesets.erase(tilesets.begin() + i);
@@ -132,6 +137,17 @@ void TileLayerData::removeTile(Vec2u at)
 		tiles.tex_pos[i] = Vec2u{};
 		tiles.tileset_ndx[i] = UINT8_MAX;
 	}
+	return { erased, count };
+}
+
+void TileLayerData::clearTiles() {
+	unsigned count = tiles.has_tile.size();
+
+	tilesets.clear();
+	tiles.has_tile = std::vector<bool>( count, false );
+	tiles.pos = std::vector<Vec2u>(count, Vec2u{});
+	tiles.tex_pos = std::vector<Vec2u>(count, Vec2u{});
+	tiles.tileset_ndx = std::vector<uint8_t>(count, UINT8_MAX);
 }
 
 // SERIALIZATION

@@ -166,7 +166,7 @@ bool LevelEditor::paint_tile(Vec2u pos)
 	if (!level) return false;
 
 	if (curr_layer && curr_tileset && tileset_pos) {
-		Vec2u size = curr_layer->tilelayer.get_level_size();
+		Vec2u size = curr_layer->tilelayer.getLevelSize();
 
 		if (pos.x < size.x && pos.y < size.y) 
 		{
@@ -184,7 +184,7 @@ bool LevelEditor::erase_tile(Vec2u pos)
 	if (!level) return false;
 
 	if (curr_layer) {
-		Vec2u size = curr_layer->tilelayer.get_level_size();
+		Vec2u size = curr_layer->tilelayer.getLevelSize();
 
 		if (pos.x < size.x && pos.y < size.y)
 		{
@@ -342,37 +342,37 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		select_layer(layer.position);
 
 		// disable layer properties
-		if (layer.tilelayer.has_collision() && !tile_ref.hasCollision())
+		if (layer.tilelayer.hasCollision() && !tile_ref.hasCollision())
 		{
 			layer.tilelayer.set_collision(false);
 			LOG_INFO("disable collision");
 		}
-		if (layer.tilelayer.has_scroll() && !tile_ref.hasScrolling())
+		if (layer.tilelayer.hasScrolling() && !tile_ref.hasScrolling())
 		{
 			layer.tilelayer.set_scroll(false);
 			LOG_INFO("disable scroll");
 		}
-		if (layer.tilelayer.has_parallax() && !tile_ref.hasParallax())
+		if (layer.tilelayer.hasParallax() && !tile_ref.hasParallax())
 		{
 			layer.tilelayer.set_parallax(false);
 			LOG_INFO("disable parallax");
 		}
 
 		// enable or update layer properties
-		if ((!layer.tilelayer.has_collision() && tile_ref.hasCollision()) ||
-			(tile_ref.hasCollision() && (layer.tilelayer.get_collision_border() != tile_ref.getCollisionBorders())))
+		if ((!layer.tilelayer.hasCollision() && tile_ref.hasCollision()) ||
+			(tile_ref.hasCollision() && (layer.tilelayer.getCollisionBorders() != tile_ref.getCollisionBorders())))
 		{
 			layer.tilelayer.set_collision(true, tile_ref.getCollisionBorders());
 			LOG_INFO("enable collision");
 		}
-		if ((!layer.tilelayer.has_scroll() && tile_ref.hasScrolling()) ||
-			(tile_ref.hasScrolling() && (layer.tilelayer.get_scrollrate() != tile_ref.getScrollRate())))
+		if ((!layer.tilelayer.hasScrolling() && tile_ref.hasScrolling()) ||
+			(tile_ref.hasScrolling() && (layer.tilelayer.getScrollRate() != tile_ref.getScrollRate())))
 		{
 			layer.tilelayer.set_scroll(true, tile_ref.getScrollRate());
 			LOG_INFO("enable scroll");
 		}
-		if ((!layer.tilelayer.has_parallax() && tile_ref.hasParallax()) ||
-			(tile_ref.hasParallax() && (layer.tilelayer.get_parallax_size() != tile_ref.getParallaxSize())))
+		if ((!layer.tilelayer.hasParallax() && tile_ref.hasParallax()) ||
+			(tile_ref.hasParallax() && (layer.tilelayer.getParallaxSize() != tile_ref.getParallaxSize())))
 		{
 			layer.tilelayer.set_parallax(true, tile_ref.getParallaxSize());
 			LOG_INFO("enable parallax");
