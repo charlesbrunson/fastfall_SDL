@@ -70,7 +70,7 @@ public:
 	}
 	virtual ~TileLogic() = default;
 
-	virtual void addTile(Vec2u tilePos, Tile tile, std::string args) = 0;
+	virtual void addTile(Vec2u tilePos, Tile tile, std::string_view args) = 0;
 	virtual void removeTile(Vec2u tilePos) = 0;
 
 	virtual void update(secs deltaTime) = 0;

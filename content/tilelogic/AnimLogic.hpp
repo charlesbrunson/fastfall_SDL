@@ -10,7 +10,7 @@ class AnimLogic : public TileLogic {
 public:
 	AnimLogic(GameContext context) : TileLogic(context, "anim") {}
 
-	void addTile(Vec2u tilePos, Tile tile, std::string arg) override;
+	void addTile(Vec2u tilePos, Tile tile, std::string_view arg) override;
 	void removeTile(Vec2u tilePos) override;
 	void update(secs deltaTime) override;
 

@@ -89,7 +89,6 @@ void TileLayerData::setTile(Vec2u at, Vec2u tex, const std::string& tileset) {
 
 	size_t i = at.x + (at.y * tileSize.x);
 
-
 	auto it = std::find_if(tilesets.begin(), tilesets.end(), [&tileset](const auto& pair) { return tileset == pair.first; });
 
 	if (it != tilesets.end()) {

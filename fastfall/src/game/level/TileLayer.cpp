@@ -202,13 +202,13 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 				if (logic_it != dyn.tile_logic.end())
 				{
 					tiles_dyn.logic_id[i] = logic_ndx - 1;
-					logic_it->get()->addTile(tiles.pos[i], tileset->getTile(tiles.tex_pos[i]), std::string{ args });
+					logic_it->get()->addTile(tiles.pos[i], tileset->getTile(tiles.tex_pos[i]), args);
 				}
 				else
 				{
 					tiles_dyn.logic_id[i] = dyn.tile_logic.size();
 					dyn.tile_logic.push_back(TileLogic::create(m_context, logic));
-					dyn.tile_logic.back()->addTile(tiles.pos[i], tileset->getTile(tiles.tex_pos[i]), std::string{ args });
+					dyn.tile_logic.back()->addTile(tiles.pos[i], tileset->getTile(tiles.tex_pos[i]), args);
 				}
 			}
 		}
@@ -491,7 +491,7 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 	}
 
 	// optionally create new chunkarray
-	if (tile_data.tileset_ndx[ndx] >= dyn.chunks.size())
+	if (tile_data.tileset_ndx[ndx] == dyn.chunks.size())
 	{
 		dyn.chunks.push_back(
 			dyn_t::chunk_t{

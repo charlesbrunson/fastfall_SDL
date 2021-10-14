@@ -4,10 +4,10 @@
 
 using namespace ff;
 
-void AnimLogic::addTile(Vec2u tilePos, Tile tile, std::string arg) {
+void AnimLogic::addTile(Vec2u tilePos, Tile tile, std::string_view arg) {
 	tile_timers.push_back(TileTimer{});
 
-	tile_timers.back().time_to_anim = ms_to_secs(std::stoi(arg));
+	tile_timers.back().time_to_anim = ms_to_secs(std::stoi(arg.data()));
 	tile_timers.back().tile_impacted = tilePos;
 	tile_timers.back().tile = tile;
 }
