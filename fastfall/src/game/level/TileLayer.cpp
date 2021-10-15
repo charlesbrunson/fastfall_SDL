@@ -196,9 +196,9 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 
 				uint8_t logic_ndx = 0;
 				auto logic_it = std::find_if(dyn.tile_logic.begin(), dyn.tile_logic.end(),
-					[logic, &logic_ndx](const std::unique_ptr<TileLogic>& ptr) {
+					[l = logic, &logic_ndx](const std::unique_ptr<TileLogic>& ptr) {
 						logic_ndx++;
-						return ptr->getName() == logic;
+						return ptr->getName() == l;
 					});
 
 				if (logic_it != dyn.tile_logic.end())
