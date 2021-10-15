@@ -56,6 +56,7 @@ private:
 
 	Layers layers;
 
+	const LevelAsset* asset = nullptr;
 };
 
 }

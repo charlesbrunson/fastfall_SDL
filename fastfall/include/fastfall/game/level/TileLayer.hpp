@@ -81,7 +81,7 @@ public:
 	void removeTile(const Vec2u& position);
 	void clear();
 
-	void shallow_copy(const TileLayer& layer, Rectu area, Vec2u lvlSize);
+	void shallow_copy(const TileLayer& layer, Rectu area);
 
 	bool set_collision(bool enabled, unsigned border = 0u);
 	bool set_parallax(bool enabled, Vec2u parallax_size = Vec2u{});

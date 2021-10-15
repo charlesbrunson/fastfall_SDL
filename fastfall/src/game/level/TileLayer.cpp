@@ -23,6 +23,8 @@ TileLayer::TileLayer(GameContext context, unsigned id, Vec2u levelsize)
 	: m_context(context)
 	, layer_data(id, levelsize)
 {
+	unsigned tile_count = layer_data.getSize().x * layer_data.getSize().y;
+	tiles_dyn.logic_id = std::vector<uint8_t>(tile_count, TILEDATA_NONE);
 }
 
 TileLayer::TileLayer(GameContext context, const TileLayerData& layerData)
@@ -474,13 +476,11 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 {
 	unsigned ndx = position.y * getLevelSize().x + position.x;
 
-	layer_data.setTile(position, texposition, tileset.getAssetName());
-
 	const auto& tile_data = layer_data.getTileData();
 	unsigned tile_count = tile_data.has_tile.size();
 
 	uint8_t tileset_ndx = tile_data.tileset_ndx[ndx];
-	if (tileset_ndx != TILEDATA_NONE) {
+	if (tileset_ndx != TILEDATA_NONE ) {
 		dyn.chunks.at(tileset_ndx).varray.blank(position);
 	}
 
@@ -489,6 +489,8 @@ void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const T
 		dyn.tile_logic.at(logic_ndx)->removeTile(position);
 		tiles_dyn.logic_id[ndx] = TILEDATA_NONE;
 	}
+
+	layer_data.setTile(position, texposition, tileset.getAssetName());
 
 	// optionally create new chunkarray
 	if (tile_data.tileset_ndx[ndx] == dyn.chunks.size())
@@ -575,9 +577,11 @@ void TileLayer::removeTile(const Vec2u& position) {
 	if (hasCollision()) {
 		dyn.collision.tilemap_ptr->removeTile(Vec2i(position));
 	}
+
+	uint8_t tileset_ndx = tile_data.tileset_ndx[ndx];
 	auto [erased, count] = layer_data.removeTile(position);
 	if (erased && count == 0) {
-		dyn.chunks.erase(dyn.chunks.begin() + tiles_dyn.logic_id[ndx]);
+		dyn.chunks.erase(dyn.chunks.begin() + tileset_ndx);
 	}
 }
 
@@ -593,7 +597,7 @@ void TileLayer::clear() {
 	set_scroll(false);
 }
 
-void TileLayer::shallow_copy(const TileLayer& layer, Rectu area, Vec2u lvlSize)
+void TileLayer::shallow_copy(const TileLayer& layer, Rectu area)
 {
 	const auto& tile_data = layer.layer_data.getTileData();
 	unsigned tile_count = tile_data.has_tile.size();
@@ -603,25 +607,27 @@ void TileLayer::shallow_copy(const TileLayer& layer, Rectu area, Vec2u lvlSize)
 			if (layer.getLevelSize().x <= x || layer.getLevelSize().y <= y)
 				continue;
 
-			Vec2u pos{ x,y };
-			unsigned ndx = pos.y * layer.getLevelSize().x + pos.x;
+			Vec2u pos{ x, y };
+			unsigned ndx = y * layer.getLevelSize().x + x;
 			if (!tile_data.has_tile[ndx])
 				continue;
 
+
+
 			const TilesetAsset* tileset = nullptr;
-
-			Vec2u tex_pos = tile_data.tex_pos[ndx];
-
 			if (tile_data.tileset_ndx[ndx] != UINT8_MAX) {
 				tileset = layer.dyn.chunks.at(tile_data.tileset_ndx[ndx]).tileset;
 			}
-			if (!tileset)
+			else {
 				continue;
+			}
 
+			Vec2u tex_pos = tile_data.tex_pos[ndx];
 			setTile(pos, tex_pos, *tileset);
 		}
 	}
 }
+
 
 bool TileLayer::hasTileAt(Vec2u tile_pos)
 {

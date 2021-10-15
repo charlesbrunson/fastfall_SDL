@@ -123,7 +123,7 @@ std::pair<bool, unsigned> TileLayerData::removeTile(Vec2u at)
 		count = --tilesets[tiles.tileset_ndx[i]].second;
 		if (tilesets[tiles.tileset_ndx[i]].second == 0)
 		{
-			tilesets.erase(tilesets.begin() + i);
+			tilesets.erase(tilesets.begin() + tiles.tileset_ndx[i]);
 			for_each(tiles.tileset_ndx.begin(), tiles.tileset_ndx.end(),
 				[i](uint8_t& ndx) {
 					if (ndx > i)

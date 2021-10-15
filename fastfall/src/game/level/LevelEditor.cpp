@@ -255,6 +255,7 @@ bool LevelEditor::set_bg_color(Color bg_color)
 	return true;
 }
 
+
 bool LevelEditor::set_size(Vec2u size)
 {
 	if (level && level->size() != size) {
@@ -263,6 +264,7 @@ bool LevelEditor::set_size(Vec2u size)
 	}
 	return false;
 }
+
 
 bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 {

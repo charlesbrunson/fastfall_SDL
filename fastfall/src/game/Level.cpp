@@ -40,6 +40,9 @@ void Level::predraw(secs deltaTime) {
 
 void Level::init(const LevelAsset& levelData) 
 {
+
+	asset = &levelData;
+
 	layers.clear_all();
 
 	levelName = levelData.getAssetName();
@@ -79,7 +82,7 @@ void Level::resize(Vec2u n_size)
 		n_layer.set_collision(layer.hasCollision(), layer.getCollisionBorders());
 		n_layer.set_scroll(layer.hasScrolling(), layer.getScrollRate());
 		n_layer.set_parallax(layer.hasParallax(), parallax_size);
-		n_layer.shallow_copy(layer, Rectu{ Vec2u{}, Vec2u{layer_size} }, n_size);
+		n_layer.shallow_copy(layer, Rectu{ Vec2u{}, Vec2u{layer_size} });
 		layer = std::move(n_layer);
 	}
 	levelSize = n_size;
