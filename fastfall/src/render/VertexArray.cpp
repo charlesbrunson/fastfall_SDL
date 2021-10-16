@@ -102,6 +102,8 @@ void VertexArray::glTransfer() const {
 
 	if (!gl.sync) {
 
+		LOG_INFO("GPU: {}", m_vec.size() * sizeof(Vertex));
+
 		// bind the buffer and transfer the vertex data to the video ram
 		glCheck(glBindBuffer(GL_ARRAY_BUFFER, gl.m_buffer));
 		if (!gl.m_bound || m_vec.size() > gl.m_bufsize) {
@@ -109,7 +111,9 @@ void VertexArray::glTransfer() const {
 			gl.m_bufsize = m_vec.size();
 			gl.m_bound = true;
 		}
-		else {			
+		else {
+			//glCheck(glBufferData(GL_ARRAY_BUFFER, m_vec.size() * sizeof(Vertex), &m_vec[0], static_cast<GLenum>(m_usage)));
+			//gl.m_bufsize = m_vec.size();
 			glCheck(glBufferSubData(GL_ARRAY_BUFFER, 0 * sizeof(Vertex), m_vec.size() * sizeof(Vertex), &m_vec[0]));
 		}
 		gl.sync = true;

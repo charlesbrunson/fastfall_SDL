@@ -17,7 +17,7 @@ void SceneManager::add(SceneType scene_type, Drawable& drawable, Layer layer, Pr
 		layers.begin(), layers.end(),
 		layer,
 		[](Layer layer, const SceneLayer& sceneLayer) {
-			return layer < sceneLayer.layer_id;
+			return layer <= sceneLayer.layer_id;
 		});
 
 	if (layer_iter == layers.end() || layer_iter->layer_id != layer) {
@@ -78,7 +78,6 @@ void SceneManager::clearType(SceneType scene_type) {
 			}
 		}
 	}
-
 }
 
 void SceneManager::set_cam_pos(Vec2f center) {
