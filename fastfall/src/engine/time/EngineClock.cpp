@@ -50,11 +50,11 @@ unsigned EngineClock::getInstantFPS() const noexcept {
 
 void EngineClock::sleepUntilTick(bool nosleep) noexcept {
 
-	secs PREV_TIME = _data.activeTime.count();
+	//secs PREV_TIME = _data.activeTime.count();
 
 	_data.activeTime = engineClock.now() - _active_start;
 
-	secs TIME = _data.activeTime.count();
+	//secs TIME = _data.activeTime.count();
 	if (fpsUnlimited)
 		return;
 
@@ -95,7 +95,7 @@ void EngineClock::resetTickWindow(bool nomiss) noexcept {
 
 secs EngineClock::tick() noexcept {
 	_active_start = engineClock.now();
-	if (prev_tick != 0) {
+	if (prev_tick != 0 || fpsUnlimited) {
 		tickCounter++;
 		_data.tickTotal++;
 	}

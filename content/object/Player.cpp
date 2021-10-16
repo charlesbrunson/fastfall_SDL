@@ -56,7 +56,6 @@ Player::Player(GameContext context, const ObjectData& ref, const ObjectType& typ
 			}
 		});
 
-	// sprite
 	sprite->set_anim(plr::anim::idle);
 	sprite->set_pos(box->getPosition());
 };

@@ -235,6 +235,8 @@
 #include <initializer_list>
 #endif
 
+#undef PLF_CPP20_SUPPORT
+
 #ifdef PLF_CPP20_SUPPORT
 #include <concepts>
 #endif

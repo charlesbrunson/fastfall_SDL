@@ -188,7 +188,7 @@ bool LevelAsset::reloadFromFile() {
 	LevelAsset n_level{ getAssetName() };
 
 	try {
-		if (loaded = n_level.loadFromFile(assetFilePath)) {
+		if (loaded = n_level.loadFromFile(assetFilePath); loaded) {
 			*this = std::move(n_level);
 		}
 	}

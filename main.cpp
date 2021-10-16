@@ -20,11 +20,14 @@ ff::EngineSettings getSettings() {
 	settings.allowMargins = true;
 	settings.fullscreen = false;
 	settings.noWindow = false;
-	settings.refreshRate = 144;
 
 #if defined(__EMSCRIPTEN__)
+	settings.refreshRate = 0;
+	settings.vsyncEnabled = false;
 	settings.runstyle = ff::EngineRunStyle::Emscripten;
 #else
+	settings.refreshRate = 60;
+	settings.vsyncEnabled = true;
 	settings.runstyle = ff::EngineRunStyle::SingleThread;
 	//settings.runstyle = ff::EngineRunStyle::DoubleThread;
 #endif
@@ -34,8 +37,6 @@ ff::EngineSettings getSettings() {
 #else
 	settings.showDebug = false;
 #endif
-
-	settings.vsyncEnabled = true;
 
 	return settings;
 }
@@ -79,13 +80,15 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
+#if not defined(__EMSCRIPTEN__)
 	Resources::addLoadedToWatcher();
 	ResourceWatcher::start_watch_thread();
+#endif
 
 	Engine::init(
 		std::move(window),
 		EngineRunnable(std::make_unique<TestState>()),
-		Vec2u{ 320u, 240u } *3u,
+		Vec2u{ 1920, 900 },
 		getSettings()
 	);
 
@@ -97,10 +100,10 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
+#if not defined(__EMSCRIPTEN__)
 	ResourceWatcher::stop_watch_thread();
 	ResourceWatcher::join_watch_thread();
 
-#if not defined(__EMSCRIPTEN__)
 	Engine::shutdown();
 	ImGuiFrame::getInstance().clear();
 	Resources::unloadAll();

@@ -58,7 +58,7 @@ bool FFinit()
     LOG_INFO("{:>10} {}.{}.{}", "SDL", version.major, version.minor, version.patch);
 
     checkSDL(SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
-    checkSDL(SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1));
+    //checkSDL(SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1));
 
     checkSDL(SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8));
     checkSDL(SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8));

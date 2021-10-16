@@ -84,7 +84,7 @@ Engine::Engine(
 
     stepUpdate = false;
     pauseUpdate = false;
-    maxDeltaTime = secs(1.0 / 60.0);
+    maxDeltaTime = secs(1.0 / 30.0);
 
     initRenderTarget(false);
 
@@ -308,21 +308,14 @@ void Engine::runUpdate(std::barrier<>* bar) {
 
 bool Engine::run_emscripten() {
 #if defined(__EMSCRIPTEN__)
-	
+
     prerun_init();
 
     running = true;
 
 	emscripten_set_main_loop_arg(Engine::emscripten_loop, this, 0, false);
+    //window->setVsyncEnabled(settings.vsyncEnabled);
 
-    // clean up
-    //close();
-
-    //LOG_INFO("Run thread shutting down");
-
-    //running = false;
-
-    //ff::glDeleteStale();
 #endif
     return true;
 
@@ -371,6 +364,8 @@ void Engine::close() {
 
 void Engine::updateTimer() {
     elapsedTime = clock.tick();
+
+	//LOG_INFO("{}", elapsedTime);
 
     if (window) {
         bool resetTimers = false;
@@ -531,7 +526,9 @@ void Engine::handleEvents(bool* timeWasted)
             switch (event.key.keysym.sym) {
             case SDLK_ESCAPE: 
                 if (!settings.fullscreen) {
+#if not defined(__EMSCRIPTEN__)
                     close();
+#endif
                 }
                 else {
                     setFullscreen(!settings.fullscreen);
@@ -610,7 +607,10 @@ void Engine::initRenderTarget(bool fullscreen)
     }
 
     window->setActive();
+#if not defined(__EMSCRIPTEN__)
+	// browser handles vsync if emscripten
     window->setVsyncEnabled(settings.vsyncEnabled);
+#endif
     window->showWindow();
 
     margins = std::make_unique<VertexArray>(Primitive::TRIANGLE_STRIP, 10);

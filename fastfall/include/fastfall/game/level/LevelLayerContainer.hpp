@@ -4,6 +4,7 @@
 #include <optional>
 #include <variant>
 #include <vector>
+#include <concepts>
 
 #include <algorithm>
 #include <sstream>

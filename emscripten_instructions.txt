@@ -1,0 +1,5 @@
+mkdir embuild
+cd embuild
+emcmake cmake ..
+emmake cmake --build .
+emrun --kill_exit test_project.html
