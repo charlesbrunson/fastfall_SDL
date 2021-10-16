@@ -28,21 +28,19 @@ ShapeRectangle::ShapeRectangle(Rectf area, Color color, Color lineColor)
 }
 
 void ShapeRectangle::setSize(glm::fvec2 size) {
-	//m_size = size;
-	m_area.setSize(size);
+	if (size != m_area.getSize()) {
+		m_area.setSize(size);
 
-	m_verts[0].pos = glm::fvec2{ 0.f, 0.f };
-	m_verts[1].pos = glm::fvec2{ m_area.width, 0.f };
-	m_verts[2].pos = glm::fvec2{ 0.f, m_area.height };
-	m_verts[3].pos = glm::fvec2{ m_area.getSize() };
+		m_verts[0].pos = glm::fvec2{ 0.f, 0.f };
+		m_verts[1].pos = glm::fvec2{ m_area.width, 0.f };
+		m_verts[2].pos = glm::fvec2{ 0.f, m_area.height };
+		m_verts[3].pos = glm::fvec2{ m_area.getSize() };
 
-	m_outline_verts[0].pos = m_verts[0].pos;
-	m_outline_verts[1].pos = m_verts[1].pos;
-	m_outline_verts[2].pos = m_verts[3].pos;
-	m_outline_verts[3].pos = m_verts[2].pos;
-
-	//m_verts.glTransfer();
-	//m_outline_verts.glTransfer();
+		m_outline_verts[0].pos = m_verts[0].pos;
+		m_outline_verts[1].pos = m_verts[1].pos;
+		m_outline_verts[2].pos = m_verts[3].pos;
+		m_outline_verts[3].pos = m_verts[2].pos;
+	}
 }
 
 void ShapeRectangle::setSize(float sizeX, float sizeY) {

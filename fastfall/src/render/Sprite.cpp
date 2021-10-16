@@ -74,22 +74,29 @@ void Sprite::setTexture(const Texture* texture, bool resetRect) {
 }
 
 void Sprite::setTextureRect(Rectf textureRect) {
-	m_textureRect = textureRect;
 
-	auto points = m_textureRect.toPoints();
-	m_verts[0].tex_pos = points[0] * m_texture.get()->inverseSize();
-	m_verts[1].tex_pos = points[1] * m_texture.get()->inverseSize();
-	m_verts[2].tex_pos = points[2] * m_texture.get()->inverseSize();
-	m_verts[3].tex_pos = points[3] * m_texture.get()->inverseSize();
+	if (m_textureRect != textureRect) {
+		m_textureRect = textureRect;
+
+		auto points = m_textureRect.toPoints();
+		m_verts[0].tex_pos = points[0] * m_texture.get()->inverseSize();
+		m_verts[1].tex_pos = points[1] * m_texture.get()->inverseSize();
+		m_verts[2].tex_pos = points[2] * m_texture.get()->inverseSize();
+		m_verts[3].tex_pos = points[3] * m_texture.get()->inverseSize();
+	}
+
+
 	//m_verts.glTransfer();
 }
 
 void Sprite::setColor(Color color) {
-	m_color = color;
-	m_verts[0].color = m_color;
-	m_verts[1].color = m_color;
-	m_verts[2].color = m_color;
-	m_verts[3].color = m_color;
+	if (m_color != color) {
+		m_color = color;
+		m_verts[0].color = m_color;
+		m_verts[1].color = m_color;
+		m_verts[2].color = m_color;
+		m_verts[3].color = m_color;
+	}
 	//m_verts.glTransfer();
 }
 
@@ -97,12 +104,13 @@ void Sprite::setSize(glm::fvec2 size) {
 	setSize(size.x, size.y);
 }
 void Sprite::setSize(float sizeX, float sizeY) {
-	m_size = { sizeX, sizeY };
-	m_verts[0].pos = { 0.f, 0.f };
-	m_verts[1].pos = { m_size.x, 0.f };
-	m_verts[2].pos = { 0.f, m_size.y };
-	m_verts[3].pos = { m_size.x, m_size.y };
-	//m_verts.glTransfer();
+	if (m_size.x != sizeX || m_size.y != sizeY) {
+		m_size = { sizeX, sizeY };
+		m_verts[0].pos = { 0.f, 0.f };
+		m_verts[1].pos = { m_size.x, 0.f };
+		m_verts[2].pos = { 0.f, m_size.y };
+		m_verts[3].pos = { m_size.x, m_size.y };
+	}
 }
 
 Rectf Sprite::getTextureRect() const {
