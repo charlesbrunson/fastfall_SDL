@@ -29,8 +29,6 @@ public:
 	inline int getViewUniformID() const { return view_loc; };
 	inline int getMdlUniformID() const { return mdl_loc; };
 	inline int getColumnsUniformID() const { return columns_loc; };
-	//inline int getSubTexUniformID() const { return subtex_loc; };
-
 
 	static const ShaderProgram& getDefaultProgram();
 	static const ShaderProgram& getTileArrayProgram();

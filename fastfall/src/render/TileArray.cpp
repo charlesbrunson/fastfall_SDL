@@ -2,6 +2,7 @@
 
 #include "GL/glew.h"
 #include "detail/error.hpp"
+#include "fastfall/render.hpp"
 
 namespace ff {
 
@@ -11,11 +12,76 @@ TileArray::TileArray(Vec2u size)
 	: m_size(size)
 	, max_tiles(size.x * size.y)
 {
-	has_tile 	= std::make_unique<   bool[]>(max_tiles);
-	tiles 		= std::make_unique<uint8_t[]>(max_tiles);
+	tile_count  = 0;
+	tiles 		= std::make_unique<uint32_t[]>(max_tiles);
+	std::fill_n(&tiles[0], 	  max_tiles, UINT8_MAX);
 
-	std::fill_n(&has_tile[0], max_tiles, false);
-	std::fill_n(&tiles[0], 	  max_tiles, 0);
+}
+
+TileArray::~TileArray()
+{
+	glStaleVertexArrays(gl.m_array);
+	glStaleVertexBuffers(gl.m_buffer);
+}
+
+TileArray::TileArray(const TileArray& rhs)
+	: m_size(rhs.m_size)
+	, max_tiles(rhs.max_tiles)
+{
+
+	offset = rhs.offset;
+
+	m_tex = rhs.m_tex;
+	tile_count = rhs.tile_count;
+
+	tiles 		= std::make_unique<uint32_t[]>(max_tiles);
+
+	memcpy(&tiles[0], &rhs.tiles[0], max_tiles * sizeof(tiles[0]));
+
+	gl.sync = false;
+}
+
+TileArray& TileArray::operator= (const TileArray& rhs)
+{
+
+	offset = rhs.offset;
+
+	m_size = rhs.m_size;
+	max_tiles = rhs.max_tiles;
+	m_tex = rhs.m_tex;
+	tile_count = rhs.tile_count;
+
+	tiles 		= std::make_unique<uint32_t[]>(max_tiles);
+
+	memcpy(&tiles[0], &rhs.tiles[0], max_tiles * sizeof(tiles[0]));
+
+	gl.sync = false;
+
+	return *this;
+}
+
+TileArray::TileArray(TileArray&& rhs)
+{
+	offset = rhs.offset;
+	m_size = rhs.m_size;
+	max_tiles = rhs.max_tiles;
+	m_tex = rhs.m_tex;
+	tile_count = rhs.tile_count;
+
+	std::swap(tiles, rhs.tiles);
+	std::swap(gl, rhs.gl);
+}
+TileArray& TileArray::operator=(TileArray&& rhs)
+{
+	offset = rhs.offset;
+	m_size = rhs.m_size;
+	max_tiles = rhs.max_tiles;
+	m_tex = rhs.m_tex;
+	tile_count = rhs.tile_count;
+
+	std::swap(tiles, rhs.tiles);
+	std::swap(gl, rhs.gl);
+	return *this;
 }
 
 void TileArray::setTexture(const Texture& texture) noexcept
@@ -28,6 +94,11 @@ const TextureRef& TileArray::getTexture() const noexcept
 	return m_tex;
 }
 
+void TileArray::resize(Vec2u n_size)
+{
+
+}
+
 void TileArray::setTile(Vec2u at, Vec2u texPos)
 {
 	assert(at.x < m_size.x && at.y < m_size.y);
@@ -36,9 +107,12 @@ void TileArray::setTile(Vec2u at, Vec2u texPos)
 	assert(texPos.x < MAX_DIMEN && texPos.y < MAX_DIMEN);
 	uint8_t tile_id = texPos.x + (texPos.y * MAX_DIMEN);
 
-	if (!has_tile[ndx]) {
-		has_tile[ndx] = true;
+//	LOG_INFO("{} -> {}", texPos.to_string(), tile_id);
+
+	if (tiles[ndx] == UINT8_MAX && tile_id != UINT8_MAX) 
+	{
 		tile_count++;
+		gl.sync = false;
 	}
 	tiles[ndx] = tile_id;	
 }
@@ -48,11 +122,12 @@ void TileArray::blank(Vec2u at)
 	assert(at.x < m_size.x && at.y < m_size.y);
 	size_t ndx = at.x + (at.y * m_size.x);
 
-	if (has_tile[ndx]) {
-		has_tile[ndx] = false;
+	if (tiles[ndx] != UINT8_MAX) 
+	{
 		tile_count--;
+		gl.sync = false;
 	}
-	tiles[ndx] = 0;	
+	tiles[ndx] = UINT8_MAX;	
 }
 
 void TileArray::clear()
@@ -60,8 +135,8 @@ void TileArray::clear()
 	m_tex = TextureRef{};
 	tile_count = 0;
 
-	std::fill_n(&has_tile[0], max_tiles, false);
-	std::fill_n(&tiles[0], 	  max_tiles, 0);
+	std::fill_n(&tiles[0], 	  max_tiles, UINT8_MAX);
+	gl.sync = false;
 }
 
 void TileArray::glTransfer() const
@@ -73,12 +148,12 @@ void TileArray::glTransfer() const
 
 		glCheck(glBindVertexArray(gl.m_array));
 		glCheck(glBindBuffer(GL_ARRAY_BUFFER, gl.m_buffer));
-		glCheck(glBufferData(GL_ARRAY_BUFFER, max_tiles * sizeof(uint8_t), NULL, GL_DYNAMIC_DRAW));
+		glCheck(glBufferData(GL_ARRAY_BUFFER, max_tiles * sizeof(uint32_t), NULL, GL_DYNAMIC_DRAW));
 		gl.m_bufsize = max_tiles;
 
 		// tile id attribute
 		glCheck(glEnableVertexAttribArray(0));
-		glCheck(glVertexAttribPointer(0, 1, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(uint8_t), (void*)0));
+		glCheck(glVertexAttribPointer(0, 1, GL_UNSIGNED_INT, GL_TRUE, sizeof(uint32_t), (void*)0));
 
 		if (gl.m_array == 0 || gl.m_buffer == 0) {
 			LOG_ERR_("Unable to initialize vertex array for opengl");
@@ -87,14 +162,16 @@ void TileArray::glTransfer() const
 	}
 	if (!gl.sync) {
 		glCheck(glBindBuffer(GL_ARRAY_BUFFER, gl.m_buffer));
-		glCheck(glBufferSubData(GL_ARRAY_BUFFER, 0 * sizeof(uint8_t), max_tiles * sizeof(uint8_t), &tiles[0]));
+		if (!gl.m_bound || max_tiles > gl.m_bufsize) {
+			glCheck(glBufferData(GL_ARRAY_BUFFER, max_tiles * sizeof(uint32_t), &tiles[0], GL_DYNAMIC_DRAW));
+			gl.m_bufsize = max_tiles;
+			gl.m_bound = true;
+		}
+		else {
+			glCheck(glBufferSubData(GL_ARRAY_BUFFER, NULL, max_tiles * sizeof(uint32_t), &tiles[0]));
+		}
 		gl.sync = true;
 	}
-}
-
-void TileArray::draw(RenderTarget& target, RenderState state) const
-{
-	target.draw(*this, state);
 }
 
 }

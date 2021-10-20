@@ -15,8 +15,8 @@ VertexArray::VertexArray(Primitive primitive_type, size_t size, VertexUsage usag
 }
 
 VertexArray::~VertexArray() {
-	ff::glStaleVertexArrays(gl.m_array);
-	ff::glStaleVertexBuffers(gl.m_buffer);
+	glStaleVertexArrays(gl.m_array);
+	glStaleVertexBuffers(gl.m_buffer);
 }
 
 VertexArray::VertexArray(const VertexArray& varray) {

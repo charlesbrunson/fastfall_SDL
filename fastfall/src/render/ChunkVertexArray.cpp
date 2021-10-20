@@ -71,35 +71,27 @@ void ChunkVertexArray::do_setTile(Vec2u at, Vec2u texPos) {
 		});
 
 	if (iter == m_chunks.end()) {
-		//LOG_INFO("CHUNK END");
-
 		m_chunks.emplace_back(Chunk{
 			.chunk_pos = chunkPos,
 			.chunk_size = nSize,
-			.tva = TileVertexArray{nSize}
+			.tva = Array{nSize}
 			});
 
 		m_chunks.back().tva.setTexture(*m_tex.get());
 		m_chunks.back().tva.setTile(innerPos, texPos);
 		m_chunks.back().tva.offset = Vec2f{ (float)chunkPos.x * m_chunk_size.x, (float)chunkPos.y * m_chunk_size.y } * TILESIZE_F;
-
 	}
 	else if (iter->chunk_pos != chunkPos) {
-		//LOG_INFO("CHUNK INSERT {}", chunkPos.to_string());
-
 		iter = m_chunks.emplace(iter, Chunk{
 			.chunk_pos = chunkPos,
 			.chunk_size = nSize,
-			.tva = TileVertexArray{nSize}
+			.tva = Array{nSize}
 			});
-
 		iter->tva.setTexture(*m_tex.get());
 		iter->tva.setTile(innerPos, texPos);
 		iter->tva.offset = Vec2f{ (float)chunkPos.x * m_chunk_size.x, (float)chunkPos.y * m_chunk_size.y } * TILESIZE_F;
-
 	}
 	else {
-		//LOG_INFO("CHUNK AT {}", iter->chunk_pos.to_string());
 		iter->tva.setTile(innerPos, texPos);
 	}
 }

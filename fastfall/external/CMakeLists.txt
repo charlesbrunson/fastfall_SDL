@@ -50,9 +50,9 @@ FetchContent_Declare(
 FetchContent_Declare(
 	imgui
 	GIT_REPOSITORY	https://github.com/ocornut/imgui.git
-	GIT_TAG			docking # docking branch
+	GIT_TAG			bac748fa95ac003c7b354139980f8b4b7f6ac5da # docking branch
 	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-    	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/imgui
+    SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/imgui
 )
 
 # implot

@@ -72,13 +72,7 @@ void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 	if (state.program != previousRender->program || !hasShader) {
 		applyShader(state.program);
 		hasShader = (state.program != nullptr);
-		//if (state.program) {
-		//	applyUniforms(Transform::combine(varray.getTransform(), state.transform), state);
-		//}
 	}
-	//else if (hasShader && state.transform != previousRender->transform) {
-	//	applyUniforms(Transform::combine(varray.getTransform(), state.transform), state);
-	//}
 
 	if (state.program) {
 		applyUniforms(Transform::combine(varray.getTransform(), state.transform), state);
@@ -88,17 +82,20 @@ void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 		applyTexture(state.texture);
 	}
 
-	//GLint whichID;
-	//glGetIntegerv(GL_TEXTURE_BINDING_2D, &whichID);
-	//LOG_INFO("drawing with texture: {}", whichID);
-
 	glCheck(glBindVertexArray(varray.gl.m_array));
 	glCheck(glDrawArrays(static_cast<GLenum>(varray.m_primitive), 0, varray.size()));
 
 	previousRender = state;
 	justCleared = false;
 }
-void RenderTarget::draw(const TileArray& tarray, const RenderState& state) {
+void RenderTarget::draw(const TileArray& tarray, RenderState state) {
+	if (tarray.tile_count == 0)
+		return;
+
+	state.transform = Transform::combine(state.transform, Transform(tarray.offset));
+	state.texture = tarray.m_tex;
+	state.program = &ShaderProgram::getTileArrayProgram();
+
 	tarray.glTransfer();
 
 	bindFramebuffer();
@@ -112,6 +109,7 @@ void RenderTarget::draw(const TileArray& tarray, const RenderState& state) {
 		hasBlend = true;
 	}
 
+	//LOG_INFO("using shader: {}", state.program ? state.program->getID() : -1);
 	if (state.program != previousRender->program || !hasShader) {
 		applyShader(state.program);
 		hasShader = (state.program != nullptr);

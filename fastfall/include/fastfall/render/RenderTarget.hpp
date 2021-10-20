@@ -36,7 +36,7 @@ public:
 
 	void draw(const Drawable& drawable, const RenderState& state = RenderState());
 	void draw(const VertexArray& varray, const RenderState& state = RenderState());
-	void draw(const TileArray& varray, const RenderState& state = RenderState());
+	void draw(const TileArray& varray, RenderState state = RenderState());
 	//void draw(const ShapeLine& line, const RenderState& state = RenderState::Default);
 	//void draw(const ShapeRectange& line, const RenderState& state = RenderState::Default);
 	//void draw(const ShapeCircle& line, const RenderState& state = RenderState::Default);

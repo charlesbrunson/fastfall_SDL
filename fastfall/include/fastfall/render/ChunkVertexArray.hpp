@@ -1,5 +1,6 @@
 #pragma once
 
+#include "TileArray.hpp"
 #include "TileVertexArray.hpp"
 
 #include <vector>
@@ -10,6 +11,8 @@ namespace ff {
 
 class ChunkVertexArray : public Drawable {
 public:
+	using Array = TileArray;
+
 	ChunkVertexArray(Vec2u t_size, Vec2u t_max_chunk_size);
 
 	void setTexture(const Texture& texture) noexcept;
@@ -56,7 +59,7 @@ private:
 		unsigned char draw_flags;
 		Vec2u chunk_pos;
 		Vec2u chunk_size;
-		TileVertexArray tva;
+		Array tva;
 	};
 
 	Rectf getChunkBounds(const Chunk& chunk, Vec2f draw_offset = Vec2f{}) const noexcept;

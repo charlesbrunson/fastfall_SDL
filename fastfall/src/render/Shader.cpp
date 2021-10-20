@@ -95,15 +95,15 @@ out VS_OUT {
 
 void main()
 {
-	if (aTileId == 0)
-		discard;
+	//if (aTileId == 0)
+	//	discard; // empty tile
 
 	// calc topleft position of tile
-	float x = float(gl_VertexID % columns) * 16.0;
-	float y = float(gl_VertexID / columns) * 16.0;
+	float x = float(uint(gl_VertexID) % columns) * 16.0;
+	float y = float(uint(gl_VertexID) / columns) * 16.0;
 
 	// apply transform
-	gl_Position = vec4( view * model * vec3( x, y, 1.0 ), 1.0);
+	gl_Position = vec4( x, y, 1.0, 1.0);
 
 	// pass tile id to geometry shader
     vs_out.tileId = aTileId;
@@ -117,7 +117,6 @@ uniform mat3 view;
 
 in VS_OUT {
     uint tileId;
-    uint tileColumns;
 } gs_in[];
 
 out vec2 texCoord;
@@ -126,30 +125,31 @@ layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 
 void main() {
-    uint tileId = gs_in[0].tileId & 255u;
-    float tileX = float(tileId & 15u) / 16.0;
-    float tileY = float((tileId >> 4u) & 15u) / 16.0;
+	if (gs_in[0].tileId < 255u) {
+		uint tileId = gs_in[0].tileId;
+		float tileX = float(tileId % 16u) / 16.0;
+		float tileY = float(tileId / 16u) / 16.0;
 
-    const float B = 1 / 256.0;
-    const float S = 1 / 16.0;
+		const float B = 1.0 / 16384.0;
+		const float S = 1.0 / 16.0;
 
-    gl_Position = projection * gl_in[0].gl_Position;
-    texCoord = vec2(tileX + B, tileY + B);
-    EmitVertex();
+		gl_Position = vec4( view * model * vec3(gl_in[0].gl_Position.xy + vec2( 0.0,  0.0), 1.0), 1.0);
+		texCoord = vec2(tileX, tileY);
+		EmitVertex();
 
-    gl_Position = projection * (gl_in[0].gl_Position + vec4(1.0, 0.0, 0.0, 0.0));
-    texCoord = vec2(tileX + S - B, tileY + B);
-    EmitVertex();
+		gl_Position = vec4( view * model * vec3(gl_in[0].gl_Position.xy + vec2(16.0,  0.0), 1.0), 1.0);
+		texCoord = vec2(tileX + S, tileY);
+		EmitVertex();
 
-    gl_Position = projection * (gl_in[0].gl_Position + vec4(0.0, 1.0, 0.0, 0.0));
-    texCoord = vec2(tileX + B, tileY + S - B);
-    EmitVertex();
+		gl_Position = vec4( view * model * vec3(gl_in[0].gl_Position.xy + vec2( 0.0, 16.0), 1.0), 1.0);
+		texCoord = vec2(tileX, tileY + S);
+		EmitVertex();
 
-    gl_Position = projection * (gl_in[0].gl_Position + vec4(1.0, 1.0, 0.0, 0.0));
-    texCoord = vec2(tileX + S - B, tileY + S - B);
-    EmitVertex();
-
-    EndPrimitive();
+		gl_Position = vec4( view * model * vec3(gl_in[0].gl_Position.xy + vec2(16.0, 16.0), 1.0), 1.0);
+		texCoord = vec2(tileX + S, tileY + S);
+		EmitVertex();
+	}
+	EndPrimitive();
 })";
 
 static const std::string_view tilearray_fragment = R"(
@@ -175,15 +175,17 @@ const ShaderProgram& ShaderProgram::getDefaultProgram() {
 		DefaultProgram.add(ff::ShaderType::VERTEX, vertex_default);
 		DefaultProgram.add(ff::ShaderType::FRAGMENT, fragment_default);
 		DefaultProgram.link();
+		LOG_INFO("default program: {}", DefaultProgram.getID());
 	}
 	return DefaultProgram;
 }
 const ShaderProgram& ShaderProgram::getTileArrayProgram() {
 	if (!TileArrayProgram.isLinked() && FFisGLEWInit()) {
-		TileArrayProgram.add(ff::ShaderType::GEOMETRY, tilearray_geometry);
 		TileArrayProgram.add(ff::ShaderType::VERTEX,   tilearray_vertex);
+		TileArrayProgram.add(ff::ShaderType::GEOMETRY, tilearray_geometry);
 		TileArrayProgram.add(ff::ShaderType::FRAGMENT, tilearray_fragment);
 		TileArrayProgram.link();
+		LOG_INFO("tile program: {}", TileArrayProgram.getID());
 	}
 	return TileArrayProgram;
 }
@@ -245,6 +247,7 @@ void ShaderProgram::add(ShaderType type, const std::string_view shader_code) {
 		shaders.pop_back();
 
 		LOG_ERR_("Could not compile shader: {}", log);
+		LOG_ERR_("{}", shader_code);
 
 		throw Error(std::string("Could not compile shader: \n") + log);
 	}
@@ -290,6 +293,7 @@ void ShaderProgram::use() const {
 		glCheck(glUseProgram(id));
 	}
 	else {
+		LOG_ERR_("Attempted to use unlinked shader id: {}", id);
 		glCheck(glUseProgram(0));
 	}
 }
