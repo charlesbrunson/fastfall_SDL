@@ -2,6 +2,7 @@
 
 #include "fastfall/render/Drawable.hpp"
 #include "fastfall/render/VertexArray.hpp"
+#include "fastfall/render/TileArray.hpp"
 
 #include "detail/error.hpp"
 
@@ -93,6 +94,42 @@ void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 
 	glCheck(glBindVertexArray(varray.gl.m_array));
 	glCheck(glDrawArrays(static_cast<GLenum>(varray.m_primitive), 0, varray.size()));
+
+	previousRender = state;
+	justCleared = false;
+}
+void RenderTarget::draw(const TileArray& tarray, const RenderState& state) {
+	tarray.glTransfer();
+
+	bindFramebuffer();
+
+	if (!previousRender) {
+		previousRender = RenderState{};
+	}
+
+	if (state.blend != previousRender->blend || !hasBlend) {
+		applyBlend(state.blend);
+		hasBlend = true;
+	}
+
+	if (state.program != previousRender->program || !hasShader) {
+		applyShader(state.program);
+		hasShader = (state.program != nullptr);
+	}
+
+	if (state.program) {
+		applyUniforms(Transform::combine(tarray.getTransform(), state.transform), state);
+		if (state.program->getColumnsUniformID() >= 0) {
+			glCheck(glUniform1ui(state.program->getColumnsUniformID(), tarray.m_size.x));
+		}
+	}
+
+	if (state.texture.get()->getID() != previousRender->texture.get()->getID() || justCleared) {
+		applyTexture(state.texture);
+	}
+
+	glCheck(glBindVertexArray(tarray.gl.m_array));
+	glCheck(glDrawArrays(GL_POINTS, 0, tarray.max_tiles));
 
 	previousRender = state;
 	justCleared = false;

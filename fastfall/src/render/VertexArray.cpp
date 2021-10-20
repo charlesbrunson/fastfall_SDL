@@ -102,7 +102,7 @@ void VertexArray::glTransfer() const {
 
 	if (!gl.sync) {
 
-		LOG_INFO("GPU: {}", m_vec.size() * sizeof(Vertex));
+		//LOG_INFO("GPU: {}", m_vec.size() * sizeof(Vertex));
 
 		// bind the buffer and transfer the vertex data to the video ram
 		glCheck(glBindBuffer(GL_ARRAY_BUFFER, gl.m_buffer));

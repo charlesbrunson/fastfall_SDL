@@ -23,7 +23,6 @@ namespace {
 
 	uniform mat3 model;
 	uniform mat3 view;
-	uniform mat3 subtexture;
 
 	void main() {
 		v_texcoord = i_texcoord;
@@ -59,7 +58,6 @@ namespace {
 
 	uniform mat3 model;
 	uniform mat3 view;
-	uniform mat3 subtexture;
 
 	void main() {
 		v_texcoord = i_texcoord;
@@ -80,13 +78,97 @@ namespace {
 	void main() {
 		FragColor = texture(Texture, v_texcoord) * v_color;
 	})";
-
 #endif
+
+static const std::string_view tilearray_vertex = R"(
+#version 330 core
+
+uniform mat3 model;
+uniform mat3 view;
+uniform uint columns;
+
+layout (location = 0) in uint aTileId;
+
+out VS_OUT {
+    uint tileId;
+} vs_out;
+
+void main()
+{
+	if (aTileId == 0)
+		discard;
+
+	// calc topleft position of tile
+	float x = float(gl_VertexID % columns) * 16.0;
+	float y = float(gl_VertexID / columns) * 16.0;
+
+	// apply transform
+	gl_Position = vec4( view * model * vec3( x, y, 1.0 ), 1.0);
+
+	// pass tile id to geometry shader
+    vs_out.tileId = aTileId;
+})";
+
+static const std::string_view tilearray_geometry = R"(
+#version 330 core
+
+uniform mat3 model;
+uniform mat3 view;
+
+in VS_OUT {
+    uint tileId;
+    uint tileColumns;
+} gs_in[];
+
+out vec2 texCoord;
+
+layout (points) in;
+layout (triangle_strip, max_vertices = 4) out;
+
+void main() {
+    uint tileId = gs_in[0].tileId & 255u;
+    float tileX = float(tileId & 15u) / 16.0;
+    float tileY = float((tileId >> 4u) & 15u) / 16.0;
+
+    const float B = 1 / 256.0;
+    const float S = 1 / 16.0;
+
+    gl_Position = projection * gl_in[0].gl_Position;
+    texCoord = vec2(tileX + B, tileY + B);
+    EmitVertex();
+
+    gl_Position = projection * (gl_in[0].gl_Position + vec4(1.0, 0.0, 0.0, 0.0));
+    texCoord = vec2(tileX + S - B, tileY + B);
+    EmitVertex();
+
+    gl_Position = projection * (gl_in[0].gl_Position + vec4(0.0, 1.0, 0.0, 0.0));
+    texCoord = vec2(tileX + B, tileY + S - B);
+    EmitVertex();
+
+    gl_Position = projection * (gl_in[0].gl_Position + vec4(1.0, 1.0, 0.0, 0.0));
+    texCoord = vec2(tileX + S - B, tileY + S - B);
+    EmitVertex();
+
+    EndPrimitive();
+})";
+
+static const std::string_view tilearray_fragment = R"(
+#version 330 core
+
+uniform sampler2D texture0;
+in vec2 texCoord;
+out vec4 FragColor;
+
+void main()
+{
+    FragColor = texture(texture0, texCoord);
+})";
 
 }
 
 
-ShaderProgram ShaderProgram::DefaultProgram;
+ShaderProgram DefaultProgram;
+ShaderProgram TileArrayProgram;
 
 const ShaderProgram& ShaderProgram::getDefaultProgram() {
 	if (!DefaultProgram.isLinked() && FFisGLEWInit()) {
@@ -95,6 +177,15 @@ const ShaderProgram& ShaderProgram::getDefaultProgram() {
 		DefaultProgram.link();
 	}
 	return DefaultProgram;
+}
+const ShaderProgram& ShaderProgram::getTileArrayProgram() {
+	if (!TileArrayProgram.isLinked() && FFisGLEWInit()) {
+		TileArrayProgram.add(ff::ShaderType::GEOMETRY, tilearray_geometry);
+		TileArrayProgram.add(ff::ShaderType::VERTEX,   tilearray_vertex);
+		TileArrayProgram.add(ff::ShaderType::FRAGMENT, tilearray_fragment);
+		TileArrayProgram.link();
+	}
+	return TileArrayProgram;
 }
 
 ShaderProgram::ShaderProgram()
@@ -122,7 +213,18 @@ void ShaderProgram::add(ShaderType type, const std::string_view shader_code) {
 	}
 
 	GLint shader_id;
-	glCheck(shader_id = glCreateShader(type == ShaderType::VERTEX ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER));
+	switch (type)
+	{
+		case ShaderType::GEOMETRY: 
+			glCheck(shader_id = glCreateShader(GL_GEOMETRY_SHADER));
+			break;
+		case ShaderType::VERTEX: 
+			glCheck(shader_id = glCreateShader(GL_VERTEX_SHADER));
+			break;
+		case ShaderType::FRAGMENT: 
+			glCheck(shader_id = glCreateShader(GL_FRAGMENT_SHADER));
+			break;
+	}
 	shaders.push_back(shader_id);
 
 	GLint len = shader_code.length();
@@ -172,9 +274,9 @@ void ShaderProgram::link() {
 		glDeleteShader(shader);
 	}
 
-	mdl_loc  = glGetUniformLocation(id, "model");
-	view_loc = glGetUniformLocation(id, "view");
-	//subtex_loc = glGetUniformLocation(id, "subtexture");
+	mdl_loc  	= glGetUniformLocation(id, "model");
+	view_loc 	= glGetUniformLocation(id, "view");
+	columns_loc = glGetUniformLocation(id, "columns");
 
 	m_is_linked = true;
 }

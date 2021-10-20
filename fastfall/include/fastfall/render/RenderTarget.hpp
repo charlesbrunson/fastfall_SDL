@@ -4,6 +4,7 @@
 #include "View.hpp"
 #include "RenderState.hpp"
 //#include "VertexArray.hpp"
+//#include "TileArray.hpp"
 
 #include "opengl.hpp"
 
@@ -13,6 +14,7 @@ namespace ff {
 
 class Drawable;
 class VertexArray;
+class TileArray;
 
 class RenderTarget {
 public:
@@ -34,6 +36,7 @@ public:
 
 	void draw(const Drawable& drawable, const RenderState& state = RenderState());
 	void draw(const VertexArray& varray, const RenderState& state = RenderState());
+	void draw(const TileArray& varray, const RenderState& state = RenderState());
 	//void draw(const ShapeLine& line, const RenderState& state = RenderState::Default);
 	//void draw(const ShapeRectange& line, const RenderState& state = RenderState::Default);
 	//void draw(const ShapeCircle& line, const RenderState& state = RenderState::Default);
