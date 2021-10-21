@@ -758,10 +758,12 @@ void Engine::ImGui_getContent() {
     }
 
 
+#if not defined(__EMSCRIPTEN__)
 	static bool wireframe_enabled = false;
 	if(ImGui::Checkbox("Wireframe", &wireframe_enabled)) {
 		glCheck(glPolygonMode(GL_FRONT_AND_BACK, wireframe_enabled ? GL_LINE : GL_FILL));
 	}
+#endif
 
     ImGui::BulletText("Window");
     ImGui::Text("Window Pos   = (%4d, %4d)", window->getPosition().x, window->getPosition().y);

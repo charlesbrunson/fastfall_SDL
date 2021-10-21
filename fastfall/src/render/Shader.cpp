@@ -71,7 +71,7 @@ void main()
 	// non-empty tile
 	if (aTileId != 255u) {
 
-		vec2 tileset_size = textureSize(texture0, 0) / TILESIZE;
+		vec2 tileset_size = vec2(textureSize(texture0, 0)) / TILESIZE;
 
 		// per vertex offsets
 		vec2 t_offset = vec2(
@@ -109,6 +109,7 @@ void main()
 const static std::string tilearray_fragment = 
 gl_header +
 R"(
+precision mediump float;
 uniform sampler2D texture0;
 in vec2 texCoord;
 out vec4 FragColor;

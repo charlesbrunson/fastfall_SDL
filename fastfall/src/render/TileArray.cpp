@@ -160,8 +160,6 @@ void TileArray::glTransfer() const
 		}
 	}
 	if (!gl.sync) {
-
-
 		glCheck(glBindBuffer(GL_ARRAY_BUFFER, gl.m_buffer));
 		if (!gl.m_bound || max_tiles > gl.m_bufsize) {
 			glCheck(glBufferData(GL_ARRAY_BUFFER, max_tiles * sizeof(uint8_t), &tiles[0], GL_DYNAMIC_DRAW));
@@ -171,7 +169,6 @@ void TileArray::glTransfer() const
 		else {
 			glCheck(glBufferSubData(GL_ARRAY_BUFFER, 0, max_tiles * sizeof(uint8_t), &tiles[0]));
 		}
-
 		gl.sync = true;
 	}
 }
