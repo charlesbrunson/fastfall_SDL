@@ -13,8 +13,8 @@ TileArray::TileArray(Vec2u size)
 	, max_tiles(size.x * size.y)
 {
 	tile_count  = 0;
-	tiles 		= std::make_unique<uint32_t[]>(max_tiles);
-	std::fill_n(&tiles[0], 	  max_tiles, UINT8_MAX);
+	tiles = std::make_unique<uint8_t[]>(max_tiles);
+	std::fill_n(&tiles[0], max_tiles, UINT8_MAX);
 
 }
 
@@ -34,7 +34,7 @@ TileArray::TileArray(const TileArray& rhs)
 	m_tex = rhs.m_tex;
 	tile_count = rhs.tile_count;
 
-	tiles 		= std::make_unique<uint32_t[]>(max_tiles);
+	tiles = std::make_unique<uint8_t[]>(max_tiles);
 
 	memcpy(&tiles[0], &rhs.tiles[0], max_tiles * sizeof(tiles[0]));
 
@@ -51,7 +51,7 @@ TileArray& TileArray::operator= (const TileArray& rhs)
 	m_tex = rhs.m_tex;
 	tile_count = rhs.tile_count;
 
-	tiles 		= std::make_unique<uint32_t[]>(max_tiles);
+	tiles = std::make_unique<uint8_t[]>(max_tiles);
 
 	memcpy(&tiles[0], &rhs.tiles[0], max_tiles * sizeof(tiles[0]));
 
@@ -148,12 +148,12 @@ void TileArray::glTransfer() const
 
 		glCheck(glBindVertexArray(gl.m_array));
 		glCheck(glBindBuffer(GL_ARRAY_BUFFER, gl.m_buffer));
-		glCheck(glBufferData(GL_ARRAY_BUFFER, max_tiles * sizeof(uint32_t), NULL, GL_DYNAMIC_DRAW));
+		glCheck(glBufferData(GL_ARRAY_BUFFER, max_tiles * sizeof(uint8_t), NULL, GL_DYNAMIC_DRAW));
 		gl.m_bufsize = max_tiles;
 
 		// tile id attribute
+		glCheck(glVertexAttribIPointer(0, 1, GL_UNSIGNED_BYTE, 0, (void*)0));
 		glCheck(glEnableVertexAttribArray(0));
-		glCheck(glVertexAttribPointer(0, 1, GL_UNSIGNED_INT, GL_TRUE, sizeof(uint32_t), (void*)0));
 
 		if (gl.m_array == 0 || gl.m_buffer == 0) {
 			LOG_ERR_("Unable to initialize vertex array for opengl");
@@ -163,13 +163,30 @@ void TileArray::glTransfer() const
 	if (!gl.sync) {
 		glCheck(glBindBuffer(GL_ARRAY_BUFFER, gl.m_buffer));
 		if (!gl.m_bound || max_tiles > gl.m_bufsize) {
-			glCheck(glBufferData(GL_ARRAY_BUFFER, max_tiles * sizeof(uint32_t), &tiles[0], GL_DYNAMIC_DRAW));
+			glCheck(glBufferData(GL_ARRAY_BUFFER, max_tiles * sizeof(uint8_t), &tiles[0], GL_DYNAMIC_DRAW));
 			gl.m_bufsize = max_tiles;
 			gl.m_bound = true;
 		}
 		else {
-			glCheck(glBufferSubData(GL_ARRAY_BUFFER, NULL, max_tiles * sizeof(uint32_t), &tiles[0]));
+			glCheck(glBufferSubData(GL_ARRAY_BUFFER, 0, max_tiles * sizeof(uint8_t), &tiles[0]));
 		}
+
+		//LOG_INFO("{}", max_tiles * sizeof(uint8_t));
+
+		//std::stringstream ss;
+		//ss << std::endl;
+		//for (size_t yy = 0; yy < m_size.y; yy++)
+		//{
+		//	for (size_t xx = 0; xx < m_size.x; xx++)
+		//	{
+		//		size_t ndx = xx + (yy * m_size.x);
+
+		//		ss << std::hex << (int)tiles[ndx] << " ";
+		//	}
+		//	ss << std::endl;
+		//}
+		//LOG_INFO("{}", ss.str());
+
 		gl.sync = true;
 	}
 }

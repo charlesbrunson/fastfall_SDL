@@ -55,7 +55,7 @@ private:
 
 	size_t tile_count;
 	size_t max_tiles;
-	std::unique_ptr<uint32_t[]> tiles;
+	std::unique_ptr<uint8_t[]> tiles;
 
 };
 

@@ -114,6 +114,7 @@ static const std::string_view tilearray_geometry = R"(
 
 uniform mat3 model;
 uniform mat3 view;
+uniform sampler2D texture0;
 
 in VS_OUT {
     uint tileId;
@@ -125,31 +126,37 @@ layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 
 void main() {
-	if (gs_in[0].tileId < 255u) {
-		uint tileId = gs_in[0].tileId;
-		float tileX = float(tileId % 16u) / 16.0;
-		float tileY = float(tileId / 16u) / 16.0;
+	uint tid = gs_in[0].tileId & 255u;
+	if (tid != 255u) {
+
+		uvec2 tex_size = uvec2(textureSize(texture0, 0));
+		vec2 tex_fsize = vec2(tex_size);
+
+		uvec2 tile_size = tex_size / 16u;
+
+		float tileX = float(tid % 16u) * 16.0 / tex_fsize.x;
+		float tileY = float(tid / 16u) * 16.0 / tex_fsize.y;
 
 		const float B = 1.0 / 16384.0;
-		const float S = 1.0 / 16.0;
+		float Sx = 16.0 / tex_fsize.x;
+		float Sy = 16.0 / tex_fsize.y;
 
 		gl_Position = vec4( view * model * vec3(gl_in[0].gl_Position.xy + vec2( 0.0,  0.0), 1.0), 1.0);
-		texCoord = vec2(tileX, tileY);
+		texCoord = vec2(tileX + B, tileY + B);
 		EmitVertex();
 
 		gl_Position = vec4( view * model * vec3(gl_in[0].gl_Position.xy + vec2(16.0,  0.0), 1.0), 1.0);
-		texCoord = vec2(tileX + S, tileY);
+		texCoord = vec2(tileX + Sx - B, tileY + B);
 		EmitVertex();
 
 		gl_Position = vec4( view * model * vec3(gl_in[0].gl_Position.xy + vec2( 0.0, 16.0), 1.0), 1.0);
-		texCoord = vec2(tileX, tileY + S);
+		texCoord = vec2(tileX + B, tileY + Sy - B);
 		EmitVertex();
 
 		gl_Position = vec4( view * model * vec3(gl_in[0].gl_Position.xy + vec2(16.0, 16.0), 1.0), 1.0);
-		texCoord = vec2(tileX + S, tileY + S);
+		texCoord = vec2(tileX + Sx - B, tileY + Sy - B);
 		EmitVertex();
 	}
-	EndPrimitive();
 })";
 
 static const std::string_view tilearray_fragment = R"(
