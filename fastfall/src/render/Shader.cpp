@@ -56,7 +56,77 @@ gl_header +
 R"(
 uniform mat3 model;
 uniform mat3 view;
+uniform sampler2D texture0;
+
 uniform uint columns;
+
+layout (location = 0) in uint aTileId;
+
+out vec2 texCoord;
+
+void main()
+{
+	const float TILESIZE = 16.0;
+
+	// non-empty tile
+	if (aTileId != 255u) {
+
+		vec2 tileset_size = textureSize(texture0, 0) / TILESIZE;
+
+		// per vertex offsets
+		vec2 t_offset = vec2(
+			(float(uint(gl_VertexID) & 1u) * -2.0 + 1.0) / 16384.0,
+			(float((uint(gl_VertexID) & 2u) >> 1u) * -2.0 + 1.0) / 16384.0
+		);
+
+		vec2 p_offset = vec2(
+			float(uint(gl_VertexID) & 1u),
+			float((uint(gl_VertexID) & 2u) >> 1u)
+		);
+
+		// position of tile based on instance id + position offset
+		vec2 position = vec2(
+			float(uint(gl_InstanceID) % columns),
+			float(uint(gl_InstanceID) / columns)
+		) + p_offset;
+
+		// apply transform
+		gl_Position = vec4( view * model * vec3(position * TILESIZE, 1.0), 1.0);
+
+		// calc texture coords
+		const uint tileset_columns = 16u;
+		texCoord    = vec2(
+			(float(aTileId % tileset_columns) + p_offset.x) / tileset_size.x,
+			(float(aTileId / tileset_columns) + p_offset.y) / tileset_size.y
+		) + t_offset;
+	}
+	else {
+		gl_Position = vec4(0.0, 0.0, 0.0, 0.0);
+		texCoord = vec2(0.0, 0.0);
+	}
+})";
+
+const static std::string tilearray_fragment = 
+gl_header +
+R"(
+uniform sampler2D texture0;
+in vec2 texCoord;
+out vec4 FragColor;
+
+void main()
+{
+    FragColor = texture(texture0, texCoord);
+})";
+
+/*
+const static std::string tilearray_vertex = 
+gl_header +
+R"(
+uniform mat3 model;
+uniform mat3 view;
+uniform uint columns;
+
+uniform uint test_id[];
 
 layout (location = 0) in uint aTileId;
 
@@ -93,15 +163,14 @@ layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 
 void main() {
-	uint tid = tileId[0];
-	if (tid != 255u) {
+	if (tileId[0] != 255u) {
 
 		uvec2 tex_size = uvec2(textureSize(texture0, 0));
 		uvec2 tile_size = tex_size / 16u;
 		vec2 tex_fsize = vec2(tex_size);
 
-		float tileX = float(tid % 16u) * 16.0 / tex_fsize.x;
-		float tileY = float(tid / 16u) * 16.0 / tex_fsize.y;
+		float tileX = float(tileId[0] % 16u) * 16.0 / tex_fsize.x;
+		float tileY = float(tileId[0] / 16u) * 16.0 / tex_fsize.y;
 
 		const float B = 1.0 / 16384.0;
 		float Sx = 16.0 / tex_fsize.x;
@@ -136,171 +205,8 @@ void main()
 {
     FragColor = texture(texture0, texCoord);
 })";
-
-
-
-
-
-
-
-
-/*
-#if defined(__EMSCRIPTEN__)
-	static const std::string_view vertex_default = 
-	R"(#version 300 es
-
-	layout(location = 0) in vec2 i_position;
-	layout(location = 1) in vec4 i_color;
-	layout(location = 2) in vec2 i_texcoord;
-
-	out vec4 v_color;
-	out vec2 v_texcoord;
-
-	uniform mat3 model;
-	uniform mat3 view;
-
-	void main() {
-		v_texcoord = i_texcoord;
-		v_color = i_color;
-		gl_Position = vec4( view * model * vec3( i_position, 1.0 ), 1.0);
-	})";
-
-	static const std::string_view fragment_default = 
-	R"(#version 300 es
-
-	precision mediump float;
-	in vec4 v_color;
-	in vec2 v_texcoord;
-
-	out vec4 FragColor;
-
-	uniform sampler2D Texture;
-
-	void main() {
-		FragColor = texture(Texture, v_texcoord) * v_color;
-	})";
-
-#else
-	static const std::string_view vertex_default = R"(
-	#version 330 core
-
-	layout(location = 0) in vec2 i_position;
-	layout(location = 1) in vec4 i_color;
-	layout(location = 2) in vec2 i_texcoord;
-
-	out vec4 v_color;
-	out vec2 v_texcoord;
-
-	uniform mat3 model;
-	uniform mat3 view;
-
-	void main() {
-		v_texcoord = i_texcoord;
-		v_color = i_color;
-		gl_Position = vec4( view * model * vec3( i_position, 1.0 ), 1.0);
-	})";
-
-	static const std::string_view fragment_default = R"(
-	#version 330 core
-
-	in vec4 v_color;
-	in vec2 v_texcoord;
-
-	out vec4 FragColor;
-
-	uniform sampler2D Texture;
-
-	void main() {
-		FragColor = texture(Texture, v_texcoord) * v_color;
-	})";
-#endif
-
-static const std::string_view tilearray_vertex = 
-R"(#version 330 core
-
-uniform mat3 model;
-uniform mat3 view;
-uniform uint columns;
-
-layout (location = 0) in uint aTileId;
-
-out uint tileId;
-
-void main()
-{
-	//if (aTileId == 0)
-	//	discard; // empty tile
-
-	// calc topleft position of tile
-	float x = float(uint(gl_VertexID) % columns) * 16.0;
-	float y = float(uint(gl_VertexID) / columns) * 16.0;
-
-	// apply transform
-	gl_Position = vec4( x, y, 1.0, 1.0);
-
-	// pass tile id to geometry shader
-    tileId = aTileId;
-})";
-
-static const std::string_view tilearray_geometry = 
-R"(#version 330 core
-
-uniform mat3 model;
-uniform mat3 view;
-uniform sampler2D texture0;
-
-in uint tileId[];
-
-out vec2 texCoord;
-
-layout (points) in;
-layout (triangle_strip, max_vertices = 4) out;
-
-void main() {
-	uint tid = tileId[0];
-	if (tid != 255u) {
-
-		uvec2 tex_size = uvec2(textureSize(texture0, 0));
-		uvec2 tile_size = tex_size / 16u;
-		vec2 tex_fsize = vec2(tex_size);
-
-		float tileX = float(tid % 16u) * 16.0 / tex_fsize.x;
-		float tileY = float(tid / 16u) * 16.0 / tex_fsize.y;
-
-		const float B = 1.0 / 16384.0;
-		float Sx = 16.0 / tex_fsize.x;
-		float Sy = 16.0 / tex_fsize.y;
-
-		gl_Position = vec4( view * model * vec3(gl_in[0].gl_Position.xy + vec2( 0.0,  0.0), 1.0), 1.0);
-		texCoord = vec2(tileX + B, tileY + B);
-		EmitVertex();
-
-		gl_Position = vec4( view * model * vec3(gl_in[0].gl_Position.xy + vec2(16.0,  0.0), 1.0), 1.0);
-		texCoord = vec2(tileX + Sx - B, tileY + B);
-		EmitVertex();
-
-		gl_Position = vec4( view * model * vec3(gl_in[0].gl_Position.xy + vec2( 0.0, 16.0), 1.0), 1.0);
-		texCoord = vec2(tileX + B, tileY + Sy - B);
-		EmitVertex();
-
-		gl_Position = vec4( view * model * vec3(gl_in[0].gl_Position.xy + vec2(16.0, 16.0), 1.0), 1.0);
-		texCoord = vec2(tileX + Sx - B, tileY + Sy - B);
-		EmitVertex();
-	}
-})";
-
-static const std::string_view tilearray_fragment = 
-R"(#version 330 core
-
-uniform sampler2D texture0;
-in vec2 texCoord;
-out vec4 FragColor;
-
-void main()
-{
-    FragColor = texture(texture0, texCoord);
-})";
 */
+
 }
 
 
@@ -319,7 +225,6 @@ const ShaderProgram& ShaderProgram::getDefaultProgram() {
 const ShaderProgram& ShaderProgram::getTileArrayProgram() {
 	if (!TileArrayProgram.isLinked() && FFisGLEWInit()) {
 		TileArrayProgram.add(ff::ShaderType::VERTEX,   tilearray_vertex);
-		TileArrayProgram.add(ff::ShaderType::GEOMETRY, tilearray_geometry);
 		TileArrayProgram.add(ff::ShaderType::FRAGMENT, tilearray_fragment);
 		TileArrayProgram.link();
 		LOG_INFO("tile program: {}", TileArrayProgram.getID());

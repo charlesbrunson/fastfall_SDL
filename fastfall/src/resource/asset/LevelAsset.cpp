@@ -144,7 +144,7 @@ bool LevelAsset::loadFromFile(const std::string& relpath) {
 			bool hasObjectLayer = false;
 			auto layerNode = mapNode->first_node();
 			while (layerNode) {
-				LOG_INFO("node: {}", layerNode->name());
+				//LOG_INFO("node: {}", layerNode->name());
 				if (strcmp(layerNode->name(), "layer") == 0) 
 				{
 					if (!hasObjectLayer)

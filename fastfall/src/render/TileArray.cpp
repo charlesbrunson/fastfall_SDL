@@ -107,8 +107,6 @@ void TileArray::setTile(Vec2u at, Vec2u texPos)
 	assert(texPos.x < MAX_DIMEN && texPos.y < MAX_DIMEN);
 	uint8_t tile_id = texPos.x + (texPos.y * MAX_DIMEN);
 
-//	LOG_INFO("{} -> {}", texPos.to_string(), tile_id);
-
 	if (tiles[ndx] == UINT8_MAX && tile_id != UINT8_MAX) 
 	{
 		tile_count++;
@@ -154,6 +152,7 @@ void TileArray::glTransfer() const
 		// tile id attribute
 		glCheck(glVertexAttribIPointer(0, 1, GL_UNSIGNED_BYTE, 0, (void*)0));
 		glCheck(glEnableVertexAttribArray(0));
+		glCheck(glVertexAttribDivisor(0, 1)); // one tile id per instance
 
 		if (gl.m_array == 0 || gl.m_buffer == 0) {
 			LOG_ERR_("Unable to initialize vertex array for opengl");
@@ -161,6 +160,8 @@ void TileArray::glTransfer() const
 		}
 	}
 	if (!gl.sync) {
+
+
 		glCheck(glBindBuffer(GL_ARRAY_BUFFER, gl.m_buffer));
 		if (!gl.m_bound || max_tiles > gl.m_bufsize) {
 			glCheck(glBufferData(GL_ARRAY_BUFFER, max_tiles * sizeof(uint8_t), &tiles[0], GL_DYNAMIC_DRAW));
@@ -170,22 +171,6 @@ void TileArray::glTransfer() const
 		else {
 			glCheck(glBufferSubData(GL_ARRAY_BUFFER, 0, max_tiles * sizeof(uint8_t), &tiles[0]));
 		}
-
-		//LOG_INFO("{}", max_tiles * sizeof(uint8_t));
-
-		//std::stringstream ss;
-		//ss << std::endl;
-		//for (size_t yy = 0; yy < m_size.y; yy++)
-		//{
-		//	for (size_t xx = 0; xx < m_size.x; xx++)
-		//	{
-		//		size_t ndx = xx + (yy * m_size.x);
-
-		//		ss << std::hex << (int)tiles[ndx] << " ";
-		//	}
-		//	ss << std::endl;
-		//}
-		//LOG_INFO("{}", ss.str());
 
 		gl.sync = true;
 	}
