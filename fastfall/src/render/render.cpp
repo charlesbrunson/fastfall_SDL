@@ -142,8 +142,6 @@ void FFinitGLEW() {
     glCheck(glDisable(GL_DEPTH_TEST));
     glCheck(glEnable(GL_BLEND));
 
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();

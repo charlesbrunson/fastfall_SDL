@@ -10,6 +10,7 @@
 #include "fastfall/util/log.hpp"
 
 #include "fastfall/render.hpp"
+#include "../render/detail/error.hpp"
 
 #include "fastfall/engine/Engine.hpp"
 #include "fastfall/engine/config.hpp"
@@ -756,6 +757,11 @@ void Engine::ImGui_getContent() {
         showImPlotDemo = true;
     }
 
+
+	static bool wireframe_enabled = false;
+	if(ImGui::Checkbox("Wireframe", &wireframe_enabled)) {
+		glCheck(glPolygonMode(GL_FRONT_AND_BACK, wireframe_enabled ? GL_LINE : GL_FILL));
+	}
 
     ImGui::BulletText("Window");
     ImGui::Text("Window Pos   = (%4d, %4d)", window->getPosition().x, window->getPosition().y);
