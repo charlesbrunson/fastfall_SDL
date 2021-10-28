@@ -47,6 +47,22 @@ namespace plr::anim {
 
 	AnimIDRef brakeb("player", "brake_back");
 	AnimIDRef brakef("player", "brake_front");
+
+	const std::vector<AnimID>& get_ground_anims() {
+		static std::vector<AnimID> ground_anims{
+			idle, land, run, brakeb, brakef,
+			dash_n2, dash_n1, dash_0, dash_p1, dash_p2,
+		};
+		return ground_anims;
+	}
+
+	const std::vector<AnimID>& get_air_anims() {
+		static std::vector<AnimID> air_anims{
+			jump, jump_f,
+			fall, fall_f
+		};
+		return air_anims;
+	}
 }
 
 namespace plr::constants {
@@ -58,7 +74,7 @@ namespace plr::constants {
 	Default<float> norm_speed = 180.f;
 	Default<float> jumpVelY = -190.f;
 
-	Default<float> ground_accel = 1200.f;
+	Default<float> ground_accel = 1000.f;
 	Default<float> ground_high_decel = 300.f;
 	Default<float> ground_idle_decel = 450.f;
 

@@ -42,6 +42,9 @@ namespace plr::anim {
 
 	extern ff::AnimIDRef brakeb;
 	extern ff::AnimIDRef brakef;
+
+	const std::vector<ff::AnimID>& get_ground_anims();
+	const std::vector<ff::AnimID>& get_air_anims();
 }
 
 namespace plr::constants {
