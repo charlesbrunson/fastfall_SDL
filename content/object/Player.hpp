@@ -12,6 +12,13 @@
 
 class PlayerState;
 
+enum class PlayerStateID {
+	Continue,
+	Ground,
+	Air,
+	Dash
+};
+
 class Player : public ff::GameObject {
 public:
 	Player(ff::GameContext instance, const ff::ObjectData& ref, const ff::ObjectType& type);
@@ -33,19 +40,14 @@ protected:
 	std::unique_ptr<PlayerState> curr_state;
 
 	template<typename T>
-		requires std::is_base_of_v<PlayerState, T>
+	requires std::is_base_of_v<PlayerState, T>
 	void state_transition();
+
+	void manage_state(PlayerStateID n_id);
 
 	CmdResponse do_command(ff::ObjCmd cmd, const std::any& payload) override;
 
 	void draw(ff::RenderTarget& target, ff::RenderState states = ff::RenderState()) const override;
-};
-
-enum class PlayerStateID {
-	Continue,
-	Ground,
-	Air,
-	Dash
 };
 
 class PlayerState {
@@ -58,6 +60,8 @@ public:
 
 	virtual constexpr PlayerStateID get_id() const = 0;
 	virtual constexpr std::string_view get_name() const = 0;
+
+	virtual PlayerStateID post_collison(Player& plr) { return PlayerStateID::Continue; };
 
 	virtual void get_imgui(Player& plr) {};
 };

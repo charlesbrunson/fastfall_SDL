@@ -108,6 +108,15 @@ public:
 	float getSlipH() const noexcept { return slipState == SlipState::SlipHorizontal ? slipLeeway : 0.f; };
 	float getSlipV() const noexcept { return slipState == SlipState::SlipVertical ? slipLeeway : 0.f; };
 
+	template<class Fun>
+	requires std::is_invocable_v<Fun>
+	void set_onPostCollision(Fun&& fun) {
+		onPostCollision = fun;
+	}
+
+	void clear_onPostCollision() {
+		onPostCollision = std::function<void()>{};
+	}
 
 private:
 	SlipState slipState = SlipState::SlipNone;
@@ -134,6 +143,8 @@ private:
 	Vec2f gravity_acc;
 	Vec2f accel_accum;
 	Vec2f decel_accum;
+
+	std::function<void()> onPostCollision;
 
 	std::vector<PersistantContact> currContacts;
 	std::vector<std::unique_ptr<SurfaceTracker>> trackers;

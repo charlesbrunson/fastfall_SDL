@@ -26,7 +26,11 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime)
 		plr.ground->settings.slope_sticking = plr.box->get_vel().y > -50.f;
 
 
-		if (plr.box->get_vel().y > -100.f) {
+		if (plr.box->get_vel().y > -100.f 
+			&& wishx != 0 
+			&& plr.box->get_vel().x != 0
+			&& plr.box->get_vel().x > 0.f == wishx > 0) 
+		{
 			plr.box->setSlipV(6.f);
 		}
 		else {
@@ -87,6 +91,24 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime)
 	else {
 		if (prevVelY > 150.f) {
 			plr.sprite->set_anim(anim::land);
+		}
+		else if (!plr.sprite->is_playing_any(anim::get_ground_anims())) {
+			plr.sprite->set_anim(anim::idle);
+		}
+		return PlayerStateID::Ground;
+	}
+	return PlayerStateID::Continue;
+}
+
+
+PlayerStateID PlayerAirState::post_collison(Player& plr)
+{
+	if (plr.ground->has_contact()) {
+		if (prevVelY > 150.f) {
+			plr.sprite->set_anim(anim::land);
+		}
+		else if (!plr.sprite->is_playing_any(anim::get_ground_anims())) {
+			plr.sprite->set_anim(anim::idle);
 		}
 		return PlayerStateID::Ground;
 	}

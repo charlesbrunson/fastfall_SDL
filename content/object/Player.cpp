@@ -58,6 +58,12 @@ Player::Player(GameContext context, const ObjectData& ref, const ObjectType& typ
 
 	sprite->set_anim(plr::anim::idle);
 	sprite->set_pos(box->getPosition());
+
+	box->set_onPostCollision([this] {
+			if (curr_state) {
+				manage_state(curr_state->post_collison(*this));
+			}
+		});
 };
 
 std::unique_ptr<GameObject> Player::clone() const {
@@ -69,32 +75,28 @@ std::unique_ptr<GameObject> Player::clone() const {
 	return object;
 }
 
+
+void Player::manage_state(PlayerStateID n_id) {
+	switch (n_id) {
+	case PlayerStateID::Continue:
+		break;
+	case PlayerStateID::Ground:
+		state_transition<PlayerGroundState>();
+		break;
+	case PlayerStateID::Air:
+		state_transition<PlayerAirState>();
+		break;
+	case PlayerStateID::Dash:
+		state_transition<PlayerDashState>();
+		break;
+	}
+}
+
 void Player::update(secs deltaTime) {
 
 	if (curr_state) {
-		PlayerStateID n_id = curr_state->update(*this, deltaTime);
-		switch (n_id) {
-		case PlayerStateID::Continue:
-			break;
-		case PlayerStateID::Ground:	
-			state_transition<PlayerGroundState>();
-			break;
-		case PlayerStateID::Air:	
-			state_transition<PlayerAirState>();
-			break;
-		case PlayerStateID::Dash:
-			state_transition<PlayerDashState>();
-			break;
-		}
+		manage_state(curr_state->update(*this, deltaTime));
 	}
-
-	// blink
-	/*
-	if (Input::getMouseInView() && Input::isPressed(InputType::MOUSE1)) {
-		box->teleport(Input::getMouseWorldPosition());
-		box->set_vel(Vec2f{});
-	}
-	*/
 
 	box->update(deltaTime);
 	sprite->update(deltaTime);

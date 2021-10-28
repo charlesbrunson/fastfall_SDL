@@ -440,6 +440,10 @@ void Collidable::process_current_frame() {
 	Vec2f prev = vel;
 
 	//vel -= friction;
+
+	if (onPostCollision)
+		onPostCollision();
+
 }
 
 

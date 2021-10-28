@@ -8,6 +8,8 @@ public:
 	PlayerStateID update(Player& plr, secs deltaTime) override;
 	void exit(Player& plr, PlayerState* to) override;
 
+	PlayerStateID post_collison(Player& plr) override;
+
 	constexpr PlayerStateID get_id() const override {
 		return PlayerStateID::Air;
 	}

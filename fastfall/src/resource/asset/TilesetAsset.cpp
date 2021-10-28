@@ -186,6 +186,9 @@ void TilesetAsset::loadFromFile_Header(xml_node<>* tileset_node, const std::stri
 
 	texTileSize = Vec2u(tex.size()) / TILESIZE;
 
+	if (texTileSize.x > 16u || texTileSize.y > 16u)
+		throw parse_error("tileset size must be 16x16 tiles or less", nullptr);
+
 }
 
 void TilesetAsset::loadFromFile_Tile(xml_node<>* tile_node)
