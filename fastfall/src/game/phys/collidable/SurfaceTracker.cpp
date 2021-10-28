@@ -129,12 +129,14 @@ Vec2f SurfaceTracker::get_friction(Vec2f prevVel) {
 Vec2f SurfaceTracker::premove_update(secs deltaTime) {
 	Vec2f acceleration;
 
-	if (!has_contact())
-		return acceleration;
+	if (deltaTime > 0.0) {
+		if (!has_contact())
+			return acceleration;
 
-	do_move_with_platform();
+		do_move_with_platform();
 
-	acceleration += do_max_speed(deltaTime);
+		acceleration += do_max_speed(deltaTime);
+	}
 
 	return acceleration;
 }
@@ -207,7 +209,7 @@ Vec2f SurfaceTracker::do_max_speed(secs deltaTime) noexcept {
 	//Vec2f accel{};
 	Vec2f decel{};
 
-	if (has_contact() && settings.slope_sticking && settings.max_speed > 0.f) {
+	if (deltaTime > 0.0 && has_contact() && settings.slope_sticking && settings.max_speed > 0.f) {
 
 		float surface_mag = 0.f;
 		if (settings.use_surf_vel) {
@@ -235,7 +237,7 @@ Vec2f SurfaceTracker::do_max_speed(secs deltaTime) noexcept {
 // ----------------------------
 
 Vec2f SurfaceTracker::postmove_update(Vec2f wish_pos, secs deltaTime) {
-	if (!has_contact())
+	if (!has_contact() || deltaTime <= 0.0)
 		return wish_pos;
 
 

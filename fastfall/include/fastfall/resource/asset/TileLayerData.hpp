@@ -1,15 +1,12 @@
-
 #pragma once
 
 #include "fastfall/resource/asset/LevelAssetTypes.hpp"
-//#include "fastfall/resource/asset/TilesetAsset.hpp"
 #include "fastfall/util/xml.hpp"
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/log.hpp"
 
 #include <vector>
 #include <map>
-
 
 namespace ff {
 

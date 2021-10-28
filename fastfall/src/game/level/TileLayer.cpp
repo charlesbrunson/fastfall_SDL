@@ -590,7 +590,7 @@ void TileLayer::clear() {
 	dyn.chunks.clear();
 	dyn.tile_logic.clear();
 
-	tiles_dyn.logic_id = std::vector<uint8_t>(layer_data.getSize().x * layer_data.getSize().y, TILEDATA_NONE);
+	tiles_dyn.logic_id = std::vector<uint8_t>((size_t)layer_data.getSize().x * layer_data.getSize().y, TILEDATA_NONE);
 
 	set_collision(false);
 	set_parallax(false);
@@ -668,16 +668,15 @@ const TilesetAsset* TileLayer::getTileTileset(Vec2u tile_pos)
 }
 
 
-Vec2f TileLayer::getWorldPosFromTilePos(Vec2i tile_pos) const {
+TileLayer::world_pos_t TileLayer::getWorldPosFromTilePos(Vec2i tile_pos) const {
 
+	Vec2f pos = Vec2f{ tile_pos * TILESIZE } + get_total_offset();
 
-	Vec2f pos = Vec2f{ tile_pos * TILESIZE };
-	pos += get_total_offset();
-
-	if (pos.x >= getSize().x * TILESIZE_F) pos.x -= getSize().x * TILESIZE_F;
-	if (pos.y >= getSize().y * TILESIZE_F) pos.y -= getSize().y * TILESIZE_F;
-
-	return pos;
+	return world_pos_t{
+		.mirrorx = pos.x >= getSize().x * TILESIZE_F,
+		.mirrory = pos.y >= getSize().y * TILESIZE_F,
+		.real = pos
+	};;
 }
 
 std::optional<Vec2i> TileLayer::getTileFromWorldPos(Vec2f position) const {

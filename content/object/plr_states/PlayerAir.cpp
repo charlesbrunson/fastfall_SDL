@@ -11,7 +11,10 @@ void PlayerAirState::enter(Player& plr, PlayerState* from)
 {
 }
 
-PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime) {
+PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime) 
+{
+	if (deltaTime <= 0.0)
+		return PlayerStateID::Continue;
 
 	int wishx = (int)Input::isHeld(InputType::RIGHT) - (int)Input::isHeld(InputType::LEFT);
 

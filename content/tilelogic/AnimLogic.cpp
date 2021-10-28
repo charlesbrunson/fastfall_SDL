@@ -15,9 +15,14 @@ void AnimLogic::addTile(Vec2u tilePos, Tile tile, std::string_view arg) {
 void AnimLogic::removeTile(Vec2u tilePos) {
 		
 	if (!tile_timers.empty()) {
-		tile_timers.erase(std::find_if(tile_timers.begin(), tile_timers.end(), [&tilePos](TileTimer& timer) {
-			return timer.tile_impacted == tilePos;
-			}));
+		auto it = std::find_if(
+			tile_timers.begin(), tile_timers.end(), 
+			[&tilePos](TileTimer& timer) { return timer.tile_impacted == tilePos; }
+		);
+
+		if (it != tile_timers.end()) {
+			tile_timers.erase(it);
+		}
 	}
 
 	erase_command_if([&tilePos](const TileLogicCommand& cmd) {

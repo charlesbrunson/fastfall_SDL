@@ -10,6 +10,7 @@ using namespace plr;
 void PlayerGroundState::enter(Player& plr, PlayerState* from)
 {
 	plr.ground->settings.slope_sticking = true;
+	plr.ground->settings.slope_wall_stop = true;
 
 	float speed = plr.ground->traverse_get_speed();
 
@@ -21,6 +22,9 @@ void PlayerGroundState::enter(Player& plr, PlayerState* from)
 
 PlayerStateID PlayerGroundState::update(Player& plr, secs deltaTime)
 {
+	if (deltaTime <= 0.0) 
+		return PlayerStateID::Continue;
+
 	plr.sprite->set_playback(1.f);
 	plr.box->set_gravity(constants::grav_normal);
 

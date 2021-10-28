@@ -217,47 +217,49 @@ void Collidable::init(Vec2f position, Vec2f size, Vec2f gravity) {
 
 void Collidable::update(secs deltaTime) {
 
+	if (deltaTime > 0.0) {
 
-	vel -= friction;
-	acc = accel_accum;
+		vel -= friction;
+		acc = accel_accum;
 
-	for (auto& tracker : trackers) {
-		acc += tracker->premove_update(deltaTime);
-		if (tracker->has_contact()) {
-			tracker->contact_time += deltaTime;
-			tracker->air_time = 0.0;
+		for (auto& tracker : trackers) {
+			acc += tracker->premove_update(deltaTime);
+			if (tracker->has_contact()) {
+				tracker->contact_time += deltaTime;
+				tracker->air_time = 0.0;
+			}
+			else {
+				tracker->air_time += deltaTime;
+			}
 		}
-		else {
-			tracker->air_time += deltaTime;
+		//acc += gravity_acc;
+
+		Vec2f surfaceVel;
+		for (auto& tracker : trackers) {
+			if (tracker->has_contact()) {
+				surfaceVel += tracker->currentContact->getSurfaceVel();
+			}
 		}
-	}
-	//acc += gravity_acc;
 
-	Vec2f surfaceVel;
-	for (auto& tracker : trackers) {
-		if (tracker->has_contact()) {
-			surfaceVel += tracker->currentContact->getSurfaceVel();
+		vel += acc * deltaTime;
+		vel.x = math::reduce(vel.x, decel_accum.x * (float)deltaTime, surfaceVel.x);
+		vel.y = math::reduce(vel.y, decel_accum.y * (float)deltaTime, surfaceVel.y);
+
+		vel += gravity_acc * deltaTime;
+
+		pos += vel * deltaTime;
+
+		for (auto& tracker : trackers) {
+			pos = tracker->postmove_update(pos, deltaTime);
 		}
+
+
+		setPosition(pos);
+
+		pVel = vel;
+		accel_accum = Vec2f{};
+		decel_accum = Vec2f{};
 	}
-
-	vel += acc * deltaTime;
-	vel.x = math::reduce(vel.x, decel_accum.x * (float)deltaTime, surfaceVel.x);
-	vel.y = math::reduce(vel.y, decel_accum.y * (float)deltaTime, surfaceVel.y);
-
-	vel += gravity_acc * deltaTime;
-
-	pos += vel * deltaTime;
-
-	for (auto& tracker : trackers) {
-		pos = tracker->postmove_update(pos, deltaTime);
-	}
-
-
-	setPosition(pos);
-
-	pVel = vel;
-	accel_accum = Vec2f{};
-	decel_accum = Vec2f{};
 }
 
 Rectf Collidable::getBoundingBox() {

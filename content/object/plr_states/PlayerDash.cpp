@@ -89,11 +89,15 @@ void PlayerDashState::enter(Player& plr, PlayerState* from)
 
 	//plr.ground->settings.slope_sticking = false;
 
+	plr.ground->settings.slope_wall_stop = false;
 	plr.ground->settings.use_surf_vel = true;
 }
 
 PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
 {
+	if (deltaTime <= 0.0)
+		return PlayerStateID::Continue;
+
 	if (plr.ground->has_contact()) {
 		plr.box->setSlipNone();
 		ground_flag = true;

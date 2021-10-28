@@ -118,6 +118,7 @@ namespace plr::action {
 		}
 
 		plr.ground->settings.slope_sticking = false;
+		plr.ground->settings.slope_wall_stop = false;
 
 		Vec2f jumpVel = Vec2f{ plr.box->get_vel().x, constants::jumpVelY };
 		Angle jump_ang = math::angle(jumpVel) - math::angle(contact_normal);
