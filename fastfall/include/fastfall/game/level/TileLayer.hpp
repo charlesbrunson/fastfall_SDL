@@ -112,7 +112,12 @@ public:
 	const TilesetAsset* getTileTileset(Vec2u tile_pos);
 
 	// position queries
-	Vec2f getWorldPosFromTilePos(Vec2i tile_pos) const;
+	struct world_pos_t {
+		bool mirrorx = false;
+		bool mirrory = false;
+		Vec2f real;
+	};
+	world_pos_t getWorldPosFromTilePos(Vec2i tile_pos) const;
 	std::optional<Vec2i> getTileFromWorldPos (Vec2f position) const;
 	Vec2f worldToLocalCoord(Vec2f world_pos);
 

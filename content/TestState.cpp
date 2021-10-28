@@ -165,11 +165,11 @@ void TestState::predraw(secs deltaTime) {
 		{
 
 			const TileLayer& tilelayer = edit->get_tile_layer()->tilelayer;
-			Vec2f worldpos = tilelayer.getWorldPosFromTilePos(tpos);
+			ghost_pos = tilelayer.getWorldPosFromTilePos(tpos);
 
 			//LOG_INFO("{} -> {}", tpos.to_string(), worldpos.to_string());
 
-			tile_ghost.setPosition(worldpos);
+			tile_ghost.setPosition(ghost_pos.real);
 
 			tile_ghost.setSize({ TILESIZE_F, TILESIZE_F });
 			tile_ghost.setColor(ff::Color::White().alpha(80));
@@ -188,5 +188,31 @@ void TestState::predraw(secs deltaTime) {
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const 
 {
 	target.draw(instance->getScene(), state);
-	target.draw(tile_ghost, state);
+
+
+
+	if (edit && edit->get_tile_layer()) {
+		target.draw(tile_ghost, state);
+
+		Vec2f offset = -1.f * Vec2f{ edit->get_tile_layer()->tilelayer.getSize() } * TILESIZE_F;
+
+		if (ghost_pos.mirrorx)
+		{
+			ff::RenderState off_state = state;
+			off_state.transform = off_state.transform.translate({ offset.x, 0.f });
+			target.draw(tile_ghost, off_state);
+		}
+		if (ghost_pos.mirrory)
+		{
+			ff::RenderState off_state = state;
+			off_state.transform = off_state.transform.translate({ 0.f, offset.y });
+			target.draw(tile_ghost, off_state);
+		}
+		if (ghost_pos.mirrorx && ghost_pos.mirrory)
+		{
+			ff::RenderState off_state = state;
+			off_state.transform = off_state.transform.translate( offset );
+			target.draw(tile_ghost, off_state);
+		}
+	}
 }

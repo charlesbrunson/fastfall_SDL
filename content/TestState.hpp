@@ -43,6 +43,7 @@ private:
 	int key_count;
 
 	ff::Sprite tile_ghost;
+	ff::TileLayer::world_pos_t ghost_pos;
 
 	int layer = -1;
 
