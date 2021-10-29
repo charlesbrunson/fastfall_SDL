@@ -10,7 +10,7 @@
 
 namespace ff {
 
-enum Cardinal : unsigned char {
+enum Cardinal : uint8_t {
 	NORTH = 0,
 	EAST = 1,
 	SOUTH = 2,

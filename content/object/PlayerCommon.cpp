@@ -74,7 +74,7 @@ namespace plr::constants {
 	Default<float> norm_speed = 180.f;
 	Default<float> jumpVelY = -190.f;
 
-	Default<float> ground_accel = 1000.f;
+	Default<float> ground_accel = 1200.f;
 	Default<float> ground_high_decel = 300.f;
 	Default<float> ground_idle_decel = 450.f;
 

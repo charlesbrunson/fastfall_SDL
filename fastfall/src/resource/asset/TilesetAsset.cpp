@@ -35,16 +35,31 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 		}
 		else 
 		{
-			LOG_ERR_("Tileset: {}, unknown logic type for args at {}", asset.getAssetName(), state.tile.pos.to_string());
+			LOG_ERR_("Tileset: {}, unknown logic type for args at {}", asset.getAssetName(), state.tile.pos.to_vec().to_string());
 		}
 	}},
 	{"next_x", [](TilesetAsset& asset, TileData& state, char* value)
 	{
-		state.tile.next_offset.x = std::stoi(value);
+		int v = std::stoi(value);
+		if (v < 0) {
+			state.tile.next_offset.pos.x = 16u + std::stoi(value);
+		}
+		else {
+			state.tile.next_offset.pos.x = std::stoi(value);
+		}
 	}},
 	{"next_y", [](TilesetAsset& asset, TileData& state, char* value)
 	{
-		state.tile.next_offset.y = std::stoi(value);
+		LOG_INFO("size: {}", sizeof(void*));
+
+		int v = std::stoi(value);
+		if (v < 0) {
+			state.tile.next_offset.pos.y = 16u + std::stoi(value);
+		}
+		else {
+			state.tile.next_offset.pos.y = std::stoi(value);
+		}
+
 	}},
 	{"next_tileset", [](TilesetAsset& asset, TileData& state, char* value)
 	{
@@ -203,7 +218,7 @@ void TilesetAsset::loadFromFile_Tile(xml_node<>* tile_node)
 	xml_node<>* propNode = tile_node->first_node("properties");
 	loadFromFile_TileProperties(propNode, t);
 
-	tiles[get_ndx(t.tile.pos)] = t;
+	tiles[get_ndx(t.tile.pos.to_vec())] = t;
 }
 
 bool TilesetAsset::loadFromFile(const std::string& relpath) {
@@ -358,10 +373,8 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 	std::vector<TileDataF> tiledata_vec;
 	for (unsigned yy = 0; yy < texTileSize.y; yy++) {
 		for (unsigned xx = 0; xx < texTileSize.x; xx++) {
-			Vec2u pos{ xx, yy };
-			Vec2Fu flat_pos{ xx, yy };
 
-			TileData* t = &tiles[get_ndx(pos)];
+			TileData* t = &tiles[get_ndx(Vec2u{ xx, yy })];
 
 			TileShapeF flat_shape{
 				static_cast<uint32_t>(t->tile.shape.type),
@@ -369,13 +382,12 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 				t->tile.shape.hflipped,
 				t->tile.shape.vflipped
 			};
-			Vec2Fi flat_next{ t->tile.next_offset.x, t->tile.next_offset.y };
 
 			TileF flat_tile{ 
-				flat_pos, 
+				t->tile.pos,
 				flat_shape, 
 				static_cast<CardinalF>(t->tile.matFacing),
-				flat_next, 
+				t->tile.next_offset,
 				t->tile.next_tileset 
 			};
 
@@ -441,7 +453,7 @@ Tile TilesetAsset::getTile(Vec2u texPos) const {
 	else {
 		// create a default, empty tile here
 		return Tile{
-			.pos = texPos,
+			.pos = tile_id{ texPos },
 			.shape = TileShape(TileShape::Type::EMPTY, false, false),
 			.origin = this,
 		};

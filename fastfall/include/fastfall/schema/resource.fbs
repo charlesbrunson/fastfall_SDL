@@ -79,10 +79,10 @@ struct TileShapeF {
 }
 
 struct TileF {
-	pos:math.Vec2Fu;
+	pos:ubyte;
 	shape:TileShapeF;
 	facing:math.CardinalF;
-	next_offset:math.Vec2Fi;
+	next_offset:ubyte;
 	next_tileset_ndx:int;
 }
 

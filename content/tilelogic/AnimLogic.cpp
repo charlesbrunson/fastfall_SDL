@@ -51,11 +51,14 @@ void AnimLogic::update(secs deltaTime) {
 				std::string_view next_name = tile.origin->getTilesetRef(tile.next_tileset);
 				next = Resources::get<TilesetAsset>(next_name);
 
-				tex_pos = Vec2u{ tile.next_offset };
+				tex_pos = tile.next_offset.to_vec();
 			}
 			else {
-				tex_pos = tile.pos + tile.next_offset;
+				tex_pos = tile.pos.to_vec() + tile.next_offset.to_vec();
+				tex_pos.x %= 16u;
+				tex_pos.y %= 16u;
 			}
+
 
 			bool nLogic = true;
 			if (auto [logic, args] = next->getTileLogic(tex_pos); logic == getName()) {

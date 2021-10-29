@@ -83,7 +83,7 @@ protected:
 	void loadFromFile_Tile(rapidxml::xml_node<>* tile_node);
 
 	constexpr size_t get_ndx(Vec2u pos) const {
-		assert(pos.x < texTileSize.x&& pos.y < texTileSize.y);
+		assert(pos.x < texTileSize.x && pos.y < texTileSize.y);
 		return (size_t)pos.x + ((size_t)pos.y * texTileSize.x);
 	}
 };
