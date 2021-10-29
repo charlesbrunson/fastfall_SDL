@@ -89,7 +89,7 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime)
 		prevVelY = plr.box->get_vel().y;
 	}
 	else {
-		if (prevVelY > 150.f) {
+		if (prevVelY > 150.f + plr.ground->get_contact()->velocity.y) {
 			plr.sprite->set_anim(anim::land);
 		}
 		else if (!plr.sprite->is_playing_any(anim::get_ground_anims())) {
@@ -101,10 +101,10 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime)
 }
 
 
-PlayerStateID PlayerAirState::post_collison(Player& plr)
+PlayerStateID PlayerAirState::post_collision(Player& plr)
 {
 	if (plr.ground->has_contact()) {
-		if (prevVelY > 150.f) {
+		if (prevVelY > 150.f + plr.ground->get_contact()->velocity.y) {
 			plr.sprite->set_anim(anim::land);
 		}
 		else if (!plr.sprite->is_playing_any(anim::get_ground_anims())) {

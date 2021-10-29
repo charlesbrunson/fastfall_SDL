@@ -61,7 +61,7 @@ public:
 	virtual constexpr PlayerStateID get_id() const = 0;
 	virtual constexpr std::string_view get_name() const = 0;
 
-	virtual PlayerStateID post_collison(Player& plr) { return PlayerStateID::Continue; };
+	virtual PlayerStateID post_collision(Player& plr) { return PlayerStateID::Continue; };
 
 	virtual void get_imgui(Player& plr) {};
 };

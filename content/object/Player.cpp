@@ -61,7 +61,7 @@ Player::Player(GameContext context, const ObjectData& ref, const ObjectType& typ
 
 	box->set_onPostCollision([this] {
 			if (curr_state) {
-				manage_state(curr_state->post_collison(*this));
+				manage_state(curr_state->post_collision(*this));
 			}
 		});
 };
