@@ -42,22 +42,20 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 	{
 		int v = std::stoi(value);
 		if (v < 0) {
-			state.tile.next_offset.pos.x = 16u + std::stoi(value);
+			state.tile.next_offset.x = 16u + std::stoi(value);
 		}
 		else {
-			state.tile.next_offset.pos.x = std::stoi(value);
+			state.tile.next_offset.x = std::stoi(value);
 		}
 	}},
 	{"next_y", [](TilesetAsset& asset, TileData& state, char* value)
 	{
-		LOG_INFO("size: {}", sizeof(void*));
-
 		int v = std::stoi(value);
 		if (v < 0) {
-			state.tile.next_offset.pos.y = 16u + std::stoi(value);
+			state.tile.next_offset.y = 16u + std::stoi(value);
 		}
 		else {
-			state.tile.next_offset.pos.y = std::stoi(value);
+			state.tile.next_offset.y = std::stoi(value);
 		}
 
 	}},
@@ -212,7 +210,7 @@ void TilesetAsset::loadFromFile_Tile(xml_node<>* tile_node)
 
 	TileData& t = tiles[id];
 	t.has_prop_bits |= TileHasProp::HasTile;
-	t.tile.pos = Vec2u{ id % texTileSize.x, id / texTileSize.x };
+	t.tile.pos = TileID{ id % texTileSize.x, id / texTileSize.x };
 	t.tile.origin = this;
 
 	xml_node<>* propNode = tile_node->first_node("properties");
@@ -441,7 +439,7 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 
 }
 
-Tile TilesetAsset::getTile(Vec2u texPos) const {
+Tile TilesetAsset::getTile(TileID texPos) const {
 	// assert this is actually on our texture
 	assert(texPos.x < texTileSize.x && texPos.y < texTileSize.y);
 
@@ -453,14 +451,14 @@ Tile TilesetAsset::getTile(Vec2u texPos) const {
 	else {
 		// create a default, empty tile here
 		return Tile{
-			.pos = tile_id{ texPos },
+			.pos = TileID{ texPos },
 			.shape = TileShape(TileShape::Type::EMPTY, false, false),
 			.origin = this,
 		};
 	}
 }
 
-TilesetAsset::TileLogicData TilesetAsset::getTileLogic(Vec2u position) const {
+TilesetAsset::TileLogicData TilesetAsset::getTileLogic(TileID position) const {
 	// assert this is actually on our texture
 	assert(position.x < texTileSize.x && position.y < texTileSize.y);
 
@@ -477,7 +475,7 @@ TilesetAsset::TileLogicData TilesetAsset::getTileLogic(Vec2u position) const {
 	return data;
 }
 
-const TileMaterial& TilesetAsset::getMaterial(Vec2u position) const {
+const TileMaterial& TilesetAsset::getMaterial(TileID position) const {
 	// assert this is actually on our texture
 	assert(position.x < texTileSize.x&& position.y < texTileSize.y);
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fastfall/game/level/Tile.hpp"
 #include "fastfall/resource/asset/LevelAssetTypes.hpp"
 #include "fastfall/util/xml.hpp"
 #include "fastfall/util/math.hpp"
@@ -28,7 +29,7 @@ private:
 	struct TileData {
 		std::vector<bool> has_tile;
 		std::vector<Vec2u> pos;
-		std::vector<Vec2u> tex_pos;
+		std::vector<TileID> tex_pos;
 		std::vector<uint8_t> tileset_ndx;
 	} tiles;
 

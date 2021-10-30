@@ -113,7 +113,7 @@ public:
 
 	*/
 
-	std::optional<Vec2u> get_tile() const { return tileset_pos; };
+	std::optional<TileID> get_tile() const { return tileset_pos; };
 	const TilesetAsset* get_tileset() const { return curr_tileset; };
 	const Level::Layers::TileEntry* get_tile_layer() const { return curr_layer; }
 
@@ -128,7 +128,7 @@ protected:
 	Level::Layers::TileEntry* curr_layer = nullptr;				// current tile layer
 
 	const TilesetAsset* curr_tileset = nullptr;			// current tileset
-	std::optional<Vec2u> tileset_pos = std::nullopt;	// current tile from tileset
+	std::optional<TileID> tileset_pos = std::nullopt;	// current tile from tileset
 };
 
 

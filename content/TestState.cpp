@@ -88,7 +88,7 @@ void TestState::update(secs deltaTime) {
 				else {
 					edit->select_tile(Vec2u{ 0, 0 });
 				}
-				LOG_INFO("tile pos = {}", edit->get_tile()->to_string());
+				LOG_INFO("tile pos = {}", edit->get_tile()->to_vec().to_string());
 			});
 		};
 		static auto layerOnKeyPressed = [this](SDL_Scancode c, int i) {
@@ -175,7 +175,7 @@ void TestState::predraw(secs deltaTime) {
 			tile_ghost.setColor(ff::Color::White().alpha(80));
 			tile_ghost.setTexture(&tileset->getTexture());
 			tile_ghost.setTextureRect(Rectf{
-					Vec2f{ *tile } * TILESIZE_F,
+					Vec2f{ tile->to_vec() } * TILESIZE_F,
 					Vec2f{ 1, 1 } * TILESIZE_F
 				});
 		}

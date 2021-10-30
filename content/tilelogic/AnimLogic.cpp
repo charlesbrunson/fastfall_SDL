@@ -43,7 +43,7 @@ void AnimLogic::update(secs deltaTime) {
 		//LOG_INFO("update");
 		for (auto timer = iter; timer != tile_timers.end(); timer++) {
 
-			Vec2u tex_pos;
+			TileID tex_pos;
 			Tile& tile = timer->tile;
 			const TilesetAsset* next = tile.origin;
 
@@ -51,12 +51,10 @@ void AnimLogic::update(secs deltaTime) {
 				std::string_view next_name = tile.origin->getTilesetRef(tile.next_tileset);
 				next = Resources::get<TilesetAsset>(next_name);
 
-				tex_pos = tile.next_offset.to_vec();
+				tex_pos = tile.next_offset;
 			}
 			else {
-				tex_pos = tile.pos.to_vec() + tile.next_offset.to_vec();
-				tex_pos.x %= 16u;
-				tex_pos.y %= 16u;
+				tex_pos = tile.pos + tile.next_offset;
 			}
 
 

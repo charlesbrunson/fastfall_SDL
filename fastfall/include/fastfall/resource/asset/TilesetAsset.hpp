@@ -59,7 +59,7 @@ public:
 
 	bool reloadFromFile() override;
 
-	Tile getTile(Vec2u texPos) const;
+	Tile getTile(TileID texPos) const;
 	inline const Vec2u& getTileSize() const { return texTileSize; };
 
 	void ImGui_getContent() override;
@@ -73,8 +73,8 @@ public:
 		std::string_view logic_args;
 	};
 
-	TileLogicData getTileLogic(Vec2u position) const;
-	const TileMaterial& getMaterial(Vec2u position) const;
+	TileLogicData getTileLogic(TileID position) const;
+	const TileMaterial& getMaterial(TileID position) const;
 
 protected:
 	

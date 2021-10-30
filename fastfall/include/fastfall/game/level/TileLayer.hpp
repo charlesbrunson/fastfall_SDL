@@ -15,6 +15,7 @@
 #include "fastfall/game/GameContext.hpp"
 
 #include "fastfall/game/level/TileLogic.hpp"
+#include "fastfall/game/level/Tile.hpp"
 
 //#include <SFML/Graphics.hpp>
 #include <memory>
@@ -77,7 +78,7 @@ public:
 	void update(secs deltaTime);
 	void predraw(secs deltaTime);
 
-	void setTile(const Vec2u& position, const Vec2u& texposition, const TilesetAsset& tileset, bool useLogic = true);
+	void setTile(const Vec2u& position, TileID texposition, const TilesetAsset& tileset, bool useLogic = true);
 	void removeTile(const Vec2u& position);
 	void clear();
 

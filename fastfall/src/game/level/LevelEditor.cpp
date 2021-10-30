@@ -224,7 +224,7 @@ bool LevelEditor::select_tile(Vec2u tile_pos)
 		&& tile_pos.x < curr_tileset->getTileSize().x
 		&& tile_pos.y < curr_tileset->getTileSize().y)
 	{
-		tileset_pos = tile_pos;
+		tileset_pos = TileID{ tile_pos };
 		return true;
 	}
 	return false;
@@ -407,7 +407,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 					auto tileset = tile_ref.getTilesetFromNdx(tile_data.tileset_ndx[ndx]);
 
 					if ( (!tilelayer.hasTileAt(pos))
-						|| (tilelayer.getTileTexPos(pos).value() != tex_pos)
+						|| (tilelayer.getTileTexPos(pos).value() != tex_pos.to_vec())
 						|| (tilelayer.getTileTileset(pos)->getAssetName() != *tileset))
 					{
 						paint_count++;

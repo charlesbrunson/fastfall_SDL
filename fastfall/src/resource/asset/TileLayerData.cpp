@@ -27,7 +27,7 @@ TileLayerData::TileLayerData(unsigned id, Vec2u size)
 	size_t count = size.x * size.y;
 	tiles.has_tile.resize(count, false);
 	tiles.pos.resize(count, Vec2u{});
-	tiles.tex_pos.resize(count, Vec2u{});
+	tiles.tex_pos.resize(count, TileID{});
 	tiles.tileset_ndx.resize(count, UINT8_MAX);
 }
 
@@ -92,8 +92,19 @@ void TileLayerData::setTile(Vec2u at, Vec2u tex, const std::string& tileset) {
 	auto it = std::find_if(tilesets.begin(), tilesets.end(), [&tileset](const auto& pair) { return tileset == pair.first; });
 
 	if (it != tilesets.end()) {
-		tiles.tileset_ndx[i] = std::distance(tilesets.begin(), it);
-		it->second++;
+
+		uint8_t p_ndx = tiles.tileset_ndx[i];
+		uint8_t n_ndx = std::distance(tilesets.begin(), it);
+
+		if (p_ndx != UINT8_MAX)	{
+			// replacing a tile
+			tilesets[p_ndx].second--;
+		}
+
+		if (p_ndx != n_ndx) {
+			tiles.tileset_ndx[i] = n_ndx;
+			it->second++;
+		}
 	}
 	else if (tilesets.size() <= UINT8_MAX) {
 		tiles.tileset_ndx[i] = tilesets.size();
@@ -105,7 +116,7 @@ void TileLayerData::setTile(Vec2u at, Vec2u tex, const std::string& tileset) {
 
 	tiles.has_tile[i] = true;
 	tiles.pos[i] = at;
-	tiles.tex_pos[i] = tex;
+	tiles.tex_pos[i] = TileID{ tex };
 }
 
 std::pair<bool, unsigned> TileLayerData::removeTile(Vec2u at)
@@ -133,7 +144,7 @@ std::pair<bool, unsigned> TileLayerData::removeTile(Vec2u at)
 
 		tiles.has_tile[i] = false;
 		tiles.pos[i] = Vec2u{};
-		tiles.tex_pos[i] = Vec2u{};
+		tiles.tex_pos[i] = TileID{};
 		tiles.tileset_ndx[i] = UINT8_MAX;
 	}
 	return { erased, count };
@@ -145,7 +156,7 @@ void TileLayerData::clearTiles() {
 	tilesets.clear();
 	tiles.has_tile = std::vector<bool>( count, false );
 	tiles.pos = std::vector<Vec2u>(count, Vec2u{});
-	tiles.tex_pos = std::vector<Vec2u>(count, Vec2u{});
+	tiles.tex_pos = std::vector<TileID>(count, TileID{});
 	tiles.tileset_ndx = std::vector<uint8_t>(count, UINT8_MAX);
 }
 
@@ -270,9 +281,7 @@ TileLayerData TileLayerData::loadFromTMX(xml_node<>* layerNode, const TilesetMap
 				TilesetAsset* tileAsset = Resources::get<TilesetAsset>(it->second);
 				int columns = tileAsset->getTileSize().x;
 
-				Vec2u texture_pos;
-				texture_pos.x = ((tilesetgid - it->first) % columns);
-				texture_pos.y = ((tilesetgid - it->first) / columns);
+				TileID texture_pos{ (tilesetgid - it->first) % columns, (tilesetgid - it->first) / columns };
 
 				layer.setTile(tilepos, texture_pos, tileAsset->getAssetName());
 			}

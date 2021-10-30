@@ -385,7 +385,7 @@ void TileLayer::predraw(secs deltaTime) {
 
 			unsigned ndx = cmd.position.x + getLevelSize().x * cmd.position.y;
 			if (cmd.type == TileLogicCommand::Type::Set) {
-				setTile(cmd.position, cmd.texposition, cmd.tileset, cmd.updateLogic);
+				setTile(cmd.position, TileID{ cmd.texposition }, cmd.tileset, cmd.updateLogic);
 			}
 			else if (tile_data.has_tile[ndx] && cmd.type == TileLogicCommand::Type::Remove) {
 				removeTile(cmd.position);
@@ -472,7 +472,7 @@ void TileLayer::predraw(secs deltaTime) {
 
 }
 
-void TileLayer::setTile(const Vec2u& position, const Vec2u& texposition, const TilesetAsset& tileset, bool useLogic) 
+void TileLayer::setTile(const Vec2u& position, TileID texposition, const TilesetAsset& tileset, bool useLogic)
 {
 	unsigned ndx = position.y * getLevelSize().x + position.x;
 
@@ -569,7 +569,8 @@ void TileLayer::removeTile(const Vec2u& position) {
 	unsigned tile_count = tile_data.has_tile.size();
 
 	if (tile_data.tileset_ndx[ndx] != TILEDATA_NONE) {
-		dyn.chunks.at(tile_data.tileset_ndx[ndx]).varray.blank(position);
+		uint8_t t_ndx = tile_data.tileset_ndx[ndx];
+		dyn.chunks.at(t_ndx).varray.blank(position);
 	}
 	if (tiles_dyn.logic_id[ndx] != TILEDATA_NONE) {
 		dyn.tile_logic.at(tiles_dyn.logic_id[ndx])->removeTile(position);
@@ -622,7 +623,7 @@ void TileLayer::shallow_copy(const TileLayer& layer, Rectu area)
 				continue;
 			}
 
-			Vec2u tex_pos = tile_data.tex_pos[ndx];
+			TileID tex_pos = tile_data.tex_pos[ndx];
 			setTile(pos, tex_pos, *tileset);
 		}
 	}
