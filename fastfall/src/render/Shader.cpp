@@ -67,9 +67,10 @@ out vec2 texCoord;
 void main()
 {
 	const float TILESIZE = 16.0;
+	const uint INVALID = 255u;
 
 	// non-empty tile
-	if (aTileId != 255u) {
+	if (aTileId != INVALID) {
 
 		vec2 tileset_size = vec2(textureSize(texture0, 0)) / TILESIZE;
 
@@ -85,24 +86,20 @@ void main()
 		);
 
 		// position of tile based on instance id + position offset
-		vec2 position = vec2(
+		vec2 position = p_offset + vec2(
 			float(uint(gl_InstanceID) % columns),
 			float(uint(gl_InstanceID) / columns)
-		) + p_offset;
+		);
 
 		// apply transform
 		gl_Position = vec4( view * model * vec3(position * TILESIZE, 1.0), 1.0);
 
 		// calc texture coords
 		const uint tileset_columns = 16u;
-		texCoord    = vec2(
+		texCoord    = t_offset + vec2(
 			(float(aTileId % tileset_columns) + p_offset.x) / tileset_size.x,
 			(float(aTileId / tileset_columns) + p_offset.y) / tileset_size.y
-		) + t_offset;
-	}
-	else {
-		gl_Position = vec4(0.0, 0.0, 0.0, 0.0);
-		texCoord = vec2(0.0, 0.0);
+		);
 	}
 })";
 
