@@ -140,7 +140,8 @@ Collidable::Collidable(const Collidable& rhs) :
 	pos = rhs.pos;
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
-	pVel = rhs.pVel;
+	friction_vel = rhs.friction_vel;
+	prev_vel = rhs.prev_vel;
 	currContacts = rhs.currContacts;
 
 	for (auto& t : rhs.trackers) {
@@ -160,7 +161,8 @@ Collidable::Collidable(Collidable&& rhs) noexcept :
 	pos = rhs.pos;
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
-	pVel = rhs.pVel;
+	friction_vel = rhs.friction_vel;
+	prev_vel = rhs.prev_vel;
 	std::swap(currContacts, rhs.currContacts);
 	std::swap(trackers, rhs.trackers);
 }
@@ -176,7 +178,8 @@ Collidable& Collidable::operator=(const Collidable& rhs)
 	pos = rhs.pos;
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
-	pVel = rhs.pVel;
+	friction_vel = rhs.friction_vel;
+	prev_vel = rhs.prev_vel;
 	currContacts = rhs.currContacts;
 
 	for (auto& t : rhs.trackers) {
@@ -197,7 +200,8 @@ Collidable& Collidable::operator=(Collidable&& rhs) noexcept
 	pos = rhs.pos;
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
-	pVel = rhs.pVel;
+	friction_vel = rhs.friction_vel;
+	prev_vel = rhs.prev_vel;
 	std::swap(currContacts, rhs.currContacts);
 	std::swap(trackers, rhs.trackers);
 	return *this;
@@ -219,6 +223,7 @@ void Collidable::update(secs deltaTime) {
 
 	if (deltaTime > 0.0) {
 
+		prev_vel = vel;
 		vel -= friction;
 		acc = accel_accum;
 
@@ -254,9 +259,9 @@ void Collidable::update(secs deltaTime) {
 		}
 
 
+		friction_vel = vel;
 		setPosition(pos);
 
-		pVel = vel;
 		accel_accum = Vec2f{};
 		decel_accum = Vec2f{};
 	}
@@ -435,7 +440,7 @@ void Collidable::process_current_frame() {
 	friction = Vec2f{};
 	for (auto& tracker : trackers) {
 		tracker->process_contacts(currContacts);
-		friction += tracker->get_friction(pVel);
+		friction += tracker->get_friction(friction_vel);
 	}
 	Vec2f prev = vel;
 

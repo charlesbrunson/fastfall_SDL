@@ -41,6 +41,7 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime)
 			plr.box->set_gravity(constants::grav_light);
 		}
 
+		move_t move(plr);
 		if (plr.ground->get_air_time() > 0.05) {
 
 			if (!plr.sprite->is_playing_any({ 
@@ -63,9 +64,21 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime)
 			{
 				plr.sprite->set_anim(anim::fall_f);
 			}
+
+			// idle jump turn around at apex
+			if (plr.sprite->is_playing(anim::fall)
+				&& plr.box->get_vel().y > -100.f
+				&& plr.box->get_prev_vel().y <= -100.f
+				&& move.rel_movex < 0
+				&& move.rel_wishx < 0)
+			{
+				plr.sprite->set_hflip(!plr.sprite->get_hflip());
+			}
 		}
 
-		move_t move(plr);
+
+
+		move = move_t(plr);
 
 		// air control
 		if (move.rel_wishx != 0)

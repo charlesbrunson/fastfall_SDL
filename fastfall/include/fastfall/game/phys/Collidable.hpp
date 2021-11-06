@@ -58,6 +58,7 @@ public:
 	inline void set_gravity(Vec2f grav) noexcept { gravity_acc = grav; };
 
 	inline Vec2f get_vel()   const noexcept { return vel; };
+	inline Vec2f get_prev_vel()   const noexcept { return prev_vel; };
 	inline void  set_vel(Vec2f velocity) noexcept { vel = velocity; };
 	inline void  set_velX(float velocity) noexcept { vel.x = velocity; };
 	inline void  set_velY(float velocity) noexcept { vel.y = velocity; };
@@ -135,8 +136,9 @@ private:
 	Rectf prevRect;
 
 	Vec2f vel;
-	Vec2f pVel;
+	Vec2f prev_vel;
 
+	Vec2f friction_vel;
 	Vec2f friction;
 
 	Vec2f acc;
