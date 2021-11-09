@@ -26,15 +26,9 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime)
 		plr.ground->settings.slope_sticking = plr.box->get_vel().y > -50.f;
 
 
-		if (plr.box->get_vel().y > -100.f 
-			&& wishx != 0 
-			&& plr.box->get_vel().x != 0
-			&& plr.box->get_vel().x > 0.f == wishx > 0) 
+		if (plr.box->get_vel().y > -100.f) 
 		{
 			plr.box->setSlipV(6.f);
-		}
-		else {
-			plr.box->setSlipNone();
 		}
 
 		if (abs(plr.box->get_vel().y) < 50.f) {

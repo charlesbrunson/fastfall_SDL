@@ -24,7 +24,7 @@ Player::Player(GameContext context, const ObjectData& ref, const ObjectType& typ
 	, hurtbox(	 context, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
 	, sprite(	 context, AnimatedSprite{}, SceneType::Object)
 	, cam_target(context, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
-	, curr_state(new PlayerGroundState())
+	, curr_state(std::make_unique<PlayerGroundState>())
 {
 
 	// surface tracker
@@ -42,14 +42,13 @@ Player::Player(GameContext context, const ObjectData& ref, const ObjectType& typ
 
 	// triggers
 	hurtbox->set_trigger_callback(
-		[](const TriggerPull& pull) {
+		[this](const TriggerPull& pull) {
 			if (auto owner = pull.trigger->get_owner();
-				pull.state == Trigger::State::Entry
-				&& owner.has_value() 
-				&& owner.value()->getType().group_tags.contains("player"))
+				owner 
+				&& owner->getType().group_tags.contains("player")
+				&& pull.state == Trigger::State::Entry)
 			{
-				GameObject* obj = *owner;
-				if (auto rpayload = obj->command<ObjCmd::GetPosition>().payload())
+				if (auto rpayload = owner->command<ObjCmd::GetPosition>().payload())
 				{
 					LOG_INFO("position: {}", rpayload->to_string());
 				}
@@ -158,8 +157,4 @@ void Player::ImGui_Inspect() {
 	if (curr_state) {
 		curr_state->get_imgui(*this);
 	}
-}
-
-void Player::draw(RenderTarget& target, RenderState states) const {
-	target.draw(*sprite, states);
 }

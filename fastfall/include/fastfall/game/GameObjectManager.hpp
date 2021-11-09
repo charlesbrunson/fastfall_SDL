@@ -12,21 +12,8 @@
 
 namespace ff {
 
-class GameObjectManager : public Drawable {
+class GameObjectManager {
 public:
-	class ObjectDrawList : public Drawable {
-	public:
-		std::multimap<int, Drawable*> drawOrder;
-
-	private:
-		void draw(RenderTarget& target, RenderState states = RenderState()) const override {
-			for (auto& drawable : drawOrder) {
-				target.draw(*drawable.second, states);
-			}
-		}
-	};
-
-
 	GameObjectManager(unsigned instance);
 
 	GameObjectManager(const GameObjectManager& obj);
@@ -42,24 +29,16 @@ public:
 
 	void addObject(std::unique_ptr<GameObject>&& obj);
 
-	inline std::list<std::unique_ptr<GameObject>>& getObjects() { return objects; };
-	inline const std::list<std::unique_ptr<GameObject>>& getObjects() const { return objects; };
+	inline std::vector<std::unique_ptr<GameObject>>& getObjects() { return objects; };
+	inline const std::vector<std::unique_ptr<GameObject>>& getObjects() const { return objects; };
 
 	inline unsigned getInstanceID() { return instanceID; };
 
-	inline const ObjectDrawList& getObjectDrawList(bool foreground = false) const noexcept {
-		return (foreground ? drawOrderFG : drawOrderBG);
-	};
-
 private:
-	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
-
 	unsigned instanceID;
 
-	std::list<std::unique_ptr<GameObject>> objects;
-
-	ObjectDrawList drawOrderFG; // objects ordered in front of the first FG tile layer
-	ObjectDrawList drawOrderBG; // objects ordered in front of the first BG tile layer
+	std::vector<std::unique_ptr<GameObject>> objects;
+	
 };
 
 }

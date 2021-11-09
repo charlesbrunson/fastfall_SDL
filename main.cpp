@@ -67,8 +67,6 @@ int main(int argc, char* argv[])
 		LOG_ERR_("Could not initialize window");
 		return EXIT_FAILURE;
 	}
-	
-	
 
 	bool result = Resources::loadAll(Resources::AssetSource::INDEX_FILE, "fileindex.xml");
 	//result &= Resources::buildPackFile("data.pack");

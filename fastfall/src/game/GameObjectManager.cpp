@@ -21,8 +21,6 @@ GameObjectManager::GameObjectManager(GameObjectManager&& obj) noexcept :
 	instanceID(obj.instanceID)
 {
 	std::swap(objects, obj.objects);
-	std::swap(drawOrderBG, obj.drawOrderBG);
-	std::swap(drawOrderFG, obj.drawOrderFG);
 }
 
 GameObjectManager& GameObjectManager::operator=(const GameObjectManager& obj) {
@@ -39,8 +37,6 @@ GameObjectManager& GameObjectManager::operator=(const GameObjectManager& obj) {
 GameObjectManager& GameObjectManager::operator=(GameObjectManager&& obj) noexcept {
 	instanceID = obj.instanceID;
 	std::swap(objects, obj.objects);
-	std::swap(drawOrderBG, obj.drawOrderBG);
-	std::swap(drawOrderFG, obj.drawOrderFG);
 	return *this;
 }
 
@@ -60,33 +56,16 @@ void GameObjectManager::predraw(secs deltaTime) {
 
 void GameObjectManager::clear() {
 	objects.clear();
-	drawOrderFG.drawOrder.clear();
-	drawOrderBG.drawOrder.clear();
 }
 
 void GameObjectManager::addObject(std::unique_ptr<GameObject>&& obj) {
-
 	assert(obj);
-
-	GameObject* object;
-
 	if (!obj->hasCollider) {
 		objects.push_back(std::move(obj));
-		object = objects.back().get();
 	}
 	else {
-		objects.push_front(std::move(obj));
-		object = objects.front().get();
+		objects.insert(std::begin(objects), std::move(obj));
 	}
-
-	int priority = object->getDrawPriority();
-
-	(priority <= 0 ? drawOrderBG : drawOrderFG)
-		.drawOrder.insert(std::make_pair(priority, object));
-}
-
-void GameObjectManager::draw(RenderTarget& target, RenderState states) const {
-	target.draw(drawOrderBG, states);
 }
 
 }

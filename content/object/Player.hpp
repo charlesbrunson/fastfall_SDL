@@ -47,7 +47,6 @@ protected:
 
 	CmdResponse do_command(ff::ObjCmd cmd, const std::any& payload) override;
 
-	void draw(ff::RenderTarget& target, ff::RenderState states = ff::RenderState()) const override;
 };
 
 class PlayerState {

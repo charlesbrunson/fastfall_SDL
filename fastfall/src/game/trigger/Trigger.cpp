@@ -4,7 +4,7 @@
 
 namespace ff {
 
-void Trigger::set_owning_object(std::optional<GameObject*> object) {
+void Trigger::set_owning_object(GameObject* object) {
 	owner = object;
 }
 

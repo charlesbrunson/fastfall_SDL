@@ -34,17 +34,6 @@ void apply_dash_vel(Player& plr, float min_vel) {
 }
 
 PlayerStateID dash_jump(Player& plr, const move_t& move) {
-	/*
-	if (move.wishx == 0) {
-		plr.ground->traverse_set_speed(constants::norm_speed * (plr.sprite->get_hflip() ? -1.f : 1.f));
-	}
-	else if (move.wishx > 0 == move.movex > 0) {
-		plr.ground->traverse_set_speed(end_velx * (plr.sprite->get_hflip() ? -1.f : 1.f));
-	}
-	else if (move.wishx > 0 != move.movex > 0) {
-		plr.ground->traverse_set_speed(100.f * (plr.sprite->get_hflip() ? -1.f : 1.f));
-	}
-	*/
 	return action::jump(plr, move);
 }
 
@@ -74,6 +63,11 @@ const AnimIDRef& select_dash_anim(const Player& plr)
 			return anim::dash_p1;
 		}
 	}
+
+	/*
+	instance::create_obj<SimpleEffect>({"plr", "dash_0_fx"});
+	*/
+
 	return anim::dash_0;
 }
 

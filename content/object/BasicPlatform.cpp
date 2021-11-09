@@ -109,7 +109,3 @@ void BasicPlatform::predraw(secs deltaTime) {
 	shape->setPosition(collider->getPosition() + collider_offset);
 	shape->setSize(ff::Vec2f{ collider->getBoundingBox().getSize() });
 }
-
-void BasicPlatform::draw(ff::RenderTarget& target, ff::RenderState states) const {
-	target.draw(*shape, states);
-}

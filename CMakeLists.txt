@@ -38,7 +38,9 @@ add_executable(test_project
 	"content/types.hpp"
 	"content/types.cpp"
 	"content/camera/SimpleCamTarget.hpp"
-	"content/camera/SimpleCamTarget.cpp")
+	"content/camera/SimpleCamTarget.cpp" 
+	
+	)
 
 target_link_libraries(test_project PRIVATE 
 	fastfall

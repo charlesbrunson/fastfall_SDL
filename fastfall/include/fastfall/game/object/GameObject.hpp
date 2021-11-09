@@ -137,9 +137,8 @@ public:
 };
 
 
-class GameObject : public Drawable, public Commandable<ObjCmd> {
+class GameObject : public Commandable<ObjCmd> {
 public:
-
 
 	GameObject(GameContext instance, const ObjectData& ref, const ObjectType& objtype) :
 		context{ instance },
@@ -164,21 +163,12 @@ public:
 	inline const ObjectData& getObjectRef() const { return *objRef; };
 
 	inline GameContext getContext()       const { return context; };
-	inline int getDrawPriority() { return drawPriority; };
 
 	bool hasCollider = false;
-
 
 protected:
 
 	bool toDelete = false;
-
-	virtual void draw(RenderTarget& target, RenderState states = RenderState()) const = 0;
-
-	// drawPriority is used to determine drawing order between other game objects
-	// [0, INT_MIN] = behind first FG tile layer, lowest is drawn first
-	// [INT_MAX, 0) = behind first FG tile layer, lowest is drawn first
-	int drawPriority = 1;
 
 	GameContext context;
 

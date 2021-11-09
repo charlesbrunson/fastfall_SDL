@@ -42,6 +42,5 @@ protected:
 	ff::Collider_ptr<ff::ColliderSimple> collider;
 	ff::Scene_ptr<ff::ShapeRectangle> shape;
 	//ff::ShapeRectangle shape;
-
-	void draw(ff::RenderTarget& target, ff::RenderState states = ff::RenderState()) const override;
+	
 };
