@@ -28,7 +28,7 @@ public:
 	void createObjects(GameContext context);
 
 	inline unsigned int getID() const { return layerID; };
-	inline const std::vector<ObjectData>& getObjectRefs() { return object_refs; };
+	inline const std::vector<ObjectDataRef>& getObjectRefs() { return object_refs; };
 
 	const ObjectData* getRefByID(unsigned obj_id) const;
 
@@ -37,7 +37,9 @@ public:
 
 private:
 	unsigned int layerID;
-	std::vector<ObjectData> object_refs;
+	std::vector<ObjectDataRef> object_refs;
+
+	unsigned lastID = 1;
 
 };
 

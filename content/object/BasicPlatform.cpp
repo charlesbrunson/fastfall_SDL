@@ -2,14 +2,16 @@
 
 #include "fastfall/game/InstanceInterface.hpp"
 
+using namespace ff;
+
 constexpr ff::Color platformColor = ff::Color{ 0x285cc4FF };
 
-BasicPlatform::BasicPlatform(ff::GameContext instance, const ff::ObjectData& ref, const ff::ObjectType& type)
-	: ff::GameObject(	instance, ref, type)
-	, shape{			instance, ff::ShapeRectangle{ ff::Rectf{}, platformColor}, ff::SceneType::Object, 1 }
-	, collider(			instance, ff::Rectf{ 0.f, 0.f, (float)ref.width, (float)ref.height })
+BasicPlatform::BasicPlatform(GameContext instance, const ObjectType& objtype, const ObjectData& objdata, std::optional<unsigned> levelID)
+	: ff::GameObject(instance, objtype, objdata, levelID)
+	, shape{		instance, ff::ShapeRectangle{ ff::Rectf{}, platformColor}, ff::SceneType::Object, 1 }
+	, collider(		instance, ff::Rectf{ 0.f, 0.f, (float)objdata.width, (float)objdata.height })
 {
-	for (auto& [propName, propValue] : ref.properties) {
+	for (auto& [propName, propValue] : objdata.properties) {
 		if (propName == "path") {
 			ff::object_id path_id = std::atoi(propValue.c_str());
 
@@ -45,13 +47,14 @@ BasicPlatform::BasicPlatform(ff::GameContext instance, const ff::ObjectData& ref
 	}
 
 	ff::Rectf colliderRect;
-	colliderRect.width = ref.width;
-	colliderRect.height = ref.height;
+	colliderRect.width = objdata.width;
+	colliderRect.height = objdata.height;
 
-	if (has_path)
+	if (has_path) {
 		collider->teleport(waypoints_origin + ff::Vec2f(waypoints->at(waypoint_ndx)));
+	}
 	else {
-		collider->teleport(ff::Vec2f{ ref.position } - ff::Vec2f{ (float)ref.width / 2.f, (float)ref.height });
+		collider->teleport(ff::Vec2f{ objdata.position } - ff::Vec2f{ (float)objdata.width / 2.f, (float)objdata.height });
 	}
 
 	hasCollider = true;
@@ -60,7 +63,7 @@ BasicPlatform::BasicPlatform(ff::GameContext instance, const ff::ObjectData& ref
 
 
 std::unique_ptr<ff::GameObject> BasicPlatform::clone() const {
-	std::unique_ptr<BasicPlatform> object = std::make_unique<BasicPlatform>(context, getObjectRef(), getType());
+	std::unique_ptr<BasicPlatform> object = std::make_unique<BasicPlatform>(context, getObjType(), getObjData(), getID().levelID);
 
 	//TODO copy current state data
 

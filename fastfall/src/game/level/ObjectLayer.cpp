@@ -46,25 +46,27 @@ const ObjectData* ObjectLayer::getRefByID(unsigned obj_id) const {
 	if (obj_id != object_null) {
 		auto it = std::find_if(
 			object_refs.begin(), object_refs.end(),
-			[obj_id](const ObjectData& ref) {
+			[obj_id](const ObjectDataRef& ref) {
 				return ref.id == obj_id;
 			});
 
 		if (it != object_refs.end()) {
-			ref = &*it;
+			ref = &it->data;
 		}
 	}
 	return ref;
 }
 
 void ObjectLayer::addObjectRef(ObjectData ref) {
+	unsigned id;
+
 	if (object_refs.empty()) {
-		ref.id = 1;
+		id = 1;
 	}
 	else {
-		ref.id = object_refs.back().id + 1;
+		id = object_refs.back().id + 1;
 	}
-	object_refs.push_back(ref);
+	object_refs.push_back(ObjectDataRef{id, ref});
 }
 
 bool ObjectLayer::removeObjectRef(object_id id) {
@@ -72,7 +74,7 @@ bool ObjectLayer::removeObjectRef(object_id id) {
 	if (id != object_null) {
 		auto it = std::find_if(
 			object_refs.begin(), object_refs.end(),
-			[id](const ObjectData& ref) {
+			[id](const ObjectDataRef& ref) {
 				return ref.id == id;
 			});
 
@@ -86,8 +88,8 @@ bool ObjectLayer::removeObjectRef(object_id id) {
 
 void ObjectLayer::createObjects(GameContext context) {
 	for (auto& objRef : object_refs) {
-		if (objRef.typehash != 0) {
-			GameObjectLibrary::build(context, objRef);
+		if (objRef.data.typehash != 0) {
+			GameObjectLibrary::build(context, objRef.data, objRef.id);
 		}
 	}
 }

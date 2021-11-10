@@ -117,6 +117,7 @@ PlayerStateID PlayerAirState::post_collision(Player& plr)
 		else if (!plr.sprite->is_playing_any(anim::get_ground_anims())) {
 			plr.sprite->set_anim(anim::idle);
 		}
+		plr.ground->settings.slope_sticking = true;
 		return PlayerStateID::Ground;
 	}
 	return PlayerStateID::Continue;

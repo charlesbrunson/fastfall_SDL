@@ -15,6 +15,8 @@
 
 #include "fastfall/game/level/LevelEditor.hpp"
 
+#include "fastfall/util/tag.hpp"
+
 ff::EngineSettings getSettings() {
 	ff::EngineSettings settings;
 	settings.allowMargins = true;

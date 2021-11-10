@@ -21,7 +21,6 @@ using object_id = unsigned int;
 constexpr object_id object_null = 0;
 
 struct ObjectData {
-	object_id id = object_null;
 	std::string name;
 	size_t typehash = 0; // hash of type string
 	Vec2i position;
@@ -31,9 +30,14 @@ struct ObjectData {
 	std::vector<Vec2i> points;
 };
 
+struct ObjectDataRef {
+	object_id id;
+	ObjectData data;
+};
+
 struct ObjectLayerData {
 	unsigned layer_id = 0;
-	std::vector<ObjectData> objects;
+	std::vector<ObjectDataRef> objects;
 
 	unsigned getID() const { return layer_id; }
 };

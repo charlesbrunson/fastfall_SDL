@@ -56,6 +56,7 @@ void GameObjectManager::predraw(secs deltaTime) {
 
 void GameObjectManager::clear() {
 	objects.clear();
+	spawnCounter = 1;
 }
 
 void GameObjectManager::addObject(std::unique_ptr<GameObject>&& obj) {

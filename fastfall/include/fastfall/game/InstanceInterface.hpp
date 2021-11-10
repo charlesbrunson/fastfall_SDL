@@ -32,7 +32,10 @@ namespace ff::instance {
 	const GameObjectManager* obj_get_man(GameContext context);
 
 	void obj_add(GameContext context, std::unique_ptr<GameObject>&& obj);
-	GameObject* obj_get(GameContext context, unsigned int objectID);
+	GameObject* obj_get_by_level_id(GameContext context, unsigned levelID);
+	GameObject* obj_get_by_spawn_id(GameContext context, unsigned spawnID);
+
+	unsigned obj_reserve_spawn_id(GameContext context);
 
 	// collision
 	const CollisionManager* phys_get_man(GameContext context);

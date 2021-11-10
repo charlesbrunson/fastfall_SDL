@@ -21,7 +21,7 @@ enum class PlayerStateID {
 
 class Player : public ff::GameObject {
 public:
-	Player(ff::GameContext instance, const ff::ObjectData& ref, const ff::ObjectType& type);
+	Player(ff::GameContext instance, const ff::ObjectType& objtype, const ff::ObjectData& objdata, std::optional<unsigned> levelID);
 	std::unique_ptr<ff::GameObject> clone() const override;
 
 	void update(secs deltaTime) override;

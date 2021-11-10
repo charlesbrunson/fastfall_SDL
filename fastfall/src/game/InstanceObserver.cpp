@@ -258,26 +258,26 @@ void levelContent(GameContext context) {
 		ImGui::Text("Scrolling = %s", tile.hasScrolling() ? "true" : "false");
 	};
 
-	constexpr auto displayObjectRef = [](const ObjectData& obj) {
+	constexpr auto displayObjectRef = [](const ObjectDataRef& obj) {
 		//ImGui::Checkbox("Hidden", &layer.hidden);
 
-		ImGui::Text("Name : \"%s\"", obj.name.c_str());
+		ImGui::Text("Name : \"%s\"", obj.data.name.c_str());
 		ImGui::Text("Type ID : %d", obj.id);
-		ImGui::Text("Position : (%4d, %4d)", obj.position.x, obj.position.y);
-		ImGui::Text("Size : (%2d, %2d)", obj.width, obj.height);
+		ImGui::Text("Position : (%4d, %4d)", obj.data.position.x, obj.data.position.y);
+		ImGui::Text("Size : (%2d, %2d)", obj.data.width, obj.data.height);
 
-		if (!obj.properties.empty()) {
+		if (!obj.data.properties.empty()) {
 			if (ImGui::TreeNode("Properties")) {
-				for (auto& prop : obj.properties) {
+				for (auto& prop : obj.data.properties) {
 					ImGui::Text("%s : %s", prop.first.c_str(), prop.second.c_str());
 				}
 				ImGui::TreePop();
 			}
 		}
-		if (!obj.points.empty()) {
+		if (!obj.data.points.empty()) {
 			if (ImGui::TreeNode("Points")) {
 				unsigned pCount = 0;
-				for (auto& p : obj.points) {
+				for (auto& p : obj.data.points) {
 					ImGui::Text("points[%2d] : (% 4d, % 4d)", pCount++, p.x, p.y);
 
 				}
@@ -323,7 +323,7 @@ void levelContent(GameContext context) {
 			{
 				for (auto& obj : layer.getObjectRefs()) {
 
-					const std::string* type = GameObjectLibrary::lookupTypeName(obj.typehash);
+					const std::string* type = GameObjectLibrary::lookupTypeName(obj.data.typehash);
 					if (ImGui::TreeNode((char*)&obj, "%s #%u", (type ? type->c_str() : "Anonymous Type"), obj.id)) {
 
 						if (ImGui::BeginChild((char*)&obj, ImVec2(0, 100), true)) {
@@ -362,11 +362,14 @@ void objectContent(GameContext context) {
 	ImGui::Columns(2, NULL, false);
 	for (auto& obj : man->getObjects()) {
 
-		ImGui::Text("%s #%u", obj->getTypeName().c_str(), obj->getID());
+		ImGui::Text("%s level:%u, spawn:%u", 
+			obj->getTypeName().c_str(), 
+			(obj->getID().levelID ? obj->getID().levelID.value() : 0), 
+			obj->getID().spawnID);
 		ImGui::NextColumn();
 
 		static char buttonBuf[32];
-		sprintf(buttonBuf, "%s##%d", obj->showInspect ? "Uninspect" : " Inspect ", obj->getID());
+		sprintf(buttonBuf, "%s##%d", obj->showInspect ? "Uninspect" : " Inspect ", obj->getID().spawnID);
 		if (ImGui::Button(buttonBuf)) {
 			obj->showInspect = !obj->showInspect;
 		}

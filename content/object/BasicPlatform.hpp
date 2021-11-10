@@ -13,7 +13,7 @@
 
 class BasicPlatform : public ff::GameObject {
 public:
-	BasicPlatform(ff::GameContext instance, const ff::ObjectData& ref, const ff::ObjectType& type);
+	BasicPlatform(ff::GameContext instance, const ff::ObjectType& objtype, const ff::ObjectData& objdata, std::optional<unsigned> levelID);
 
 	std::unique_ptr<GameObject> clone() const override;
 

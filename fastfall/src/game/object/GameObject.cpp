@@ -18,12 +18,12 @@
 
 namespace ff {
 
-void GameObjectLibrary::build(GameContext instance, const ObjectData& ref) {
+void GameObjectLibrary::build(GameContext instance, const ObjectData& data, std::optional<unsigned> levelID) {
 	std::unique_ptr<GameObject> obj = nullptr;
 
-	auto r = getBuilder().find(ref.typehash);
+	auto r = getBuilder().find(data.typehash);
 	if (r != getBuilder().end()) {
-		obj = r->builder(instance, ref, r->constraints);
+		obj = r->builder(instance, r->constraints, data, levelID);
 
 		if (obj) {
 			instance::obj_add(instance, std::move(obj));
@@ -39,7 +39,7 @@ void GameObjectLibrary::build(GameContext instance, const ObjectData& ref) {
 	}
 	else {
 
-		LOG_ERR_("could not match object type {}", ref.typehash);
+		LOG_ERR_("could not match object type {}", data.typehash);
 		LOG_ERR_("known types are:");
 		log::scope scope;
 		for (auto& type : getBuilder()) {
@@ -56,20 +56,28 @@ const std::string* GameObjectLibrary::lookupTypeName(size_t hash) {
 	return nullptr;
 }
 
-bool ObjectType::test(ObjectData& ref) const {
+bool ObjectType::test(ObjectData& data) const {
 	bool valid = true;
 
-
-	// test size
-	if (tile_size.x > 0 && (ref.width / TILESIZE != tile_size.x)) {
-		LOG_WARN("object width ({}) not valid for object:{}",
-			ref.width, ref.id
+	// test type
+	if (type.hash != data.typehash) {
+		LOG_WARN("object hash ({}) not valid for object {}:{:x}",
+			data.typehash, type.name, type.hash
 		);
 		valid = false;
 	}
-	if (tile_size.y > 0 && (ref.height / TILESIZE != tile_size.y)) {
-		LOG_WARN("object height ({}) not valid for object:{}",
-			ref.width, ref.id
+
+
+	// test size
+	if (tile_size.x > 0 && (data.width / TILESIZE != tile_size.x)) {
+		LOG_WARN("object width ({}) not valid for object:{:x}",
+			data.width, data.typehash
+		);
+		valid = false;
+	}
+	if (tile_size.y > 0 && (data.height / TILESIZE != tile_size.y)) {
+		LOG_WARN("object height ({}) not valid for object:{:x}",
+			data.width, data.typehash
 		);
 		valid = false;
 	}
@@ -78,12 +86,12 @@ bool ObjectType::test(ObjectData& ref) const {
 	// test custom properties
 	for (const auto& prop : properties) {
 
-		auto citer = ref.properties.cbegin();
-		for (; citer != ref.properties.cend(); citer++) {
+		auto citer = data.properties.cbegin();
+		for (; citer != data.properties.cend(); citer++) {
 			if (citer->first == prop.name)
 				break;
 		}
-		if (citer != ref.properties.end()) {
+		if (citer != data.properties.end()) {
 			switch (prop.type) {
 			case ObjectPropertyType::String:
 				break;
@@ -92,8 +100,8 @@ bool ObjectType::test(ObjectData& ref) const {
 					int value = std::stoi(citer->second);
 				}
 				catch (std::exception except) {
-					LOG_WARN("object property ({}={}) not valid for object:{}, not convertable to int",
-						citer->first, citer->second, ref.id
+					LOG_WARN("object property ({}={}) not valid for object:{:x}, not convertable to int",
+						citer->first, citer->second, data.typehash
 					);
 					valid = false;
 				}
@@ -103,8 +111,8 @@ bool ObjectType::test(ObjectData& ref) const {
 					float value = std::stof(citer->second);
 				}
 				catch (std::exception except) {
-					LOG_WARN("object property ({}={}) not valid for object:{}, not convertable to float",
-						citer->first, citer->second, ref.id
+					LOG_WARN("object property ({}={}) not valid for object:{:x}, not convertable to float",
+						citer->first, citer->second, data.typehash
 					);
 					valid = false;
 				}
@@ -116,8 +124,8 @@ bool ObjectType::test(ObjectData& ref) const {
 						throw std::exception();
 				}
 				catch (std::exception except) {
-					LOG_WARN("object property ({}={}) not valid for object:{}, not convertable to boolean",
-						citer->first, citer->second, ref.id
+					LOG_WARN("object property ({}={}) not valid for object:{:x}, not convertable to boolean",
+						citer->first, citer->second, data.typehash
 					);
 					valid = false;
 				}
@@ -129,8 +137,8 @@ bool ObjectType::test(ObjectData& ref) const {
 						throw std::exception();
 				}
 				catch (std::exception except) {
-					LOG_WARN("object property ({}={}) not valid for object:{}, not convertable to object id",
-						citer->first, citer->second, ref.id
+					LOG_WARN("object property ({}={}) not valid for object:{:x}, not convertable to object id",
+						citer->first, citer->second, data.typehash
 					);
 					valid = false;
 				}
@@ -138,11 +146,11 @@ bool ObjectType::test(ObjectData& ref) const {
 			}
 		}
 		else if (!prop.default_value.empty()) {
-			ref.properties.push_back({ prop.name, prop.default_value });
+			data.properties.push_back({ prop.name, prop.default_value });
 		}
 		else {
-			LOG_WARN("object property ({}) not defined for object:{}",
-				prop.name, ref.id
+			LOG_WARN("object property ({}) not defined for object:{:x}",
+				prop.name, data.typehash
 			);
 			valid = false;
 		}
@@ -150,7 +158,13 @@ bool ObjectType::test(ObjectData& ref) const {
 	return valid;
 }
 
-
+GameObject::GameObject(GameContext instance, const ObjectType& objtype, const ObjectData& objdata, std::optional<unsigned> levelID) :
+	context{ instance },
+	m_id{ instance::obj_reserve_spawn_id(instance), levelID },
+	m_data(objdata),
+	m_type(objtype)
+{
+}
 
 
 }

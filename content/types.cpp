@@ -21,7 +21,8 @@ void game_InitTypes() {
 
 	// tile materials
 
-	Tile::addMaterial({
+	Tile::addMaterial(
+		TileMaterial{
 			.typeName = "conveyor_slow",
 			.surfaces = {
 				SurfaceMaterial{.velocity = 120.f }, // north
@@ -31,7 +32,8 @@ void game_InitTypes() {
 			}
 		});
 
-	Tile::addMaterial({
+	Tile::addMaterial(
+		TileMaterial{
 			.typeName = "conveyor_slow_reverse",
 			.surfaces = {
 				SurfaceMaterial{.velocity = -120.f }, // north
@@ -48,31 +50,50 @@ void game_InitTypes() {
 	// objects
 
 	GameObjectLibrary::addType<Player>(
-	{
-		.typeName = "Player",
-		.anim = std::make_optional(AnimIDRef{"player", "idle"}),
-		.tile_size = { 1u, 2u },
-		.group_tags = {
-			"player"
-		},
-		.properties = {
-			ObjectTypeProperty("anotherprop", ObjectPropertyType::String),
-			ObjectTypeProperty("faceleft", false)
-		}
-	});
+		ObjectType{
+			.type = { "Player" },
+			.anim = std::make_optional(AnimIDRef{"player", "idle"}),
+			.tile_size = { 1u, 2u },
+			.group_tags = {
+				"player"
+			},
+			.properties = {
+				ObjectTypeProperty("anotherprop", ObjectPropertyType::String),
+				ObjectTypeProperty("faceleft", false)
+			}
+		});
 
 	GameObjectLibrary::addType<BasicPlatform>(
-	{
-		.typeName = "BasicPlatform",
-		.tile_size = {0, 0},
-		.group_tags = {
-			"platform"
-		},
-		.properties = {
-			ObjectTypeProperty("acceleration", ObjectPropertyType::Float),
-			ObjectTypeProperty("max_velocity", ObjectPropertyType::Float),
-			ObjectTypeProperty("path", object_null)
-		} 
-	});
+		ObjectType{
+			.type = { "BasicPlatform" },
+			.anim = std::nullopt,
+			.tile_size = {0, 0},
+			.group_tags = {
+				"platform"
+			},
+			.properties = {
+				ObjectTypeProperty("acceleration", ObjectPropertyType::Float),
+				ObjectTypeProperty("max_velocity", ObjectPropertyType::Float),
+				ObjectTypeProperty("path", object_null)
+			} 
+		});
+
+	/*
+	
+	GameObjectLibrary::addType<SimpleEffect>(
+		ObjectType{
+			.typeName = "SimpleEffect",
+			.anim = std::nullopt,
+			.tile_size = {0, 0},
+			.group_tags = {
+				"effect"
+			},
+			.properties = {
+				ObjectTypeProperty("texture",	ObjectPropertyType::String),
+				ObjectTypeProperty("animation", ObjectPropertyType::String)
+			}
+		});
+
+	*/
 
 }

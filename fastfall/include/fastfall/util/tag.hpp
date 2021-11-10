@@ -85,14 +85,11 @@ using TriggerTag = Tag<trigger_tag_traits>;
 }
 
 
-namespace std
+template<typename T>
+struct std::hash<ff::Tag<T>>
 {
-	template<typename T>
-	struct hash<ff::Tag<T>>
+	size_t operator()(const ff::Tag<T>& x) const
 	{
-		size_t operator()(const ff::Tag<T>& x) const
-		{
-			return x.id();
-		}
-	};
-}
+		return x.id();
+	}
+};

@@ -17,13 +17,13 @@ using namespace plr;
 
 //using namespace plr_constants;
 
-Player::Player(GameContext context, const ObjectData& ref, const ObjectType& type)
-	: GameObject{context, ref, type }
-	, box(		 context, Vec2f(ref.position), Vec2f(8.f, 28.f), constants::grav_normal)
-	, hitbox(	 context, box->getBox(), { "hitbox" }, {}, this)
-	, hurtbox(	 context, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
-	, sprite(	 context, AnimatedSprite{}, SceneType::Object)
-	, cam_target(context, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
+Player::Player(GameContext instance, const ObjectType& objtype, const ObjectData& objdata, std::optional<unsigned> levelID)
+	: GameObject{instance, objtype, objdata, levelID }
+	, box(		 instance, Vec2f(objdata.position), Vec2f(8.f, 28.f), constants::grav_normal)
+	, hitbox(	 instance, box->getBox(), { "hitbox" }, {}, this)
+	, hurtbox(	 instance, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
+	, sprite(	 instance, AnimatedSprite{}, SceneType::Object)
+	, cam_target(instance, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
 	, curr_state(std::make_unique<PlayerGroundState>())
 {
 
@@ -40,12 +40,12 @@ Player::Player(GameContext context, const ObjectData& ref, const ObjectType& typ
 			.max_speed = constants::norm_speed,
 		});
 
-	// triggers
+	// trigger testing
 	hurtbox->set_trigger_callback(
 		[this](const TriggerPull& pull) {
 			if (auto owner = pull.trigger->get_owner();
 				owner 
-				&& owner->getType().group_tags.contains("player")
+				&& owner->getObjType().group_tags.contains("player")
 				&& pull.state == Trigger::State::Entry)
 			{
 				if (auto rpayload = owner->command<ObjCmd::GetPosition>().payload())
@@ -67,7 +67,7 @@ Player::Player(GameContext context, const ObjectData& ref, const ObjectType& typ
 
 std::unique_ptr<GameObject> Player::clone() const {
 
-	std::unique_ptr<Player> object = std::make_unique<Player>(context, getObjectRef(), getType());
+	std::unique_ptr<Player> object = std::make_unique<Player>(context, getObjType(), getObjData(), getID().levelID);
 
 	//TODO copy current state data
 

@@ -27,6 +27,10 @@ public:
 
 	void clear();
 
+	inline unsigned getNextSpawnId() {
+		return spawnCounter++;
+	}
+
 	void addObject(std::unique_ptr<GameObject>&& obj);
 
 	inline std::vector<std::unique_ptr<GameObject>>& getObjects() { return objects; };
@@ -39,6 +43,7 @@ private:
 
 	std::vector<std::unique_ptr<GameObject>> objects;
 	
+	unsigned spawnCounter = 1;
 };
 
 }

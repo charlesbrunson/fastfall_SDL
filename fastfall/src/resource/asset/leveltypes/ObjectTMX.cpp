@@ -74,24 +74,24 @@ std::vector<Vec2i> parsePoints(xml_node<>* polylineNode) {
 void parseObjectRefs(xml_node<>* objectNode, ObjectLayerData& objLayer) {
 
 	while (objectNode) {
-		ObjectData obj;
+		ObjectDataRef obj;
 
 		obj.id = atoi(objectNode->first_attribute("id")->value());
 
 		auto* type = objectNode->first_attribute("type");
 		if (type && type->value()) {
-			obj.typehash = std::hash<std::string_view>{}(type->value());
+			obj.data.typehash = std::hash<std::string_view>{}(type->value());
 		}
 		else {
-			obj.typehash = 0u;
+			obj.data.typehash = 0u;
 		}
 
 		auto* name = objectNode->first_attribute("name");
 		if (name && name->value()) {
-			obj.name = name->value();
+			obj.data.name = name->value();
 		}
 		else {
-			obj.name = "";
+			obj.data.name = "";
 		}
 
 		Recti area;
@@ -103,14 +103,14 @@ void parseObjectRefs(xml_node<>* objectNode, ObjectLayerData& objLayer) {
 		attr = objectNode->first_attribute("height");
 		area.height = attr ? atoi(attr->value()) : 0;
 
-		obj.width = area.width;
-		obj.height = area.height;
+		obj.data.width = area.width;
+		obj.data.height = area.height;
 
-		obj.position.x = area.left + area.width / 2;
-		obj.position.y = area.top + area.height;
+		obj.data.position.x = area.left + area.width / 2;
+		obj.data.position.y = area.top + area.height;
 
-		obj.properties = parseProperties(objectNode->first_node("properties"));
-		obj.points = parsePoints(objectNode->first_node("polyline"));
+		obj.data.properties = parseProperties(objectNode->first_node("properties"));
+		obj.data.points = parsePoints(objectNode->first_node("polyline"));
 
 		objLayer.objects.push_back(std::move(obj));
 
