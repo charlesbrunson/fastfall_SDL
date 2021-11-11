@@ -569,8 +569,6 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 	Rectf colBox = collidable->getBox();
 
 	float crush = nSep + sSep;
-	//constexpr static float wedge_max_displacement = 1.f;
-
 
 	// one-way check
 	if (nSep > 0.f && !nContact->hasContact) {
@@ -596,10 +594,6 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 
 		Vec2f sNormal = math::vector(sContact->collider.surface).lefthand().unit();
 		bool sFacingAway = math::dot(nMid - sMid, sNormal) < 0;
-
-		//LOG_INFO("TEST");
-		//LOG_INFO("{}, {}", nNormal.to_string(), sNormal.to_string());
-		//LOG_INFO("{}, {}", nFacingAway, sFacingAway);
 
 		if ((nFacingAway && sFacingAway) || (crush > colBox.height)) {
 
@@ -648,8 +642,14 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 		// wedge
 		else if (crush > 0.f) {
 
+			Angle floorAng = math::angle(nContact->collider.surface);
+			Angle ceilAng  = math::angle(sContact->collider.surface);
+
 			Linef floorLine = nContact->collider.surface;
-			Linef ceilLine = sContact->collider.surface;
+			Linef ceilLine  = sContact->collider.surface;
+
+			Vec2f floorVel = nContact->velocity;
+			Vec2f ceilVel  = sContact->velocity;
 
 			ceilLine.p1.y += colBox.height;
 			ceilLine.p2.y += colBox.height;
@@ -673,11 +673,15 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 				Vec2f diff = Vec2f(intersect.x, 0.f) - Vec2f(pos.x, 0.f);
 
 				r.contact.hasContact = true;
-				//r.contact.separation = std::min(abs(diff.x), wedge_max_displacement);
 				r.contact.separation = abs(diff.x);
 				r.contact.collider_normal = Vec2f((nContact->collider_normal + sContact->collider_normal).x < 0.f ? -1.f : 1.f, 0.f);
 				r.contact.ortho_normal = r.contact.collider_normal;
 				r.contact.position = Vec2f(pos.x, (colBox.top + colBox.height / 2.f));
+
+				// calc wedge velocity
+				float floorVelx = -ceilVel.y  * cosf(floorAng.radians());
+				float ceilVelx  = -floorVel.y * cosf(ceilAng.radians());
+				r.contact.velocity = Vec2f{ floorVelx + ceilVelx, 0.f };
 
 				return r;
 			}

@@ -431,6 +431,14 @@ void Collidable::process_current_frame() {
 		else if (contact.type == ContactType::CRUSH_VERTICAL) {
 			vert_crush = true;
 		}
+		else if (contact.type == ContactType::WEDGE_OPPOSITE) {
+			if (contact.velocity.x < 0.f) {
+				vel.x = std::min(vel.x, contact.velocity.x);
+			}
+			else if (contact.velocity.x > 0.f) {
+				vel.x = std::max(vel.x, contact.velocity.x);
+			}
+		}
 	}
 
 	if (trackers.empty())

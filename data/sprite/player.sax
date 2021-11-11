@@ -133,31 +133,31 @@
 	<animation name="dash_fx-2">
 		<area   x="464" y="0" w="16" h="16" />
 		<origin x="24" y="24" />
-		<framerate count="3" defaultMS="83.3333333333"/>
+		<framerate count="3" defaultMS="50"/>
 		<loop>1</loop>
 	</animation>
 	<animation name="dash_fx-1">
 		<area   x="464" y="16" w="16" h="16" />
 		<origin x="27" y="19" />
-		<framerate count="3" defaultMS="83.3333333333"/>
+		<framerate count="3" defaultMS="50"/>
 		<loop>1</loop>
 	</animation>
 	<animation name="dash_fx0">
 		<area   x="464" y="32" w="16" h="16" />
 		<origin x="20" y="16" />
-		<framerate count="3" defaultMS="83.3333333333"/>
+		<framerate count="3" defaultMS="50"/>
 		<loop>1</loop>
 	</animation>
 	<animation name="dash_fx+1">
 		<area   x="464" y="48" w="16" h="16" />
 		<origin x="17" y="0" />
-		<framerate count="3" defaultMS="83.3333333333"/>
+		<framerate count="3" defaultMS="50"/>
 		<loop>1</loop>
 	</animation>
 	<animation name="dash_fx+2">
 		<area   x="464" y="64" w="16" h="16" />
 		<origin x="16" y="0" />
-		<framerate count="3" defaultMS="83.3333333333"/>
+		<framerate count="3" defaultMS="50"/>
 		<loop>1</loop>
 	</animation>
 	
