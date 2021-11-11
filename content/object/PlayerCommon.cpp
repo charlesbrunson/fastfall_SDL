@@ -76,7 +76,7 @@ namespace plr::anim {
 
 namespace plr::constants {
 
-	Friction braking{ .stationary = 1.2f, .kinetic = 0.8f };
+	Friction braking{ .stationary = 1.2f, .kinetic = 0.6f };
 	Friction moving { .stationary = 0.0f, .kinetic = 0.0f };
 
 	Default<float> max_speed = 500.f;
