@@ -55,7 +55,7 @@ void AnimatedSprite::reset_anim(bool reset_time_buffer) {
 
 void AnimatedSprite::update(secs deltaTime)
 {
-	if (deltaTime <= 0.0 || playback_speed == 0.f) {
+	if (!animation || deltaTime <= 0.0 || playback_speed == 0.f) {
 		return;
 	}
 
@@ -165,6 +165,9 @@ bool AnimatedSprite::is_playing() const noexcept
 
 bool AnimatedSprite::is_playing(AnimID id, unsigned incl_chain_anims_depth) const noexcept
 {	
+	if (!animation)
+		return false;
+
 	const Animation* anim = animation; // start with current animation
 	for (unsigned i = 0; i <= incl_chain_anims_depth; i++) {
 		if (anim->anim_id == id) {
@@ -200,7 +203,9 @@ bool AnimatedSprite::is_playing_any(std::vector<AnimID> ids, unsigned incl_chain
 
 void AnimatedSprite::draw(RenderTarget& target, RenderState states) const
 {
-	target.draw(sprite, states);
+	if (animation) {
+		target.draw(sprite, states);
+	}
 }
 
 }

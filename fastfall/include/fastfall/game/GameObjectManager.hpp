@@ -42,6 +42,7 @@ private:
 	unsigned instanceID;
 
 	std::vector<std::unique_ptr<GameObject>> objects;
+	std::vector<std::unique_ptr<GameObject>> created_objects;
 	
 	unsigned spawnCounter = 1;
 };

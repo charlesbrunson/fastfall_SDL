@@ -264,7 +264,7 @@ void levelContent(GameContext context) {
 		ImGui::Text("Name : \"%s\"", obj.data.name.c_str());
 		ImGui::Text("Type ID : %d", obj.id);
 		ImGui::Text("Position : (%4d, %4d)", obj.data.position.x, obj.data.position.y);
-		ImGui::Text("Size : (%2d, %2d)", obj.data.width, obj.data.height);
+		ImGui::Text("Size : (%2d, %2d)", obj.data.size.x, obj.data.size.y);
 
 		if (!obj.data.properties.empty()) {
 			if (ImGui::TreeNode("Properties")) {
@@ -362,14 +362,23 @@ void objectContent(GameContext context) {
 	ImGui::Columns(2, NULL, false);
 	for (auto& obj : man->getObjects()) {
 
-		ImGui::Text("%s level:%u, spawn:%u", 
-			obj->getTypeName().c_str(), 
-			(obj->getID().levelID ? obj->getID().levelID.value() : 0), 
-			obj->getID().spawnID);
+
+		if (obj->getTemplate()) {
+			ImGui::Text("%s level:%u, spawn:%u",
+				obj->getTemplate()->type().type.name.c_str(),
+				obj->getTemplate()->level_id(),
+				obj->getID());
+		}
+		else {
+			ImGui::Text("unknown spawn:%u",
+				obj->getID());
+		}
+
+
 		ImGui::NextColumn();
 
 		static char buttonBuf[32];
-		sprintf(buttonBuf, "%s##%d", obj->showInspect ? "Uninspect" : " Inspect ", obj->getID().spawnID);
+		sprintf(buttonBuf, "%s##%d", obj->showInspect ? "Uninspect" : " Inspect ", obj->getID());
 		if (ImGui::Button(buttonBuf)) {
 			obj->showInspect = !obj->showInspect;
 		}
@@ -536,7 +545,9 @@ void InstanceObserver::ImGui_getExtraContent() {
 
 	if (context.valid()) {
 		for (auto& obj : instance::obj_get_man(context)->getObjects()) {
-			if (obj->showInspect && ImGui::Begin(obj->getTypeName().c_str(), &obj->showInspect)) {
+			if (obj->showInspect 
+				&& ImGui::Begin((obj->getTemplate() ? obj->getTemplate()->type().type.name.c_str() : "unknown"), &obj->showInspect)) 
+			{
 				obj->ImGui_Inspect();
 				ImGui::End();
 			}

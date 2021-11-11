@@ -6,12 +6,12 @@ using namespace ff;
 
 constexpr ff::Color platformColor = ff::Color{ 0x285cc4FF };
 
-BasicPlatform::BasicPlatform(GameContext instance, const ObjectType& objtype, const ObjectData& objdata, std::optional<unsigned> levelID)
-	: ff::GameObject(instance, objtype, objdata, levelID)
+BasicPlatform::BasicPlatform(GameContext instance, ff::ObjectTemplate templ_data)
+	: ff::GameObject(instance, templ_data)
 	, shape{		instance, ff::ShapeRectangle{ ff::Rectf{}, platformColor}, ff::SceneType::Object, 1 }
-	, collider(		instance, ff::Rectf{ 0.f, 0.f, (float)objdata.width, (float)objdata.height })
+	, collider(instance, ff::Rectf{ Vec2f{}, Vec2f{ templ_data.data().size } })
 {
-	for (auto& [propName, propValue] : objdata.properties) {
+	for (auto& [propName, propValue] : templ_data.data().properties) {
 		if (propName == "path") {
 			ff::object_id path_id = std::atoi(propValue.c_str());
 
@@ -46,15 +46,15 @@ BasicPlatform::BasicPlatform(GameContext instance, const ObjectType& objtype, co
 		progress = 0.f;
 	}
 
-	ff::Rectf colliderRect;
-	colliderRect.width = objdata.width;
-	colliderRect.height = objdata.height;
+	ff::Rectf colliderRect{ Vec2f{}, Vec2f{ getTemplate()->data().size } };
 
 	if (has_path) {
 		collider->teleport(waypoints_origin + ff::Vec2f(waypoints->at(waypoint_ndx)));
 	}
 	else {
-		collider->teleport(ff::Vec2f{ objdata.position } - ff::Vec2f{ (float)objdata.width / 2.f, (float)objdata.height });
+		auto pos = ff::Vec2f{ getTemplate()->data().position };
+		auto off = ff::Vec2f{ (float)getTemplate()->data().size.x / 2.f, (float)getTemplate()->data().size.y };
+		collider->teleport(pos - off);
 	}
 
 	hasCollider = true;
@@ -63,7 +63,7 @@ BasicPlatform::BasicPlatform(GameContext instance, const ObjectType& objtype, co
 
 
 std::unique_ptr<ff::GameObject> BasicPlatform::clone() const {
-	std::unique_ptr<BasicPlatform> object = std::make_unique<BasicPlatform>(context, getObjType(), getObjData(), getID().levelID);
+	std::unique_ptr<BasicPlatform> object = std::make_unique<BasicPlatform>(context, *getTemplate());
 
 	//TODO copy current state data
 

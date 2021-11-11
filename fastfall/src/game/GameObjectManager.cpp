@@ -47,8 +47,28 @@ void GameObjectManager::update(secs deltaTime) {
 	for (auto& obj : objects) {
 		obj->update(deltaTime);
 	}
+
+	for (auto& obj : created_objects) {
+		if (!obj->hasCollider) {
+			objects.push_back(std::move(obj));
+		}
+		else {
+			objects.insert(std::begin(objects), std::move(obj));
+		}
+	}
+	created_objects.clear();
 }
 void GameObjectManager::predraw(secs deltaTime) {
+
+	auto it = std::remove_if(
+		std::begin(objects),
+		std::end(objects),
+		[](auto& obj) {
+			return obj->can_delete();
+		});
+
+	objects.erase(it, std::end(objects));
+
 	for (auto& obj : objects) {
 		obj->predraw(deltaTime);
 	}
@@ -61,12 +81,7 @@ void GameObjectManager::clear() {
 
 void GameObjectManager::addObject(std::unique_ptr<GameObject>&& obj) {
 	assert(obj);
-	if (!obj->hasCollider) {
-		objects.push_back(std::move(obj));
-	}
-	else {
-		objects.insert(std::begin(objects), std::move(obj));
-	}
+	created_objects.push_back(std::move(obj));
 }
 
 }

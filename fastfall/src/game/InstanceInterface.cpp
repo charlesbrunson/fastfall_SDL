@@ -25,11 +25,14 @@ namespace ff::instance {
 		return nullptr;
 	}
 
-	void obj_add(GameContext context, std::unique_ptr<GameObject>&& obj)
+	GameObject* obj_add(GameContext context, std::unique_ptr<GameObject>&& obj)
 	{
 		if (auto* inst = getInstance(context)) {
+			GameObject* ptr = obj.get();
 			inst->getObject().addObject(std::move(obj));
+			return ptr;
 		}
+		return nullptr;
 	}
 
 	GameObject* obj_get_by_level_id(GameContext context, unsigned levelID)
@@ -37,7 +40,9 @@ namespace ff::instance {
 		if (auto* inst = getInstance(context)) {
 			auto& objects = inst->getObject().getObjects();
 			for (auto& obj_ptr : objects) {
-				if (obj_ptr && obj_ptr->getID().levelID == levelID) {
+				if (obj_ptr 
+					&& obj_ptr->getTemplate()
+					&& obj_ptr->getTemplate()->level_id() == levelID) {
 					return obj_ptr.get();
 				}
 			}
@@ -49,7 +54,7 @@ namespace ff::instance {
 		if (auto* inst = getInstance(context)) {
 			auto& objects = inst->getObject().getObjects();
 			for (auto& obj_ptr : objects) {
-				if (obj_ptr && obj_ptr->getID().spawnID == spawnID) {
+				if (obj_ptr && obj_ptr->getID() == spawnID) {
 					return obj_ptr.get();
 				}
 			}

@@ -18,12 +18,12 @@
 
 namespace ff {
 
-void GameObjectLibrary::build(GameContext instance, const ObjectData& data, std::optional<unsigned> levelID) {
+GameObject* GameObjectLibrary::buildFromLevel(GameContext instance, ObjectData& data, unsigned levelID) {
 	std::unique_ptr<GameObject> obj = nullptr;
 
 	auto r = getBuilder().find(data.typehash);
 	if (r != getBuilder().end()) {
-		obj = r->builder(instance, r->constraints, data, levelID);
+		obj = r->builder(instance, ObjectTemplate{ r->constraints, data, levelID });
 
 		if (obj) {
 			instance::obj_add(instance, std::move(obj));
@@ -46,6 +46,7 @@ void GameObjectLibrary::build(GameContext instance, const ObjectData& data, std:
 			LOG_ERR_("{}: {}", type.hash, type.objTypeName);
 		}
 	}
+	return obj.get();
 }
 
 const std::string* GameObjectLibrary::lookupTypeName(size_t hash) {
@@ -69,15 +70,15 @@ bool ObjectType::test(ObjectData& data) const {
 
 
 	// test size
-	if (tile_size.x > 0 && (data.width / TILESIZE != tile_size.x)) {
+	if (tile_size.x > 0 && (data.size.x / TILESIZE != tile_size.x)) {
 		LOG_WARN("object width ({}) not valid for object:{:x}",
-			data.width, data.typehash
+			data.size.x, data.typehash
 		);
 		valid = false;
 	}
-	if (tile_size.y > 0 && (data.height / TILESIZE != tile_size.y)) {
+	if (tile_size.y > 0 && (data.size.y / TILESIZE != tile_size.y)) {
 		LOG_WARN("object height ({}) not valid for object:{:x}",
-			data.width, data.typehash
+			data.size.y, data.typehash
 		);
 		valid = false;
 	}
@@ -119,8 +120,15 @@ bool ObjectType::test(ObjectData& data) const {
 				break;
 			case ObjectPropertyType::Bool:
 				try {
-					int value = std::stoi(citer->second);
-					if (value != 0 && value != 1)
+
+					int value = -1;
+					if (strcmp(citer->second.c_str(), "true") == 0) {
+						value = 1;
+					}
+					else if (strcmp(citer->second.c_str(), "false") == 0) {
+						value = 0;
+					}
+					if (value == -1)
 						throw std::exception();
 				}
 				catch (std::exception except) {
@@ -158,11 +166,10 @@ bool ObjectType::test(ObjectData& data) const {
 	return valid;
 }
 
-GameObject::GameObject(GameContext instance, const ObjectType& objtype, const ObjectData& objdata, std::optional<unsigned> levelID) :
-	context{ instance },
-	m_id{ instance::obj_reserve_spawn_id(instance), levelID },
-	m_data(objdata),
-	m_type(objtype)
+GameObject::GameObject(GameContext instance, std::optional<ObjectTemplate> templ_data) 
+	: context{ instance }
+	, template_data{ templ_data }
+	, spawnID { instance::obj_reserve_spawn_id(instance) }
 {
 }
 

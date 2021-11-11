@@ -89,7 +89,7 @@ bool ObjectLayer::removeObjectRef(object_id id) {
 void ObjectLayer::createObjects(GameContext context) {
 	for (auto& objRef : object_refs) {
 		if (objRef.data.typehash != 0) {
-			GameObjectLibrary::build(context, objRef.data, objRef.id);
+			GameObjectLibrary::buildFromLevel(context, objRef.data, objRef.id);
 		}
 	}
 }

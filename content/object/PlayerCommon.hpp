@@ -45,6 +45,14 @@ namespace plr::anim {
 
 	const std::vector<ff::AnimID>& get_ground_anims();
 	const std::vector<ff::AnimID>& get_air_anims();
+
+	namespace fx {
+		extern ff::AnimIDRef dash_n2;
+		extern ff::AnimIDRef dash_n1;
+		extern ff::AnimIDRef dash_0;
+		extern ff::AnimIDRef dash_p1;
+		extern ff::AnimIDRef dash_p2;
+	}
 }
 
 namespace plr::constants {

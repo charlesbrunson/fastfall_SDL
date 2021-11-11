@@ -17,20 +17,44 @@ using namespace plr;
 
 //using namespace plr_constants;
 
-Player::Player(GameContext instance, const ObjectType& objtype, const ObjectData& objdata, std::optional<unsigned> levelID)
-	: GameObject{instance, objtype, objdata, levelID }
-	, box(		 instance, Vec2f(objdata.position), Vec2f(8.f, 28.f), constants::grav_normal)
+Player::Player(GameContext instance, Vec2f position, bool faceleft)
+	: GameObject{ instance, std::nullopt }
+	, box(instance, Vec2f(position), Vec2f(8.f, 28.f), constants::grav_normal)
+	, hitbox(instance, box->getBox(), { "hitbox" }, {}, this)
+	, hurtbox(instance, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
+	, sprite(instance, AnimatedSprite{}, SceneType::Object)
+	, cam_target(instance, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
+	, curr_state(std::make_unique<PlayerGroundState>())
+{
+	init();
+	sprite->set_hflip(faceleft);
+};
+
+Player::Player(GameContext instance, ObjectTemplate templ_data)
+	: GameObject{instance, templ_data }
+	, box(		 instance, Vec2f(templ_data.data().position), Vec2f(8.f, 28.f), constants::grav_normal)
 	, hitbox(	 instance, box->getBox(), { "hitbox" }, {}, this)
 	, hurtbox(	 instance, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
 	, sprite(	 instance, AnimatedSprite{}, SceneType::Object)
 	, cam_target(instance, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
 	, curr_state(std::make_unique<PlayerGroundState>())
 {
+	init();
 
+	for (const auto& [propName, propValue] : templ_data.data().properties)
+	{
+		if (propName == "faceleft") {
+			sprite->set_hflip(propValue == "true");
+		}
+	}
+};
+
+
+void Player::init() {
 	// surface tracker
 	ground = &box->create_tracker(
-		Angle::Degree(-135), Angle::Degree(-45), 
-		{
+		Angle::Degree(-135), Angle::Degree(-45),
+		SurfaceTracker::Settings{
 			.move_with_platforms = true,
 			.slope_sticking = true,
 			.slope_wall_stop = true,
@@ -40,12 +64,14 @@ Player::Player(GameContext instance, const ObjectType& objtype, const ObjectData
 			.max_speed = constants::norm_speed,
 		});
 
+
+
 	// trigger testing
 	hurtbox->set_trigger_callback(
 		[this](const TriggerPull& pull) {
 			if (auto owner = pull.trigger->get_owner();
-				owner 
-				&& owner->getObjType().group_tags.contains("player")
+				owner && owner->getTemplate()
+				&& owner->getTemplate()->type().group_tags.contains("player")
 				&& pull.state == Trigger::State::Entry)
 			{
 				if (auto rpayload = owner->command<ObjCmd::GetPosition>().payload())
@@ -58,18 +84,18 @@ Player::Player(GameContext instance, const ObjectType& objtype, const ObjectData
 	sprite->set_anim(plr::anim::idle);
 	sprite->set_pos(box->getPosition());
 
-	box->set_onPostCollision([this] {
+	box->set_onPostCollision(
+		[this] {
 			if (curr_state) {
 				manage_state(curr_state->post_collision(*this));
 			}
 		});
-};
+}
 
 std::unique_ptr<GameObject> Player::clone() const {
+	std::unique_ptr<Player> object = std::make_unique<Player>(context, box->getPosition(), sprite->get_hflip());
 
-	std::unique_ptr<Player> object = std::make_unique<Player>(context, getObjType(), getObjData(), getID().levelID);
-
-	//TODO copy current state data
+	// TODO
 
 	return object;
 }

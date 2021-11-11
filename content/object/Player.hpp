@@ -21,7 +21,11 @@ enum class PlayerStateID {
 
 class Player : public ff::GameObject {
 public:
-	Player(ff::GameContext instance, const ff::ObjectType& objtype, const ff::ObjectData& objdata, std::optional<unsigned> levelID);
+
+	Player(ff::GameContext instance, ff::Vec2f position, bool faceleft);
+
+	Player(ff::GameContext instance, ff::ObjectTemplate templ_data);
+
 	std::unique_ptr<ff::GameObject> clone() const override;
 
 	void update(secs deltaTime) override;
@@ -47,6 +51,7 @@ protected:
 
 	CmdResponse do_command(ff::ObjCmd cmd, const std::any& payload) override;
 
+	void init();
 };
 
 class PlayerState {
@@ -75,4 +80,3 @@ void Player::state_transition() {
 	curr_state.swap(next_state);
 	curr_state->enter(*this, next_state.get());
 }
-

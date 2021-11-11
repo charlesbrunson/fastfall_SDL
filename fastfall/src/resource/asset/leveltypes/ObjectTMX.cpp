@@ -103,8 +103,8 @@ void parseObjectRefs(xml_node<>* objectNode, ObjectLayerData& objLayer) {
 		attr = objectNode->first_attribute("height");
 		area.height = attr ? atoi(attr->value()) : 0;
 
-		obj.data.width = area.width;
-		obj.data.height = area.height;
+		obj.data.size.x = area.width;
+		obj.data.size.y = area.height;
 
 		obj.data.position.x = area.left + area.width / 2;
 		obj.data.position.y = area.top + area.height;

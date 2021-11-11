@@ -24,8 +24,7 @@ struct ObjectData {
 	std::string name;
 	size_t typehash = 0; // hash of type string
 	Vec2i position;
-	unsigned width = 0u;
-	unsigned height = 0u;
+	Vec2u size;
 	std::vector<std::pair<std::string, std::string>> properties;
 	std::vector<Vec2i> points;
 };

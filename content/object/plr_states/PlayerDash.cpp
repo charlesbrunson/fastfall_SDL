@@ -3,6 +3,8 @@
 
 #include "fastfall/engine/input.hpp"
 
+#include "../SimpleEffect.hpp"
+
 using namespace ff;
 
 using namespace plr;
@@ -37,8 +39,15 @@ PlayerStateID dash_jump(Player& plr, const move_t& move) {
 	return action::jump(plr, move);
 }
 
-const AnimIDRef& select_dash_anim(const Player& plr)
+struct dash_anims {
+	const AnimIDRef* dash;
+	const AnimIDRef* fx;
+};
+
+dash_anims select_dash_anim(const Player& plr)
 {
+	dash_anims anims{ &anim::dash_0, &anim::fx::dash_0 };
+
 	if (plr.ground->has_contact()) {
 		Vec2f cNorm = plr.ground->get_contact()->collider_normal;
 		Angle ang = math::angle(cNorm) + Angle::Radian((float)PI_F / 2.f);
@@ -47,28 +56,29 @@ const AnimIDRef& select_dash_anim(const Player& plr)
 			ang = -ang;
 		}
 
+		//instance::obj_make<SimpleEffect>(plr.getContext(), anim::fx::dash_0.id(), Vec2f{ plr.box->getPosition() }, plr.sprite->get_hflip());
 		if (ang.degrees() > 40.f) {
-			return anim::dash_n2;
+			anims.dash  = &anim::dash_n2;
+			anims.fx = &anim::fx::dash_n2;
 		}
 		else if (ang.degrees() > 20.f) {
-			return anim::dash_n1;
+			anims.dash = &anim::dash_n1;
+			anims.fx = &anim::fx::dash_n1;
 		}
 		else if (ang.degrees() == 0.f) {
-			return anim::dash_0;
+			//anims.dash = &anim::dash_0;
+			//anims.fx = &anim::fx::dash_0;
 		}
 		else if (ang.degrees() < -40.f) {
-			return anim::dash_p2;
+			anims.dash = &anim::dash_p2;
+			anims.fx = &anim::fx::dash_p2;
 		}
 		else if (ang.degrees() < -20.f) {
-			return anim::dash_p1;
+			anims.dash = &anim::dash_p1;
+			anims.fx = &anim::fx::dash_p1;
 		}
 	}
-
-	/*
-	instance::create_obj<SimpleEffect>({"plr", "dash_0_fx"});
-	*/
-
-	return anim::dash_0;
+	return anims;
 }
 
 void PlayerDashState::enter(Player& plr, PlayerState* from)
@@ -77,7 +87,13 @@ void PlayerDashState::enter(Player& plr, PlayerState* from)
 	ground_flag = plr.ground->has_contact();
 	
 	if (ground_flag) {
-		plr.sprite->set_anim_if_not(select_dash_anim(plr).id());
+
+		auto dash_anims = select_dash_anim(plr);
+		if (plr.sprite->set_anim_if_not(dash_anims.dash->id())) 
+		{
+			Vec2f pos = plr.box->getPosition();
+			instance::obj_make<SimpleEffect>(plr.getContext(), dash_anims.fx->id(), pos, plr.sprite->get_hflip());
+		}
 		dash_speed = plr.ground->traverse_get_speed();
 	}
 
@@ -98,7 +114,12 @@ PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
 		plr.box->set_gravity(constants::grav_normal);
 		apply_dash_vel(plr, get_dash_vel(dash_time, dash_speed));
 
-		plr.sprite->set_anim_if_not(select_dash_anim(plr).id());
+		auto dash_anims = select_dash_anim(plr);
+		if (plr.sprite->set_anim_if_not(dash_anims.dash->id()))
+		{
+			//Vec2f pos = plr.box->getPosition();
+			//instance::obj_make<SimpleEffect>(plr.getContext(), dash_anims.fx->id(), pos, plr.sprite->get_hflip());
+		}
 
 		if (Input::isPressed(InputType::JUMP, 0.1f))
 		{

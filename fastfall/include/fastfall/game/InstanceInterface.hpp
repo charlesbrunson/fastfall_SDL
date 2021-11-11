@@ -31,7 +31,16 @@ namespace ff::instance {
 	// object
 	const GameObjectManager* obj_get_man(GameContext context);
 
-	void obj_add(GameContext context, std::unique_ptr<GameObject>&& obj);
+	GameObject* obj_add(GameContext context, std::unique_ptr<GameObject>&& obj);
+
+	template<class T, class ...Args>
+	requires std::is_base_of_v<GameObject, T>
+		&& std::is_constructible_v<T, GameContext, Args...>
+	T* obj_make(GameContext context, Args&&...args) {
+		auto ptr = std::make_unique<T>(context, std::forward<Args>(args)...);
+		return (T*)obj_add(context, std::move(ptr));
+	}
+
 	GameObject* obj_get_by_level_id(GameContext context, unsigned levelID);
 	GameObject* obj_get_by_spawn_id(GameContext context, unsigned spawnID);
 

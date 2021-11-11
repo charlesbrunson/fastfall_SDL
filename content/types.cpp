@@ -58,8 +58,8 @@ void game_InitTypes() {
 				"player"
 			},
 			.properties = {
-				ObjectTypeProperty("anotherprop", ObjectPropertyType::String),
-				ObjectTypeProperty("faceleft", false)
+				ObjectProperty{"anotherprop", ObjectPropertyType::String},
+				ObjectProperty{"faceleft", false}
 			}
 		});
 
@@ -72,28 +72,10 @@ void game_InitTypes() {
 				"platform"
 			},
 			.properties = {
-				ObjectTypeProperty("acceleration", ObjectPropertyType::Float),
-				ObjectTypeProperty("max_velocity", ObjectPropertyType::Float),
-				ObjectTypeProperty("path", object_null)
+				ObjectProperty{"acceleration", ObjectPropertyType::Float},
+				ObjectProperty{"max_velocity", ObjectPropertyType::Float},
+				ObjectProperty{"path", object_null}
 			} 
 		});
-
-	/*
-	
-	GameObjectLibrary::addType<SimpleEffect>(
-		ObjectType{
-			.typeName = "SimpleEffect",
-			.anim = std::nullopt,
-			.tile_size = {0, 0},
-			.group_tags = {
-				"effect"
-			},
-			.properties = {
-				ObjectTypeProperty("texture",	ObjectPropertyType::String),
-				ObjectTypeProperty("animation", ObjectPropertyType::String)
-			}
-		});
-
-	*/
 
 }

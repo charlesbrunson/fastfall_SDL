@@ -48,6 +48,15 @@ namespace plr::anim {
 	AnimIDRef brakeb("player", "brake_back");
 	AnimIDRef brakef("player", "brake_front");
 
+
+	namespace fx {
+		AnimIDRef dash_n2("player", "dash_fx-2");
+		AnimIDRef dash_n1("player", "dash_fx-1");
+		AnimIDRef dash_0 ("player", "dash_fx0");
+		AnimIDRef dash_p1("player", "dash_fx+1");
+		AnimIDRef dash_p2("player", "dash_fx+2");
+	}
+
 	const std::vector<AnimID>& get_ground_anims() {
 		static std::vector<AnimID> ground_anims{
 			idle, land, run, brakeb, brakef,
