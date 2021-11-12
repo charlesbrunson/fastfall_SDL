@@ -88,7 +88,7 @@ namespace plr::constants {
 	Default<float> ground_idle_decel = 450.f;
 
 	Default<Vec2f> grav_normal = Vec2f{ 0.f, 500.f };
-	Default<Vec2f> grav_light = Vec2f{ 0.f, 350.f };
+	Default<Vec2f> grav_light = Vec2f{ 0.f, 400.f };
 }
 
 namespace plr::action {

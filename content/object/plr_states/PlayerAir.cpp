@@ -36,7 +36,11 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime)
 		}
 		else if (plr.box->get_vel().y > 50.f)
 		{
-			plr.box->set_gravity(Vec2f{ 0.f, 600.f });
+			float f  = std::min((plr.box->get_vel().y - 50) / 100.f, 1.f);
+			float nf = 1 - f;
+
+
+			plr.box->set_gravity(Vec2f{ 0.f, (f * 800.f) + (nf * Vec2f{constants::grav_light}.y) });
 		}
 
 		move_t move(plr);
