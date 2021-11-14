@@ -18,15 +18,19 @@
 
 namespace ff {
 
-GameObject* GameObjectLibrary::buildFromLevel(GameContext instance, ObjectData& data, unsigned levelID) {
+GameObject* GameObjectLibrary::buildFromData(GameContext instance, ObjectLevelData& data) {
 	std::unique_ptr<GameObject> obj = nullptr;
 
-	auto r = getBuilder().find(data.typehash);
+	auto r = std::find_if(getBuilder().begin(), getBuilder().end(),
+		[&data](const ObjectTypeBuilder& builder) {
+			return data.typehash == builder.hash;
+		});
+
 	if (r != getBuilder().end()) {
-		obj = r->builder(instance, ObjectTemplate{ r->constraints, data, levelID });
+		obj = r->builder(instance, r->constraints, data);
 
 		if (obj) {
-			instance::obj_add(instance, std::move(obj));
+			return instance::obj_add(instance, std::move(obj));
 		}
 		else if (!obj) {
 			LOG_ERR_("Object reference invalid, unable to create");
@@ -46,26 +50,36 @@ GameObject* GameObjectLibrary::buildFromLevel(GameContext instance, ObjectData& 
 			LOG_ERR_("{}: {}", type.hash, type.objTypeName);
 		}
 	}
-	return obj.get();
+	return nullptr;
 }
 
 const std::string* GameObjectLibrary::lookupTypeName(size_t hash) {
-	auto r = getBuilder().find(hash);
+	auto r = std::find_if(getBuilder().begin(), getBuilder().end(),
+		[&hash](const ObjectTypeBuilder& builder) {
+			return hash == builder.hash;
+		});
+
 	if (r != getBuilder().end()) {
 		return &r->objTypeName;
 	}
 	return nullptr;
 }
 
-bool ObjectType::test(ObjectData& data) const {
-	bool valid = true;
+bool ObjectType::test(ObjectLevelData& data) const {
+
+	if (!allow_level_data) {
+		LOG_WARN("object cannot be instantiated by level {}:{:x}",
+			type.name, type.hash
+		);
+		return false;
+	}
 
 	// test type
 	if (type.hash != data.typehash) {
 		LOG_WARN("object hash ({}) not valid for object {}:{:x}",
 			data.typehash, type.name, type.hash
 		);
-		valid = false;
+		return false;
 	}
 
 
@@ -74,13 +88,13 @@ bool ObjectType::test(ObjectData& data) const {
 		LOG_WARN("object width ({}) not valid for object:{:x}",
 			data.size.x, data.typehash
 		);
-		valid = false;
+		return false;
 	}
 	if (tile_size.y > 0 && (data.size.y / TILESIZE != tile_size.y)) {
 		LOG_WARN("object height ({}) not valid for object:{:x}",
 			data.size.y, data.typehash
 		);
-		valid = false;
+		return false;
 	}
 
 
@@ -104,7 +118,7 @@ bool ObjectType::test(ObjectData& data) const {
 					LOG_WARN("object property ({}={}) not valid for object:{:x}, not convertable to int",
 						citer->first, citer->second, data.typehash
 					);
-					valid = false;
+					return false;
 				}
 				break;
 			case ObjectPropertyType::Float:
@@ -115,7 +129,7 @@ bool ObjectType::test(ObjectData& data) const {
 					LOG_WARN("object property ({}={}) not valid for object:{:x}, not convertable to float",
 						citer->first, citer->second, data.typehash
 					);
-					valid = false;
+					return false;
 				}
 				break;
 			case ObjectPropertyType::Bool:
@@ -135,7 +149,7 @@ bool ObjectType::test(ObjectData& data) const {
 					LOG_WARN("object property ({}={}) not valid for object:{:x}, not convertable to boolean",
 						citer->first, citer->second, data.typehash
 					);
-					valid = false;
+					return false;
 				}
 				break;
 			case ObjectPropertyType::Object:
@@ -148,28 +162,27 @@ bool ObjectType::test(ObjectData& data) const {
 					LOG_WARN("object property ({}={}) not valid for object:{:x}, not convertable to object id",
 						citer->first, citer->second, data.typehash
 					);
-					valid = false;
+					return false;
 				}
 				break;
 			}
 		}
 		else if (!prop.default_value.empty()) {
-			data.properties.push_back({ prop.name, prop.default_value });
+			data.properties.insert_or_assign(prop.name, prop.default_value);
 		}
 		else {
 			LOG_WARN("object property ({}) not defined for object:{:x}",
 				prop.name, data.typehash
 			);
-			valid = false;
+			return false;
 		}
 	}
-	return valid;
+	return true;
 }
 
-GameObject::GameObject(GameContext instance, std::optional<ObjectTemplate> templ_data) 
-	: context{ instance }
-	, template_data{ templ_data }
-	, spawnID { instance::obj_reserve_spawn_id(instance) }
+GameObject::GameObject(ObjectConfig cfg)
+	: m_config(cfg)
+	, m_spawnID(instance::obj_reserve_spawn_id(cfg.context))
 {
 }
 

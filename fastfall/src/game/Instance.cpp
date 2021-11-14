@@ -53,7 +53,7 @@ void GameInstance::reset() {
 
 	if (lvl) {
 		populateSceneFromLevel(*lvl);
-		lvl->get_layers().get_obj_layer().createObjects(GameContext{ instanceID });
+		lvl->get_layers().get_obj_layer().createObjectsFromData(GameContext{ instanceID });
 	}
 	want_reset = false;
 }
@@ -67,7 +67,7 @@ bool GameInstance::addLevel(const LevelAsset& levelRef) {
 	if (r.second && !activeLevel) {
 		activeLevel = r.first->first;
 		populateSceneFromLevel(*r.first->second);
-		r.first->second->get_layers().get_obj_layer().createObjects(context);
+		r.first->second->get_layers().get_obj_layer().createObjectsFromData(context);
 	}
 	return r.second;
 }

@@ -22,9 +22,9 @@ enum class PlayerStateID {
 class Player : public ff::GameObject {
 public:
 
-	Player(ff::GameContext instance, ff::Vec2f position, bool faceleft);
+	Player(ff::ObjectConfig cfg, ff::Vec2f position, bool faceleft);
 
-	Player(ff::GameContext instance, ff::ObjectTemplate templ_data);
+	Player(ff::ObjectConfig cfg);
 
 	std::unique_ptr<ff::GameObject> clone() const override;
 

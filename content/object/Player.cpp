@@ -17,31 +17,31 @@ using namespace plr;
 
 //using namespace plr_constants;
 
-Player::Player(GameContext instance, Vec2f position, bool faceleft)
-	: GameObject{ instance, std::nullopt }
-	, box(instance, Vec2f(position), Vec2f(8.f, 28.f), constants::grav_normal)
-	, hitbox(instance, box->getBox(), { "hitbox" }, {}, this)
-	, hurtbox(instance, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
-	, sprite(instance, AnimatedSprite{}, SceneType::Object)
-	, cam_target(instance, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
+Player::Player(ObjectConfig cfg, Vec2f position, bool faceleft)
+	: GameObject{ cfg }
+	, box(cfg.context, Vec2f(position), Vec2f(8.f, 28.f), constants::grav_normal)
+	, hitbox(cfg.context, box->getBox(), { "hitbox" }, {}, this)
+	, hurtbox(cfg.context, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
+	, sprite(cfg.context, AnimatedSprite{}, SceneType::Object)
+	, cam_target(cfg.context, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
 	, curr_state(std::make_unique<PlayerGroundState>())
 {
 	init();
 	sprite->set_hflip(faceleft);
 };
 
-Player::Player(GameContext instance, ObjectTemplate templ_data)
-	: GameObject{instance, templ_data }
-	, box(		 instance, Vec2f(templ_data.data().position), Vec2f(8.f, 28.f), constants::grav_normal)
-	, hitbox(	 instance, box->getBox(), { "hitbox" }, {}, this)
-	, hurtbox(	 instance, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
-	, sprite(	 instance, AnimatedSprite{}, SceneType::Object)
-	, cam_target(instance, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
+Player::Player(ObjectConfig cfg)
+	: GameObject{cfg }
+	, box(cfg.context, Vec2f(cfg.m_level_data->position), Vec2f(8.f, 28.f), constants::grav_normal)
+	, hitbox(cfg.context, box->getBox(), { "hitbox" }, {}, this)
+	, hurtbox(cfg.context, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
+	, sprite(cfg.context, AnimatedSprite{}, SceneType::Object)
+	, cam_target(cfg.context, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
 	, curr_state(std::make_unique<PlayerGroundState>())
 {
 	init();
 
-	for (const auto& [propName, propValue] : templ_data.data().properties)
+	for (const auto& [propName, propValue] : cfg.m_level_data->properties)
 	{
 		if (propName == "faceleft") {
 			sprite->set_hflip(propValue == "true");
@@ -70,13 +70,17 @@ void Player::init() {
 	hurtbox->set_trigger_callback(
 		[this](const TriggerPull& pull) {
 			if (auto owner = pull.trigger->get_owner();
-				owner && owner->getTemplate()
-				&& owner->getTemplate()->type().group_tags.contains("player")
+				owner 
+				&& owner->getType().group_tags.contains("player")
 				&& pull.state == Trigger::State::Entry)
 			{
 				if (auto rpayload = owner->command<ObjCmd::GetPosition>().payload())
 				{
 					LOG_INFO("position: {}", rpayload->to_string());
+
+					if (owner->command<ObjCmd::Hurt>(100.f).is_accepted()) {
+						LOG_INFO("gottem");
+					}
 				}
 			}
 		});
@@ -93,7 +97,7 @@ void Player::init() {
 }
 
 std::unique_ptr<GameObject> Player::clone() const {
-	std::unique_ptr<Player> object = std::make_unique<Player>(context, box->getPosition(), sprite->get_hflip());
+	std::unique_ptr<Player> object = std::make_unique<Player>(getConfig(), box->getPosition(), sprite->get_hflip());
 
 	// TODO
 
@@ -131,15 +135,16 @@ void Player::update(secs deltaTime) {
 
 Player::CmdResponse Player::do_command(ObjCmd cmd, const std::any& payload) 
 {
-	if (const auto CMD = ObjCmd::NoOp; cmd == CMD)
-	{
-		return respond<CMD>(true);
-	}
-	if (const auto CMD = ObjCmd::GetPosition; cmd == CMD)
-	{
-		return respond<CMD>(box->getPosition());
-	}
-	return GameObject::do_command(cmd, payload);
+	return Behavior{ cmd, payload }
+		.match<ObjCmd::NoOp>(
+			[]() { return true; }
+		)
+		.match<ObjCmd::GetPosition>(
+			[this]() { return box->getPosition(); }
+		)
+		.match<ObjCmd::Hurt>(
+			[this](float damage) { LOG_INFO("OUCH: {}", damage); }
+		);
 }
 
 void Player::predraw(secs deltaTime) {

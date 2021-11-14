@@ -5,8 +5,8 @@
 
 namespace ff {
 
-std::vector<std::pair<std::string, std::string>> parseProperties(xml_node<>* propGroupNode) {
-	std::vector<std::pair<std::string, std::string>> properties;
+std::unordered_map<std::string, std::string> parseProperties(xml_node<>* propGroupNode) {
+	std::unordered_map<std::string, std::string> properties;
 
 	if (propGroupNode) {
 		xml_node<>* propNode = propGroupNode->first_node("property");
@@ -15,7 +15,7 @@ std::vector<std::pair<std::string, std::string>> parseProperties(xml_node<>* pro
 			char* value = propNode->first_attribute("value")->value();
 
 			if (name && value) {
-				properties.push_back(std::make_pair(name, value));
+				properties.insert(std::make_pair(name, value));
 			}
 
 			propNode = propNode->next_sibling();
@@ -74,27 +74,27 @@ std::vector<Vec2i> parsePoints(xml_node<>* polylineNode) {
 void parseObjectRefs(xml_node<>* objectNode, ObjectLayerData& objLayer) {
 
 	while (objectNode) {
-		ObjectDataRef obj;
+		ObjectLevelData objdata;
 
-		obj.id = atoi(objectNode->first_attribute("id")->value());
+		objdata.level_id.id = atoi(objectNode->first_attribute("id")->value());
 
 		auto* type = objectNode->first_attribute("type");
 		if (type && type->value()) {
-			obj.data.typehash = std::hash<std::string_view>{}(type->value());
+			objdata.typehash = std::hash<std::string_view>{}(type->value());
 		}
 		else {
-			obj.data.typehash = 0u;
+			objdata.typehash = 0u;
 		}
 
 		auto* name = objectNode->first_attribute("name");
 		if (name && name->value()) {
-			obj.data.name = name->value();
+			objdata.name = name->value();
 		}
 		else {
-			obj.data.name = "";
+			objdata.name = "";
 		}
 
-		Recti area;
+		Rectu area;
 		area.left = atoi(objectNode->first_attribute("x")->value());
 		area.top = atoi(objectNode->first_attribute("y")->value());
 
@@ -103,16 +103,15 @@ void parseObjectRefs(xml_node<>* objectNode, ObjectLayerData& objLayer) {
 		attr = objectNode->first_attribute("height");
 		area.height = attr ? atoi(attr->value()) : 0;
 
-		obj.data.size.x = area.width;
-		obj.data.size.y = area.height;
+		objdata.size = area.getSize();
 
-		obj.data.position.x = area.left + area.width / 2;
-		obj.data.position.y = area.top + area.height;
+		objdata.position.x = area.left + area.width / 2;
+		objdata.position.y = area.top + area.height;
 
-		obj.data.properties = parseProperties(objectNode->first_node("properties"));
-		obj.data.points = parsePoints(objectNode->first_node("polyline"));
+		objdata.properties = parseProperties(objectNode->first_node("properties"));
+		objdata.points = parsePoints(objectNode->first_node("polyline"));
 
-		objLayer.objects.push_back(std::move(obj));
+		objLayer.objects.push_back(std::move(objdata));
 
 		objectNode = objectNode->next_sibling();
 	}

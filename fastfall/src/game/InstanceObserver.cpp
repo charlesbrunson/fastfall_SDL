@@ -258,26 +258,26 @@ void levelContent(GameContext context) {
 		ImGui::Text("Scrolling = %s", tile.hasScrolling() ? "true" : "false");
 	};
 
-	constexpr auto displayObjectRef = [](const ObjectDataRef& obj) {
+	constexpr auto displayObjectRef = [](const ObjectLevelData& objdata) {
 		//ImGui::Checkbox("Hidden", &layer.hidden);
 
-		ImGui::Text("Name : \"%s\"", obj.data.name.c_str());
-		ImGui::Text("Type ID : %d", obj.id);
-		ImGui::Text("Position : (%4d, %4d)", obj.data.position.x, obj.data.position.y);
-		ImGui::Text("Size : (%2d, %2d)", obj.data.size.x, obj.data.size.y);
+		ImGui::Text("Name : \"%s\"", objdata.name.c_str());
+		ImGui::Text("Type ID : %d", objdata.level_id.id);
+		ImGui::Text("Position : (%4d, %4d)", objdata.position.x, objdata.position.y);
+		ImGui::Text("Size : (%2d, %2d)", objdata.size.x, objdata.size.y);
 
-		if (!obj.data.properties.empty()) {
+		if (!objdata.properties.empty()) {
 			if (ImGui::TreeNode("Properties")) {
-				for (auto& prop : obj.data.properties) {
+				for (auto& prop : objdata.properties) {
 					ImGui::Text("%s : %s", prop.first.c_str(), prop.second.c_str());
 				}
 				ImGui::TreePop();
 			}
 		}
-		if (!obj.data.points.empty()) {
+		if (!objdata.points.empty()) {
 			if (ImGui::TreeNode("Points")) {
 				unsigned pCount = 0;
-				for (auto& p : obj.data.points) {
+				for (auto& p : objdata.points) {
 					ImGui::Text("points[%2d] : (% 4d, % 4d)", pCount++, p.x, p.y);
 
 				}
@@ -321,13 +321,13 @@ void levelContent(GameContext context) {
 				0, 
 				layer.getID())) 
 			{
-				for (auto& obj : layer.getObjectRefs()) {
+				for (auto& objdata : layer.getObjectData()) {
 
-					const std::string* type = GameObjectLibrary::lookupTypeName(obj.data.typehash);
-					if (ImGui::TreeNode((char*)&obj, "%s #%u", (type ? type->c_str() : "Anonymous Type"), obj.id)) {
+					const std::string* type = GameObjectLibrary::lookupTypeName(objdata.typehash);
+					if (ImGui::TreeNode((char*)&objdata, "%s #%u", (type ? type->c_str() : "Anonymous Type"), objdata.level_id.id)) {
 
-						if (ImGui::BeginChild((char*)&obj, ImVec2(0, 100), true)) {
-							displayObjectRef(obj);
+						if (ImGui::BeginChild((char*)&objdata, ImVec2(0, 100), true)) {
+							displayObjectRef(objdata);
 						}
 						ImGui::EndChild();
 						ImGui::TreePop();
@@ -363,14 +363,15 @@ void objectContent(GameContext context) {
 	for (auto& obj : man->getObjects()) {
 
 
-		if (obj->getTemplate()) {
+		if (obj->getLevelData()) {
 			ImGui::Text("%s level:%u, spawn:%u",
-				obj->getTemplate()->type().type.name.c_str(),
-				obj->getTemplate()->level_id(),
+				obj->getType().type.name.c_str(),
+				obj->getLevelData()->level_id.id,
 				obj->getID());
 		}
 		else {
-			ImGui::Text("unknown spawn:%u",
+			ImGui::Text("%s spawn:%u",
+				obj->getType().type.name.c_str(),
 				obj->getID());
 		}
 
@@ -378,7 +379,7 @@ void objectContent(GameContext context) {
 		ImGui::NextColumn();
 
 		static char buttonBuf[32];
-		sprintf(buttonBuf, "%s##%d", obj->showInspect ? "Uninspect" : " Inspect ", obj->getID());
+		sprintf(buttonBuf, "%s##%d", obj->showInspect ? "Uninspect" : " Inspect ", obj->getID().id);
 		if (ImGui::Button(buttonBuf)) {
 			obj->showInspect = !obj->showInspect;
 		}
@@ -546,7 +547,7 @@ void InstanceObserver::ImGui_getExtraContent() {
 	if (context.valid()) {
 		for (auto& obj : instance::obj_get_man(context)->getObjects()) {
 			if (obj->showInspect 
-				&& ImGui::Begin((obj->getTemplate() ? obj->getTemplate()->type().type.name.c_str() : "unknown"), &obj->showInspect)) 
+				&& ImGui::Begin(obj->getType().type.name.c_str(), &obj->showInspect))
 			{
 				obj->ImGui_Inspect();
 				ImGui::End();

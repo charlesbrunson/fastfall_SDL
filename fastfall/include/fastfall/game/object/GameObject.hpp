@@ -9,6 +9,7 @@
 #include <type_traits>
 #include <set>
 #include <string>
+#include <typeindex>
 
 #include "imgui.h"
 
@@ -22,12 +23,6 @@
 #include "fastfall/game/object/ObjectCommands.hpp"
 
 namespace ff {
-
-struct GameObjectID {
-	unsigned spawnID;
-	std::optional<unsigned> levelID;
-};
-
 
 
 //class GameObject;
@@ -50,7 +45,7 @@ struct ObjectProperty {
 	explicit ObjectProperty(std::string propName, int value_default)		: name(propName), type(ObjectPropertyType::Int),    default_value(std::to_string(value_default)) {}
 	explicit ObjectProperty(std::string propName, bool value_default)		: name(propName), type(ObjectPropertyType::Bool),   default_value(std::to_string(value_default)) {}
 	explicit ObjectProperty(std::string propName, float value_default)		: name(propName), type(ObjectPropertyType::Float),  default_value(std::to_string(value_default)) {}
-	explicit ObjectProperty(std::string propName, object_id value_default)	: name(propName), type(ObjectPropertyType::Object), default_value(std::to_string(value_default)) {}
+	explicit ObjectProperty(std::string propName, ObjLevelID value_default)	: name(propName), type(ObjectPropertyType::Object), default_value(std::to_string(value_default.id)) {}
 
 	std::string name;
 	ObjectPropertyType type;
@@ -81,80 +76,63 @@ struct ObjectType {
 		size_t	    hash;
 	} type;
 
+	bool allow_level_data = false;
 	std::optional<AnimIDRef> anim;
 	Vec2u tile_size = { 0u, 0u };
 	std::set<ObjectGroupTag> group_tags;
 	std::set<ObjectProperty> properties;
 
-	bool test(ObjectData& data) const;
+	bool test(ObjectLevelData& data) const;
 };
 
 class GameObject;
 
-struct ObjectTemplate {
+struct ObjSpawnID {
+	static constexpr unsigned NO_ID = 0;
 
-	ObjectTemplate(const ObjectType& type, ObjectData& data, unsigned level_id = 0u) 
-		: m_type(type)
-		, m_data(data)
-		, m_levelID(level_id)
-	{
-		m_valid = m_type.get().test(m_data.get());
+	unsigned id = NO_ID;
+
+	bool operator== (const ObjSpawnID& rhs) const {
+		return id == rhs.id;
+	}
+	bool operator< (const ObjSpawnID& rhs) const {
+		return id < rhs.id;
 	}
 
-	inline bool valid()				const { return m_valid; };
-	inline unsigned level_id()	const { return m_levelID; };
-	inline const ObjectType& type() const { return m_type.get(); };
-	inline const ObjectData& data() const { return m_data.get(); };
-
-private:
-	bool m_valid;
-	unsigned m_levelID;
-	const std::reference_wrapper<const ObjectType> m_type;
-	const std::reference_wrapper<ObjectData> m_data;
+	operator bool() {
+		return id != NO_ID;
+	}
 };
+
+struct ObjectConfig {
+	const GameContext context;
+	const std::reference_wrapper<const ObjectType> m_type;
+	const ObjectLevelData* const m_level_data = nullptr;
+};
+
+
+
 
 class GameObjectLibrary {
 private:
 
-	using ObjectTypeBuilderFn = std::function<std::unique_ptr<GameObject>(GameContext, ObjectTemplate)>;
+	using ObjectTypeBuilderFn = std::function<std::unique_ptr<GameObject>(GameContext, const ObjectType&, ObjectLevelData&)>;
 
 	struct ObjectTypeBuilder {
+		ObjectTypeBuilder(size_t _hash, std::string _typename, std::type_index _type_ndx, ObjectType&& _type, ObjectTypeBuilderFn&& _builder)
+			: hash(_hash)
+			, objTypeName(_typename)
+			, type_ndx(_type_ndx)
+			, constraints(std::move(_type))
+			, builder(std::move(_builder))
+		{
 
-		template<typename T>
-			requires std::is_base_of_v<GameObject, T> 
-				&& std::is_constructible_v<T, GameContext, ObjectTemplate>
-		static ObjectTypeBuilder create(std::string typeName, ObjectType&& constraints) {
-			ObjectTypeBuilder t;
-			t.objTypeName = typeName;
-			t.hash = std::hash<std::string>{}(t.objTypeName);
-			t.constraints = std::move(constraints);
-			t.builder = [](
-				GameContext instance, ObjectTemplate obj_template
-				) 
-				-> std::unique_ptr<GameObject>
-			{
-				if (obj_template.valid()) {
-					return std::make_unique<T>(instance, obj_template);
-				}
-				else {
-					LOG_WARN("unable to instantiate object:{}:{}", obj_template.type().type.name, obj_template.level_id());
-					return nullptr;
-				}
-			};
-			return t;
-		};
-
-		ObjectTypeBuilder() {
-			hash = 0;
 		}
-		ObjectTypeBuilder(size_t typehash) {
-			hash = typehash;
-		}
-
 		size_t hash;
 		std::string objTypeName;
-		ObjectTypeBuilderFn builder;
+		std::type_index type_ndx;
 		ObjectType constraints;
+		ObjectTypeBuilderFn builder;
 	};
 
 	struct ObjectTypeBuilder_compare {
@@ -163,20 +141,65 @@ private:
 		}
 	};
 
+
+	template<typename T>
+	requires std::is_base_of_v<GameObject, T>
+	static ObjectTypeBuilder create(std::string typeName, ObjectType&& constraints)
+	{
+		return ObjectTypeBuilder(
+			std::hash<std::string>{}(typeName),
+			typeName,
+			typeid(T),
+			std::move(constraints),
+			[](GameContext context, const ObjectType& type, ObjectLevelData& data) -> std::unique_ptr<GameObject> {
+				if constexpr (std::is_constructible_v<T, ObjectConfig>) {
+					if (type.test(data)) {
+
+						ObjectConfig cfg{
+							.context = context,
+							.m_type = type,
+							.m_level_data = &data
+						};
+						return std::make_unique<T>(cfg);
+					}
+					else {
+						LOG_WARN("unable to instantiate object:{}:{}", type.type.name, data.level_id.id);
+						return nullptr;
+					}
+				}
+				return nullptr;
+			}
+		);
+	}
+
 	static std::set<ObjectTypeBuilder, ObjectTypeBuilder_compare>& getBuilder() {
 		static std::set<ObjectTypeBuilder, ObjectTypeBuilder_compare> objectBuildMap;
 		return objectBuildMap;
 	}
 
+
 public:
 
-	static GameObject* buildFromLevel(GameContext instance, ObjectData& data, unsigned levelID);
+	template<typename T>
+	requires std::is_base_of_v<GameObject, T>
+	static const ObjectType* getType() {
+		auto& builder = getBuilder();
+
+		for (auto& type_builder : builder) {
+			if (type_builder.type_ndx == typeid(T)) {
+				return &type_builder.constraints;
+			}
+		}
+		return nullptr;
+	}
+
+	static GameObject* buildFromData(GameContext instance, ObjectLevelData& data);
 
 	static const std::string* lookupTypeName(size_t hash);
 
 	template<typename T, typename = std::enable_if<std::is_base_of<GameObject, T>::value>>
 	static void addType(ObjectType&& constraints) {
-		getBuilder().insert(std::move(ObjectTypeBuilder::create<T>(constraints.type.name, std::move(constraints))));
+		getBuilder().insert(std::move(create<T>(constraints.type.name, std::move(constraints))));
 	}
 
 };
@@ -184,8 +207,7 @@ public:
 
 class GameObject : public Commandable<ObjCmd> {
 public:
-
-	GameObject(GameContext instance, std::optional<ObjectTemplate> templ_data);
+	GameObject(ObjectConfig cfg);
 
 	virtual ~GameObject() = default;
 	virtual std::unique_ptr<GameObject> clone() const = 0;
@@ -198,29 +220,22 @@ public:
 		ImGui::Text("Hello World!");
 	};
 
-	inline const ObjectTemplate* getTemplate() const { 
-		return template_data ? &template_data.value() : nullptr; 
-	};
-
-	inline GameContext getContext() const { 
-		return context; 
-	};
-
-	inline unsigned getID() const { return spawnID; };
+	const ObjectConfig& getConfig() const { return m_config; }
+	inline GameContext getContext() const { return m_config.context; }
+	inline const ObjectType& getType() const { return m_config.m_type; }
+	inline const ObjectLevelData* getLevelData() const { return m_config.m_level_data; }
+	inline ObjSpawnID getID() const { return m_spawnID; };
 
 	inline bool can_delete() const { return toDelete; };
 
 	bool hasCollider = false;
 
 protected:
-
 	bool toDelete = false;
 
-	GameContext context;
-
 private:
-	unsigned spawnID;
-	std::optional<ObjectTemplate> template_data;
+	const ObjSpawnID m_spawnID;
+	const ObjectConfig m_config;
 };
 
 }

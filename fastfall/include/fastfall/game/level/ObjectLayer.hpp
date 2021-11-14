@@ -25,19 +25,19 @@ public:
 
 	void clear();
 
-	void createObjects(GameContext context);
+	void createObjectsFromData(GameContext context);
 
 	inline unsigned int getID() const { return layerID; };
-	inline const std::vector<ObjectDataRef>& getObjectRefs() { return object_refs; };
+	inline const std::vector<ObjectLevelData>& getObjectData() { return object_refs; };
 
-	const ObjectData* getRefByID(unsigned obj_id) const;
+	const ObjectLevelData* getObjectDataByID(ObjLevelID id) const;
 
-	void addObjectRef(ObjectData ref);
-	bool removeObjectRef(object_id id);
+	void addObjectData(ObjectData ref);
+	bool removeObjectDataByID(ObjLevelID id);
 
 private:
 	unsigned int layerID;
-	std::vector<ObjectDataRef> object_refs;
+	std::vector<ObjectLevelData> object_refs;
 
 	unsigned lastID = 1;
 

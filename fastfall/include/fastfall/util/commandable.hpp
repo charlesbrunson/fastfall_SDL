@@ -128,6 +128,72 @@ protected:
 		return { Response::Unhandled };
 	}
 
+
+	struct Behavior {
+		Behavior(Enum command, const std::any& payload)
+			: cmd(command)
+			, pl(&payload)
+		{
+		}
+
+		
+		template<Enum C, typename Callable>
+		requires std::is_void_v<cmd_payload_t<Enum, C>>
+			&& std::is_invocable_r_v<cmd_return_t<Enum, C>, Callable>
+		Behavior& match(Callable&& call)
+		{
+			if (cmd == C) {
+
+				if constexpr (std::is_void_v<cmd_return_t<Enum, C>>) {
+					call();
+					response = respond<C>(true);
+				}
+				else {
+					response = respond<C>(call());
+				}
+			}
+			return *this;
+		}
+
+		template<Enum C, typename Callable>
+		requires !std::is_void_v<cmd_payload_t<Enum, C>>
+			&& std::is_invocable_r_v<cmd_return_t<Enum, C>, Callable, cmd_payload_t<Enum, C>>
+		Behavior& match(Callable&& call)
+		{
+
+			if (cmd == C) {
+				if constexpr (std::is_void_v<cmd_return_t<Enum, C>>) {
+					call(cmd_payload<C>(*pl));
+					response = respond<C>(true);
+				}
+				else {
+					response = respond<C>(call(cmd_payload<C>(*pl)));
+				}
+				//found_cmd = true;
+			}
+			return *this;
+		}
+
+		template<typename Callable>
+		requires std::is_invocable_r_v<CmdResponse, Callable, Enum, const std::any&>
+		CmdResponse backup(Callable&& call)
+		{
+			if (!response) {
+				response = call(cmd, *pl);
+			}
+			return response.value_or(CmdResponse{ Response::Unhandled });
+		}
+
+		operator CmdResponse() const {
+			return response.value_or(CmdResponse{ Response::Unhandled });
+		}
+
+	private:
+		const Enum cmd;
+		const std::any* pl;
+		std::optional<CmdResponse> response;
+	};
+
 public:
 
 	template<Enum C, class CmdReturnType = cmd_return_t<Enum, C>>
@@ -145,7 +211,7 @@ public:
 
 	template<Enum C, class CmdReturnType = cmd_return_t<Enum, C>>
 		requires is_command_v<Enum, C>
-	constexpr inline CmdRetPayload<CmdReturnType> command(const cmd_payload_t<Enum, C>& payload) 
+	constexpr inline CmdRetPayload<CmdReturnType> command(cmd_payload_t<Enum, C> payload) 
 	{
 		auto resp = do_command(C, payload);
 		if constexpr (std::is_void_v<CmdReturnType>) {

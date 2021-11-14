@@ -35,14 +35,14 @@ namespace ff::instance {
 		return nullptr;
 	}
 
-	GameObject* obj_get_by_level_id(GameContext context, unsigned levelID)
+	GameObject* obj_get_by_level_id(GameContext context, ObjLevelID levelID)
 	{
 		if (auto* inst = getInstance(context)) {
 			auto& objects = inst->getObject().getObjects();
 			for (auto& obj_ptr : objects) {
 				if (obj_ptr 
-					&& obj_ptr->getTemplate()
-					&& obj_ptr->getTemplate()->level_id() == levelID) {
+					&& obj_ptr->getLevelData()
+					&& obj_ptr->getLevelData()->level_id == levelID) {
 					return obj_ptr.get();
 				}
 			}
@@ -62,11 +62,11 @@ namespace ff::instance {
 		return nullptr;
 	}
 
-	unsigned obj_reserve_spawn_id(GameContext context) {
+	ObjSpawnID obj_reserve_spawn_id(GameContext context) {
 		if (auto* inst = getInstance(context)) {
 			return inst->getObject().getNextSpawnId();
 		}
-		return 0u;
+		return ObjSpawnID{};
 	}
 
 	// collision

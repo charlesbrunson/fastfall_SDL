@@ -173,7 +173,7 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 		velocity = region->velocity;
 	}
 
-	if (contact.hasContact)
+	//if (contact.hasContact)
 		contact.velocity = velocity;
 
 	evaluated = true;

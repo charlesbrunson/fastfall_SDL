@@ -8,9 +8,9 @@
 
 class SimpleEffect : public ff::GameObject {
 public:
-	SimpleEffect(ff::GameContext instance, ff::AnimID anim, ff::Vec2f position, bool hflip)
-		: ff::GameObject(instance, std::nullopt)
-		, sprite(instance, ff::AnimatedSprite{}, ff::SceneType::Object, 0, ff::SceneManager::Priority::High)
+	SimpleEffect(ff::ObjectConfig cfg, ff::AnimID anim, ff::Vec2f position, bool hflip)
+		: ff::GameObject(cfg)
+		, sprite(cfg.context, ff::AnimatedSprite{}, ff::SceneType::Object, 0, ff::SceneManager::Priority::High)
 	{
 		sprite->set_pos(position);
 		sprite->set_hflip(hflip);

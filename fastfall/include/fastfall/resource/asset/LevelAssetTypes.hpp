@@ -17,26 +17,76 @@ using gid = uint32_t;
 // map of the first gid mapped to the tileset name
 using TilesetMap = std::map<gid, std::string>;
 
-using object_id = unsigned int;
-constexpr object_id object_null = 0;
+struct ObjLevelID {
+	static constexpr unsigned NO_ID = 0;
+
+	unsigned id = NO_ID;
+
+	bool operator== (const ObjLevelID& rhs) const {
+		return id == rhs.id;
+	}
+	bool operator< (const ObjLevelID& rhs) const {
+		return id < rhs.id;
+	}
+
+	operator bool() {
+		return id != NO_ID;
+	}
+};
 
 struct ObjectData {
 	std::string name;
 	size_t typehash = 0; // hash of type string
 	Vec2i position;
 	Vec2u size;
-	std::vector<std::pair<std::string, std::string>> properties;
+	std::unordered_map<std::string, std::string> properties;
 	std::vector<Vec2i> points;
+
+	const std::string& getPropAsString(const std::string& key) const
+	{
+		return properties.at(key);
+	}
+
+	int getPropAsInt(const std::string& key) const
+	{
+		return std::atoi(properties.at(key).c_str());
+	}
+
+	bool getPropAsBool(const std::string& key) const
+	{
+		const std::string& value = properties.at(key);
+		if (strcmp(value.c_str(), "true") == 0) {
+			return true;
+		}
+		else if (strcmp(value.c_str(), "false") == 0) {
+			return false;
+		}
+		else {
+			throw std::exception();
+		}
+	}
+
+	bool getPropAsFloat(const std::string& key) const
+	{
+		return std::atof(properties.at(key).c_str());
+	}
+
+	ObjLevelID getPropAsID(const std::string& key) const {
+		return ObjLevelID{ (unsigned)std::atol(properties.at(key).c_str()) };
+	}
 };
 
-struct ObjectDataRef {
-	object_id id;
-	ObjectData data;
+struct ObjectLevelData : public ObjectData {
+	ObjLevelID level_id;
+
+	bool operator< (const ObjectLevelData& rhs) const {
+		return level_id < rhs.level_id;
+	}
 };
 
 struct ObjectLayerData {
 	unsigned layer_id = 0;
-	std::vector<ObjectDataRef> objects;
+	std::vector<ObjectLevelData> objects;
 
 	unsigned getID() const { return layer_id; }
 };

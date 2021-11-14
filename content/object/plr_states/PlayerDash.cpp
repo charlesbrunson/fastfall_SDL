@@ -9,7 +9,7 @@ using namespace ff;
 
 using namespace plr;
 
-constexpr secs dash_duration = 0.25;
+constexpr secs dash_duration = 0.24;
 
 constexpr float start_velx = 240.f;
 constexpr float end_velx = 240.f;

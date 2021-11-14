@@ -27,8 +27,8 @@ public:
 
 	void clear();
 
-	inline unsigned getNextSpawnId() {
-		return spawnCounter++;
+	inline ObjSpawnID getNextSpawnId() {
+		return ObjSpawnID{ spawnCounter++ };
 	}
 
 	void addObject(std::unique_ptr<GameObject>&& obj);

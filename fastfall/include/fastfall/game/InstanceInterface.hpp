@@ -35,16 +35,26 @@ namespace ff::instance {
 
 	template<class T, class ...Args>
 	requires std::is_base_of_v<GameObject, T>
-		&& std::is_constructible_v<T, GameContext, Args...>
-	T* obj_make(GameContext context, Args&&...args) {
-		auto ptr = std::make_unique<T>(context, std::forward<Args>(args)...);
+		&& std::is_constructible_v<T, ObjectConfig, Args...>
+	T* obj_make(GameContext context, Args&&...args) 
+	{
+		const auto* type = GameObjectLibrary::getType<T>();
+		assert(type);
+
+		ObjectConfig cfg{
+			.context = context,
+			.m_type = *type,
+			.m_level_data = nullptr
+		};
+
+		auto ptr = std::make_unique<T>(cfg, std::forward<Args>(args)...);
 		return (T*)obj_add(context, std::move(ptr));
 	}
 
-	GameObject* obj_get_by_level_id(GameContext context, unsigned levelID);
-	GameObject* obj_get_by_spawn_id(GameContext context, unsigned spawnID);
+	GameObject* obj_get_by_level_id(GameContext context, ObjLevelID levelID);
+	GameObject* obj_get_by_spawn_id(GameContext context, ObjSpawnID spawnID);
 
-	unsigned obj_reserve_spawn_id(GameContext context);
+	ObjSpawnID obj_reserve_spawn_id(GameContext context);
 
 	// collision
 	const CollisionManager* phys_get_man(GameContext context);
@@ -73,6 +83,8 @@ namespace ff::instance {
 	// level
 	const Level* lvl_get_active(GameContext context);
 	const std::map<const std::string*, std::unique_ptr<Level>>* lvl_get_all(GameContext context);
+
+
 
 	// camera
 	const GameCamera* cam_get_man(GameContext context);
