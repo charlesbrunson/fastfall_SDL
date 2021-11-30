@@ -115,7 +115,6 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime)
 	return PlayerStateID::Continue;
 }
 
-
 PlayerStateID PlayerAirState::post_collision(Player& plr)
 {
 	if (plr.ground->has_contact()) {

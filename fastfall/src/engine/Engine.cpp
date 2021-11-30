@@ -34,25 +34,19 @@
 
 namespace ff {
 
-unsigned getDisplayRefreshRate(const Window& win);
+std::optional<unsigned> getDisplayRefreshRate(const Window& win);
 
-Engine* Engine::engineInstance = nullptr;
+std::unique_ptr<Engine> Engine::engineInstance;
 
 void Engine::init(std::unique_ptr<Window>&& window, EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings) {
     LOG_INFO("Initializing engine instance");
-    engineInstance = new Engine{ std::move(window), std::move(toRun), initWindowSize, engineSettings };
-
+    engineInstance = std::unique_ptr<Engine>(new Engine{ std::move(window), std::move(toRun), initWindowSize, engineSettings });
     LOG_INFO("Initialization complete");
 }
 
 void Engine::shutdown() {
     LOG_INFO("Shutting down engine instance");
-
-    engineInstance->window.reset();
-
-    delete engineInstance;
-    engineInstance = nullptr;
-
+    engineInstance.reset();
     LOG_INFO("Shutdown complete, have a nice day");
 }
 
@@ -476,6 +470,7 @@ void Engine::sleep() {
         window->display();
         displayTime = std::chrono::steady_clock::now() - displayStart;
     }
+
     clock.sleepUntilTick(!window);
 }
 
@@ -491,7 +486,11 @@ void Engine::handleEvents(bool* timeWasted)
     bool discardMousePress = false;
 
     SDL_Event event;
-    while (SDL_PollEvent(&event)) {
+    event_count = 0u;
+
+    while (SDL_PollEvent(&event)) 
+    {
+        event_count++;
 
         if (ImGui_ImplSDL2_ProcessEvent(&event)) {
             if (ImGui::GetIO().WantCaptureMouse && (event.type & SDL_MOUSEMOTION) > 0) {
@@ -779,7 +778,7 @@ void Engine::ImGui_getContent() {
     ImGui::Text("Cursor (game) = (%6.2f, %6.2f)", Input::getMouseWorldPosition().x, Input::getMouseWorldPosition().y);
     ImGui::Text("Cursor inside = %s", Input::getMouseInView() ? "true" : "false");
     ImGui::Separator();
-
+    ImGui::Text("Events  = %4d", event_count);
 
     // FRAME DATA GRAPH
 
@@ -904,12 +903,11 @@ void Engine::ImGui_getContent() {
         clock.setSteady(steady);
     }
     if (ImGui::Checkbox("Set Vsync", &settings.vsyncEnabled)) {
-        if (settings.vsyncEnabled) {
-            int vsyncRefreshRate = getDisplayRefreshRate(*window);
-            if (vsyncRefreshRate > 0) {
-                fpsMax = vsyncRefreshRate;
-                clock.setTargetFPS(vsyncRefreshRate);
-            }
+        if (settings.vsyncEnabled) 
+        {
+            unsigned vsyncRefreshRate = getDisplayRefreshRate(*window).value_or(60);
+            fpsMax = vsyncRefreshRate;
+            clock.setTargetFPS(vsyncRefreshRate);
         }
         else {
             clock.setTargetFPS(settings.refreshRate);
@@ -929,23 +927,16 @@ void Engine::ImGui_getExtraContent() {
     if (showImPlotDemo) ImPlot::ShowDemoWindow(&showImPlotDemo);
 }
 
-unsigned getDisplayRefreshRate(const Window& win) {
-
+std::optional<unsigned> getDisplayRefreshRate(const Window& win) 
+{
     SDL_DisplayMode mode;
-
     int displayIndex = SDL_GetWindowDisplayIndex(win.getSDL_Window());
 
-    int defaultRefreshRate = 60;
-    if (SDL_GetDesktopDisplayMode(displayIndex, &mode) != 0)
+    if ((SDL_GetDesktopDisplayMode(displayIndex, &mode) != 0) || (mode.refresh_rate == 0))
     {
-        return defaultRefreshRate;
-    }
-    if (mode.refresh_rate == 0)
-    {
-        return defaultRefreshRate;
-    }
+        return std::nullopt;
+    } 
     return mode.refresh_rate;
-
 }
 
 

@@ -111,7 +111,7 @@ public:
 		FULL_GHOST = 2
 	};
 
-	static Ghost isGhostEdge(const Contact* basis, const Contact* candidate) noexcept;
+	static Ghost isGhostEdge(const Contact& basis, const Contact& candidate) noexcept;
 
 };
 

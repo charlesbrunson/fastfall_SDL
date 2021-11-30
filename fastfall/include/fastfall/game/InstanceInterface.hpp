@@ -33,6 +33,7 @@ namespace ff::instance {
 
 	GameObject* obj_add(GameContext context, std::unique_ptr<GameObject>&& obj);
 
+	/*
 	template<class T, class ...Args>
 	requires std::is_base_of_v<GameObject, T>
 		&& std::is_constructible_v<T, ObjectConfig, Args...>
@@ -50,6 +51,7 @@ namespace ff::instance {
 		auto ptr = std::make_unique<T>(cfg, std::forward<Args>(args)...);
 		return (T*)obj_add(context, std::move(ptr));
 	}
+	*/
 
 	GameObject* obj_get_by_level_id(GameContext context, ObjLevelID levelID);
 	GameObject* obj_get_by_spawn_id(GameContext context, ObjSpawnID spawnID);

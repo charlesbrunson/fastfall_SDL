@@ -50,40 +50,7 @@ void game_InitTypes() {
 
 	// objects
 
-	GameObjectLibrary::addType<Player>(
-		ObjectType{
-			.type = { "Player" },
-			.allow_level_data = true,
-			.anim = std::make_optional(AnimIDRef{"player", "idle"}),
-			.tile_size = { 1u, 2u },
-			.group_tags = {
-				"player"
-			},
-			.properties = {
-				ObjectProperty{"anotherprop", ObjectPropertyType::String},
-				ObjectProperty{"faceleft", false}
-			}
-			
-		});
-
-	GameObjectLibrary::addType<BasicPlatform>(
-		ObjectType{
-			.type = { "BasicPlatform" },
-			.allow_level_data = true,
-			.anim = std::nullopt,
-			.tile_size = {0, 0},
-			.group_tags = {
-				"platform"
-			},
-			.properties = {
-				ObjectProperty{"acceleration", ObjectPropertyType::Float},
-				ObjectProperty{"max_velocity", ObjectPropertyType::Float},
-				ObjectProperty{"path", ObjLevelID{}}
-			} 
-		});
-
-	GameObjectLibrary::addType<SimpleEffect>(
-		ObjectType{
-			.type = { "SimpleEffect" },
-		});
+	ObjectFactory::register_object<Player>();
+	ObjectFactory::register_object<BasicPlatform>();
+	ObjectFactory::register_object<SimpleEffect>();
 }

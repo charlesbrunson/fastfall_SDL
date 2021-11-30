@@ -66,7 +66,7 @@ struct ObjectData {
 		}
 	}
 
-	bool getPropAsFloat(const std::string& key) const
+	float getPropAsFloat(const std::string& key) const
 	{
 		return std::atof(properties.at(key).c_str());
 	}

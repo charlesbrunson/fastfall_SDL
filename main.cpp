@@ -28,7 +28,7 @@ ff::EngineSettings getSettings() {
 	settings.vsyncEnabled = false;
 	settings.runstyle = ff::EngineRunStyle::Emscripten;
 #else
-	settings.refreshRate = 60;
+	settings.refreshRate = 144;
 	settings.vsyncEnabled = true;
 	//settings.runstyle = ff::EngineRunStyle::SingleThread;
 	settings.runstyle = ff::EngineRunStyle::DoubleThread;
@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
 	Engine::init(
 		std::move(window),
 		EngineRunnable(std::make_unique<TestState>()),
-		Vec2u{ 1920, 900 },
+		Vec2u{ GAME_W, GAME_H } * 4,
 		getSettings()
 	);
 

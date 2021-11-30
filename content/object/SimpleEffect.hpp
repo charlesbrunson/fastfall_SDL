@@ -8,16 +8,19 @@
 
 class SimpleEffect : public ff::GameObject {
 public:
-	SimpleEffect(ff::ObjectConfig cfg, ff::AnimID anim, ff::Vec2f position, bool hflip)
-		: ff::GameObject(cfg)
-		, sprite(cfg.context, ff::AnimatedSprite{}, ff::SceneType::Object, 0, ff::SceneManager::Priority::High)
+	static const ff::ObjectType Type;
+	const ff::ObjectType& type() const override { return Type; };
+
+	SimpleEffect(ff::GameContext context, ff::AnimID anim, ff::Vec2f position, bool hflip)
+		: ff::GameObject(context)
+		, sprite(context, ff::AnimatedSprite{}, ff::SceneType::Object, 0, ff::SceneManager::Priority::High)
 	{
 		sprite->set_pos(position);
 		sprite->set_hflip(hflip);
-		toDelete = !sprite->set_anim(anim);
+		m_remove = !sprite->set_anim(anim);
 	};
 
-	std::unique_ptr<GameObject> clone() const override 
+	std::unique_ptr<ff::GameObject> clone() const override
 	{
 		return nullptr;		
 	};
@@ -25,7 +28,7 @@ public:
 	void update(secs deltaTime) override {
 		sprite->update(deltaTime);
 		if (sprite->is_complete()) {
-			toDelete = true;
+			m_remove = true;
 		}
 	};
 

@@ -32,8 +32,8 @@ enum class Response {
 };
 
 template<typename T>
-struct CmdRetPayload {
-	CmdRetPayload(Response resp, T payload) 
+struct CommandResult {
+	CommandResult(Response resp, T payload)
 		: m_response_id(resp)
 		, m_payload(
 			resp == Response::Accepted ?
@@ -50,14 +50,13 @@ struct CmdRetPayload {
 	const std::optional<T>& payload() const { return m_payload; }
 
 private:
-
 	const Response m_response_id;
 	const std::optional<T> m_payload;
 };
 
 template<>
-struct CmdRetPayload<void> {
-	CmdRetPayload(Response resp)
+struct CommandResult<void> {
+	CommandResult(Response resp)
 		: m_response_id(resp)
 	{
 	}
@@ -67,12 +66,8 @@ struct CmdRetPayload<void> {
 	bool is_rejected()  const { return m_response_id == Response::Rejected; }
 	bool is_unhandled() const { return m_response_id == Response::Unhandled; }
 
-	//const std::optional<T>& payload() const { return m_payload; }
-
 private:
-
 	const Response m_response_id;
-	//const std::optional<T> m_payload;
 };
 
 
@@ -80,7 +75,6 @@ template<class Enum>
 requires std::is_enum_v<Enum>
 class Commandable {
 protected:
-
 	struct CmdResponse {
 	private:
 		CmdResponse(Response t_resp)
@@ -98,19 +92,13 @@ protected:
 		Response response;
 		std::any payload;
 
-		//template<class Enum>
-		//requires std::is_enum_v<Enum>
 		friend class Commandable;
 	};
 
-	template<Enum C>
-	inline static cmd_payload_t<Enum, C> cmd_payload(const std::any& t_payload) {
-		return std::any_cast<cmd_payload_t<Enum, C>>(t_payload);
-	}
-
+private:
 	template<Enum C>
 	requires std::is_void_v<cmd_return_t<Enum, C>>
-	inline static CmdResponse respond(bool accepted) {
+		inline static CmdResponse respond(bool accepted) {
 		return { accepted ? Response::Accepted : Response::Rejected };
 	}
 
@@ -124,10 +112,15 @@ protected:
 		return { Response::Accepted, cmd_return };
 	}
 
+	template<Enum C>
+	inline static cmd_payload_t<Enum, C> cmd_payload(const std::any& t_payload) {
+		return std::any_cast<cmd_payload_t<Enum, C>>(t_payload);
+	}
+protected:
+
 	virtual CmdResponse do_command(Enum cmd, const std::any& payload) {
 		return { Response::Unhandled };
 	}
-
 
 	struct Behavior {
 		Behavior(Enum command, const std::any& payload)
@@ -136,7 +129,6 @@ protected:
 		{
 		}
 
-		
 		template<Enum C, typename Callable>
 		requires std::is_void_v<cmd_payload_t<Enum, C>>
 			&& std::is_invocable_r_v<cmd_return_t<Enum, C>, Callable>
@@ -174,12 +166,12 @@ protected:
 			return *this;
 		}
 
-		template<typename Callable>
-		requires std::is_invocable_r_v<CmdResponse, Callable, Enum, const std::any&>
-		CmdResponse backup(Callable&& call)
+		template<typename Callable, typename ... Args>
+		requires std::is_invocable_r_v<CmdResponse, Callable, Args..., Enum, const std::any&>
+		CmdResponse backup(Callable&& call, Args&&...args)
 		{
 			if (!response) {
-				response = call(cmd, *pl);
+				response = std::invoke(call, args..., cmd, *pl);
 			}
 			return response.value_or(CmdResponse{ Response::Unhandled });
 		}
@@ -198,7 +190,7 @@ public:
 
 	template<Enum C, class CmdReturnType = cmd_return_t<Enum, C>>
 		requires is_command_v<Enum, C> && std::is_void_v<cmd_payload_t<Enum, C>>
-	constexpr inline CmdRetPayload<CmdReturnType> command() 
+	constexpr inline CommandResult<CmdReturnType> command()
 	{
 		auto resp = do_command(C, std::any{});
 		if constexpr (std::is_void_v<CmdReturnType>) {
@@ -211,7 +203,7 @@ public:
 
 	template<Enum C, class CmdReturnType = cmd_return_t<Enum, C>>
 		requires is_command_v<Enum, C>
-	constexpr inline CmdRetPayload<CmdReturnType> command(cmd_payload_t<Enum, C> payload) 
+	constexpr inline CommandResult<CmdReturnType> command(cmd_payload_t<Enum, C> payload)
 	{
 		auto resp = do_command(C, payload);
 		if constexpr (std::is_void_v<CmdReturnType>) {

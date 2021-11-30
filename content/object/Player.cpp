@@ -17,40 +17,72 @@ using namespace plr;
 
 //using namespace plr_constants;
 
-Player::Player(ObjectConfig cfg, Vec2f position, bool faceleft)
-	: GameObject{ cfg }
-	, box(cfg.context, Vec2f(position), Vec2f(8.f, 28.f), constants::grav_normal)
-	, hitbox(cfg.context, box->getBox(), { "hitbox" }, {}, this)
-	, hurtbox(cfg.context, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
-	, sprite(cfg.context, AnimatedSprite{}, SceneType::Object)
-	, cam_target(cfg.context, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
-	, curr_state(std::make_unique<PlayerGroundState>())
+using PlayerStateVariant = std::variant<
+	PlayerGroundState,
+	PlayerAirState,
+	PlayerDashState
+>;
+
+struct Player::plr_state_impl {
+
+	PlayerStateVariant state = PlayerGroundState{};
+
+	template<typename Callable>
+	requires std::is_invocable_v<Callable, PlayerState&>
+	auto visit_state(Callable&& callable) 
+	{
+		return std::visit(callable, state);
+	}
+
+	PlayerState& get_state() {
+		return std::visit([](auto& t_state) -> PlayerState& { return static_cast<PlayerState&>(t_state); }, state);
+	}
+};
+
+const ObjectType Player::Type{
+	.type = { "Player" },
+	.allow_level_data = true,
+	.anim = std::make_optional(AnimIDRef{"player", "idle"}),
+	.tile_size = { 1u, 2u },
+	.group_tags = {
+		"player"
+	},
+	.properties = {
+		ObjectProperty{"anotherprop", ObjectPropertyType::String},
+		ObjectProperty{"faceleft", false}
+	}
+};
+
+Player::Player(GameContext context, Vec2f position, bool faceleft)
+	: GameObject{ context }
+	, box(context, Vec2f(position), Vec2f(8.f, 28.f), constants::grav_normal)
+	, hitbox(context, box->getBox(), { "hitbox" }, {}, this)
+	, hurtbox(context, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
+	, sprite(context, AnimatedSprite{}, SceneType::Object)
+	, cam_target(context, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
+	, state_pImpl(std::make_unique<plr_state_impl>())
 {
 	init();
 	sprite->set_hflip(faceleft);
 };
 
-Player::Player(ObjectConfig cfg)
-	: GameObject{cfg }
-	, box(cfg.context, Vec2f(cfg.m_level_data->position), Vec2f(8.f, 28.f), constants::grav_normal)
-	, hitbox(cfg.context, box->getBox(), { "hitbox" }, {}, this)
-	, hurtbox(cfg.context, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
-	, sprite(cfg.context, AnimatedSprite{}, SceneType::Object)
-	, cam_target(cfg.context, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
-	, curr_state(std::make_unique<PlayerGroundState>())
+Player::Player(GameContext context, ObjectLevelData& data)
+	: GameObject( context, data )
+	, box(context, Vec2f{ data.position }, Vec2f(8.f, 28.f), constants::grav_normal)
+	, hitbox(context, box->getBox(), { "hitbox" }, {}, this)
+	, hurtbox(context, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
+	, sprite(context, AnimatedSprite{}, SceneType::Object)
+	, cam_target(context, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
+	, state_pImpl(std::make_unique<plr_state_impl>())
 {
 	init();
 
-	for (const auto& [propName, propValue] : cfg.m_level_data->properties)
-	{
-		if (propName == "faceleft") {
-			sprite->set_hflip(propValue == "true");
-		}
-	}
+	sprite->set_hflip(data.getPropAsBool("faceleft"));
 };
 
 
 void Player::init() {
+
 	// surface tracker
 	ground = &box->create_tracker(
 		Angle::Degree(-135), Angle::Degree(-45),
@@ -64,14 +96,12 @@ void Player::init() {
 			.max_speed = constants::norm_speed,
 		});
 
-
-
 	// trigger testing
 	hurtbox->set_trigger_callback(
 		[this](const TriggerPull& pull) {
 			if (auto owner = pull.trigger->get_owner();
 				owner 
-				&& owner->getType().group_tags.contains("player")
+				&& owner->type().group_tags.contains("player")
 				&& pull.state == Trigger::State::Entry)
 			{
 				if (auto rpayload = owner->command<ObjCmd::GetPosition>().payload())
@@ -90,14 +120,13 @@ void Player::init() {
 
 	box->set_onPostCollision(
 		[this] {
-			if (curr_state) {
-				manage_state(curr_state->post_collision(*this));
-			}
+			manage_state(state_pImpl->get_state().post_collision(*this));
 		});
 }
 
-std::unique_ptr<GameObject> Player::clone() const {
-	std::unique_ptr<Player> object = std::make_unique<Player>(getConfig(), box->getPosition(), sprite->get_hflip());
+std::unique_ptr<GameObject> Player::clone() const 
+{
+	std::unique_ptr<Player> object = std::make_unique<Player>(m_context, box->getPosition(), sprite->get_hflip());
 
 	// TODO
 
@@ -105,26 +134,35 @@ std::unique_ptr<GameObject> Player::clone() const {
 }
 
 
-void Player::manage_state(PlayerStateID n_id) {
+void Player::manage_state(PlayerStateID n_id) 
+{
+	auto state_transition = [this]<std::derived_from<PlayerState> T>( T&& next_state ) 
+	{
+		state_pImpl->get_state().exit(*this, &next_state);
+		auto& prev_state = state_pImpl->get_state();
+		state_pImpl->state = next_state;
+		state_pImpl->get_state().enter(*this, &prev_state);
+	};
+
 	switch (n_id) {
 	case PlayerStateID::Continue:
 		break;
 	case PlayerStateID::Ground:
-		state_transition<PlayerGroundState>();
+		state_transition(PlayerGroundState{});
 		break;
 	case PlayerStateID::Air:
-		state_transition<PlayerAirState>();
+		state_transition(PlayerAirState{});
 		break;
 	case PlayerStateID::Dash:
-		state_transition<PlayerDashState>();
+		state_transition(PlayerDashState{});
 		break;
 	}
 }
 
 void Player::update(secs deltaTime) {
 
-	if (curr_state) {
-		manage_state(curr_state->update(*this, deltaTime));
+	if (state_pImpl) {
+		manage_state(state_pImpl->get_state().update(*this, deltaTime));
 	}
 
 	box->update(deltaTime);
@@ -137,14 +175,12 @@ Player::CmdResponse Player::do_command(ObjCmd cmd, const std::any& payload)
 {
 	return Behavior{ cmd, payload }
 		.match<ObjCmd::NoOp>(
-			[]() { return true; }
-		)
+			[]() { return true; })
 		.match<ObjCmd::GetPosition>(
-			[this]() { return box->getPosition(); }
-		)
+			[this]() { return box->getPosition(); })
 		.match<ObjCmd::Hurt>(
-			[this](float damage) { LOG_INFO("OUCH: {}", damage); }
-		);
+			[this](float damage) { LOG_INFO("OUCH: {}", damage); })
+		;
 }
 
 void Player::predraw(secs deltaTime) {
@@ -155,7 +191,12 @@ void Player::predraw(secs deltaTime) {
 void Player::ImGui_Inspect() {
 	using namespace ImGui;
 
-	Text("Current State: %d %s", curr_state->get_id(), curr_state->get_name().data());
+	auto [id, name] = state_pImpl->visit_state(
+		[&](PlayerState& state) { 
+			return make_pair(state.get_id(), state.get_name());
+		});
+
+	Text("Current State: %d %s", id, name);
 	Text("Position(%3.2f, %3.2f)", box->getPosition().x, box->getPosition().y);
 	Text("Velocity(%3.2f, %3.2f)", box->get_vel().x, box->get_vel().y);
 
@@ -185,7 +226,5 @@ void Player::ImGui_Inspect() {
 
 	Separator();
 
-	if (curr_state) {
-		curr_state->get_imgui(*this);
-	}
+	state_pImpl->get_state().get_imgui(*this);
 }

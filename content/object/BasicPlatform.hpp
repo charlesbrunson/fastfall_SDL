@@ -13,9 +13,12 @@
 
 class BasicPlatform : public ff::GameObject {
 public:
-	BasicPlatform(ff::ObjectConfig cfg);
+	static const ff::ObjectType Type;
+	const ff::ObjectType& type() const override { return Type; };
 
-	std::unique_ptr<GameObject> clone() const override;
+	BasicPlatform(ff::GameContext context, ff::ObjectLevelData& data);
+
+	std::unique_ptr<ff::GameObject> clone() const override;
 
 	void update(secs deltaTime) override;
 

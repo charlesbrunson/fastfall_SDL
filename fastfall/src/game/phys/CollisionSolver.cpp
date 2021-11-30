@@ -413,8 +413,8 @@ CollisionSolver::ArbCompResult CollisionSolver::compArbiters(const Arbiter* lhs,
 	if (lhs == rhs)
 		return comp;
 
-	const Contact* lhsContact = lhs->getContactPtr();
-	const Contact* rhsContact = rhs->getContactPtr();
+	const Contact& lhsContact = *lhs->getContactPtr();
+	const Contact& rhsContact = *rhs->getContactPtr();
 
 	comp.discardFirst = !lhs->getCollision()->tileValid();
 	comp.discardSecond = !rhs->getCollision()->tileValid();
@@ -455,18 +455,18 @@ CollisionSolver::ArbCompResult CollisionSolver::compArbiters(const Arbiter* lhs,
 	return comp;
 }
 
-CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact* basis, const Contact* candidate) noexcept {
+CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact& basis, const Contact& candidate) noexcept {
 
 
-	if (!basis->isResolvable())
+	if (!basis.isResolvable())
 		return CollisionSolver::Ghost::NO_GHOST;
 
-	bool isOneWay = (!basis->hasContact) && (basis->separation > 0.f) && (basis->impactTime == -1.0);
+	bool isOneWay = (!basis.hasContact) && (basis.separation > 0.f) && (basis.impactTime == -1.0);
 
-	Linef basisLine = basis->collider.surface;
-	Linef candLine = candidate->collider.surface;
+	Linef basisLine = basis.collider.surface;
+	Linef candLine = candidate.collider.surface;
 
-	Vec2f basisNormal = math::vector(basis->collider.surface).lefthand().unit();
+	Vec2f basisNormal = math::vector(basis.collider.surface).lefthand().unit();
 
 	float dotp1 = math::dot(basisNormal, candLine.p1 - basisLine.p2);
 	float dotp2 = math::dot(basisNormal, candLine.p2 - basisLine.p1);

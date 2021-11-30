@@ -93,7 +93,7 @@ bool ObjectLayer::removeObjectDataByID(ObjLevelID id) {
 void ObjectLayer::createObjectsFromData(GameContext context) {
 	for (auto& objRef : object_refs) {
 		if (objRef.typehash != 0) {
-			GameObjectLibrary::buildFromData(context, objRef);
+			ObjectFactory::createFromData(context, objRef);
 		}
 	}
 }

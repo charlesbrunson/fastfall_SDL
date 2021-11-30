@@ -41,8 +41,8 @@ namespace ff::instance {
 			auto& objects = inst->getObject().getObjects();
 			for (auto& obj_ptr : objects) {
 				if (obj_ptr 
-					&& obj_ptr->getLevelData()
-					&& obj_ptr->getLevelData()->level_id == levelID) {
+					&& obj_ptr->level_data()
+					&& obj_ptr->level_data()->level_id == levelID) {
 					return obj_ptr.get();
 				}
 			}
@@ -54,7 +54,7 @@ namespace ff::instance {
 		if (auto* inst = getInstance(context)) {
 			auto& objects = inst->getObject().getObjects();
 			for (auto& obj_ptr : objects) {
-				if (obj_ptr && obj_ptr->getID() == spawnID) {
+				if (obj_ptr && obj_ptr->spawn_id() == spawnID) {
 					return obj_ptr.get();
 				}
 			}

@@ -323,7 +323,7 @@ void levelContent(GameContext context) {
 			{
 				for (auto& objdata : layer.getObjectData()) {
 
-					const std::string* type = GameObjectLibrary::lookupTypeName(objdata.typehash);
+					const std::string* type = &ObjectFactory::getType(objdata.typehash)->type.name;
 					if (ImGui::TreeNode((char*)&objdata, "%s #%u", (type ? type->c_str() : "Anonymous Type"), objdata.level_id.id)) {
 
 						if (ImGui::BeginChild((char*)&objdata, ImVec2(0, 100), true)) {
@@ -363,25 +363,25 @@ void objectContent(GameContext context) {
 	for (auto& obj : man->getObjects()) {
 
 
-		if (obj->getLevelData()) {
+		if (obj->level_data()) {
 			ImGui::Text("%s level:%u, spawn:%u",
-				obj->getType().type.name.c_str(),
-				obj->getLevelData()->level_id.id,
-				obj->getID());
+				obj->type().type.name.c_str(),
+				obj->level_data()->level_id,
+				obj->spawn_id());
 		}
 		else {
 			ImGui::Text("%s spawn:%u",
-				obj->getType().type.name.c_str(),
-				obj->getID());
+				obj->type().type.name.c_str(),
+				obj->spawn_id());
 		}
 
 
 		ImGui::NextColumn();
 
 		static char buttonBuf[32];
-		sprintf(buttonBuf, "%s##%d", obj->showInspect ? "Uninspect" : " Inspect ", obj->getID().id);
+		sprintf(buttonBuf, "%s##%d", obj->m_show_inspect ? "Uninspect" : " Inspect ", obj->spawn_id().id);
 		if (ImGui::Button(buttonBuf)) {
-			obj->showInspect = !obj->showInspect;
+			obj->m_show_inspect = !obj->m_show_inspect;
 		}
 		ImGui::NextColumn();
 	}
@@ -546,8 +546,8 @@ void InstanceObserver::ImGui_getExtraContent() {
 
 	if (context.valid()) {
 		for (auto& obj : instance::obj_get_man(context)->getObjects()) {
-			if (obj->showInspect 
-				&& ImGui::Begin(obj->getType().type.name.c_str(), &obj->showInspect))
+			if (obj->m_show_inspect 
+				&& ImGui::Begin(obj->type().type.name.c_str(), &obj->m_show_inspect))
 			{
 				obj->ImGui_Inspect();
 				ImGui::End();

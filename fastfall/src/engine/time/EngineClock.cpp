@@ -48,13 +48,10 @@ unsigned EngineClock::getInstantFPS() const noexcept {
 	return (elapsed > 0s ? (time_res{ 1s } / elapsed) : 0);
 }
 
-void EngineClock::sleepUntilTick(bool nosleep) noexcept {
-
-	//secs PREV_TIME = _data.activeTime.count();
-
+void EngineClock::sleepUntilTick(bool nosleep) noexcept 
+{
 	_data.activeTime = engineClock.now() - _active_start;
 
-	//secs TIME = _data.activeTime.count();
 	if (fpsUnlimited)
 		return;
 
@@ -73,24 +70,23 @@ void EngineClock::resetTickWindow(bool nomiss) noexcept {
 	if (fpsUnlimited)
 		return;
 
-	time_point<steady_clock> now = engineClock.now();
-
 	if (tickDuration > 0s) {
 		prev_tick = cur_tick;
-		cur_tick = now.time_since_epoch() / tickDuration;
+		cur_tick = engineClock.now().time_since_epoch() / tickDuration;
 		if (prev_tick == cur_tick) {
 			cur_tick++;
+		}
+
+		bool at_next_tick = (prev_tick + 1 == cur_tick) || (prev_tick == 0);
+		if (!nomiss && !at_next_tick)
+		{
+			tickMissCounter += cur_tick - prev_tick - 1;
 		}
 	}
 
 	tick_start_p = time_point<steady_clock>( (cur_tick * tickDuration));
 	tick_end_p = tick_start_p + tickDuration;
 
-	if (tickDuration > 0s) {
-		if (!nomiss && prev_tick != 0 && prev_tick + 1 != cur_tick) {
-			tickMissCounter += cur_tick - prev_tick - 1;
-		}
-	}
 }
 
 secs EngineClock::tick() noexcept {

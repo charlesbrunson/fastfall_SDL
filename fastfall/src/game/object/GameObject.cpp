@@ -18,53 +18,6 @@
 
 namespace ff {
 
-GameObject* GameObjectLibrary::buildFromData(GameContext instance, ObjectLevelData& data) {
-	std::unique_ptr<GameObject> obj = nullptr;
-
-	auto r = std::find_if(getBuilder().begin(), getBuilder().end(),
-		[&data](const ObjectTypeBuilder& builder) {
-			return data.typehash == builder.hash;
-		});
-
-	if (r != getBuilder().end()) {
-		obj = r->builder(instance, r->constraints, data);
-
-		if (obj) {
-			return instance::obj_add(instance, std::move(obj));
-		}
-		else if (!obj) {
-			LOG_ERR_("Object reference invalid, unable to create");
-			//assert(false);
-		}
-		else {
-			LOG_ERR_("No instance");
-			assert(false);
-		}
-	}
-	else {
-
-		LOG_ERR_("could not match object type {}", data.typehash);
-		LOG_ERR_("known types are:");
-		log::scope scope;
-		for (auto& type : getBuilder()) {
-			LOG_ERR_("{}: {}", type.hash, type.objTypeName);
-		}
-	}
-	return nullptr;
-}
-
-const std::string* GameObjectLibrary::lookupTypeName(size_t hash) {
-	auto r = std::find_if(getBuilder().begin(), getBuilder().end(),
-		[&hash](const ObjectTypeBuilder& builder) {
-			return hash == builder.hash;
-		});
-
-	if (r != getBuilder().end()) {
-		return &r->objTypeName;
-	}
-	return nullptr;
-}
-
 bool ObjectType::test(ObjectLevelData& data) const {
 
 	if (!allow_level_data) {
@@ -82,7 +35,6 @@ bool ObjectType::test(ObjectLevelData& data) const {
 		return false;
 	}
 
-
 	// test size
 	if (tile_size.x > 0 && (data.size.x / TILESIZE != tile_size.x)) {
 		LOG_WARN("object width ({}) not valid for object:{:x}",
@@ -96,7 +48,6 @@ bool ObjectType::test(ObjectLevelData& data) const {
 		);
 		return false;
 	}
-
 
 	// test custom properties
 	for (const auto& prop : properties) {
@@ -180,11 +131,67 @@ bool ObjectType::test(ObjectLevelData& data) const {
 	return true;
 }
 
-GameObject::GameObject(ObjectConfig cfg)
-	: m_config(cfg)
-	, m_spawnID(instance::obj_reserve_spawn_id(cfg.context))
+
+std::map<size_t, ObjectFactory::ObjectFactoryImpl>& ObjectFactory::getFactories() {
+	static std::map<size_t, ObjectFactoryImpl> factories;
+	return factories;
+}
+
+GameObject* ObjectFactory::add_obj_to_instance(GameContext cfg, std::unique_ptr<GameObject>&& obj)
+{
+	return instance::obj_add(cfg, std::move(obj));
+}
+
+GameObject* ObjectFactory::createFromData(GameContext cfg, ObjectLevelData& data) {
+	if (auto it = getFactories().find(data.typehash); it != getFactories().end()) {
+
+		std::unique_ptr<GameObject> obj = it->second.createfn(cfg, data);
+
+		if (obj) {
+			return instance::obj_add(cfg, std::move(obj));
+		}
+		else {
+			LOG_ERR_("Failed to create object: {}:{}", it->second.object_type->type.name, data.level_id.id);
+		}
+	}
+	else {
+		LOG_ERR_("could not match object type {}", data.typehash);
+		LOG_ERR_("known types are:");
+		log::scope scope;
+		for (auto& [_, impl] : getFactories()) {
+			LOG_ERR_("{}: {}", impl.object_type->type.hash, impl.object_type->type.name);
+		}
+	}
+	return nullptr;
+}
+
+const ObjectType* ObjectFactory::getType(size_t hash) {
+	if (auto it = getFactories().find(hash); it != getFactories().end()) {
+		return it->second.object_type;
+	}
+	return nullptr;
+}
+
+const ObjectType* ObjectFactory::getType(std::string_view name) {
+	for (auto& [_, impl] : getFactories()) {
+		if (impl.object_type->type.name == name) {
+			return impl.object_type;
+		}
+	}
+	return nullptr;
+}
+
+GameObject::GameObject(GameContext cfg)
+	: m_context(cfg)
+	, m_spawnID(instance::obj_reserve_spawn_id(cfg))
 {
 }
 
+GameObject::GameObject(GameContext cfg, ObjectLevelData& data)
+	: m_context(cfg)
+	, m_spawnID(instance::obj_reserve_spawn_id(cfg))
+	, m_data(&data)
+{
+}
 
 }

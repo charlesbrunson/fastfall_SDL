@@ -49,7 +49,7 @@ void GameObjectManager::update(secs deltaTime) {
 	}
 
 	for (auto& obj : created_objects) {
-		if (!obj->hasCollider) {
+		if (!obj->m_has_collider) {
 			objects.push_back(std::move(obj));
 		}
 		else {
@@ -64,7 +64,7 @@ void GameObjectManager::predraw(secs deltaTime) {
 		std::begin(objects),
 		std::end(objects),
 		[](auto& obj) {
-			return obj->can_delete();
+			return obj->can_remove();
 		});
 
 	objects.erase(it, std::end(objects));

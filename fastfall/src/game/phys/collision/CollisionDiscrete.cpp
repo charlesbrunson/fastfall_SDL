@@ -132,32 +132,27 @@ void CollisionDiscrete::createAxes() noexcept
 			non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::NORTH, .surface = surf, .is_real = true, .is_valid = true, .quadNdx = ndx };
 
 			if (surface.hasSurface && !math::is_horizontal(v)) {
-				if (surf.ghostp3.x <= surf.surface.p2.x && surf.ghostp3.y >= surf.surface.p2.y) {
+				if (!hasEastCorner && surf.ghostp3.x <= surf.surface.p2.x && surf.ghostp3.y >= surf.surface.p2.y) {
 					//east corner
-					if (!hasEastCorner) {
-						hasEastCorner = true;
-						ColliderSurface corner;
-						corner.ghostp0 = surf.surface.p1;
-						corner.surface.p1 = surf.surface.p2;
-						corner.surface.p2 = surf.surface.p2;
-						corner.ghostp3 = surf.ghostp3;
-
-						verticals[vSize++] = AxisPreStep{ .dir = Cardinal::EAST, .surface = corner, .is_real = false, .is_valid = true, .quadNdx = ndx };
-					}
-
+					hasEastCorner = true;
+					verticals[vSize++] = AxisPreStep{ 
+						.dir = Cardinal::EAST, 
+						.surface = { {surf.surface.p2, surf.surface.p2}, surf.surface.p1, surf.ghostp3 },
+						.is_real = false, 
+						.is_valid = true, 
+						.quadNdx = ndx 
+					};
 				}
-				if (surf.ghostp0.x >= surf.surface.p1.x && surf.ghostp0.y >= surf.surface.p1.y) {
+				if (!hasWestCorner && surf.ghostp0.x >= surf.surface.p1.x && surf.ghostp0.y >= surf.surface.p1.y) {
 					//west corner
-					if (!hasWestCorner) {
-						hasWestCorner = true;
-						ColliderSurface corner;
-						corner.ghostp0 = surf.ghostp0;
-						corner.surface.p1 = surf.surface.p1;
-						corner.surface.p2 = surf.surface.p1;
-						corner.ghostp3 = surf.surface.p2;
-
-						verticals[vSize++] = AxisPreStep{ .dir = Cardinal::WEST, .surface = corner, .is_real = false, .is_valid = true, .quadNdx = ndx };
-					}
+					hasWestCorner = true;
+					verticals[vSize++] = AxisPreStep{ 
+						.dir = Cardinal::WEST, 
+						.surface = { {surf.surface.p1, surf.surface.p1}, surf.ghostp0, surf.surface.p2 },
+						.is_real = false, 
+						.is_valid = true, 
+						.quadNdx = ndx 
+					};
 				}
 
 			}
@@ -167,31 +162,27 @@ void CollisionDiscrete::createAxes() noexcept
 			non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::SOUTH, .surface = surf, .is_real = true, .is_valid = true, .quadNdx = ndx };
 
 			if (surface.hasSurface && !math::is_horizontal(v)) {
-				if (surf.ghostp0.x <= surf.surface.p1.x && surf.ghostp0.y <= surf.surface.p1.y) {
+				if (!hasEastCorner && surf.ghostp0.x <= surf.surface.p1.x && surf.ghostp0.y <= surf.surface.p1.y) {
 					//east corner
-					if (!hasEastCorner) {
-						hasEastCorner = true;
-						ColliderSurface corner;
-						corner.ghostp0 = surf.ghostp0;
-						corner.surface.p1 = surf.surface.p1;
-						corner.surface.p2 = surf.surface.p1;
-						corner.ghostp3 = surf.surface.p2;
-
-						verticals[vSize++] = AxisPreStep{ .dir = Cardinal::EAST, .surface = corner, .is_real = false, .is_valid = true, .quadNdx = ndx };
-					}
+					hasEastCorner = true;
+					verticals[vSize++] = AxisPreStep{ 
+						.dir = Cardinal::EAST, 
+						.surface = { {surf.surface.p1, surf.surface.p1}, surf.ghostp0, surf.surface.p2 },
+						.is_real = false, 
+						.is_valid = true, 
+						.quadNdx = ndx 
+					};
 				}
-				if (surf.ghostp3.x >= surf.surface.p2.x && surf.ghostp3.y <= surf.surface.p2.y) {
+				if (!hasWestCorner && surf.ghostp3.x >= surf.surface.p2.x && surf.ghostp3.y <= surf.surface.p2.y) {
 					//west corner
-					if (!hasWestCorner) {
-						hasWestCorner = true;
-						ColliderSurface corner;
-						corner.ghostp0 = surf.surface.p1;
-						corner.surface.p1 = surf.surface.p2;
-						corner.surface.p2 = surf.surface.p2;
-						corner.ghostp3 = surf.ghostp3;
-
-						verticals[vSize++] = AxisPreStep{ .dir = Cardinal::WEST, .surface = corner, .is_real = false, .is_valid = true, .quadNdx = ndx };
-					}
+					hasWestCorner = true;
+					verticals[vSize++] = AxisPreStep{ 
+						.dir = Cardinal::WEST, 
+						.surface = { {surf.surface.p2, surf.surface.p2}, surf.surface.p1, surf.ghostp3 },
+						.is_real = false, 
+						.is_valid = true, 
+						.quadNdx = ndx 
+					};
 				}
 			}
 		}
@@ -241,7 +232,6 @@ void CollisionDiscrete::createAxes() noexcept
 		switch (non_verticals[i].dir) {
 		case Cardinal::NORTH: axes[axis_count++] = createFloor(non_verticals[i]); break;
 		case Cardinal::SOUTH: axes[axis_count++] = createCeil(non_verticals[i]); break;
-
 		// dont handle EAST or WEST
 		default: break;
 		}

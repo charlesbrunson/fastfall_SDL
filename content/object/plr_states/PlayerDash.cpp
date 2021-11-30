@@ -92,7 +92,7 @@ void PlayerDashState::enter(Player& plr, PlayerState* from)
 		if (plr.sprite->set_anim_if_not(dash_anims.dash->id())) 
 		{
 			Vec2f pos = plr.box->getPosition();
-			instance::obj_make<SimpleEffect>(plr.getContext(), dash_anims.fx->id(), pos, plr.sprite->get_hflip());
+			ObjectFactory::create<SimpleEffect>(plr.context(), dash_anims.fx->id(), pos, plr.sprite->get_hflip());
 		}
 		dash_speed = plr.ground->traverse_get_speed();
 	}
@@ -115,16 +115,24 @@ PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
 		apply_dash_vel(plr, get_dash_vel(dash_time, dash_speed));
 
 		auto dash_anims = select_dash_anim(plr);
-		if (plr.sprite->set_anim_if_not(dash_anims.dash->id()))
-		{
-			//Vec2f pos = plr.box->getPosition();
-			//instance::obj_make<SimpleEffect>(plr.getContext(), dash_anims.fx->id(), pos, plr.sprite->get_hflip());
-		}
+		plr.sprite->set_anim_if_not(dash_anims.dash->id());
 
 		if (Input::isPressed(InputType::JUMP, 0.1f))
 		{
 			Input::confirmPress(InputType::JUMP);
 			return dash_jump(plr, move_t(plr));
+		}
+
+
+		dash_time += deltaTime;
+		if (dash_time >= dash_duration) {
+			if (plr.ground->has_contact()) {
+				return PlayerStateID::Ground;
+			}
+
+			plr.sprite->set_anim(anim::fall_f);
+			plr.sprite->set_frame(1);
+			return PlayerStateID::Air;
 		}
 	}
 	else {
@@ -150,25 +158,6 @@ PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
 		}
 	}
 
-	dash_time += deltaTime;
-	if (dash_time >= dash_duration) {
-		if (plr.ground->has_contact()) {
-
-			/*
-			LOG_INFO("{}", plr.ground->traverse_get_speed());
-			if (Input::isHeld(InputType::DASH))
-			{
-				//Input::confirmPress(InputType::DASH);
-				return action::dash(plr, move_t(plr));
-			}
-			*/
-			return PlayerStateID::Ground;
-		}
-
-		plr.sprite->set_anim(anim::fall_f);
-		plr.sprite->set_frame(1);
-		return PlayerStateID::Air;
-	}
 	return PlayerStateID::Continue;
 }
 

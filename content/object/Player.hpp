@@ -7,6 +7,7 @@
 #include "../camera/SimpleCamTarget.hpp"
 
 #include <string_view>
+#include <variant>
 
 //using namespace ff;
 
@@ -21,10 +22,12 @@ enum class PlayerStateID {
 
 class Player : public ff::GameObject {
 public:
+	static const ff::ObjectType Type;
+	const ff::ObjectType& type() const override { return Type; };
 
-	Player(ff::ObjectConfig cfg, ff::Vec2f position, bool faceleft);
+	Player(ff::GameContext context, ff::Vec2f position, bool faceleft);
 
-	Player(ff::ObjectConfig cfg);
+	Player(ff::GameContext context, ff::ObjectLevelData& data);
 
 	std::unique_ptr<ff::GameObject> clone() const override;
 
@@ -41,11 +44,8 @@ public:
 	SimpleCamTarget cam_target;
 
 protected:
-	std::unique_ptr<PlayerState> curr_state;
-
-	template<typename T>
-	requires std::is_base_of_v<PlayerState, T>
-	void state_transition();
+	struct plr_state_impl;
+	std::unique_ptr<plr_state_impl> state_pImpl;
 
 	void manage_state(PlayerStateID n_id);
 
@@ -69,14 +69,3 @@ public:
 
 	virtual void get_imgui(Player& plr) {};
 };
-
-template<typename T>
-	requires std::is_base_of_v<PlayerState, T>
-void Player::state_transition() {
-	std::unique_ptr<PlayerState> next_state = 
-		std::make_unique<T>();
-
-	curr_state->exit(*this, next_state.get());
-	curr_state.swap(next_state);
-	curr_state->enter(*this, next_state.get());
-}

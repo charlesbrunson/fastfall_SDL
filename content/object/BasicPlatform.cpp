@@ -6,39 +6,34 @@ using namespace ff;
 
 constexpr ff::Color platformColor = ff::Color{ 0x285cc4FF };
 
-BasicPlatform::BasicPlatform(ff::ObjectConfig cfg)
-	: ff::GameObject(cfg)
-	, shape{ cfg.context, ff::ShapeRectangle{ ff::Rectf{}, platformColor}, ff::SceneType::Object, 1 }
-	, collider( cfg.context, ff::Rectf{ Vec2f{}, Vec2f{ cfg.m_level_data->size } })
+const ObjectType BasicPlatform::Type{
+	.type = { "BasicPlatform" },
+	.allow_level_data = true,
+	.anim = std::nullopt,
+	.tile_size = {0, 0},
+	.group_tags = {
+		"platform"
+	},
+	.properties = {
+		ObjectProperty{"acceleration", ObjectPropertyType::Float},
+		ObjectProperty{"max_velocity", ObjectPropertyType::Float},
+		ObjectProperty{"path", ObjLevelID{}}
+	}
+};
+
+BasicPlatform::BasicPlatform(ff::GameContext context, ff::ObjectLevelData& data)
+	: ff::GameObject(context, data)
+	, shape{ context, ff::ShapeRectangle{ ff::Rectf{}, platformColor}, ff::SceneType::Object, 1 }
+	, collider(context, ff::Rectf{ Vec2f{}, Vec2f{ data.size } })
 {
 
-	ObjLevelID path_id = cfg.m_level_data->getPropAsID("path");
-	max_vel = cfg.m_level_data->getPropAsFloat("max_velocity");
-	accel = cfg.m_level_data->getPropAsFloat("acceleration");
+	ObjLevelID path_id = data.getPropAsID("path");
+	max_vel = data.getPropAsFloat("max_velocity");
+	accel = data.getPropAsFloat("acceleration");
 
-	if (auto path_ptr = instance::lvl_get_active(getContext())->get_layers().get_obj_layer().getObjectDataByID(path_id)) {
+	if (auto path_ptr = instance::lvl_get_active(m_context)->get_layers().get_obj_layer().getObjectDataByID(path_id)) {
 		waypoints_origin = ff::Vec2f{ path_ptr->position };
 		waypoints = &path_ptr->points;
-	}
-
-
-	for (auto& [propName, propValue] : cfg.m_level_data->properties) {
-		if (propName == "path") {
-			ObjLevelID path_id = ObjLevelID{ (unsigned)std::atoi(propValue.c_str()) };
-
-			if (auto lvl = ff::instance::lvl_get_active(getContext())) {
-				if (auto data_ptr = lvl->get_layers().get_obj_layer().getObjectDataByID(path_id)) {
-					waypoints_origin = ff::Vec2f{ data_ptr->position };
-					waypoints = &data_ptr->points;
-				}
-			}
-		}
-		else if (propName == "max_velocity") {
-			max_vel = std::atof(propValue.c_str());
-		}
-		else if (propName == "acceleration") {
-			accel = std::atof(propValue.c_str());
-		}
 	}
 
 	has_path = (waypoints);
@@ -57,24 +52,24 @@ BasicPlatform::BasicPlatform(ff::ObjectConfig cfg)
 		progress = 0.f;
 	}
 
-	ff::Rectf colliderRect{ Vec2f{}, Vec2f{ cfg.m_level_data->size } };
+	ff::Rectf colliderRect{ Vec2f{}, Vec2f{ data.size } };
 
 	if (has_path) {
 		collider->teleport(waypoints_origin + ff::Vec2f(waypoints->at(waypoint_ndx)));
 	}
 	else {
-		auto pos = ff::Vec2f{ cfg.m_level_data->position };
+		auto pos = ff::Vec2f{ data.position };
 		auto off = ff::Vec2f{ colliderRect.width / 2.f, colliderRect.height };
 		collider->teleport(pos - off);
 	}
 
-	hasCollider = true;
+	m_has_collider = true;
 
 }
 
 
 std::unique_ptr<ff::GameObject> BasicPlatform::clone() const {
-	std::unique_ptr<BasicPlatform> object = std::make_unique<BasicPlatform>(getConfig());
+	std::unique_ptr<BasicPlatform> object = std::make_unique<BasicPlatform>(m_context, *m_data);
 
 	//TODO copy current state data
 

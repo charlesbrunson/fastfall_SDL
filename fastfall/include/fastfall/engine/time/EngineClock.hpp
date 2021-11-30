@@ -11,19 +11,19 @@ using sec_rep = duration<double>;
 
 class EngineClock {
 public:
-	EngineClock(unsigned int fps = 60, bool steady = true);
+	EngineClock(unsigned int fps, bool steady = true);
 
 public:
 	secs tick() noexcept;
 
-	// optionally sleeps whole thread until next tick when called
+	// optionally sleeps the thread until next tick when called
 	// implicitly calls resetTickWindow()
 	void sleepUntilTick(bool nosleep = false) noexcept;
 
 	void reset() noexcept;
 
-public:
-	void setTargetFPS(unsigned int fps = 60) noexcept;
+	// FPS management
+	void setTargetFPS(unsigned int fps) noexcept;
 	unsigned getTargetFPS() const noexcept;
 	unsigned getAvgFPS() const noexcept;
 	unsigned getInstantFPS() const noexcept;
@@ -35,22 +35,16 @@ public:
 	inline time_point<steady_clock> getTickStart() { return tick_start_p; }
 	inline time_point<steady_clock> getTickEnd() { return tick_end_p; }
 
+	inline unsigned missTicks() const noexcept { return tickMissCounter; }
+
 public:
 	// useful to know data
 	struct FrameData {
-		// duration of sleepUntilTick()
-		sec_rep sleepTime = 0s;
-
-		// duration between tick() and sleepUntilTick()
-		sec_rep activeTime = 0s;
-
-		sec_rep lastElapsed = 0s;
-
-		unsigned avgFps = 0u;
-
-		unsigned tickTotal = 0u;
-
-		unsigned tickMissPerSec = 0u;
+		sec_rep sleepTime = 0s;			// sleep duration of last sleepUntilTick() call
+		sec_rep activeTime = 0s;		// elapsed time between tick() and sleepUntilTick()
+		unsigned avgFps = 0u;			// number of times tick() was called in the last second, updates every second
+		unsigned tickTotal = 0u;		// total times tick() has been called
+		unsigned tickMissPerSec = 0u;	// number of ticks missed per second
 	};
 	inline const FrameData& data() { return _data; }
 	inline void setSteady(bool steadytick) { steadyTick = steadytick; };
@@ -80,11 +74,10 @@ private:
 	time_point<steady_clock> cur_elapsed_p;
 
 	// Tick
-	long long cur_tick;
-	long long prev_tick;
+	size_t cur_tick;
+	size_t prev_tick;
 	
 	// FPS tracking
-	//Framerate fpsEnum;
 	bool fpsUnlimited;
 	unsigned targetFps;
 	unsigned tickMissCounter;

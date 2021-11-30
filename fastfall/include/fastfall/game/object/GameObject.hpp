@@ -104,138 +104,112 @@ struct ObjSpawnID {
 	}
 };
 
-struct ObjectConfig {
-	const GameContext context;
-	const std::reference_wrapper<const ObjectType> m_type;
-	const ObjectLevelData* const m_level_data = nullptr;
+template<typename T>
+concept valid_object =
+std::is_base_of_v<GameObject, T> 
+&& std::is_same_v<decltype(T::Type), const ObjectType>
+&& requires (T x)
+{
+	//{ T::Type  } -> std::same_as<const ObjectType>;
+	{ x.type() } -> std::same_as<const ObjectType&>;
+	//&T::Type == &x.type();
 };
 
-
-
-
-class GameObjectLibrary {
+struct ObjectFactory {
 private:
-
-	using ObjectTypeBuilderFn = std::function<std::unique_ptr<GameObject>(GameContext, const ObjectType&, ObjectLevelData&)>;
-
-	struct ObjectTypeBuilder {
-		ObjectTypeBuilder(size_t _hash, std::string _typename, std::type_index _type_ndx, ObjectType&& _type, ObjectTypeBuilderFn&& _builder)
-			: hash(_hash)
-			, objTypeName(_typename)
-			, type_ndx(_type_ndx)
-			, constraints(std::move(_type))
-			, builder(std::move(_builder))
-		{
-
-		}
-		size_t hash;
-		std::string objTypeName;
-		std::type_index type_ndx;
-		ObjectType constraints;
-		ObjectTypeBuilderFn builder;
+	struct ObjectFactoryImpl {
+		const ObjectType* object_type;
+		std::unique_ptr<GameObject>(*createfn)(GameContext cfg, ObjectLevelData& data);
 	};
 
-	struct ObjectTypeBuilder_compare {
-		bool operator() (const ObjectTypeBuilder& lhs, const ObjectTypeBuilder& rhs) const {
-			return lhs.hash < rhs.hash;
-		}
-	};
+	static std::map<size_t, ObjectFactoryImpl>& getFactories();
 
-
-	template<typename T>
-	requires std::is_base_of_v<GameObject, T>
-	static ObjectTypeBuilder create(std::string typeName, ObjectType&& constraints)
-	{
-		return ObjectTypeBuilder(
-			std::hash<std::string>{}(typeName),
-			typeName,
-			typeid(T),
-			std::move(constraints),
-			[](GameContext context, const ObjectType& type, ObjectLevelData& data) -> std::unique_ptr<GameObject> {
-				if constexpr (std::is_constructible_v<T, ObjectConfig>) {
-					if (type.test(data)) {
-
-						ObjectConfig cfg{
-							.context = context,
-							.m_type = type,
-							.m_level_data = &data
-						};
-						return std::make_unique<T>(cfg);
-					}
-					else {
-						LOG_WARN("unable to instantiate object:{}:{}", type.type.name, data.level_id.id);
-						return nullptr;
-					}
-				}
-				return nullptr;
-			}
-		);
-	}
-
-	static std::set<ObjectTypeBuilder, ObjectTypeBuilder_compare>& getBuilder() {
-		static std::set<ObjectTypeBuilder, ObjectTypeBuilder_compare> objectBuildMap;
-		return objectBuildMap;
-	}
-
+	static GameObject* add_obj_to_instance(GameContext cfg, std::unique_ptr<GameObject>&& obj);
 
 public:
-
 	template<typename T>
-	requires std::is_base_of_v<GameObject, T>
-	static const ObjectType* getType() {
-		auto& builder = getBuilder();
-
-		for (auto& type_builder : builder) {
-			if (type_builder.type_ndx == typeid(T)) {
-				return &type_builder.constraints;
+	requires valid_object<T>
+	static void register_object() {
+		ObjectFactoryImpl factory;
+		factory.object_type = &T::Type;
+		factory.createfn = [](GameContext cfg, ObjectLevelData& data) -> std::unique_ptr<GameObject> 
+		{
+			if constexpr (std::is_constructible_v<T, GameContext, ObjectLevelData&>) {
+				std::unique_ptr<GameObject> ret;
+				const ObjectType& type = T::Type;
+				if (type.test(data)) {
+					ret = std::make_unique<T>(cfg, data);
+				}
+				else {
+					LOG_WARN("unable to instantiate object:{}:{}", type.type.name, data.level_id.id);
+					ret = nullptr;
+				}
+				return ret;
 			}
+			else {
+				const ObjectType& type = T::Type;
+				LOG_WARN("object not constructible with level data:{}:{}", type.type.name, data.level_id.id);
+				return nullptr;
+			}
+		};
+		getFactories().insert(std::make_pair( factory.object_type->type.hash, std::move(factory) ));
+	}
+
+	template<typename T, typename ... Args>
+	requires valid_object<T> && std::is_constructible_v<T, GameContext, Args...>
+	static GameObject* create(GameContext cfg, Args&&... args) 
+	{
+		std::unique_ptr<GameObject> obj = std::make_unique<T>(cfg, args...);
+		if (obj) {
+			return add_obj_to_instance(cfg, std::move(obj));
+		}
+		else {
+			LOG_ERR_("Failed to create object: {}", T::Type.type.name);
 		}
 		return nullptr;
 	}
 
-	static GameObject* buildFromData(GameContext instance, ObjectLevelData& data);
+	static GameObject* createFromData(GameContext cfg, ObjectLevelData& data);
 
-	static const std::string* lookupTypeName(size_t hash);
+	static const ObjectType* getType(size_t hash);
 
-	template<typename T, typename = std::enable_if<std::is_base_of<GameObject, T>::value>>
-	static void addType(ObjectType&& constraints) {
-		getBuilder().insert(std::move(create<T>(constraints.type.name, std::move(constraints))));
-	}
+	static const ObjectType* getType(std::string_view name);
 
 };
 
-
 class GameObject : public Commandable<ObjCmd> {
 public:
-	GameObject(ObjectConfig cfg);
+	GameObject(GameContext cfg);
+	GameObject(GameContext cfg, ObjectLevelData& data);
 
 	virtual ~GameObject() = default;
+
 	virtual std::unique_ptr<GameObject> clone() const = 0;
 	virtual void update(secs deltaTime) = 0;
 	virtual void predraw(secs deltaTime) = 0;
 
-	bool showInspect = false;
+	virtual const ObjectType& type() const = 0;
 
 	virtual void ImGui_Inspect() {
 		ImGui::Text("Hello World!");
 	};
 
-	const ObjectConfig& getConfig() const { return m_config; }
-	inline GameContext getContext() const { return m_config.context; }
-	inline const ObjectType& getType() const { return m_config.m_type; }
-	inline const ObjectLevelData* getLevelData() const { return m_config.m_level_data; }
-	inline ObjSpawnID getID() const { return m_spawnID; };
+	inline GameContext context() const { return m_context; };
+	inline ObjSpawnID spawn_id() const { return m_spawnID; };
+	inline const ObjectLevelData* level_data() const { return m_data; };
+	inline bool can_remove() const { return m_remove; };
 
-	inline bool can_delete() const { return toDelete; };
-
-	bool hasCollider = false;
+	bool m_has_collider = false;
+	bool m_show_inspect = false;
 
 protected:
-	bool toDelete = false;
+	bool m_remove = false;
 
-private:
+	const GameContext m_context;
 	const ObjSpawnID m_spawnID;
-	const ObjectConfig m_config;
+	ObjectLevelData* const m_data = nullptr;
 };
+
+
 
 }

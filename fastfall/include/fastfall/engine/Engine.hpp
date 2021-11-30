@@ -74,7 +74,7 @@ public:
 class Engine : public ImGuiContent {
 private:
 	// singleton
-	static Engine* engineInstance;
+	static std::unique_ptr<Engine> engineInstance;
 
 	DebugDrawImgui debugdrawImgui;
 
@@ -82,9 +82,10 @@ private:
 	InstanceObserver instanceObs;
 
 	Engine(std::unique_ptr<Window>&& initWindow, EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings);
-	~Engine() = default;
 
 public:
+
+	~Engine() = default;
 
 	static inline Engine& getInstance() { assert(engineInstance != nullptr); return *engineInstance; };
 
@@ -147,10 +148,9 @@ private:
 	int windowZoom;
 
 	bool wantFullscreen = false;
-	//bool isFullscreen = false;
 	bool hasFocus = true;
 
-	// TODO
+	// margins
 	std::unique_ptr<VertexArray> margins;
 	View marginView;
 
@@ -159,6 +159,9 @@ private:
 	secs elapsedTime;
 	secs maxDeltaTime;
 	secs deltaTime;
+
+	// event handling
+	unsigned event_count = 0u;
 
 	std::chrono::time_point<std::chrono::steady_clock> displayStart;
 	std::chrono::duration<float> displayTime;
