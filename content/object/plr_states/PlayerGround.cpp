@@ -1,5 +1,4 @@
 #include "PlayerGround.hpp"
-#include "../PlayerCommon.hpp"
 
 #include "fastfall/engine/input.hpp"
 
@@ -7,7 +6,7 @@ using namespace ff;
 
 using namespace plr;
 
-void PlayerGroundState::enter(Player& plr, PlayerState* from)
+void PlayerGroundState::enter(plr::data_t& plr, PlayerState* from)
 {
 	plr.ground->settings.slope_sticking = true;
 	plr.ground->settings.slope_wall_stop = true;
@@ -20,7 +19,7 @@ void PlayerGroundState::enter(Player& plr, PlayerState* from)
 
 }
 
-PlayerStateID PlayerGroundState::update(Player& plr, secs deltaTime)
+PlayerStateID PlayerGroundState::update(plr::data_t& plr, secs deltaTime)
 {
 	if (deltaTime <= 0.0) 
 		return PlayerStateID::Continue;
@@ -156,11 +155,11 @@ PlayerStateID PlayerGroundState::update(Player& plr, secs deltaTime)
 	return PlayerStateID::Continue;
 }
 
-void PlayerGroundState::exit(Player& plr, PlayerState* to)
+void PlayerGroundState::exit(plr::data_t& plr, PlayerState* to)
 {
 	plr.ground->settings.max_speed = 0.f;
 }
 
-void PlayerGroundState::get_imgui(Player& plr)
+void PlayerGroundState::get_imgui(plr::data_t& plr)
 {
 }

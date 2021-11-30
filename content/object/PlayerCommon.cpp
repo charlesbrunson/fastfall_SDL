@@ -4,7 +4,7 @@
 
 using namespace ff;
 
-plr::move_t::move_t(const Player& plr)
+plr::move_t::move_t(const data_t& plr)
 {
 	wishx = 0;
 	if (Input::isHeld(InputType::RIGHT)) wishx++;
@@ -22,6 +22,17 @@ plr::move_t::move_t(const Player& plr)
 	rel_wishx = wishx * flipper;
 
 	facing = flipper;
+}
+
+
+plr::data_t::data_t(GameContext context_, GameObject& plr, Vec2f position)
+	: box(context_, position, ff::Vec2f(8.f, 28.f), constants::grav_normal)
+	, hitbox(context_, box->getBox(), { "hitbox" }, {}, &plr)
+	, hurtbox(context_, box->getBox(), { "hurtbox" }, { "hitbox" }, &plr)
+	, sprite(context_, AnimatedSprite{}, SceneType::Object)
+	, cam_target(context_, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
+	, context(context_)
+{
 }
 
 namespace plr::anim {
@@ -93,7 +104,7 @@ namespace plr::constants {
 
 namespace plr::action {
 
-	PlayerStateID dash(Player& plr, const move_t& move)
+	PlayerStateID dash(data_t& plr, const move_t& move)
 	{
 		if (move.wishx != 0) {
 			plr.sprite->set_hflip(move.wishx < 0);
@@ -101,7 +112,7 @@ namespace plr::action {
 		return PlayerStateID::Dash;
 	}
 
-	PlayerStateID jump(Player& plr, const move_t& move)
+	PlayerStateID jump(data_t& plr, const move_t& move)
 	{
 		Vec2f contact_normal = Vec2f{0.f, -1.f};
 		Vec2f contact_velocity = Vec2f{};

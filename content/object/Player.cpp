@@ -1,10 +1,6 @@
 #include "Player.hpp"
 #include "PlayerCommon.hpp"
 
-#include "plr_states/PlayerAir.hpp"
-#include "plr_states/PlayerGround.hpp"
-#include "plr_states/PlayerDash.hpp"
-
 #include "fastfall/engine/input.hpp"
 
 #include "fastfall/game/InstanceInterface.hpp"
@@ -14,30 +10,6 @@
 
 using namespace ff;
 using namespace plr;
-
-//using namespace plr_constants;
-
-using PlayerStateVariant = std::variant<
-	PlayerGroundState,
-	PlayerAirState,
-	PlayerDashState
->;
-
-struct Player::plr_state_impl {
-
-	PlayerStateVariant state = PlayerGroundState{};
-
-	template<typename Callable>
-	requires std::is_invocable_v<Callable, PlayerState&>
-	auto visit_state(Callable&& callable) 
-	{
-		return std::visit(callable, state);
-	}
-
-	PlayerState& get_state() {
-		return std::visit([](auto& t_state) -> PlayerState& { return static_cast<PlayerState&>(t_state); }, state);
-	}
-};
 
 const ObjectType Player::Type{
 	.type = { "Player" },
@@ -55,12 +27,7 @@ const ObjectType Player::Type{
 
 Player::Player(GameContext context, Vec2f position, bool faceleft)
 	: GameObject{ context }
-	, box(context, Vec2f(position), Vec2f(8.f, 28.f), constants::grav_normal)
-	, hitbox(context, box->getBox(), { "hitbox" }, {}, this)
-	, hurtbox(context, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
-	, sprite(context, AnimatedSprite{}, SceneType::Object)
-	, cam_target(context, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
-	, state_pImpl(std::make_unique<plr_state_impl>())
+	, plr::data_t{ context, *this, position }
 {
 	init();
 	sprite->set_hflip(faceleft);
@@ -68,12 +35,7 @@ Player::Player(GameContext context, Vec2f position, bool faceleft)
 
 Player::Player(GameContext context, ObjectLevelData& data)
 	: GameObject( context, data )
-	, box(context, Vec2f{ data.position }, Vec2f(8.f, 28.f), constants::grav_normal)
-	, hitbox(context, box->getBox(), { "hitbox" }, {}, this)
-	, hurtbox(context, box->getBox(), { "hurtbox" }, { "hitbox" }, this)
-	, sprite(context, AnimatedSprite{}, SceneType::Object)
-	, cam_target(context, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
-	, state_pImpl(std::make_unique<plr_state_impl>())
+	, plr::data_t{ context, *this, Vec2f{ data.position } }
 {
 	init();
 
@@ -120,7 +82,7 @@ void Player::init() {
 
 	box->set_onPostCollision(
 		[this] {
-			manage_state(state_pImpl->get_state().post_collision(*this));
+			manage_state(get_state().post_collision(*this));
 		});
 }
 
@@ -138,10 +100,10 @@ void Player::manage_state(PlayerStateID n_id)
 {
 	auto state_transition = [this]<std::derived_from<PlayerState> T>( T&& next_state ) 
 	{
-		state_pImpl->get_state().exit(*this, &next_state);
-		auto& prev_state = state_pImpl->get_state();
-		state_pImpl->state = next_state;
-		state_pImpl->get_state().enter(*this, &prev_state);
+		get_state().exit(*this, &next_state);
+		auto& prev_state = get_state();
+		state = next_state;
+		get_state().enter(*this, &prev_state);
 	};
 
 	switch (n_id) {
@@ -161,9 +123,7 @@ void Player::manage_state(PlayerStateID n_id)
 
 void Player::update(secs deltaTime) {
 
-	if (state_pImpl) {
-		manage_state(state_pImpl->get_state().update(*this, deltaTime));
-	}
+	manage_state(get_state().update(*this, deltaTime));
 
 	box->update(deltaTime);
 	sprite->update(deltaTime);
@@ -191,7 +151,7 @@ void Player::predraw(secs deltaTime) {
 void Player::ImGui_Inspect() {
 	using namespace ImGui;
 
-	auto [id, name] = state_pImpl->visit_state(
+	auto [id, name] = visit_state(
 		[&](PlayerState& state) { 
 			return make_pair(state.get_id(), state.get_name());
 		});
@@ -226,5 +186,5 @@ void Player::ImGui_Inspect() {
 
 	Separator();
 
-	state_pImpl->get_state().get_imgui(*this);
+	get_state().get_imgui(*this);
 }

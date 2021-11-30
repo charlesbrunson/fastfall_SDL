@@ -1,5 +1,4 @@
 #include "PlayerAir.hpp"
-#include "../PlayerCommon.hpp"
 
 #include "fastfall/engine/input.hpp"
 
@@ -7,11 +6,11 @@ using namespace ff;
 
 using namespace plr;
 
-void PlayerAirState::enter(Player& plr, PlayerState* from) 
+void PlayerAirState::enter(plr::data_t& plr, PlayerState* from)
 {
 }
 
-PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime) 
+PlayerStateID PlayerAirState::update(plr::data_t& plr, secs deltaTime)
 {
 	if (deltaTime <= 0.0)
 		return PlayerStateID::Continue;
@@ -115,7 +114,7 @@ PlayerStateID PlayerAirState::update(Player& plr, secs deltaTime)
 	return PlayerStateID::Continue;
 }
 
-PlayerStateID PlayerAirState::post_collision(Player& plr)
+PlayerStateID PlayerAirState::post_collision(plr::data_t& plr)
 {
 	if (plr.ground->has_contact()) {
 		if (prevVelY > 150.f + plr.ground->get_contact()->velocity.y) {
@@ -130,6 +129,6 @@ PlayerStateID PlayerAirState::post_collision(Player& plr)
 	return PlayerStateID::Continue;
 }
 
-void PlayerAirState::exit(Player& plr, PlayerState* to) 
+void PlayerAirState::exit(plr::data_t& plr, PlayerState* to)
 {
 }

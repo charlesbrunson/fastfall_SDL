@@ -1,24 +1,11 @@
 #pragma once 
 
-
-#include "Player.hpp"
+//#include "Player.hpp"
 #include "fastfall/util/Default.hpp"
 
-namespace plr {
-	struct move_t {
-		move_t(const Player& plr);
-
-		float speed = 0.f;
-		int movex = 0;
-		int wishx = 0;
-
-		// relative to facing direction
-		int facing = 0;
-		float rel_speed = 0.f;
-		int rel_movex = 0;
-		int rel_wishx = 0;
-	};
-}
+#include "fastfall/render/AnimatedSprite.hpp"
+#include "fastfall/game/object/ObjectComponents.hpp"
+#include "../camera/SimpleCamTarget.hpp"
 
 namespace plr::anim {
 
@@ -72,7 +59,64 @@ namespace plr::constants {
 	extern ff::Default<ff::Vec2f> grav_light;
 }
 
-namespace plr::action {
-	PlayerStateID jump(Player& plr, const move_t& move);
-	PlayerStateID dash(Player& plr, const move_t& move);
+
+namespace plr {
+	struct data_t {
+
+		data_t(ff::GameContext context, ff::GameObject& plr, ff::Vec2f position);
+
+		const ff::GameContext context;
+
+		ff::Scene_ptr<ff::AnimatedSprite> sprite;
+		ff::Collidable_ptr box;
+		ff::SurfaceTracker* ground;
+		ff::Trigger_ptr hurtbox;
+		ff::Trigger_ptr hitbox;
+		SimpleCamTarget cam_target;
+	};
+
+	struct move_t {
+		move_t(const plr::data_t& plr);
+
+		float speed = 0.f;
+		int movex = 0;
+		int wishx = 0;
+
+		// relative to facing direction
+		int facing = 0;
+		float rel_speed = 0.f;
+		int rel_movex = 0;
+		int rel_wishx = 0;
+	};
+
 }
+
+enum class PlayerStateID {
+	Continue,
+	Ground,
+	Air,
+	Dash
+};
+
+namespace plr::action {
+	PlayerStateID jump(data_t& plr, const move_t& move);
+	PlayerStateID dash(data_t& plr, const move_t& move);
+}
+
+
+class PlayerState {
+public:
+	virtual ~PlayerState() {};
+
+	virtual void enter(plr::data_t& plr, PlayerState* from) {};
+	virtual PlayerStateID update(plr::data_t& plr, secs deltaTime) = 0;
+	virtual void exit(plr::data_t& plr, PlayerState* to) {};
+
+	virtual constexpr PlayerStateID get_id() const = 0;
+	virtual constexpr std::string_view get_name() const = 0;
+
+	virtual PlayerStateID post_collision(plr::data_t& plr) { return PlayerStateID::Continue; };
+
+	virtual void get_imgui(plr::data_t& plr) {};
+};
+

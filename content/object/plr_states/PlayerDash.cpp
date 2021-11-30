@@ -1,5 +1,4 @@
 #include "PlayerDash.hpp"
-#include "../PlayerCommon.hpp"
 
 #include "fastfall/engine/input.hpp"
 
@@ -21,7 +20,7 @@ float get_dash_vel(secs dash_time, float min_speed) {
 	return std::max(min_speed, velx);
 }
 
-void apply_dash_vel(Player& plr, float min_vel) {
+void apply_dash_vel(plr::data_t& plr, float min_vel) {
 
 	float vel = min_vel;
 	if (
@@ -35,7 +34,7 @@ void apply_dash_vel(Player& plr, float min_vel) {
 
 }
 
-PlayerStateID dash_jump(Player& plr, const move_t& move) {
+PlayerStateID dash_jump(plr::data_t& plr, const move_t& move) {
 	return action::jump(plr, move);
 }
 
@@ -44,7 +43,7 @@ struct dash_anims {
 	const AnimIDRef* fx;
 };
 
-dash_anims select_dash_anim(const Player& plr)
+dash_anims select_dash_anim(const plr::data_t& plr)
 {
 	dash_anims anims{ &anim::dash_0, &anim::fx::dash_0 };
 
@@ -81,7 +80,7 @@ dash_anims select_dash_anim(const Player& plr)
 	return anims;
 }
 
-void PlayerDashState::enter(Player& plr, PlayerState* from)
+void PlayerDashState::enter(plr::data_t& plr, PlayerState* from)
 {
 
 	ground_flag = plr.ground->has_contact();
@@ -92,7 +91,7 @@ void PlayerDashState::enter(Player& plr, PlayerState* from)
 		if (plr.sprite->set_anim_if_not(dash_anims.dash->id())) 
 		{
 			Vec2f pos = plr.box->getPosition();
-			ObjectFactory::create<SimpleEffect>(plr.context(), dash_anims.fx->id(), pos, plr.sprite->get_hflip());
+			ObjectFactory::create<SimpleEffect>(plr.context, dash_anims.fx->id(), pos, plr.sprite->get_hflip());
 		}
 		dash_speed = plr.ground->traverse_get_speed();
 	}
@@ -103,7 +102,7 @@ void PlayerDashState::enter(Player& plr, PlayerState* from)
 	plr.ground->settings.use_surf_vel = true;
 }
 
-PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
+PlayerStateID PlayerDashState::update(plr::data_t& plr, secs deltaTime)
 {
 	if (deltaTime <= 0.0)
 		return PlayerStateID::Continue;
@@ -161,7 +160,7 @@ PlayerStateID PlayerDashState::update(Player& plr, secs deltaTime)
 	return PlayerStateID::Continue;
 }
 
-void PlayerDashState::exit(Player& plr, PlayerState* to)
+void PlayerDashState::exit(plr::data_t& plr, PlayerState* to)
 {
 	plr.box->set_gravity(constants::grav_normal);
 
