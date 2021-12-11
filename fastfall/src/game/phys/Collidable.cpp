@@ -444,10 +444,8 @@ void Collidable::process_current_frame() {
 				if (tracker->has_contact())
 				{
 					Angle surf_ang = math::angle(tracker->currentContact->collider.surface);
-					
-					//float speed = contact.velocity.x * acosf(surf_ang.radians());
-					float speed = contact.velocity.x / cosf(surf_ang.radians());
 
+					float speed = contact.velocity.x / cosf(surf_ang.radians());
 					float curr_speed = tracker->traverse_get_speed();
 
 					if (speed < 0.f) {
@@ -457,15 +455,8 @@ void Collidable::process_current_frame() {
 						curr_speed = std::max(curr_speed, speed);
 					}
 					tracker->traverse_set_speed(curr_speed);
-					//vel.y += 10.f;
-
-					float mag = vel.magnitude();
-
-					LOG_INFO("apply with tracker: {}, {}", mag, vel.to_string());
-
-
-
 					applied = true;
+					break;
 				}
 			}
 			if (!applied) {
@@ -475,7 +466,6 @@ void Collidable::process_current_frame() {
 				else if (contact.velocity.x > 0.f) {
 					vel.x = std::max(vel.x, contact.velocity.x);
 				}
-				LOG_INFO("apply general: {}", vel.to_string());
 			}
 		}
 	}

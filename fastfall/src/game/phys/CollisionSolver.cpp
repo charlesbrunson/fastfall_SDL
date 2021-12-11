@@ -630,34 +630,33 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 	}
 
 	// arbs are converging
-	if (nContact->ortho_normal + sContact->ortho_normal == Vec2f(0.f, 0.f)) {
+	if (crush > 0.f
+		&& nContact->ortho_normal + sContact->ortho_normal == Vec2f(0.f, 0.f)) {
 
 		if (nContact->collider_normal + sContact->collider_normal == Vec2f(0.f, 0.f)) {
 
 			// crush
-			if (crush > 0.f) {
-				ArbCompResult r;
-				r.createdContact = true;
-				r.contactType = ContactType::CRUSH_VERTICAL;
+			ArbCompResult r;
+			r.createdContact = true;
+			r.contactType = ContactType::CRUSH_VERTICAL;
 
-				r.discardFirst = true;
-				r.discardSecond = true;
+			r.discardFirst = true;
+			r.discardSecond = true;
 
-				if (nSep > sSep) {
-					r.contact = *nContact;
-					r.contact.separation -= sSep;
-					r.contact.separation /= 2.f;
-				}
-				else {
-					r.contact = *sContact;
-					r.contact.separation -= nSep;
-					r.contact.separation /= 2.f;
-				}
-				return r;
+			if (nSep > sSep) {
+				r.contact = *nContact;
+				r.contact.separation -= sSep;
+				r.contact.separation /= 2.f;
 			}
+			else {
+				r.contact = *sContact;
+				r.contact.separation -= nSep;
+				r.contact.separation /= 2.f;
+			}
+			return r;
 		}
 		// wedge
-		else if (crush > 0.f) {
+		else {
 
 			Angle floorAng = math::angle(nContact->collider.surface);
 			Angle ceilAng  = math::angle(sContact->collider.surface);
@@ -697,8 +696,8 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 
 				// calc wedge velocity
 
-				float floorVelx = ceilVel.y / tanf(floorAng.radians());
-				float ceilVelx  = -floorVel.y / tanf(ceilAng.radians());
+				float floorVelx = (tanf(floorAng.radians()) != 0.f ? ceilVel.y / tanf(floorAng.radians()) : 0.f);
+				float ceilVelx  = (tanf(ceilAng.radians()) != 0.f ? floorVel.y / tanf(ceilAng.radians()) : 0.f);
 
 				float mag = floorVelx + ceilVelx;
 
