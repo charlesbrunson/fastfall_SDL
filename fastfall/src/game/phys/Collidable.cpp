@@ -421,23 +421,61 @@ void Collidable::debug_draw() const
 
 void Collidable::process_current_frame() {
 
+	wedged = false;
 	hori_crush = false;
 	vert_crush = false;
 
 	for (auto& contact : currContacts) {
-		if (contact.type == ContactType::CRUSH_HORIZONTAL) {
+		if (contact.type == ContactType::CRUSH_HORIZONTAL) 
+		{
 			hori_crush = true;
 		}
-		else if (contact.type == ContactType::CRUSH_VERTICAL) {
+		else if (contact.type == ContactType::CRUSH_VERTICAL) 
+		{
 			vert_crush = true;
 		}
-		else if (contact.type == ContactType::WEDGE_OPPOSITE) {
+		else if (contact.type == ContactType::WEDGE_OPPOSITE) 
+		{
+			wedged = true;
 
-			if (contact.velocity.x < 0.f) {
-				vel.x = std::min(vel.x, contact.velocity.x);
+			bool applied = false;
+			for (auto& tracker : trackers)
+			{
+				if (tracker->has_contact())
+				{
+					Angle surf_ang = math::angle(tracker->currentContact->collider.surface);
+					
+					//float speed = contact.velocity.x * acosf(surf_ang.radians());
+					float speed = contact.velocity.x / cosf(surf_ang.radians());
+
+					float curr_speed = tracker->traverse_get_speed();
+
+					if (speed < 0.f) {
+						curr_speed = std::min(curr_speed, speed);
+					}
+					else if (speed > 0.f) {
+						curr_speed = std::max(curr_speed, speed);
+					}
+					tracker->traverse_set_speed(curr_speed);
+					//vel.y += 10.f;
+
+					float mag = vel.magnitude();
+
+					LOG_INFO("apply with tracker: {}, {}", mag, vel.to_string());
+
+
+
+					applied = true;
+				}
 			}
-			else if (contact.velocity.x > 0.f) {
-				vel.x = std::max(vel.x, contact.velocity.x);
+			if (!applied) {
+				if (contact.velocity.x < 0.f) {
+					vel.x = std::min(vel.x, contact.velocity.x);
+				}
+				else if (contact.velocity.x > 0.f) {
+					vel.x = std::max(vel.x, contact.velocity.x);
+				}
+				LOG_INFO("apply general: {}", vel.to_string());
 			}
 		}
 	}

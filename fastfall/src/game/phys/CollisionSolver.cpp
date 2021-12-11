@@ -232,6 +232,14 @@ void CollisionSolver::solveY() {
 			if (!r.discardFirst)  northArb->update(0.0);
 			if (!r.discardSecond) southArb->update(0.0);
 
+			if (!northArb->getContactPtr()->hasContact
+				&& !southArb->getContactPtr()->hasContact) 
+			{
+				north.pop_front();
+				south.pop_front();
+				continue;
+			}
+
 			if (!northArb->getContactPtr()->hasContact) {
 				north.pop_front();
 				continue;
@@ -683,14 +691,14 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 
 				r.contact.hasContact = true;
 				r.contact.separation = abs(diff.x);
-				r.contact.collider_normal = Vec2f((nContact->collider_normal + sContact->collider_normal).x < 0.f ? -1.f : 1.f, 0.f);
+				r.contact.collider_normal = Vec2f((nContact->collider_normal.x + sContact->collider_normal.x < 0.f ? -1.f : 1.f), 0.f);
 				r.contact.ortho_normal = r.contact.collider_normal;
 				r.contact.position = Vec2f(pos.x, (colBox.top + colBox.height / 2.f));
 
 				// calc wedge velocity
 
-				float floorVelx = ceilVel.y  * cosf(floorAng.radians());
-				float ceilVelx  = -floorVel.y * cosf(ceilAng.radians());
+				float floorVelx = ceilVel.y / tanf(floorAng.radians());
+				float ceilVelx  = -floorVel.y / tanf(ceilAng.radians());
 
 				float mag = floorVelx + ceilVelx;
 

@@ -20,7 +20,7 @@ float get_dash_vel(secs dash_time, float min_speed) {
 	return std::max(min_speed, velx);
 }
 
-void apply_dash_vel(plr::data_t& plr, float min_vel) {
+void apply_dash_vel(plr::members& plr, float min_vel) {
 
 	float vel = min_vel;
 	if (
@@ -34,7 +34,7 @@ void apply_dash_vel(plr::data_t& plr, float min_vel) {
 
 }
 
-PlayerStateID dash_jump(plr::data_t& plr, const move_t& move) {
+PlayerStateID dash_jump(plr::members& plr, const move_t& move) {
 	return action::jump(plr, move);
 }
 
@@ -43,7 +43,7 @@ struct dash_anims {
 	const AnimIDRef* fx;
 };
 
-dash_anims select_dash_anim(const plr::data_t& plr)
+dash_anims select_dash_anim(const plr::members& plr)
 {
 	dash_anims anims{ &anim::dash_0, &anim::fx::dash_0 };
 
@@ -80,7 +80,7 @@ dash_anims select_dash_anim(const plr::data_t& plr)
 	return anims;
 }
 
-void PlayerDashState::enter(plr::data_t& plr, PlayerState* from)
+void PlayerDashState::enter(plr::members& plr, PlayerState* from)
 {
 
 	ground_flag = plr.ground->has_contact();
@@ -102,7 +102,7 @@ void PlayerDashState::enter(plr::data_t& plr, PlayerState* from)
 	plr.ground->settings.use_surf_vel = true;
 }
 
-PlayerStateID PlayerDashState::update(plr::data_t& plr, secs deltaTime)
+PlayerStateID PlayerDashState::update(plr::members& plr, secs deltaTime)
 {
 	if (deltaTime <= 0.0)
 		return PlayerStateID::Continue;
@@ -160,7 +160,7 @@ PlayerStateID PlayerDashState::update(plr::data_t& plr, secs deltaTime)
 	return PlayerStateID::Continue;
 }
 
-void PlayerDashState::exit(plr::data_t& plr, PlayerState* to)
+void PlayerDashState::exit(plr::members& plr, PlayerState* to)
 {
 	plr.box->set_gravity(constants::grav_normal);
 

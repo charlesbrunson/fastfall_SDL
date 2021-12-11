@@ -402,10 +402,9 @@ void SurfaceTracker::traverse_set_speed(float speed) {
 
 		if (const auto* region = instance::phys_get_region(context, currentContact->collider_id)) {
 			surfNV = math::projection(region->velocity, currentContact->collider_normal, true);
-			//LOG_INFO(surfNV.to_string());
 		}
 
-		owner->set_vel(surf_unit * (speed + surface_mag) + surfNV);
+ 		owner->set_vel(surf_unit * (speed + surface_mag) + surfNV);
 	}
 	else {
 		owner->set_vel(surf_unit * (speed + surface_mag));

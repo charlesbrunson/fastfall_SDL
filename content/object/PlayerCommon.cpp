@@ -4,7 +4,7 @@
 
 using namespace ff;
 
-plr::move_t::move_t(const data_t& plr)
+plr::move_t::move_t(const plr::members& plr)
 {
 	wishx = 0;
 	if (Input::isHeld(InputType::RIGHT)) wishx++;
@@ -25,7 +25,7 @@ plr::move_t::move_t(const data_t& plr)
 }
 
 
-plr::data_t::data_t(GameContext context_, GameObject& plr, Vec2f position)
+plr::members::members(GameContext context_, GameObject& plr, Vec2f position)
 	: box(context_, position, ff::Vec2f(8.f, 28.f), constants::grav_normal)
 	, hitbox(context_, box->getBox(), { "hitbox" }, {}, &plr)
 	, hurtbox(context_, box->getBox(), { "hurtbox" }, { "hitbox" }, &plr)
@@ -104,7 +104,7 @@ namespace plr::constants {
 
 namespace plr::action {
 
-	PlayerStateID dash(data_t& plr, const move_t& move)
+	PlayerStateID dash(plr::members& plr, const move_t& move)
 	{
 		if (move.wishx != 0) {
 			plr.sprite->set_hflip(move.wishx < 0);
@@ -112,7 +112,7 @@ namespace plr::action {
 		return PlayerStateID::Dash;
 	}
 
-	PlayerStateID jump(data_t& plr, const move_t& move)
+	PlayerStateID jump(plr::members& plr, const move_t& move)
 	{
 		Vec2f contact_normal = Vec2f{0.f, -1.f};
 		Vec2f contact_velocity = Vec2f{};

@@ -6,7 +6,7 @@ using namespace ff;
 
 using namespace plr;
 
-void PlayerGroundState::enter(plr::data_t& plr, PlayerState* from)
+void PlayerGroundState::enter(plr::members& plr, PlayerState* from)
 {
 	plr.ground->settings.slope_sticking = true;
 	plr.ground->settings.slope_wall_stop = true;
@@ -19,7 +19,7 @@ void PlayerGroundState::enter(plr::data_t& plr, PlayerState* from)
 
 }
 
-PlayerStateID PlayerGroundState::update(plr::data_t& plr, secs deltaTime)
+PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
 {
 	if (deltaTime <= 0.0) 
 		return PlayerStateID::Continue;
@@ -155,11 +155,11 @@ PlayerStateID PlayerGroundState::update(plr::data_t& plr, secs deltaTime)
 	return PlayerStateID::Continue;
 }
 
-void PlayerGroundState::exit(plr::data_t& plr, PlayerState* to)
+void PlayerGroundState::exit(plr::members& plr, PlayerState* to)
 {
 	plr.ground->settings.max_speed = 0.f;
 }
 
-void PlayerGroundState::get_imgui(plr::data_t& plr)
+void PlayerGroundState::get_imgui(plr::members& plr)
 {
 }

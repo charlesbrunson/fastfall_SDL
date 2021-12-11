@@ -10,8 +10,7 @@
 #include <string_view>
 #include <variant>
 
-
-class Player : public ff::GameObject, public plr::data_t {
+class Player : public ff::GameObject, public plr::members {
 public:
 	static const ff::ObjectType Type;
 	const ff::ObjectType& type() const override { return Type; };
@@ -29,20 +28,23 @@ public:
 
 protected:
 	std::variant<
-		PlayerGroundState,
-		PlayerAirState,
+		PlayerGroundState, 
+		PlayerAirState, 
 		PlayerDashState
 	> state = PlayerGroundState{};
 
 	template<typename Callable>
 	requires std::is_invocable_v<Callable, PlayerState&>
-		auto visit_state(Callable&& callable)
+	auto visit_state(Callable&& callable)
 	{
 		return std::visit(callable, state);
 	}
 
 	PlayerState& get_state() {
-		return std::visit([](auto& t_state) -> PlayerState& { return static_cast<PlayerState&>(t_state); }, state);
+		return std::visit([](auto& t_state) -> PlayerState& { 
+			static_assert(std::derived_from<std::decay_t<decltype(t_state)>, PlayerState>, "all state types must be derived from PlayerState!");
+			return static_cast<PlayerState&>(t_state); 
+		}, state);
 	}
 
 	void manage_state(PlayerStateID n_id);

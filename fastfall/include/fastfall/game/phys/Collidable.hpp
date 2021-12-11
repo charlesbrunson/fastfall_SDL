@@ -125,6 +125,7 @@ private:
 
 	bool hori_crush = false;
 	bool vert_crush = false;
+	bool wedged = false;
 
 	void process_current_frame();
 

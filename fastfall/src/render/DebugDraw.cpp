@@ -43,15 +43,15 @@ Vec2f current_offset;
 
 bool typeEnable[] = {
 	false,	// NONE
-	false,	// COLLISION_COLLIDER
-	false,	// COLLISION_COLLIDABLE
-	false,	// COLLISION_CONTACT
+	true,	// COLLISION_COLLIDER
+	true,	// COLLISION_COLLIDABLE
+	true,	// COLLISION_CONTACT
 	false,	// COLLISION_RAYCAST
 	false,	// TILELAYER_AREA
 	false,	// TILELAYER_CHUNK
 	false,	// CAMERA_VISIBLE
 	false,	// CAMERA_TARGET
-	true,	// TRIGGER_AREA
+	false,	// TRIGGER_AREA
 };
 constexpr unsigned typeEnableCount = (sizeof(typeEnable) / sizeof(typeEnable[0]));
 static_assert(typeEnableCount == static_cast<unsigned>(debug_draw::Type::LAST), "debug draw type enum and type enable array count mismatch");

@@ -61,9 +61,9 @@ namespace plr::constants {
 
 
 namespace plr {
-	struct data_t {
+	struct members {
 
-		data_t(ff::GameContext context, ff::GameObject& plr, ff::Vec2f position);
+		members(ff::GameContext context, ff::GameObject& plr, ff::Vec2f position);
 
 		const ff::GameContext context;
 
@@ -76,7 +76,7 @@ namespace plr {
 	};
 
 	struct move_t {
-		move_t(const plr::data_t& plr);
+		move_t(const plr::members& plr);
 
 		float speed = 0.f;
 		int movex = 0;
@@ -99,8 +99,8 @@ enum class PlayerStateID {
 };
 
 namespace plr::action {
-	PlayerStateID jump(data_t& plr, const move_t& move);
-	PlayerStateID dash(data_t& plr, const move_t& move);
+	PlayerStateID jump(plr::members& plr, const move_t& move);
+	PlayerStateID dash(plr::members& plr, const move_t& move);
 }
 
 
@@ -108,15 +108,15 @@ class PlayerState {
 public:
 	virtual ~PlayerState() {};
 
-	virtual void enter(plr::data_t& plr, PlayerState* from) {};
-	virtual PlayerStateID update(plr::data_t& plr, secs deltaTime) = 0;
-	virtual void exit(plr::data_t& plr, PlayerState* to) {};
+	virtual void enter(plr::members& plr, PlayerState* from) {};
+	virtual PlayerStateID update(plr::members& plr, secs deltaTime) = 0;
+	virtual void exit(plr::members& plr, PlayerState* to) {};
 
 	virtual constexpr PlayerStateID get_id() const = 0;
 	virtual constexpr std::string_view get_name() const = 0;
 
-	virtual PlayerStateID post_collision(plr::data_t& plr) { return PlayerStateID::Continue; };
+	virtual PlayerStateID post_collision(plr::members& plr) { return PlayerStateID::Continue; };
 
-	virtual void get_imgui(plr::data_t& plr) {};
+	virtual void get_imgui(plr::members& plr) {};
 };
 

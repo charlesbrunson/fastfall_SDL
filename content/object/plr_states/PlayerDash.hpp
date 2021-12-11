@@ -4,9 +4,9 @@
 
 class PlayerDashState : public PlayerState {
 public:
-	void enter(plr::data_t& plr, PlayerState* from) override;
-	PlayerStateID update(plr::data_t& plr, secs deltaTime) override;
-	void exit(plr::data_t& plr, PlayerState* to) override;
+	void enter(plr::members& plr, PlayerState* from) override;
+	PlayerStateID update(plr::members& plr, secs deltaTime) override;
+	void exit(plr::members& plr, PlayerState* to) override;
 
 	constexpr PlayerStateID get_id() const override {
 		return PlayerStateID::Dash;

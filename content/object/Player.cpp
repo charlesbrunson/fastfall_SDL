@@ -27,7 +27,7 @@ const ObjectType Player::Type{
 
 Player::Player(GameContext context, Vec2f position, bool faceleft)
 	: GameObject{ context }
-	, plr::data_t{ context, *this, position }
+	, plr::members{ context, *this, position }
 {
 	init();
 	sprite->set_hflip(faceleft);
@@ -35,7 +35,7 @@ Player::Player(GameContext context, Vec2f position, bool faceleft)
 
 Player::Player(GameContext context, ObjectLevelData& data)
 	: GameObject( context, data )
-	, plr::data_t{ context, *this, Vec2f{ data.position } }
+	, plr::members{ context, *this, Vec2f{ data.position } }
 {
 	init();
 
@@ -59,6 +59,7 @@ void Player::init() {
 		});
 
 	// trigger testing
+	/*
 	hurtbox->set_trigger_callback(
 		[this](const TriggerPull& pull) {
 			if (auto owner = pull.trigger->get_owner();
@@ -76,6 +77,7 @@ void Player::init() {
 				}
 			}
 		});
+	*/
 
 	sprite->set_anim(plr::anim::idle);
 	sprite->set_pos(box->getPosition());
@@ -152,7 +154,7 @@ void Player::ImGui_Inspect() {
 	using namespace ImGui;
 
 	auto [id, name] = visit_state(
-		[&](PlayerState& state) { 
+		[](PlayerState& state) { 
 			return make_pair(state.get_id(), state.get_name());
 		});
 
