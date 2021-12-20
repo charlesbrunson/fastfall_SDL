@@ -229,6 +229,9 @@ void CollisionSolver::solveY() {
 		if (r.createdContact) {
 			apply(&r.contact, nullptr, r.contactType);
 
+			if (r.contactType == ContactType::CRUSH_VERTICAL)
+				return;
+
 			if (!r.discardFirst)  northArb->update(0.0);
 			if (!r.discardSecond) southArb->update(0.0);
 
@@ -248,6 +251,7 @@ void CollisionSolver::solveY() {
 				south.pop_front();
 				continue;
 			}
+
 		}
 
 		if (r.discardFirst && !r.discardSecond) {
@@ -309,9 +313,12 @@ void CollisionSolver::applyArbiterFirst(std::deque<Arbiter*>& stack) {
 	// if multiple arbiters with the same sep, prefer the one closest to the collidable's center
 	std::deque<Arbiter*>::iterator pick = stack.begin();
 	const Contact* c = (*pick)->getContactPtr();
-	if (stack.size() > 1) {
+	if (stack.size() > 1) 
+	{
 		float sep = c->separation;
-		for (auto it = stack.begin()++; it != stack.end(); it++) {
+
+		for (auto it = stack.begin() + 1; it != stack.end(); it++) 
+		{
 			if ((*it)->getContactPtr()->separation != sep) {
 				break;
 			}
@@ -320,15 +327,16 @@ void CollisionSolver::applyArbiterFirst(std::deque<Arbiter*>& stack) {
 				const Contact* c2 = (*it)->getContactPtr();
 				Vec2f mid = math::rect_mid(collidable->getBox());
 
-
 				if (math::is_horizontal(c->ortho_normal)) {
 					if (abs(c2->position.y - mid.y) < abs(c1->position.y - mid.y)) {
 						pick = it;
+						continue;
 					}
 				}
 				else {
 					if (abs(c2->position.x - mid.x) < abs(c1->position.x - mid.x)) {
 						pick = it;
+						continue;
 					}
 				}
 			}
@@ -688,21 +696,43 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 
 				Vec2f diff = Vec2f(intersect.x, 0.f) - Vec2f(pos.x, 0.f);
 
+
+
 				r.contact.hasContact = true;
 				r.contact.separation = abs(diff.x);
 				r.contact.collider_normal = Vec2f((nContact->collider_normal.x + sContact->collider_normal.x < 0.f ? -1.f : 1.f), 0.f);
 				r.contact.ortho_normal = r.contact.collider_normal;
 				r.contact.position = Vec2f(pos.x, (colBox.top + colBox.height / 2.f));
 
-				// calc wedge velocity
+				float n_dist_west = abs(std::min(nContact->collider.surface.p1.x, nContact->collider.surface.p2.x) - pos.x);
+				float n_dist_east = abs(std::max(nContact->collider.surface.p1.x, nContact->collider.surface.p2.x) - pos.x);
 
-				float floorVelx = (tanf(floorAng.radians()) != 0.f ? ceilVel.y / tanf(floorAng.radians()) : 0.f);
-				float ceilVelx  = (tanf(ceilAng.radians()) != 0.f ? floorVel.y / tanf(ceilAng.radians()) : 0.f);
+				float s_dist_west = abs(std::min(sContact->collider.surface.p1.x, sContact->collider.surface.p2.x) - pos.x);
+				float s_dist_east = abs(std::max(sContact->collider.surface.p1.x, sContact->collider.surface.p2.x) - pos.x);
 
-				float mag = floorVelx + ceilVelx;
+				if (nContact->hasValley
+					&& (nContact->collider_normal.x < 0.f) == (r.contact.collider_normal.x < 0.f)
+					&& (nContact->collider_normal.x < 0.f ? n_dist_west : n_dist_east) < r.contact.separation)
+				{
+					// wedge into north contact's valley
+					r.contact.separation = (nContact->collider_normal.x < 0.f ? n_dist_west : n_dist_east);
+					LOG_INFO("WEDGE INTO N VALLEY");
+				}
+				else if (sContact->hasValley
+					&& (sContact->collider_normal.x < 0.f) == (r.contact.collider_normal.x < 0.f)
+					&& (sContact->collider_normal.x < 0.f ? s_dist_west : s_dist_east) < r.contact.separation)
+				{
+					// wedge into south contact's valley
+					r.contact.separation = (sContact->collider_normal.x < 0.f ? s_dist_west : s_dist_east);
+					LOG_INFO("WEDGE INTO S VALLEY");
+				}
+				else {
+					float floorVelx = (tanf(floorAng.radians()) != 0.f ? ceilVel.y / tanf(floorAng.radians()) : 0.f);
+					float ceilVelx = (tanf(ceilAng.radians()) != 0.f ? floorVel.y / tanf(ceilAng.radians()) : 0.f);
+					float mag = floorVelx + ceilVelx;
 
-				r.contact.velocity = Vec2f{ mag, 0.f };
-
+					r.contact.velocity = Vec2f{ mag, 0.f };
+				}
 				return r;
 			}
 			//else do nothing

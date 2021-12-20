@@ -60,7 +60,7 @@ TileArray& TileArray::operator= (const TileArray& rhs)
 	return *this;
 }
 
-TileArray::TileArray(TileArray&& rhs)
+TileArray::TileArray(TileArray&& rhs) noexcept
 {
 	offset = rhs.offset;
 	m_size = rhs.m_size;
@@ -71,7 +71,7 @@ TileArray::TileArray(TileArray&& rhs)
 	std::swap(tiles, rhs.tiles);
 	std::swap(gl, rhs.gl);
 }
-TileArray& TileArray::operator=(TileArray&& rhs)
+TileArray& TileArray::operator=(TileArray&& rhs) noexcept
 {
 	offset = rhs.offset;
 	m_size = rhs.m_size;
@@ -102,7 +102,7 @@ void TileArray::resize(Vec2u n_size)
 void TileArray::setTile(Vec2u at, Vec2u texPos)
 {
 	assert(at.x < m_size.x && at.y < m_size.y);
-	size_t ndx = at.x + (at.y * m_size.x);
+	size_t ndx = ((size_t)at.y * m_size.x) + at.x;
 
 	assert(texPos.x < MAX_DIMEN && texPos.y < MAX_DIMEN);
 	uint8_t tile_id = texPos.x + (texPos.y * MAX_DIMEN);
@@ -118,7 +118,7 @@ void TileArray::setTile(Vec2u at, Vec2u texPos)
 void TileArray::blank(Vec2u at)
 {
 	assert(at.x < m_size.x && at.y < m_size.y);
-	size_t ndx = at.x + (at.y * m_size.x);
+	size_t ndx = ((size_t)at.y * m_size.x) + at.x;
 
 	if (tiles[ndx] != UINT8_MAX) 
 	{

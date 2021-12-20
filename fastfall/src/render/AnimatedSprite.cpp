@@ -21,7 +21,6 @@ bool AnimatedSprite::set_anim(AnimID id, bool reset) noexcept {
 	const Animation* anim = Resources::get_animation(id);
 
 	animation = anim;
-	//curr_anim = (animation ? animation->anim_id : AnimID::NONE);
 	loop_counter = 0;
 
 	if (reset) {

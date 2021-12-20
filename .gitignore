@@ -4,6 +4,8 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 fastfall/external/*/
+fastfall/test/googletest
+fastfall/test/googletest/*
 build/*
 build_em/*
 compile_commands.json
@@ -372,3 +374,4 @@ FodyWeavers.xsd
 /fastfall/render/external/libpng
 /fastfall/render/external/glm
 /fastfall/render/external/glew
+/fastfall/test/google_test

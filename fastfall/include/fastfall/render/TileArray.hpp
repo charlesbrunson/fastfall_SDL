@@ -17,8 +17,8 @@ public:
 	TileArray(const TileArray& rhs);
 	TileArray& operator= (const TileArray& rhs);
 
-	TileArray(TileArray&& rhs);
-	TileArray& operator=(TileArray&& rhs);
+	TileArray(TileArray&& rhs) noexcept;
+	TileArray& operator=(TileArray&& rhs) noexcept;
 
 	void setTexture(const Texture& texture) noexcept;
 	const TextureRef& getTexture() const noexcept;

@@ -117,8 +117,7 @@ set(FF_HEADERS
 	${IMPLOT_HEADERS} 
 )
 
-add_library (fastfall STATIC ${FF_SOURCES} ${FF_HEADERS} "include/fastfall/game/trigger/Trigger.hpp")
-
+add_library(fastfall STATIC ${FF_SOURCES} ${FF_HEADERS})
 
 message(STATUS "FASTFALL COMPILER   -- ${CMAKE_CXX_COMPILER_ID}")
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
@@ -164,6 +163,8 @@ target_compile_definitions(fastfall PRIVATE
 	DEBUG
 )
 
+
+
 if(NOT EMSCRIPTEN)
 	target_compile_definitions(fastfall PRIVATE
 		FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
@@ -176,3 +177,8 @@ else()
 		FF_DATA_DIR=""
 	)
 endif()
+
+set(BUILD_TESTING ON)
+include(CTest)
+enable_testing()
+add_subdirectory("test")

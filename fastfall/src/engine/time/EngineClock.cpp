@@ -1,13 +1,8 @@
 #include "fastfall/engine/time/EngineClock.hpp"
 
-#include <thread>
-#include <iostream>
-#include <thread>
-#include <chrono>
-
 #include "fastfall/util/log.hpp"
 
-//#include <chrono>
+
 using namespace std::chrono;
 
 EngineClock::EngineClock(unsigned int fps, bool steady):
@@ -57,7 +52,7 @@ void EngineClock::sleepUntilTick(bool nosleep) noexcept
 
 	if (engineClock.now() < tick_end_p && !nosleep) {
 		_sleep_start = engineClock.now();
-		std::this_thread::sleep_until(tick_end_p);
+		sleep_until_fn(tick_end_p);
 		_data.sleepTime = engineClock.now() - _sleep_start;
 	}
 	else {
@@ -84,7 +79,7 @@ void EngineClock::resetTickWindow(bool nomiss) noexcept {
 		}
 	}
 
-	tick_start_p = time_point<steady_clock>( (cur_tick * tickDuration));
+	tick_start_p = time_point( (cur_tick * tickDuration));
 	tick_end_p = tick_start_p + tickDuration;
 
 }
