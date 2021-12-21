@@ -42,20 +42,20 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 	{
 		int v = std::stoi(value);
 		if (v < 0) {
-			state.tile.next_offset.x = 16u + std::stoi(value);
+			state.tile.next_offset.x = 16u + v;
 		}
 		else {
-			state.tile.next_offset.x = std::stoi(value);
+			state.tile.next_offset.x = v;
 		}
 	}},
 	{"next_y", [](TilesetAsset& asset, TileData& state, char* value)
 	{
 		int v = std::stoi(value);
 		if (v < 0) {
-			state.tile.next_offset.y = 16u + std::stoi(value);
+			state.tile.next_offset.y = 16u + v;
 		}
 		else {
-			state.tile.next_offset.y = std::stoi(value);
+			state.tile.next_offset.y = v;
 		}
 
 	}},
@@ -149,7 +149,7 @@ unsigned TilesetAsset::addMaterial(std::string mat)
 	return count;
 }
 
-int TilesetAsset::getTilesetRefIndex(std::string_view tileset_name) {
+unsigned TilesetAsset::getTilesetRefIndex(std::string_view tileset_name) {
 	auto r = std::find(tilesetRef.begin(), tilesetRef.end(), tileset_name);
 	if (r != tilesetRef.end()) {
 		return std::distance(tilesetRef.begin(), r);
@@ -386,7 +386,8 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 				flat_shape, 
 				static_cast<CardinalF>(t->tile.matFacing),
 				t->tile.next_offset,
-				t->tile.next_tileset 
+				t->tile.has_next_tileset(),
+				(t->tile.next_tileset ? *t->tile.next_tileset : 0u)
 			};
 
 			TileDataF tiledata{

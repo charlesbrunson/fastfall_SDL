@@ -48,7 +48,7 @@ void AnimLogic::update(secs deltaTime) {
 			const TilesetAsset* next = tile.origin;
 
 			if (tile.has_next_tileset()) {
-				std::string_view next_name = tile.origin->getTilesetRef(tile.next_tileset);
+				std::string_view next_name = tile.origin->getTilesetRef(*tile.next_tileset);
 				next = Resources::get<TilesetAsset>(next_name);
 
 				tex_pos = tile.next_offset;

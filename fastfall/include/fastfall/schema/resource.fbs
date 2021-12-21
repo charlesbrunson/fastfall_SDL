@@ -83,7 +83,8 @@ struct TileF {
 	shape:TileShapeF;
 	facing:math.CardinalF;
 	next_offset:ubyte;
-	next_tileset_ndx:int;
+	has_next_tileset:bool = false;
+	next_tileset_ndx:uint;
 }
 
 struct TileDataF {

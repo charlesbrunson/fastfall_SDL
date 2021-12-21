@@ -6,6 +6,7 @@
 		<tileset>tile_test</tileset>
 		<tileset>other_tileset</tileset>
 		<tileset>tile_basic_purple</tileset>
+		<tileset>autotile_test</tileset>
 	</tilesets>
 	<levels path="level/">
 		<level>map_test</level>

@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <map>
+#include <string_view>
 
 namespace ff {
 
@@ -69,7 +70,7 @@ public:
 
 	void setCollision(bool enabled, unsigned border = 0);
 
-	void setTile(Vec2u at, Vec2u tex, const std::string& tileset);
+	void setTile(Vec2u at, Vec2u tex, std::string_view tileset);
 
 	std::pair<bool, unsigned> removeTile(Vec2u at);
 

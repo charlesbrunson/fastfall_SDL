@@ -66,7 +66,7 @@ public:
 
 	inline const std::string_view getTilesetRef(unsigned ndx) const { return tilesetRef.at(ndx); };
 
-	int getTilesetRefIndex(std::string_view tileset_name);
+	unsigned getTilesetRefIndex(std::string_view tileset_name);
 
 	struct TileLogicData {
 		std::string_view logic_type;

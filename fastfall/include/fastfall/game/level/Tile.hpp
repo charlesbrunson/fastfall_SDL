@@ -114,7 +114,7 @@ struct TileMaterial {
 
 
 class Tile {
-	constexpr static int SAME_TILESET = -1;
+	//constexpr static int SAME_TILESET = -1;
 public:
 	TileID pos;
 	TileShape shape;
@@ -122,12 +122,12 @@ public:
 
 	// tile next reference
 	TileID next_offset = TileID{ 0u };
-	int next_tileset = SAME_TILESET;
+	std::optional<unsigned> next_tileset = std::nullopt;
 
 	const TilesetAsset* origin = nullptr;
 
 	bool has_next_tileset() const {
-		return next_tileset != SAME_TILESET;
+		return next_tileset.has_value();
 	}
 
 	static const TileMaterial standardMat;

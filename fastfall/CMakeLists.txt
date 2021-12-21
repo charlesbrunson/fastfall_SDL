@@ -48,6 +48,7 @@ set(FF_INCLUDES
 
 
 	${CMAKE_CURRENT_SOURCE_DIR}/external/rapidxml
+	${CMAKE_CURRENT_SOURCE_DIR}/external/json/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/fmt/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/glm

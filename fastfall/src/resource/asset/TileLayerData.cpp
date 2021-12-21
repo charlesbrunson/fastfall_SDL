@@ -84,8 +84,8 @@ void TileLayerData::setCollision(bool enabled, unsigned border)
 	}
 }
 
-void TileLayerData::setTile(Vec2u at, Vec2u tex, const std::string& tileset) {
-	assert(at.x < tileSize.x&& at.y < tileSize.y);
+void TileLayerData::setTile(Vec2u at, Vec2u tex, std::string_view tileset) {
+	assert(at.x < tileSize.x && at.y < tileSize.y);
 
 	size_t i = at.x + (at.y * tileSize.x);
 
@@ -108,7 +108,7 @@ void TileLayerData::setTile(Vec2u at, Vec2u tex, const std::string& tileset) {
 	}
 	else if (tilesets.size() <= UINT8_MAX) {
 		tiles.tileset_ndx[i] = tilesets.size();
-		tilesets.push_back(std::make_pair(tileset, 1));
+		tilesets.push_back(std::make_pair(std::string{ tileset }, 1));
 	}
 	else {
 		LOG_ERR_("unable to set tile, tileset max reached for layer: {}", tilesets.size());
@@ -249,7 +249,7 @@ TileLayerData TileLayerData::loadFromTMX(xml_node<>* layerNode, const TilesetMap
 	if (auto dataNode = layerNode->first_node("data"))
 	{
 		// flip flags set by TMX filetype
-		static constexpr unsigned FLIPPED_FLAGS = 0xE0000000;
+		static constexpr unsigned FLIPPED_FLAGS = 0xE000'0000;
 
 		//assert this is encoded as base64
 		assert(dataNode&& strcmp("base64", dataNode->first_attribute("encoding")->value()) == 0);
@@ -258,11 +258,12 @@ TileLayerData TileLayerData::loadFromTMX(xml_node<>* layerNode, const TilesetMap
 		std::string dataStr(dataNode->value());
 		dataStr.erase(std::remove_if(dataStr.begin(), dataStr.end(), ::isspace), dataStr.end());
 
-		std::vector<int8_t> data = base64_decode(dataStr);
+		std::vector<uint8_t> data = base64_decode(dataStr);
 		size_t dataSize = data.size();
 
 		Vec2u tilepos(0u, 0u);
 		for (size_t i = 0; i < dataSize; i += 4) {
+
 			gid tilesetgid =
 				data[i] |
 				data[i + 1] << 8 |
@@ -277,7 +278,7 @@ TileLayerData TileLayerData::loadFromTMX(xml_node<>* layerNode, const TilesetMap
 				auto it = std::find_if(tilesets.rbegin(), tilesets.rend(), [tilesetgid](const auto& pair) {
 					return tilesetgid >= pair.first;
 					});
-
+				
 				TilesetAsset* tileAsset = Resources::get<TilesetAsset>(it->second);
 				int columns = tileAsset->getTileSize().x;
 

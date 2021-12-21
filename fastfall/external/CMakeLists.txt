@@ -46,6 +46,14 @@ FetchContent_Declare(
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/rapidxml
 )
 
+#json
+FetchContent_Declare(
+	json
+	GIT_REPOSITORY https://github.com/nlohmann/json.git
+	GIT_TAG        a09bfa5faa00da25944b07df131e0f8338d2251e
+    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/json
+)
+
 # imgui
 FetchContent_Declare(
 	imgui
@@ -67,6 +75,7 @@ FetchContent_MakeAvailable(
 	glm
 	fmt
 	flatbuffers
+	json
 	rapidxml
 	imgui
 	implot

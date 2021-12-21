@@ -285,7 +285,6 @@ template <typename  AssetType, typename  FlatType = typename flat_type<AssetType
 auto buildPackAssets(flatbuffers::FlatBufferBuilder& builder, AssetMap<AssetType>& map) {
 	std::vector<flatbuffers::Offset<FlatType>> assetVec;
 	for (auto& asset : map) {
-		std::string info = "\t" + asset.second->getAssetName();
 		log::scope scope;
 		try {
 			assetVec.push_back(asset.second->writeToFlat(builder));
