@@ -107,7 +107,7 @@
  </tile>
  <tile id="20">
   <properties>
-   <property name="shape" value="oneway_wall"/>
+   <property name="shape" value="onewayvert"/>
   </properties>
  </tile>
  <tile id="21">
@@ -196,7 +196,7 @@
  </tile>
  <tile id="36">
   <properties>
-   <property name="shape" value="oneway_wall-h"/>
+   <property name="shape" value="onewayvert-h"/>
   </properties>
  </tile>
  <tile id="37">

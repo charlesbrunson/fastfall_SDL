@@ -21,12 +21,13 @@ constexpr std::array<StringTileType, TILE_TYPE_COUNT> tileStringToType = {
 	StringTileType{"steep1",      TileShape::Type::STEEP1},
 	StringTileType{"steep2",      TileShape::Type::STEEP2},
 	StringTileType{"oneway",      TileShape::Type::ONEWAY},
-	StringTileType{"oneway_wall", TileShape::Type::ONEWAY_WALL},
+	StringTileType{"onewayvert",  TileShape::Type::ONEWAYVERT},
 
 	StringTileType{"levelboundary",      TileShape::Type::LEVELBOUNDARY},
-	StringTileType{"levelboundary_wall",      TileShape::Type::LEVELBOUNDARY_WALL}
+	StringTileType{"levelboundary_wall", TileShape::Type::LEVELBOUNDARY_WALL}
 };
 
+/*
 constexpr std::array<std::string_view, TILE_TYPE_COUNT> tileTypeToStr{
 	"empty",
 	"solid",
@@ -37,11 +38,12 @@ constexpr std::array<std::string_view, TILE_TYPE_COUNT> tileTypeToStr{
 	"steep1",
 	"steep2",
 	"oneway",
-	"oneway_wall",
+	"onewayvert",
 
 	"levelboundary",
 	"levelboundary_wall"
 };
+*/
 
 TileShape::TileShape() noexcept :
 	type(Type::EMPTY),

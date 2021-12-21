@@ -36,7 +36,7 @@ constexpr std::array<TypeSurfaceArray, TILE_TYPE_COUNT> surfacePrototypes
 		ColliderQuad::QuadSurface{ColliderSurface{ Linef(Vec2f(TILESIZE, TILESIZE), Vec2f(0,        TILESIZE)) }, false},
 		ColliderQuad::QuadSurface{ColliderSurface{ Linef(Vec2f(0,        TILESIZE), Vec2f(0,        0)) },        false},
 	}},
-	{TileShape::Type::ONEWAY_WALL, {
+	{TileShape::Type::ONEWAYVERT, {
 		ColliderQuad::QuadSurface{ColliderSurface{ Linef(Vec2f(0,        0),        Vec2f(TILESIZE, 0)) },        false},
 		ColliderQuad::QuadSurface{ColliderSurface{ Linef(Vec2f(TILESIZE, 0),        Vec2f(TILESIZE, TILESIZE)) }},
 		ColliderQuad::QuadSurface{ColliderSurface{ Linef(Vec2f(TILESIZE, TILESIZE), Vec2f(0,        TILESIZE)) }, false},
@@ -161,7 +161,7 @@ ColliderQuad ColliderTile::toQuad(int id) const {
 		q.hasOneWay = true;
 		q.oneWayDir = !shape.vflipped ? Cardinal::NORTH : Cardinal::SOUTH;
 	}
-	else if (shape.type == TileShape::Type::ONEWAY_WALL) {
+	else if (shape.type == TileShape::Type::ONEWAYVERT) {
 		q.hasOneWay = true;
 		q.oneWayDir = !shape.hflipped ? Cardinal::EAST : Cardinal::WEST;
 	}

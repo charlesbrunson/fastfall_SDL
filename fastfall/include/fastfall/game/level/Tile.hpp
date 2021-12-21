@@ -24,7 +24,7 @@ public:
 		STEEP1,
 		STEEP2,
 		ONEWAY,
-		ONEWAY_WALL,
+		ONEWAYVERT,
 
 		//not for use in tilesets
 		LEVELBOUNDARY,
@@ -63,7 +63,7 @@ private:
 		{Type::STEEP1,				cardinalToBits(Cardinal::NORTH, Cardinal::EAST, Cardinal::SOUTH)},
 		{Type::STEEP2,				cardinalToBits(Cardinal::EAST, Cardinal::SOUTH)},
 		{Type::ONEWAY,				cardinalToBits(Cardinal::NORTH)},
-		{Type::ONEWAY_WALL,			cardinalToBits(Cardinal::EAST)},
+		{Type::ONEWAYVERT,			cardinalToBits(Cardinal::EAST)},
 
 		{Type::LEVELBOUNDARY,		cardinalToBits(Cardinal::NORTH)},
 		{Type::LEVELBOUNDARY_WALL,	cardinalToBits(Cardinal::EAST)}
@@ -101,6 +101,23 @@ struct SurfaceMaterial {
 	float velocity = 0.f;
 };
 
+struct AutoTileRule {
+	enum class Type {
+		N_A,
+		No,
+		Yes,
+		Shape
+	};
+
+	Type type = Type::N_A;
+
+	struct Shape {
+		TileShape::Type type	= TileShape::Type::EMPTY;
+		bool hflipped			= false;
+		bool vflipped			= false;
+	} shape;
+};
+
 struct TileMaterial {
 
 	const SurfaceMaterial& getSurface(Cardinal side, Cardinal facing = Cardinal::NORTH) const {
@@ -125,6 +142,9 @@ public:
 	std::optional<unsigned> next_tileset = std::nullopt;
 
 	const TilesetAsset* origin = nullptr;
+
+	std::array<AutoTileRule, 4> autotile_card;
+	std::array<AutoTileRule, 4> autotile_ord;
 
 	bool has_next_tileset() const {
 		return next_tileset.has_value();

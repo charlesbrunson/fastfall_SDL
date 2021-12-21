@@ -7,6 +7,7 @@
 #include "fastfall/util/cardinal.hpp"
 #include "fastfall/util/log.hpp"
 
+#include "nlohmann/json.hpp"
 
 #include <assert.h>
 #include <fstream>
@@ -85,6 +86,94 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 		else if (strcmp(value, "west")) {
 			state.tile.matFacing = Cardinal::WEST;
 		}
+	}},
+
+	// auto tile rules
+	{"autotile", [](TilesetAsset& asset, TileData& state, char* value) 
+	{
+		using namespace nlohmann;
+
+		json autotile_json;
+		try {
+			autotile_json = json::parse(value);
+		}
+		catch (json::exception except) {
+			LOG_ERR_("json string parse failure: {}", except.what());
+			LOG_ERR_("for tile: {}", Vec2u{ state.tile.pos }.to_string());
+			LOG_ERR_("json: {}", value);
+			return;
+		}
+
+		static constexpr std::string_view card_dir[] = {
+			"n",
+			"e",
+			"s",
+			"w"
+		};
+		static constexpr std::string_view ord_dir[] = {
+			"nw",
+			"ne",
+			"se",
+			"sw"
+		};
+
+		auto parse_rule = [](std::string_view value) -> AutoTileRule
+		{
+			if (value == "no")
+			{
+				return AutoTileRule{ .type = AutoTileRule::Type::No };
+			}
+			else if (value == "yes")
+			{
+				return AutoTileRule{ .type = AutoTileRule::Type::Yes };
+			}
+			else if (value == "n/a")
+			{
+				return AutoTileRule{ .type = AutoTileRule::Type::N_A };;
+			}
+			else
+			{
+				TileShape shape{ value.data() };
+				return AutoTileRule{ 
+					.type = AutoTileRule::Type::Yes,
+					.shape = {
+						.type = shape.type,
+						.hflipped = shape.hflipped,
+						.vflipped = shape.vflipped
+					}
+				};
+			}
+		};
+
+		for (auto it = autotile_json.begin(); it != autotile_json.end(); it++)
+		{
+			std::string_view key = it.key();
+			std::string_view val  = it->get<std::string_view>();
+
+			bool set = false;
+
+			for (int i = 0; i < 4; i++)
+			{
+				if (key == card_dir[i])
+				{
+					state.tile.autotile_card[i] = parse_rule(val);
+					set = true;
+					break;
+				}
+			}
+
+			if (set) continue;
+
+			for (int i = 0; i < 4; i++)
+			{
+				if (key == ord_dir[i])
+				{
+					state.tile.autotile_ord[i] = parse_rule(val);
+					break;
+				}
+			}
+		}
+		return;
 	}}
 
 };
@@ -167,7 +256,16 @@ void TilesetAsset::loadFromFile_TileProperties(xml_node<>* propsNode, TileData& 
 			throw parse_error("not a property", nullptr);
 
 		char* name = propNode->first_attribute("name")->value();
-		char* value = propNode->first_attribute("value")->value();
+
+		char* value;
+		if (propNode->first_attribute("value"))
+		{
+			value = propNode->first_attribute("value")->value();
+		}
+		else {
+			value = propNode->value();
+		}
+
 
 		auto prop = tileProperties.find(name);
 		if (prop != tileProperties.end()) {

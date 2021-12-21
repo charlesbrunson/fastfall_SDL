@@ -17,6 +17,13 @@ enum Cardinal : uint8_t {
 	WEST = 3
 };
 
+enum Ordinal : uint8_t {
+	NORTHWEST = 0,
+	NORTHEAST = 1,
+	SOUTHEAST = 2,
+	SOUTHWEST = 3
+};
+
 constexpr unsigned cardinalBit[4] = {
 	1 << Cardinal::NORTH,
 	1 << Cardinal::EAST,
