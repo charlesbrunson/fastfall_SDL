@@ -110,12 +110,7 @@ struct AutoTileRule {
 	};
 
 	Type type = Type::N_A;
-
-	struct Shape {
-		TileShape::Type type	= TileShape::Type::EMPTY;
-		bool hflipped			= false;
-		bool vflipped			= false;
-	} shape;
+	TileShape shape;
 };
 
 struct TileMaterial {
