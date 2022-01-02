@@ -126,6 +126,8 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 		}
 	}
 
+	bool hasTouchAxis = touchingAxis != nullptr;
+	bool intersectionOccurs = firstExit >= lastEntry;
 
 	if (noCollision) {
 		copiedContact = nullptr;
@@ -133,7 +135,7 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 
 		resolve = -2;
 	}
-	else if (touchingAxis != nullptr && firstExit >= lastEntry) {
+	else if (hasTouchAxis && intersectionOccurs) {
 		copiedContact = &touchingAxis->contact;
 		contact = touchingAxis->contact;
 		contact.hasContact = touchingAxis->is_intersecting();
@@ -147,7 +149,7 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 		lastAxisCollided = touchingAxisNdx;
 		resolve = 1;
 	}
-	else if (firstExit < lastEntry) {
+	else if (!intersectionOccurs) {
 		copiedContact = nullptr;
 		contact = currCollision.getContact();
 		resolve = 2;

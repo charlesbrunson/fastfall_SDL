@@ -41,10 +41,12 @@ void RegionArbiter::updateRegion(Rectf bounds) {
 	std::swap(prevQuads, currQuads);
 }
 
+/*
 void RegionArbiter::updateArbiters(secs deltaTime) {
 	for (auto& [quad, arbiter] : quadArbiters) {
 		arbiter.update(deltaTime);
 	}
 }
+*/
 
 }

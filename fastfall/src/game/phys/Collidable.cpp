@@ -110,10 +110,7 @@ void debugDrawContact(const Contact& contact) {
 	}
 }
 
-
-
-Collidable::Collidable(GameContext gameContext) :
-	context(gameContext)
+Collidable::Collidable()
 {
 	// reserving zero as invalid
 	static unsigned collidableIDCounter = CollidableID::NO_ID + 1u;
@@ -122,14 +119,24 @@ Collidable::Collidable(GameContext gameContext) :
 	assert(id.value != CollidableID::NO_ID);
 }
 
+Collidable::Collidable(Vec2f position, Vec2f size, Vec2f gravity)
+{
+	// reserving zero as invalid
+	static unsigned collidableIDCounter = CollidableID::NO_ID + 1u;
+
+	id = CollidableID{ collidableIDCounter++ };
+	assert(id.value != CollidableID::NO_ID);
+
+	init(position, size, gravity);
+}
+
 Collidable::~Collidable() {
 	for (auto& track : trackers) {
 		track->owner = nullptr;
 	}
 }
 
-Collidable::Collidable(const Collidable& rhs) :
-	context(rhs.context) 
+Collidable::Collidable(const Collidable& rhs)
 {
 	id = rhs.id;
 	gravity_acc = rhs.gravity_acc;
@@ -149,8 +156,7 @@ Collidable::Collidable(const Collidable& rhs) :
 		trackers.back()->owner = this;
 	}
 }
-Collidable::Collidable(Collidable&& rhs) noexcept :
-	context(rhs.context)
+Collidable::Collidable(Collidable&& rhs) noexcept
 {
 	id = rhs.id;
 	gravity_acc = rhs.gravity_acc;
@@ -191,7 +197,6 @@ Collidable& Collidable::operator=(const Collidable& rhs)
 Collidable& Collidable::operator=(Collidable&& rhs) noexcept
 {
 	id = rhs.id;
-	context = rhs.context;
 	gravity_acc = rhs.gravity_acc;
 	vel = rhs.vel;
 	accel_accum = rhs.accel_accum;
@@ -345,7 +350,7 @@ void Collidable::applyContact(const Contact& contact, ContactType type) {
 
 // --------------------------------------------------
 
-SurfaceTracker& Collidable::create_tracker(Angle ang_min, Angle ang_max, bool inclusive) {
+SurfaceTracker& Collidable::create_tracker(GameContext context, Angle ang_min, Angle ang_max, bool inclusive) {
 
 	auto tracker = std::make_unique<SurfaceTracker>(context, ang_min, ang_max, inclusive);
 	tracker->owner = this;
@@ -353,8 +358,8 @@ SurfaceTracker& Collidable::create_tracker(Angle ang_min, Angle ang_max, bool in
 	return *trackers.back().get();
 }
 
-SurfaceTracker& Collidable::create_tracker(Angle ang_min, Angle ang_max, SurfaceTracker::Settings settings, bool inclusive) {
-	SurfaceTracker& track = create_tracker(ang_min, ang_max, inclusive);
+SurfaceTracker& Collidable::create_tracker(GameContext context, Angle ang_min, Angle ang_max, SurfaceTracker::Settings settings, bool inclusive) {
+	SurfaceTracker& track = create_tracker(context, ang_min, ang_max, inclusive);
 	track.settings = settings;
 	return track;
 }

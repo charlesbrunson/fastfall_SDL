@@ -35,7 +35,7 @@ void CollisionManager::update(secs deltaTime) {
 // --------------------------------------------------------------
 
 Collidable* CollisionManager::create_collidable() {
-	auto it = collidables.emplace(Collidable{ Instance(InstanceID{instanceID})->getContext() });
+	auto it = collidables.emplace(Collidable{});
 	return &it->collidable;
 }
 Collidable* CollisionManager::create_collidable(Vec2f init_pos, Vec2f init_size, Vec2f init_grav) {
@@ -103,8 +103,8 @@ void CollisionManager::broadPhase(secs deltaTime) {
 
 		std::vector<const Arbiter*> updatedBuffer;
 
-		static auto is_updated = [](std::vector<const Arbiter*>& updated, const Arbiter* arbiter) {
-			return std::find(updated.cbegin(), updated.cend(), arbiter) != updated.end();
+		static auto is_updated = [&](const Arbiter& arbiter) {
+			return std::find(updatedBuffer.cbegin(), updatedBuffer.cend(), &arbiter) != updatedBuffer.end();
 		};
 
 		do {
@@ -123,12 +123,12 @@ void CollisionManager::broadPhase(secs deltaTime) {
 				for (auto& [quad, arbiter] : regionArb.getQuadArbiters()) {
 
 					// if this arbiter hasn't pushed before, update it
-					if (!is_updated(updatedBuffer, &arbiter)) {
+					if (!is_updated(arbiter)) {
 						arbiter.update(deltaTime);
 						updatedBuffer.push_back(&arbiter);
 					}
 
-					updatePushBound(push_bound, boundDist, arbiter.getContactPtr());
+					push_bound = updatePushBound(push_bound, boundDist, arbiter.getContactPtr());
 
 				}
 			}
@@ -171,16 +171,18 @@ void CollisionManager::updateRegionArbiters(CollidableData& data) {
 	}
 }
 
-void CollisionManager::updatePushBound(Rectf& push_bound, const std::array<float, 4u>& boundDist, const Contact* contact) {
+Rectf CollisionManager::updatePushBound(Rectf init_push_bound, const std::array<float, 4u>& boundDist, const Contact* contact) {
 
 	if (!contact->hasContact || !vecToCardinal(contact->ortho_normal).has_value())
-		return;
+		return init_push_bound;
 
 	Cardinal dir = vecToCardinal(contact->ortho_normal).value();
 
+	Rectf push = init_push_bound;
+
 	float diff = contact->separation - boundDist[dir];
 	if (diff > 0.f) {
-		push_bound = math::rect_extend(push_bound, dir, diff);
+		push = math::rect_extend(push, dir, diff);
 	}
 
 	if (math::is_vertical(contact->ortho_normal) && contact->isTransposable()) {
@@ -196,10 +198,11 @@ void CollisionManager::updatePushBound(Rectf& push_bound, const std::array<float
 			float alt_diff = alt_separation - boundDist[alt_dir.value()];
 
 			if (alt_diff > 0.f) {
-				push_bound = math::rect_extend(push_bound, alt_dir.value(), alt_diff);
+				push = math::rect_extend(push, alt_dir.value(), alt_diff);
 			}
 		}
 	}
+	return push;
 }
 
 void CollisionManager::solve(CollidableData& collidableData) {

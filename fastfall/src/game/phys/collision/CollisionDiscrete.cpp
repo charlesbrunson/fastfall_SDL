@@ -381,11 +381,11 @@ void CollisionDiscrete::evalContact() noexcept {
 		{
 			auto& axis = axes[i];
 
-			auto sepCmp = [](auto& axis, auto* best) -> bool {
-				return !best || (axis.contact.separation < best->contact.separation);
+			auto sepCmp = [&]() -> bool {
+				return !bestPick || (axis.contact.separation < bestPick->contact.separation);
 			};
 
-			if (axis.is_collider_valid() &&	sepCmp(axis, bestPick)) {
+			if (axis.is_collider_valid() &&	sepCmp()) {
 				bestPick = &axis;
 			}
 		}

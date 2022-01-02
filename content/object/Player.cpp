@@ -47,6 +47,7 @@ void Player::init() {
 
 	// surface tracker
 	ground = &box->create_tracker(
+		context(),
 		Angle::Degree(-135), Angle::Degree(-45),
 		SurfaceTracker::Settings{
 			.move_with_platforms = true,

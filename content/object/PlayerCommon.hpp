@@ -65,7 +65,7 @@ namespace plr {
 
 		members(ff::GameContext context, ff::GameObject& plr, ff::Vec2f position);
 
-		const ff::GameContext context;
+		const ff::GameContext plr_context;
 
 		ff::Scene_ptr<ff::AnimatedSprite> sprite;
 		ff::Collidable_ptr box;

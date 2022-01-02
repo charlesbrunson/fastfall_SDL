@@ -91,7 +91,7 @@ void PlayerDashState::enter(plr::members& plr, PlayerState* from)
 		if (plr.sprite->set_anim_if_not(dash_anims.dash->id())) 
 		{
 			Vec2f pos = plr.box->getPosition();
-			ObjectFactory::create<SimpleEffect>(plr.context, dash_anims.fx->id(), pos, plr.sprite->get_hflip());
+			ObjectFactory::create<SimpleEffect>(plr.plr_context, dash_anims.fx->id(), pos, plr.sprite->get_hflip());
 		}
 		dash_speed = plr.ground->traverse_get_speed();
 	}

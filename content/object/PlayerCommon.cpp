@@ -31,7 +31,7 @@ plr::members::members(GameContext context_, GameObject& plr, Vec2f position)
 	, hurtbox(context_, box->getBox(), { "hurtbox" }, { "hitbox" }, &plr)
 	, sprite(context_, AnimatedSprite{}, SceneType::Object)
 	, cam_target(context_, CamTargetPriority::Medium, &box->getPosition(), Vec2f{ 0.f, -16.f })
-	, context(context_)
+	, plr_context(context_)
 {
 }
 

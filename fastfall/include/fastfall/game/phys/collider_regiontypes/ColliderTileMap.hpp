@@ -153,9 +153,7 @@ private:
 	size_t minIndex;
 	size_t maxIndex;
 
-
 	std::queue<ColliderTileMap::Edit> editQueue;
-
 };
 
 }

@@ -28,9 +28,8 @@ private:
 
 public:
 
-
-
-	Collidable(GameContext game_context);
+	Collidable();
+	Collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
 	~Collidable();
 
 	Collidable(const Collidable& rhs);
@@ -82,8 +81,8 @@ public:
 	inline std::vector<std::unique_ptr<SurfaceTracker>>& get_trackers() noexcept { return trackers; };
 	inline const std::vector<std::unique_ptr<SurfaceTracker>>& get_trackers() const noexcept { return trackers; };
 
-	SurfaceTracker& create_tracker(Angle ang_min, Angle ang_max, bool inclusive = true);
-	SurfaceTracker& create_tracker(Angle ang_min, Angle ang_max, SurfaceTracker::Settings settings, bool inclusive = true);
+	SurfaceTracker& create_tracker(GameContext context, Angle ang_min, Angle ang_max, bool inclusive = true);
+	SurfaceTracker& create_tracker(GameContext context, Angle ang_min, Angle ang_max, SurfaceTracker::Settings settings, bool inclusive = true);
 	bool remove_tracker(SurfaceTracker& tracker);
 
 	const PersistantContact* get_contact(Angle angle) const noexcept;
@@ -130,7 +129,7 @@ private:
 	void process_current_frame();
 
 	CollidableID id;
-	GameContext context;
+	//GameContext context;
 
 	Vec2f pos;
 	Rectf curRect;

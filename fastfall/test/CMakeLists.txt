@@ -11,7 +11,13 @@ FetchContent_MakeAvailable(googletest)
 
 include(GoogleTest)
 
-macro(create_ff_test test_name test_cpp)
+macro(create_ff_test test_cpp)
+
+	string(REPLACE "/" "_" test_name ${test_cpp})
+	string(REPLACE ".cpp" "" test_name ${test_name})
+	
+	message(STATUS "AAAAAAAAAAA ${test_name}  -  ${test_cpp}")
+
 	add_executable(${test_name} ${test_cpp})
 	target_link_libraries(${test_name} gtest_main fastfall)
 	target_include_directories(${test_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/google_test/google_test/include)
@@ -25,5 +31,6 @@ macro(create_ff_test test_name test_cpp)
 	endif()
 endmacro()
 
-create_ff_test(util_grid_vector "util/grid_vector.test.cpp")
+create_ff_test("util/grid-vector.cpp")
+create_ff_test("game/phys/collision.cpp")
 # add more tests...
