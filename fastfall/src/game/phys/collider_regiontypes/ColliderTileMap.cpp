@@ -43,12 +43,7 @@ namespace ff {
 		minIndex = 0u;
 		maxIndex = ((size_t)collisionMapSize.y * collisionMapSize.x);
 
-		tileCollisionMap = std::make_unique<ColliderQuad[]>(getTileIndex(size_max));
-		tileShapeMap = std::make_unique<TileTable[]>(getTileIndex(size_max));
-
-		for (int n = 0; n < getTileIndex(size_max); n++) {
-			tileCollisionMap[n].setID(n);
-		}
+		clear();
 
 		//debug_dirtyFlag = true;
 		boundingBox = Rectf(
@@ -184,15 +179,13 @@ namespace ff {
 
 
 	void ColliderTileMap::clear() {
-		tileCollisionMap = std::make_unique<ColliderQuad[]>(getTileIndex(size_max));
-		tileShapeMap = std::make_unique<TileTable[]   >(getTileIndex(size_max));
+		tileCollisionMap = grid_vector<ColliderQuad>(collisionMapSize.x, collisionMapSize.y);
+		tileShapeMap = grid_vector<TileTable>(collisionMapSize.x, collisionMapSize.y);
 
-		for (int n = 0; n < getTileIndex(size_max); n++) {
-			tileCollisionMap[n].setID(n);
+		int i = 0;
+		for (auto& col : tileCollisionMap) {
+			col.setID(i++);
 		}
-
-		//touches.clear();
-		//surf.clear();
 		validCollisionSize = 0;
 	}
 
@@ -200,9 +193,8 @@ namespace ff {
 		if (editQueue.empty())
 			return;
 
-
-		Vec2i size = size_max - size_min;
-		std::vector<bool> impacted(size.x * size.y);
+		//Vec2i size = size_max - size_min;
+		std::vector<bool> impacted(maxIndex + 1);
 
 		Vec2i change_min{ INT_MAX, INT_MAX };
 		Vec2i change_max{ -INT_MAX, -INT_MAX };
@@ -210,11 +202,8 @@ namespace ff {
 		bool any_change = false;
 
 		while (!editQueue.empty()) {
-
 			bool has_change = false;
-
 			const Edit& change = editQueue.front();
-
 			const Vec2i& pos = change.position;
 
 			if (change.removal) {
@@ -224,44 +213,36 @@ namespace ff {
 				has_change = applySetTile(change);
 			}
 
-			if (has_change) {
-				for (int xx = pos.x - 1 - size_min.x; xx <= pos.x + 1 - size_min.x; xx++) {
-					for (int yy = pos.y - 1 - size_min.y; yy <= pos.y + 1 - size_min.y; yy++) {
-
-						if (xx >= 0 && xx < size.x &&
-							yy >= 0 && yy < size.y) {
-
+			if (has_change) 
+			{
+				for (int xx = pos.x - 1; xx <= pos.x + 1; xx++) {
+					for (int yy = pos.y - 1; yy <= pos.y + 1; yy++) 
+					{
+						Vec2i pos{ xx,yy };
+						if (validPosition(pos))
+						{
 							change_min.x = std::min(xx, change_min.x);
 							change_min.y = std::min(yy, change_min.y);
 
 							change_max.x = std::max(xx, change_max.x);
 							change_max.y = std::max(yy, change_max.y);
 
-							int ndx = yy * size.x + xx;
-
-							impacted[ndx] = true;
+							impacted[getTileIndex(pos)] = true;
+							any_change = true;
 						}
-
 					}
 				}
 			}
-
-			//LOG_INFO("drawable quad: {}", validCollisionSize);
 			editQueue.pop();
-			any_change |= has_change;
 		}
 
 		if (any_change) {
-
-			// update impacted
-			for (int xx = change_min.x; xx <= change_max.x; xx++) {
-				for (int yy = change_min.y; yy <= change_max.y; yy++) {
-
-					if (impacted[(size_t)yy * size.x + xx]) {
-
-						updateGhosts(Vec2i{ size_min.x + xx , size_min.y + yy });
+			for (int yy = change_min.y; yy <= change_max.y; yy++) {
+				for (int xx = change_min.x; xx <= change_max.x; xx++) {
+					Vec2i pos{ xx, yy };
+					if (impacted[getTileIndex(pos)]) {
+						updateGhosts(pos);
 					}
-
 				}
 			}
 		}

@@ -5,6 +5,7 @@
 #include "fastfall/resource/asset/TilesetAsset.hpp"
 
 #include "fastfall/util/log.hpp"
+#include "fastfall/util/grid_vector.hpp"
 
 #include <functional>
 #include <array>
@@ -112,11 +113,16 @@ private:
 	std::pair<bool, bool> cullTouchingSurfaces(ColliderSurface& lhs, ColliderSurface& rhs);
 
 	inline bool validPosition(const Vec2i& at) const noexcept {
-		return validPosition(getTileIndex(at));
+
+		return at.x >= size_min.x && at.x < size_max.x
+			&& at.y >= size_min.y && at.y < size_max.y;
+
+		//return validPosition(getTileIndex(at));
 	}
 	inline bool validPosition(size_t ndx) const noexcept {
 		return ndx >= minIndex && ndx <= maxIndex;
 	}
+	
 	inline size_t getTileIndex(const Vec2i& at) const noexcept {
 		return (at.x - size_min.x) + ((at.y - size_min.y) * collisionMapSize.x);
 	}
@@ -144,8 +150,11 @@ private:
 		update_debugDraw = true;
 	}
 
-	std::unique_ptr<ColliderQuad[]> tileCollisionMap;
-	std::unique_ptr<TileTable[]>    tileShapeMap;
+	//std::unique_ptr<ColliderQuad[]> tileCollisionMap;
+	//std::unique_ptr<TileTable[]>    tileShapeMap;
+
+	grid_vector<ColliderQuad> tileCollisionMap;
+	grid_vector<TileTable> tileShapeMap;
 
 	Vec2i size_min;
 	Vec2i size_max;

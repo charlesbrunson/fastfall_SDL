@@ -213,6 +213,20 @@ public:
 		return m_ptr[(row_y * (m_columns + get_stride())) + column_x];
 	}
 
+	constexpr reference operator[] (size_type ndx)
+	{
+		auto col = ndx % m_columns;
+		auto row = ndx / m_columns;
+		return this->at(col, row);
+	}
+
+	constexpr const_reference operator[] (size_type ndx) const
+	{
+		auto col = ndx % m_columns;
+		auto row = ndx / m_columns;
+		return this->at(col, row);
+	}
+
 	grid_view<T> take_view()
 	{
 		return grid_view<T>(*this);
@@ -387,6 +401,16 @@ public:
 	constexpr const_reference at(size_type column_x, size_type row_y) const
 	{
 		return m_ptr[(row_y * m_columns) + column_x];
+	}
+
+	constexpr reference operator[] (size_type ndx)
+	{
+		return m_ptr[ndx];
+	}
+
+	constexpr const_reference operator[] (size_type ndx) const
+	{
+		return m_ptr[ndx];
 	}
 
 	constexpr bool empty() const noexcept { return !m_ptr; }
