@@ -11,20 +11,6 @@
 
 namespace ff {
 
-	struct SideAssociated {
-		Vec2i gridoffset;
-		Cardinal toCard;
-		Cardinal oppositeCard;
-	};
-
-	const static SideAssociated sides[] = {
-		// tile offset,   original side,   adjacent side
-		{Vec2i(0, -1), Cardinal::NORTH, Cardinal::SOUTH},
-		{Vec2i(1,  0), Cardinal::EAST,  Cardinal::WEST},
-		{Vec2i(0,  1), Cardinal::SOUTH, Cardinal::NORTH},
-		{Vec2i(-1, 0), Cardinal::WEST,  Cardinal::EAST},
-	};
-
 
 	ColliderTileMap::ColliderTileMap(Vec2i size, bool border) :
 		ColliderRegion(),
@@ -135,7 +121,125 @@ namespace ff {
 		//applyChanges();
 	}
 
-	std::pair<bool, bool> ColliderTileMap::cullTouchingSurfaces(ColliderSurface& lhs, ColliderSurface& rhs) {
+
+
+	void ColliderTileMap::clear() {
+		tileCollisionMap = grid_vector<ColliderQuad>(collisionMapSize.x, collisionMapSize.y);
+		tileShapeMap = grid_vector<TileTable>(collisionMapSize.x, collisionMapSize.y);
+
+		int i = 0;
+		for (auto& col : tileCollisionMap) {
+			col.setID(i++);
+		}
+		validCollisionSize = 0;
+	}
+
+	void ColliderTileMap::applyChanges() {
+		if (editQueue.empty())
+			return;
+
+		//Vec2i size = size_max - size_min;
+		std::vector<bool> impacted(maxIndex + 1);
+
+		Vec2i change_min{ INT_MAX, INT_MAX };
+		Vec2i change_max{ -INT_MAX, -INT_MAX };
+
+		bool any_change = false;
+
+		while (!editQueue.empty()) {
+			bool has_change = false;
+			const Edit& change = editQueue.front();
+			const Vec2i& pos = change.position;
+
+			if (change.removal) {
+				has_change = applyRemoveTile(change);
+			}
+			else {
+				has_change = applySetTile(change);
+			}
+
+			if (has_change) 
+			{
+				change_min.x = std::min(std::max(pos.x - 1, size_min.x), change_min.x);
+				change_min.y = std::min(std::max(pos.y - 1, size_min.y), change_min.y);
+
+				change_max.x = std::max(std::min(pos.x + 1, size_max.x - 1), change_max.x);
+				change_max.y = std::max(std::min(pos.y + 1, size_max.y - 1), change_max.y);
+
+				any_change = true;
+
+				for (int xx = pos.x - 1; xx <= pos.x + 1; xx++) {
+					for (int yy = pos.y - 1; yy <= pos.y + 1; yy++) 
+					{
+						Vec2i pos{ xx,yy };
+						if (validPosition(pos))
+						{
+							impacted[getTileIndex(pos)] = true;
+						}
+					}
+				}
+			}
+			editQueue.pop();
+		}
+
+		if (any_change) {
+			for (int yy = change_min.y; yy <= change_max.y; yy++) {
+				for (int xx = change_min.x; xx <= change_max.x; xx++) {
+					Vec2i pos{ xx, yy };
+					if (impacted[getTileIndex(pos)]) {
+						updateGhosts(pos);
+					}
+				}
+			}
+		}
+	}
+
+	bool ColliderTileMap::applyRemoveTile(const Edit& change) {
+
+		auto [quad, tile] = getTile(change.position);
+
+		if (!quad)
+			return false;
+
+		for_adjacent_touching_quads(*tile,
+			[&](ColliderQuad& quad_adj, const ColliderTile& tile_adj, const SideAssociated& side)
+			{
+				ColliderQuad original = tile_adj.toQuad(quad_adj.getID());
+
+				const ColliderSurface* originalSurf = original.getSurface(side.oppositeCard);
+				if (originalSurf) {
+					if (!quad_adj.hasAnySurface()) {
+						incr_valid_collision();
+					}
+
+					quad_adj.setSurface(side.oppositeCard, *originalSurf);
+				}
+			});
+
+		if (quad->hasAnySurface()) {
+			quad->clearSurfaces();
+			decr_valid_collision();
+		}
+
+		tileShapeMap[getTileIndex(change.position)].hasTile = false;
+		tileShapeMap[getTileIndex(change.position)].tile.shape = TileShape{};
+		return true;
+	}
+
+	bool isTileGeometryDifferent(const ColliderTile& lhs, const ColliderTile& rhs)
+	{
+		return lhs.shape.type != rhs.shape.type
+			|| lhs.shape.hflipped != rhs.shape.hflipped
+			|| lhs.shape.vflipped != rhs.shape.vflipped;;
+	}
+
+	bool isTileMaterialDifferent(const ColliderTile& lhs, const ColliderTile& rhs)
+	{
+		return (lhs.mat != rhs.mat || lhs.matFacing != rhs.matFacing);
+	}
+
+	//returns indicate of which surfaces to be erased (corresponds to params)
+	std::pair<bool, bool> cullTouchingSurfaces(ColliderSurface& lhs, ColliderSurface& rhs) {
 
 		auto r = std::make_pair(false, false);
 
@@ -177,146 +281,23 @@ namespace ff {
 		return r;
 	}
 
-
-	void ColliderTileMap::clear() {
-		tileCollisionMap = grid_vector<ColliderQuad>(collisionMapSize.x, collisionMapSize.y);
-		tileShapeMap = grid_vector<TileTable>(collisionMapSize.x, collisionMapSize.y);
-
-		int i = 0;
-		for (auto& col : tileCollisionMap) {
-			col.setID(i++);
-		}
-		validCollisionSize = 0;
-	}
-
-	void ColliderTileMap::applyChanges() {
-		if (editQueue.empty())
-			return;
-
-		//Vec2i size = size_max - size_min;
-		std::vector<bool> impacted(maxIndex + 1);
-
-		Vec2i change_min{ INT_MAX, INT_MAX };
-		Vec2i change_max{ -INT_MAX, -INT_MAX };
-
-		bool any_change = false;
-
-		while (!editQueue.empty()) {
-			bool has_change = false;
-			const Edit& change = editQueue.front();
-			const Vec2i& pos = change.position;
-
-			if (change.removal) {
-				has_change = applyRemoveTile(change);
-			}
-			else {
-				has_change = applySetTile(change);
-			}
-
-			if (has_change) 
-			{
-				for (int xx = pos.x - 1; xx <= pos.x + 1; xx++) {
-					for (int yy = pos.y - 1; yy <= pos.y + 1; yy++) 
-					{
-						Vec2i pos{ xx,yy };
-						if (validPosition(pos))
-						{
-							change_min.x = std::min(xx, change_min.x);
-							change_min.y = std::min(yy, change_min.y);
-
-							change_max.x = std::max(xx, change_max.x);
-							change_max.y = std::max(yy, change_max.y);
-
-							impacted[getTileIndex(pos)] = true;
-							any_change = true;
-						}
-					}
-				}
-			}
-			editQueue.pop();
-		}
-
-		if (any_change) {
-			for (int yy = change_min.y; yy <= change_max.y; yy++) {
-				for (int xx = change_min.x; xx <= change_max.x; xx++) {
-					Vec2i pos{ xx, yy };
-					if (impacted[getTileIndex(pos)]) {
-						updateGhosts(pos);
-					}
-				}
-			}
-		}
-	}
-
-	bool ColliderTileMap::applyRemoveTile(const Edit& change) {
-
-		auto [quad, tile] = getTile(change.position);
-
-		if (!quad)
-			return false;
-
-
-		unsigned shapeTouchBits = tile->shape.shapeTouches;
-		for (const auto& side : sides) {
-			if (shapeTouchBits & cardinalBit[side.toCard]) {
-				auto [quad_adj, tile_adj] = getTile(change.position + side.gridoffset);
-
-				if (quad_adj && (tile_adj->shape.shapeTouches & cardinalBit[side.oppositeCard])) {
-
-					//ColliderQuad original = tile_adj->toQuad(getTileIndex(change.position + side.gridoffset));
-					ColliderQuad original = tile_adj->toQuad(quad_adj->getID());
-
-					const ColliderSurface* originalSurf = original.getSurface(side.oppositeCard);
-					if (originalSurf) {
-						if (!quad_adj->hasAnySurface()) {
-							incr_valid_collision();
-						}
-
-						quad_adj->setSurface(side.oppositeCard, *originalSurf);
-					}
-				}
-			}
-		}
-
-		if (quad->hasAnySurface()) {
-			quad->clearSurfaces();
-			decr_valid_collision();
-		}
-
-		tileShapeMap[getTileIndex(change.position)].hasTile = false;
-		tileShapeMap[getTileIndex(change.position)].tile.shape = TileShape{};
-		return true;
-	}
 	bool ColliderTileMap::applySetTile(const Edit& change) {
 
 		size_t ndx = getTileIndex(change.position);
 		ColliderTile nTile(change.position, change.toShape, change.material, change.matFacing);
 		ColliderQuad nQuad = nTile.toQuad(ndx);
 
-		bool changed_geometry;
-		bool changed_material;
-
+		// tile exists at this position
 		if (auto [quad, tile] = getTile(change.position); quad) {
 
-			// tile exists at this position
-			changed_geometry =
-				tile->shape.type != nTile.shape.type
-				|| tile->shape.hflipped != nTile.shape.hflipped
-				|| tile->shape.vflipped != nTile.shape.vflipped;
-
-			changed_material =
-				changed_geometry 
-				|| (tile->mat != nTile.mat
-					|| tile->matFacing != nTile.matFacing);
-
-			if (!changed_geometry && !changed_material) 
+			if (isTileGeometryDifferent(*tile, nTile) 
+				|| isTileMaterialDifferent(*tile, nTile))
 			{
-				// no impact to collision map
-				return false;
+				applyRemoveTile(Edit{ change.position, true });
 			}
 			else {
-				// remove existing tile first
-				applyRemoveTile(Edit{ change.position, true });
+				// no impact to collision map
+				return false;
 			}
 		}
 
@@ -327,52 +308,30 @@ namespace ff {
 			return true;
 		}
 
-		const ColliderTile empty_tile = ColliderTile{};
+		if (isTileGeometryDifferent(ColliderTile{}, nTile)) {
+			for_adjacent_touching_quads(nTile,
+				[&](ColliderQuad& quad_adj, const ColliderTile& tile_adj, const SideAssociated& side)
+				{
+					ColliderSurface* added = nQuad.getSurface(side.toCard);
+					ColliderSurface* adjacent = quad_adj.getSurface(side.oppositeCard);
 
-		changed_geometry =
-			empty_tile.shape.type != nTile.shape.type
-			|| empty_tile.shape.hflipped != nTile.shape.hflipped
-			|| empty_tile.shape.vflipped != nTile.shape.vflipped;
+					if (added == nullptr || adjacent == nullptr) {
+						return;
+					}
 
-		changed_material =
-			changed_geometry
-			&& (empty_tile.mat != nTile.mat
-				|| empty_tile.matFacing != nTile.matFacing);
+					auto [first, second] = cullTouchingSurfaces(*added, *adjacent);
 
-		
-		if (changed_geometry) {
+					if (first) {
+						nQuad.removeSurface(side.toCard);
+					}
+					if (second) {
+						quad_adj.removeSurface(side.oppositeCard);
 
-			unsigned shapeTouchBits = nTile.shape.shapeTouches;
-			for (const auto& side : sides) {
-				if (shapeTouchBits & cardinalBit[side.toCard]) {
-
-
-					auto [quad_adj, tile_adj] = getTile(change.position + side.gridoffset);
-
-					if (quad_adj && (tile_adj->shape.shapeTouches & cardinalBit[side.oppositeCard])) {
-
-						ColliderSurface* added = nQuad.getSurface(side.toCard);
-						ColliderSurface* adjacent = quad_adj->getSurface(side.oppositeCard);
-
-						if (added == nullptr || adjacent == nullptr) {
-							continue;
-						}
-
-						auto [first, second] = cullTouchingSurfaces(*added, *adjacent);
-
-						if (first) {
-							nQuad.removeSurface(side.toCard);
-						}
-						if (second) {
-							quad_adj->removeSurface(side.oppositeCard);
-
-							if (!quad_adj->hasAnySurface()) {
-								decr_valid_collision();
-							}
+						if (!quad_adj.hasAnySurface()) {
+							decr_valid_collision();
 						}
 					}
-				}
-			}
+				});
 		}
 
 		if (nQuad.hasAnySurface()) {
@@ -385,12 +344,35 @@ namespace ff {
 		return true;
 	}
 
+
+	bool ColliderTileMap::validPosition(const Vec2i& at) const noexcept {
+
+		return at.x >= size_min.x && at.x < size_max.x
+			&& at.y >= size_min.y && at.y < size_max.y;
+	}
+	bool ColliderTileMap::validPosition(size_t ndx) const noexcept {
+		return ndx >= minIndex && ndx <= maxIndex;
+	}
+
+	size_t ColliderTileMap::getTileIndex(const Vec2i& at) const noexcept {
+		return ((size_t)at.x - size_min.x) + (((size_t)at.y - size_min.y) * collisionMapSize.x);
+	}
+
+	std::pair<ColliderQuad*, const ColliderTile*> ColliderTileMap::getTile(const Vec2i& at) {
+		size_t ndx = getTileIndex(at);
+
+		if (validPosition(ndx)) {
+			auto& it = tileShapeMap[ndx];
+			return it.hasTile ? std::make_pair(&tileCollisionMap[ndx], &it.tile) : std::make_pair(nullptr, &tileShapeMap[ndx].tile);
+		}
+		return std::make_pair(nullptr, nullptr);
+	};
+
 	const ColliderQuad* ColliderTileMap::getTileCollision(const Vec2i& at) const {
 
 		size_t ndx = getTileIndex(at);
 		if (validPosition(ndx))
 		{
-			//auto& it = tileCollisionMap[ndx];
 			return (tileShapeMap[ndx].hasTile ? &tileCollisionMap[ndx] : nullptr);
 		}
 		return nullptr;
@@ -432,8 +414,6 @@ namespace ff {
 	}
 
 	void ColliderTileMap::updateGhosts(const Vec2i& position) {
-		//constexpr float nan = std::numeric_limits<float>::quiet_NaN();
-
 		auto [quad, tile] = getTile(position);
 		if (!quad)
 			return;

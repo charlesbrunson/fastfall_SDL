@@ -30,20 +30,40 @@ private:
 		{
 
 		}
-
 		Vec2i position;
 		bool removal;
 		TileShape toShape;
 		const TileMaterial* material;
 		Cardinal matFacing;
-
 	};
 
 	struct TileTable {
 		bool hasTile = false;
 		ColliderTile tile;
 	};
+	
+	struct SideAssociated {
+		Vec2i gridoffset;
+		Cardinal toCard;
+		Cardinal oppositeCard;
+	};
 
+	constexpr static SideAssociated sides[] = {
+		// tile offset,   original side,   adjacent side
+		{Vec2i(0, -1), Cardinal::NORTH, Cardinal::SOUTH},
+		{Vec2i(1,  0), Cardinal::EAST,  Cardinal::WEST},
+		{Vec2i(0,  1), Cardinal::SOUTH, Cardinal::NORTH},
+		{Vec2i(-1, 0), Cardinal::WEST,  Cardinal::EAST},
+	};
+
+	struct Ghosts {
+		const ColliderSurface* next = nullptr;
+		const ColliderSurface* prev = nullptr;
+		Vec2f g0;
+		Vec2f g3;
+		bool g0virtual = true;
+		bool g3virtual = true;
+	};
 
 public:
 	ColliderTileMap(Vec2i size, bool border = false);
@@ -53,29 +73,19 @@ public:
 	const ColliderQuad* get_quad(int quad_id) const noexcept override;
 
 	void setBorders(const Vec2u& size, const unsigned cardinalBits);
-	//inline void setTile(const Vec2i& at, const TileShape& toShape) { editQueue.push(Edit{ at, false, toShape }); };
-	inline void setTile(
-		const Vec2i& at, 
-		const TileShape& toShape, 
-		const TileMaterial* mat = nullptr, 
-		Cardinal matFacing = Cardinal::NORTH
-	) 
+
+	inline void setTile(const Vec2i& at, const TileShape& toShape, const TileMaterial* mat = nullptr, Cardinal matFacing = Cardinal::NORTH)
 	{ 
 		editQueue.push(Edit{ at, false, toShape, mat, matFacing }); 
 	};
-
-
-	inline void removeTile(const Vec2i& at) { editQueue.push(Edit{ at, true }); };
+	inline void removeTile(const Vec2i& at) 
+	{ 
+		editQueue.push(Edit{ at, true }); 
+	};
 	void clear();
 	void applyChanges();
 
 	const ColliderQuad* getTileCollision(const Vec2i& at) const;
-
-	void for_each_quad(std::function<void(const ColliderQuad&)> f) {
-		for (size_t ndx = minIndex; ndx <= maxIndex; ndx++) {
-			if (tileShapeMap[ndx].hasTile) f(tileCollisionMap[ndx]);
-		}
-	}
 
 	void getQuads(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& buffer) const override;
 
@@ -91,54 +101,36 @@ public:
 
 private:
 
-	std::function<bool(Vec2i, const Contact&, secs)> callback_on_precontact;
-	std::function<void(Vec2i, const PersistantContact&)> callback_on_postcontact;
 
 	void updateGhosts(const Vec2i& position);
 
-	struct Ghosts {
-		const ColliderSurface* next = nullptr;
-		const ColliderSurface* prev = nullptr;
-		Vec2f g0;
-		Vec2f g3;
-		bool g0virtual = true;
-		bool g3virtual = true;
-	};
 	Ghosts getGhosts(const std::array<std::pair<Vec2i, const ColliderQuad*>, 9>& nearby, const Linef& surface, bool isOneWay);
 
 	bool applyRemoveTile(const Edit& change);
 	bool applySetTile(const Edit& change);
 
-	//returns indicate of which surfaces to be erased (corresponds to params)
-	std::pair<bool, bool> cullTouchingSurfaces(ColliderSurface& lhs, ColliderSurface& rhs);
+	bool validPosition(const Vec2i& at) const noexcept;
+	bool validPosition(size_t ndx) const noexcept;
+	size_t getTileIndex(const Vec2i& at) const noexcept;
 
-	inline bool validPosition(const Vec2i& at) const noexcept {
+	std::pair<ColliderQuad*, const ColliderTile*> getTile(const Vec2i& at);
 
-		return at.x >= size_min.x && at.x < size_max.x
-			&& at.y >= size_min.y && at.y < size_max.y;
-	}
-	inline bool validPosition(size_t ndx) const noexcept {
-		return ndx >= minIndex && ndx <= maxIndex;
-	}
-	
-	inline size_t getTileIndex(const Vec2i& at) const noexcept {
-		return ((size_t)at.x - size_min.x) + (((size_t)at.y - size_min.y) * collisionMapSize.x);
-	}
-
-	inline std::pair<ColliderQuad*, const ColliderTile*> getTile(const Vec2i& at) {
-		size_t ndx = getTileIndex(at);
-
-		if (validPosition(ndx)) {
-			auto& it = tileShapeMap[ndx];
-			return it.hasTile ? std::make_pair(&tileCollisionMap[ndx], &it.tile) : std::make_pair(nullptr, &tileShapeMap[ndx].tile);
+	template<typename Callable>
+	void for_adjacent_touching_quads(const ColliderTile& tile, Callable&& call)
+	{
+		unsigned shapeTouchBits = tile.shape.shapeTouches;
+		for (const auto& side : sides) {
+			if (shapeTouchBits & cardinalBit[side.toCard]) {
+				auto [quad_adj, tile_adj] = getTile(tile.position + side.gridoffset);
+				if (quad_adj && (tile_adj->shape.shapeTouches & cardinalBit[side.oppositeCard])) 
+				{
+					//ColliderQuad& quad_adj, ColliderTile& tile_adj, const SideAssociated& side
+					call(*quad_adj, *tile_adj, side);
+				}
+			}
 		}
-		return std::make_pair(nullptr, nullptr);
-	};
+	}
 
-	bool update_debugDraw = false;
-
-	bool hasBorder;
-	size_t validCollisionSize = 0;
 	void incr_valid_collision() {
 		validCollisionSize++;
 		update_debugDraw = true;
@@ -148,11 +140,16 @@ private:
 		update_debugDraw = true;
 	}
 
-	//std::unique_ptr<ColliderQuad[]> tileCollisionMap;
-	//std::unique_ptr<TileTable[]>    tileShapeMap;
+	bool update_debugDraw = false;
 
-	grid_vector<ColliderQuad> tileCollisionMap;
-	grid_vector<TileTable> tileShapeMap;
+	bool hasBorder;
+	size_t validCollisionSize = 0;
+
+	std::function<bool(Vec2i, const Contact&, secs)> callback_on_precontact;
+	std::function<void(Vec2i, const PersistantContact&)> callback_on_postcontact;
+
+	grid_vector<ColliderQuad>	tileCollisionMap;
+	grid_vector<TileTable>		tileShapeMap;
 
 	Vec2i size_min;
 	Vec2i size_max;
