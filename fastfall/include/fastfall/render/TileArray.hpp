@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fastfall/util/math.hpp"
+#include "fastfall/util/grid_vector.hpp"
 #include "fastfall/engine/config.hpp"
 
 #include "fastfall/render/Transformable.hpp"
@@ -54,8 +55,9 @@ private:
 	Vec2u m_size;
 
 	size_t tile_count;
-	size_t max_tiles;
-	std::unique_ptr<uint8_t[]> tiles;
+	//size_t max_tiles;
+	//std::unique_ptr<uint8_t[]> tiles;
+	grid_vector<uint8_t> tiles;
 
 };
 

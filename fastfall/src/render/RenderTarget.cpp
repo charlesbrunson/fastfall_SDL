@@ -127,7 +127,7 @@ void RenderTarget::draw(const TileArray& tarray, RenderState state) {
 	}
 
 	glCheck(glBindVertexArray(tarray.gl.m_array));
-	glCheck(glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, tarray.max_tiles));
+	glCheck(glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, tarray.tiles.size()));
 
 	previousRender = state;
 	justCleared = false;

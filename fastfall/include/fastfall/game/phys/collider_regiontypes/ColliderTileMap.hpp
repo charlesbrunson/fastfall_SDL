@@ -116,15 +116,13 @@ private:
 
 		return at.x >= size_min.x && at.x < size_max.x
 			&& at.y >= size_min.y && at.y < size_max.y;
-
-		//return validPosition(getTileIndex(at));
 	}
 	inline bool validPosition(size_t ndx) const noexcept {
 		return ndx >= minIndex && ndx <= maxIndex;
 	}
 	
 	inline size_t getTileIndex(const Vec2i& at) const noexcept {
-		return (at.x - size_min.x) + ((at.y - size_min.y) * collisionMapSize.x);
+		return ((size_t)at.x - size_min.x) + (((size_t)at.y - size_min.y) * collisionMapSize.x);
 	}
 
 	inline std::pair<ColliderQuad*, const ColliderTile*> getTile(const Vec2i& at) {
