@@ -57,13 +57,13 @@ constexpr void debug_impl(ColliderQuad* quad, VertexArray& array, size_t startNd
 }
 
 
-void debugDrawQuad(ColliderQuad& quad, Vec2f offset, const void* sign, bool always_redraw) {
+bool debugDrawQuad(ColliderQuad& quad, Vec2f offset, const void* sign, bool always_redraw) {
 	
 	if (!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER))
-		return;
+		return false;
 
 	if (!always_redraw && sign && debug_draw::repeat(sign, offset)) {
-		return;
+		return false;
 	}
 
 	debug_draw::set_offset(offset);
@@ -73,19 +73,18 @@ void debugDrawQuad(ColliderQuad& quad, Vec2f offset, const void* sign, bool alwa
 	debug_impl(&quad, draw, 0);
 
 	debug_draw::set_offset();
+	return true;
 }
 
-void debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset, const void* sign, bool always_redraw) {
+bool debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset, const void* sign, bool always_redraw) {
 		
 
 	if (!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER))
-		return;
+		return false;
 
 	if (!always_redraw && sign && debug_draw::repeat(sign, offset)) {
-		return;
+		return false;
 	}
-
-	//LOG_INFO("redraw quad debug: {}", count);
 
 	debug_draw::set_offset(offset);
 
@@ -101,6 +100,7 @@ void debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset, const void* s
 		i++;
 	}
 	debug_draw::set_offset();
+	return true;
 }
 
 // -------------------------------------------

@@ -429,6 +429,8 @@ void Engine::predrawRunnables() {
     }
     if (settings.showDebug)
         debug_draw::swapDrawLists();
+    else
+        debug_draw::clear();
 }
 
 void Engine::drawRunnables() {

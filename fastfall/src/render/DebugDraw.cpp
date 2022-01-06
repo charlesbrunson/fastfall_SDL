@@ -89,6 +89,7 @@ void debug_draw::add(std::unique_ptr<Drawable>&& drawable, Type type, const void
 
 void debug_draw::clear() {
 	inactiveList->clear();
+	activeList->clear();
 	repeatList.clear();
 }
 

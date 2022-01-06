@@ -42,9 +42,9 @@ namespace ff {
 		applyChanges();
 
 		if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER)) {
-			debugDrawQuad(validCollisionSize, &tileCollisionMap[0], getPosition(), this, update_debugDraw);
+			bool is_redrawn = debugDrawQuad(validCollisionSize, &tileCollisionMap[0], getPosition(), this, update_debugDraw);
 			if (update_debugDraw)
-				update_debugDraw = false;
+				update_debugDraw = !is_redrawn;
 		}
 	}
 
