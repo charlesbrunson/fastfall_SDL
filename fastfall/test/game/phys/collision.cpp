@@ -9,14 +9,19 @@ using namespace ff;
 
 TEST(collision, ghostcheck_slopedceil_to_wall)
 {
-	ColliderTileMap collider{ Vec2i{ 2, 2 } };
+	constexpr float one_frame = (1.f / 60.f);
+
+
+	ColliderTileMap collider{ Vec2i{ 5, 5 } };
 	collider.setTile({ 0, 0 }, { "solid" });
 	collider.setTile({ 0, 1 }, { "slope-hv" });
+	collider.setTile({ 0, 3 }, { "solid" });
+	collider.setTile({ 1, 3 }, { "solid" });
 	collider.applyChanges();
 
-	Collidable collidable{ Vec2f{ 18, 48 }, Vec2f{ 16, 32 } };
-	collidable.move(Vec2f{ 0.f, -8.f });
-	collidable.set_vel(Vec2f{ 0.f, -100.f });
+	Collidable collidable{ Vec2f{ 20, 48 }, Vec2f{ 16, 32 } };
+	collidable.set_vel(Vec2f{ 0.f, -8.f / one_frame });
+	collidable.update(one_frame);
 
 	RegionArbiter arb{ &collider, &collidable };
 	arb.updateRegion(collidable.getBoundingBox());
@@ -33,6 +38,8 @@ TEST(collision, ghostcheck_slopedceil_to_wall)
 
 	Contact contact = solver.frame[0].contact;
 	EXPECT_TRUE(contact.hasContact);
-	EXPECT_TRUE((contact.ortho_normal == Vec2f{ 0.f, 1.f }));
+	EXPECT_TRUE(contact.ortho_normal == Vec2f(0.f, 1.f) );
+	EXPECT_TRUE(contact.collider_normal == Vec2f(1.f, 1.f).unit() );
+	EXPECT_EQ(contact.impactTime, 0.5f);
 
 }

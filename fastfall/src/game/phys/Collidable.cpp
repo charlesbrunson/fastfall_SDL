@@ -334,7 +334,7 @@ void Collidable::teleport(Vec2f position) noexcept {
 void Collidable::applyContact(const Contact& contact, ContactType type) {
 
 	Vec2f offset = contact.ortho_normal * contact.separation;
-	move(offset);
+	move(offset, false);
 
 	if ((type == ContactType::CRUSH_VERTICAL) || (type == ContactType::CRUSH_HORIZONTAL) || (type == ContactType::WEDGE_OPPOSITE) ||
 		(type == ContactType::WEDGE_SAME) || (type == ContactType::WEDGE_WALL)) {

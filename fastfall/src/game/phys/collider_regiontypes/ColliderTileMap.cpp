@@ -44,7 +44,7 @@ namespace ff {
 		maxIndex = ((size_t)collisionMapSize.y * collisionMapSize.x);
 
 		tileCollisionMap = std::make_unique<ColliderQuad[]>(getTileIndex(size_max));
-		tileShapeMap = std::make_unique<TileTable[]   >(getTileIndex(size_max));
+		tileShapeMap = std::make_unique<TileTable[]>(getTileIndex(size_max));
 
 		for (int n = 0; n < getTileIndex(size_max); n++) {
 			tileCollisionMap[n].setID(n);

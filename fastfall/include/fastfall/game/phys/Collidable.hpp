@@ -47,7 +47,7 @@ public:
 	inline Rectf getPrevBox() const noexcept { return prevRect; };
 
 	inline const Vec2f& getPosition() const noexcept { return pos; };
-	inline void move(Vec2f offset) { setPosition(getPosition() + offset, false); };
+	inline void move(Vec2f offset, bool swapPrev = true) { setPosition(getPosition() + offset, swapPrev); };
 
 	void setPosition(Vec2f position, bool swapPrev = true) noexcept;
 	void setSize(Vec2f size) noexcept;
