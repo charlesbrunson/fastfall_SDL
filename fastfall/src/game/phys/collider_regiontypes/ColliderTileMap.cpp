@@ -196,7 +196,7 @@ namespace ff {
 
 	bool ColliderTileMap::applyRemoveTile(const Edit& change) {
 
-		auto [quad, tile] = getTile(change.position);
+		auto [quad, tile] = get_tile(change.position);
 
 		if (!quad)
 			return false;
@@ -288,7 +288,7 @@ namespace ff {
 		ColliderQuad nQuad = nTile.toQuad(ndx);
 
 		// tile exists at this position
-		if (auto [quad, tile] = getTile(change.position); quad) {
+		if (auto [quad, tile] = get_tile(change.position); quad) {
 
 			if (isTileGeometryDifferent(*tile, nTile) 
 				|| isTileMaterialDifferent(*tile, nTile))
@@ -358,7 +358,7 @@ namespace ff {
 		return ((size_t)at.x - size_min.x) + (((size_t)at.y - size_min.y) * collisionMapSize.x);
 	}
 
-	std::pair<ColliderQuad*, const ColliderTile*> ColliderTileMap::getTile(const Vec2i& at) {
+	std::pair<ColliderQuad*, const ColliderTile*> ColliderTileMap::get_tile(const Vec2i& at) {
 		size_t ndx = getTileIndex(at);
 
 		if (validPosition(ndx)) {
@@ -368,7 +368,7 @@ namespace ff {
 		return std::make_pair(nullptr, nullptr);
 	};
 
-	const ColliderQuad* ColliderTileMap::getTileCollision(const Vec2i& at) const {
+	const ColliderQuad* ColliderTileMap::get_quad(const Vec2i& at) const noexcept {
 
 		size_t ndx = getTileIndex(at);
 		if (validPosition(ndx))
@@ -403,7 +403,7 @@ namespace ff {
 
 		for (int yy = tileArea.top; yy < tileArea.top + tileArea.height; yy++) {
 			for (int xx = tileArea.left; xx < tileArea.left + tileArea.width; xx++) {
-				if (auto* tile = getTileCollision(Vec2i(xx, yy))) {
+				if (auto* tile = get_quad({ xx, yy })) {
 					tileBounds.left = xx * TILESIZE_F;
 					tileBounds.top = yy * TILESIZE_F;
 
@@ -414,7 +414,7 @@ namespace ff {
 	}
 
 	void ColliderTileMap::updateGhosts(const Vec2i& position) {
-		auto [quad, tile] = getTile(position);
+		auto [quad, tile] = get_tile(position);
 		if (!quad)
 			return;
 
@@ -430,7 +430,7 @@ namespace ff {
 
 				if (validPosition(v)) {
 					nearbyTiles.at(x + (y * 3)).first = v;
-					nearbyTiles.at(x + (y * 3)).second = getTile(v).first;
+					nearbyTiles.at(x + (y * 3)).second = get_tile(v).first;
 
 				}
 				else {

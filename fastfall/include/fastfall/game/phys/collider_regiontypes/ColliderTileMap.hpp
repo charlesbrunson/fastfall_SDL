@@ -71,6 +71,7 @@ public:
 	void update(secs deltaTime) override;
 
 	const ColliderQuad* get_quad(int quad_id) const noexcept override;
+	const ColliderQuad* get_quad(const Vec2i& at) const noexcept;
 
 	void setBorders(const Vec2u& size, const unsigned cardinalBits);
 
@@ -85,7 +86,6 @@ public:
 	void clear();
 	void applyChanges();
 
-	const ColliderQuad* getTileCollision(const Vec2i& at) const;
 
 	void getQuads(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& buffer) const override;
 
@@ -113,7 +113,7 @@ private:
 	bool validPosition(size_t ndx) const noexcept;
 	size_t getTileIndex(const Vec2i& at) const noexcept;
 
-	std::pair<ColliderQuad*, const ColliderTile*> getTile(const Vec2i& at);
+	std::pair<ColliderQuad*, const ColliderTile*> get_tile(const Vec2i& at);
 
 	template<typename Callable>
 	void for_adjacent_touching_quads(const ColliderTile& tile, Callable&& call)
@@ -121,7 +121,7 @@ private:
 		unsigned shapeTouchBits = tile.shape.shapeTouches;
 		for (const auto& side : sides) {
 			if (shapeTouchBits & cardinalBit[side.toCard]) {
-				auto [quad_adj, tile_adj] = getTile(tile.position + side.gridoffset);
+				auto [quad_adj, tile_adj] = get_tile(tile.position + side.gridoffset);
 				if (quad_adj && (tile_adj->shape.shapeTouches & cardinalBit[side.oppositeCard])) 
 				{
 					//ColliderQuad& quad_adj, ColliderTile& tile_adj, const SideAssociated& side
