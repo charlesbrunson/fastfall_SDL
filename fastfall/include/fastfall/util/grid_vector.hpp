@@ -21,6 +21,9 @@ namespace ff {
 	class grid_vector;
 
 	template<typename T>
+	class grid_view;
+
+	template<typename T>
 	struct grid_iterator
 	{
 		using value_type = T;
@@ -36,25 +39,6 @@ namespace ff {
 		using iterator_category = std::bidirectional_iterator_tag;
 
 		constexpr grid_iterator() noexcept
-		{
-		}
-
-		constexpr grid_iterator(value_type* ptr, size_type column, size_type row, size_type column_count, size_type row_stride = 0) noexcept
-			: m_ptr(ptr)
-			, m_curr_column(column)
-			, m_curr_row(row)
-			, m_columns(column_count)
-			, m_row_stride(row_stride)
-		{
-		}
-
-		template<detail::vector_type Vec>
-		constexpr grid_iterator(value_type* ptr, const Vec& v, size_type column_count, size_type row_stride = 0) noexcept
-			: m_ptr(ptr)
-			, m_curr_column(v.x)
-			, m_curr_row(v.y)
-			, m_columns(column_count)
-			, m_row_stride(row_stride)
 		{
 		}
 
@@ -120,6 +104,19 @@ namespace ff {
 		size_type row() const { return m_curr_row; };
 
 	private:
+
+		constexpr grid_iterator(value_type* ptr, size_type column, size_type row, size_type column_count, size_type row_stride = 0) noexcept
+			: m_ptr(ptr)
+			, m_curr_column(column)
+			, m_curr_row(row)
+			, m_columns(column_count)
+			, m_row_stride(row_stride)
+		{
+		}
+
+		friend class grid_view<T>;
+		friend class grid_vector<T>;
+
 		value_type* m_ptr = nullptr;
 
 		size_type m_curr_column = 0;
