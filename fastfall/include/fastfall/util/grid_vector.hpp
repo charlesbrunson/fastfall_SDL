@@ -4,6 +4,32 @@
 #include <algorithm>
 #include <stdexcept>
 
+#include <concepts>
+
+namespace detail {
+	template<typename V>
+	concept vector_type = requires (V v)
+	{
+		v.x;
+		v.y;
+		{ v.x } -> std::convertible_to<std::size_t>;
+		{ v.y } -> std::convertible_to<std::size_t>;
+	};
+
+	struct vector_wrapper
+	{
+		template<vector_type V>
+		vector_wrapper(const V& v)
+			: x(v.x)
+			, y(v.y)
+		{
+		}
+
+		size_t x;
+		size_t y;
+	};
+}
+
 template<typename T>
 class grid_vector;
 
@@ -30,6 +56,16 @@ struct grid_iterator
 		: m_ptr(ptr)
 		, m_curr_column(column)
 		, m_curr_row(row)
+		, m_columns(column_count)
+		, m_row_stride(row_stride)
+	{
+	}
+
+	template<detail::vector_type Vec>
+	constexpr grid_iterator(value_type* ptr, const Vec& v, size_type column_count, size_type row_stride = 0) noexcept
+		: m_ptr(ptr)
+		, m_curr_column(v.x)
+		, m_curr_row(v.y)
 		, m_columns(column_count)
 		, m_row_stride(row_stride)
 	{
@@ -158,7 +194,19 @@ public:
 		}
 	}
 
+	template<detail::vector_type Vec>
+	grid_view(grid_view<T>& src, const Vec& left_top, const Vec& columns_rows)
+		: grid_view(src, left_top.x, left_top.y, columns_rows.x, columns_rows.y)
+	{
+	}
+
 	grid_view(grid_vector<T>& src, size_type left, size_type top, size_type columns, size_type rows);
+
+	template<detail::vector_type Vec>
+	grid_view(grid_vector<T>& src, const Vec& left_top, const Vec& columns_rows)
+		: grid_view(src, left_top.x, left_top.y, columns_rows.x, columns_rows.y)
+	{
+	}
 
 	constexpr grid_view<T>& operator=(const grid_view<T>& x)
 	{
@@ -185,6 +233,8 @@ public:
 	constexpr iterator end() {
 		return iterator{ m_ptr + size() + get_stride() * m_rows, 0, m_rows, m_columns, get_stride() };
 	}
+	constexpr const_iterator begin() const { return cbegin(); }
+	constexpr const_iterator end() const { return cend(); }
 	constexpr const_iterator cbegin() const {
 		return const_iterator{ m_ptr, 0, 0, m_columns, get_stride() };
 	}
@@ -213,6 +263,18 @@ public:
 		return m_ptr[(row_y * (m_columns + get_stride())) + column_x];
 	}
 
+	template<detail::vector_type Vec>
+	constexpr reference at(const Vec& position) 
+	{ 
+		return at(position.x, position.y); 
+	}
+
+	template<detail::vector_type Vec>
+	constexpr const_reference at(const Vec& position) const 
+	{ 
+		return at(position.x, position.y); 
+	}
+
 	constexpr reference operator[] (size_type ndx)
 	{
 		auto col = ndx % m_columns;
@@ -227,6 +289,18 @@ public:
 		return this->at(col, row);
 	}
 
+	template<detail::vector_type Vec>
+	constexpr reference operator[] (const Vec& position)
+	{
+		return at(position);
+	}
+
+	template<detail::vector_type Vec>
+	constexpr const_reference operator[] (const Vec& position) const
+	{
+		return at(position);
+	}
+
 	grid_view<T> take_view()
 	{
 		return grid_view<T>(*this);
@@ -237,14 +311,20 @@ public:
 		return grid_view<T>(*this, left, top, columns, rows);
 	}
 
+	template<detail::vector_type Vec>
+	grid_view<T> take_view(const Vec& left_top, const Vec& columns_rows)
+	{
+		return grid_view<T>(*this, left_top.x, left_top.y, columns_rows.x, columns_rows.y);
+	}
+
 	constexpr bool empty() const noexcept { return !m_ptr; }
 	constexpr size_type size() const noexcept { return m_rows * m_columns; };
 
 	constexpr value_type* data() noexcept { return m_ptr; }
 	constexpr const value_type* data() const noexcept { return m_ptr; }
 
-	constexpr size_type column_size() const noexcept { return m_columns; };
-	constexpr size_type row_size() const noexcept { return m_rows; };
+	constexpr size_type column_count() const noexcept { return m_columns; };
+	constexpr size_type row_count() const noexcept { return m_rows; };
 
 private:
 
@@ -296,6 +376,12 @@ public:
 		}
 	};
 
+	template<detail::vector_type T>
+	constexpr explicit grid_vector(const T& columns_rows)
+		: grid_vector(columns_rows.x, columns_rows.y)
+	{
+	}
+
 	constexpr grid_vector(size_type columns, size_type rows, const value_type& value)
 		: m_columns(columns)
 		, m_rows(rows)
@@ -308,6 +394,11 @@ public:
 			clear();
 		}
 	};
+	template<detail::vector_type T>
+	constexpr explicit grid_vector(const T& columns_rows, const value_type& value)
+		: grid_vector(columns_rows.x, columns_rows.y, value)
+	{
+	}
 
 	constexpr grid_vector(const grid_vector& x)
 		: m_columns(x.m_columns)
@@ -377,6 +468,8 @@ public:
 
 	constexpr iterator begin() { return iterator{ m_ptr, 0, 0, m_columns }; }
 	constexpr iterator end() { return iterator{ m_ptr + size(), 0, m_rows, m_columns }; }
+	constexpr const_iterator begin() const { return cbegin(); }
+	constexpr const_iterator end() const { return cend(); }
 	constexpr const_iterator cbegin() const { return const_iterator{ m_ptr, 0, 0, m_columns }; }
 	constexpr const_iterator cend() const { return const_iterator{ m_ptr + size(), 0, m_rows, m_columns }; }
 	constexpr reverse_iterator rbegin() { return reverse_iterator{ m_ptr, 0, 0, m_columns }; }
@@ -394,6 +487,12 @@ public:
 		return grid_view<T>(*this, left, top, columns, rows);
 	}
 
+	template<detail::vector_type Vec>
+	grid_view<T> take_view(const Vec& left_top, const Vec& columns_rows)
+	{
+		return grid_view<T>(*this, left_top.x, left_top.y, columns_rows.x, columns_rows.y);
+	}
+
 	constexpr reference at(size_type column_x, size_type row_y)
 	{
 		return m_ptr[(row_y * m_columns) + column_x];
@@ -401,6 +500,18 @@ public:
 	constexpr const_reference at(size_type column_x, size_type row_y) const
 	{
 		return m_ptr[(row_y * m_columns) + column_x];
+	}
+
+	template<detail::vector_type Vec>
+	constexpr reference at(const Vec& position)
+	{
+		return at(position.x, position.y);
+	}
+
+	template<detail::vector_type Vec>
+	constexpr const_reference at(const Vec& position) const
+	{
+		return at(position.x, position.y);
 	}
 
 	constexpr reference operator[] (size_type ndx)
@@ -411,6 +522,18 @@ public:
 	constexpr const_reference operator[] (size_type ndx) const
 	{
 		return m_ptr[ndx];
+	}
+
+	template<detail::vector_type Vec>
+	constexpr reference operator[] (const Vec& position)
+	{
+		return at(position);
+	}
+
+	template<detail::vector_type Vec>
+	constexpr const_reference operator[] (const Vec& position) const
+	{
+		return at(position);
 	}
 
 	constexpr bool empty() const noexcept { return !m_ptr; }

@@ -81,7 +81,7 @@ public:
 	void deselect_tileset();
 
 	// selects tile from selected tileset for painting tiles
-	bool select_tile(Vec2u tile_pos);
+	bool select_tile(TileID tile_pos);
 	void deselect_tile();
 
 	// LEVEL PROPERTIES

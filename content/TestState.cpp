@@ -35,7 +35,7 @@ TestState::TestState()
 	edit = std::make_unique<LevelEditor>( *lvl, false );
 	edit->select_layer(-1);
 	edit->select_tileset("tile_test");
-	edit->select_tile(Vec2u{ 0, 0 });
+	edit->select_tile(TileID{ 0u, 0u });
 
 }
 
@@ -79,14 +79,13 @@ void TestState::update(secs deltaTime) {
 				auto tileset = edit->get_tileset();
 				auto tile = edit->get_tile();
 				if (tileset && tile) {
-					Vec2u tile_pos = tile.value();
-
+					TileID tile_pos = tile.value();
 					tile_pos.x = (tile_pos.x + dir.x) % tileset->getTileSize().x;
 					tile_pos.y = (tile_pos.y + dir.y) % tileset->getTileSize().y;
 					edit->select_tile(tile_pos);
 				}
 				else {
-					edit->select_tile(Vec2u{ 0, 0 });
+					edit->select_tile(TileID{ 0u, 0u });
 				}
 				LOG_INFO("tile pos = {}", edit->get_tile()->to_vec().to_string());
 			});

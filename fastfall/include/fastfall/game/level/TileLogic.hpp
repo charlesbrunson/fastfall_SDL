@@ -24,7 +24,7 @@ struct TileLogicCommand {
 
 	Type type;
 	Vec2u position;
-	Vec2u texposition;
+	TileID texposition;
 	std::reference_wrapper<const TilesetAsset> tileset;
 	bool updateLogic = true;
 };

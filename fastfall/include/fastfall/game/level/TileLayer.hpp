@@ -30,9 +30,11 @@ private:
 	// copy of layer from asset
 	TileLayerData layer_data;
 
-	struct tile_dyn_t {
-		std::vector<uint8_t> logic_id;
-	} tiles_dyn;
+	struct TileDynamic {
+		uint8_t logic_id = TILEDATA_NONE;
+	};
+
+	grid_vector<TileDynamic> tiles_dyn;
 
 	struct dyn_t {
 		struct parallax_dyn_t {
@@ -78,7 +80,7 @@ public:
 	void update(secs deltaTime);
 	void predraw(secs deltaTime);
 
-	void setTile(const Vec2u& position, TileID texposition, const TilesetAsset& tileset, bool useLogic = true);
+	void setTile(const Vec2u& position, TileID tile_id, const TilesetAsset& tileset, bool useLogic = true);
 	void removeTile(const Vec2u& position);
 	void clear();
 
@@ -109,7 +111,7 @@ public:
 
 	// tile queries
 	bool hasTileAt(Vec2u tile_pos);
-	std::optional<Vec2u> getTileTexPos(Vec2u tile_pos);
+	std::optional<TileID> getTileID(Vec2u tile_pos);
 	const TilesetAsset* getTileTileset(Vec2u tile_pos);
 
 	// position queries

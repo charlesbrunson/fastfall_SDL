@@ -216,15 +216,15 @@ void LevelEditor::deselect_tileset()
 }
 
 // selects tile from selected tileset for painting tiles
-bool LevelEditor::select_tile(Vec2u tile_pos)
+bool LevelEditor::select_tile(TileID tile)
 {
 	if (!level) return false;
 
 	if (curr_tileset 
-		&& tile_pos.x < curr_tileset->getTileSize().x
-		&& tile_pos.y < curr_tileset->getTileSize().y)
+		&& tile.x < curr_tileset->getTileSize().x
+		&& tile.y < curr_tileset->getTileSize().y)
 	{
-		tileset_pos = TileID{ tile_pos };
+		tileset_pos = tile;
 		return true;
 	}
 	return false;
@@ -394,25 +394,25 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 			for (unsigned xx = 0; xx < width; xx++) {
 
 				Vec2u pos{ xx, yy };
-				unsigned ndx = xx + yy * tile_ref.getSize().x;
+				//unsigned ndx = xx + yy * tile_ref.getSize().x;
 
 				//if (tile_ndx >= tile_ref.getSize().x * tile_ref.getSize().x)
 				//	break;
 
 				auto& tilelayer = layer.tilelayer;
 
-				if (tile_data.has_tile[ndx])
+				if (tile_data[pos].has_tile)
 				{
-					auto tex_pos = tile_data.tex_pos[ndx];
-					auto tileset = tile_ref.getTilesetFromNdx(tile_data.tileset_ndx[ndx]);
+					auto tile_id = tile_data[pos].tile_id;
+					auto tileset = tile_ref.getTilesetFromNdx(tile_data[pos].tileset_ndx);
 
 					if ( (!tilelayer.hasTileAt(pos))
-						|| (tilelayer.getTileTexPos(pos).value() != tex_pos.to_vec())
+						|| (tilelayer.getTileID(pos).value() != tile_id)
 						|| (tilelayer.getTileTileset(pos)->getAssetName() != *tileset))
 					{
 						paint_count++;
 						select_tileset(tileset->c_str());
-						select_tile(tex_pos);
+						select_tile(tile_id);
 						paint_tile(pos);
 					}
 				}

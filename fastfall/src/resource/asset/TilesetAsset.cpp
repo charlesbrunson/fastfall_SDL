@@ -527,7 +527,7 @@ Tile TilesetAsset::getTile(TileID texPos) const {
 	else {
 		// create a default, empty tile here
 		return Tile{
-			.pos = TileID{ texPos },
+			.pos = texPos,
 			.shape = TileShape(TileShape::Type::EMPTY, false, false),
 			.origin = this,
 		};

@@ -5,10 +5,12 @@
 #include "fastfall/util/xml.hpp"
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/log.hpp"
+#include "fastfall/util/grid_vector.hpp"
 
 #include <vector>
 #include <map>
 #include <string_view>
+#include <optional>
 
 namespace ff {
 
@@ -27,12 +29,24 @@ private:
 	unsigned collision_border_bits = 0u;
 
 	// tile data
+	/*
 	struct TileData {
 		std::vector<bool> has_tile;
 		std::vector<Vec2u> pos;
 		std::vector<TileID> tex_pos;
 		std::vector<uint8_t> tileset_ndx;
 	} tiles;
+	*/
+
+	struct TileData {
+		bool has_tile		= false;
+		Vec2u	pos			= {};
+		TileID	tile_id		= {};
+		uint8_t tileset_ndx = UINT8_MAX;
+	};
+
+	grid_vector<TileData> tiles;
+
 
 	std::vector<std::pair<std::string, unsigned>> tilesets;
 
@@ -70,13 +84,13 @@ public:
 
 	void setCollision(bool enabled, unsigned border = 0);
 
-	void setTile(Vec2u at, Vec2u tex, std::string_view tileset);
+	void setTile(Vec2u at, TileID tile_id, std::string_view tileset);
 
 	std::pair<bool, unsigned> removeTile(Vec2u at);
 
 	void clearTiles();
 
-	const TileData& getTileData() const { return tiles; };
+	const grid_vector<TileData>& getTileData() const { return tiles; };
 
 	inline const auto& getTilesets() const { return tilesets; };
 
