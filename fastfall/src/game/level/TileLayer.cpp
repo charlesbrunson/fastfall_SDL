@@ -597,31 +597,33 @@ void TileLayer::clear() {
 	set_scroll(false);
 }
 
-void TileLayer::shallow_copy(const TileLayer& layer, Rectu area)
+void TileLayer::shallow_copy(const TileLayer& src, Rectu src_area, Vec2u dst)
 {
+	Rectu dst_area{ dst, Vec2u{ src_area.getSize() } };
 
-	LOG_WARN("TileLayer::shallow_copy: area parameter currently unused");
+	Rectu src_level_area{ {}, src.getLevelSize() };
+	Rectu dst_level_area{ {}, getLevelSize() };
 
-	const auto& tile_data = layer.layer_data.getTileData();
+	src_level_area.intersects(src_area, src_area);
+	dst_level_area.intersects(dst_area, dst_area);
 
-	for (const auto& tile : tile_data)
+	const auto& src_tiles = src.layer_data.getTileData();
+
+	for (const auto& tile : src_tiles.take_view(src_area.getPosition(), src_area.getSize()))
 	{
-		if (layer.getLevelSize().x <= tile.pos.x || layer.getLevelSize().y <= tile.pos.y)
-			continue;
-
 		if (!tile.has_tile)
 			continue;
 
 		const TilesetAsset* tileset = nullptr;
 		if (tile.tileset_ndx != UINT8_MAX) {
-			tileset = layer.dyn.chunks.at(tile.tileset_ndx).tileset;
+			tileset = src.dyn.chunks.at(tile.tileset_ndx).tileset;
 		}
 		else {
 			continue;
 		}
 
 		TileID tex_pos = tile.tile_id;
-		setTile(tile.pos, tex_pos, *tileset);
+		setTile(tile.pos - dst, tex_pos, *tileset);
 	}
 }
 

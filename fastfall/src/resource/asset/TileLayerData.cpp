@@ -43,7 +43,7 @@ void TileLayerData::resize(Vec2u size, Vec2i offset) {
 			if (!tile.has_tile)
 				continue;
 
-			n_data.setTile(tile.pos + offset, tile.tile_id, tilesets[tile.tileset_ndx].first);
+			n_data.setTile(tile.pos + offset, tile.tile_id, tilesets[tile.tileset_ndx].name);
 		}
 	}
 
@@ -89,7 +89,9 @@ void TileLayerData::setCollision(bool enabled, unsigned border)
 void TileLayerData::setTile(Vec2u at, TileID tile_id, std::string_view tileset) {
 	assert(at.x < tileSize.x && at.y < tileSize.y);
 
-	auto it = std::find_if(tilesets.begin(), tilesets.end(), [&tileset](const auto& pair) { return tileset == pair.first; });
+	auto it = std::find_if(tilesets.begin(), tilesets.end(), 
+		[&tileset](const auto& tileset_data) { return tileset == tileset_data.name; }
+	);
 
 	if (it != tilesets.end()) {
 
@@ -98,17 +100,20 @@ void TileLayerData::setTile(Vec2u at, TileID tile_id, std::string_view tileset) 
 
 		if (p_ndx != UINT8_MAX)	{
 			// replacing a tile
-			tilesets[p_ndx].second--;
+			tilesets[p_ndx].tile_count--;
 		}
 
 		if (p_ndx != n_ndx) {
 			tiles[at].tileset_ndx = n_ndx;
-			it->second++;
+			it->tile_count++;
 		}
 	}
 	else if (tilesets.size() <= UINT8_MAX) {
 		tiles[at].tileset_ndx = tilesets.size();
-		tilesets.push_back(std::make_pair(std::string{ tileset }, 1));
+		tilesets.push_back({ 
+			.name = std::string{ tileset }, 
+			.tile_count = 1 
+			});
 	}
 	else {
 		LOG_ERR_("unable to set tile, tileset max reached for layer: {}", tilesets.size());
@@ -131,8 +136,8 @@ std::pair<bool, unsigned> TileLayerData::removeTile(Vec2u at)
 	{
 		erased = true;
 
-		count = --tilesets[tile.tileset_ndx].second;
-		if (tilesets[tile.tileset_ndx].second == 0)
+		count = --tilesets[tile.tileset_ndx].tile_count;
+		if (tilesets[tile.tileset_ndx].tile_count == 0)
 		{
 			tilesets.erase(tilesets.begin() + tile.tileset_ndx);
 			std::for_each(tiles.begin(), tiles.end(),

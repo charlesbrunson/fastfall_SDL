@@ -28,31 +28,21 @@ private:
 	Vec2f scrollrate;
 	unsigned collision_border_bits = 0u;
 
-	// tile data
-	/*
-	struct TileData {
-		std::vector<bool> has_tile;
-		std::vector<Vec2u> pos;
-		std::vector<TileID> tex_pos;
-		std::vector<uint8_t> tileset_ndx;
-	} tiles;
-	*/
-
 	struct TileData {
 		bool has_tile		= false;
 		Vec2u	pos			= {};
 		TileID	tile_id		= {};
 		uint8_t tileset_ndx = UINT8_MAX;
 	};
-
 	grid_vector<TileData> tiles;
 
-
-	std::vector<std::pair<std::string, unsigned>> tilesets;
+	struct TilesetData {
+		std::string name;
+		unsigned tile_count;
+	};
+	std::vector<TilesetData> tilesets;
 
 	unsigned layer_id = 0;
-
-
 
 public:
 
@@ -95,7 +85,7 @@ public:
 	inline const auto& getTilesets() const { return tilesets; };
 
 	const std::string* getTilesetFromNdx(uint8_t ndx) const {
-		return ndx < tilesets.size() ? &tilesets.at(ndx).first : nullptr;
+		return ndx < tilesets.size() ? &tilesets.at(ndx).name : nullptr;
 	}
 };
 
