@@ -111,13 +111,13 @@ ColliderQuad::ColliderQuad() noexcept :
 
 }
 
-ColliderQuad::ColliderQuad(const SurfaceArray& surfaces) noexcept :
+ColliderQuad::ColliderQuad(const cardinal_array<QuadSurface>& surfaces) noexcept :
 	surfaces{ surfaces }
 {
 
 }
 
-ColliderQuad::ColliderQuad(SurfaceArray&& surfaces) noexcept :
+ColliderQuad::ColliderQuad(cardinal_array<QuadSurface>&& surfaces) noexcept :
 	surfaces{ surfaces }
 {
 
@@ -125,26 +125,37 @@ ColliderQuad::ColliderQuad(SurfaceArray&& surfaces) noexcept :
 
 ColliderQuad::ColliderQuad(const Rectf& shape) noexcept {
 
-	Vec2f points[4] = {
+	ordinal_array<Vec2f> points = {
 		math::rect_topleft(shape),
 		math::rect_topright(shape),
 		math::rect_botright(shape),
 		math::rect_botleft(shape)
 	};
 
-	for (unsigned i = 0; i < 4; i++) {
-		surfaces[i].hasSurface = true;
+	QuadSurface* prev = nullptr;
+	for (auto dir : direction::cardinals)
+	{
+		surfaces[dir].hasSurface = true;
 
-		surfaces[i].collider.g0virtual = false;
-		surfaces[i].collider.g3virtual = false;
+		surfaces[dir].collider.g0virtual = false;
+		surfaces[dir].collider.g3virtual = false;
 
-		surfaces[i].collider.ghostp0 = points[(i - 1) % 4];
-		surfaces[i].collider.surface.p1 = points[i];
-		surfaces[i].collider.surface.p2 = points[(i + 1) % 4];
-		surfaces[i].collider.ghostp3 = points[(i + 2) % 4];
+		auto [ord1, ord2] = direction::split(dir);
 
-		surfaces[i].collider.prev = &surfaces[(i - 1) % 4].collider;
-		surfaces[i].collider.next = &surfaces[(i + 1) % 4].collider;
+		surfaces[dir].collider.ghostp0		= points[direction::opposite(ord2)];
+		surfaces[dir].collider.surface.p1	= points[ord1];
+		surfaces[dir].collider.surface.p2	= points[ord2];
+		surfaces[dir].collider.ghostp3		= points[direction::opposite(ord1)];
+
+		if (prev) {
+			surfaces[dir].collider.prev = &prev->collider;
+			prev->collider.next = &surfaces[dir].collider;
+		}
+		prev = &surfaces[dir];
+	}
+	if (prev) {
+		surfaces[Cardinal::N].collider.prev = &prev->collider;
+		prev->collider.next = &surfaces[Cardinal::N].collider;
 	}
 }
 

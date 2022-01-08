@@ -9,7 +9,7 @@ constexpr unsigned HALFTILE = TILESIZE / 2;
 
 //constexpr std::map<TileShape::Type, ColliderQuad::SurfaceArray> surfacePrototypes
 
-using TypeSurfaceArray = std::pair<TileShape::Type, ColliderQuad::SurfaceArray>;
+using TypeSurfaceArray = std::pair<TileShape::Type, cardinal_array<ColliderQuad::QuadSurface>>;
 constexpr std::array<TypeSurfaceArray, TILE_TYPE_COUNT> surfacePrototypes
 {
 	TypeSurfaceArray{TileShape::Type::SOLID, {
@@ -134,7 +134,7 @@ ColliderQuad ColliderTile::toQuad(int id) const {
 
 	auto swapFacing = [&q](Cardinal dir) {
 		auto& lhs = q.surfaces[dir];
-		auto& rhs = q.surfaces[cardinalOpposite(dir)];
+		auto& rhs = q.surfaces[direction::opposite(dir)];
 
 
 		if ((lhs.hasSurface) && (rhs.hasSurface)) {
@@ -151,27 +151,27 @@ ColliderQuad ColliderTile::toQuad(int id) const {
 	};
 
 	if (shape.hflipped) {
-		swapFacing(Cardinal::EAST);
+		swapFacing(Cardinal::E);
 	}
 	if (shape.vflipped) {
-		swapFacing(Cardinal::NORTH);
+		swapFacing(Cardinal::N);
 	}
 
 	if (shape.type == TileShape::Type::ONEWAY) {
 		q.hasOneWay = true;
-		q.oneWayDir = !shape.vflipped ? Cardinal::NORTH : Cardinal::SOUTH;
+		q.oneWayDir = !shape.vflipped ? Cardinal::N : Cardinal::S;
 	}
 	else if (shape.type == TileShape::Type::ONEWAYVERT) {
 		q.hasOneWay = true;
-		q.oneWayDir = !shape.hflipped ? Cardinal::EAST : Cardinal::WEST;
+		q.oneWayDir = !shape.hflipped ? Cardinal::E : Cardinal::W;
 	}
 	else if (shape.type == TileShape::Type::LEVELBOUNDARY) {
 		q.hasBoundary = true;
-		q.oneWayDir = !shape.vflipped ? Cardinal::NORTH : Cardinal::SOUTH;
+		q.oneWayDir = !shape.vflipped ? Cardinal::N : Cardinal::S;
 	}
 	else if (shape.type == TileShape::Type::LEVELBOUNDARY_WALL) {
 		q.hasBoundary = true;
-		q.oneWayDir = !shape.hflipped ? Cardinal::EAST : Cardinal::WEST;
+		q.oneWayDir = !shape.hflipped ? Cardinal::E : Cardinal::W;
 	}
 
 	q.setID(id);

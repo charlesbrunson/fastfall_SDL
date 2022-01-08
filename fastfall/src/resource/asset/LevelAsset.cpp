@@ -8,7 +8,7 @@
 #include "fastfall/util/log.hpp"
 #include "fastfall/util/xml.hpp"
 #include "fastfall/util/base64.hpp"
-#include "fastfall/util/cardinal.hpp"
+//#include "fastfall/util/direction.hpp"
 
 #include "fastfall/engine/config.hpp"
 

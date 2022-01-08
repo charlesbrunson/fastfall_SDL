@@ -46,7 +46,6 @@ ff::EngineSettings getSettings() {
 
 int main(int argc, char* argv[])
 {
-
 	srand(time(NULL));
 	{
 		log::scope scope;

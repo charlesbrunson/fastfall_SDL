@@ -1,7 +1,6 @@
 #pragma once
 
 #include "fastfall/util/math.hpp"
-#include "fastfall/util/cardinal.hpp"
 
 namespace ff {
 

@@ -30,7 +30,7 @@ struct ColliderTile {
 	TileShape shape;
 
 	const TileMaterial* mat = nullptr;
-	Cardinal matFacing = Cardinal::NORTH;
+	Cardinal matFacing = Cardinal::N;
 };
 
 }

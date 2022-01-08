@@ -4,7 +4,7 @@
 #include "fastfall/util/Line.hpp"
 #include "fastfall/util/Angle.hpp"
 #include "fastfall/util/Rect.hpp"
-#include "fastfall/util/cardinal.hpp"
+#include "fastfall/util/direction.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -250,14 +250,18 @@ Rect<T> rect_extend(const Rect<T>& a, Cardinal dir, T amount) {
 	Rect<T> out = a;
 	T temp;
 	switch (dir) {
-	case Cardinal::NORTH:
+	case Cardinal::N:
 		temp = out.top + out.height;
 		out.top -= amount; 
 		out.height = temp - out.top;
 		break;
-	case Cardinal::EAST:  out.width += amount; break;
-	case Cardinal::SOUTH: out.height += amount; break;
-	case Cardinal::WEST:  
+	case Cardinal::E: 
+		out.width += amount; 
+		break;
+	case Cardinal::S: 
+		out.height += amount; 
+		break;
+	case Cardinal::W:  
 		temp = out.left + out.width;
 		out.left -= amount; 
 		out.width = temp - out.left;

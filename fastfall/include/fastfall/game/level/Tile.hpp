@@ -2,7 +2,7 @@
 
 #include "fastfall/game/level/TileID.hpp"
 #include "fastfall/util/math.hpp"
-#include "fastfall/util/cardinal.hpp"
+#include "fastfall/util/direction.hpp"
 
 
 namespace ff {
@@ -54,19 +54,19 @@ private:
 	using TilePrototype = std::pair<TileShape::Type, uint8_t>;
 	constexpr static std::array<TilePrototype, TILE_TYPE_COUNT> tilePrototypes{
 		TilePrototype{TileShape::Type::EMPTY, 0u},
-		{Type::SOLID,				cardinalToBits(Cardinal::NORTH, Cardinal::EAST, Cardinal::SOUTH, Cardinal::WEST)},
-		{Type::HALF,				cardinalToBits(Cardinal::EAST, Cardinal::SOUTH, Cardinal::WEST)},
-		{Type::HALFVERT,			cardinalToBits(Cardinal::NORTH,                 Cardinal::SOUTH, Cardinal::WEST)},
-		{Type::SLOPE,				cardinalToBits(Cardinal::EAST, Cardinal::SOUTH)},
-		{Type::SHALLOW1,			cardinalToBits(Cardinal::EAST, Cardinal::SOUTH)},
-		{Type::SHALLOW2,			cardinalToBits(Cardinal::EAST, Cardinal::SOUTH, Cardinal::WEST)},
-		{Type::STEEP1,				cardinalToBits(Cardinal::NORTH, Cardinal::EAST, Cardinal::SOUTH)},
-		{Type::STEEP2,				cardinalToBits(Cardinal::EAST, Cardinal::SOUTH)},
-		{Type::ONEWAY,				cardinalToBits(Cardinal::NORTH)},
-		{Type::ONEWAYVERT,			cardinalToBits(Cardinal::EAST)},
+		{Type::SOLID,				direction::to_bits(Cardinal::N, Cardinal::E, Cardinal::S, Cardinal::W)},
+		{Type::HALF,				direction::to_bits(Cardinal::E, Cardinal::S, Cardinal::W)},
+		{Type::HALFVERT,			direction::to_bits(Cardinal::N,                 Cardinal::S, Cardinal::W)},
+		{Type::SLOPE,				direction::to_bits(Cardinal::E, Cardinal::S)},
+		{Type::SHALLOW1,			direction::to_bits(Cardinal::E, Cardinal::S)},
+		{Type::SHALLOW2,			direction::to_bits(Cardinal::E, Cardinal::S, Cardinal::W)},
+		{Type::STEEP1,				direction::to_bits(Cardinal::N, Cardinal::E, Cardinal::S)},
+		{Type::STEEP2,				direction::to_bits(Cardinal::E, Cardinal::S)},
+		{Type::ONEWAY,				direction::to_bits(Cardinal::N)},
+		{Type::ONEWAYVERT,			direction::to_bits(Cardinal::E)},
 
-		{Type::LEVELBOUNDARY,		cardinalToBits(Cardinal::NORTH)},
-		{Type::LEVELBOUNDARY_WALL,	cardinalToBits(Cardinal::EAST)}
+		{Type::LEVELBOUNDARY,		direction::to_bits(Cardinal::N)},
+		{Type::LEVELBOUNDARY_WALL,	direction::to_bits(Cardinal::E)}
 	};
 
 	constexpr void init() {
@@ -77,21 +77,21 @@ private:
 
 		// flip touch flags
 		if (hflipped) {
-			bool east = (shapeTouches & cardinalBit[Cardinal::EAST]) > 0;
-			bool west = (shapeTouches & cardinalBit[Cardinal::WEST]) > 0;
+			bool east = (shapeTouches & direction::to_bits(Cardinal::E)) > 0;
+			bool west = (shapeTouches & direction::to_bits(Cardinal::W)) > 0;
 
 			if (east != west) {
-				shapeTouches &= ~(cardinalBit[Cardinal::EAST] | cardinalBit[Cardinal::WEST]);
-				shapeTouches |= (east ? cardinalBit[Cardinal::WEST] : 0) | (west ? cardinalBit[Cardinal::EAST] : 0);
+				shapeTouches &= ~(direction::to_bits(Cardinal::E, Cardinal::W));
+				shapeTouches |= (east ? direction::to_bits(Cardinal::W) : 0) | (west ? direction::to_bits(Cardinal::E) : 0);
 			}
 		}
 		if (vflipped) {
-			bool north = (shapeTouches & cardinalBit[Cardinal::NORTH]) > 0;
-			bool south = (shapeTouches & cardinalBit[Cardinal::SOUTH]) > 0;
+			bool north = (shapeTouches & direction::to_bits(Cardinal::N)) > 0;
+			bool south = (shapeTouches & direction::to_bits(Cardinal::S)) > 0;
 
 			if (north != south) {
-				shapeTouches &= ~(cardinalBit[Cardinal::NORTH] | cardinalBit[Cardinal::SOUTH]);
-				shapeTouches |= (north ? cardinalBit[Cardinal::SOUTH] : 0) | (south ? cardinalBit[Cardinal::NORTH] : 0);
+				shapeTouches &= ~(direction::to_bits(Cardinal::N, Cardinal::S));
+				shapeTouches |= (north ? direction::to_bits(Cardinal::S) : 0) | (south ? direction::to_bits(Cardinal::N) : 0);
 			}
 		}
 	}
@@ -115,7 +115,7 @@ struct AutoTileRule {
 
 struct TileMaterial {
 
-	const SurfaceMaterial& getSurface(Cardinal side, Cardinal facing = Cardinal::NORTH) const {
+	const SurfaceMaterial& getSurface(Cardinal side, Cardinal facing = Cardinal::N) const {
 		size_t ndx = (static_cast<int>(side) - static_cast<int>(facing)) % 4;
 		return surfaces.at(ndx);
 	}
@@ -126,11 +126,10 @@ struct TileMaterial {
 
 
 class Tile {
-	//constexpr static int SAME_TILESET = -1;
 public:
 	TileID pos;
 	TileShape shape;
-	Cardinal matFacing = Cardinal::NORTH;
+	Cardinal matFacing = Cardinal::N;
 
 	// tile next reference
 	TileID next_offset = TileID{ 0u };

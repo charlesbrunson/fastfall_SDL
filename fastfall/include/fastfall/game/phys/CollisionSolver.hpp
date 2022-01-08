@@ -29,9 +29,14 @@ private:
 
 	//std::array<std::list<Arbiter*>, 4u> arbPerDir;
 
-	std::array<unsigned, 4> allCollisionCount;
-	std::array<unsigned, 4> initialCollisionCount;
-	std::array<unsigned, 4> appliedCollisionCount;
+
+	cardinal_array<unsigned> allCollisionCount;
+	cardinal_array<unsigned> initialCollisionCount;
+	cardinal_array<unsigned> appliedCollisionCount;
+
+	//std::array<unsigned, 4> allCollisionCount;
+	//std::array<unsigned, 4> initialCollisionCount;
+	//std::array<unsigned, 4> appliedCollisionCount;
 
 	std::deque<Arbiter*> north;
 	std::deque<Arbiter*> south;

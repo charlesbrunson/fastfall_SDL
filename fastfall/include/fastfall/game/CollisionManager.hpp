@@ -69,7 +69,7 @@ private:
 
 	void updateRegionArbiters(CollidableData& data);
 
-	Rectf updatePushBound(Rectf push_bound, const std::array<float, 4u>& boundDist, const Contact* contact);
+	Rectf updatePushBound(Rectf push_bound, const cardinal_array<float>& boundDist, const Contact* contact);
 
 	void solve(CollidableData& collidableData);
 

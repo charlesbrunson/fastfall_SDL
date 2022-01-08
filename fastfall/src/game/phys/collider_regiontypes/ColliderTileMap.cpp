@@ -81,44 +81,38 @@ namespace ff {
 	void ColliderTileMap::setBorders(const Vec2u& size, const unsigned cardinalBits) {
 		if (!hasBorder)	return;
 
-		static constexpr Cardinal sides[4] = {
-			Cardinal::NORTH,
-			Cardinal::EAST,
-			Cardinal::SOUTH,
-			Cardinal::WEST,
-		};
+		using namespace direction;
 
-		for (auto side : sides) {
-			if (cardinalBits & cardinalBit[side]) {
+		for (auto side : cardinals) {
+			if (cardinalBits & to_bits(side)) {
 
 				TileShape shape;
-				shape.shapeTouches = cardinalBit[cardinalOpposite(side)];
+				shape.shapeTouches = to_bits(opposite(side));
 
 				shape.type =
-					((side == Cardinal::NORTH) || (side == Cardinal::SOUTH) ?
+					((side == Cardinal::N) || (side == Cardinal::S) ?
 						TileShape::Type::LEVELBOUNDARY :
 						TileShape::Type::LEVELBOUNDARY_WALL);
 
-				shape.vflipped = (side == Cardinal::NORTH);
-				shape.hflipped = (side == Cardinal::EAST);
+				shape.vflipped = (side == Cardinal::N);
+				shape.hflipped = (side == Cardinal::E);
 
 				switch (side) {
-				case Cardinal::NORTH: for (unsigned x = 0; x < size.x; x++) setTile(Vec2i(x, -1), shape); break;
-				case Cardinal::EAST:  for (unsigned y = 0; y < size.y; y++) setTile(Vec2i(size.x, y), shape); break;
-				case Cardinal::SOUTH: for (unsigned x = 0; x < size.x; x++) setTile(Vec2i(x, size.y), shape); break;
-				case Cardinal::WEST:  for (unsigned y = 0; y < size.y; y++) setTile(Vec2i(-1, y), shape); break;
+				case Cardinal::N: for (unsigned x = 0; x < size.x; x++) setTile(Vec2i(x, -1), shape); break;
+				case Cardinal::E:  for (unsigned y = 0; y < size.y; y++) setTile(Vec2i(size.x, y), shape); break;
+				case Cardinal::S: for (unsigned x = 0; x < size.x; x++) setTile(Vec2i(x, size.y), shape); break;
+				case Cardinal::W:  for (unsigned y = 0; y < size.y; y++) setTile(Vec2i(-1, y), shape); break;
 				}
 			}
 			else {
 				switch (side) {
-				case Cardinal::NORTH: for (unsigned x = 0; x < size.x; x++) removeTile(Vec2i(x, -1)); break;
-				case Cardinal::EAST:  for (unsigned y = 0; y < size.y; y++) removeTile(Vec2i(size.x, y)); break;
-				case Cardinal::SOUTH: for (unsigned x = 0; x < size.x; x++) removeTile(Vec2i(x, size.y)); break;
-				case Cardinal::WEST:  for (unsigned y = 0; y < size.y; y++) removeTile(Vec2i(-1, y)); break;
+				case Cardinal::N: for (unsigned x = 0; x < size.x; x++) removeTile(Vec2i(x, -1)); break;
+				case Cardinal::E:  for (unsigned y = 0; y < size.y; y++) removeTile(Vec2i(size.x, y)); break;
+				case Cardinal::S: for (unsigned x = 0; x < size.x; x++) removeTile(Vec2i(x, size.y)); break;
+				case Cardinal::W:  for (unsigned y = 0; y < size.y; y++) removeTile(Vec2i(-1, y)); break;
 				}
 			}
 		}
-		//applyChanges();
 	}
 
 
@@ -202,17 +196,18 @@ namespace ff {
 			return false;
 
 		for_adjacent_touching_quads(*tile,
-			[&](ColliderQuad& quad_adj, const ColliderTile& tile_adj, const SideAssociated& side)
+			[&](ColliderQuad& quad_adj, const ColliderTile& tile_adj, Cardinal dir)
 			{
 				ColliderQuad original = tile_adj.toQuad(quad_adj.getID());
+				Cardinal other_dir = direction::opposite(dir);
 
-				const ColliderSurface* originalSurf = original.getSurface(side.oppositeCard);
+				const ColliderSurface* originalSurf = original.getSurface(other_dir);
 				if (originalSurf) {
 					if (!quad_adj.hasAnySurface()) {
 						incr_valid_collision();
 					}
 
-					quad_adj.setSurface(side.oppositeCard, *originalSurf);
+					quad_adj.setSurface(other_dir, *originalSurf);
 				}
 			});
 
@@ -310,10 +305,10 @@ namespace ff {
 
 		if (isTileGeometryDifferent(ColliderTile{}, nTile)) {
 			for_adjacent_touching_quads(nTile,
-				[&](ColliderQuad& quad_adj, const ColliderTile& tile_adj, const SideAssociated& side)
+				[&](ColliderQuad& quad_adj, const ColliderTile& tile_adj, Cardinal side)
 				{
-					ColliderSurface* added = nQuad.getSurface(side.toCard);
-					ColliderSurface* adjacent = quad_adj.getSurface(side.oppositeCard);
+					ColliderSurface* added = nQuad.getSurface(side);
+					ColliderSurface* adjacent = quad_adj.getSurface(direction::opposite(side));
 
 					if (added == nullptr || adjacent == nullptr) {
 						return;
@@ -322,10 +317,10 @@ namespace ff {
 					auto [first, second] = cullTouchingSurfaces(*added, *adjacent);
 
 					if (first) {
-						nQuad.removeSurface(side.toCard);
+						nQuad.removeSurface(side);
 					}
 					if (second) {
-						quad_adj.removeSurface(side.oppositeCard);
+						quad_adj.removeSurface(direction::opposite(side));
 
 						if (!quad_adj.hasAnySurface()) {
 							decr_valid_collision();
@@ -450,9 +445,8 @@ namespace ff {
 		};
 
 		//for (auto& surface : tile->getSurfaces()) {
-		for (unsigned it = CARDINAL_FIRST; it <= CARDINAL_LAST; it++) {
-
-			if (ColliderSurface* surf_ptr = quad->getSurface(static_cast<Cardinal>(it))) {
+		for (auto dir : direction::cardinals) {
+			if (ColliderSurface* surf_ptr = quad->getSurface(dir)) {
 
 				ColliderSurface surf = *surf_ptr;
 
@@ -463,7 +457,7 @@ namespace ff {
 				surf.g3virtual = ghosts.g3virtual;
 				surf.next = ghosts.next;
 				surf.prev = ghosts.prev;
-				quad->setSurface(static_cast<Cardinal>(it), surf);
+				quad->setSurface(dir, surf);
 			}
 		}
 	}

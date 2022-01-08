@@ -392,7 +392,7 @@ const PersistantContact* Collidable::get_contact(Angle angle) const noexcept {
 }
 
 const PersistantContact* Collidable::get_contact(Cardinal dir) const noexcept {
-	return get_contact(cardinalToAngle(dir));
+	return get_contact(direction::to_angle(dir));
 }
 
 bool Collidable::has_contact(Angle angle) const noexcept {
@@ -400,7 +400,7 @@ bool Collidable::has_contact(Angle angle) const noexcept {
 	return contact && contact->hasContact;
 }
 bool Collidable::has_contact(Cardinal dir) const noexcept {
-	return has_contact(cardinalToAngle(dir));
+	return has_contact(direction::to_angle(dir));
 }
 
 void Collidable::set_frame(std::vector<PersistantContact>&& frame) {

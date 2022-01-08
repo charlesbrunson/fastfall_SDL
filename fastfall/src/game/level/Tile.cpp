@@ -1,6 +1,6 @@
 #include "fastfall/game/level/Tile.hpp"
 
-#include "fastfall/util/cardinal.hpp"
+//#include "fastfall/util/direction.hpp"
 #include "fastfall/util/log.hpp"
 
 //#include <map>
@@ -26,24 +26,6 @@ constexpr std::array<StringTileType, TILE_TYPE_COUNT> tileStringToType = {
 	StringTileType{"levelboundary",      TileShape::Type::LEVELBOUNDARY},
 	StringTileType{"levelboundary_wall", TileShape::Type::LEVELBOUNDARY_WALL}
 };
-
-/*
-constexpr std::array<std::string_view, TILE_TYPE_COUNT> tileTypeToStr{
-	"empty",
-	"solid",
-	"half",
-	"slope",
-	"shallow1",
-	"shallow2",
-	"steep1",
-	"steep2",
-	"oneway",
-	"onewayvert",
-
-	"levelboundary",
-	"levelboundary_wall"
-};
-*/
 
 TileShape::TileShape() noexcept :
 	type(Type::EMPTY),

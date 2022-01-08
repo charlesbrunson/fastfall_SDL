@@ -4,7 +4,6 @@
 #include "fastfall/game/level/TileLogic.hpp"
 
 #include "fastfall/util/xml.hpp"
-#include "fastfall/util/cardinal.hpp"
 #include "fastfall/util/log.hpp"
 
 #include "nlohmann/json.hpp"
@@ -75,16 +74,16 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 	{"material_facing", [](TilesetAsset& asset, TileData& state, char* value)
 	{
 		if (strcmp(value, "north")) {
-			state.tile.matFacing = Cardinal::NORTH;
+			state.tile.matFacing = Cardinal::N;
 		}
 		else if (strcmp(value, "east")) {
-			state.tile.matFacing = Cardinal::EAST;
+			state.tile.matFacing = Cardinal::E;
 		}
 		else if (strcmp(value, "south")) {
-			state.tile.matFacing = Cardinal::SOUTH;
+			state.tile.matFacing = Cardinal::S;
 		}
 		else if (strcmp(value, "west")) {
-			state.tile.matFacing = Cardinal::WEST;
+			state.tile.matFacing = Cardinal::W;
 		}
 	}},
 
@@ -300,7 +299,7 @@ bool TilesetAsset::loadFromFile(const std::string& relpath) {
 
 	assetFilePath = relpath;
 	
-	tiles.reset();
+	tiles.clear();
 	tilesetRef.clear();
 	tileLogic.clear();
 	tileMat.clear();
@@ -321,7 +320,7 @@ bool TilesetAsset::loadFromFile(const std::string& relpath) {
 			xml_node<>* tilesetNode = doc->first_node("tileset");
 			loadFromFile_Header(tilesetNode, relpath);
 
-			tiles = std::make_unique<TileData[]>((size_t)texTileSize.x * texTileSize.y);
+			tiles = grid_vector<TileData>(texTileSize);
 
 			// parse tiles
 			xml_node<>* tileNode = tilesetNode->first_node("tile");
@@ -377,7 +376,8 @@ bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder)
 	tileLogic.clear();
 	tileMat.clear();
 
-	tiles = std::make_unique<TileData[]>((size_t)texTileSize.x * texTileSize.y);
+	//tiles = std::make_unique<TileData[]>((size_t)texTileSize.x * texTileSize.y);
+	tiles = grid_vector<TileData>(texTileSize);
 
 	// load tilesets
 	for (auto tileset : *builder->tilesets()) {
@@ -402,7 +402,7 @@ bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder)
 	// load tile data
 	size_t ndx = 0;
 	for (auto tile_data : *builder->tile_data()) {
-		TileData& t = tiles[ndx];
+		TileData& t = tiles[ndx++];
 
 		// shape
 		t.tile.shape.type			= static_cast<TileShape::Type>(tile_data->tile().shape().type());
@@ -422,9 +422,6 @@ bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder)
 		t.tileLogicNdx		= tile_data->logic_ndx();
 		t.tileLogicParamNdx = tile_data->logic_arg_ndx();
 		t.tileMatNdx		= tile_data->material_ndx();
-
-
-		ndx++;
 	}
 
 	loaded = tex.loadFromStream(builder->image()->Data(), builder->image()->size());
@@ -444,37 +441,35 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 
 	// write tiles
 	std::vector<TileDataF> tiledata_vec;
-	for (unsigned yy = 0; yy < texTileSize.y; yy++) {
-		for (unsigned xx = 0; xx < texTileSize.x; xx++) {
 
-			TileData* t = &tiles[get_ndx(Vec2u{ xx, yy })];
+	for (const auto& tile_data : tiles)
+	{
+		TileShapeF flat_shape{
+			static_cast<uint32_t>(tile_data.tile.shape.type),
+			tile_data.tile.shape.shapeTouches,
+			tile_data.tile.shape.hflipped,
+			tile_data.tile.shape.vflipped
+		};
 
-			TileShapeF flat_shape{
-				static_cast<uint32_t>(t->tile.shape.type),
-				t->tile.shape.shapeTouches,
-				t->tile.shape.hflipped,
-				t->tile.shape.vflipped
-			};
+		TileF flat_tile{
+			tile_data.tile.pos,
+			flat_shape,
+			static_cast<CardinalF>(tile_data.tile.matFacing),
+			tile_data.tile.next_offset,
+			tile_data.tile.has_next_tileset(),
+			(tile_data.tile.next_tileset ? *tile_data.tile.next_tileset : 0u)
+		};
 
-			TileF flat_tile{ 
-				t->tile.pos,
-				flat_shape, 
-				static_cast<CardinalF>(t->tile.matFacing),
-				t->tile.next_offset,
-				t->tile.has_next_tileset(),
-				(t->tile.next_tileset ? *t->tile.next_tileset : 0u)
-			};
-
-			TileDataF tiledata{
-				flat_tile,
-				t->has_prop_bits,
-				t->tileLogicNdx,
-				t->tileLogicParamNdx,
-				t->tileMatNdx
-			};
-			tiledata_vec.push_back(tiledata);
-		}
+		TileDataF tiledata{
+			flat_tile,
+			tile_data.has_prop_bits,
+			tile_data.tileLogicNdx,
+			tile_data.tileLogicParamNdx,
+			tile_data.tileMatNdx
+		};
+		tiledata_vec.push_back(tiledata);
 	}
+
 	auto flat_tiledata = builder.CreateVectorOfStructs(tiledata_vec);
 
 	// write tilesets

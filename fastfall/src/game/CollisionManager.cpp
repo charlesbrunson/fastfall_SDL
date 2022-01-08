@@ -109,7 +109,7 @@ void CollisionManager::broadPhase(secs deltaTime) {
 
 		do {
 			body_bound = push_bound;
-			std::array<float, 4u> boundDist = {
+			cardinal_array<float> boundDist = {
 				body_rect.top - body_bound.top,												// NORTH
 				(body_bound.left + body_bound.width) - (body_rect.left + body_rect.width),	// EAST
 				(body_bound.top + body_bound.height) - (body_rect.top + body_rect.height),	// SOUTH
@@ -171,12 +171,12 @@ void CollisionManager::updateRegionArbiters(CollidableData& data) {
 	}
 }
 
-Rectf CollisionManager::updatePushBound(Rectf init_push_bound, const std::array<float, 4u>& boundDist, const Contact* contact) {
+Rectf CollisionManager::updatePushBound(Rectf init_push_bound, const cardinal_array<float>& boundDist, const Contact* contact) {
 
-	if (!contact->hasContact || !vecToCardinal(contact->ortho_normal).has_value())
+	if (!contact->hasContact || !direction::from_vector(contact->ortho_normal).has_value())
 		return init_push_bound;
 
-	Cardinal dir = vecToCardinal(contact->ortho_normal).value();
+	Cardinal dir = direction::from_vector(contact->ortho_normal).value();
 
 	Rectf push = init_push_bound;
 
@@ -188,7 +188,7 @@ Rectf CollisionManager::updatePushBound(Rectf init_push_bound, const std::array<
 	if (math::is_vertical(contact->ortho_normal) && contact->isTransposable()) {
 
 		Vec2f alt_ortho_normal = Vec2f{ (contact->collider_normal.x < 0.f ? -1.f : 1.f), 0.f };
-		auto alt_dir = vecToCardinal(alt_ortho_normal);
+		auto alt_dir = direction::from_vector(alt_ortho_normal);
 
 		if (alt_dir.has_value()) {
 			//float alt_separation = abs((contact->collider_normal.y / contact->collider_normal.x) * contact->separation);

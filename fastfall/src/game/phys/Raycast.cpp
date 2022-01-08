@@ -1,6 +1,6 @@
 #include "fastfall/game/phys/Raycast.hpp"
 
-#include "fastfall/util/cardinal.hpp"
+#include "fastfall/util/direction.hpp"
 #include "fastfall/util/log.hpp"
 
 #include "fastfall/render/DebugDraw.hpp"
@@ -102,12 +102,12 @@ std::optional<RaycastHit> raycastQuad(const ColliderRegion* region, const Collid
 
 				float nDist = 0.f;
 
-				auto dir = vecToCardinal(math::vector(raycastLine)).value();
+				auto dir = direction::from_vector(math::vector(raycastLine)).value();
 				switch (dir) {
-				case Cardinal::NORTH: nDist = raycastLine.p1.y - intersect.y; break;
-				case Cardinal::SOUTH: nDist = intersect.y - raycastLine.p1.y;  break;
-				case Cardinal::EAST:  nDist = intersect.x - raycastLine.p1.x; break;
-				case Cardinal::WEST:  nDist = raycastLine.p1.x - intersect.x; break;
+				case Cardinal::N: nDist = raycastLine.p1.y - intersect.y; break;
+				case Cardinal::S: nDist = intersect.y - raycastLine.p1.y; break;
+				case Cardinal::E: nDist = intersect.x - raycastLine.p1.x; break;
+				case Cardinal::W: nDist = raycastLine.p1.x - intersect.x; break;
 				}
 
 				if ((!result.has_value() || nDist < result->distance) && nDist >= backoff) {
@@ -148,26 +148,11 @@ std::optional<RaycastHit> raycast(GameContext context, const Vec2f& origin, Card
 	float distance = abs(dist) > RAY_MAX_DIST ? RAY_MAX_DIST : abs(dist);
 	float backoff_ = -abs(backoff);
 
-	Vec2f rayVec{ cardinalToVec2f(direction) * distance };
+	Vec2f rayVec{ direction::to_vector<float>(direction) * distance };
 	Linef raycastLine{ origin, origin + rayVec };
 	Rectf raycastArea{ origin, Vec2f{} };
 
-	switch (direction) {
-	case Cardinal::NORTH:
-		raycastArea.top -= distance;
-		raycastArea.height = distance;
-		break;
-	case Cardinal::EAST:
-		raycastArea.width = distance;
-		break;
-	case Cardinal::SOUTH:
-		raycastArea.height = distance;
-		break;
-	case Cardinal::WEST:
-		raycastArea.left -= distance;
-		raycastArea.width = distance;
-		break;
-	}
+	math::rect_extend(raycastArea, direction, distance);
 
 	std::vector<std::pair<Rectf, const ColliderQuad*>> buffer;
 
@@ -175,18 +160,6 @@ std::optional<RaycastHit> raycast(GameContext context, const Vec2f& origin, Card
 
 	std::optional<RaycastHit> result{};
 
-	/*
-	for (std::weak_ptr<ColliderRegion> region_wptr : colliders->colliders_free) {
-		if (auto region = region_wptr.lock()) {
-			result = compareHits(result, raycastRegion(region.get(), raycastArea, raycastLine, backoff_));
-		}
-	}
-	for (std::weak_ptr<ColliderRegion> region_wptr : colliders->colliders_attached) {
-		if (auto region = region_wptr.lock()) {
-			result = compareHits(result, raycastRegion(region.get(), raycastArea, raycastLine, backoff_));
-		}
-	}
-	*/
 	for (auto& region_ptr : colliders) {
 		result = compareHits(result, raycastRegion(region_ptr.get(), raycastArea, raycastLine, backoff_));
 	}

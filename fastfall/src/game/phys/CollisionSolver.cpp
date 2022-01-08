@@ -84,7 +84,7 @@ void CollisionSolver::solve() {
 		Vec2f cN = contact->collider_normal;
 
 
-		auto dir = vecToCardinal(oN);
+		auto dir = direction::from_vector(oN);
 		if (!dir.has_value()) {
 			discard.push_back(std::make_pair(arb, ArbCompResult{}));
 			continue;
@@ -95,16 +95,16 @@ void CollisionSolver::solve() {
 			initialCollisionCount[dir.value()]++;
 
 		switch (dir.value()) {
-		case Cardinal::EAST:
+		case Cardinal::E:
 			east.push_back(arb);
 			break;
-		case Cardinal::WEST:
+		case Cardinal::W:
 			west.push_back(arb);
 			break;
-		case Cardinal::NORTH:
+		case Cardinal::N:
 			(contact->isTransposable() ? north_alt : north).push_back(arb);
 			break;
-		case Cardinal::SOUTH:
+		case Cardinal::S:
 			(contact->isTransposable() ? south_alt : south).push_back(arb);
 			break;
 		}
@@ -129,10 +129,10 @@ void CollisionSolver::solve() {
 	solveY();
 
 	int appliedCount =
-		(appliedCollisionCount[Cardinal::NORTH] > 0) +
-		(appliedCollisionCount[Cardinal::EAST] > 0) +
-		(appliedCollisionCount[Cardinal::SOUTH] > 0) +
-		(appliedCollisionCount[Cardinal::WEST] > 0);
+		(appliedCollisionCount[Cardinal::N] > 0) +
+		(appliedCollisionCount[Cardinal::E] > 0) +
+		(appliedCollisionCount[Cardinal::S] > 0) +
+		(appliedCollisionCount[Cardinal::W] > 0);
 
 	if (collidable->getBox() == collidable->getPrevBox() && appliedCount >= 2) {
 		collidable->set_vel(Vec2f{});
@@ -391,16 +391,16 @@ void CollisionSolver::apply(const Contact* contact, Arbiter* arbiter, ContactTyp
 
 	if (contact->hasContact) {
 		if (contact->ortho_normal == Vec2f(0.f, -1.f)) {
-			appliedCollisionCount[Cardinal::NORTH]++;
+			appliedCollisionCount[Cardinal::N]++;
 		}
 		else if (contact->ortho_normal == Vec2f(1.f, 0.f)) {
-			appliedCollisionCount[Cardinal::EAST]++;
+			appliedCollisionCount[Cardinal::E]++;
 		}
 		else if (contact->ortho_normal == Vec2f(0.f, 1.f)) {
-			appliedCollisionCount[Cardinal::SOUTH]++;
+			appliedCollisionCount[Cardinal::S]++;
 		}
 		else if (contact->ortho_normal == Vec2f(-1.f, 0.f)) {
-			appliedCollisionCount[Cardinal::WEST]++;
+			appliedCollisionCount[Cardinal::W]++;
 		}
 
 		collidable->applyContact(*contact, type);

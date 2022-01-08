@@ -23,13 +23,17 @@ namespace ff {
 	template<typename T>
 	class grid_view;
 
+
+	template<typename T>
+	struct grid_const_iterator;
+
 	template<typename T>
 	struct grid_iterator
 	{
 		using value_type = T;
 
 		using reference = T&;
-		using const_reference = const reference;
+		using const_reference = const T&;
 		using pointer = T*;
 		using const_pointer = const pointer;
 
@@ -42,7 +46,7 @@ namespace ff {
 		{
 		}
 
-		grid_iterator& operator=(const grid_iterator& other)
+		constexpr grid_iterator& operator=(const grid_iterator& other)
 		{
 			m_ptr = other.m_ptr;
 			m_curr_column = other.m_curr_column;
@@ -53,7 +57,7 @@ namespace ff {
 		}
 
 
-		grid_iterator& operator++()
+		constexpr grid_iterator& operator++()
 		{
 			if (m_curr_column == m_columns - 1)
 			{
@@ -67,14 +71,14 @@ namespace ff {
 			}
 			return *this;
 		}
-		grid_iterator operator++(int)
+		constexpr grid_iterator operator++(int)
 		{
 			auto temp = *this;
 			++(*this);
 			return temp;
 		}
 
-		grid_iterator& operator--()
+		constexpr grid_iterator& operator--()
 		{
 			if (m_curr_column == 0)
 			{
@@ -88,20 +92,23 @@ namespace ff {
 			}
 			return *this;
 		}
-		grid_iterator operator--(int)
+		constexpr grid_iterator operator--(int)
 		{
 			auto temp = *this;
 			return temp;
 		}
 
-		value_type& operator* () { return *m_ptr; }
-		const value_type& operator* () const { return *m_ptr; }
+		constexpr value_type& operator* () { return *m_ptr; }
+		constexpr const value_type& operator* () const { return *m_ptr; }
 
-		bool operator==(const grid_iterator& other) const noexcept { return m_ptr == other.m_ptr; };
-		bool operator!=(const grid_iterator& other) const noexcept { return m_ptr != other.m_ptr; };
+		constexpr bool operator==(const grid_iterator& other) const noexcept { return m_ptr == other.m_ptr; };
+		constexpr bool operator!=(const grid_iterator& other) const noexcept { return m_ptr != other.m_ptr; };
 
-		size_type column() const { return m_curr_column; };
-		size_type row() const { return m_curr_row; };
+		constexpr bool operator==(const grid_const_iterator<T>& other) const noexcept { return m_ptr == other.m_ptr; };
+		constexpr bool operator!=(const grid_const_iterator<T>& other) const noexcept { return m_ptr != other.m_ptr; };
+
+		constexpr size_type column() const { return m_curr_column; };
+		constexpr size_type row() const { return m_curr_row; };
 
 	private:
 
@@ -126,6 +133,111 @@ namespace ff {
 		size_type m_row_stride = 0;
 	};
 
+	template<typename T>
+	struct grid_const_iterator
+	{
+		using value_type = T;
+
+		using reference = T&;
+		using const_reference = const T&;
+		using pointer = T*;
+		using const_pointer = const pointer;
+
+		using size_type = size_t;
+		using difference_type = ptrdiff_t;
+
+		using iterator_category = std::bidirectional_iterator_tag;
+
+		constexpr grid_const_iterator() noexcept
+		{
+		}
+
+		constexpr grid_const_iterator& operator=(const grid_const_iterator& other)
+		{
+			m_ptr = other.m_ptr;
+			m_curr_column = other.m_curr_column;
+			m_curr_row = other.m_curr_row;
+			m_columns = other.m_columns;
+			m_row_stride = other.m_row_stride;
+			return *this;
+		}
+
+		constexpr grid_const_iterator& operator++()
+		{
+			if (m_curr_column == m_columns - 1)
+			{
+				m_curr_column = 0;
+				m_curr_row++;
+				m_ptr += m_row_stride + 1;
+			}
+			else {
+				m_ptr++;
+				m_curr_column++;
+			}
+			return *this;
+		}
+		constexpr grid_const_iterator operator++(int)
+		{
+			auto temp = *this;
+			++(*this);
+			return temp;
+		}
+
+		constexpr grid_const_iterator& operator--()
+		{
+			if (m_curr_column == 0)
+			{
+				m_curr_column = m_columns - 1;
+				m_ptr -= m_row_stride + 1;
+				m_curr_row--;
+			}
+			else {
+				m_ptr--;
+				m_curr_column--;
+			}
+			return *this;
+		}
+		constexpr grid_const_iterator operator--(int)
+		{
+			auto temp = *this;
+			return temp;
+		}
+
+		constexpr const value_type& operator* () const { return *m_ptr; }
+
+		constexpr bool operator==(const grid_iterator<T>& other) const noexcept { return m_ptr == other.m_ptr; };
+		constexpr bool operator!=(const grid_iterator<T>& other) const noexcept { return m_ptr != other.m_ptr; };
+
+		constexpr bool operator==(const grid_const_iterator& other) const noexcept { return m_ptr == other.m_ptr; };
+		constexpr bool operator!=(const grid_const_iterator& other) const noexcept { return m_ptr != other.m_ptr; };
+
+		constexpr size_type column() const noexcept { return m_curr_column; };
+		constexpr size_type row() const noexcept { return m_curr_row; };
+
+	private:
+
+		constexpr grid_const_iterator(const value_type* ptr, size_type column, size_type row, size_type column_count, size_type row_stride = 0) noexcept
+			: m_ptr(ptr)
+			, m_curr_column(column)
+			, m_curr_row(row)
+			, m_columns(column_count)
+			, m_row_stride(row_stride)
+		{
+		}
+
+		friend class grid_view<T>;
+		friend class grid_vector<T>;
+
+		const value_type* m_ptr = nullptr;
+
+		size_type m_curr_column = 0;
+		size_type m_curr_row = 0;
+
+		size_type m_columns = 0;
+		size_type m_row_stride = 0;
+	};
+
+
 	template <class T>
 	class grid_view
 	{
@@ -133,7 +245,7 @@ namespace ff {
 		using value_type = T;
 
 		using reference = T&;
-		using const_reference = const reference;
+		using const_reference = const T&;
 		using pointer = T*;
 		using const_pointer = const pointer;
 
@@ -141,31 +253,24 @@ namespace ff {
 		using difference_type = ptrdiff_t;
 
 		using iterator = grid_iterator<value_type>;
-		using const_iterator = const iterator;
+		using const_iterator = grid_const_iterator<value_type>;
 		using reverse_iterator = std::reverse_iterator<iterator>;
 		using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 
-		grid_view()
+		constexpr grid_view() noexcept
 		{
 		}
-		grid_view(const grid_view<T>& x)
+		constexpr grid_view(const grid_view<T>& x) noexcept
 			: m_src(x.m_src)
 			, m_ptr(x.m_ptr)
 			, m_columns(x.m_columns)
 			, m_rows(x.m_rows)
 		{
 		}
-		grid_view(grid_view<T>&& x)
-			: m_src(x.m_src)
-			, m_ptr(x.m_ptr)
-			, m_columns(x.m_columns)
-			, m_rows(x.m_rows)
-		{
-		}
-		grid_view(const grid_vector<T>& src);
+		constexpr grid_view(const grid_vector<T>& src) noexcept;
 
-		grid_view(const grid_view<T>& src, size_type left, size_type top, size_type columns, size_type rows)
+		constexpr grid_view(const grid_view<T>& src, size_type left, size_type top, size_type columns, size_type rows)
 			: m_src(src.m_src)
 			, m_ptr(&src.at(left, top))
 			, m_columns(columns)
@@ -179,15 +284,15 @@ namespace ff {
 		}
 
 		template<detail::vector_type Vec>
-		grid_view(const grid_view<T>& src, const Vec& left_top, const Vec& columns_rows)
+		constexpr grid_view(const grid_view<T>& src, const Vec& left_top, const Vec& columns_rows)
 			: grid_view(src, left_top.x, left_top.y, columns_rows.x, columns_rows.y)
 		{
 		}
 
-		grid_view(const grid_vector<T>& src, size_type left, size_type top, size_type columns, size_type rows);
+		constexpr grid_view(const grid_vector<T>& src, size_type left, size_type top, size_type columns, size_type rows);
 
 		template<detail::vector_type Vec>
-		grid_view(const grid_vector<T>& src, const Vec& left_top, const Vec& columns_rows)
+		constexpr grid_view(const grid_vector<T>& src, const Vec& left_top, const Vec& columns_rows)
 			: grid_view(src, left_top.x, left_top.y, columns_rows.x, columns_rows.y)
 		{
 		}
@@ -201,24 +306,14 @@ namespace ff {
 			return *this;
 		}
 
-		constexpr grid_view<T>& operator=(grid_view<T>&& x)
-		{
-			m_src = x.m_src;
-			m_ptr = x.m_ptr;
-			m_columns = x.m_columns;
-			m_rows = x.m_rows;
-			return *this;
+		constexpr const_iterator begin() {
+			return const_iterator{ m_ptr, 0, 0, m_columns, get_stride() };
 		}
-
-
-		constexpr iterator begin() {
-			return iterator{ m_ptr, 0, 0, m_columns, get_stride() };
+		constexpr const_iterator end() {
+			return const_iterator{ m_ptr + size() + get_stride() * m_rows, 0, m_rows, m_columns, get_stride() };
 		}
-		constexpr iterator end() {
-			return iterator{ m_ptr + size() + get_stride() * m_rows, 0, m_rows, m_columns, get_stride() };
-		}
-		constexpr const_iterator begin() const { return cbegin(); }
-		constexpr const_iterator end() const { return cend(); }
+		//constexpr const_iterator begin() const { return cbegin(); }
+		//constexpr const_iterator end() const { return cend(); }
 		constexpr const_iterator cbegin() const {
 			return const_iterator{ m_ptr, 0, 0, m_columns, get_stride() };
 		}
@@ -238,20 +333,24 @@ namespace ff {
 			return const_reverse_iterator{ m_ptr + size() + get_stride() * m_rows, 0, m_rows, m_columns, get_stride() };
 		}
 
+		/*
 		constexpr reference at(size_type column_x, size_type row_y)
 		{
 			return m_ptr[(row_y * (m_columns + get_stride())) + column_x];
 		}
+		*/
 		constexpr const_reference at(size_type column_x, size_type row_y) const
 		{
 			return m_ptr[(row_y * (m_columns + get_stride())) + column_x];
 		}
 
+		/*
 		template<detail::vector_type Vec>
 		constexpr reference at(const Vec& position)
 		{
 			return at(position.x, position.y);
 		}
+		*/
 
 		template<detail::vector_type Vec>
 		constexpr const_reference at(const Vec& position) const
@@ -259,12 +358,14 @@ namespace ff {
 			return at(position.x, position.y);
 		}
 
+		/*
 		constexpr reference operator[] (size_type ndx)
 		{
 			auto col = ndx % m_columns;
 			auto row = ndx / m_columns;
 			return this->at(col, row);
 		}
+		*/
 
 		constexpr const_reference operator[] (size_type ndx) const
 		{
@@ -273,11 +374,13 @@ namespace ff {
 			return this->at(col, row);
 		}
 
+		/*
 		template<detail::vector_type Vec>
 		constexpr reference operator[] (const Vec& position)
 		{
 			return at(position);
 		}
+		*/
 
 		template<detail::vector_type Vec>
 		constexpr const_reference operator[] (const Vec& position) const
@@ -285,32 +388,18 @@ namespace ff {
 			return at(position);
 		}
 
-		grid_view<T> take_view()
-		{
-			return grid_view<T>(*this);
-		}
-		const grid_view<T> take_view() const
+		constexpr grid_view<T> take_view() const
 		{
 			return grid_view<T>(*this);
 		}
 
-		grid_view<T> take_view(size_type left, size_type top, size_type columns, size_type rows)
-		{
-			return grid_view<T>(*this, left, top, columns, rows);
-		}
-		const grid_view<T> take_view(size_type left, size_type top, size_type columns, size_type rows) const
+		constexpr grid_view<T> take_view(size_type left, size_type top, size_type columns, size_type rows) const
 		{
 			return grid_view<T>(*this, left, top, columns, rows);
 		}
 
 		template<detail::vector_type Vec>
-		grid_view<T> take_view(const Vec& left_top, const Vec& columns_rows)
-		{
-			return grid_view<T>(*this, left_top.x, left_top.y, columns_rows.x, columns_rows.y);
-		}
-
-		template<detail::vector_type Vec>
-		const grid_view<T> take_view(const Vec& left_top, const Vec& columns_rows) const
+		constexpr grid_view<T> take_view(const Vec& left_top, const Vec& columns_rows) const
 		{
 			return grid_view<T>(*this, left_top.x, left_top.y, columns_rows.x, columns_rows.y);
 		}
@@ -324,15 +413,27 @@ namespace ff {
 		constexpr size_type column_count() const noexcept { return m_columns; };
 		constexpr size_type row_count() const noexcept { return m_rows; };
 
+		constexpr bool valid(size_type column_x, size_type row_y)
+		{
+			return column_x < column_count()
+				&& row_y < row_count();
+		}
+
+		template<detail::vector_type Vec>
+		constexpr bool valid(const Vec& position)
+		{
+			return position.x < column_count()
+				&& position.y < row_count();
+		}
 	private:
 
-		size_type get_stride() const noexcept;
+		constexpr size_type get_stride() const noexcept;
 
 		const grid_vector<value_type>* m_src = nullptr;
+		const value_type* m_ptr = nullptr;
 
 		size_type m_columns = 0;
 		size_type m_rows = 0;
-		value_type* m_ptr = nullptr;
 	};
 
 
@@ -344,7 +445,7 @@ namespace ff {
 		using value_type = T;
 
 		using reference = T&;
-		using const_reference = const reference;
+		using const_reference = const T&;
 		using pointer = T*;
 		using const_pointer = const pointer;
 
@@ -352,7 +453,7 @@ namespace ff {
 		using difference_type = ptrdiff_t;
 
 		using iterator = grid_iterator<value_type>;
-		using const_iterator = const iterator;
+		using const_iterator = grid_const_iterator<value_type>;
 		using reverse_iterator = std::reverse_iterator<iterator>;
 		using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -374,8 +475,8 @@ namespace ff {
 			}
 		};
 
-		template<detail::vector_type T>
-		constexpr explicit grid_vector(const T& columns_rows)
+		template<detail::vector_type Vec>
+		constexpr explicit grid_vector(const Vec& columns_rows)
 			: grid_vector(columns_rows.x, columns_rows.y)
 		{
 		}
@@ -392,8 +493,8 @@ namespace ff {
 				clear();
 			}
 		};
-		template<detail::vector_type T>
-		constexpr explicit grid_vector(const T& columns_rows, const value_type& value)
+		template<detail::vector_type Vec>
+		constexpr explicit grid_vector(const Vec& columns_rows, const value_type& value)
 			: grid_vector(columns_rows.x, columns_rows.y, value)
 		{
 		}
@@ -412,8 +513,8 @@ namespace ff {
 		};
 
 		constexpr grid_vector(grid_view<T> x)
-			: m_columns(x.column_size())
-			, m_rows(x.row_size())
+			: m_columns(x.column_count())
+			, m_rows(x.row_count())
 		{
 			m_ptr = new T[m_rows * m_columns];
 			std::copy(x.begin(), x.end(), begin());
@@ -475,34 +576,18 @@ namespace ff {
 		constexpr const_reverse_iterator crbegin() const { return const_reverse_iterator{ m_ptr, 0, 0, m_columns }; }
 		constexpr const_reverse_iterator crend() const { return const_reverse_iterator{ m_ptr + size(), 0, m_rows, m_columns }; }
 
-		grid_view<T> take_view()
+		constexpr grid_view<T> take_view() const
 		{
 			return grid_view<T>(*this);
 		}
 
-		const grid_view<T> take_view() const
-		{
-			return grid_view<T>(*this);
-		}
-
-		grid_view<T> take_view(size_type left, size_type top, size_type columns, size_type rows)
-		{
-			return grid_view<T>(*this, left, top, columns, rows);
-		}
-
-		const grid_view<T> take_view(size_type left, size_type top, size_type columns, size_type rows) const
+		constexpr grid_view<T> take_view(size_type left, size_type top, size_type columns, size_type rows) const
 		{
 			return grid_view<T>(*this, left, top, columns, rows);
 		}
 
 		template<detail::vector_type Vec>
-		grid_view<T> take_view(const Vec& left_top, const Vec& columns_rows)
-		{
-			return grid_view<T>(*this, left_top.x, left_top.y, columns_rows.x, columns_rows.y);
-		}
-
-		template<detail::vector_type Vec>
-		const grid_view<T> take_view(const Vec& left_top, const Vec& columns_rows) const
+		constexpr grid_view<T> take_view(const Vec& left_top, const Vec& columns_rows) const
 		{
 			return grid_view<T>(*this, left_top.x, left_top.y, columns_rows.x, columns_rows.y);
 		}
@@ -556,8 +641,8 @@ namespace ff {
 		constexpr value_type* data() noexcept { return m_ptr; }
 		constexpr const value_type* data() const noexcept { return m_ptr; }
 
-		constexpr size_type column_size() const noexcept { return m_columns; };
-		constexpr size_type row_size() const noexcept { return m_rows; };
+		constexpr size_type column_count() const noexcept { return m_columns; };
+		constexpr size_type row_count() const noexcept { return m_rows; };
 
 		constexpr void clear() noexcept {
 			m_columns = 0;
@@ -575,6 +660,19 @@ namespace ff {
 			std::swap(m_ptr, x.m_ptr);
 		}
 
+		constexpr bool valid(size_type column_x, size_type row_y)
+		{
+			return column_x < column_count()
+				&& row_y < row_count();
+		}
+
+		template<detail::vector_type Vec>
+		constexpr bool valid(const Vec& position)
+		{
+			return position.x < column_count()
+				&& position.y < row_count();
+		}
+		
 	private:
 
 		constexpr void assign_from_il(std::initializer_list<std::initializer_list<value_type>> grid_il)
@@ -602,32 +700,31 @@ namespace ff {
 	};
 
 	template<typename T>
-	grid_view<T>::grid_view(const grid_vector<T>& src)
+	constexpr grid_view<T>::grid_view(const grid_vector<T>& src) noexcept
 		: m_src(&src)
 		, m_ptr(src.data())
-		, m_columns(src.column_size())
-		, m_rows(src.row_size())
+		, m_columns(src.column_count())
+		, m_rows(src.row_count())
 	{
 	}
 
 	template<typename T>
-	grid_view<T>::grid_view(const grid_vector<T>& src, size_type left, size_type top, size_type columns, size_type rows)
+	constexpr grid_view<T>::grid_view(const grid_vector<T>& src, size_type left, size_type top, size_type columns, size_type rows)
 		: m_src(&src)
 		, m_ptr(&src.at(left, top))
 		, m_columns(columns)
 		, m_rows(rows)
 	{
-		if (left + columns > src.column_size()
-			|| top + rows > src.row_size())
+		if (left + columns > src.column_count()
+			|| top + rows > src.row_count())
 		{
 			throw std::invalid_argument("invalid grid view");
 		}
 	}
 
 	template<typename T>
-	grid_view<T>::size_type grid_view<T>::get_stride() const noexcept
+	constexpr typename grid_view<T>::size_type grid_view<T>::get_stride() const noexcept
 	{
-		return m_src->column_size() - m_columns;
+		return m_src->column_count() - m_columns;
 	}
-
 }

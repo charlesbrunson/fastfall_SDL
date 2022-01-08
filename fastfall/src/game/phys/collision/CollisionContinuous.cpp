@@ -228,10 +228,10 @@ std::optional<Contact> CollisionContinuous::getVerticalSlipContact(float leeway)
 	const CollisionAxis* sAxis = nullptr;
 	for (unsigned ndx = 0u; ndx < currCollision.getAxisCount(); ndx++) {
 		auto& axis = currCollision.getCollisionAxis(ndx);
-		if (!nAxis && axis.dir == Cardinal::NORTH) {
+		if (!nAxis && axis.dir == Cardinal::N) {
 			nAxis = &axis;
 		}
-		else if (!sAxis && axis.dir == Cardinal::SOUTH) {
+		else if (!sAxis && axis.dir == Cardinal::S) {
 			sAxis = &axis;
 		}
 	}

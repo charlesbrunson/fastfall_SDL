@@ -2,10 +2,12 @@
 
 #include "rapidxml.hpp"
 
+
 #include "fastfall/game/level/Tile.hpp"
 #include "fastfall/resource/asset/TextureAsset.hpp"
 
 #include "fastfall/util/math.hpp"
+#include "fastfall/util/grid_vector.hpp"
 
 #include "fastfall/schema/resource-flat.hpp"
 #include <map>
@@ -36,8 +38,9 @@ protected:
 		std::vector<std::string> logicArg;
 	};
 
+	//std::unique_ptr<TileData[]> tiles;
 	Vec2u texTileSize;
-	std::unique_ptr<TileData[]> tiles;
+	grid_vector<TileData> tiles;
 	std::vector<std::string> tilesetRef;	// name of tileset reference
 	std::vector<TilesetLogic> tileLogic;	// name and params of tile logic
 	std::vector<std::string> tileMat;		// name of material

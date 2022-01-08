@@ -20,7 +20,7 @@ private:
 			bool remove, 
 			TileShape shape = TileShape(),
 			const TileMaterial* mat = nullptr,
-			Cardinal _matFacing = Cardinal::NORTH
+			Cardinal _matFacing = Cardinal::N
 		) :
 			position(pos),
 			removal(remove),
@@ -48,6 +48,7 @@ private:
 		Cardinal oppositeCard;
 	};
 
+	/*
 	constexpr static SideAssociated sides[] = {
 		// tile offset,   original side,   adjacent side
 		{Vec2i(0, -1), Cardinal::NORTH, Cardinal::SOUTH},
@@ -55,6 +56,7 @@ private:
 		{Vec2i(0,  1), Cardinal::SOUTH, Cardinal::NORTH},
 		{Vec2i(-1, 0), Cardinal::WEST,  Cardinal::EAST},
 	};
+	*/
 
 	struct Ghosts {
 		const ColliderSurface* next = nullptr;
@@ -75,7 +77,7 @@ public:
 
 	void setBorders(const Vec2u& size, const unsigned cardinalBits);
 
-	inline void setTile(const Vec2i& at, const TileShape& toShape, const TileMaterial* mat = nullptr, Cardinal matFacing = Cardinal::NORTH)
+	inline void setTile(const Vec2i& at, const TileShape& toShape, const TileMaterial* mat = nullptr, Cardinal matFacing = Cardinal::N)
 	{ 
 		editQueue.push(Edit{ at, false, toShape, mat, matFacing }); 
 	};
@@ -119,16 +121,22 @@ private:
 	void for_adjacent_touching_quads(const ColliderTile& tile, Callable&& call)
 	{
 		unsigned shapeTouchBits = tile.shape.shapeTouches;
-		for (const auto& side : sides) {
-			if (shapeTouchBits & cardinalBit[side.toCard]) {
-				auto [quad_adj, tile_adj] = get_tile(tile.position + side.gridoffset);
-				if (quad_adj && (tile_adj->shape.shapeTouches & cardinalBit[side.oppositeCard])) 
+
+		using namespace direction;
+
+		for (auto dir : cardinals)
+		{
+			if (shapeTouchBits & to_bits(dir)) 
+			{
+				auto [quad_adj, tile_adj] = get_tile(tile.position + to_vector<int>(dir));
+
+				if (quad_adj && (tile_adj->shape.shapeTouches & to_bits(opposite(dir))))
 				{
-					//ColliderQuad& quad_adj, ColliderTile& tile_adj, const SideAssociated& side
-					call(*quad_adj, *tile_adj, side);
+					call(*quad_adj, *tile_adj, dir);
 				}
 			}
 		}
+
 	}
 
 	void incr_valid_collision() {

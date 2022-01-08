@@ -188,10 +188,10 @@ TileLayerData TileLayerData::loadFromTMX(xml_node<>* layerNode, const TilesetMap
 			layer.collision_border_bits = 0u;
 			for (char c : str) {
 				switch (c) {
-				case 'N': layer.collision_border_bits |= cardinalToBits(Cardinal::NORTH); break;
-				case 'E': layer.collision_border_bits |= cardinalToBits(Cardinal::EAST);  break;
-				case 'S': layer.collision_border_bits |= cardinalToBits(Cardinal::SOUTH); break;
-				case 'W': layer.collision_border_bits |= cardinalToBits(Cardinal::WEST);  break;
+				case 'N': layer.collision_border_bits |= direction::to_bits(Cardinal::N); break;
+				case 'E': layer.collision_border_bits |= direction::to_bits(Cardinal::E);  break;
+				case 'S': layer.collision_border_bits |= direction::to_bits(Cardinal::S); break;
+				case 'W': layer.collision_border_bits |= direction::to_bits(Cardinal::W);  break;
 				}
 			}
 		}},

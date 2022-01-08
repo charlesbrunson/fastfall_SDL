@@ -54,10 +54,10 @@ void CollisionDiscrete::reset(const ColliderQuad* collisionTile, const ColliderR
 
 	if (tArea.height == 0.f) {
 
-		if (cQuad.isOneWay(Cardinal::NORTH) || cQuad.isBoundary(Cardinal::NORTH)) {
+		if (cQuad.isOneWay(Cardinal::N) || cQuad.isBoundary(Cardinal::N)) {
 			tArea.height = TILESIZE_F;
 		}
-		else if (cQuad.isOneWay(Cardinal::SOUTH) || cQuad.isBoundary(Cardinal::SOUTH)) {
+		else if (cQuad.isOneWay(Cardinal::S) || cQuad.isBoundary(Cardinal::S)) {
 			tArea.top -= TILESIZE_F;
 			tArea.height = TILESIZE_F;
 		}
@@ -65,10 +65,10 @@ void CollisionDiscrete::reset(const ColliderQuad* collisionTile, const ColliderR
 	}
 	else if (tArea.width == 0.f) {
 
-		if (cQuad.isOneWay(Cardinal::WEST) || cQuad.isBoundary(Cardinal::WEST)) {
+		if (cQuad.isOneWay(Cardinal::W) || cQuad.isBoundary(Cardinal::W)) {
 			tArea.width = TILESIZE_F;
 		}
-		else if (cQuad.isOneWay(Cardinal::EAST) || cQuad.isBoundary(Cardinal::EAST)) {
+		else if (cQuad.isOneWay(Cardinal::E) || cQuad.isBoundary(Cardinal::E)) {
 			tArea.left -= TILESIZE_F;
 			tArea.width = TILESIZE_F;
 		}
@@ -105,9 +105,10 @@ void CollisionDiscrete::createAxes() noexcept
 	uint8_t vSize = 0u;
 	uint8_t hSize = 0u;
 
-	for (uint8_t ndx = 0u; ndx < cQuad.surfaces.size(); ndx++) {
+	for (auto dir : direction::cardinals) {
+		uint8_t ndx = static_cast<uint8_t>(dir);
 
-		const auto& surface = cQuad.surfaces.at(ndx);
+		const auto& surface = cQuad.surfaces[dir];
 
 		if (!surface.hasSurface)
 			continue;
@@ -120,23 +121,23 @@ void CollisionDiscrete::createAxes() noexcept
 		if (v.x == 0.f) {
 			if (v.y > 0.f) {
 				hasEast = true;
-				verticals[vSize++] = AxisPreStep{ .dir = Cardinal::EAST, .surface = surf, .is_real = true, .is_valid = true, .quadNdx = ndx };
+				verticals[vSize++] = AxisPreStep{ .dir = Cardinal::E, .surface = surf, .is_real = true, .is_valid = true, .quadNdx = ndx };
 			}
 			else {
 				hasWest = true;
-				verticals[vSize++] = AxisPreStep{ .dir = Cardinal::WEST, .surface = surf, .is_real = true, .is_valid = true, .quadNdx = ndx };
+				verticals[vSize++] = AxisPreStep{ .dir = Cardinal::W, .surface = surf, .is_real = true, .is_valid = true, .quadNdx = ndx };
 			}
 		}
 		else if (v.x > 0.f) {
 			hasFloor = true;
-			non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::NORTH, .surface = surf, .is_real = true, .is_valid = true, .quadNdx = ndx };
+			non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::N, .surface = surf, .is_real = true, .is_valid = true, .quadNdx = ndx };
 
 			if (surface.hasSurface && !math::is_horizontal(v)) {
 				if (!hasEastCorner && surf.ghostp3.x <= surf.surface.p2.x && surf.ghostp3.y >= surf.surface.p2.y) {
 					//east corner
 					hasEastCorner = true;
 					verticals[vSize++] = AxisPreStep{ 
-						.dir = Cardinal::EAST, 
+						.dir = Cardinal::E, 
 						.surface = { {surf.surface.p2, surf.surface.p2}, surf.surface.p1, surf.ghostp3 },
 						.is_real = false, 
 						.is_valid = true, 
@@ -147,26 +148,25 @@ void CollisionDiscrete::createAxes() noexcept
 					//west corner
 					hasWestCorner = true;
 					verticals[vSize++] = AxisPreStep{ 
-						.dir = Cardinal::WEST, 
+						.dir = Cardinal::W, 
 						.surface = { {surf.surface.p1, surf.surface.p1}, surf.ghostp0, surf.surface.p2 },
 						.is_real = false, 
 						.is_valid = true, 
 						.quadNdx = ndx 
 					};
 				}
-
 			}
 		}
 		else {
 			hasCeil = true;
-			non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::SOUTH, .surface = surf, .is_real = true, .is_valid = true, .quadNdx = ndx };
+			non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::S, .surface = surf, .is_real = true, .is_valid = true, .quadNdx = ndx };
 
 			if (surface.hasSurface && !math::is_horizontal(v)) {
 				if (!hasEastCorner && surf.ghostp0.x <= surf.surface.p1.x && surf.ghostp0.y <= surf.surface.p1.y) {
 					//east corner
 					hasEastCorner = true;
 					verticals[vSize++] = AxisPreStep{ 
-						.dir = Cardinal::EAST, 
+						.dir = Cardinal::E, 
 						.surface = { {surf.surface.p1, surf.surface.p1}, surf.ghostp0, surf.surface.p2 },
 						.is_real = false, 
 						.is_valid = true, 
@@ -177,7 +177,7 @@ void CollisionDiscrete::createAxes() noexcept
 					//west corner
 					hasWestCorner = true;
 					verticals[vSize++] = AxisPreStep{ 
-						.dir = Cardinal::WEST, 
+						.dir = Cardinal::W, 
 						.surface = { {surf.surface.p2, surf.surface.p2}, surf.surface.p1, surf.ghostp3 },
 						.is_real = false, 
 						.is_valid = true, 
@@ -197,25 +197,25 @@ void CollisionDiscrete::createAxes() noexcept
 		ColliderSurface fake;
 		fake.surface.p1 = math::rect_topleft(tArea);
 		fake.surface.p2 = math::rect_topright(tArea);
-		non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::NORTH, .surface = fake, .is_real = false, .is_valid = false, .quadNdx = 255u };
+		non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::N, .surface = fake, .is_real = false, .is_valid = false, .quadNdx = 255u };
 	}
 	if (!hasCeil) {
 		ColliderSurface fake;
 		fake.surface.p1 = math::rect_botright(tArea);
 		fake.surface.p2 = math::rect_botleft(tArea);
-		non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::SOUTH, .surface = fake, .is_real = false, .is_valid = false, .quadNdx = 255u };
+		non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::S, .surface = fake, .is_real = false, .is_valid = false, .quadNdx = 255u };
 	}
 	if (!hasEast && !hasEastCorner) {
 		ColliderSurface fake;
 		fake.surface.p1 = math::rect_topright(tArea);
 		fake.surface.p2 = math::rect_botright(tArea);
-		verticals[vSize++] = AxisPreStep{ .dir = Cardinal::EAST, .surface = fake, .is_real = false,	.is_valid = false, .quadNdx = 255u };
+		verticals[vSize++] = AxisPreStep{ .dir = Cardinal::E, .surface = fake, .is_real = false,	.is_valid = false, .quadNdx = 255u };
 	}
 	if (!hasWest && !hasWestCorner) {
 		ColliderSurface fake;
 		fake.surface.p1 = math::rect_botleft(tArea);
 		fake.surface.p2 = math::rect_topleft(tArea);
-		verticals[vSize++] = AxisPreStep{ .dir = Cardinal::WEST, .surface = fake, .is_real = false, .is_valid = false, .quadNdx = 255u };
+		verticals[vSize++] = AxisPreStep{ .dir = Cardinal::W, .surface = fake, .is_real = false, .is_valid = false, .quadNdx = 255u };
 	}
 
 	std::sort(verticals.begin(), verticals.begin() + vSize,
@@ -230,19 +230,19 @@ void CollisionDiscrete::createAxes() noexcept
 
 	for (size_t i = 0u; i < hSize; i++) {
 		switch (non_verticals[i].dir) {
-		case Cardinal::NORTH: axes[axis_count++] = createFloor(non_verticals[i]); break;
-		case Cardinal::SOUTH: axes[axis_count++] = createCeil(non_verticals[i]); break;
+		case Cardinal::N: axes[axis_count++] = createFloor(non_verticals[i]); break;
+		case Cardinal::S: axes[axis_count++] = createCeil(non_verticals[i]); break;
 		// dont handle EAST or WEST
 		default: break;
 		}
 	}
 	for (size_t i = 0u; i < vSize; i++) {
 		switch (verticals[i].dir) {
-		case Cardinal::EAST:
+		case Cardinal::E:
 			if ((hasEast && hasEastCorner && verticals[i].is_real) || (!hasEast || !hasEastCorner))
 				axes[axis_count++] = createEastWall(verticals[i]);
 			break;
-		case Cardinal::WEST:
+		case Cardinal::W:
 			if ((hasWest && hasWestCorner && verticals[i].is_real) || (!hasWest || !hasWestCorner))
 				axes[axis_count++] = createWestWall(verticals[i]);
 			break;
@@ -263,7 +263,7 @@ void CollisionDiscrete::updateContact() noexcept {
 	{
 		auto& axis = axes[i];
 
-		if (axis.dir == Cardinal::NORTH) {
+		if (axis.dir == Cardinal::N) {
 
 			float Y = tArea.top;
 			if (!math::is_horizontal(axis.contact.collider.surface)) {
@@ -288,7 +288,7 @@ void CollisionDiscrete::updateContact() noexcept {
 			axis.contact.position = Vec2f(math::clamp(cMid.x, tArea.left, tArea.left + tArea.width), Y);
 
 		}
-		else if (axis.dir == Cardinal::SOUTH) {
+		else if (axis.dir == Cardinal::S) {
 
 			float Y = tArea.top + tArea.height;
 			if (!math::is_horizontal(axis.contact.collider.surface)) {
@@ -311,13 +311,13 @@ void CollisionDiscrete::updateContact() noexcept {
 			axis.contact.separation = Y - (cMid.y - cHalf.y);
 			axis.contact.position = Vec2f(math::clamp(cMid.x, tArea.left, tArea.left + tArea.width), Y);
 		}
-		else if (axis.dir == Cardinal::EAST) {
+		else if (axis.dir == Cardinal::E) {
 
 			axis.contact.separation = (tArea.left + tArea.width) - cMid.x + axis.separationOffset;
 			axis.contact.position = Vec2f((tArea.left + tArea.width), math::clamp(cMid.y, axis.contact.collider.surface.p1.y, axis.contact.collider.surface.p2.y));
 
 		}
-		else if (axis.dir == Cardinal::WEST) {
+		else if (axis.dir == Cardinal::W) {
 
 			axis.contact.separation = cMid.x - (tArea.left) + axis.separationOffset;
 			axis.contact.position = Vec2f(tArea.left, math::clamp(cMid.y, axis.contact.collider.surface.p2.y, axis.contact.collider.surface.p1.y));
@@ -338,7 +338,7 @@ void CollisionDiscrete::evalContact() noexcept {
 
 
 		// some post-processing
-		if (axis.dir == Cardinal::NORTH) {
+		if (axis.dir == Cardinal::N) {
 			// follow up on valley check
 			if ((valley_NE && cMid.x > math::rect_topright(tArea).x - VALLEY_FLATTEN_THRESH) ||
 				(valley_NW && cMid.x < math::rect_topleft(tArea).x + VALLEY_FLATTEN_THRESH)) {
@@ -351,7 +351,7 @@ void CollisionDiscrete::evalContact() noexcept {
 
 			axis.contact.hasValley = valley_NE || valley_NW;
 		}
-		else if (axis.dir == Cardinal::SOUTH) {
+		else if (axis.dir == Cardinal::S) {
 			// follow up on valley check
 			if ((valley_SE && cMid.x > math::rect_topright(tArea).x - VALLEY_FLATTEN_THRESH) ||
 				(valley_SW && cMid.x < math::rect_topleft(tArea).x + VALLEY_FLATTEN_THRESH)) {
@@ -428,12 +428,12 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
 	axis.contact.ortho_normal = Vec2f(0.f, -1.f);
 	axis.contact.collider_normal = Vec2f(0.f, -1.f);
 	if (cQuad.material) {
-		axis.contact.material = &cQuad.material->getSurface(Cardinal::NORTH, cQuad.matFacing);
+		axis.contact.material = &cQuad.material->getSurface(Cardinal::N, cQuad.matFacing);
 	}
 	//axis.contact.
 
 	// if this is a oneway, invalidate it if the collider's previous position is not above it
-	if (!collidePrevious && cQuad.isOneWay(Cardinal::NORTH)) {
+	if (!collidePrevious && cQuad.isOneWay(Cardinal::N)) {
 		axis.axisValid = math::rect_botleft(cPrev).y <= tMid.y - tHalf.y;
 	}
 
@@ -446,11 +446,11 @@ CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcep
 	axis.contact.ortho_normal = Vec2f(0.f, 1.f);
 	axis.contact.collider_normal = Vec2f(0.f, 1.f);
 	if (cQuad.material) {
-		axis.contact.material = &cQuad.material->getSurface(Cardinal::SOUTH, cQuad.matFacing);
+		axis.contact.material = &cQuad.material->getSurface(Cardinal::S, cQuad.matFacing);
 	}
 
 	// if this is a oneway, invalidate it if the collider's previous position is not below it
-	if (!collidePrevious && cQuad.isOneWay(Cardinal::SOUTH)) {
+	if (!collidePrevious && cQuad.isOneWay(Cardinal::S)) {
 		//LOG_INFO("{} >= {}", math::rect_topleft(cPrev).y, tMid.y + tHalf.y);
 		axis.axisValid = math::rect_topleft(cPrev).y >= tMid.y + tHalf.y;
 	}
@@ -464,15 +464,15 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 	axis.contact.ortho_normal = Vec2f(1.f, 0.f);
 	axis.contact.collider_normal = Vec2f(1.f, 0.f);
 	if (cQuad.material) {
-		axis.contact.material = &cQuad.material->getSurface(Cardinal::EAST, cQuad.matFacing);
+		axis.contact.material = &cQuad.material->getSurface(Cardinal::E, cQuad.matFacing);
 	}
 
 	bool extend = axis.is_collider_valid();
 
 	// one way edge case
-	if (!extend && (cQuad.isOneWay(Cardinal::NORTH) || cQuad.isOneWay(Cardinal::SOUTH))) {
-		auto* north_ptr = cQuad.getSurface(Cardinal::NORTH);
-		auto* south_ptr = cQuad.getSurface(Cardinal::SOUTH);
+	if (!extend && (cQuad.isOneWay(Cardinal::N) || cQuad.isOneWay(Cardinal::S))) {
+		auto* north_ptr = cQuad.getSurface(Cardinal::N);
+		auto* south_ptr = cQuad.getSurface(Cardinal::S);
 
 		if ((north_ptr && north_ptr->g3virtual) || (south_ptr && south_ptr->g0virtual)) {
 			extend = true;
@@ -483,7 +483,7 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 	bool has_valley = !axis.is_collider_valid() && std::any_of(std::begin(axes), std::begin(axes) + axis_count,
 
 		[this](CollisionAxis& other_axis) {
-			if (other_axis.dir == Cardinal::NORTH && other_axis.is_collider_real()) {
+			if (other_axis.dir == Cardinal::N && other_axis.is_collider_real()) {
 				ColliderSurface& surf = other_axis.contact.collider;
 
 				if (surf.surface.p2.y > surf.ghostp3.y && surf.surface.p2.y > surf.surface.p1.y) {
@@ -491,7 +491,7 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 					return true;
 				}
 			}
-			else if (other_axis.dir == Cardinal::SOUTH && other_axis.is_collider_real()) {
+			else if (other_axis.dir == Cardinal::S && other_axis.is_collider_real()) {
 				ColliderSurface& surf = other_axis.contact.collider;
 
 				if (surf.surface.p1.y < surf.ghostp0.y && surf.surface.p1.y < surf.surface.p2.y) {
@@ -503,7 +503,7 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 		});
 
 	// if this is a oneway, invalidate it if the collider's previous position is not left of it
-	if (!collidePrevious && cQuad.isOneWay(Cardinal::EAST)) {
+	if (!collidePrevious && cQuad.isOneWay(Cardinal::E)) {
 		axis.axisValid = math::rect_topleft(cPrev).x >= tPos.x + tArea.width;
 	}
 
@@ -517,15 +517,15 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 	axis.contact.ortho_normal = Vec2f(-1.f, 0.f);
 	axis.contact.collider_normal = Vec2f(-1.f, 0.f);
 	if (cQuad.material) {
-		axis.contact.material = &cQuad.material->getSurface(Cardinal::WEST, cQuad.matFacing);
+		axis.contact.material = &cQuad.material->getSurface(Cardinal::W, cQuad.matFacing);
 	}
 
 	bool extend = axis.is_collider_valid();
 
 	// one way edge case
-	if (!extend && (cQuad.isOneWay(Cardinal::NORTH) || cQuad.isOneWay(Cardinal::SOUTH))) {
-		auto* north_ptr = cQuad.getSurface(Cardinal::NORTH);
-		auto* south_ptr = cQuad.getSurface(Cardinal::SOUTH);
+	if (!extend && (cQuad.isOneWay(Cardinal::N) || cQuad.isOneWay(Cardinal::S))) {
+		auto* north_ptr = cQuad.getSurface(Cardinal::N);
+		auto* south_ptr = cQuad.getSurface(Cardinal::S);
 
 		if ((north_ptr && north_ptr->g0virtual) || (south_ptr && south_ptr->g3virtual)) {
 			extend = true;
@@ -535,7 +535,7 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 	// check if north or south axis has a valley in it 
 	bool has_valley = !axis.is_collider_valid() && std::any_of(std::begin(axes), std::begin(axes) + axis_count,
 		[this](CollisionAxis& other_axis) {
-			if (other_axis.dir == Cardinal::NORTH && other_axis.is_collider_real()) {
+			if (other_axis.dir == Cardinal::N && other_axis.is_collider_real()) {
 				ColliderSurface& surf = other_axis.contact.collider;
 
 				if (surf.surface.p1.y > surf.ghostp0.y && surf.surface.p1.y > surf.surface.p2.y) {
@@ -543,7 +543,7 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 					return true;
 				}
 			}
-			else if (other_axis.dir == Cardinal::SOUTH && other_axis.is_collider_real()) {
+			else if (other_axis.dir == Cardinal::S && other_axis.is_collider_real()) {
 				ColliderSurface& surf = other_axis.contact.collider;
 
 				if (surf.surface.p2.y < surf.ghostp3.y && surf.surface.p2.y < surf.surface.p1.y) {
@@ -555,7 +555,7 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 		});
 
 	// if this is a oneway, invalidate it if the collider's previous position is not left of it
-	if (!collidePrevious && cQuad.isOneWay(Cardinal::WEST)) {
+	if (!collidePrevious && cQuad.isOneWay(Cardinal::W)) {
 		axis.axisValid = math::rect_topright(cPrev).x <= tArea.left;
 	}
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "fastfall/util/math.hpp"
-#include "fastfall/util/cardinal.hpp"
 #include "fastfall/game/phys/collider_coretypes/ColliderSurface.hpp"
 
 #include "Contact.hpp"
