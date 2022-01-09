@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #include <concepts>
+#include <optional>
 
 namespace ff {
 
@@ -262,8 +263,8 @@ namespace ff {
 		{
 		}
 		constexpr grid_view(const grid_view<T>& x) noexcept
-			: m_src(x.m_src)
-			, m_ptr(x.m_ptr)
+			: m_ptr(x.m_ptr)
+			, m_stride(x.m_stride)
 			, m_columns(x.m_columns)
 			, m_rows(x.m_rows)
 		{
@@ -271,8 +272,8 @@ namespace ff {
 		constexpr grid_view(const grid_vector<T>& src) noexcept;
 
 		constexpr grid_view(const grid_view<T>& src, size_type left, size_type top, size_type columns, size_type rows)
-			: m_src(src.m_src)
-			, m_ptr(&src.at(left, top))
+			: m_ptr(&src.at(left, top))
+			, m_stride((src->column_count() + src.m_stride) - columns)
 			, m_columns(columns)
 			, m_rows(rows)
 		{
@@ -299,58 +300,42 @@ namespace ff {
 
 		constexpr grid_view<T>& operator=(const grid_view<T>& x)
 		{
-			m_src = x.m_src;
 			m_ptr = x.m_ptr;
+			m_stride = x.m_stride;
 			m_columns = x.m_columns;
 			m_rows = x.m_rows;
 			return *this;
 		}
 
 		constexpr const_iterator begin() {
-			return const_iterator{ m_ptr, 0, 0, m_columns, get_stride() };
+			return const_iterator{ m_ptr, 0, 0, m_columns, m_stride };
 		}
 		constexpr const_iterator end() {
-			return const_iterator{ m_ptr + size() + get_stride() * m_rows, 0, m_rows, m_columns, get_stride() };
+			return const_iterator{ m_ptr + size() + m_stride * m_rows, 0, m_rows, m_columns, m_stride };
 		}
-		//constexpr const_iterator begin() const { return cbegin(); }
-		//constexpr const_iterator end() const { return cend(); }
 		constexpr const_iterator cbegin() const {
-			return const_iterator{ m_ptr, 0, 0, m_columns, get_stride() };
+			return const_iterator{ m_ptr, 0, 0, m_columns, m_stride };
 		}
 		constexpr const_iterator cend() const {
-			return const_iterator{ m_ptr + size() + get_stride() * m_rows, 0, m_rows, m_columns, get_stride() };
+			return const_iterator{ m_ptr + size() + m_stride * m_rows, 0, m_rows, m_columns, m_stride };
 		}
 		constexpr reverse_iterator rbegin() {
-			return reverse_iterator{ m_ptr, 0, 0, m_columns, get_stride() };
+			return reverse_iterator{ m_ptr, 0, 0, m_columns, m_stride };
 		}
 		constexpr reverse_iterator rend() {
-			return reverse_iterator{ m_ptr + size() + get_stride() * m_rows, 0, m_rows, m_columns, get_stride() };
+			return reverse_iterator{ m_ptr + size() + m_stride * m_rows, 0, m_rows, m_columns, m_stride };
 		}
 		constexpr const_reverse_iterator crbegin() const {
-			return const_reverse_iterator{ m_ptr, 0, 0, m_columns, get_stride() };
+			return const_reverse_iterator{ m_ptr, 0, 0, m_columns, m_stride };
 		}
 		constexpr const_reverse_iterator crend() const {
-			return const_reverse_iterator{ m_ptr + size() + get_stride() * m_rows, 0, m_rows, m_columns, get_stride() };
+			return const_reverse_iterator{ m_ptr + size() + m_stride * m_rows, 0, m_rows, m_columns, m_stride };
 		}
 
-		/*
-		constexpr reference at(size_type column_x, size_type row_y)
-		{
-			return m_ptr[(row_y * (m_columns + get_stride())) + column_x];
-		}
-		*/
 		constexpr const_reference at(size_type column_x, size_type row_y) const
 		{
-			return m_ptr[(row_y * (m_columns + get_stride())) + column_x];
+			return m_ptr[(row_y * (m_columns + m_stride)) + column_x];
 		}
-
-		/*
-		template<detail::vector_type Vec>
-		constexpr reference at(const Vec& position)
-		{
-			return at(position.x, position.y);
-		}
-		*/
 
 		template<detail::vector_type Vec>
 		constexpr const_reference at(const Vec& position) const
@@ -358,29 +343,12 @@ namespace ff {
 			return at(position.x, position.y);
 		}
 
-		/*
-		constexpr reference operator[] (size_type ndx)
-		{
-			auto col = ndx % m_columns;
-			auto row = ndx / m_columns;
-			return this->at(col, row);
-		}
-		*/
-
 		constexpr const_reference operator[] (size_type ndx) const
 		{
 			auto col = ndx % m_columns;
 			auto row = ndx / m_columns;
 			return this->at(col, row);
 		}
-
-		/*
-		template<detail::vector_type Vec>
-		constexpr reference operator[] (const Vec& position)
-		{
-			return at(position);
-		}
-		*/
 
 		template<detail::vector_type Vec>
 		constexpr const_reference operator[] (const Vec& position) const
@@ -413,25 +381,23 @@ namespace ff {
 		constexpr size_type column_count() const noexcept { return m_columns; };
 		constexpr size_type row_count() const noexcept { return m_rows; };
 
-		constexpr bool valid(size_type column_x, size_type row_y)
+		constexpr bool valid(size_type column_x, size_type row_y) const noexcept
 		{
 			return column_x < column_count()
 				&& row_y < row_count();
 		}
 
 		template<detail::vector_type Vec>
-		constexpr bool valid(const Vec& position)
+		constexpr bool valid(const Vec& position) const noexcept
 		{
 			return position.x < column_count()
 				&& position.y < row_count();
 		}
+
 	private:
-
-		constexpr size_type get_stride() const noexcept;
-
-		const grid_vector<value_type>* m_src = nullptr;
 		const value_type* m_ptr = nullptr;
 
+		size_type m_stride = 0;
 		size_type m_columns = 0;
 		size_type m_rows = 0;
 	};
@@ -660,14 +626,14 @@ namespace ff {
 			std::swap(m_ptr, x.m_ptr);
 		}
 
-		constexpr bool valid(size_type column_x, size_type row_y)
+		constexpr bool valid(size_type column_x, size_type row_y) const noexcept
 		{
 			return column_x < column_count()
 				&& row_y < row_count();
 		}
 
 		template<detail::vector_type Vec>
-		constexpr bool valid(const Vec& position)
+		constexpr bool valid(const Vec& position) const noexcept
 		{
 			return position.x < column_count()
 				&& position.y < row_count();
@@ -701,8 +667,8 @@ namespace ff {
 
 	template<typename T>
 	constexpr grid_view<T>::grid_view(const grid_vector<T>& src) noexcept
-		: m_src(&src)
-		, m_ptr(src.data())
+		: m_ptr(src.data())
+		, m_stride(0)
 		, m_columns(src.column_count())
 		, m_rows(src.row_count())
 	{
@@ -710,8 +676,8 @@ namespace ff {
 
 	template<typename T>
 	constexpr grid_view<T>::grid_view(const grid_vector<T>& src, size_type left, size_type top, size_type columns, size_type rows)
-		: m_src(&src)
-		, m_ptr(&src.at(left, top))
+		: m_ptr(&src.at(left, top))
+		, m_stride(src.column_count() - columns)
 		, m_columns(columns)
 		, m_rows(rows)
 	{
@@ -722,9 +688,11 @@ namespace ff {
 		}
 	}
 
+	/*
 	template<typename T>
 	constexpr typename grid_view<T>::size_type grid_view<T>::get_stride() const noexcept
 	{
 		return m_src->column_count() - m_columns;
 	}
+	*/
 }

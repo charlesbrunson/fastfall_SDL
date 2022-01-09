@@ -73,7 +73,6 @@ table LevelAssetF {
 
 struct TileShapeF {
 	type:uint;
-	shape_touches:uint;
 	hflip:bool;
 	vflip:bool;
 }

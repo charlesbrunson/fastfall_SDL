@@ -120,23 +120,23 @@ private:
 	template<typename Callable>
 	void for_adjacent_touching_quads(const ColliderTile& tile, Callable&& call)
 	{
-		unsigned shapeTouchBits = tile.shape.shapeTouches;
-
 		using namespace direction;
 
+		TileTouch touch{ tile.shape };
 		for (auto dir : cardinals)
 		{
-			if (shapeTouchBits & to_bits(dir)) 
+			if (touch.get_edge(dir) > 0)
 			{
 				auto [quad_adj, tile_adj] = get_tile(tile.position + to_vector<int>(dir));
-
-				if (quad_adj && (tile_adj->shape.shapeTouches & to_bits(opposite(dir))))
+				
+				if (quad_adj 
+					&& (touch.get_edge(dir) & TileTouch { tile_adj->shape }.get_edge(opposite(dir))) > 0)
+				//if (quad_adj && TileTouch{ tile_adj->shape }.get_edge(opposite(dir)) > 0)
 				{
 					call(*quad_adj, *tile_adj, dir);
 				}
 			}
 		}
-
 	}
 
 	void incr_valid_collision() {

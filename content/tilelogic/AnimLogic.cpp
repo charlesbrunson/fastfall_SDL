@@ -54,7 +54,7 @@ void AnimLogic::update(secs deltaTime) {
 				tex_pos = tile.next_offset;
 			}
 			else {
-				tex_pos = tile.pos + tile.next_offset;
+				tex_pos = tile.id + tile.next_offset;
 			}
 
 

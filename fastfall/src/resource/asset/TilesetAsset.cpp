@@ -17,7 +17,7 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 {
 	{"shape", [](TilesetAsset& asset, TileData& state, char* value)
 	{
-		state.tile.shape = TileShape(value);
+		state.tile.shape = TileShape::from_string(value);
 	}},
 
 	{"logic", [](TilesetAsset& asset, TileData& state, char* value)
@@ -35,7 +35,7 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 		}
 		else 
 		{
-			LOG_ERR_("Tileset: {}, unknown logic type for args at {}", asset.getAssetName(), state.tile.pos.to_vec().to_string());
+			LOG_ERR_("Tileset: {}, unknown logic type for args at {}", asset.getAssetName(), state.tile.id.to_vec().to_string());
 		}
 	}},
 	{"next_x", [](TilesetAsset& asset, TileData& state, char* value)
@@ -98,7 +98,7 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 		}
 		catch (json::exception except) {
 			LOG_ERR_("json string parse failure: {}", except.what());
-			LOG_ERR_("for tile: {}", Vec2u{ state.tile.pos }.to_string());
+			LOG_ERR_("for tile: {}", Vec2u{ state.tile.id }.to_string());
 			LOG_ERR_("json: {}", value);
 			return;
 		}
@@ -110,6 +110,7 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 			"nw", "ne", "se", "sw"
 		};
 
+		/*
 		auto parse_rule = [](std::string_view value) -> AutoTileRule
 		{
 			if (value == "no") {
@@ -144,10 +145,11 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 				}
 			}
 		};
+		*/
 
 		for (auto it = autotile_json.begin(); it != autotile_json.end(); it++)
 		{
-			set_rule(it.key(), it->get<std::string_view>());
+			//set_rule(it.key(), it->get<std::string_view>());
 		}
 		return;
 	}}
@@ -284,13 +286,13 @@ void TilesetAsset::loadFromFile_Tile(xml_node<>* tile_node)
 
 	TileData& t = tiles[id];
 	t.has_prop_bits |= TileHasProp::HasTile;
-	t.tile.pos = TileID{ id % texTileSize.x, id / texTileSize.x };
+	t.tile.id = TileID{ id % texTileSize.x, id / texTileSize.x };
 	t.tile.origin = this;
 
 	xml_node<>* propNode = tile_node->first_node("properties");
 	loadFromFile_TileProperties(propNode, t);
 
-	tiles[get_ndx(t.tile.pos.to_vec())] = t;
+	tiles[get_ndx(t.tile.id.to_vec())] = t;
 }
 
 bool TilesetAsset::loadFromFile(const std::string& relpath) {
@@ -406,12 +408,12 @@ bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder)
 
 		// shape
 		t.tile.shape.type			= static_cast<TileShape::Type>(tile_data->tile().shape().type());
-		t.tile.shape.shapeTouches	= tile_data->tile().shape().shape_touches();
-		t.tile.shape.hflipped		= tile_data->tile().shape().hflip();
-		t.tile.shape.vflipped		= tile_data->tile().shape().vflip();
+		//t.tile.shape.shapeTouches	= tile_data->tile().shape().shape_touches();
+		t.tile.shape.flip_h		= tile_data->tile().shape().hflip();
+		t.tile.shape.flip_v		= tile_data->tile().shape().vflip();
 
 		// tile
-		t.tile.pos			= tile_data->tile().pos();
+		t.tile.id			= tile_data->tile().pos();
 		t.tile.matFacing	= static_cast<Cardinal>(tile_data->tile().facing());
 		t.tile.next_offset	= tile_data->tile().next_offset();
 		t.tile.next_tileset = tile_data->tile().next_tileset_ndx();
@@ -446,13 +448,12 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 	{
 		TileShapeF flat_shape{
 			static_cast<uint32_t>(tile_data.tile.shape.type),
-			tile_data.tile.shape.shapeTouches,
-			tile_data.tile.shape.hflipped,
-			tile_data.tile.shape.vflipped
+			tile_data.tile.shape.flip_h,
+			tile_data.tile.shape.flip_v
 		};
 
 		TileF flat_tile{
-			tile_data.tile.pos,
+			tile_data.tile.id,
 			flat_shape,
 			static_cast<CardinalF>(tile_data.tile.matFacing),
 			tile_data.tile.next_offset,
@@ -522,9 +523,9 @@ Tile TilesetAsset::getTile(TileID texPos) const {
 	else {
 		// create a default, empty tile here
 		return Tile{
-			.pos = texPos,
-			.shape = TileShape(TileShape::Type::EMPTY, false, false),
+			.id = texPos,
 			.origin = this,
+			.shape = {},
 		};
 	}
 }

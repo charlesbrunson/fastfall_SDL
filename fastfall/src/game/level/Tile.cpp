@@ -9,87 +9,380 @@
 
 namespace ff {
 
-using StringTileType = std::pair<std::string_view, TileShape::Type>;
-constexpr std::array<StringTileType, TILE_TYPE_COUNT> tileStringToType = {
-	StringTileType{"empty",       TileShape::Type::EMPTY},
-	StringTileType{"solid",       TileShape::Type::SOLID},
-	StringTileType{"half",        TileShape::Type::HALF},
-	StringTileType{"halfvert",    TileShape::Type::HALFVERT},
-	StringTileType{"slope",       TileShape::Type::SLOPE},
-	StringTileType{"shallow1",    TileShape::Type::SHALLOW1},
-	StringTileType{"shallow2",    TileShape::Type::SHALLOW2},
-	StringTileType{"steep1",      TileShape::Type::STEEP1},
-	StringTileType{"steep2",      TileShape::Type::STEEP2},
-	StringTileType{"oneway",      TileShape::Type::ONEWAY},
-	StringTileType{"onewayvert",  TileShape::Type::ONEWAYVERT},
+	// Tile Touch
 
-	StringTileType{"levelboundary",      TileShape::Type::LEVELBOUNDARY},
-	StringTileType{"levelboundary_wall", TileShape::Type::LEVELBOUNDARY_WALL}
-};
-
-TileShape::TileShape() noexcept :
-	type(Type::EMPTY),
-	shapeTouches(0u)
-{
-
-}
-
-TileShape::TileShape(const char* shapeStr) noexcept {
-	if (shapeStr == nullptr) return;
-
-	type = Type::EMPTY;
-	shapeTouches = 0u;
-
-	std::string_view shapeString = shapeStr;
-	int split = shapeString.find('-');
-
-	std::string_view shapePrototype = shapeString.substr(0, split);
-	std::string_view flipParams;
-	if (split != std::string::npos) {
-		flipParams = shapeString.substr(split + 1);
+	TileTouch::TileTouch(TileShape t_shape)
+		: shape(t_shape)
+	{
+		calc_value(shape);
 	}
 
-	auto tileProto = std::find_if(tileStringToType.begin(), tileStringToType.end(),
-		[&shapePrototype](const StringTileType& element) {
-			return shapePrototype == element.first;
-		});
-
-	if (tileProto != tileStringToType.end()) {
-		type = tileProto->second;
+	uint8_t TileTouch::get_edge(Cardinal dir) const
+	{
+		uint8_t ret = 0;
+		switch (dir)
+		{
+		case Cardinal::N:
+			ret = (value & Top);
+			break;
+		case Cardinal::E:
+			ret = (value & Right) >> 2;
+			break;
+		case Cardinal::S:
+			ret = (value & Bot) >> 4;
+			break;
+		case Cardinal::W:
+			ret = (value & Left) >> 6;
+			break;
+		}
+		return ret;
 	}
-	else {
-		LOG_ERR_("could not find tile prototype: {}", shapeString);
-		return;
+	bool TileTouch::get_corner(Ordinal dir) const
+	{
+		bool has = false;
+		switch (dir)
+		{
+		case Ordinal::NW:
+			has = (value & (Top_Left | Left_Top)) == (Top_Left | Left_Top);
+			break;
+		case Ordinal::NE:
+			has = (value & (Top_Right | Right_Top)) == (Top_Right | Right_Top);
+			break;
+		case Ordinal::SE:
+			has = (value & (Right_Bot | Bot_Right)) == (Right_Bot | Bot_Right);
+			break;
+		case Ordinal::SW:
+			has = (value & (Bot_Left | Left_Bot)) == (Bot_Left | Left_Bot);
+			break;
+		}
+		return has;
 	}
 
-	hflipped = flipParams.find_first_of("hH") != std::string::npos;
-	vflipped = flipParams.find_first_of("vV") != std::string::npos;
+	void TileTouch::calc_value(TileShape shape)
+	{
+		value = 0;
 
-	init();
-}
+		switch (shape.type)
+		{
+		case TileShape::Type::Empty:
+			break;
+		case TileShape::Type::Solid:
+			value = (Top | Right | Bot | Left);
+			break;
+		case TileShape::Type::Half:
+			value = (Right_Bot | Bot | Left_Bot);
+			break;
+		case TileShape::Type::HalfVert:
+			value = (Top_Left | Bot_Left | Left);
+			break;
+		case TileShape::Type::Slope:
+			value = (Right | Bot);
+			break;
+		case TileShape::Type::Shallow1:
+			value = (Right_Bot | Bot);
+			break;
+		case TileShape::Type::Shallow2:
+			value = (Right | Bot | Left_Bot);
+			break;
+		case TileShape::Type::Steep1:
+			value = (Top_Right | Right | Bot);
+			break;
+		case TileShape::Type::Steep2:
+			value = (Right | Bot_Right);
+			break;
+		case TileShape::Type::Oneway:
+			break;
+		case TileShape::Type::OnewayVert:
+			break;
+		case TileShape::Type::LevelBoundary:
+			value = (Top );
+			break;
+		case TileShape::Type::LevelBoundary_Wall:
+			value = (Right);
+			break;
+		}
 
-// tile materials
-namespace {
-	std::unordered_map<std::string, TileMaterial> materials;
-}
+		auto swap_bits = [](uint8_t value, uint8_t bit1, uint8_t bit2, uint8_t shift_count)
+		{
+			assert(bit1 < bit2);
+			return (value & ~(bit1 | bit2)) | ((value & bit1) << shift_count) | ((value & bit2) >> shift_count);
+		};
 
-const TileMaterial Tile::standardMat = {
-	.typeName = "standard"
-};
-
-void Tile::addMaterial(const TileMaterial& mat) {
-	materials.insert_or_assign(mat.typeName, mat);
-}
-
-const TileMaterial& Tile::getMaterial(std::string typeName) {
-	const auto it = materials.find(typeName);
-
-	if (it != materials.end()) {
-		return (it->second);
+		if (shape.flip_h)
+		{
+			value = swap_bits(value, Top_Left, Top_Right, 1);
+			value = swap_bits(value, Bot_Left, Bot_Right, 1);
+			value = swap_bits(value, Right, Left, 4);
+		}
+		if (shape.flip_v)
+		{
+			value = swap_bits(value, Right_Top, Right_Bot, 1);
+			value = swap_bits(value, Left_Top, Left_Bot, 1);
+			value = swap_bits(value, Top, Bot, 4);
+		}
 	}
-	else {
-		return standardMat;
+
+	// Tile State
+
+	bool autotile_has_edge(
+		Cardinal dir,
+		const TileTouch& auto_shape,
+		const cardinal_array<TileTouch>& edges)
+	{
+		using namespace direction;
+		return (auto_shape.get_edge(dir) > 0)
+			&& (auto_shape.get_edge(dir) == edges[dir].get_edge(opposite(dir)));
 	}
-}
+
+	bool autotile_has_inner_corner(
+		Ordinal dir,
+		const TileTouch& auto_shape,
+		const cardinal_array<TileTouch>& edges,
+		const ordinal_array<TileTouch>& corners)
+	{
+		using namespace direction;
+		auto [V, H] = split(dir);
+
+		const TileTouch& h_adj = edges[H];
+		const TileTouch& v_adj = edges[V];
+		const TileTouch& d_adj = corners[dir];
+
+		bool corner_open = !h_adj.get_corner(*combine(V, opposite(H)))
+			|| !v_adj.get_corner(*combine(opposite(V), H))
+			|| !d_adj.get_corner(opposite(dir));
+
+		return autotile_has_edge(V, auto_shape, edges)
+			&& autotile_has_edge(H, auto_shape, edges)
+			&& auto_shape.get_corner(dir)
+			&& corner_open;
+	}
+
+
+	TileState get_autotile_state(
+		TileShape init_shape,
+		grid_view<TileShape> grid,
+		Vec2u position,
+		const TileShape& offgrid_shape)
+	{
+		auto dir_transform = [&]<typename T>(const std::initializer_list<T>& directions_list)
+		{
+			directional_array<TileTouch, T> out;
+			for (auto dir : directions_list) {
+				Vec2u pos = position + direction::to_vector<int>(dir);
+				out[dir] = TileTouch{ grid.valid(pos) ? grid[pos] : offgrid_shape };
+			}
+			return out;
+		};
+
+		TileTouch auto_shape{ init_shape };
+		cardinal_array<TileTouch> neighbors_card = dir_transform(direction::cardinals);
+		ordinal_array<TileTouch>  neighbors_ord  = dir_transform(direction::ordinals);
+
+		TileState state;
+		state.shape = init_shape;
+
+		std::ranges::for_each(direction::cardinals,
+			[&](Cardinal dir) {
+				state.occupied_edges[dir] = autotile_has_edge(dir, auto_shape, neighbors_card);
+				state.card_shapes[dir] = neighbors_card[dir].shape;
+			}
+		);
+		std::ranges::for_each(direction::ordinals,
+			[&](Ordinal dir) {
+				state.inner_corners[dir] = autotile_has_inner_corner(dir, auto_shape, neighbors_card, neighbors_ord);
+				state.ord_shapes[dir] = neighbors_ord[dir].shape;
+			}
+		);
+
+		return state;
+	}
+
+	// Tile Constraint
+
+	struct Match
+	{
+		enum class Priority
+		{
+			None = 0,
+			Edge_Corner,
+			Shape
+		};
+
+		Priority priority = Priority::None;
+		unsigned match_count = 0;
+		uint8_t tile_id;
+
+		friend bool operator< (const Match& lhs, const Match& rhs)
+		{
+			if (lhs.priority != rhs.priority)
+			{
+				return lhs.priority < rhs.priority;
+			}
+			else if (lhs.match_count != rhs.match_count)
+			{
+				return lhs.match_count < rhs.match_count;
+			}
+			else return false;
+		}
+
+		friend bool operator> (const Match& lhs, const Match& rhs)
+		{
+			if (lhs.priority != rhs.priority)
+			{
+				return lhs.priority > rhs.priority;
+			}
+			else if (lhs.match_count != rhs.match_count)
+			{
+				return lhs.match_count > rhs.match_count;
+			}
+			else return false;
+		}
+
+		friend bool operator== (const Match& lhs, const Match& rhs)
+		{
+			return lhs.priority == rhs.priority
+				&& lhs.match_count == rhs.match_count;
+		}
+
+		friend bool operator!= (const Match& lhs, const Match& rhs)
+		{
+			return lhs.priority != rhs.priority
+				|| lhs.match_count != rhs.match_count;
+		}
+	};
+
+	std::optional<Match> try_match(
+		const TileState& state,
+		const TileConstraint& constraint)
+	{
+		Match match;
+		match.tile_id = constraint.tile_id;
+
+		if (state.shape != constraint.shape)
+			return std::nullopt;
+
+		unsigned counter = 0;
+
+		// check edges
+		bool tested_edge_corner = false;
+
+		for (auto dir : direction::cardinals)
+		{
+			if (auto opt_edge = constraint.edges[dir];
+				opt_edge && std::holds_alternative<bool>(*opt_edge))
+			{
+				tested_edge_corner = true;
+				bool check = (std::get<bool>(*opt_edge) == state.occupied_edges[dir]);
+				if (check) {
+					counter++;
+				}
+				else {
+					match.match_count = 0;
+					return match;
+				}
+			}
+		}
+		for (auto dir : direction::ordinals)
+		{
+			if (auto opt_corner = constraint.corners[dir]; opt_corner)
+			{
+				tested_edge_corner = true;
+				bool check = (*opt_corner == state.inner_corners[dir]);
+				if (check) {
+					counter++;
+				}
+				else {
+					//match.match_count = 0;
+					return match;
+				}
+			}
+		}
+
+		if (tested_edge_corner)
+		{
+			match.priority = Match::Priority::Edge_Corner;
+			match.match_count = counter;
+		}
+
+		// check shapes
+		counter = 0;
+
+		bool tested_shape = false;
+
+		for (auto dir : direction::cardinals)
+		{
+			if (auto edge = constraint.edges[dir];
+				edge && std::holds_alternative<TileShape>(*edge))
+			{
+				tested_shape = true;
+				bool check = (std::get<TileShape>(*edge) == state.card_shapes[dir]);
+				if (check) {
+					counter++;
+				}
+				else {
+					//match.match_count = 0;
+					return match;
+				}
+			}
+		}
+		if (tested_shape)
+		{
+			match.priority = Match::Priority::Shape;
+			match.match_count = counter;
+		}
+
+		return match;
+	}
+
+	std::optional<uint8_t> auto_best_tile(
+		const TileState& state,
+		const std::vector<TileConstraint>& constraints)
+	{
+		std::vector<Match> matches;
+
+		for (const auto& constraint : constraints)
+		{
+			if (auto match = try_match(state, constraint); match.has_value()) {
+				matches.push_back(*match);
+			}
+		}
+
+		// pick best
+		if (!matches.empty())
+		{
+			return std::ranges::max_element(matches,
+				[](const Match& lhs, const Match& rhs) { return lhs < rhs; }
+			)->tile_id;
+		}
+		else
+		{
+			return std::nullopt;
+		}
+	}
+
+	// Tile Materials
+
+	namespace {
+		std::unordered_map<std::string, TileMaterial> materials;
+	}
+
+	const TileMaterial Tile::standardMat = {
+		.typeName = "standard"
+	};
+
+	void Tile::addMaterial(const TileMaterial& mat) {
+		materials.insert_or_assign(mat.typeName, mat);
+	}
+
+	const TileMaterial& Tile::getMaterial(std::string typeName) {
+		const auto it = materials.find(typeName);
+
+		if (it != materials.end()) {
+			return (it->second);
+		}
+		else {
+			return standardMat;
+		}
+	}
 
 }

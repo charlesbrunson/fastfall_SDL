@@ -14,11 +14,11 @@ namespace ff {
 	{
 		using Direction = DirectionEnum;
 
-		T& operator[] (Direction dir)
+		constexpr T& operator[] (Direction dir)
 		{
 			return data[static_cast<size_t>(dir)];
 		}
-		const T& operator[] (Direction dir) const
+		constexpr const T& operator[] (Direction dir) const
 		{
 			return data[static_cast<size_t>(dir)];
 		}
@@ -28,16 +28,16 @@ namespace ff {
 		using reverse_iterator = std::array<T, 4>::reverse_iterator;
 		using const_reverse_iterator = std::array<T, 4>::const_reverse_iterator;
 
-		iterator				begin()			  { return data.begin();	};
-		iterator				end()			  { return data.end();		};
-		const_iterator			begin()		const { return data.begin();	};
-		const_iterator			end()		const { return data.end();		};
-		const_iterator			cbegin()	const { return data.cbegin();	};
-		const_iterator			cend()		const { return data.cend();		};
-		reverse_iterator		rbegin()		  { return data.rbegin();	};
-		reverse_iterator		rend()		      { return data.rend();		};
-		const_reverse_iterator	crbegin()	const { return data.crbegin();	};
-		const_reverse_iterator	crend()		const { return data.crend();	};
+		constexpr iterator					begin()			  { return data.begin();	};
+		constexpr iterator					end()			  { return data.end();		};
+		constexpr const_iterator			begin()		const { return data.begin();	};
+		constexpr const_iterator			end()		const { return data.end();		};
+		constexpr const_iterator			cbegin()	const { return data.cbegin();	};
+		constexpr const_iterator			cend()		const { return data.cend();		};
+		constexpr reverse_iterator			rbegin()		  { return data.rbegin();	};
+		constexpr reverse_iterator			rend()		      { return data.rend();		};
+		constexpr const_reverse_iterator	crbegin()	const { return data.crbegin();	};
+		constexpr const_reverse_iterator	crend()		const { return data.crend();	};
 
 		std::array<T, 4> data;
 	};

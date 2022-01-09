@@ -1,154 +1,132 @@
 #pragma once
 
 #include "fastfall/game/level/TileID.hpp"
+#include "fastfall/game/level/TileShape.hpp"
+
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/direction.hpp"
+#include "fastfall/util/grid_vector.hpp"
 
+#include <variant>
 
 namespace ff {
 
-class TilesetAsset;
+	// Tile Touch
 
-static constexpr unsigned TILE_TYPE_COUNT = 13U;
-
-class TileShape {
-public:
-	enum class Type : uint8_t {
-		EMPTY,
-		SOLID,
-		HALF,
-		HALFVERT,
-		SLOPE,
-		SHALLOW1,
-		SHALLOW2,
-		STEEP1,
-		STEEP2,
-		ONEWAY,
-		ONEWAYVERT,
-
-		//not for use in tilesets
-		LEVELBOUNDARY,
-		LEVELBOUNDARY_WALL,
-
-	};
-
-	TileShape() noexcept;
-	TileShape(const char* shapeStr) noexcept;
-
-	constexpr TileShape(Type tileType, bool vertFlip, bool horiFlip) noexcept :
-		type(tileType),
-		vflipped(vertFlip),
-		hflipped(horiFlip)
+	struct TileTouch
 	{
-		init();
-	}
+		TileTouch() = default;
+		TileTouch(TileShape t_shape);
 
-	~TileShape() = default;
+		uint8_t get_edge(Cardinal dir) const;
+		bool get_corner(Ordinal dir) const;
 
-	Type type;
-	uint8_t shapeTouches; // contains Cardinal bits
-	bool hflipped = false;
-	bool vflipped = false;
-private:
+		TileShape shape = {};
 
-	using TilePrototype = std::pair<TileShape::Type, uint8_t>;
-	constexpr static std::array<TilePrototype, TILE_TYPE_COUNT> tilePrototypes{
-		TilePrototype{TileShape::Type::EMPTY, 0u},
-		{Type::SOLID,				direction::to_bits(Cardinal::N, Cardinal::E, Cardinal::S, Cardinal::W)},
-		{Type::HALF,				direction::to_bits(Cardinal::E, Cardinal::S, Cardinal::W)},
-		{Type::HALFVERT,			direction::to_bits(Cardinal::N,                 Cardinal::S, Cardinal::W)},
-		{Type::SLOPE,				direction::to_bits(Cardinal::E, Cardinal::S)},
-		{Type::SHALLOW1,			direction::to_bits(Cardinal::E, Cardinal::S)},
-		{Type::SHALLOW2,			direction::to_bits(Cardinal::E, Cardinal::S, Cardinal::W)},
-		{Type::STEEP1,				direction::to_bits(Cardinal::N, Cardinal::E, Cardinal::S)},
-		{Type::STEEP2,				direction::to_bits(Cardinal::E, Cardinal::S)},
-		{Type::ONEWAY,				direction::to_bits(Cardinal::N)},
-		{Type::ONEWAYVERT,			direction::to_bits(Cardinal::E)},
+	private:
+		uint8_t value = 0;
 
-		{Type::LEVELBOUNDARY,		direction::to_bits(Cardinal::N)},
-		{Type::LEVELBOUNDARY_WALL,	direction::to_bits(Cardinal::E)}
+		enum Edge : uint16_t {
+			Top_Left = 1 << 0,
+			Top_Right = 1 << 1,
+			Right_Top = 1 << 2,
+			Right_Bot = 1 << 3,
+			Bot_Left = 1 << 4,
+			Bot_Right = 1 << 5,
+			Left_Top = 1 << 6,
+			Left_Bot = 1 << 7,
+
+			Top = Top_Left | Top_Right,
+			Right = Right_Top | Right_Bot,
+			Bot = Bot_Left | Bot_Right,
+			Left = Left_Top | Left_Bot,
+		};
+
+		void calc_value(TileShape shape);
 	};
 
-	constexpr void init() {
+	// Tile State
 
-		shapeTouches = std::find_if(tilePrototypes.begin(), tilePrototypes.end(), [this](const TilePrototype& element) {
-			return element.first == type;
-			})->second;
+	struct TileState
+	{
+		TileShape shape;
+		cardinal_array<bool> occupied_edges = { false };
+		ordinal_array<bool>  inner_corners = { false };
 
-		// flip touch flags
-		if (hflipped) {
-			bool east = (shapeTouches & direction::to_bits(Cardinal::E)) > 0;
-			bool west = (shapeTouches & direction::to_bits(Cardinal::W)) > 0;
-
-			if (east != west) {
-				shapeTouches &= ~(direction::to_bits(Cardinal::E, Cardinal::W));
-				shapeTouches |= (east ? direction::to_bits(Cardinal::W) : 0) | (west ? direction::to_bits(Cardinal::E) : 0);
-			}
-		}
-		if (vflipped) {
-			bool north = (shapeTouches & direction::to_bits(Cardinal::N)) > 0;
-			bool south = (shapeTouches & direction::to_bits(Cardinal::S)) > 0;
-
-			if (north != south) {
-				shapeTouches &= ~(direction::to_bits(Cardinal::N, Cardinal::S));
-				shapeTouches |= (north ? direction::to_bits(Cardinal::S) : 0) | (south ? direction::to_bits(Cardinal::N) : 0);
-			}
-		}
-	}
-};
-
-struct SurfaceMaterial {
-	float velocity = 0.f;
-};
-
-struct AutoTileRule {
-	enum class Type {
-		N_A,
-		No,
-		Yes,
-		Shape
+		cardinal_array<TileShape> card_shapes = {};
+		ordinal_array<TileShape>  ord_shapes = {};
 	};
 
-	Type type = Type::N_A;
-	TileShape shape;
-};
 
-struct TileMaterial {
+	TileState get_autotile_state(
+		TileShape init_shape,
+		grid_view<TileShape> grid,
+		Vec2u position,
+		const TileShape& offgrid_shape = { TileShape::Type::Solid });
 
-	const SurfaceMaterial& getSurface(Cardinal side, Cardinal facing = Cardinal::N) const {
-		size_t ndx = (static_cast<int>(side) - static_cast<int>(facing)) % 4;
-		return surfaces.at(ndx);
+	// Tile Constraint
+
+	namespace tile_constraint_options {
+		inline constexpr std::nullopt_t n_a{ std::nullopt };
+		inline constexpr bool			no{ false };
+		inline constexpr bool			yes{ true };
 	}
 
-	std::string typeName;
-	std::array<SurfaceMaterial, 4> surfaces;
-};
+	struct TileConstraint {
+		using constraint = std::variant<bool, TileShape>;
 
+		uint8_t tile_id;
+		TileShape shape;
+		cardinal_array<std::optional<constraint>> edges = {};
+		ordinal_array<std::optional<bool>> corners = {};
+	};
 
-class Tile {
-public:
-	TileID pos;
-	TileShape shape;
-	Cardinal matFacing = Cardinal::N;
+	std::optional<uint8_t> auto_best_tile(
+		const TileState& state,
+		const std::vector<TileConstraint>& constraints);
 
-	// tile next reference
-	TileID next_offset = TileID{ 0u };
-	std::optional<unsigned> next_tileset = std::nullopt;
+	// Tile Material
 
-	const TilesetAsset* origin = nullptr;
+	struct SurfaceMaterial {
+		float velocity = 0.f;
+	};
 
-	std::array<AutoTileRule, 4> autotile_card;
-	std::array<AutoTileRule, 4> autotile_ord;
+	struct TileMaterial {
+		const SurfaceMaterial& getSurface(Cardinal side, Cardinal facing = Cardinal::N) const {
+			size_t ndx = (static_cast<int>(side) - static_cast<int>(facing)) % 4;
+			return surfaces.at(ndx);
+		}
 
-	bool has_next_tileset() const {
-		return next_tileset.has_value();
-	}
+		std::string typeName;
+		std::array<SurfaceMaterial, 4> surfaces;
+	};
 
-	static const TileMaterial standardMat;
-	static void addMaterial(const TileMaterial& mat);
-	static const TileMaterial& getMaterial(std::string typeName);
+	class TilesetAsset;
 
-};
+	// Tile
 
+	class Tile {
+	public:
+		TileID id;
+		const TilesetAsset* origin = nullptr;
+
+		TileShape shape;
+		Cardinal matFacing = Cardinal::N;
+
+		// tile next reference
+		TileID next_offset = TileID{ 0u };
+		std::optional<unsigned> next_tileset = std::nullopt;
+
+		//std::array<AutoTileRule, 4> autotile_card;
+		//std::array<AutoTileRule, 4> autotile_ord;
+
+		bool has_next_tileset() const {
+			return next_tileset.has_value();
+		}
+
+		static const TileMaterial standardMat;
+		static void addMaterial(const TileMaterial& mat);
+		static const TileMaterial& getMaterial(std::string typeName);
+	};
 
 }

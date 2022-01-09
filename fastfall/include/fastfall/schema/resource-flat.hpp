@@ -104,7 +104,6 @@ bool VerifyAnyLayerFVector(flatbuffers::Verifier &verifier, const flatbuffers::V
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileShapeF FLATBUFFERS_FINAL_CLASS {
  private:
   uint32_t type_;
-  uint32_t shape_touches_;
   uint8_t hflip_;
   uint8_t vflip_;
   int16_t padding0__;
@@ -112,15 +111,13 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileShapeF FLATBUFFERS_FINAL_CLASS {
  public:
   TileShapeF()
       : type_(0),
-        shape_touches_(0),
         hflip_(0),
         vflip_(0),
         padding0__(0) {
     (void)padding0__;
   }
-  TileShapeF(uint32_t _type, uint32_t _shape_touches, bool _hflip, bool _vflip)
+  TileShapeF(uint32_t _type, bool _hflip, bool _vflip)
       : type_(flatbuffers::EndianScalar(_type)),
-        shape_touches_(flatbuffers::EndianScalar(_shape_touches)),
         hflip_(flatbuffers::EndianScalar(static_cast<uint8_t>(_hflip))),
         vflip_(flatbuffers::EndianScalar(static_cast<uint8_t>(_vflip))),
         padding0__(0) {
@@ -129,9 +126,6 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileShapeF FLATBUFFERS_FINAL_CLASS {
   uint32_t type() const {
     return flatbuffers::EndianScalar(type_);
   }
-  uint32_t shape_touches() const {
-    return flatbuffers::EndianScalar(shape_touches_);
-  }
   bool hflip() const {
     return flatbuffers::EndianScalar(hflip_) != 0;
   }
@@ -139,7 +133,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileShapeF FLATBUFFERS_FINAL_CLASS {
     return flatbuffers::EndianScalar(vflip_) != 0;
   }
 };
-FLATBUFFERS_STRUCT_END(TileShapeF, 12);
+FLATBUFFERS_STRUCT_END(TileShapeF, 8);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileF FLATBUFFERS_FINAL_CLASS {
  private:
@@ -200,7 +194,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileF FLATBUFFERS_FINAL_CLASS {
     return flatbuffers::EndianScalar(next_tileset_ndx_);
   }
 };
-FLATBUFFERS_STRUCT_END(TileF, 24);
+FLATBUFFERS_STRUCT_END(TileF, 20);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileDataF FLATBUFFERS_FINAL_CLASS {
  private:
@@ -250,7 +244,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileDataF FLATBUFFERS_FINAL_CLASS {
     return flatbuffers::EndianScalar(material_ndx_);
   }
 };
-FLATBUFFERS_STRUCT_END(TileDataF, 40);
+FLATBUFFERS_STRUCT_END(TileDataF, 36);
 
 struct PropertyF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef PropertyFBuilder Builder;

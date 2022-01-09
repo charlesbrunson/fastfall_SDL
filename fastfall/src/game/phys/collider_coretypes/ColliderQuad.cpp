@@ -31,7 +31,7 @@ constexpr void debug_impl(ColliderQuad* quad, VertexArray& array, size_t startNd
 	for (size_t i = startNdx; i < startNdx + 24; i += 6) {
 		if (const ColliderSurface* s = quad->getSurface((Cardinal)side)) {
 
-			Vec2f n = normal(Linef(Vec2f(s->surface.p1), Vec2f(s->surface.p2)));
+			Vec2f n = normal(s->surface);
 			Color c = colors[side];
 			
 			array[i].color = c;

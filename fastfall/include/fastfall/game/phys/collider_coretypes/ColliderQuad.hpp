@@ -14,10 +14,9 @@ public:
 	constexpr static unsigned MAX_SURFACES = 4;
 
 	struct QuadSurface {
-		QuadSurface() noexcept :
+		constexpr QuadSurface() noexcept :
 			hasSurface(false),
-			collider(ColliderSurface{}),
-			material(SurfaceMaterial{})
+			collider(ColliderSurface{})
 		{
 
 		}

@@ -87,15 +87,15 @@ namespace ff {
 			if (cardinalBits & to_bits(side)) {
 
 				TileShape shape;
-				shape.shapeTouches = to_bits(opposite(side));
+				//shape.shapeTouches = to_bits(opposite(side));
 
 				shape.type =
 					((side == Cardinal::N) || (side == Cardinal::S) ?
-						TileShape::Type::LEVELBOUNDARY :
-						TileShape::Type::LEVELBOUNDARY_WALL);
+						TileShape::Type::LevelBoundary :
+						TileShape::Type::LevelBoundary_Wall);
 
-				shape.vflipped = (side == Cardinal::N);
-				shape.hflipped = (side == Cardinal::E);
+				shape.flip_v = (side == Cardinal::N);
+				shape.flip_h = (side == Cardinal::E);
 
 				switch (side) {
 				case Cardinal::N: for (unsigned x = 0; x < size.x; x++) setTile(Vec2i(x, -1), shape); break;
@@ -224,8 +224,8 @@ namespace ff {
 	bool isTileGeometryDifferent(const ColliderTile& lhs, const ColliderTile& rhs)
 	{
 		return lhs.shape.type != rhs.shape.type
-			|| lhs.shape.hflipped != rhs.shape.hflipped
-			|| lhs.shape.vflipped != rhs.shape.vflipped;;
+			|| lhs.shape.flip_h != rhs.shape.flip_h
+			|| lhs.shape.flip_v != rhs.shape.flip_v;;
 	}
 
 	bool isTileMaterialDifferent(const ColliderTile& lhs, const ColliderTile& rhs)
@@ -296,7 +296,7 @@ namespace ff {
 			}
 		}
 
-		if (nTile.shape.type == TileShape::Type::EMPTY) {
+		if (nTile.shape.type == TileShape::Type::Empty) {
 			tileShapeMap[ndx].hasTile = false;
 			tileShapeMap[ndx].tile = nTile;
 			tileCollisionMap[ndx] = nQuad;
