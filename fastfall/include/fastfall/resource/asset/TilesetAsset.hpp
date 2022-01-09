@@ -45,6 +45,8 @@ protected:
 	std::vector<TilesetLogic> tileLogic;	// name and params of tile logic
 	std::vector<std::string> tileMat;		// name of material
 
+	std::vector<TileConstraint> constraints;
+
 	const static std::map<std::string, void(*)(TilesetAsset&, TileData&, char*)> tileProperties;
 
 	unsigned addTilesetRef(std::string ref);
@@ -78,6 +80,9 @@ public:
 
 	TileLogicData getTileLogic(TileID position) const;
 	const TileMaterial& getMaterial(TileID position) const;
+
+	void addTileConstraint(TileID tile, TileConstraint constraint);
+
 
 protected:
 	

@@ -21,10 +21,11 @@ namespace ff {
 			LevelBoundary_Wall,
 		};
 
+		constexpr static inline unsigned TypeCount = 13U;
+
 		Type type = Type::Empty;
 		bool flip_h = false;
 		bool flip_v = false;
-
 
 		constexpr static TileShape from_string(std::string_view str);
 		constexpr std::string to_string() const;

@@ -87,8 +87,8 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 		}
 	}},
 
-	// auto tile rules
-	{"autotile", [](TilesetAsset& asset, TileData& state, char* value) 
+	// auto tile constraints
+	{"auto_constraint", [](TilesetAsset& asset, TileData& state, char* value) 
 	{
 		using namespace nlohmann;
 
@@ -103,55 +103,64 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 			return;
 		}
 
-		static constexpr std::string_view card_dir[] = {
+		TileConstraint constraint{
+			.tile_id = state.tile.id,
+			.shape = state.tile.shape
+		};
+
+		static constexpr cardinal_array<std::string_view> card_str = {
 			"n", "e", "s", "w"
 		};
-		static constexpr std::string_view ord_dir[] = { 
+		static constexpr ordinal_array<std::string_view> ord_str = {
 			"nw", "ne", "se", "sw"
 		};
-
-		/*
-		auto parse_rule = [](std::string_view value) -> AutoTileRule
-		{
-			if (value == "no") {
-				return AutoTileRule{ .type = AutoTileRule::Type::No };
-			}
-			else if (value == "yes") {
-				return AutoTileRule{ .type = AutoTileRule::Type::Yes };
-			}
-			else if (value == "n/a") {
-				return AutoTileRule{ .type = AutoTileRule::Type::N_A };
-			}
-			else {
-				return AutoTileRule{
-					.type = AutoTileRule::Type::Yes,
-					.shape = TileShape{ value.data() }
-				};
-			}
-		};
-
+		
 		auto set_rule = [&](std::string_view key, std::string_view val) 
 		{
-			for (int i = 0; i < 4; i++)	{
-				if (key == card_dir[i]) {
-					state.tile.autotile_card[i] = parse_rule(val);
+			for (auto dir : direction::cardinals) {
+				if (key == card_str[dir]) {
+					if (val == "no") {
+						constraint.edges[dir] = tile_constraint_options::no;
+					}
+					else if (val == "yes") {
+						constraint.edges[dir] = tile_constraint_options::yes;
+					}
+					else if (val == "n/a") {
+						constraint.edges[dir] = tile_constraint_options::n_a;
+					}
+					else {
+						constraint.edges[dir] = TileShape::from_string(val);
+					}
 					break;
 				}
 			}
-			for (int i = 0; i < 4; i++)	{
-				if (key == ord_dir[i]) {
-					state.tile.autotile_ord[i] = parse_rule(val);
+			for (auto dir : direction::ordinals) {
+				if (key == ord_str[dir]) {
+					if (val == "no") {
+						constraint.corners[dir] = tile_constraint_options::no;
+					}
+					else if (val == "yes") {
+						constraint.corners[dir] = tile_constraint_options::yes;
+					}
+					else if (val == "n/a") {
+						constraint.corners[dir] = tile_constraint_options::n_a;
+					}
 					break;
 				}
 			}
 		};
-		*/
-
+		
 		for (auto it = autotile_json.begin(); it != autotile_json.end(); it++)
 		{
-			//set_rule(it.key(), it->get<std::string_view>());
+			set_rule(it.key(), it->get<std::string_view>());
 		}
-		return;
+
+		asset.addTileConstraint(state.tile.id, constraint);
+	}},
+	// make tile as auto substitutable
+	{ "auto_substitute", [](TilesetAsset& asset, TileData& state, char* value)
+	{
+		state.tile.auto_substitute = std::string_view{value} == "true";
 	}}
 
 };
@@ -214,6 +223,12 @@ unsigned TilesetAsset::addMaterial(std::string mat)
 		tileMat.push_back(mat);
 	}
 	return count;
+}
+
+
+void TilesetAsset::addTileConstraint(TileID tile, TileConstraint constraint) 
+{
+	constraints.push_back(constraint);
 }
 
 unsigned TilesetAsset::getTilesetRefIndex(std::string_view tileset_name) {

@@ -73,12 +73,13 @@ namespace ff {
 	}
 
 	struct TileConstraint {
-		using constraint = std::variant<bool, TileShape>;
+		using Edge = std::optional<std::variant<bool, TileShape>>;
+		using Corner = std::optional<bool>;
 
-		uint8_t tile_id;
+		TileID tile_id;
 		TileShape shape;
-		cardinal_array<std::optional<constraint>> edges = {};
-		ordinal_array<std::optional<bool>> corners = {};
+		cardinal_array<Edge> edges = {};
+		ordinal_array<Corner> corners = {};
 	};
 
 	std::optional<uint8_t> auto_best_tile(
@@ -117,8 +118,7 @@ namespace ff {
 		TileID next_offset = TileID{ 0u };
 		std::optional<unsigned> next_tileset = std::nullopt;
 
-		//std::array<AutoTileRule, 4> autotile_card;
-		//std::array<AutoTileRule, 4> autotile_ord;
+		bool auto_substitute = false;
 
 		bool has_next_tileset() const {
 			return next_tileset.has_value();

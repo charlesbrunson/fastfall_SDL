@@ -95,7 +95,7 @@ namespace ff {
 		case TileShape::Type::OnewayVert:
 			break;
 		case TileShape::Type::LevelBoundary:
-			value = (Top );
+			value = (Top);
 			break;
 		case TileShape::Type::LevelBoundary_Wall:
 			value = (Right);
