@@ -18,8 +18,12 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 	{"shape", [](TilesetAsset& asset, TileData& state, char* value)
 	{
 		state.tile.shape = TileShape::from_string(value);
-	}},
 
+		if (state.has_prop_bits & TileHasProp::HasConstraint)
+		{
+			asset.constraints.at(state.tileConstraint).shape = state.tile.shape;
+		}
+	}},
 	{"logic", [](TilesetAsset& asset, TileData& state, char* value)
 	{
 		state.has_prop_bits |= TileHasProp::HasLogic;
@@ -155,7 +159,8 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 			set_rule(it.key(), it->get<std::string_view>());
 		}
 
-		asset.addTileConstraint(state.tile.id, constraint);
+		state.has_prop_bits |= TileHasProp::HasConstraint;
+		state.tileConstraint = asset.addTileConstraint(state.tile.id, constraint);
 	}},
 	// make tile as auto substitutable
 	{ "auto_substitute", [](TilesetAsset& asset, TileData& state, char* value)
@@ -226,9 +231,10 @@ unsigned TilesetAsset::addMaterial(std::string mat)
 }
 
 
-void TilesetAsset::addTileConstraint(TileID tile, TileConstraint constraint) 
+unsigned TilesetAsset::addTileConstraint(TileID tile, TileConstraint constraint) 
 {
 	constraints.push_back(constraint);
+	return constraints.size() - 1;
 }
 
 unsigned TilesetAsset::getTilesetRefIndex(std::string_view tileset_name) {
@@ -320,6 +326,7 @@ bool TilesetAsset::loadFromFile(const std::string& relpath) {
 	tilesetRef.clear();
 	tileLogic.clear();
 	tileMat.clear();
+	constraints.clear();
 
 	texTileSize = Vec2u{};
 
@@ -389,9 +396,11 @@ bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder)
 	assetName = builder->name()->c_str();
 	texTileSize = *builder->tile_size();
 
-	tilesetRef.clear();	
+	tiles.clear();
+	tilesetRef.clear();
 	tileLogic.clear();
 	tileMat.clear();
+	constraints.clear();
 
 	//tiles = std::make_unique<TileData[]>((size_t)texTileSize.x * texTileSize.y);
 	tiles = grid_vector<TileData>(texTileSize);

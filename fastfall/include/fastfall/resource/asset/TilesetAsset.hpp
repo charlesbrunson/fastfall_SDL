@@ -19,10 +19,11 @@ namespace ff {
 class TilesetAsset : public TextureAsset {
 protected:
 	enum TileHasProp {
-		HasTile = 1 << 0,
-		HasLogic = 1 << 1,
-		HasLogicArgs = 1 << 2,
-		HasMaterial = 1 << 3
+		HasTile			= 1 << 0,
+		HasLogic		= 1 << 1,
+		HasLogicArgs	= 1 << 2,
+		HasMaterial		= 1 << 3,
+		HasConstraint	= 1 << 4
 	};
 
 	struct TileData {
@@ -31,6 +32,7 @@ protected:
 		unsigned tileLogicNdx;		// ndx of tileLogic
 		unsigned tileLogicParamNdx; // ndx of tileLogic's parameter list
 		unsigned tileMatNdx;		// ndx of tileMat
+		unsigned tileConstraint;
 	};
 
 	struct TilesetLogic {
@@ -41,10 +43,10 @@ protected:
 	//std::unique_ptr<TileData[]> tiles;
 	Vec2u texTileSize;
 	grid_vector<TileData> tiles;
-	std::vector<std::string> tilesetRef;	// name of tileset reference
-	std::vector<TilesetLogic> tileLogic;	// name and params of tile logic
-	std::vector<std::string> tileMat;		// name of material
 
+	std::vector<std::string>	tilesetRef;	// name of tileset reference
+	std::vector<TilesetLogic>	tileLogic;	// name and params of tile logic
+	std::vector<std::string>	tileMat;	// name of material
 	std::vector<TileConstraint> constraints;
 
 	const static std::map<std::string, void(*)(TilesetAsset&, TileData&, char*)> tileProperties;
@@ -53,6 +55,8 @@ protected:
 	unsigned addLogicType(std::string type);
 	unsigned addLogicArgs(unsigned logicType, std::string args);
 	unsigned addMaterial(std::string mat);
+
+	unsigned addTileConstraint(TileID tile, TileConstraint constraint);
 
 public:
 
@@ -81,7 +85,6 @@ public:
 	TileLogicData getTileLogic(TileID position) const;
 	const TileMaterial& getMaterial(TileID position) const;
 
-	void addTileConstraint(TileID tile, TileConstraint constraint);
 
 
 protected:
