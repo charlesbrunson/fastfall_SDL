@@ -56,7 +56,7 @@ protected:
 	unsigned addLogicArgs(unsigned logicType, std::string args);
 	unsigned addMaterial(std::string mat);
 
-	unsigned addTileConstraint(TileID tile, TileConstraint constraint);
+	unsigned addTileConstraint(TileID tile_id, TileConstraint constraint);
 
 public:
 
@@ -68,7 +68,7 @@ public:
 
 	bool reloadFromFile() override;
 
-	Tile getTile(TileID texPos) const;
+	Tile getTile(TileID tile_id) const;
 	inline const Vec2u& getTileSize() const { return texTileSize; };
 
 	void ImGui_getContent() override;
@@ -82,10 +82,10 @@ public:
 		std::string_view logic_args;
 	};
 
-	TileLogicData getTileLogic(TileID position) const;
-	const TileMaterial& getMaterial(TileID position) const;
+	TileLogicData getTileLogic(TileID tile_id) const;
+	const TileMaterial& getMaterial(TileID tile_id) const;
 
-
+	const std::vector<TileConstraint>& getConstraints() const { return constraints; };
 
 protected:
 	

@@ -210,7 +210,7 @@ namespace ff {
 
 		Priority priority = Priority::None;
 		unsigned match_count = 0;
-		uint8_t tile_id;
+		TileID tile_id;
 
 		friend bool operator< (const Match& lhs, const Match& rhs)
 		{
@@ -334,7 +334,7 @@ namespace ff {
 		return match;
 	}
 
-	std::optional<uint8_t> auto_best_tile(
+	std::optional<TileID> auto_best_tile(
 		const TileState& state,
 		const std::vector<TileConstraint>& constraints)
 	{

@@ -24,6 +24,7 @@ TileLayerData::TileLayerData(unsigned id, Vec2u size)
 	: layer_id(id)
 	, tileSize(size)
 	, tiles(size)
+	, shapes(size)
 {
 }
 
@@ -86,32 +87,32 @@ void TileLayerData::setCollision(bool enabled, unsigned border)
 	}
 }
 
-void TileLayerData::setTile(Vec2u at, TileID tile_id, std::string_view tileset) {
+TileID TileLayerData::setTile(Vec2u at, TileID tile_id, const TilesetAsset& tileset) {
 	assert(at.x < tileSize.x && at.y < tileSize.y);
 
 	auto it = std::find_if(tilesets.begin(), tilesets.end(), 
-		[&tileset](const auto& tileset_data) { return tileset == tileset_data.name; }
+		[&tileset](const auto& tileset_data) { return tileset.getAssetName() == tileset_data.name; }
 	);
-
+	uint8_t tileset_ndx = UINT8_MAX;
 	if (it != tilesets.end()) {
 
 		uint8_t p_ndx = tiles[at].tileset_ndx;
-		uint8_t n_ndx = std::distance(tilesets.begin(), it);
+		tileset_ndx = std::distance(tilesets.begin(), it);
 
 		if (p_ndx != UINT8_MAX)	{
 			// replacing a tile
 			tilesets[p_ndx].tile_count--;
 		}
 
-		if (p_ndx != n_ndx) {
-			tiles[at].tileset_ndx = n_ndx;
-			it->tile_count++;
-		}
+		it->tile_count++;
+
+		if (tileset_ndx == 1)
+			LOG_INFO("{}", it->tile_count);
 	}
 	else if (tilesets.size() <= UINT8_MAX) {
-		tiles[at].tileset_ndx = tilesets.size();
+		tileset_ndx = tilesets.size();
 		tilesets.push_back({ 
-			.name = std::string{ tileset }, 
+			.name = tileset.getAssetName(),
 			.tile_count = 1 
 			});
 	}
@@ -119,9 +120,23 @@ void TileLayerData::setTile(Vec2u at, TileID tile_id, std::string_view tileset) 
 		LOG_ERR_("unable to set tile, tileset max reached for layer: {}", tilesets.size());
 	}
 
+	Tile tile = tileset.getTile(tile_id);
+	TileID placed_tiled_id = tile_id;
+
+	if (tile.auto_substitute)
+	{
+		auto state = get_autotile_state(tile.shape, shapes, at);
+		auto opt_tile_id = auto_best_tile(state, tileset.getConstraints());
+		placed_tiled_id = opt_tile_id.value_or(placed_tiled_id);
+	}
+
 	tiles[at].has_tile = true;
 	tiles[at].pos = at;
-	tiles[at].tile_id = tile_id;
+	tiles[at].tile_id = placed_tiled_id;
+	tiles[at].tileset_ndx = tileset_ndx;
+	tiles[at].is_autotile = tile.auto_substitute;
+	shapes[at] = tile.shape;
+	return tiles[at].tile_id;
 }
 
 std::pair<bool, unsigned> TileLayerData::removeTile(Vec2u at)
@@ -148,6 +163,7 @@ std::pair<bool, unsigned> TileLayerData::removeTile(Vec2u at)
 		}
 
 		tile = TileData{};
+		shapes[at] = TileShape{};
 	}
 	return { erased, count };
 }
@@ -155,6 +171,7 @@ std::pair<bool, unsigned> TileLayerData::removeTile(Vec2u at)
 void TileLayerData::clearTiles() {
 	tilesets.clear();
 	tiles = grid_vector<TileData>(tileSize);
+	shapes = grid_vector<TileShape>(tileSize);
 }
 
 // SERIALIZATION
@@ -281,7 +298,7 @@ TileLayerData TileLayerData::loadFromTMX(xml_node<>* layerNode, const TilesetMap
 
 				TileID texture_pos{ (tilesetgid - it->first) % columns, (tilesetgid - it->first) / columns };
 
-				layer.setTile(tilepos, texture_pos, tileAsset->getAssetName());
+				layer.setTile(tilepos, texture_pos, *tileAsset);
 			}
 
 			tilepos.x++;

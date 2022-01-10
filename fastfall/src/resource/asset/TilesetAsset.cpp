@@ -231,7 +231,7 @@ unsigned TilesetAsset::addMaterial(std::string mat)
 }
 
 
-unsigned TilesetAsset::addTileConstraint(TileID tile, TileConstraint constraint) 
+unsigned TilesetAsset::addTileConstraint(TileID tile_id, TileConstraint constraint)
 {
 	constraints.push_back(constraint);
 	return constraints.size() - 1;
@@ -375,11 +375,10 @@ bool TilesetAsset::reloadFromFile() {
 		
 		if (n_tile.loadFromFile(assetFilePath)) {
 			*this = std::move(n_tile);
-
-			for (size_t ndx = 0; ndx < texTileSize.x * texTileSize.y; ndx++) {
-				tiles[ndx].tile.origin = this;
+			for (auto& tile_data : tiles)
+			{
+				tile_data.tile.origin = this;
 			}
-
 			loaded = true;
 		}
 	}
@@ -535,11 +534,11 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 
 }
 
-Tile TilesetAsset::getTile(TileID texPos) const {
+Tile TilesetAsset::getTile(TileID tile_id) const {
 	// assert this is actually on our texture
-	assert(texPos.x < texTileSize.x && texPos.y < texTileSize.y);
+	assert(tile_id.x < texTileSize.x && tile_id.y < texTileSize.y);
 
-	auto& r = tiles[get_ndx(texPos)];
+	auto& r = tiles[tile_id];
 
 	if (r.has_prop_bits & TileHasProp::HasTile) {
 		return r.tile;
@@ -547,18 +546,18 @@ Tile TilesetAsset::getTile(TileID texPos) const {
 	else {
 		// create a default, empty tile here
 		return Tile{
-			.id = texPos,
+			.id = tile_id,
 			.origin = this,
 			.shape = {},
 		};
 	}
 }
 
-TilesetAsset::TileLogicData TilesetAsset::getTileLogic(TileID position) const {
+TilesetAsset::TileLogicData TilesetAsset::getTileLogic(TileID tile_id) const {
 	// assert this is actually on our texture
-	assert(position.x < texTileSize.x && position.y < texTileSize.y);
+	assert(tile_id.x < texTileSize.x && tile_id.y < texTileSize.y);
 
-	const auto& r = tiles[get_ndx(position)];
+	const auto& r = tiles[tile_id];
 
 	TileLogicData data;
 
@@ -571,11 +570,11 @@ TilesetAsset::TileLogicData TilesetAsset::getTileLogic(TileID position) const {
 	return data;
 }
 
-const TileMaterial& TilesetAsset::getMaterial(TileID position) const {
+const TileMaterial& TilesetAsset::getMaterial(TileID tile_id) const {
 	// assert this is actually on our texture
-	assert(position.x < texTileSize.x&& position.y < texTileSize.y);
+	assert(tile_id.x < texTileSize.x && tile_id.y < texTileSize.y);
 
-	auto& r = tiles[get_ndx(position)];
+	auto& r = tiles[tile_id];
 
 	if (r.has_prop_bits & TileHasProp::HasMaterial) 
 	{

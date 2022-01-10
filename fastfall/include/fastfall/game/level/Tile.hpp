@@ -82,7 +82,7 @@ namespace ff {
 		ordinal_array<Corner> corners = {};
 	};
 
-	std::optional<uint8_t> auto_best_tile(
+	std::optional<TileID> auto_best_tile(
 		const TileState& state,
 		const std::vector<TileConstraint>& constraints);
 

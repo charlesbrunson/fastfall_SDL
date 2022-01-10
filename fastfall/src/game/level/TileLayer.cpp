@@ -489,7 +489,7 @@ void TileLayer::setTile(const Vec2u& position, TileID tile_id, const TilesetAsse
 		tiles_dyn[position].logic_id = TILEDATA_NONE;
 	}
 
-	layer_data.setTile(position, tile_id, tileset.getAssetName());
+	tile_id = layer_data.setTile(position, tile_id, tileset);
 
 	// optionally create new chunkarray
 	if (tile_data[position].tileset_ndx == dyn.chunks.size())

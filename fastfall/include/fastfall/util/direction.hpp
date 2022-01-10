@@ -130,7 +130,7 @@ namespace ff {
 			case Ordinal::NW: v = { -1, -1 }; break;
 			case Ordinal::NE: v = { 1, -1 }; break;
 			case Ordinal::SE: v = { 1,  1 }; break;
-			case Ordinal::SW: v = { -1, -1 }; break;
+			case Ordinal::SW: v = { -1, 1 }; break;
 			}
 			return v;
 		}

@@ -30,11 +30,13 @@ private:
 
 	struct TileData {
 		bool has_tile		= false;
+		bool is_autotile	= false;
 		Vec2u	pos			= {};
 		TileID	tile_id		= {};
 		uint8_t tileset_ndx = UINT8_MAX;
 	};
 	grid_vector<TileData> tiles;
+	grid_vector<TileShape> shapes;
 
 	struct TilesetData {
 		std::string name;
@@ -74,7 +76,8 @@ public:
 
 	void setCollision(bool enabled, unsigned border = 0);
 
-	void setTile(Vec2u at, TileID tile_id, std::string_view tileset);
+	// returns tile id actually set after autotile
+	TileID setTile(Vec2u at, TileID tile_id, const TilesetAsset& tileset);
 
 	std::pair<bool, unsigned> removeTile(Vec2u at);
 
