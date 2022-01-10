@@ -105,7 +105,7 @@ namespace ff {
 			return pair;
 		}
 
-		template<typename T>
+		template<typename T = int>
 		requires (std::signed_integral<T> || std::floating_point<T>)
 			inline Vec2<T> to_vector(Cardinal card)
 		{
@@ -120,7 +120,7 @@ namespace ff {
 			return v;
 		}
 
-		template<typename T>
+		template<typename T = int>
 		requires (std::signed_integral<T> || std::floating_point<T>)
 			inline Vec2<T> to_vector(Ordinal card)
 		{

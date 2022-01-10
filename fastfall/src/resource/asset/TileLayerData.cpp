@@ -87,8 +87,10 @@ void TileLayerData::setCollision(bool enabled, unsigned border)
 	}
 }
 
-TileID TileLayerData::setTile(Vec2u at, TileID tile_id, const TilesetAsset& tileset) {
+TileLayerData::TileChangeArray TileLayerData::setTile(Vec2u at, TileID tile_id, const TilesetAsset& tileset) {
 	assert(at.x < tileSize.x && at.y < tileSize.y);
+
+	TileChangeArray changes;
 
 	auto it = std::find_if(tilesets.begin(), tilesets.end(), 
 		[&tileset](const auto& tileset_data) { return tileset.getAssetName() == tileset_data.name; }
@@ -128,30 +130,36 @@ TileID TileLayerData::setTile(Vec2u at, TileID tile_id, const TilesetAsset& tile
 		auto state = get_autotile_state(tile.shape, shapes, at);
 		auto opt_tile_id = auto_best_tile(state, tileset.getConstraints());
 		placed_tiled_id = opt_tile_id.value_or(placed_tiled_id);
+
 	}
+
+	changes.push({ &tileset, at });
+
+	setShape(at, tile.shape, changes);
 
 	tiles[at].has_tile = true;
 	tiles[at].pos = at;
 	tiles[at].tile_id = placed_tiled_id;
 	tiles[at].tileset_ndx = tileset_ndx;
 	tiles[at].is_autotile = tile.auto_substitute;
-	shapes[at] = tile.shape;
-	return tiles[at].tile_id;
+
+	return changes;
 }
 
-std::pair<bool, unsigned> TileLayerData::removeTile(Vec2u at)
+TileLayerData::RemoveResult TileLayerData::removeTile(Vec2u at)
 {
 	assert(at.x < tileSize.x&& at.y < tileSize.y);
-	//size_t i = at.x + (at.y * tileSize.x);
 
-	bool erased = false;
-	unsigned count = 0;
+	RemoveResult result;
+
+	result.erased_tile = false;
+	result.tileset_remaining = 0;
 
 	if (TileData& tile = tiles[at]; tile.has_tile)
 	{
-		erased = true;
+		result.erased_tile = true;
+		result.tileset_remaining = --tilesets[tile.tileset_ndx].tile_count;
 
-		count = --tilesets[tile.tileset_ndx].tile_count;
 		if (tilesets[tile.tileset_ndx].tile_count == 0)
 		{
 			tilesets.erase(tilesets.begin() + tile.tileset_ndx);
@@ -163,15 +171,57 @@ std::pair<bool, unsigned> TileLayerData::removeTile(Vec2u at)
 		}
 
 		tile = TileData{};
-		shapes[at] = TileShape{};
+
+		setShape(at, TileShape{}, result.changes);
 	}
-	return { erased, count };
+	return result;
 }
 
 void TileLayerData::clearTiles() {
 	tilesets.clear();
 	tiles = grid_vector<TileData>(tileSize);
 	shapes = grid_vector<TileShape>(tileSize);
+}
+
+
+void TileLayerData::setShape(Vec2u at, TileShape shape, TileChangeArray& changes) {
+
+	if (shapes[at] != shape)
+	{
+		shapes[at] = shape;
+
+		// check neighbors?
+		for (auto dir : direction::cardinals) {
+			Vec2u adj_at = at + direction::to_vector(dir);
+			if (tiles.valid(adj_at) && tiles[adj_at].is_autotile)
+			{
+				const TilesetAsset* tileset = Resources::get<TilesetAsset>(*getTilesetFromNdx(tiles[adj_at].tileset_ndx));
+				auto state = get_autotile_state(shapes[adj_at], shapes, adj_at);
+				auto opt_tile_id = auto_best_tile(state, tileset->getConstraints());
+
+				if (opt_tile_id)
+				{
+					tiles[adj_at].tile_id = *opt_tile_id;
+					changes.push({ tileset, adj_at });
+				}
+			}
+		}
+		for (auto dir : direction::ordinals) {
+			Vec2u adj_at = at + direction::to_vector(dir);
+			if (tiles.valid(adj_at) && tiles[adj_at].is_autotile)
+			{
+				const TilesetAsset* tileset = Resources::get<TilesetAsset>(*getTilesetFromNdx(tiles[adj_at].tileset_ndx));
+				auto state = get_autotile_state(shapes[adj_at], shapes, adj_at);
+				auto opt_tile_id = auto_best_tile(state, tileset->getConstraints());
+
+				if (opt_tile_id)
+				{
+					tiles[adj_at].tile_id = *opt_tile_id;
+					changes.push({ tileset, adj_at });
+				}
+			}
+		}
+	}
 }
 
 // SERIALIZATION

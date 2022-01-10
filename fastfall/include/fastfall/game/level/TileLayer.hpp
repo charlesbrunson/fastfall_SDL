@@ -51,11 +51,8 @@ private:
 			ColliderTileMap* tilemap_ptr = nullptr;
 		} collision;
 
-		struct chunk_t {
-			const TilesetAsset* tileset;
-			ChunkVertexArray varray;
-		};
-		std::vector<chunk_t> chunks;
+		std::vector<ChunkVertexArray> chunks;
+		std::vector<const TilesetAsset*> tilesets;
 
 		std::vector<std::unique_ptr<TileLogic>> tile_logic;
 	} dyn;
@@ -138,6 +135,9 @@ protected:
 
 	bool handlePreContact(Vec2i pos, const Contact& contact, secs duration);
 	void handlePostContact(Vec2i pos, const PersistantContact& contact);
+
+	void updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset& next_tileset, bool useLogic = true);
+
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 };

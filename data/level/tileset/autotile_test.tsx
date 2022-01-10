@@ -75,6 +75,7 @@
  </tile>
  <tile id="13">
   <properties>
+   <property name="auto_constraint" value="{}"/>
    <property name="shape" value="onewayvert-h"/>
   </properties>
  </tile>
@@ -158,6 +159,7 @@
  </tile>
  <tile id="29">
   <properties>
+   <property name="auto_constraint" value="{}"/>
    <property name="shape" value="oneway"/>
   </properties>
  </tile>
@@ -253,6 +255,7 @@
  </tile>
  <tile id="45">
   <properties>
+   <property name="auto_constraint" value="{}"/>
    <property name="shape" value="oneway-v"/>
   </properties>
  </tile>
@@ -348,6 +351,7 @@
  </tile>
  <tile id="61">
   <properties>
+   <property name="auto_constraint" value="{}"/>
    <property name="shape" value="onewayvert"/>
   </properties>
  </tile>

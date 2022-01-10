@@ -11,6 +11,7 @@
 #include <map>
 #include <string_view>
 #include <optional>
+#include <array>
 
 namespace ff {
 
@@ -48,6 +49,31 @@ private:
 
 public:
 
+	struct TileChange {
+		//uint8_t last_tileset_ndx = UINT8_MAX;
+		const TilesetAsset* tileset;
+		Vec2u position;
+	};
+
+	struct TileChangeArray
+	{
+		void push(TileChange change)
+		{
+			arr[count++] = change;
+		}
+
+		uint8_t count = 0;
+		std::array<TileChange, 9> arr;
+	};
+
+	struct RemoveResult {
+		bool erased_tile = false;
+		unsigned tileset_remaining;
+		TileChangeArray changes;
+	};
+
+	//using TileChangeArray = std::array<TileChange, 9>;
+
 	TileLayerData();
 	TileLayerData(unsigned id);
 	TileLayerData(unsigned id, Vec2u size);
@@ -76,10 +102,9 @@ public:
 
 	void setCollision(bool enabled, unsigned border = 0);
 
-	// returns tile id actually set after autotile
-	TileID setTile(Vec2u at, TileID tile_id, const TilesetAsset& tileset);
+	TileChangeArray setTile(Vec2u at, TileID tile_id, const TilesetAsset& tileset);
 
-	std::pair<bool, unsigned> removeTile(Vec2u at);
+	RemoveResult removeTile(Vec2u at);
 
 	void clearTiles();
 
@@ -90,6 +115,11 @@ public:
 	const std::string* getTilesetFromNdx(uint8_t ndx) const {
 		return ndx < tilesets.size() ? &tilesets.at(ndx).name : nullptr;
 	}
+
+private:
+
+	void setShape(Vec2u at, TileShape shape, TileChangeArray& changes);
+
 };
 
 }
