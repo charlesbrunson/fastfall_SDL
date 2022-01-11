@@ -52,7 +52,7 @@ private:
 		} collision;
 
 		std::vector<ChunkVertexArray> chunks;
-		std::vector<const TilesetAsset*> tilesets;
+		//std::vector<const TilesetAsset*> tilesets;
 
 		std::vector<std::unique_ptr<TileLogic>> tile_logic;
 	} dyn;

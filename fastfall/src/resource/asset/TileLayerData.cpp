@@ -44,7 +44,7 @@ void TileLayerData::resize(Vec2u size, Vec2i offset) {
 			if (!tile.has_tile)
 				continue;
 
-			n_data.setTile(tile.pos + offset, tile.tile_id, tilesets[tile.tileset_ndx].name);
+			n_data.setTile(tile.pos + offset, tile.tile_id, *tilesets[tile.tileset_ndx].tileset);
 		}
 	}
 
@@ -93,7 +93,7 @@ TileLayerData::TileChangeArray TileLayerData::setTile(Vec2u at, TileID tile_id, 
 	TileChangeArray changes;
 
 	auto it = std::find_if(tilesets.begin(), tilesets.end(), 
-		[&tileset](const auto& tileset_data) { return tileset.getAssetName() == tileset_data.name; }
+		[&tileset](const auto& tileset_data) { return &tileset == tileset_data.tileset; }
 	);
 	uint8_t tileset_ndx = UINT8_MAX;
 	if (it != tilesets.end()) {
@@ -107,14 +107,11 @@ TileLayerData::TileChangeArray TileLayerData::setTile(Vec2u at, TileID tile_id, 
 		}
 
 		it->tile_count++;
-
-		if (tileset_ndx == 1)
-			LOG_INFO("{}", it->tile_count);
 	}
 	else if (tilesets.size() <= UINT8_MAX) {
 		tileset_ndx = tilesets.size();
 		tilesets.push_back({ 
-			.name = tileset.getAssetName(),
+			.tileset = &tileset,
 			.tile_count = 1 
 			});
 	}
@@ -190,36 +187,27 @@ void TileLayerData::setShape(Vec2u at, TileShape shape, TileChangeArray& changes
 	{
 		shapes[at] = shape;
 
-		// check neighbors?
-		for (auto dir : direction::cardinals) {
+		auto update_adj_tile = [&](auto dir) {
 			Vec2u adj_at = at + direction::to_vector(dir);
-			if (tiles.valid(adj_at) && tiles[adj_at].is_autotile)
-			{
-				const TilesetAsset* tileset = Resources::get<TilesetAsset>(*getTilesetFromNdx(tiles[adj_at].tileset_ndx));
+			if (tiles.valid(adj_at) && tiles[adj_at].is_autotile) {
+				const TilesetAsset* tileset_ptr = tilesets[tiles[adj_at].tileset_ndx].tileset;
 				auto state = get_autotile_state(shapes[adj_at], shapes, adj_at);
-				auto opt_tile_id = auto_best_tile(state, tileset->getConstraints());
+				auto opt_tile_id = auto_best_tile(state, tileset_ptr->getConstraints());
 
 				if (opt_tile_id)
 				{
 					tiles[adj_at].tile_id = *opt_tile_id;
-					changes.push({ tileset, adj_at });
+					changes.push({ tileset_ptr, adj_at });
 				}
+				
 			}
+		};
+
+		for (auto dir : direction::cardinals) {
+			update_adj_tile(dir);
 		}
 		for (auto dir : direction::ordinals) {
-			Vec2u adj_at = at + direction::to_vector(dir);
-			if (tiles.valid(adj_at) && tiles[adj_at].is_autotile)
-			{
-				const TilesetAsset* tileset = Resources::get<TilesetAsset>(*getTilesetFromNdx(tiles[adj_at].tileset_ndx));
-				auto state = get_autotile_state(shapes[adj_at], shapes, adj_at);
-				auto opt_tile_id = auto_best_tile(state, tileset->getConstraints());
-
-				if (opt_tile_id)
-				{
-					tiles[adj_at].tile_id = *opt_tile_id;
-					changes.push({ tileset, adj_at });
-				}
-			}
+			update_adj_tile(dir);
 		}
 	}
 }

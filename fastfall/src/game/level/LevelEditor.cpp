@@ -408,10 +408,10 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 
 					if ( (!tilelayer.hasTileAt(pos))
 						|| (tilelayer.getTileID(pos).value() != tile_id)
-						|| (tilelayer.getTileTileset(pos)->getAssetName() != *tileset))
+						|| (tilelayer.getTileTileset(pos) != tileset))
 					{
 						paint_count++;
-						select_tileset(tileset->c_str());
+						select_tileset(tileset->getAssetName());
 						select_tile(tile_id);
 						paint_tile(pos);
 					}

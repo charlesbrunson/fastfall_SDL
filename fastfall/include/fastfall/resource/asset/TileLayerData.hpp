@@ -40,7 +40,7 @@ private:
 	grid_vector<TileShape> shapes;
 
 	struct TilesetData {
-		std::string name;
+		const TilesetAsset* tileset;
 		unsigned tile_count;
 	};
 	std::vector<TilesetData> tilesets;
@@ -112,8 +112,8 @@ public:
 
 	inline const auto& getTilesets() const { return tilesets; };
 
-	const std::string* getTilesetFromNdx(uint8_t ndx) const {
-		return ndx < tilesets.size() ? &tilesets.at(ndx).name : nullptr;
+	const TilesetAsset* getTilesetFromNdx(uint8_t ndx) const {
+		return ndx < tilesets.size() ? tilesets.at(ndx).tileset : nullptr;
 	}
 
 private:

@@ -24,8 +24,6 @@ TileLayer::TileLayer(GameContext context, unsigned id, Vec2u levelsize)
 	, layer_data(id, levelsize)
 	, tiles_dyn(levelsize)
 {
-	//unsigned tile_count = layer_data.getSize().x * layer_data.getSize().y;
-	//tiles_dyn.logic_id = std::vector<uint8_t>(tile_count, TILEDATA_NONE);
 }
 
 TileLayer::TileLayer(GameContext context, const TileLayerData& layerData)
@@ -161,19 +159,14 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 	// init chunks
 	for (auto& [tileset, _] : layer_data.getTilesets())
 	{
-		const auto* tileset_ptr = Resources::get<TilesetAsset>(tileset);
-
 		dyn.chunks.push_back(ChunkVertexArray(getSize(), kChunkSize));
-		dyn.tilesets.push_back(tileset_ptr);
-		dyn.chunks.back().setTexture(tileset_ptr->getTexture());
+		dyn.chunks.back().setTexture(tileset->getTexture());
 		dyn.chunks.back().use_visible_rect = true;
 	}
 
 	// init tiles
 	const auto& tiles = layer_data.getTileData();
 	unsigned tile_count = layer_data.getSize().x * layer_data.getSize().y;
-
-	//tiles_dyn.logic_id = std::vector<uint8_t>(tile_count, TILEDATA_NONE);
 
 	tiles_dyn = grid_vector<TileDynamic>(layer_data.getSize());
 
@@ -182,7 +175,7 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 		if (!tile.has_tile)
 			continue;
 
-		const auto& tileset = dyn.tilesets.at(tile.tileset_ndx);
+		const auto* tileset = layer_data.getTilesetFromNdx(tile.tileset_ndx);
 		auto& chunk = dyn.chunks.at(tile.tileset_ndx);
 
 		chunk.setTile(tile.pos, tile.tile_id);
@@ -250,7 +243,7 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 			{
 				if (tile_data.has_tile && tile_data.tileset_ndx != TILEDATA_NONE)
 				{
-					const TilesetAsset* tileset = dyn.tilesets.at(tile_data.tileset_ndx);
+					const TilesetAsset* tileset = layer_data.getTilesetFromNdx(tile_data.tileset_ndx);
 
 					Tile tile = tileset->getTile(tile_data.tile_id);
 
@@ -476,7 +469,6 @@ void TileLayer::setTile(const Vec2u& position, TileID tile_id, const TilesetAsse
 	for (int i = 0; i < changes.count; i++) {
 		auto& change = changes.arr[i];
 		auto next_tileset_ndx = tile_data[change.position].tileset_ndx;
-		auto& c_tileset = *Resources::get<TilesetAsset>(*layer_data.getTilesetFromNdx(next_tileset_ndx));
 
 		updateTile(
 			change.position, 
@@ -506,13 +498,11 @@ void TileLayer::removeTile(const Vec2u& position) {
 	auto result = layer_data.removeTile(position);
 	if (result.erased_tile && result.tileset_remaining == 0) {
 		dyn.chunks.erase(dyn.chunks.begin() + tileset_ndx);
-		dyn.tilesets.erase(dyn.tilesets.begin() + tileset_ndx);
 	}
 
 	for (int i = 0; i < result.changes.count; i++) {
 		auto& change = result.changes.arr[i];
 		auto next_tileset_ndx = tile_data[change.position].tileset_ndx;
-		auto& c_tileset = *Resources::get<TilesetAsset>(*layer_data.getTilesetFromNdx(next_tileset_ndx));
 
 		updateTile(
 			change.position,
@@ -542,8 +532,6 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 	{
 
 		dyn.chunks.push_back(ChunkVertexArray(getSize(), kChunkSize));
-		dyn.tilesets.push_back(&next_tileset);
-
 		dyn.chunks.back().setTexture(next_tileset.getTexture());
 		dyn.chunks.back().setTile(at, tile_data[at].tile_id);
 		dyn.chunks.back().use_visible_rect = true;
@@ -633,7 +621,7 @@ void TileLayer::shallow_copy(const TileLayer& src, Rectu src_area, Vec2u dst)
 
 		const TilesetAsset* tileset = nullptr;
 		if (tile.tileset_ndx != UINT8_MAX) {
-			tileset = src.dyn.tilesets.at(tile.tileset_ndx);
+			tileset = layer_data.getTilesetFromNdx(tile.tileset_ndx);
 		}
 		else {
 			continue;
@@ -667,7 +655,7 @@ const TilesetAsset* TileLayer::getTileTileset(Vec2u tile_pos)
 {
 	if (hasTileAt(tile_pos))
 	{
-		return dyn.tilesets.at(layer_data.getTileData()[tile_pos].tileset_ndx);
+		return layer_data.getTilesetFromNdx(layer_data.getTileData()[tile_pos].tileset_ndx);
 	}
 	return nullptr;
 }
