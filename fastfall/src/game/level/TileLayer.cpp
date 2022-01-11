@@ -621,7 +621,7 @@ void TileLayer::shallow_copy(const TileLayer& src, Rectu src_area, Vec2u dst)
 
 		const TilesetAsset* tileset = nullptr;
 		if (tile.tileset_ndx != UINT8_MAX) {
-			tileset = layer_data.getTilesetFromNdx(tile.tileset_ndx);
+			tileset = src.layer_data.getTilesetFromNdx(tile.tileset_ndx);
 		}
 		else {
 			continue;
