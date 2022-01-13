@@ -127,7 +127,6 @@ TileLayerData::TileChangeArray TileLayerData::setTile(Vec2u at, TileID tile_id, 
 		auto state = get_autotile_state(tile.shape, shapes, at);
 		auto opt_tile_id = auto_best_tile(state, tileset.getConstraints());
 		placed_tiled_id = opt_tile_id.value_or(placed_tiled_id);
-
 	}
 
 	changes.push({ &tileset, at });
@@ -136,6 +135,7 @@ TileLayerData::TileChangeArray TileLayerData::setTile(Vec2u at, TileID tile_id, 
 
 	tiles[at].has_tile = true;
 	tiles[at].pos = at;
+	tiles[at].base_id = tile_id;
 	tiles[at].tile_id = placed_tiled_id;
 	tiles[at].tileset_ndx = tileset_ndx;
 	tiles[at].is_autotile = tile.auto_substitute;

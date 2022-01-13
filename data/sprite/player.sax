@@ -23,8 +23,16 @@
 		<chainsTo sprite="player" name="idle" frame="0"/>
 	</animation>
 	
-	<animation name="running">
+	<animation name="idle_to_run">
 		<area   x="0" y="32" w="32" h="32" />
+		<origin x="16" y="32" />
+		<framerate count="1" defaultMS="50"/>
+		<loop>1</loop>
+		<chainsTo sprite="player" name="running" frame="0"/>
+	</animation>
+	
+	<animation name="running">
+		<area   x="32" y="32" w="32" h="32" />
 		<origin x="16" y="32" />
 		<framerate>
 			<frame>100</frame>

@@ -209,6 +209,17 @@ bool LevelEditor::select_tileset(std::string_view tileset_name)
 	return curr_tileset != nullptr;
 }
 
+bool LevelEditor::select_tileset(const TilesetAsset* tileset) 
+{
+	if (!level) return false;
+
+	if (!curr_tileset || curr_tileset != tileset) {
+		curr_tileset = tileset;
+		deselect_tile();
+	}
+	return curr_tileset != nullptr;
+}
+
 void LevelEditor::deselect_tileset()
 {
 	curr_tileset = nullptr;
@@ -388,41 +399,30 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 
 		unsigned paint_count = 0;
 		unsigned erase_count = 0;
+		for (const auto& tile : tile_ref.getTileData()) {
 
-		const auto& tile_data = tile_ref.getTileData();
-		for (unsigned yy = 0; yy < height; yy++) {
-			for (unsigned xx = 0; xx < width; xx++) {
+			auto& tilelayer = layer.tilelayer;
 
-				Vec2u pos{ xx, yy };
-				//unsigned ndx = xx + yy * tile_ref.getSize().x;
+			if (tile.has_tile)
+			{
+				auto tile_id = tile.base_id;
+				auto tileset = tile_ref.getTilesetFromNdx(tile.tileset_ndx);
 
-				//if (tile_ndx >= tile_ref.getSize().x * tile_ref.getSize().x)
-				//	break;
-
-				auto& tilelayer = layer.tilelayer;
-
-				if (tile_data[pos].has_tile)
+				if ((!tilelayer.hasTileAt(tile.pos))
+					|| (tilelayer.getTileBaseID(tile.pos).value() != tile_id)
+					|| (tilelayer.getTileTileset(tile.pos) != tileset))
 				{
-					auto tile_id = tile_data[pos].tile_id;
-					auto tileset = tile_ref.getTilesetFromNdx(tile_data[pos].tileset_ndx);
-
-					if ( (!tilelayer.hasTileAt(pos))
-						|| (tilelayer.getTileID(pos).value() != tile_id)
-						|| (tilelayer.getTileTileset(pos) != tileset))
-					{
-						paint_count++;
-						select_tileset(tileset->getAssetName());
-						select_tile(tile_id);
-						paint_tile(pos);
-					}
-				}
-				else if (tilelayer.hasTileAt(pos)) {
-					erase_count++;
-					erase_tile(pos);
+					paint_count++;
+					select_tileset(tileset);
+					select_tile(tile_id);
+					paint_tile(tile.pos);
 				}
 			}
+			else if (tilelayer.hasTileAt(tile.pos)) {
+				erase_count++;
+				erase_tile(tile.pos);
+			}
 		}
-
 
 		// predraw to apply changes
 		layer.tilelayer.predraw(0.0);

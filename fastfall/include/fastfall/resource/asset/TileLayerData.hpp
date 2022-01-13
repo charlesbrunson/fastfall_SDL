@@ -33,6 +33,7 @@ private:
 		bool has_tile		= false;
 		bool is_autotile	= false;
 		Vec2u	pos			= {};
+		TileID	base_id		= {};
 		TileID	tile_id		= {};
 		uint8_t tileset_ndx = UINT8_MAX;
 	};
@@ -97,18 +98,16 @@ public:
 	void resize(Vec2u size, Vec2i offset = Vec2i{ 0, 0 });
 
 	void setParallax(bool enabled, Vec2u parallax_size = Vec2u{});
-
 	void setScroll(bool enabled, Vec2f scroll_rate = Vec2f{});
-
 	void setCollision(bool enabled, unsigned border = 0);
 
 	TileChangeArray setTile(Vec2u at, TileID tile_id, const TilesetAsset& tileset);
-
 	RemoveResult removeTile(Vec2u at);
 
 	void clearTiles();
 
 	const grid_vector<TileData>& getTileData() const { return tiles; };
+	const grid_vector<TileShape>& getTileShapes() const { return shapes; };
 
 	inline const auto& getTilesets() const { return tilesets; };
 

@@ -78,6 +78,7 @@ public:
 
 	// selects tileset for painting tiles
 	bool select_tileset(std::string_view tileset_name);
+	bool select_tileset(const TilesetAsset* tileset);
 	void deselect_tileset();
 
 	// selects tile from selected tileset for painting tiles

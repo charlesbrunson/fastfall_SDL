@@ -39,9 +39,9 @@ namespace plr::anim {
 
 	AnimIDRef idle("player", "idle");
 	AnimIDRef land("player", "land");
+	AnimIDRef idle_to_run("player", "idle_to_run");
 	AnimIDRef run("player", "running");
 
-	//AnimIDRef dash("player", "dash");
 	AnimIDRef dash_n2("player", "dash-2");
 	AnimIDRef dash_n1("player", "dash-1");
 	AnimIDRef dash_0 ("player", "dash0");
@@ -50,11 +50,9 @@ namespace plr::anim {
 
 	AnimIDRef jump("player", "jump");
 	AnimIDRef jump_f("player", "jump_f");
-	//AnimIDRef jump_b("player", "jump_b");
 
 	AnimIDRef fall("player", "fall");
 	AnimIDRef fall_f("player", "fall_f");
-	//AnimIDRef fall_b("player", "fall_b");
 
 	AnimIDRef brakeb("player", "brake_back");
 	AnimIDRef brakef("player", "brake_front");

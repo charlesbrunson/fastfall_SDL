@@ -137,13 +137,15 @@ namespace ff {
 
 		inline Angle to_angle(Cardinal card)
 		{
+			Angle ang;
 			switch (card)
 			{
-			case Cardinal::N: return Angle{ -90.f };
-			case Cardinal::E: return Angle{ -0.f };
-			case Cardinal::S: return Angle{ 90.f };
-			case Cardinal::W: return Angle{ 180.f };
+			case Cardinal::N: ang = Angle{ -90.f };
+			case Cardinal::E: ang = Angle{ 0.f };
+			case Cardinal::S: ang = Angle{ 90.f };
+			case Cardinal::W: ang = Angle{ 180.f };
 			}
+			return ang;
 		}
 
 		template<class ... Directions>

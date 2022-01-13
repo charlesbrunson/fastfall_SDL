@@ -85,7 +85,12 @@ PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
 				plr.sprite->set_hflip(move.wishx < 0);
 			}
 
-			plr.sprite->set_anim_if_not(anim::run);
+			if (!plr.sprite->is_playing(anim::run)) {
+				if (move.speed < constants::norm_speed)
+					plr.sprite->set_anim_if_not(anim::idle_to_run);
+				else
+					plr.sprite->set_anim_if_not(anim::run);
+			}
 			plr.sprite->set_playback(
 				std::clamp(move.speed / 150.f, 0.5f, 1.5f)
 			);

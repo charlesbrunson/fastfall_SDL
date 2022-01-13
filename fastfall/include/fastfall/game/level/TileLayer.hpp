@@ -109,7 +109,10 @@ public:
 	// tile queries
 	bool hasTileAt(Vec2u tile_pos);
 	std::optional<TileID> getTileID(Vec2u tile_pos);
+	std::optional<TileID> getTileBaseID(Vec2u tile_pos);
 	const TilesetAsset* getTileTileset(Vec2u tile_pos);
+	bool isTileAuto(Vec2u tile_pos);
+	TileShape getTileShape(Vec2u tile_pos);
 
 	// position queries
 	struct world_pos_t {

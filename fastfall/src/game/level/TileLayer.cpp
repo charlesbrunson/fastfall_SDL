@@ -530,7 +530,6 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 
 	if (tile_data[at].tileset_ndx == dyn.chunks.size())
 	{
-
 		dyn.chunks.push_back(ChunkVertexArray(getSize(), kChunkSize));
 		dyn.chunks.back().setTexture(next_tileset.getTexture());
 		dyn.chunks.back().setTile(at, tile_data[at].tile_id);
@@ -651,6 +650,15 @@ std::optional<TileID> TileLayer::getTileID(Vec2u tile_pos)
 	return std::nullopt;
 }
 
+std::optional<TileID> TileLayer::getTileBaseID(Vec2u tile_pos)
+{
+	if (hasTileAt(tile_pos))
+	{
+		return layer_data.getTileData()[tile_pos].base_id;
+	}
+	return std::nullopt;
+}
+
 const TilesetAsset* TileLayer::getTileTileset(Vec2u tile_pos)
 {
 	if (hasTileAt(tile_pos))
@@ -658,6 +666,24 @@ const TilesetAsset* TileLayer::getTileTileset(Vec2u tile_pos)
 		return layer_data.getTilesetFromNdx(layer_data.getTileData()[tile_pos].tileset_ndx);
 	}
 	return nullptr;
+}
+
+bool TileLayer::isTileAuto(Vec2u tile_pos) 
+{
+	if (hasTileAt(tile_pos))
+	{
+		return layer_data.getTileData()[tile_pos].is_autotile;
+	}
+	return false;
+}
+
+TileShape TileLayer::getTileShape(Vec2u tile_pos) 
+{
+	if (hasTileAt(tile_pos))
+	{
+		return layer_data.getTileShapes()[tile_pos];
+	}
+	return TileShape{};
 }
 
 
