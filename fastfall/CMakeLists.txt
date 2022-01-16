@@ -52,6 +52,7 @@ set(FF_INCLUDES
 	${CMAKE_CURRENT_SOURCE_DIR}/external/fmt/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/glm
+	${CMAKE_CURRENT_SOURCE_DIR}/external/freetype/include
 	
 	${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
 	${CMAKE_CURRENT_SOURCE_DIR}/external/implot
@@ -59,6 +60,7 @@ set(FF_INCLUDES
 
 set(FF_LIBRARIES
 	glm
+	freetype
 	fmt::fmt-header-only
 	flatbuffers
 )

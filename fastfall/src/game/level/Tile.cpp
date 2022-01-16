@@ -338,21 +338,34 @@ namespace ff {
 		const TileState& state,
 		const std::vector<TileConstraint>& constraints)
 	{
+		//std::vector<Match> matches;
 		std::vector<Match> matches;
+		matches.reserve(constraints.size());
 
 		for (const auto& constraint : constraints)
 		{
 			if (auto match = try_match(state, constraint); match.has_value()) {
-				matches.push_back(*match);
+				matches.insert(
+					std::upper_bound(matches.begin(), matches.end(), *match), 
+					*match);
 			}
 		}
 
 		// pick best
 		if (!matches.empty())
 		{
-			return std::ranges::max_element(matches,
-				[](const Match& lhs, const Match& rhs) { return lhs < rhs; }
-			)->tile_id;
+			auto& first = *matches.rbegin();
+			unsigned count = 0;
+			for (auto rit = matches.rbegin(); rit != matches.rend(); rit++)
+			{
+				if (*rit == first)
+					count++;
+				else
+					break;
+			}
+
+			// multiple valid matches, pick random one
+			return (matches.rbegin() + (rand() % count))->tile_id;
 		}
 		else
 		{

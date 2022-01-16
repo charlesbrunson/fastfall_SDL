@@ -32,14 +32,15 @@ public:
 	void setView(const View& view);
 	void setDefaultView();
 
-	//virtual void setActive() = 0;
-
 	void draw(const Drawable& drawable, const RenderState& state = RenderState());
 	void draw(const VertexArray& varray, const RenderState& state = RenderState());
 	void draw(const TileArray& varray, RenderState state = RenderState());
-	//void draw(const ShapeLine& line, const RenderState& state = RenderState::Default);
-	//void draw(const ShapeRectange& line, const RenderState& state = RenderState::Default);
-	//void draw(const ShapeCircle& line, const RenderState& state = RenderState::Default);
+
+	size_t getVertexCounter() { return vertex_draw_counter; }
+	void resetVertexCounter() { vertex_draw_counter = 0; }
+
+	size_t getDrawCallCounter() { return draw_call_counter; }
+	void resetDrawCallCounter() { draw_call_counter = 0; }
 
 protected:
 	bool hasShader = false;
@@ -53,6 +54,7 @@ protected:
 
 	bool justCleared = true;
 
+
 private:
 	void bindFramebuffer() const;
 
@@ -60,6 +62,9 @@ private:
 	void applyShader(const ShaderProgram* shader) const;
 	void applyUniforms(const Transform& transform, const RenderState& state) const;
 	void applyTexture(const TextureRef& texture) const;
+
+	size_t vertex_draw_counter = 0;
+	size_t draw_call_counter = 0;
 };
 
 }

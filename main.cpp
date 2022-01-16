@@ -1,21 +1,14 @@
 
 #include "fastfall/util/log.hpp"
-#include "fastfall/util/math.hpp"
 
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/resource/ResourceWatcher.hpp"
-
-#include "fastfall/render.hpp"
 
 #include "fastfall/engine/Engine.hpp"
 #include "fastfall/engine/imgui/ImGuiFrame.hpp"
 
 #include "content/types.hpp"
 #include "content/TestState.hpp"
-
-#include "fastfall/game/level/LevelEditor.hpp"
-
-#include "fastfall/util/tag.hpp"
 
 ff::EngineSettings getSettings() {
 	ff::EngineSettings settings;

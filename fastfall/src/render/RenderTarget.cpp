@@ -21,7 +21,9 @@ void RenderTarget::clear(Color clearColor) {
 	glClearColor(clamped[0], clamped[1], clamped[2], clamped[3]);
 	glClear(GL_COLOR_BUFFER_BIT);
 	justCleared = true;
-	//LOG_INFO("cleared");
+
+	resetVertexCounter();
+	resetDrawCallCounter();
 }
 
 
@@ -85,6 +87,9 @@ void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 	glCheck(glBindVertexArray(varray.gl.m_array));
 	glCheck(glDrawArrays(static_cast<GLenum>(varray.m_primitive), 0, varray.size()));
 
+	vertex_draw_counter += varray.size();
+	draw_call_counter++;
+
 	previousRender = state;
 	justCleared = false;
 }
@@ -128,6 +133,9 @@ void RenderTarget::draw(const TileArray& tarray, RenderState state) {
 
 	glCheck(glBindVertexArray(tarray.gl.m_array));
 	glCheck(glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, tarray.tiles.size()));
+
+	vertex_draw_counter += tarray.tiles.size();
+	draw_call_counter++;
 
 	previousRender = state;
 	justCleared = false;
