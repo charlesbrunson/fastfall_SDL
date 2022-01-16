@@ -28,8 +28,6 @@ TextureRef::TextureRef()
 void TextureRef::bind() const {
 	if (texture) {
 		texture->bind();
-		//LOG_INFO("bound tex id: {}{}", texture->getID(),
-		//	texture->getNullTexture().getID() == texture->getID() ? " (null)" : "");
 	}
 	else {
 		Texture::getNullTexture().bind();
@@ -55,9 +53,7 @@ Texture::Texture()
 }
 
 Texture::~Texture() {
-	if (texture_id != 0) {
-		glCheck(glDeleteTextures(1, &texture_id));
-	}
+	clear();
 }
 
 
@@ -65,10 +61,7 @@ Texture::Texture(Texture&& tex) noexcept
 	: m_size{ tex.m_size }
 	, m_invSize{ tex.m_invSize }
 {
-	if (texture_id != 0) {
-		glCheck(glDeleteTextures(1, &texture_id));
-		texture_id = 0;
-	}
+	clear();
 	std::swap(texture_id, tex.texture_id);
 }
 
@@ -77,10 +70,7 @@ Texture& Texture::operator=(Texture&& tex) noexcept
 	m_size = tex.m_size;
 	m_invSize = tex.m_invSize;
 
-	if (texture_id != 0) {
-		glCheck(glDeleteTextures(1, &texture_id));
-		texture_id = 0;
-	}
+	clear();
 	std::swap(texture_id, tex.texture_id);
 	return *this;
 }
@@ -124,6 +114,7 @@ bool Texture::loadFromSurface(SDL_Surface* surface) {
 }
 
 bool Texture::load(const void* data, unsigned width, unsigned height, ImageFormat format) {
+	clear();
 	if (data) {
 		glGenTextures(1, &texture_id);
 		glBindTexture(GL_TEXTURE_2D, texture_id);
@@ -162,10 +153,10 @@ void Texture::bind() const {
 }
 
 void Texture::clear() {
-	if (texture_id != 0) {
+	if (exists()) {
 		glCheck(glDeleteTextures(1, &texture_id));
+		texture_id = 0;
 	}
-	texture_id = 0;
 }
 
 bool Texture::exists() const noexcept {
@@ -207,10 +198,7 @@ bool Texture::create(glm::uvec2 size) {
 }
 
 bool Texture::create(unsigned sizeX, unsigned sizeY) {
-	if (exists()) {
-		glDeleteTextures(1, &texture_id);
-		texture_id = 0;
-	}
+	clear();
 	m_size = { sizeX, sizeY };
 	m_invSize = 1.f / glm::fvec2{ m_size };
 

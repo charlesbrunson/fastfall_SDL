@@ -3,6 +3,7 @@
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_sdl.h"
 #include "fastfall/render/opengl.hpp"
+#include "fastfall/render/freetype.hpp"
 #include "fastfall/render/Window.hpp"
 
 #include <stdexcept>
@@ -83,6 +84,8 @@ bool FFinit()
         renderInitialized = false;
     }
 
+    freetype_init();
+
     return renderInitialized;
 }
 
@@ -96,6 +99,7 @@ void FFquit()
 
     IMG_Quit();
     SDL_Quit();
+    freetype_quit();
     renderInitialized = false;
 }
 

@@ -24,13 +24,6 @@ FetchContent_Declare(
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/fmt
 )
 
-#freetype
-FetchContent_Declare(
-	freetype
-	URL https://download.savannah.gnu.org/releases/freetype/freetype-2.11.1.tar.xz
-    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/freetype
-)
-
 #flatbuffers
 set(FLATBUFFERS_BUILD_TESTS OFF)
 set(FLATBUFFERS_INSTALL OFF)
@@ -80,8 +73,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(
 	glm
-	fmt
-	freetype
+	fmt	
 	flatbuffers
 	json
 	rapidxml
@@ -117,6 +109,14 @@ if (NOT EMSCRIPTEN)
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
 	)
 
+	#freetype
+	FetchContent_Declare(
+		freetype
+		URL https://download.savannah.gnu.org/releases/freetype/freetype-2.11.1.tar.xz
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/freetype
+	)
+
+
 	#libpng
 	set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/zlib)
 	set(PNG_SHARED OFF)
@@ -147,6 +147,7 @@ if (NOT EMSCRIPTEN)
 		glew
 		zlib
 		libpng
+		freetype
 		sdl
 		sdl_image
 	)

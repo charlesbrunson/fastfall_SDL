@@ -52,7 +52,6 @@ set(FF_INCLUDES
 	${CMAKE_CURRENT_SOURCE_DIR}/external/fmt/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/glm
-	${CMAKE_CURRENT_SOURCE_DIR}/external/freetype/include
 	
 	${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
 	${CMAKE_CURRENT_SOURCE_DIR}/external/implot
@@ -60,7 +59,6 @@ set(FF_INCLUDES
 
 set(FF_LIBRARIES
 	glm
-	freetype
 	fmt::fmt-header-only
 	flatbuffers
 )
@@ -70,6 +68,7 @@ if(NOT EMSCRIPTEN)
 
 	set(FF_INCLUDES
 		${FF_INCLUDES}
+		${CMAKE_CURRENT_SOURCE_DIR}/external/freetype/include
 		${CMAKE_CURRENT_SOURCE_DIR}/external/glew/include
 		${CMAKE_CURRENT_SOURCE_DIR}/external/sdl_image
 		${CMAKE_CURRENT_SOURCE_DIR}/external/sdl/include
@@ -77,6 +76,7 @@ if(NOT EMSCRIPTEN)
 
 	set(FF_LIBRARIES 
 		${FF_LIBRARIES}
+		freetype
 		zlibstatic
 		SDL2image 
 		glew_s
@@ -133,7 +133,7 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 		set(CMAKE_EXECUTABLE_SUFFIX .html)
 
 		set(EM_COMPILE_FLAGS "-O3 -s FULL_ES3=1 -s WASM=1 -s OFFSCREEN_FRAMEBUFFER=1 -s ALLOW_MEMORY_GROWTH=1")
-		set(EM_FLAGS "-s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"bmp\",\"png\"]' -g --preload-file ../data@/data --preload-file ../gamecontrollerdb.txt@/gamecontrollerdb.txt")
+		set(EM_FLAGS "-s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_FREETYPE=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"bmp\",\"png\"]' -g --preload-file ../data@/data --preload-file ../gamecontrollerdb.txt@/gamecontrollerdb.txt")
 
 		set_target_properties(fastfall PROPERTIES LINK_FLAGS "${EM_COMPILE} ${EM_FLAGS} --emrun")
 		set_target_properties(fastfall PROPERTIES COMPILE_FLAGS "${EM_COMPILE} ${EM_FLAGS}")
@@ -169,7 +169,7 @@ target_compile_definitions(fastfall PRIVATE
 
 
 if(NOT EMSCRIPTEN)
-	target_compile_definitions(fastfall PRIVATE
+	target_compile_definitions(fastfall PUBLIC
 		FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
 	)
 else()
