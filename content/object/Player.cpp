@@ -14,7 +14,7 @@ using namespace plr;
 const ObjectType Player::Type{
 	.type = { "Player" },
 	.allow_level_data = true,
-	.anim = std::make_optional(AnimIDRef{"player", "idle"}),
+	.anim = std::make_optional(AnimIDRef{"player.sax", "idle"}),
 	.tile_size = { 1u, 2u },
 	.group_tags = {
 		"player"

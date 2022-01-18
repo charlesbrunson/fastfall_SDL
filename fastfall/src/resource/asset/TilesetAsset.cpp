@@ -331,7 +331,7 @@ bool TilesetAsset::loadFromFile(const std::string& relpath) {
 	texTileSize = Vec2u{};
 
 	bool r = true;
-	std::unique_ptr<char[]> charPtr = readXML(assetFilePath + assetName + tilesetExt);
+	std::unique_ptr<char[]> charPtr = readXML(assetFilePath + assetName);
 
 	if (charPtr) {
 		char* xmlContent = charPtr.get();
@@ -360,7 +360,7 @@ bool TilesetAsset::loadFromFile(const std::string& relpath) {
 		}
 	}
 	else {
-		std::cout << "Could not open file: " << relpath + assetName + tilesetExt << std::endl;
+		std::cout << "Could not open file: " << relpath + assetName << std::endl;
 		r = false;
 	}
 

@@ -20,7 +20,7 @@ TestState::TestState()
 	instanceID = instance->getInstanceID();
 	assert(instance);
 
-	if (ff::LevelAsset* lvlptr = ff::Resources::get<ff::LevelAsset>("map_test"))
+	if (ff::LevelAsset* lvlptr = ff::Resources::get<ff::LevelAsset>("map_test.tmx"))
 	{
 		instance->addLevel(*lvlptr);
 	}
@@ -34,7 +34,7 @@ TestState::TestState()
 
 	edit = std::make_unique<LevelEditor>( *lvl, false );
 	edit->select_layer(-1);
-	edit->select_tileset("autotile_test");
+	edit->select_tileset("autotile_test.tsx");
 	edit->select_tile(TileID{ 0u, 0u });
 
 }

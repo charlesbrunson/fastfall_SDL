@@ -119,7 +119,7 @@ bool LevelAsset::loadFromFile(const std::string& relpath) {
 	bool r = true;
 
 	assetFilePath = relpath;
-	std::unique_ptr<char[]> charPtr = readXML(assetFilePath + assetName + levelExt);
+	std::unique_ptr<char[]> charPtr = readXML(assetFilePath + assetName);
 	if (charPtr) {
 		char* xmlContent = charPtr.get();
 		
@@ -173,7 +173,7 @@ bool LevelAsset::loadFromFile(const std::string& relpath) {
 		}
 	}
 	else {
-		std::cout << "Could not open file: " << relpath + assetName + levelExt << std::endl;
+		std::cout << "Could not open file: " << relpath + assetName << std::endl;
 		r = false;
 	}
 

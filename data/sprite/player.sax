@@ -20,7 +20,7 @@
 			<frame>80</frame>
 		</framerate>
 		<loop>1</loop>
-		<chainsTo sprite="player" name="idle" frame="0"/>
+		<chainsTo sprite="player.sax" name="idle" frame="0"/>
 	</animation>
 	
 	<animation name="idle_to_run">
@@ -28,7 +28,7 @@
 		<origin x="16" y="32" />
 		<framerate count="1" defaultMS="50"/>
 		<loop>1</loop>
-		<chainsTo sprite="player" name="running" frame="0"/>
+		<chainsTo sprite="player.sax" name="running" frame="0"/>
 	</animation>
 	
 	<animation name="running">
@@ -53,7 +53,7 @@
 		<origin x="16" y="32" />
 		<framerate count="3" defaultMS="83.3333333333"/>
 		<loop>1</loop>
-		<chainsTo sprite="player" name="idle" frame="0"/>
+		<chainsTo sprite="player.sax" name="idle" frame="0"/>
 	</animation>
 	
 	<animation name="brake_front">
@@ -61,7 +61,7 @@
 		<origin x="16" y="32" />
 		<framerate count="3" defaultMS="83.3333333333"/>
 		<loop>1</loop>
-		<chainsTo sprite="player" name="idle" frame="0"/>
+		<chainsTo sprite="player.sax" name="idle" frame="0"/>
 	</animation>
 	
 	

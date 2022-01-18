@@ -472,8 +472,10 @@ std::vector<std::string> parseDataNodes(xml_node<>* first_node, const char* type
 	std::vector<std::string> names;
 
 	while (node) {
-		if (strcmp(node->name(), type) == 0) {
-			names.push_back(node->value());
+		if (strcmp(node->name(), type) == 0
+			&& node->first_attribute("name")) 
+		{
+			names.push_back(node->first_attribute("name")->value());
 		}
 		else {
 			throw parse_error("incorrect type", node->name());
@@ -519,7 +521,7 @@ void Resources::addLoadedToWatcher() {
 		ResourceWatcher::add_watch(
 			val.get(),
 			{
-				val->getFilePath() + val->getAssetName() + spriteExt,
+				val->getFilePath() + val->getAssetName(),
 				val->getTexPath()
 			}
 		);
@@ -528,7 +530,7 @@ void Resources::addLoadedToWatcher() {
 		ResourceWatcher::add_watch(
 			val.get(),
 			{
-				val->getFilePath() + val->getAssetName() + tilesetExt,
+				val->getFilePath() + val->getAssetName(),
 				val->getTexPath()
 			}
 		);
@@ -537,7 +539,7 @@ void Resources::addLoadedToWatcher() {
 		ResourceWatcher::add_watch(
 			val.get(),
 			{ 
-				val->getFilePath() + val->getAssetName() + levelExt
+				val->getFilePath() + val->getAssetName()
 			}
 		);
 	}

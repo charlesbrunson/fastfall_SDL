@@ -37,33 +37,33 @@ plr::members::members(GameContext context_, GameObject& plr, Vec2f position)
 
 namespace plr::anim {
 
-	AnimIDRef idle("player", "idle");
-	AnimIDRef land("player", "land");
-	AnimIDRef idle_to_run("player", "idle_to_run");
-	AnimIDRef run("player", "running");
+	AnimIDRef idle("player.sax", "idle");
+	AnimIDRef land("player.sax", "land");
+	AnimIDRef idle_to_run("player.sax", "idle_to_run");
+	AnimIDRef run("player.sax", "running");
 
-	AnimIDRef dash_n2("player", "dash-2");
-	AnimIDRef dash_n1("player", "dash-1");
-	AnimIDRef dash_0 ("player", "dash0");
-	AnimIDRef dash_p1("player", "dash+1");
-	AnimIDRef dash_p2("player", "dash+2");
+	AnimIDRef dash_n2("player.sax", "dash-2");
+	AnimIDRef dash_n1("player.sax", "dash-1");
+	AnimIDRef dash_0 ("player.sax", "dash0");
+	AnimIDRef dash_p1("player.sax", "dash+1");
+	AnimIDRef dash_p2("player.sax", "dash+2");
 
-	AnimIDRef jump("player", "jump");
-	AnimIDRef jump_f("player", "jump_f");
+	AnimIDRef jump("player.sax", "jump");
+	AnimIDRef jump_f("player.sax", "jump_f");
 
-	AnimIDRef fall("player", "fall");
-	AnimIDRef fall_f("player", "fall_f");
+	AnimIDRef fall("player.sax", "fall");
+	AnimIDRef fall_f("player.sax", "fall_f");
 
-	AnimIDRef brakeb("player", "brake_back");
-	AnimIDRef brakef("player", "brake_front");
+	AnimIDRef brakeb("player.sax", "brake_back");
+	AnimIDRef brakef("player.sax", "brake_front");
 
 
 	namespace fx {
-		AnimIDRef dash_n2("player", "dash_fx-2");
-		AnimIDRef dash_n1("player", "dash_fx-1");
-		AnimIDRef dash_0 ("player", "dash_fx0");
-		AnimIDRef dash_p1("player", "dash_fx+1");
-		AnimIDRef dash_p2("player", "dash_fx+2");
+		AnimIDRef dash_n2("player.sax", "dash_fx-2");
+		AnimIDRef dash_n1("player.sax", "dash_fx-1");
+		AnimIDRef dash_0 ("player.sax", "dash_fx0");
+		AnimIDRef dash_p1("player.sax", "dash_fx+1");
+		AnimIDRef dash_p2("player.sax", "dash_fx+2");
 	}
 
 	const std::vector<AnimID>& get_ground_anims() {

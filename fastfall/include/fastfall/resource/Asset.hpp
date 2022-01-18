@@ -10,33 +10,6 @@
 
 namespace ff {
 
-//#include <SFML/System.hpp>
-
-
-/*
-class AssetStream : public sf::InputStream {
-
-	std::ifstream* source;
-
-	std::streampos start, end;
-
-public:
-	explicit AssetStream(std::ifstream* stream, int st, int en) :
-		source(stream)
-	{
-		start = st;
-		end = en;
-	};
-
-	inline std::ifstream* getSource() { return source; };
-
-	sf::Int64 read(void* data, sf::Int64 size) override;
-	sf::Int64 seek(sf::Int64 position) override;
-	sf::Int64 tell() override;
-	sf::Int64 getSize() override;
-};
-*/
-
 // base class for files to be loaded
 class Asset : public ImGuiContent {
 public:
@@ -72,9 +45,5 @@ struct flat_type
 };
 
 std::vector<int8_t> readFile(const char* filename);
-
-constexpr const char* spriteExt = ".sax";
-constexpr const char* tilesetExt = ".tsx";
-constexpr const char* levelExt = ".tmx";
 
 }

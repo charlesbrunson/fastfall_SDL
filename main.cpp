@@ -11,6 +11,7 @@
 #include "content/TestState.hpp"
 
 #include "fastfall/render/freetype.hpp"
+#include "fastfall/render/font.hpp"
 #include <bitset>
 
 ff::EngineSettings getSettings() {
@@ -58,53 +59,22 @@ int main(int argc, char* argv[])
 
 	FFinit();
 
-#if 0
-
-	{
-		std::string font_file_path = fmt::format("{}{}", FF_DATA_DIR, "data/font/pixelated.ttf");
-
-		FreeTypeFace face{ font_file_path, 8u };
-
-		auto print_bitmap = [](FT_Bitmap bt) {
-			if (!bt.buffer)
-				return;
-
-			for (unsigned y = 0; y < bt.rows; y++)
-			{
-				std::stringstream ss;
-				for (unsigned x = 0; x < bt.width; x++)
-				{
-					char c = bt.buffer[x + (y * bt.width)];
-					if (c)
-					{
-						ss << fmt::format("{:3d}", (uint8_t)c) << " ";
-					}
-					else
-					{
-						ss << fmt::format("{:3s}", "") << " ";
-					}
-				}
-				LOG_INFO("{}", ss.str());
-			}
-		};
-
-		for (unsigned char i = 0; i < UCHAR_MAX; i++)
-		{
-			print_bitmap(face.get_glyph_bitmap(i).value());
-			LOG_INFO("");
-		}
-
-		LOG_INFO("heh");
-	}
-#endif
-
-
 	// need to create window before loading resources :(
 	std::unique_ptr<Window> window = std::make_unique<Window>();
 	if (!window->valid()) {
 		LOG_ERR_("Could not initialize window");
 		return EXIT_FAILURE;
 	}
+
+#if 1
+	{
+		std::string font_file_path = fmt::format("{}{}", FF_DATA_DIR, "data/font/pixelated.ttf");
+
+		Font font{};
+		font.loadFromFile(font_file_path, 8u);
+		LOG_ERR_("HEH");
+	}
+#endif
 
 	bool result = Resources::loadAll(Resources::AssetSource::INDEX_FILE, "fileindex.xml");
 	//result &= Resources::buildPackFile("data.pack");

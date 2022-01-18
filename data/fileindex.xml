@@ -1,14 +1,25 @@
 <index>
 	<sprites path="sprite/">
-		<sprite>player</sprite>
+		<sprite name="player.sax"/>
 	</sprites>
 	<tilesets path="level/tileset/">
-		<tileset>tile_test</tileset>
-		<tileset>other_tileset</tileset>
-		<tileset>tile_basic_purple</tileset>
-		<tileset>autotile_test</tileset>
+		<tileset name="tile_test.tsx"/>
+		<tileset name="other_tileset.tsx"/>
+		<tileset name="tile_basic_purple.tsx"/>
+		<tileset name="autotile_test.tsx"/>
 	</tilesets>
 	<levels path="level/">
-		<level>map_test</level>
+		<level name="map_test.tmx"/>
 	</levels>
+	<fonts path="font/">
+		<font name="pixelated.ttf">
+			<cache>8</cache>
+		</font>
+		<font name="dogicapixel.ttf">
+			<cache>8</cache>
+		</font>
+		<font name="dogicapixelbold.ttf">
+			<cache>8</cache>
+		</font>
+	</fonts>
 </index>

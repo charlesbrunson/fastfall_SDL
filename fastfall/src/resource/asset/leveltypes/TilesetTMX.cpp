@@ -24,7 +24,7 @@ TilesetMap TilesetTMX::parse(xml_node<>* tilesetNode) {
 			else if (strcmp("source", attrName) == 0) {
 				std::string source(attrVal);
 				int relpathndx = source.find_last_of('/') + 1;
-				source = source.substr(relpathndx, source.size() - relpathndx - strlen(tilesetExt));
+				source = source.substr(relpathndx, source.size() - relpathndx);
 				ref = std::move(source);
 				assert(!ref.empty());
 			}

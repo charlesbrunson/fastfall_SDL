@@ -70,7 +70,7 @@ bool SpriteAsset::loadFromFile(const std::string& relpath) {
 	bool r = true;
 
 	assetFilePath = relpath;
-	std::unique_ptr<char[]> charPtr = readXML(assetFilePath + assetName + spriteExt);
+	std::unique_ptr<char[]> charPtr = readXML(assetFilePath + assetName);
 
 	parsedAnims.clear();
 
@@ -121,7 +121,7 @@ bool SpriteAsset::loadFromFile(const std::string& relpath) {
 		}
 	}
 	else {
-		std::cout << "Could not open file: " << relpath + assetName + spriteExt << std::endl;
+		std::cout << "Could not open file: " << relpath + assetName << std::endl;
 		r = false;
 	}
 
