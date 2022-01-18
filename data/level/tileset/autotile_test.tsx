@@ -45,7 +45,7 @@
  </tile>
  <tile id="8">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;no&quot;, &quot;s&quot;:&quot;no&quot;, &quot;w&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{}"/>
    <property name="shape" value="halfvert"/>
   </properties>
  </tile>
@@ -129,7 +129,7 @@
  </tile>
  <tile id="24">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;no&quot;, &quot;e&quot;:&quot;no&quot;, &quot;w&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{}"/>
    <property name="shape" value="half-v"/>
   </properties>
  </tile>
@@ -225,7 +225,7 @@
  </tile>
  <tile id="40">
   <properties>
-   <property name="auto_constraint" value="{&quot;e&quot;:&quot;no&quot;, &quot;s&quot;:&quot;no&quot;, &quot;w&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{}"/>
    <property name="shape" value="half"/>
   </properties>
  </tile>
@@ -321,7 +321,7 @@
  </tile>
  <tile id="56">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;no&quot;, &quot;e&quot;:&quot;no&quot;, &quot;s&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{}"/>
    <property name="shape" value="halfvert-h"/>
   </properties>
  </tile>

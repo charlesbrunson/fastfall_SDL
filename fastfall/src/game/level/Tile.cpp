@@ -278,7 +278,7 @@ namespace ff {
 				}
 				else {
 					match.match_count = 0;
-					return match;
+					return {};
 				}
 			}
 		}
@@ -292,8 +292,8 @@ namespace ff {
 					counter++;
 				}
 				else {
-					//match.match_count = 0;
-					return match;
+					match.match_count = 0;
+					return {};
 				}
 			}
 		}

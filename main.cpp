@@ -12,7 +12,7 @@
 
 #include "fastfall/render/freetype.hpp"
 #include "fastfall/render/font.hpp"
-#include <bitset>
+#include "fastfall/render/text.hpp"
 
 ff::EngineSettings getSettings() {
 	ff::EngineSettings settings;
@@ -66,6 +66,7 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
+	/*
 #if 1
 	{
 		std::string font_file_path = fmt::format("{}{}", FF_DATA_DIR, "data/font/pixelated.ttf");
@@ -75,6 +76,7 @@ int main(int argc, char* argv[])
 		LOG_ERR_("HEH");
 	}
 #endif
+	*/
 
 	bool result = Resources::loadAll(Resources::AssetSource::INDEX_FILE, "fileindex.xml");
 	//result &= Resources::buildPackFile("data.pack");

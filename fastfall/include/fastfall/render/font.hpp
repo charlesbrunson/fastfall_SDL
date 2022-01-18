@@ -13,9 +13,9 @@ class Font
 public:
 	struct GlyphMetrics
 	{
-		glm::ivec2 size;
-		glm::ivec2 bearing;
-		long advance_x;
+		glm::ivec2 size		= { 0,0 };
+		glm::ivec2 bearing	= { 0,0 };
+		unsigned advance_x	= 0;
 	};
 
 public:
@@ -27,6 +27,8 @@ public:
 
 	const Texture& getBitmapTex() const { return font_bitmap; };
 	const GlyphMetrics& getMetrics(unsigned char ch) const { return glyph_metrics[ch]; };
+	glm::i64vec2 getGlyphSize() const { return glyph_max_size; };
+
 
 	constexpr static uint8_t CHAR_COUNT = 128;
 
@@ -35,6 +37,7 @@ private:
 	bool load(FT_Face face);
 
 	Texture font_bitmap;
+	unsigned px_size;
 	glm::i64vec2 glyph_max_size;
 	std::array<GlyphMetrics, CHAR_COUNT> glyph_metrics;
 	bool loaded = false;

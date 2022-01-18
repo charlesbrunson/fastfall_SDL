@@ -82,6 +82,7 @@ namespace ff {
 			LOG_ERR_("Failed to set pixel size");
 			return false;
 		}
+		px_size = pixel_size;
 
 		return load(face);
 	}
@@ -100,13 +101,13 @@ namespace ff {
 			LOG_ERR_("Failed to set pixel size");
 			return false;
 		}
+		px_size = pixel_size;
 
 		return load(face);
 	}
 
 	bool Font::load(FT_Face face)
 	{
-
 		std::array<GlyphMetrics, CHAR_COUNT> calc_metrics{};
 		glm::i64vec2 calc_size = { 0,0 };
 
@@ -114,15 +115,17 @@ namespace ff {
 		{
 			if (!FT_Load_Char(face, i, FT_LOAD_COMPUTE_METRICS))
 			{
-				auto glyph = face->glyph;
+				auto& metrics = face->glyph->metrics;
 
-				calc_size.x = std::max(get22_6p(glyph->metrics.width), (long)calc_size.x);
-				calc_size.y = std::max(get22_6p(glyph->metrics.height), (long)calc_size.y);
+				calc_size = {
+					std::max(get22_6p(metrics.width),  (long)calc_size.x),
+					std::max(get22_6p(metrics.height), (long)calc_size.y)
+				};
 
 				calc_metrics[i] = GlyphMetrics{
-					.size = { get22_6p(glyph->metrics.width), get22_6p(glyph->metrics.height) },
-					.bearing = { get22_6p(glyph->metrics.horiBearingX), get22_6p(glyph->metrics.horiBearingY) },
-					.advance_x = get22_6p(glyph->metrics.horiAdvance)
+					.size      = { get22_6p(metrics.width),			get22_6p(metrics.height) },
+					.bearing   = { get22_6p(metrics.horiBearingX),	get22_6p(metrics.horiBearingY) },
+					.advance_x = (unsigned)get22_6p(metrics.horiAdvance)
 				};
 			}
 		}

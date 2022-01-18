@@ -58,6 +58,9 @@ void RenderTarget::draw(const Drawable& drawable, const RenderState& state) {
 
 void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 
+	if (varray.size() == 0)
+		return;
+
 	varray.glTransfer();
 
 	bindFramebuffer();

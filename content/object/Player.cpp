@@ -159,9 +159,9 @@ void Player::ImGui_Inspect() {
 			return make_pair(state.get_id(), state.get_name());
 		});
 
-	Text("Current State: %d %s", id, name);
-	Text("Position(%3.2f, %3.2f)", box->getPosition().x, box->getPosition().y);
-	Text("Velocity(%3.2f, %3.2f)", box->get_vel().x, box->get_vel().y);
+	ImGui::Text("Current State: %d %s", id, name);
+	ImGui::Text("Position(%3.2f, %3.2f)", box->getPosition().x, box->getPosition().y);
+	ImGui::Text("Velocity(%3.2f, %3.2f)", box->get_vel().x, box->get_vel().y);
 
 	Separator();
 

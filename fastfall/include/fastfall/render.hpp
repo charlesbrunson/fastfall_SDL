@@ -30,6 +30,8 @@ namespace ff {
 #include "fastfall/render/ShapeLine.hpp"
 #include "fastfall/render/ShapeCircle.hpp"
 #include "fastfall/render/ShapeRectangle.hpp"
+#include "fastfall/render/Font.hpp"
+#include "fastfall/render/Text.hpp"
 
 namespace ff {
 	void ImGuiNewFrame(Window& window);
