@@ -68,6 +68,12 @@ namespace ff {
 	{
 	}
 
+	Font::~Font()
+	{
+		if (m_face)
+			FT_Done_Face(m_face);
+	}
+
 	bool Font::loadFromFile(std::string_view font_file, unsigned pixel_size)
 	{
 		FT_Face face;
@@ -123,6 +129,7 @@ namespace ff {
 				};
 
 				calc_metrics[i] = GlyphMetrics{
+					.glyph_index = face->glyph->glyph_index,
 					.size      = { get22_6p(metrics.width),			get22_6p(metrics.height) },
 					.bearing   = { get22_6p(metrics.horiBearingX),	get22_6p(metrics.horiBearingY) },
 					.advance_x = (unsigned)get22_6p(metrics.horiAdvance)
@@ -136,6 +143,11 @@ namespace ff {
 
 		glyph_max_size = calc_size;
 		glyph_metrics = calc_metrics;
+
+		yMin	= get22_6p(face->bbox.yMin);
+		yMax	= get22_6p(face->bbox.yMax);
+		height	= yMax - yMin;
+
 
 		for (unsigned i = 0; i < CHAR_COUNT; i++)
 		{
@@ -154,7 +166,33 @@ namespace ff {
 		IMG_SavePNG(surface, "test.png");
 		font_bitmap.loadFromSurface(surface);
 		SDL_FreeSurface(surface);
+
+		m_face = face;
 		return true;
+	}
+
+
+	Vec2i Font::getKerning(char left, char right) const
+	{
+		if ( m_face && FT_HAS_KERNING(m_face) )
+		{
+			FT_Vector kerning;
+			auto err = FT_Get_Kerning(
+				m_face, 
+				glyph_metrics[left].glyph_index,
+				glyph_metrics[right].glyph_index,
+				FT_KERNING_DEFAULT,
+				&kerning);
+
+			if (err)
+				return {};
+
+			return Vec2i{
+				get22_6p(kerning.x),
+				get22_6p(kerning.y),
+			};
+		}
+		return {};
 	}
 
 }

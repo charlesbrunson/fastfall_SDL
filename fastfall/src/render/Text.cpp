@@ -1,6 +1,5 @@
 #include "fastfall/render/Text.hpp"
 
-#include "fastfall/util/math.hpp"
 
 namespace ff {
 
@@ -51,16 +50,28 @@ namespace ff {
 		m_varr = { Primitive::TRIANGLES, 0 };
 	}
 
+
+	void Text::set_color(Color color)
+	{
+		for (size_t i = 0; i < m_varr.size(); i++)
+		{
+			m_varr[i].color = color;
+		}
+		m_color = color;
+	}
+
 	void Text::update_varray()
 	{
 		if (m_font && !m_text.empty())
 		{
 			m_varr = { Primitive::TRIANGLES, 6 * m_text.size() };
-			bounding_size = {};
+			bounding_size = { 0, 0, 0, 0 };
 
 			size_t ndx = 0;
 
-			glm::fvec2 pen = {};
+			glm::fvec2 pen = {0, m_font->getYMax() };
+
+			std::optional<char> prev;
 
 			for (auto ch : m_text)
 			{
@@ -68,19 +79,24 @@ namespace ff {
 					continue;
 
 				if (ch == '\n') {
-					pen = { 0, pen.y + m_font->getGlyphSize().y };
+					pen = { 0, pen.y + m_font->getHeight() };
+					prev = {};
 					continue;
 				}
 
 				auto& metrics = m_font->getMetrics(ch);
 
+				Vec2i kern;
+				if (prev)
+					kern = m_font->getKerning(*prev, ch);
+
+
 				Rectf draw_rect{
-					pen.x + metrics.bearing.x,
-					pen.y - metrics.bearing.y,
+					pen.x + kern.x + metrics.bearing.x,
+					pen.y + kern.y - metrics.bearing.y,
 					(float)metrics.size.x,
 					(float)metrics.size.y
 				};
-
 
 				glm::fvec2 size = { 
 					m_font->getBitmapTex().inverseSize().x * m_font->getGlyphSize().x,
@@ -97,45 +113,51 @@ namespace ff {
 				m_varr[ndx + 0] = Vertex
 				{
 					math::rect_topleft(draw_rect),
-					Color::White,
+					m_color,
 					math::rect_topleft(tex_rect),
 				};
 				m_varr[ndx + 1] = Vertex
 				{
 					math::rect_topright(draw_rect),
-					Color::White,
+					m_color,
 					math::rect_topright(tex_rect),
 				};
 				m_varr[ndx + 2] = Vertex
 				{
 					math::rect_botleft(draw_rect),
-					Color::White,
+					m_color,
 					math::rect_botleft(tex_rect),
 				};
 				m_varr[ndx + 3] = Vertex
 				{
 					math::rect_topright(draw_rect),
-					Color::White,
+					m_color,
 					math::rect_topright(tex_rect),
 				};
 				m_varr[ndx + 4] = Vertex
 				{
 					math::rect_botleft(draw_rect),
-					Color::White,
+					m_color,
 					math::rect_botleft(tex_rect),
 				};
 				m_varr[ndx + 5] = Vertex
 				{
 					math::rect_botright(draw_rect),
-					Color::White,
+					m_color,
 					math::rect_botright(tex_rect),
 				};
 
 				pen.x += metrics.advance_x;
 				ndx += 6;
 
-				bounding_size.x = std::max(bounding_size.x, pen.x);
-				bounding_size.y = std::max(bounding_size.y, pen.y);
+				prev = ch;
+
+				bounding_size = math::rect_bound(Rectf{ 
+						(float)pen.x + metrics.bearing.x, 
+						(float)pen.y - m_font->getYMax(),
+						(float)metrics.size.x,
+						(float)m_font->getHeight()
+					}, bounding_size);
 			}
 		}
 		else {

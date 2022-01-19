@@ -37,7 +37,9 @@ TestState::TestState()
 	edit->select_tileset("autotile_test.tsx");
 	edit->select_tile(TileID{ 0u, 0u });
 
-	std::string font_file_path = fmt::format("{}{}", FF_DATA_DIR, "data/font/pixelated.ttf");
+	
+	//std::string font_file_path = fmt::format("{}{}", FF_DATA_DIR, "data/font/pixelated.ttf");
+	std::string font_file_path = fmt::format("{}{}", FF_DATA_DIR, "data/font/dogicapixel.ttf");
 	font.loadFromFile(font_file_path, 8u);
 
 	copypasta = 
@@ -45,20 +47,22 @@ R"(What the fuck did you just fucking say about me, you little bitch? I'll have 
 in the Navy Seals, and I've been involved in numerous secret raids on Al-Quaeda, and I have over 300 confirmed kills.
 I am trained in gorilla warfare and I'm the top sniper in the entire US armed forces. You are nothing to me but just 
 another target. I will wipe you the fuck out with precision the likes of which has never been seen before on this 
-Earth, mark my fucking words.You think you can get away with saying that shit to me over the Internet ? Think again, 
-fucker.As we speak I am contacting my secret network of spies across the USA and your IP is being traced right now 
-so you better prepare for the storm, maggot.The storm that wipes out the pathetic little thing you call your life.
+Earth, mark my fucking words. You think you can get away with saying that shit to me over the Internet? Think again, 
+fucker. As we speak I am contacting my secret network of spies across the USA and your IP is being traced right now 
+so you better prepare for the storm, maggot. The storm that wipes out the pathetic little thing you call your life.
 You're fucking dead, kid. I can be anywhere, anytime, and I can kill you in over seven hundred ways, and that's just 
-with my bare hands.Not only am I extensively trained in unarmed combat, but I have access to the entire arsenal of 
-the United States Marine Corpsand I will use it to its full extent to wipe your miserable ass off the face of the 
-continent, you little shit.If only you could have known what unholy retribution your little "clever" comment was 
-about to bring down upon you, maybe you would have held your fucking tongue.But you couldn't, you didn't, and now 
-you're paying the price, you goddamn idiot.I will shit fury all over youand you will drown in it. You're fucking 
+with my bare hands. Not only am I extensively trained in unarmed combat, but I have access to the entire arsenal of 
+the United States Marine Corps and I will use it to its full extent to wipe your miserable ass off the face of the 
+continent, you little shit. If only you could have known what unholy retribution your little "clever" comment was 
+about to bring down upon you, maybe you would have held your fucking tongue. But you couldn't, you didn't, and now 
+you're paying the price, you goddamn idiot. I will shit fury all over you and you will drown in it. You're fucking 
 dead, kiddo.)";
 
 	text.set(font, "");
+	text.set_color(Color::White);
 	text_bg.setOutlineColor(ff::Color::Transparent);
-	text_bg.setColor(ff::Color(0, 0, 0, 64));
+	text_bg.setColor(ff::Color(0, 0, 0, 100));
+	
 }
 
 TestState::~TestState() {
@@ -77,13 +81,6 @@ void TestState::update(secs deltaTime) {
 
 	if (edit) 
 	{
-		/*
-		if (!edit->is_attached()) {
-			edit->reattach();
-			edit->select_layer(layer);
-		}
-		*/
-
 
 		const TileLayer& tilelayer = edit->get_tile_layer()->tilelayer;
 
@@ -177,12 +174,14 @@ void TestState::predraw(secs deltaTime) {
 
 	instance->getScene().set_cam_pos(viewPos);
 
-
+	
 	i = (i + 1) % (copypasta.size() * 2);
 	text.set(font, copypasta.substr(0, std::min((size_t)i, copypasta.size())));
-	text.setPosition(viewPos - Vec2f{ text.get_bounds() } / 2.f);
+
+	text.setPosition(viewPos - Vec2f{ text.get_bounds().getSize() } / 2.f);
 	text_bg.setPosition(text.getPosition());
-	text_bg.setSize(text.get_bounds());
+	text_bg.setSize(text.get_bounds().getSize());
+	
 
 	if (edit) 
 	{

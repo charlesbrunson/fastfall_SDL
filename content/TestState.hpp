@@ -51,8 +51,6 @@ private:
 	ff::Vec2i tpos;
 
 
-
-
 	ff::Font font;
 	ff::Text text;
 	std::string copypasta;

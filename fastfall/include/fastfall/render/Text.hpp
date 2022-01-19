@@ -4,6 +4,8 @@
 #include "Drawable.hpp"
 #include "Font.hpp"
 
+#include "fastfall/util/math.hpp"
+
 #include <string_view>
 #include <optional>
 
@@ -19,10 +21,12 @@ namespace ff {
 		void set(std::optional<std::reference_wrapper<const Font>> font, std::optional<std::string_view> text);
 		void clear();
 
+		void set_color(Color color);
+
 		std::string_view get_text() const { return m_text; };
 		const Font* get_font() const { return m_font; };
-
-		glm::fvec2 get_bounds() { return bounding_size; };
+		Rectf get_bounds() const  { return bounding_size; };
+		Color get_color() const { return m_color; }
 
 	private:
 		virtual void draw(RenderTarget& target, RenderState state = RenderState()) const;
@@ -31,8 +35,9 @@ namespace ff {
 
 		std::string m_text;
 		VertexArray m_varr;
-		const Font* m_font;
-		glm::fvec2 bounding_size;
+		Rectf bounding_size;
 
+		const Font* m_font = nullptr;
+		Color m_color = Color::White;
 	};
 }
