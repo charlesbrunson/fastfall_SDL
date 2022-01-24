@@ -67,7 +67,6 @@ out vec2 texCoord;
 void main()
 {
 	const float TILESIZE = 16.0;
-	const uint INVALID = 4095u;
 
 	const uint PAD_TOP_MASK 	= (1 << 16);
 	const uint PAD_RIGHT_MASK 	= (1 << 15);
@@ -75,7 +74,8 @@ void main()
 	const uint PAD_LEFT_MASK 	= (1 << 13);
 	const uint Y_MASK 			= (63u << 6);
 	const uint X_MASK 			= (63u);
-	const uint XY_MASK 			= (Y_MASK | X_MASK );
+	const uint XY_MASK = (X_MASK | Y_MASK);
+	const uint INVALID = 4095u;
 
 	// non-empty tile
 	if ((aTileId & XY_MASK) != INVALID) {
@@ -92,16 +92,28 @@ void main()
 
 		vec2 tileset_size = vec2(textureSize(texture0, 0)) / TILESIZE;
 
-		// per vertex offsets
+		// +1 for right/bot, -1 for left/top
+		float horz_side = float(gl_VertexID & 1) * 2.0 - 1.0;
+		float vert_side = float((gl_VertexID & 2) >> 1) * 2.0 - 1.0;
+
 		vec2 t_offset = vec2(
-			(float(uint(gl_VertexID) & 1u) * -2.0 + 1.0) / 16384.0,
-			(float((uint(gl_VertexID) & 2u) >> 1u) * -2.0 + 1.0) / 16384.0
-		);
+			horz_side,
+			vert_side
+		) / -16384.0;
 
 		vec2 p_offset = vec2(
-			float(uint(gl_VertexID) & 1u),
-			float((uint(gl_VertexID) & 2u) >> 1u)
+			(0.5 + float(horz_side) * 0.5),
+			(0.5 + float(vert_side) * 0.5)
 		);
+
+		// add padding to position offset
+		p_offset.x = p_offset.x 
+			+ (-1.0 * pad_left  * float((gl_VertexID + 1) & 1)) 
+			+ ( 1.0 * pad_right * float((gl_VertexID)     & 1));
+
+		p_offset.y = p_offset.y
+			+ (-1.0 * pad_top * float( ( ( (gl_VertexID & 2) >> 1) + 1) & 1) ) 
+			+ ( 1.0 * pad_bot * float(((gl_VertexID & 2) >> 1)));
 
 		// position of tile based on instance id + position offset
 		vec2 position = p_offset + vec2(
