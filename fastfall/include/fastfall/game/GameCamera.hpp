@@ -64,6 +64,8 @@ public:
 
 	float zoomFactor = 1.f;
 	bool lockPosition = false;
+
+	Vec2f deltaPosition;
 	Vec2f currentPosition;
 
 private:

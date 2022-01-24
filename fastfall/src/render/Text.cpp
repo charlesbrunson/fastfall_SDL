@@ -32,7 +32,7 @@ namespace ff {
 			update = true;
 		}
 
-		if (text)
+		if (text && *text != m_text)
 		{
 			m_text = *text;
 			update = true;
@@ -79,7 +79,7 @@ namespace ff {
 					continue;
 
 				if (ch == '\n') {
-					pen = { 0, pen.y + m_font->getHeight() };
+					pen = { 0, pen.y + (m_font->getHeight() * v_spacing) };
 					prev = {};
 					continue;
 				}

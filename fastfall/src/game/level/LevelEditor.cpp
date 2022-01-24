@@ -232,8 +232,8 @@ bool LevelEditor::select_tile(TileID tile)
 	if (!level) return false;
 
 	if (curr_tileset 
-		&& tile.x < curr_tileset->getTileSize().x
-		&& tile.y < curr_tileset->getTileSize().y)
+		&& tile.getX() < curr_tileset->getTileSize().x
+		&& tile.getY() < curr_tileset->getTileSize().y)
 	{
 		tileset_pos = tile;
 		return true;

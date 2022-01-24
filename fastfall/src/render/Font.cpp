@@ -114,6 +114,7 @@ namespace ff {
 
 	bool Font::load(FT_Face face)
 	{
+
 		std::array<GlyphMetrics, CHAR_COUNT> calc_metrics{};
 		glm::i64vec2 calc_size = { 0,0 };
 
@@ -167,6 +168,9 @@ namespace ff {
 		font_bitmap.loadFromSurface(surface);
 		SDL_FreeSurface(surface);
 
+		if (m_face) {
+			FT_Done_Face(m_face);
+		}
 		m_face = face;
 		return true;
 	}

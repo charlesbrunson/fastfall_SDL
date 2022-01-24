@@ -44,24 +44,25 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 	}},
 	{"next_x", [](TilesetAsset& asset, TileData& state, char* value)
 	{
+
 		int v = std::stoi(value);
-		if (v < 0) {
-			state.tile.next_offset.x = 16u + v;
-		}
-		else {
-			state.tile.next_offset.x = v;
-		}
+
+		auto& next = state.tile.next_offset;
+		next = TileID{ 
+			v < 0			? TileID::dimension_max + v : v, 
+			next.valid()	? next.getY()				: 0u 
+		};
+
 	}},
 	{"next_y", [](TilesetAsset& asset, TileData& state, char* value)
 	{
 		int v = std::stoi(value);
-		if (v < 0) {
-			state.tile.next_offset.y = 16u + v;
-		}
-		else {
-			state.tile.next_offset.y = v;
-		}
 
+		auto& next = state.tile.next_offset;
+		next = TileID{ 
+			next.valid()	? next.getX()				: 0u, 
+			v < 0			? TileID::dimension_max + v : v 
+		};
 	}},
 	{"next_tileset", [](TilesetAsset& asset, TileData& state, char* value)
 	{
@@ -102,7 +103,7 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 		}
 		catch (json::exception except) {
 			LOG_ERR_("json string parse failure: {}", except.what());
-			LOG_ERR_("for tile: {}", Vec2u{ state.tile.id }.to_string());
+			LOG_ERR_("for tile: {}", state.tile.id.to_vec().to_string());
 			LOG_ERR_("json: {}", value);
 			return;
 		}
@@ -296,8 +297,9 @@ void TilesetAsset::loadFromFile_Header(xml_node<>* tileset_node, const std::stri
 
 	texTileSize = Vec2u(tex.size()) / TILESIZE;
 
-	if (texTileSize.x > 16u || texTileSize.y > 16u)
-		throw parse_error("tileset size must be 16x16 tiles or less", nullptr);
+	if (texTileSize.x > TileID::dimension_max 
+		|| texTileSize.y > TileID::dimension_max)
+		throw parse_error("tileset size must be 64x64 tiles or less", nullptr);
 
 }
 
@@ -313,7 +315,7 @@ void TilesetAsset::loadFromFile_Tile(xml_node<>* tile_node)
 	xml_node<>* propNode = tile_node->first_node("properties");
 	loadFromFile_TileProperties(propNode, t);
 
-	tiles[get_ndx(t.tile.id.to_vec())] = t;
+	tiles[t.tile.id.to_vec()] = t;
 }
 
 bool TilesetAsset::loadFromFile(const std::string& relpath) {
@@ -393,7 +395,7 @@ bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder)
 	// TODO
 
 	assetName = builder->name()->c_str();
-	texTileSize = *builder->tile_size();
+	texTileSize = Vec2u{ builder->tile_size()->x(), builder->tile_size()->y() };
 
 	tiles.clear();
 	tilesetRef.clear();
@@ -436,10 +438,10 @@ bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder)
 		t.tile.shape.flip_v		= tile_data->tile().shape().vflip();
 
 		// tile
-		t.tile.id			= tile_data->tile().pos();
-		t.tile.matFacing	= static_cast<Cardinal>(tile_data->tile().facing());
-		t.tile.next_offset	= tile_data->tile().next_offset();
-		t.tile.next_tileset = tile_data->tile().next_tileset_ndx();
+		t.tile.id.value				= tile_data->tile().pos();
+		t.tile.matFacing			= static_cast<Cardinal>(tile_data->tile().facing());
+		t.tile.next_offset.value	= tile_data->tile().next_offset();
+		t.tile.next_tileset			= tile_data->tile().next_tileset_ndx();
 		t.tile.origin = this;
 
 		// tile data
@@ -476,10 +478,10 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 		};
 
 		TileF flat_tile{
-			tile_data.tile.id,
+			tile_data.tile.id.value,
 			flat_shape,
 			static_cast<CardinalF>(tile_data.tile.matFacing),
-			tile_data.tile.next_offset,
+			tile_data.tile.next_offset.value,
 			tile_data.tile.has_next_tileset(),
 			(tile_data.tile.next_tileset ? *tile_data.tile.next_tileset : 0u)
 		};
@@ -536,9 +538,9 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 
 Tile TilesetAsset::getTile(TileID tile_id) const {
 	// assert this is actually on our texture
-	assert(tile_id.x < texTileSize.x && tile_id.y < texTileSize.y);
+	assert(tile_id.getX() < texTileSize.x && tile_id.getY() < texTileSize.y);
 
-	auto& r = tiles[tile_id];
+	auto& r = tiles[tile_id.to_vec()];
 
 	if (r.has_prop_bits & TileHasProp::HasTile) {
 		return r.tile;
@@ -555,9 +557,9 @@ Tile TilesetAsset::getTile(TileID tile_id) const {
 
 TilesetAsset::TileLogicData TilesetAsset::getTileLogic(TileID tile_id) const {
 	// assert this is actually on our texture
-	assert(tile_id.x < texTileSize.x && tile_id.y < texTileSize.y);
+	assert(tile_id.getX() < texTileSize.x && tile_id.getY() < texTileSize.y);
 
-	const auto& r = tiles[tile_id];
+	const auto& r = tiles[tile_id.to_vec()];
 
 	TileLogicData data;
 
@@ -572,9 +574,9 @@ TilesetAsset::TileLogicData TilesetAsset::getTileLogic(TileID tile_id) const {
 
 const TileMaterial& TilesetAsset::getMaterial(TileID tile_id) const {
 	// assert this is actually on our texture
-	assert(tile_id.x < texTileSize.x && tile_id.y < texTileSize.y);
+	assert(tile_id.getX() < texTileSize.x && tile_id.getY() < texTileSize.y);
 
-	auto& r = tiles[tile_id];
+	auto& r = tiles[tile_id.to_vec()];
 
 	if (r.has_prop_bits & TileHasProp::HasMaterial) 
 	{

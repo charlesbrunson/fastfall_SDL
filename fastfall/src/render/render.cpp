@@ -131,6 +131,11 @@ void FFinitGLEW() {
     LOG_INFO("{:>10} {}.{}", "OpenGL", glvmajor, glvminor);
 #endif
 
+    LOG_INFO("OpenGL Vendor:         {}", glGetString(GL_VENDOR));
+    LOG_INFO("OpenGL Renderer:       {}", glGetString(GL_RENDERER));
+    LOG_INFO("OpenGL Version:        {}", glGetString(GL_VERSION));
+    LOG_INFO("OpenGL Shader Version: {}", glGetString(GL_SHADING_LANGUAGE_VERSION));
+    
     ShaderProgram::getDefaultProgram();
     LOG_INFO("Loaded default shader");
 

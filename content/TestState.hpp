@@ -49,12 +49,10 @@ private:
 
 	ff::Vec2f mirror;
 	ff::Vec2i tpos;
+	ff::Vec2f mpos;
 
 
 	ff::Font font;
-	ff::Text text;
-	std::string copypasta;
-	int i = 0;
-	ff::ShapeRectangle text_bg;
+	ff::Text tile_text;
 
 };

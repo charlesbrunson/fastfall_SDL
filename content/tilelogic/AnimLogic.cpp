@@ -54,9 +54,8 @@ void AnimLogic::update(secs deltaTime) {
 				tex_pos = tile.next_offset;
 			}
 			else {
-				tex_pos = tile.id + tile.next_offset;
+				tex_pos = tile.id + tile.next_offset.to_vec();
 			}
-
 
 			bool nLogic = true;
 			if (auto [logic, args] = next->getTileLogic(tex_pos); logic == getName()) {

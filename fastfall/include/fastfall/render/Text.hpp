@@ -26,7 +26,17 @@ namespace ff {
 		std::string_view get_text() const { return m_text; };
 		const Font* get_font() const { return m_font; };
 		Rectf get_bounds() const  { return bounding_size; };
+		Rectf get_scaled_bounds() const { 
+			return Rectf{
+				bounding_size.left * getScale().x,
+				bounding_size.top * getScale().y,
+				bounding_size.width * getScale().x,
+				bounding_size.height * getScale().y
+			};
+		};
 		Color get_color() const { return m_color; }
+
+		void set_vert_spacing(float spacing_factor) { v_spacing = spacing_factor; };
 
 	private:
 		virtual void draw(RenderTarget& target, RenderState state = RenderState()) const;
@@ -36,6 +46,8 @@ namespace ff {
 		std::string m_text;
 		VertexArray m_varr;
 		Rectf bounding_size;
+
+		float v_spacing = 1.f;
 
 		const Font* m_font = nullptr;
 		Color m_color = Color::White;

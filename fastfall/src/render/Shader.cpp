@@ -67,10 +67,28 @@ out vec2 texCoord;
 void main()
 {
 	const float TILESIZE = 16.0;
-	const uint INVALID = 255u;
+	const uint INVALID = 4095u;
+
+	const uint PAD_TOP_MASK 	= (1 << 16);
+	const uint PAD_RIGHT_MASK 	= (1 << 15);
+	const uint PAD_BOT_MASK 	= (1 << 14);
+	const uint PAD_LEFT_MASK 	= (1 << 13);
+	const uint Y_MASK 			= (63u << 6);
+	const uint X_MASK 			= (63u);
+	const uint XY_MASK 			= (Y_MASK | X_MASK );
 
 	// non-empty tile
-	if (aTileId != INVALID) {
+	if ((aTileId & XY_MASK) != INVALID) {
+
+		uint pad_top 	= (aTileId >> 16) & 1;
+		uint pad_right 	= (aTileId >> 15) & 1;
+		uint pad_bot 	= (aTileId >> 14) & 1;
+		uint pad_left 	= (aTileId >> 13) & 1;
+
+		uvec2 tile_id = uvec2(
+			aTileId & X_MASK,
+			(aTileId & Y_MASK) >> 6
+		);
 
 		vec2 tileset_size = vec2(textureSize(texture0, 0)) / TILESIZE;
 
@@ -95,10 +113,10 @@ void main()
 		gl_Position = vec4( view * model * vec3(position * TILESIZE, 1.0), 1.0);
 
 		// calc texture coords
-		const uint tileset_columns = 16u;
+		const uint tileset_columns = 64u;
 		texCoord    = t_offset + vec2(
-			(float(aTileId % tileset_columns) + p_offset.x) / tileset_size.x,
-			(float(aTileId / tileset_columns) + p_offset.y) / tileset_size.y
+			(float(tile_id.x) + p_offset.x) / tileset_size.x,
+			(float(tile_id.y) + p_offset.y) / tileset_size.y
 		);
 	}
 })";

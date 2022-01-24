@@ -137,45 +137,50 @@ FLATBUFFERS_STRUCT_END(TileShapeF, 8);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileF FLATBUFFERS_FINAL_CLASS {
  private:
-  uint8_t pos_;
-  int8_t padding0__;  int16_t padding1__;
+  uint16_t pos_;
+  int16_t padding0__;
   flat::resources::TileShapeF shape_;
   uint8_t facing_;
-  uint8_t next_offset_;
+  int8_t padding1__;
+  uint16_t next_offset_;
   uint8_t has_next_tileset_;
-  int8_t padding2__;
+  int8_t padding2__;  int16_t padding3__;
   uint32_t next_tileset_ndx_;
 
  public:
   TileF()
       : pos_(0),
         padding0__(0),
-        padding1__(0),
         shape_(),
         facing_(0),
+        padding1__(0),
         next_offset_(0),
         has_next_tileset_(0),
         padding2__(0),
+        padding3__(0),
         next_tileset_ndx_(0) {
     (void)padding0__;
     (void)padding1__;
     (void)padding2__;
+    (void)padding3__;
   }
-  TileF(uint8_t _pos, const flat::resources::TileShapeF &_shape, flat::math::CardinalF _facing, uint8_t _next_offset, bool _has_next_tileset, uint32_t _next_tileset_ndx)
+  TileF(uint16_t _pos, const flat::resources::TileShapeF &_shape, flat::math::CardinalF _facing, uint16_t _next_offset, bool _has_next_tileset, uint32_t _next_tileset_ndx)
       : pos_(flatbuffers::EndianScalar(_pos)),
         padding0__(0),
-        padding1__(0),
         shape_(_shape),
         facing_(flatbuffers::EndianScalar(static_cast<uint8_t>(_facing))),
+        padding1__(0),
         next_offset_(flatbuffers::EndianScalar(_next_offset)),
         has_next_tileset_(flatbuffers::EndianScalar(static_cast<uint8_t>(_has_next_tileset))),
         padding2__(0),
+        padding3__(0),
         next_tileset_ndx_(flatbuffers::EndianScalar(_next_tileset_ndx)) {
     (void)padding0__;
     (void)padding1__;
     (void)padding2__;
+    (void)padding3__;
   }
-  uint8_t pos() const {
+  uint16_t pos() const {
     return flatbuffers::EndianScalar(pos_);
   }
   const flat::resources::TileShapeF &shape() const {
@@ -184,7 +189,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileF FLATBUFFERS_FINAL_CLASS {
   flat::math::CardinalF facing() const {
     return static_cast<flat::math::CardinalF>(flatbuffers::EndianScalar(facing_));
   }
-  uint8_t next_offset() const {
+  uint16_t next_offset() const {
     return flatbuffers::EndianScalar(next_offset_);
   }
   bool has_next_tileset() const {
@@ -194,7 +199,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileF FLATBUFFERS_FINAL_CLASS {
     return flatbuffers::EndianScalar(next_tileset_ndx_);
   }
 };
-FLATBUFFERS_STRUCT_END(TileF, 20);
+FLATBUFFERS_STRUCT_END(TileF, 24);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileDataF FLATBUFFERS_FINAL_CLASS {
  private:
@@ -244,7 +249,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) TileDataF FLATBUFFERS_FINAL_CLASS {
     return flatbuffers::EndianScalar(material_ndx_);
   }
 };
-FLATBUFFERS_STRUCT_END(TileDataF, 36);
+FLATBUFFERS_STRUCT_END(TileDataF, 40);
 
 struct PropertyF FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef PropertyFBuilder Builder;

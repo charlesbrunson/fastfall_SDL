@@ -53,7 +53,7 @@ void ChunkVertexArray::set_size(Vec2u size) {
 	m_size = size;
 }
 
-void ChunkVertexArray::do_setTile(Vec2u at, Vec2u texPos) {
+void ChunkVertexArray::do_setTile(Vec2u at, TileID tile) {
 	Vec2u chunkPos;
 	chunkPos.x = at.x / m_chunk_size.x;
 	chunkPos.y = at.y / m_chunk_size.y;
@@ -78,7 +78,7 @@ void ChunkVertexArray::do_setTile(Vec2u at, Vec2u texPos) {
 			});
 
 		m_chunks.back().tva.setTexture(*m_tex.get());
-		m_chunks.back().tva.setTile(innerPos, texPos);
+		m_chunks.back().tva.setTile(innerPos, tile);
 		m_chunks.back().tva.offset = Vec2f{ (float)chunkPos.x * m_chunk_size.x, (float)chunkPos.y * m_chunk_size.y } * TILESIZE_F;
 	}
 	else if (iter->chunk_pos != chunkPos) {
@@ -88,11 +88,11 @@ void ChunkVertexArray::do_setTile(Vec2u at, Vec2u texPos) {
 			.tva = Array{nSize}
 			});
 		iter->tva.setTexture(*m_tex.get());
-		iter->tva.setTile(innerPos, texPos);
+		iter->tva.setTile(innerPos, tile);
 		iter->tva.offset = Vec2f{ (float)chunkPos.x * m_chunk_size.x, (float)chunkPos.y * m_chunk_size.y } * TILESIZE_F;
 	}
 	else {
-		iter->tva.setTile(innerPos, texPos);
+		iter->tva.setTile(innerPos, tile);
 	}
 }
 
@@ -125,7 +125,7 @@ void ChunkVertexArray::predraw() {
 	while (!commands.empty()) {
 		switch (commands.front().type) {
 		case Command::Type::Set:
-			do_setTile(commands.front().tile_pos, commands.front().tex_pos);
+			do_setTile(commands.front().tile_pos, commands.front().tile);
 			break;
 		case Command::Type::Blank:
 			do_blank(commands.front().tile_pos);

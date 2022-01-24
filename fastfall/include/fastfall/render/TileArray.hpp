@@ -7,6 +7,8 @@
 #include "fastfall/render/Transformable.hpp"
 #include "fastfall/render.hpp"
 
+#include "fastfall/game/level/TileID.hpp"
+
 namespace ff {
 
 class TileArray : public Transformable {
@@ -23,7 +25,7 @@ public:
 
 	void setTexture(const Texture& texture) noexcept;
 	const TextureRef& getTexture() const noexcept;
-	void setTile(Vec2u at, Vec2u texPos);
+	void setTile(Vec2u at, TileID tile);
 	void blank(Vec2u at);
 	void clear();
 
@@ -57,7 +59,7 @@ private:
 	size_t tile_count;
 	//size_t max_tiles;
 	//std::unique_ptr<uint8_t[]> tiles;
-	grid_vector<uint8_t> tiles;
+	grid_vector<TileID> tiles;
 
 };
 

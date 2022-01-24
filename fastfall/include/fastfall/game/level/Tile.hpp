@@ -115,7 +115,7 @@ namespace ff {
 		Cardinal matFacing = Cardinal::N;
 
 		// tile next reference
-		TileID next_offset = TileID{ 0u };
+		TileID next_offset = TileID{};
 		std::optional<unsigned> next_tileset = std::nullopt;
 
 		bool auto_substitute = false;

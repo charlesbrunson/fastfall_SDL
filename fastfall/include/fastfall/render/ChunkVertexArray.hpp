@@ -18,8 +18,8 @@ public:
 	void setTexture(const Texture& texture) noexcept;
 	const TextureRef& getTexture() const noexcept;
 
-	void setTile(Vec2u at, Vec2u texPos) { 
-		commands.push(Command{ .type = Command::Type::Set, .tile_pos = at, .tex_pos = texPos });
+	void setTile(Vec2u at, TileID tile) { 
+		commands.push(Command{ .type = Command::Type::Set, .tile_pos = at, .tile = tile });
 	};
 	void blank(Vec2u at) {
 		commands.push(Command{ .type = Command::Type::Blank, .tile_pos = at });
@@ -42,7 +42,7 @@ public:
 
 private:
 
-	void do_setTile(Vec2u at, Vec2u texPos);
+	void do_setTile(Vec2u at, TileID tile);
 	void do_blank(Vec2u at);
 	void do_clear();
 
@@ -80,7 +80,7 @@ private:
 		} type;
 
 		Vec2u tile_pos;
-		Vec2u tex_pos;
+		TileID tile;
 	};
 	std::queue<Command> commands;
 

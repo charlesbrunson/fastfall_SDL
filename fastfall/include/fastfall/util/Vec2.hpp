@@ -51,6 +51,7 @@ public:
 
 	}
 
+	/*
 	template<typename T = float>
 	requires std::is_same_v<Type, T>
 	constexpr Vec2(const flat::math::Vec2Ff& v) : x(v.x()), y(v.y()) {}
@@ -86,6 +87,7 @@ public:
 	template<typename T = unsigned>
 	requires std::is_same_v<Type, T>
 	constexpr Vec2<Type> operator=(const flat::math::Vec2Fu* v) { x = v->x(); y = v->y();	return *this; }
+	*/
 	
 	//template <typename P>
 	constexpr operator glm::vec<2, Type>() const {

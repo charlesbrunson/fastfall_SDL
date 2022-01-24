@@ -39,22 +39,22 @@ public:
 
 	Vec2i getKerning(char left, char right) const;
 
+	bool isLoaded() const { return m_face != nullptr; }
+
 	constexpr static uint8_t CHAR_COUNT = 128;
 
 private:
 
 	bool load(FT_Face face);
 
-	int yMin;
-	int yMax;
-	int height;
+	int yMin			= 0;
+	int yMax			= 0;
+	int height			= 0;
+	unsigned px_size	= 0;
 
 	Texture font_bitmap;
-	unsigned px_size;
 	glm::i64vec2 glyph_max_size;
 	std::array<GlyphMetrics, CHAR_COUNT> glyph_metrics;
-	bool loaded = false;
-
 	FT_Face m_face = nullptr;
 };
 

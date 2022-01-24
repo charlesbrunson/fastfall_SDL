@@ -6,14 +6,14 @@
 
 namespace ff {
 
-constexpr uint8_t MAX_DIMEN = 16u;
+//constexpr uint8_t MAX_DIMEN = 16u;
 
 TileArray::TileArray(Vec2u size)
 	: m_size(size)
 {
 	tile_count  = 0;
-	tiles = grid_vector<uint8_t>(size.x, size.y);
-	std::fill(tiles.begin(), tiles.end(), UINT8_MAX);
+	tiles = grid_vector<TileID>(size.x, size.y);
+	//std::fill(tiles.begin(), tiles.end(), TileID{});
 }
 
 TileArray::~TileArray()
@@ -83,20 +83,17 @@ void TileArray::resize(Vec2u n_size)
 	LOG_WARN("TileArray::resize is currently unsupported");
 }
 
-void TileArray::setTile(Vec2u at, Vec2u texPos)
+void TileArray::setTile(Vec2u at, TileID tile)
 {
 	assert(at.x < m_size.x && at.y < m_size.y);
 	size_t ndx = ((size_t)at.y * m_size.x) + at.x;
 
-	assert(texPos.x < MAX_DIMEN && texPos.y < MAX_DIMEN);
-	uint8_t tile_id = texPos.x + (texPos.y * MAX_DIMEN);
-
-	if (tiles[ndx] == UINT8_MAX && tile_id != UINT8_MAX) 
+	if (!tiles[ndx].valid() && tile.valid())
 	{
 		tile_count++;
 		gl.sync = false;
 	}
-	tiles[ndx] = tile_id;	
+	tiles[ndx] = tile;
 }
 
 void TileArray::blank(Vec2u at)
@@ -104,12 +101,12 @@ void TileArray::blank(Vec2u at)
 	assert(at.x < m_size.x && at.y < m_size.y);
 	size_t ndx = ((size_t)at.y * m_size.x) + at.x;
 
-	if (tiles[ndx] != UINT8_MAX) 
+	if (tiles[ndx].valid()) 
 	{
 		tile_count--;
 		gl.sync = false;
 	}
-	tiles[ndx] = UINT8_MAX;	
+	tiles[ndx] = {};
 }
 
 void TileArray::clear()
@@ -117,7 +114,7 @@ void TileArray::clear()
 	m_tex = TextureRef{};
 	tile_count = 0;
 
-	std::fill(tiles.begin(), tiles.end(), UINT8_MAX);
+	std::fill(tiles.begin(), tiles.end(), TileID{});
 	gl.sync = false;
 }
 
@@ -130,11 +127,11 @@ void TileArray::glTransfer() const
 
 		glCheck(glBindVertexArray(gl.m_array));
 		glCheck(glBindBuffer(GL_ARRAY_BUFFER, gl.m_buffer));
-		glCheck(glBufferData(GL_ARRAY_BUFFER, tiles.size() * sizeof(uint8_t), NULL, GL_DYNAMIC_DRAW));
+		glCheck(glBufferData(GL_ARRAY_BUFFER, tiles.size() * sizeof(TileID), NULL, GL_DYNAMIC_DRAW));
 		gl.m_bufsize = tiles.size();
-
+		
 		// tile id attribute
-		glCheck(glVertexAttribIPointer(0, 1, GL_UNSIGNED_BYTE, 0, (void*)0));
+		glCheck(glVertexAttribIPointer(0, 1, GL_UNSIGNED_SHORT, 0, (void*)0));
 		glCheck(glEnableVertexAttribArray(0));
 		glCheck(glVertexAttribDivisor(0, 1)); // one tile id per instance
 
@@ -146,12 +143,12 @@ void TileArray::glTransfer() const
 	if (!gl.sync) {
 		glCheck(glBindBuffer(GL_ARRAY_BUFFER, gl.m_buffer));
 		if (!gl.m_bound || tiles.size() > gl.m_bufsize) {
-			glCheck(glBufferData(GL_ARRAY_BUFFER, tiles.size() * sizeof(uint8_t), &tiles[0], GL_DYNAMIC_DRAW));
+			glCheck(glBufferData(GL_ARRAY_BUFFER, tiles.size() * sizeof(TileID), &tiles[0], GL_DYNAMIC_DRAW));
 			gl.m_bufsize = tiles.size();
 			gl.m_bound = true;
 		}
 		else {
-			glCheck(glBufferSubData(GL_ARRAY_BUFFER, 0, tiles.size() * sizeof(uint8_t), &tiles[0]));
+			glCheck(glBufferSubData(GL_ARRAY_BUFFER, 0, tiles.size() * sizeof(TileID), &tiles[0]));
 		}
 		gl.sync = true;
 	}

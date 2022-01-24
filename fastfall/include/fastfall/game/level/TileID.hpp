@@ -7,79 +7,123 @@
 namespace ff {
 
 struct TileID {
-	uint8_t y : 4 = 15u;
-	uint8_t x : 4 = 15u;
+	enum TileID_Mask : uint16_t
+	{
+		PadTop		= 0b1000'0000'0000'0000,
+		PadRight	= 0b0100'0000'0000'0000,
+		PadBottom	= 0b0010'0000'0000'0000,
+		PadLeft		= 0b0001'0000'0000'0000,
+
+		PadMask = 0b1111'0000'0000'0000,
+
+		Y = 0b0000'1111'1100'0000,
+		X = 0b0000'0000'0011'1111,
+
+		InvalidTile = ( Y | X )
+	};
+
+	static constexpr unsigned dimension_max = 64u;
+
+	uint16_t value = TileID_Mask::InvalidTile;
 
 	TileID() = default;
+
 	constexpr TileID(
 		std::unsigned_integral auto _x,
 		std::unsigned_integral auto _y)
 	{
-		if (_x > 15u || _y > 15u) {
+		if (_x >= dimension_max || _y >= dimension_max) {
 			reset();
 		}
 		else {
-			x = _x;
-			y = _y;
+			setX(_x);
+			setY(_y);
 		}
 	}
 
-	explicit constexpr TileID(Vec2u v) {
-		if (v.x > 15u || v.y > 15u) {
-			reset();
-		}
-		else {
-			x = v.x;
-			y = v.y;
-		}
+	explicit constexpr TileID(Vec2u v)
+		: TileID(v.x, v.y)
+	{
 	}
 
-	explicit constexpr TileID(uint8_t id) {
-		*this = std::bit_cast<uint8_t>(id);
+	constexpr uint8_t getX() const
+	{
+		return (value & TileID_Mask::X);
 	}
 
-	constexpr TileID& operator= (uint8_t id) {
-		y = id >> 4;
-		x = id & 15u;
-		return *this;
+	constexpr uint8_t getY() const
+	{
+		return (value & TileID_Mask::Y) >> 6;
+	}
+
+	constexpr void setX(uint8_t _x)
+	{
+		value = (value & ~(TileID_Mask::X)) | ( _x & TileID_Mask::X);
+	}
+
+	constexpr void setY(uint8_t _y)
+	{
+		value = (value & ~(TileID_Mask::Y)) | ((_y << 6) & TileID_Mask::Y);
+	}
+
+	constexpr uint8_t getPadding() const
+	{
+		return (value & TileID_Mask::PadMask) >> 12;
+	}
+
+	constexpr void setPadding(unsigned cardinal_bits)
+	{
+		value = (value & ~(TileID_Mask::PadMask)) | (cardinal_bits << 12);
+	}
+
+	constexpr void setPadding(Cardinal dir, bool set)
+	{
+		value = (value & ~(direction::to_bits(dir) << 12));
+		if (set) value |= (1 << 12);
+	}
+
+	constexpr bool hasPadding(Cardinal dir) const
+	{
+		return (value & direction::to_bits(dir)) > 0;
 	}
 
 	constexpr Vec2u to_vec() const {
-		return Vec2u{ x, y };
-	}
-	constexpr uint8_t to_byte() const {
-		return std::bit_cast<uint8_t>(*this);
+		return Vec2u{ getX(), getY() };
 	}
 
-	constexpr void reset() {
-		*this = std::bit_cast<uint8_t>(UINT8_MAX);
+	constexpr void reset()
+	{
+		value = TileID_Mask::InvalidTile;
 	}
 
 	constexpr bool valid() const {
-		return std::bit_cast<uint8_t>(*this) != UINT8_MAX;
+		return (value & TileID_Mask::InvalidTile) != TileID_Mask::InvalidTile;
 	}
 
+	/*
 	constexpr operator bool() const {
-		return std::bit_cast<uint8_t>(*this) != UINT8_MAX;
+		return valid();
 	}
+	*/
+
+	/*
 	constexpr operator Vec2u() const {
 		return to_vec();
 	}
-	constexpr operator uint8_t() const {
-		return to_byte();
-	}
+	*/
 
 	constexpr bool operator== (TileID id) const {
-		return std::bit_cast<uint8_t>(id) == std::bit_cast<uint8_t>(*this);
-	}
-	constexpr bool operator!= (TileID id) const {
-		return std::bit_cast<uint8_t>(id) != std::bit_cast<uint8_t>(*this);
+		return getX() == id.getX() && getY() == id.getY();
 	}
 
-	constexpr TileID operator+ (TileID rhs) {
+	constexpr bool operator!= (TileID id) const {
+		return !(*this == id);
+	}
+
+	constexpr TileID operator+ (Vec2u rhs) const {
 		TileID r = *this;
-		r.x += rhs.x;
-		r.y += rhs.y;
+		r.setX((r.getX() + rhs.x) & 63u);
+		r.setY((r.getY() + rhs.y) & 63u);
 		return r;
 	}
 

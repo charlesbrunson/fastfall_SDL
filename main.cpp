@@ -14,6 +14,18 @@
 #include "fastfall/render/font.hpp"
 #include "fastfall/render/text.hpp"
 
+#include "fastfall/game/level/TileID.hpp"
+
+#ifdef WIN32
+#include <Windows.h>
+
+extern "C" {
+	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+	_declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001;
+}
+
+#endif
+
 ff::EngineSettings getSettings() {
 	ff::EngineSettings settings;
 	settings.allowMargins = true;
@@ -27,8 +39,8 @@ ff::EngineSettings getSettings() {
 #else
 	settings.refreshRate = 144;
 	settings.vsyncEnabled = true;
-	//settings.runstyle = ff::EngineRunStyle::SingleThread;
-	settings.runstyle = ff::EngineRunStyle::DoubleThread;
+	settings.runstyle = ff::EngineRunStyle::SingleThread;
+	//settings.runstyle = ff::EngineRunStyle::DoubleThread;
 #endif
 
 #if defined(DEBUG)
