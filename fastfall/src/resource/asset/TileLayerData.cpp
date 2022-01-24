@@ -120,7 +120,7 @@ TileLayerData::TileChangeArray TileLayerData::setTile(Vec2u at, TileID tile_id, 
 	}
 
 	Tile tile = tileset.getTile(tile_id);
-	TileID placed_tiled_id = tile_id;
+	TileID placed_tiled_id = tile.id;
 
 	if (tile.auto_substitute)
 	{
@@ -135,7 +135,7 @@ TileLayerData::TileChangeArray TileLayerData::setTile(Vec2u at, TileID tile_id, 
 
 	tiles[at].has_tile = true;
 	tiles[at].pos = at;
-	tiles[at].base_id = tile_id;
+	tiles[at].base_id = tile.id;
 	tiles[at].tile_id = placed_tiled_id;
 	tiles[at].tileset_ndx = tileset_ndx;
 	tiles[at].is_autotile = tile.auto_substitute;

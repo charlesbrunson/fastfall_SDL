@@ -78,8 +78,9 @@ struct TileID {
 
 	constexpr void setPadding(Cardinal dir, bool set)
 	{
-		value = (value & ~(direction::to_bits(dir) << 12));
-		if (set) value |= (1 << 12);
+		unsigned pos = (15u - (unsigned)dir);
+
+		value = (value & ~(1 << pos)) | (set << pos);
 	}
 
 	constexpr bool hasPadding(Cardinal dir) const
@@ -122,6 +123,7 @@ struct TileID {
 
 	constexpr TileID operator+ (Vec2u rhs) const {
 		TileID r = *this;
+		r.setPadding(this->getPadding());
 		r.setX((r.getX() + rhs.x) & 63u);
 		r.setY((r.getY() + rhs.y) & 63u);
 		return r;

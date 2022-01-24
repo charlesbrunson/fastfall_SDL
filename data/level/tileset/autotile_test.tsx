@@ -487,6 +487,13 @@
    <property name="shape" value="solid"/>
   </properties>
  </tile>
+ <tile id="86">
+  <properties>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;no&quot;,&quot;e&quot;:&quot;yes&quot;, &quot;s&quot;:&quot;yes&quot;, &quot;w&quot;:&quot;yes&quot;}"/>
+   <property name="padding" value="n"/>
+   <property name="shape" value="solid"/>
+  </properties>
+ </tile>
  <tile id="87">
   <properties>
    <property name="auto_constraint" value="{&quot;n&quot;:&quot;yes&quot;,&quot;e&quot;:&quot;yes&quot;, &quot;s&quot;:&quot;yes&quot;, &quot;w&quot;:&quot;yes&quot;, &quot;ne&quot;:&quot;yes&quot;}"/>

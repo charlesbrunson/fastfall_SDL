@@ -68,10 +68,6 @@ void main()
 {
 	const float TILESIZE = 16.0;
 
-	const uint PAD_TOP_MASK 	= (1 << 16);
-	const uint PAD_RIGHT_MASK 	= (1 << 15);
-	const uint PAD_BOT_MASK 	= (1 << 14);
-	const uint PAD_LEFT_MASK 	= (1 << 13);
 	const uint Y_MASK 			= (63u << 6);
 	const uint X_MASK 			= (63u);
 	const uint XY_MASK = (X_MASK | Y_MASK);
@@ -80,10 +76,10 @@ void main()
 	// non-empty tile
 	if ((aTileId & XY_MASK) != INVALID) {
 
-		uint pad_top 	= (aTileId >> 16) & 1;
-		uint pad_right 	= (aTileId >> 15) & 1;
-		uint pad_bot 	= (aTileId >> 14) & 1;
-		uint pad_left 	= (aTileId >> 13) & 1;
+		uint pad_top 	= (aTileId >> 15) & 1;
+		uint pad_right 	= (aTileId >> 14) & 1;
+		uint pad_bot 	= (aTileId >> 13) & 1;
+		uint pad_left 	= (aTileId >> 12) & 1;
 
 		uvec2 tile_id = uvec2(
 			aTileId & X_MASK,
@@ -112,8 +108,8 @@ void main()
 			+ ( 1.0 * pad_right * float((gl_VertexID)     & 1));
 
 		p_offset.y = p_offset.y
-			+ (-1.0 * pad_top * float( ( ( (gl_VertexID & 2) >> 1) + 1) & 1) ) 
-			+ ( 1.0 * pad_bot * float(((gl_VertexID & 2) >> 1)));
+			+ (-1.0 * pad_top * float((((gl_VertexID & 2) >> 1) + 1) & 1) ) 
+			+ ( 1.0 * pad_bot * float(( (gl_VertexID & 2) >> 1)));
 
 		// position of tile based on instance id + position offset
 		vec2 position = p_offset + vec2(

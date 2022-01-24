@@ -24,6 +24,8 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 			asset.constraints.at(state.tileConstraint).shape = state.tile.shape;
 		}
 	}},
+
+	// logic stuff
 	{"logic", [](TilesetAsset& asset, TileData& state, char* value)
 	{
 		state.has_prop_bits |= TileHasProp::HasLogic;
@@ -71,6 +73,8 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 			state.tile.next_tileset = asset.getTilesetRefIndex(value);
 		}
 	}},
+
+	// material
 	{"material", [](TilesetAsset& asset, TileData& state, char* value)
 	{
 		state.has_prop_bits |= TileHasProp::HasMaterial;
@@ -163,11 +167,29 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 		state.has_prop_bits |= TileHasProp::HasConstraint;
 		state.tileConstraint = asset.addTileConstraint(state.tile.id, constraint);
 	}},
+
 	// make tile as auto substitutable
 	{ "auto_substitute", [](TilesetAsset& asset, TileData& state, char* value)
 	{
 		state.tile.auto_substitute = std::string_view{value} == "true";
-	}}
+	}},
+
+	//padding
+	{ "padding", [](TilesetAsset& asset, TileData& state, char* value)
+	{
+		std::string_view str{value};
+		state.tile.id.setPadding(Cardinal::N, str.find_first_of('n') != std::string_view::npos);
+		state.tile.id.setPadding(Cardinal::E, str.find_first_of('e') != std::string_view::npos);
+		state.tile.id.setPadding(Cardinal::S, str.find_first_of('s') != std::string_view::npos);
+		state.tile.id.setPadding(Cardinal::W, str.find_first_of('w') != std::string_view::npos);
+
+		if (state.has_prop_bits & TileHasProp::HasConstraint)
+		{
+			asset.constraints.at(state.tileConstraint).tile_id = state.tile.id;
+		}
+
+	}},
+
 
 };
 

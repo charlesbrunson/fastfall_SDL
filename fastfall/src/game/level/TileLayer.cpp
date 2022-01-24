@@ -526,31 +526,32 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 		tiles_dyn[at].logic_id = TILEDATA_NONE;
 	}
 
-	auto& tile_data = layer_data.getTileData();
+	//auto& tile_data = layer_data.getTileData();
+	auto& tile = layer_data.getTileData()[at];
 
-	if (tile_data[at].tileset_ndx == dyn.chunks.size())
+	if (tile.tileset_ndx == dyn.chunks.size())
 	{
 		dyn.chunks.push_back(ChunkVertexArray(getSize(), kChunkSize));
 		dyn.chunks.back().setTexture(next_tileset.getTexture());
-		dyn.chunks.back().setTile(at, tile_data[at].tile_id);
+		dyn.chunks.back().setTile(at, tile.tile_id);
 		dyn.chunks.back().use_visible_rect = true;
 	}
 	else {
-		dyn.chunks.at(tile_data[at].tileset_ndx).setTile(at, tile_data[at].tile_id);
+		dyn.chunks.at(tile.tileset_ndx).setTile(at, tile.tile_id);
 	}
 
 	if (hasCollision()) {
-		Tile t = next_tileset.getTile(tile_data[at].tile_id);
+		Tile t = next_tileset.getTile(tile.tile_id);
 		dyn.collision.tilemap_ptr->setTile(
 			Vec2i(at),
 			t.shape,
-			&next_tileset.getMaterial(tile_data[at].tile_id),
+			&next_tileset.getMaterial(tile.tile_id),
 			t.matFacing
 		);
 	}
 
 	if (useLogic) {
-		if (auto [logic, args] = next_tileset.getTileLogic(tile_data[at].tile_id); !logic.empty()) {
+		if (auto [logic, args] = next_tileset.getTileLogic(tile.tile_id); !logic.empty()) {
 			std::string_view logic_var = logic;
 
 
@@ -562,7 +563,7 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 				});
 			dist--;
 
-			Tile t = next_tileset.getTile(tile_data[at].tile_id);
+			Tile t = next_tileset.getTile(tile.tile_id);
 
 			if (it == dyn.tile_logic.end()) {
 				if (dyn.tile_logic.size() < UINT8_MAX - 1) {
