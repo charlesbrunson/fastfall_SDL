@@ -78,18 +78,6 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	/*
-#if 1
-	{
-		std::string font_file_path = fmt::format("{}{}", FF_DATA_DIR, "data/font/pixelated.ttf");
-
-		Font font{};
-		font.loadFromFile(font_file_path, 8u);
-		LOG_ERR_("HEH");
-	}
-#endif
-	*/
-
 	bool result = Resources::loadAll(Resources::AssetSource::INDEX_FILE, "fileindex.xml");
 	//result &= Resources::buildPackFile("data.pack");
 	//Resources::unloadAll();
@@ -111,8 +99,8 @@ int main(int argc, char* argv[])
 		getSettings()
 	);
 
-	if (Engine::getInstance().isInit()) {
-		Engine::getInstance().run();
+	if (Engine::get().isInit()) {
+		Engine::get().run();
 	}
 	else {
 		LOG_ERR_("Could not initialize engine");

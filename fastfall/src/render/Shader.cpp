@@ -98,8 +98,8 @@ void main()
 		) / -16384.0;
 
 		vec2 p_offset = vec2(
-			(0.5 + float(horz_side) * 0.5),
-			(0.5 + float(vert_side) * 0.5)
+			(0.5 + horz_side * 0.5),
+			(0.5 + vert_side * 0.5)
 		);
 
 		// add padding to position offset

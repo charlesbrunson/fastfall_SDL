@@ -87,7 +87,7 @@ public:
 
 	~Engine() = default;
 
-	static inline Engine& getInstance() { assert(engineInstance != nullptr); return *engineInstance; };
+	static inline Engine& get() { assert(engineInstance != nullptr); return *engineInstance; };
 
 	static void init(std::unique_ptr<Window>&& window, EngineRunnable&& toRun, const Vec2u& initWindowSize = Vec2u(0, 0), EngineSettings engineSettings = EngineSettings{});
 
@@ -98,12 +98,16 @@ public:
 	bool run();
 
 	inline bool isRunning() const noexcept { return running; };
-	inline bool isInit() { return initialized; }
+	inline bool isInit() const noexcept { return initialized; }
 
 	inline void freeze() { pauseUpdate = true; stepUpdate = false; };
 	inline void freezeStepOnce() { pauseUpdate = true; stepUpdate = true; };
 	inline void unfreeze() { pauseUpdate = false; stepUpdate = false; };
-	inline bool isFrozen() { return pauseUpdate; };
+	inline bool isFrozen() const noexcept { return pauseUpdate; };
+
+	inline int getWindowScale() const noexcept { return windowZoom; }
+
+
 
 
 private:

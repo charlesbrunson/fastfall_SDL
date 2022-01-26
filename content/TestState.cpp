@@ -9,6 +9,7 @@
 #include "fastfall/engine/input.hpp"
 
 #include "tilelogic/AnimLogic.hpp"
+#include "fastfall/engine/Engine.hpp"
 
 
 TestState::TestState()
@@ -41,8 +42,7 @@ TestState::TestState()
 	std::string font_file_path = fmt::format("{}{}", FF_DATA_DIR, "data/font/LionelMicroNbp-gA25.ttf");
 	font.loadFromFile(font_file_path, 8u);
 
-	tile_text.setScale({ 0.5f, 0.5f });
-	tile_text.set_vert_spacing(0.5f);
+	tile_text.set_vert_spacing(0.6f);
 }
 
 TestState::~TestState() {
@@ -182,6 +182,7 @@ void TestState::predraw(secs deltaTime) {
 				(long)mpos.x, (long)mpos.y);
 
 
+			tile_text.setScale((Vec2f{ 1.f, 1.f } * viewZoom) / Engine::get().getWindowScale());
 			tile_text.set_color(ff::Color::White);
 			tile_text.set(font, str);
 

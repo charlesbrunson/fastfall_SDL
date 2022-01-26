@@ -8,6 +8,7 @@
 //#include "fastfall/game/DebugDraw.hpp"
 
 #include "fastfall/game/InstanceInterface.hpp"
+#include "fastfall/render/DebugDraw.hpp"
 
 namespace ff {
 
@@ -237,110 +238,160 @@ Vec2f SurfaceTracker::do_max_speed(secs deltaTime) noexcept {
 // ----------------------------
 
 Vec2f SurfaceTracker::postmove_update(Vec2f wish_pos, secs deltaTime) {
-	if (!has_contact() || deltaTime <= 0.0)
-		return wish_pos;
-
-
-	Vec2f regionOffset;
-	if (const auto* region = instance::phys_get_region(context, currentContact->collider_id)) {
-		regionOffset = region->getPosition();
-	}
-
-	static auto goLeft = [](const ColliderSurface& surface) -> const ColliderSurface* {
-		if (surface.surface.p1.x < surface.surface.p2.x) {
-			if (auto* r = surface.prev) {
-				return r->surface.p1.x < r->surface.p2.x ? r : nullptr;
-			}
-		}
-		else if (surface.surface.p1.x > surface.surface.p2.x) {
-			if (auto* r = surface.next) {
-				return r->surface.p1.x > r->surface.p2.x ? r : nullptr;
-			}
-		}
-		return nullptr;
-	};
-	static auto goRight = [](const ColliderSurface& surface) -> const ColliderSurface* {
-
-
-		// TODO Wall support?
-		if (surface.surface.p1.x < surface.surface.p2.x) {
-			if (auto* r = surface.next) {
-				return r->surface.p1.x < r->surface.p2.x ? r : nullptr;
-			}
-		}
-		else if (surface.surface.p1.x > surface.surface.p2.x) {
-			if (auto* r = surface.prev) {
-				return r->surface.p1.x > r->surface.p2.x ? r : nullptr;
-			}
-		}
-		return nullptr;
-	};
 
 	Vec2f position = wish_pos;
 
-	auto& contact = currentContact.value();
+	if (has_contact() && deltaTime > 0.0) {
 
-	float left = std::min(contact.collider.surface.p1.x, contact.collider.surface.p2.x);
-	float right = std::max(contact.collider.surface.p1.x, contact.collider.surface.p2.x);
-
-	if (settings.slope_sticking && left < right) {
-
-		const ColliderSurface* next = nullptr;
-
-		bool goingLeft = false;
-		bool goingRight = false;
-
-		if (wish_pos.x > right) {
-			goingRight = true;
-			next = goRight(contact.collider);
-		}
-		else if (wish_pos.x < left) {
-			goingLeft = true;
-			next = goLeft(contact.collider);
+		Vec2f regionOffset;
+		if (const auto* region = instance::phys_get_region(context, currentContact->collider_id)) {
+			regionOffset = region->getPosition();
 		}
 
-		if (next) {
+		static auto goLeft = [](const ColliderSurface& surface) -> const ColliderSurface* {
+			if (surface.surface.p1.x < surface.surface.p2.x) {
+				if (auto* r = surface.prev) {
+					return r->surface.p1.x < r->surface.p2.x ? r : nullptr;
+				}
+			}
+			else if (surface.surface.p1.x > surface.surface.p2.x) {
+				if (auto* r = surface.next) {
+					return r->surface.p1.x > r->surface.p2.x ? r : nullptr;
+				}
+			}
+			return nullptr;
+		};
+		static auto goRight = [](const ColliderSurface& surface) -> const ColliderSurface* {
 
-			Angle next_ang = math::angle(next->surface);
-			Angle curr_ang = math::angle(contact.collider.surface);
-			Angle diff = next_ang - curr_ang;
 
-			if (next_ang.radians() != curr_ang.radians()
-				&& is_angle_in_range(next_ang - Angle::Degree(90.f)) 
-				&& abs(diff.degrees()) < abs(settings.stick_angle_max.degrees())) 
-			{
-				Vec2f hyp = wish_pos - ((goingRight ? next->surface.p1 : next->surface.p2) + regionOffset);
-				Angle theta = math::angle(hyp) - math::angle(next->surface);
+			// TODO Wall support?
+			if (surface.surface.p1.x < surface.surface.p2.x) {
+				if (auto* r = surface.next) {
+					return r->surface.p1.x < r->surface.p2.x ? r : nullptr;
+				}
+			}
+			else if (surface.surface.p1.x > surface.surface.p2.x) {
+				if (auto* r = surface.prev) {
+					return r->surface.p1.x > r->surface.p2.x ? r : nullptr;
+				}
+			}
+			return nullptr;
+		};
 
-				// update velocity
-				Angle gAng = math::angle(next->surface);
-				if (goingLeft)
-					gAng += Angle::Degree(180.f);
 
-				Vec2f nVel;
-				
-				float vel_mag = owner->get_vel().magnitude();
-				nVel.x = cosf(gAng.radians()) * vel_mag;
-				nVel.y = sinf(gAng.radians()) * vel_mag;
-				
-				//nVel = math::projection(owner->get_vel(), math::vector(next->surface));
+		auto& contact = currentContact.value();
 
-				owner->set_vel(nVel);
+		float left = std::min(contact.collider.surface.p1.x, contact.collider.surface.p2.x);
+		float right = std::max(contact.collider.surface.p1.x, contact.collider.surface.p2.x);
 
-				if (theta.degrees() < 0.f && abs(diff.degrees()) < abs(settings.stick_angle_max.degrees())) {
+		if (settings.slope_sticking && left < right) {
 
-					// update position
-					float dist = hyp.magnitude() * sin(theta.radians());
-					Vec2f offset = math::vector(next->surface).lefthand().unit();
+			const ColliderSurface* next = nullptr;
 
-					position += offset * dist * 2.f;
+			bool goingLeft = false;
+			bool goingRight = false;
 
-					if (callback_on_stick)
-						callback_on_stick(*next);
+			if (wish_pos.x > right) {
+				goingRight = true;
+				next = goRight(contact.collider);
+			}
+			else if (wish_pos.x < left) {
+				goingLeft = true;
+				next = goLeft(contact.collider);
+			}
 
+			if (next) {
+
+				Angle next_ang = math::angle(next->surface);
+				Angle curr_ang = math::angle(contact.collider.surface);
+				Angle diff = next_ang - curr_ang;
+
+				if (next_ang.radians() != curr_ang.radians()
+					&& is_angle_in_range(next_ang - Angle::Degree(90.f))
+					&& abs(diff.degrees()) < abs(settings.stick_angle_max.degrees()))
+				{
+					Vec2f hyp = wish_pos - ((goingRight ? next->surface.p1 : next->surface.p2) + regionOffset);
+					Angle theta = math::angle(hyp) - math::angle(next->surface);
+
+					// update velocity
+					Angle gAng = math::angle(next->surface);
+					if (goingLeft)
+						gAng += Angle::Degree(180.f);
+
+					Vec2f nVel;
+
+					float vel_mag = owner->get_vel().magnitude();
+					nVel.x = cosf(gAng.radians()) * vel_mag;
+					nVel.y = sinf(gAng.radians()) * vel_mag;
+
+					//nVel = math::projection(owner->get_vel(), math::vector(next->surface));
+
+					owner->set_vel(nVel);
+
+					if (theta.degrees() < 0.f && abs(diff.degrees()) < abs(settings.stick_angle_max.degrees())) {
+
+						// update position
+						float dist = hyp.magnitude() * sin(theta.radians());
+						Vec2f offset = math::vector(next->surface).lefthand().unit();
+
+						position += offset * dist;
+
+						if (callback_on_stick)
+							callback_on_stick(*next);
+
+					}
 				}
 			}
 		}
+
+	}
+
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_CONTACT))
+	{
+		
+		if (wish_pos != position)
+		{
+			auto& draw1 = createDebugDrawable<ShapeCircle, debug_draw::Type::COLLISION_CONTACT>(
+				(const void*)this,
+				wish_pos,
+				1.f,
+				4,
+				Color::Transparent,
+				Color::Red);
+
+			auto& draw2 = createDebugDrawable<ShapeCircle, debug_draw::Type::COLLISION_CONTACT>(
+				(const void*)this,
+				position,
+				1.f,
+				4,
+				Color::Transparent,
+				Color::Yellow);
+
+			auto& draw3 = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(
+				(const void*)this,
+				Primitive::LINES,
+				4
+				);
+
+
+			draw3[0].pos = wish_pos;
+			draw3[1].pos = position;
+
+			draw3[0].color = Color::Red;
+			draw3[1].color = Color::Yellow;
+
+
+			draw3[2].pos = Vec2f{ owner->getPrevBox().getPosition() } + Vec2f{ owner->getPrevBox().getSize().x * 0.5f, owner->getPrevBox().getSize().y };
+			draw3[3].pos = wish_pos;
+
+			draw3[2].color = Color::Red;
+			draw3[3].color = Color::Red;
+			
+		}
+		else {
+			debug_draw::repeat((const void*)this, Vec2f{});
+		}
+		
 	}
 
 	return position;

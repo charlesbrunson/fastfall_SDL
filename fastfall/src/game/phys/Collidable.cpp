@@ -255,13 +255,21 @@ void Collidable::update(secs deltaTime) {
 		vel.x = math::reduce(vel.x, decel_accum.x * (float)deltaTime, surfaceVel.x);
 		vel.y = math::reduce(vel.y, decel_accum.y * (float)deltaTime, surfaceVel.y);
 
-		vel += gravity_acc * deltaTime;
+		//vel += gravity_acc * deltaTime;
 
 		pos += vel * deltaTime;
+	}
 
-		for (auto& tracker : trackers) {
-			pos = tracker->postmove_update(pos, deltaTime);
-		}
+	for (auto& tracker : trackers) {
+		Vec2f p = tracker->postmove_update(pos, deltaTime);
+		if (deltaTime > 0.0)
+			pos = p;
+	}
+
+	if (deltaTime > 0.0) {
+
+		vel += gravity_acc * deltaTime;
+		pos += gravity_acc * deltaTime * deltaTime;
 
 
 		friction_vel = vel;
