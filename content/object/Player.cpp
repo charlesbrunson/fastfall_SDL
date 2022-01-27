@@ -13,15 +13,13 @@ using namespace plr;
 
 const ObjectType Player::Type{
 	.type = { "Player" },
-	.allow_level_data = true,
+	.allow_as_level_data = true,
 	.anim = std::make_optional(AnimIDRef{"player.sax", "idle"}),
 	.tile_size = { 1u, 2u },
-	.group_tags = {
-		"player"
-	},
+	.group_tags = {	"player" },
 	.properties = {
-		ObjectProperty{"anotherprop", ObjectPropertyType::String},
-		ObjectProperty{"faceleft", false}
+		{"anotherprop",		ObjectPropertyType::String},
+		{"faceleft",		false}
 	}
 };
 

@@ -2,6 +2,7 @@
 
 #include <string_view>
 #include <array>
+#include <deque>
 
 #include "fastfall/util/Vec2.hpp"
 #include "fastfall/render/freetype.hpp"
@@ -25,36 +26,49 @@ public:
 	Font();
 	~Font();
 
-	bool loadFromFile(std::string_view font_file, unsigned pixel_size);
-	bool loadFromStream(const void* font_data, short length, unsigned pixel_size);
+	bool loadFromFile(std::string_view font_file);
+	bool loadFromStream(const void* font_data, short length);
 
-	const Texture& getBitmapTex() const { return font_bitmap; };
-	const GlyphMetrics& getMetrics(unsigned char ch) const { return glyph_metrics[ch]; };
-	glm::i64vec2 getGlyphSize() const { return glyph_max_size; };
-	unsigned getPixelSize() const { return px_size; };
+	void unload();
 
-	int getYMin() const { return yMin; };
-	int getYMax() const { return yMax; };
-	int getHeight() const { return height; };
+	bool cachePixelSize(unsigned pixel_size);
+	bool setPixelSize(unsigned pixel_size);
 
-	Vec2i getKerning(char left, char right) const;
+	const Texture&		getBitmapTex() const { return curr_cache->font_bitmap; };
+	const GlyphMetrics& getMetrics(unsigned char ch) const { return curr_cache->glyph_metrics[ch]; };
+	glm::i64vec2		getGlyphSize() const { return curr_cache->glyph_max_size; };
+	unsigned			getPixelSize() const { return curr_cache->px_size; };
+
+	int getYMin()	const { return curr_cache->yMin; };
+	int getYMax()	const { return curr_cache->yMax; };
+	int getHeight() const { return curr_cache->height; };
+
+	//Vec2i getKerning(char left, char right) const;
 
 	bool isLoaded() const { return m_face != nullptr; }
 
 	constexpr static uint8_t CHAR_COUNT = 128;
 
 private:
+	struct FontCache
+	{
+		bool valid = false;
 
-	bool load(FT_Face face);
+		int yMin = 0;
+		int yMax = 0;
+		int height = 0;
+		unsigned px_size = 0;
 
-	int yMin			= 0;
-	int yMax			= 0;
-	int height			= 0;
-	unsigned px_size	= 0;
+		Texture font_bitmap;
+		glm::i64vec2 glyph_max_size;
+		std::array<GlyphMetrics, CHAR_COUNT> glyph_metrics;
+	};
 
-	Texture font_bitmap;
-	glm::i64vec2 glyph_max_size;
-	std::array<GlyphMetrics, CHAR_COUNT> glyph_metrics;
+	FontCache* cache_for_size(unsigned size);
+
+	std::vector<std::unique_ptr<FontCache>> caches;
+	FontCache* curr_cache = nullptr;
+
 	FT_Face m_face = nullptr;
 };
 

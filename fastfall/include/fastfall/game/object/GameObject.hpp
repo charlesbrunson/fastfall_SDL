@@ -38,14 +38,14 @@ enum class ObjectPropertyType {
 struct ObjectProperty {
 
 	// only specify the expected type
-	explicit ObjectProperty(std::string propName, ObjectPropertyType type) : name(propName), type(type), default_value("") {}
+	ObjectProperty(std::string propName, ObjectPropertyType type) : name(propName), type(type), default_value("") {}
 
 	// specify type and default value
-	explicit ObjectProperty(std::string propName, std::string value_default): name(propName), type(ObjectPropertyType::String), default_value(value_default) {}
-	explicit ObjectProperty(std::string propName, int value_default)		: name(propName), type(ObjectPropertyType::Int),    default_value(std::to_string(value_default)) {}
-	explicit ObjectProperty(std::string propName, bool value_default)		: name(propName), type(ObjectPropertyType::Bool),   default_value(std::to_string(value_default)) {}
-	explicit ObjectProperty(std::string propName, float value_default)		: name(propName), type(ObjectPropertyType::Float),  default_value(std::to_string(value_default)) {}
-	explicit ObjectProperty(std::string propName, ObjLevelID value_default)	: name(propName), type(ObjectPropertyType::Object), default_value(std::to_string(value_default.id)) {}
+	ObjectProperty(std::string propName, std::string value_default): name(propName), type(ObjectPropertyType::String), default_value(value_default) {}
+	ObjectProperty(std::string propName, int value_default)		: name(propName), type(ObjectPropertyType::Int),    default_value(std::to_string(value_default)) {}
+	ObjectProperty(std::string propName, bool value_default)		: name(propName), type(ObjectPropertyType::Bool),   default_value(std::to_string(value_default)) {}
+	ObjectProperty(std::string propName, float value_default)		: name(propName), type(ObjectPropertyType::Float),  default_value(std::to_string(value_default)) {}
+	ObjectProperty(std::string propName, ObjLevelID value_default)	: name(propName), type(ObjectPropertyType::Object), default_value(std::to_string(value_default.id)) {}
 
 	std::string name;
 	ObjectPropertyType type;
@@ -76,9 +76,13 @@ struct ObjectType {
 		size_t	    hash;
 	} type;
 
-	bool allow_level_data = false;
+	bool allow_as_level_data = false;
 	std::optional<AnimIDRef> anim;
+
 	Vec2u tile_size = { 0u, 0u };
+	Color tile_fill_color = Color::White().alpha(128u);
+	Color tile_outline_color = Color::White;
+
 	std::set<ObjectGroupTag> group_tags;
 	std::set<ObjectProperty> properties;
 

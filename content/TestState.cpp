@@ -35,14 +35,15 @@ TestState::TestState()
 
 	edit = std::make_unique<LevelEditor>( *lvl, false );
 	edit->select_layer(-1);
-	edit->select_tileset("autotile_test.tsx");
-	edit->select_tile(TileID{ 0u, 0u });
+	edit->select_tileset("tech_fg.tsx");
+	edit->select_tile(edit->get_tileset()->getAutoTileForShape("slope"_ts).value_or(TileID{0u, 0u}));
 
 	
 	std::string font_file_path = fmt::format("{}{}", FF_DATA_DIR, "data/font/LionelMicroNbp-gA25.ttf");
-	font.loadFromFile(font_file_path, 8u);
+	font.loadFromFile(font_file_path);
+	//font.setPixelSize(8u);
 
-	tile_text.set_vert_spacing(0.6f);
+	tile_text.setVertSpacing(1.f);
 }
 
 TestState::~TestState() {
@@ -114,6 +115,57 @@ void TestState::update(secs deltaTime) {
 		layerOnKeyPressed(SDL_SCANCODE_KP_MINUS, -1);
 		layerOnKeyPressed(SDL_SCANCODE_KP_PLUS, 1);
 
+		onKeyPressed(SDL_SCANCODE_C, [&]() {
+				const auto* tilelayer = edit->get_tile_layer();
+
+				Vec2u tile_pos = Vec2u{ tpos };
+
+				if (tilelayer
+					&& tilelayer->tilelayer.hasTileAt(tile_pos))
+				{
+					const TilesetAsset* tileset = tilelayer->tilelayer.getTileTileset(tile_pos);
+					TileID id = tilelayer->tilelayer.getTileBaseID(tile_pos).value_or(TileID{});
+
+					if (tileset && id.valid())
+					{
+						edit->select_tileset(tileset);
+						edit->select_tile(id);
+					}
+				}
+			});
+
+		onKeyPressed(SDL_SCANCODE_H, [&]() {
+				if (edit->get_tile_layer()
+					&& edit->get_tileset()
+					&& edit->get_tile()
+					&& edit->get_tileset()->getTile(*edit->get_tile()).auto_substitute)
+				{	
+					auto shape = edit->get_tileset()->getTile(*edit->get_tile()).shape;
+					shape = TileShape{ shape.type, !shape.flip_h, shape.flip_v };
+
+					if (auto flip_id = edit->get_tileset()->getAutoTileForShape(shape))
+					{
+						edit->select_tile(flip_id.value());
+					}
+				}
+			});
+
+		onKeyPressed(SDL_SCANCODE_V, [&]() {
+			if (edit->get_tile_layer()
+				&& edit->get_tileset()
+				&& edit->get_tile()
+				&& edit->get_tileset()->getTile(*edit->get_tile()).auto_substitute)
+			{
+				auto shape = edit->get_tileset()->getTile(*edit->get_tile()).shape;
+				shape = TileShape{ shape.type, shape.flip_h, !shape.flip_v };
+
+				if (auto flip_id = edit->get_tileset()->getAutoTileForShape(shape))
+				{
+					edit->select_tile(flip_id.value());
+				}
+			}
+			});
+
 		if (Input::getMouseInView() && (Input::isHeld(InputType::MOUSE1) || Input::isHeld(InputType::MOUSE2)))
 		{
 			Level* lvl = instance->getActiveLevel();
@@ -124,6 +176,8 @@ void TestState::update(secs deltaTime) {
 				Input::isHeld(InputType::MOUSE1)
 					? edit->paint_tile(Vec2u{ tpos })
 					: edit->erase_tile(Vec2u{ tpos });
+
+
 
 			}
 
@@ -181,22 +235,22 @@ void TestState::predraw(secs deltaTime) {
 				tpos.x, tpos.y,
 				(long)mpos.x, (long)mpos.y);
 
-
-			tile_text.setScale((Vec2f{ 1.f, 1.f } * viewZoom) / Engine::get().getWindowScale());
-			tile_text.set_color(ff::Color::White);
-			tile_text.set(font, str);
+			float scale = viewZoom / Engine::get().getWindowScale();
+			tile_text.setScale(Vec2f{ 1.f, 1.f } * scale);
+			tile_text.setColor(ff::Color::White);
+			tile_text.setText(font, 8, str);
 
 			tile_text.setPosition(
 				Input::getMouseWorldPosition() 
 				+ instance->getCamera().deltaPosition
-				- Vec2f{ 0.f, tile_text.get_scaled_bounds().height}
+				- Vec2f{ 0.f, tile_text.getScaledBounds().height}
 			);
 
 		}
 	}
 	else {
 		tile_ghost.setColor(ff::Color::Transparent);
-		tile_text.set_color(ff::Color::Transparent);
+		tile_text.setColor(ff::Color::Transparent);
 	}
 }
 
@@ -204,34 +258,35 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const
 {
 	target.draw(instance->getScene(), state);
 
-
-
 	if (edit && edit->get_tile_layer()) {
 		target.draw(tile_ghost, state);
 		target.draw(tile_text, state);
 
 		Vec2f offset = -1.f * Vec2f{ edit->get_tile_layer()->tilelayer.getSize() } * TILESIZE_F;
 
-		if (ghost_pos.mirrorx)
+		if (edit->get_tile_layer()->tilelayer.hasScrolling()) 
 		{
-			ff::RenderState off_state = state;
-			off_state.transform = off_state.transform.translate({ offset.x, 0.f });
-			target.draw(tile_ghost, off_state);
-			target.draw(tile_text, off_state);
-		}
-		if (ghost_pos.mirrory)
-		{
-			ff::RenderState off_state = state;
-			off_state.transform = off_state.transform.translate({ 0.f, offset.y });
-			target.draw(tile_ghost, off_state);
-			target.draw(tile_text, off_state);
-		}
-		if (ghost_pos.mirrorx && ghost_pos.mirrory)
-		{
-			ff::RenderState off_state = state;
-			off_state.transform = off_state.transform.translate( offset );
-			target.draw(tile_ghost, off_state);
-			target.draw(tile_text, off_state);
+			if (ghost_pos.mirrorx)
+			{
+				ff::RenderState off_state = state;
+				off_state.transform = off_state.transform.translate({ offset.x, 0.f });
+				target.draw(tile_ghost, off_state);
+				target.draw(tile_text, off_state);
+			}
+			if (ghost_pos.mirrory)
+			{
+				ff::RenderState off_state = state;
+				off_state.transform = off_state.transform.translate({ 0.f, offset.y });
+				target.draw(tile_ghost, off_state);
+				target.draw(tile_text, off_state);
+			}
+			if (ghost_pos.mirrorx && ghost_pos.mirrory)
+			{
+				ff::RenderState off_state = state;
+				off_state.transform = off_state.transform.translate(offset);
+				target.draw(tile_ghost, off_state);
+				target.draw(tile_text, off_state);
+			}
 		}
 	}
 

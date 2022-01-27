@@ -633,7 +633,7 @@ void TileLayer::shallow_copy(const TileLayer& src, Rectu src_area, Vec2u dst)
 }
 
 
-bool TileLayer::hasTileAt(Vec2u tile_pos)
+bool TileLayer::hasTileAt(Vec2u tile_pos) const
 {
 	if (tile_pos.x < getLevelSize().x && tile_pos.y < getLevelSize().y)
 	{
@@ -642,7 +642,7 @@ bool TileLayer::hasTileAt(Vec2u tile_pos)
 	return false;
 }
 
-std::optional<TileID> TileLayer::getTileID(Vec2u tile_pos)
+std::optional<TileID> TileLayer::getTileID(Vec2u tile_pos) const
 {
 	if (hasTileAt(tile_pos))
 	{
@@ -651,7 +651,7 @@ std::optional<TileID> TileLayer::getTileID(Vec2u tile_pos)
 	return std::nullopt;
 }
 
-std::optional<TileID> TileLayer::getTileBaseID(Vec2u tile_pos)
+std::optional<TileID> TileLayer::getTileBaseID(Vec2u tile_pos) const
 {
 	if (hasTileAt(tile_pos))
 	{
@@ -660,7 +660,7 @@ std::optional<TileID> TileLayer::getTileBaseID(Vec2u tile_pos)
 	return std::nullopt;
 }
 
-const TilesetAsset* TileLayer::getTileTileset(Vec2u tile_pos)
+const TilesetAsset* TileLayer::getTileTileset(Vec2u tile_pos) const
 {
 	if (hasTileAt(tile_pos))
 	{
@@ -669,7 +669,7 @@ const TilesetAsset* TileLayer::getTileTileset(Vec2u tile_pos)
 	return nullptr;
 }
 
-bool TileLayer::isTileAuto(Vec2u tile_pos) 
+bool TileLayer::isTileAuto(Vec2u tile_pos) const
 {
 	if (hasTileAt(tile_pos))
 	{
@@ -678,7 +678,7 @@ bool TileLayer::isTileAuto(Vec2u tile_pos)
 	return false;
 }
 
-TileShape TileLayer::getTileShape(Vec2u tile_pos) 
+TileShape TileLayer::getTileShape(Vec2u tile_pos) const
 {
 	if (hasTileAt(tile_pos))
 	{

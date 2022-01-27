@@ -1,28 +1,32 @@
 #include "fastfall/render/Text.hpp"
-
+#include "fastfall/util/log.hpp"
 
 namespace ff {
-
-
 	Text::Text()
 		: m_varr(Primitive::TRIANGLES, 0)
 	{
 
 	}
 
-	Text::Text(const Font& font)
+	Text::Text(Font& font)
 		: m_varr(Primitive::TRIANGLES, 0)
 	{
-		set(font, {});
+		setText(font, {}, {});
 	}
 
-	Text::Text(const Font& font, std::string_view text)
+	Text::Text(Font& font, unsigned size)
 		: m_varr(Primitive::TRIANGLES, 0)
 	{
-		set(font, text);
+		setText(font, size, {});
 	}
 
-	void Text::set(std::optional<std::reference_wrapper<const Font>> font, std::optional<std::string_view> text)
+	Text::Text(Font& font, unsigned size, std::string_view text)
+		: m_varr(Primitive::TRIANGLES, 0)
+	{
+		setText(font, size, text);
+	}
+
+	void Text::setText(std::optional<std::reference_wrapper<Font>> font, std::optional<unsigned> pixel_size, std::optional<std::string_view> text)
 	{
 		bool update = false;
 
@@ -38,6 +42,12 @@ namespace ff {
 			update = true;
 		}
 
+		if (pixel_size && *pixel_size != px_size)
+		{
+			px_size = *pixel_size;
+			update = true;
+		}
+
 		if (update)
 		{
 			update_varray();
@@ -47,11 +57,12 @@ namespace ff {
 	void Text::clear()
 	{
 		m_text = {};
-		m_varr = { Primitive::TRIANGLES, 0 };
+		m_varr.clear();
+		bitmap_texture = {};
 	}
 
 
-	void Text::set_color(Color color)
+	void Text::setColor(Color color)
 	{
 		for (size_t i = 0; i < m_varr.size(); i++)
 		{
@@ -62,16 +73,24 @@ namespace ff {
 
 	void Text::update_varray()
 	{
-		if (m_font && !m_text.empty())
+
+		if (m_font 
+			&& px_size > 0 
+			&& !m_text.empty()
+			&& m_font->setPixelSize(px_size))
 		{
+			if (!m_font->setPixelSize(px_size))
+			{
+				clear();
+				return;
+			}
+
 			m_varr = { Primitive::TRIANGLES, 6 * m_text.size() };
 			bounding_size = { 0, 0, 0, 0 };
 
 			size_t ndx = 0;
 
 			glm::fvec2 pen = {0, m_font->getYMax() };
-
-			std::optional<char> prev;
 
 			for (auto ch : m_text)
 			{
@@ -80,20 +99,14 @@ namespace ff {
 
 				if (ch == '\n') {
 					pen = { 0, pen.y + (m_font->getHeight() * v_spacing) };
-					prev = {};
 					continue;
 				}
 
 				auto& metrics = m_font->getMetrics(ch);
 
-				Vec2i kern;
-				if (prev)
-					kern = m_font->getKerning(*prev, ch);
-
-
 				Rectf draw_rect{
-					pen.x + kern.x + metrics.bearing.x,
-					pen.y + kern.y - metrics.bearing.y,
+					pen.x + metrics.bearing.x,
+					pen.y - metrics.bearing.y,
 					(float)metrics.size.x,
 					(float)metrics.size.y
 				};
@@ -110,38 +123,32 @@ namespace ff {
 					(float)metrics.size.y * m_font->getBitmapTex().inverseSize().y
 				};
 
-				m_varr[ndx + 0] = Vertex
-				{
+				m_varr[ndx + 0] = Vertex{
 					math::rect_topleft(draw_rect),
 					m_color,
 					math::rect_topleft(tex_rect),
 				};
-				m_varr[ndx + 1] = Vertex
-				{
+				m_varr[ndx + 1] = Vertex{
 					math::rect_topright(draw_rect),
 					m_color,
 					math::rect_topright(tex_rect),
 				};
-				m_varr[ndx + 2] = Vertex
-				{
+				m_varr[ndx + 2] = Vertex{
 					math::rect_botleft(draw_rect),
 					m_color,
 					math::rect_botleft(tex_rect),
 				};
-				m_varr[ndx + 3] = Vertex
-				{
+				m_varr[ndx + 3] = Vertex{
 					math::rect_topright(draw_rect),
 					m_color,
 					math::rect_topright(tex_rect),
 				};
-				m_varr[ndx + 4] = Vertex
-				{
+				m_varr[ndx + 4] = Vertex{
 					math::rect_botleft(draw_rect),
 					m_color,
 					math::rect_botleft(tex_rect),
 				};
-				m_varr[ndx + 5] = Vertex
-				{
+				m_varr[ndx + 5] = Vertex{
 					math::rect_botright(draw_rect),
 					m_color,
 					math::rect_botright(tex_rect),
@@ -150,14 +157,14 @@ namespace ff {
 				pen.x += metrics.advance_x;
 				ndx += 6;
 
-				prev = ch;
-
-				bounding_size = math::rect_bound(Rectf{ 
-						(float)pen.x + metrics.bearing.x, 
+				bounding_size = math::rect_bound(Rectf{
+						(float)pen.x + metrics.bearing.x,
 						(float)pen.y - m_font->getYMax(),
 						(float)metrics.size.x,
-						(float)m_font->getHeight()
+						(float)m_font->getYMax() - m_font->getYMin()
 					}, bounding_size);
+
+				bitmap_texture = m_font->getBitmapTex();
 			}
 		}
 		else {
@@ -168,7 +175,7 @@ namespace ff {
 	void Text::draw(RenderTarget& target, RenderState state) const
 	{
 		state.transform = Transform::combine(state.transform, getTransform());
-		state.texture	= m_font ? m_font->getBitmapTex() : TextureRef{};
+		state.texture	= bitmap_texture;
 		target.draw(m_varr, state);
 	}
 

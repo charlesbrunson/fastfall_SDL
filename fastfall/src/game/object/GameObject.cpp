@@ -20,7 +20,7 @@ namespace ff {
 
 bool ObjectType::test(ObjectLevelData& data) const {
 
-	if (!allow_level_data) {
+	if (!allow_as_level_data) {
 		LOG_WARN("object cannot be instantiated by level {}:{:x}",
 			type.name, type.hash
 		);

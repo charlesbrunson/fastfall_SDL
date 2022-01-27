@@ -107,12 +107,12 @@ public:
 	inline Vec2u		getSize() const { return hasParallax() ? getParallaxSize() : getLevelSize(); };
 
 	// tile queries
-	bool hasTileAt(Vec2u tile_pos);
-	std::optional<TileID> getTileID(Vec2u tile_pos);
-	std::optional<TileID> getTileBaseID(Vec2u tile_pos);
-	const TilesetAsset* getTileTileset(Vec2u tile_pos);
-	bool isTileAuto(Vec2u tile_pos);
-	TileShape getTileShape(Vec2u tile_pos);
+	bool hasTileAt(Vec2u tile_pos) const;
+	std::optional<TileID> getTileID(Vec2u tile_pos) const;
+	std::optional<TileID> getTileBaseID(Vec2u tile_pos) const;
+	const TilesetAsset* getTileTileset(Vec2u tile_pos) const;
+	bool isTileAuto(Vec2u tile_pos) const;
+	TileShape getTileShape(Vec2u tile_pos) const;
 
 	// position queries
 	struct world_pos_t {

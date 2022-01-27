@@ -87,6 +87,8 @@ public:
 
 	const std::vector<TileConstraint>& getConstraints() const { return constraints; };
 
+	std::optional<TileID> getAutoTileForShape(TileShape shape) const;
+
 protected:
 	
 	void loadFromFile_TileProperties(rapidxml::xml_node<>* propsNode, TileData& t);
@@ -97,6 +99,9 @@ protected:
 		assert(pos.x < texTileSize.x && pos.y < texTileSize.y);
 		return (size_t)pos.x + ((size_t)pos.y * texTileSize.x);
 	}
+
+	mutable std::vector<std::pair<TileShape, TileID>> auto_shape_cache;
+
 };
 
 template<>

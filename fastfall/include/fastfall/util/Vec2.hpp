@@ -9,6 +9,7 @@
 #include <type_traits>
 #include <string>
 #include <cmath>
+#include "fmt/format.h"
 
 namespace ff {
 
@@ -242,6 +243,32 @@ template <typename T, typename = std::enable_if_t<std::is_integral<T>::value>>
 constexpr inline bool operator>= (const ff::Vec2<T>& left, const ff::Vec2<T>& right) noexcept {
 	return !(left < right);
 }
+
+
+template <typename T> 
+struct fmt::formatter<ff::Vec2<T>> {
+	std::string presentation = "{}";
+
+	constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
+		auto it = ctx.begin(), end = ctx.end();
+		if (it != end) {
+			presentation = std::string{"{:"} 
+			+ std::string{ctx.begin(), ctx.end()};
+			return end - 1;
+		}
+		return end;
+	}
+
+	// Formats the point p using the parsed format specification (presentation)
+	// stored in this formatter.
+	template <typename FormatContext>
+	auto format(const ff::Vec2<T>& p, FormatContext& ctx) -> decltype(ctx.out()) {
+		return format_to(ctx.out(), "({})", 
+			fmt::format(presentation, fmt::join(std::initializer_list<T>{ p.x, p.y }, ", "))
+		);
+	}
+};
+
 
 
 //#include "Vec2.inl"

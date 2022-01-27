@@ -42,7 +42,7 @@ PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
 			math::clamp(move.speed, constants::norm_speed.get(), plr.ground->settings.max_speed);
 
 		// if we're going faster than normal, force decceleration
-		if (move.speed > constants::norm_speed) {
+		if (move.speed > constants::norm_speed && plr.ground->settings.has_friction) {
 			speeding = true;
 			plr.ground->traverse_add_decel(constants::ground_high_decel);
 		}
@@ -53,7 +53,7 @@ PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
 			plr.ground->settings.surface_friction = constants::moving;
 		};
 
-		auto brake = [&plr, &move](bool is_idle) 
+		auto brake = [&plr, &move](bool is_idle)
 		{
 			if (move.speed > 100.f) {
 				plr.sprite->set_anim(
@@ -67,9 +67,11 @@ PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
 
 			plr.ground->settings.surface_friction = constants::braking;
 
-			plr.ground->traverse_add_decel(
-				is_idle ? constants::ground_idle_decel : constants::ground_high_decel
-			);
+			if (plr.ground->settings.has_friction) {
+				plr.ground->traverse_add_decel(
+					is_idle ? constants::ground_idle_decel : constants::ground_high_decel
+				);
+			}
 		};
 
 		auto run = [&plr, &move]() 

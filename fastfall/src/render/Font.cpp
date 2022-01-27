@@ -63,8 +63,6 @@ void draw_glyph(FT_Bitmap bm, SDL_Surface* surf, int x, int y)
 namespace ff {
 
 	Font::Font()
-		: glyph_metrics{}
-		, glyph_max_size{0, 0}
 	{
 	}
 
@@ -74,129 +72,153 @@ namespace ff {
 			FT_Done_Face(m_face);
 	}
 
-	bool Font::loadFromFile(std::string_view font_file, unsigned pixel_size)
+	bool Font::loadFromFile(std::string_view font_file)
 	{
-		FT_Face face;
-		if (FT_New_Face(freetype_get_library(), font_file.data(), 0, &face))
+		unload();
+
+		if (FT_New_Face(freetype_get_library(), font_file.data(), 0, &m_face))
 		{
 			LOG_ERR_("Failed to load face: {}", font_file);
 			return false;
 		}
-
-		if (FT_Set_Pixel_Sizes(face, 0, pixel_size))
-		{
-			LOG_ERR_("Failed to set pixel size");
-			return false;
-		}
-		px_size = pixel_size;
-
-		return load(face);
+		return true;
 	}
 
-	bool Font::loadFromStream(const void* font_data, short length, unsigned pixel_size)
+	bool Font::loadFromStream(const void* font_data, short length)
 	{
-		FT_Face face;
-		if (FT_New_Memory_Face(freetype_get_library(), (const FT_Byte*)font_data, length, 0, &face))
+		unload();
+
+		if (FT_New_Memory_Face(freetype_get_library(), (const FT_Byte*)font_data, length, 0, &m_face))
 		{
 			LOG_ERR_("Failed to load face from memory");
 			return false;
 		}
-
-		if (FT_Set_Pixel_Sizes(face, 0, pixel_size))
-		{
-			LOG_ERR_("Failed to set pixel size");
-			return false;
-		}
-		px_size = pixel_size;
-
-		return load(face);
+		return true;
 	}
 
-	bool Font::load(FT_Face face)
-	{
 
-		std::array<GlyphMetrics, CHAR_COUNT> calc_metrics{};
-		glm::i64vec2 calc_size = { 0,0 };
+	void Font::unload()
+	{
+		if (m_face) {
+			FT_Done_Face(m_face);
+			m_face = nullptr;
+		}
+
+		caches.clear();
+		curr_cache = nullptr;
+	}
+
+
+	bool Font::cachePixelSize(unsigned pixel_size)
+	{
+		auto prev = curr_cache;
+		bool result = setPixelSize(pixel_size);
+		curr_cache = prev;
+		return result;
+	}
+
+	bool Font::setPixelSize(unsigned pixel_size)
+	{
+		if (pixel_size == 0)
+		{
+			return false;
+		}
+
+		auto it = std::find_if(caches.begin(), caches.end(), [&](auto& cache) {
+			return cache->px_size == pixel_size;
+		});
+
+		if (it != caches.end())
+		{
+			curr_cache = it->get();
+			return true;
+		}
+		else
+		{
+			curr_cache = cache_for_size(pixel_size);
+			return true;
+		}
+		return false;
+	}
+
+
+	Font::FontCache* Font::cache_for_size(unsigned size)
+	{
+		if (!m_face)
+		{
+			LOG_ERR_("No font face loaded");
+			return nullptr;
+		}
+
+		auto& cache = *caches.insert(
+			std::lower_bound(caches.begin(), caches.end(), size,
+				[](auto& cache, unsigned size) {
+					return size > cache->px_size;
+				}),
+			std::make_unique<FontCache>(FontCache{.px_size = size})
+		);
+
+		if (FT_Set_Pixel_Sizes(m_face, 0, size))
+		{
+			LOG_ERR_("Failed to set pixel size");
+			return nullptr;
+		}
 
 		for (unsigned i = 0; i < CHAR_COUNT; i++)
 		{
-			if (!FT_Load_Char(face, i, FT_LOAD_COMPUTE_METRICS))
+			if (!FT_Load_Char(m_face, i, FT_LOAD_COMPUTE_METRICS))
 			{
-				auto& metrics = face->glyph->metrics;
+				auto& metrics = m_face->glyph->metrics;
 
-				calc_size = {
-					std::max(get22_6p(metrics.width),  (long)calc_size.x),
-					std::max(get22_6p(metrics.height), (long)calc_size.y)
+				cache->glyph_max_size = {
+					std::max(get22_6p(metrics.width),  (long)cache->glyph_max_size.x),
+					std::max(get22_6p(metrics.height), (long)cache->glyph_max_size.y)
 				};
 
-				calc_metrics[i] = GlyphMetrics{
-					.glyph_index = face->glyph->glyph_index,
+				cache->glyph_metrics[i] = GlyphMetrics{
+					.glyph_index = m_face->glyph->glyph_index,
 					.size      = { get22_6p(metrics.width),			get22_6p(metrics.height) },
 					.bearing   = { get22_6p(metrics.horiBearingX),	get22_6p(metrics.horiBearingY) },
 					.advance_x = (unsigned)get22_6p(metrics.horiAdvance)
 				};
 			}
+			else {
+				LOG_ERR_("Failed to load face: {}", (char)i);
+			}
 		}
 
-		SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(0, calc_size.x * 16, calc_size.y * 8, 32, SDL_PIXELFORMAT_RGBA32);
-		if (!surface)
-			return false;
+		SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(0, cache->glyph_max_size.x * 16, cache->glyph_max_size.y * 8, 32, SDL_PIXELFORMAT_RGBA32);
+		if (!surface) {
+			LOG_ERR_("Failed to create SDL surface for font size");
+			return cache.get();
+		}
 
-		glyph_max_size = calc_size;
-		glyph_metrics = calc_metrics;
-
-		yMin	= get22_6p(face->bbox.yMin);
-		yMax	= get22_6p(face->bbox.yMax);
-		height	= yMax - yMin;
-
+		cache->yMin	 = get22_6p(m_face->bbox.yMin);
+		cache->yMax	 = get22_6p(m_face->bbox.yMax);
+		cache->height = get22_6p(FT_MulFix(m_face->units_per_EM, m_face->size->metrics.y_scale));
 
 		for (unsigned i = 0; i < CHAR_COUNT; i++)
 		{
-			if (!FT_Load_Char(face, i, FT_LOAD_RENDER | FT_LOAD_TARGET_MONO))
+			if (!FT_Load_Char(m_face, i, FT_LOAD_RENDER | FT_LOAD_TARGET_MONO))
 			{
 				// render glyph
 				draw_glyph(
-					face->glyph->bitmap,
+					m_face->glyph->bitmap,
 					surface, 
-					glyph_max_size.x * (i % 16),
-					glyph_max_size.y * (i / 16)
+					cache->glyph_max_size.x * (i % 16),
+					cache->glyph_max_size.y * (i / 16)
 				);
 			}
 		}
 
-		IMG_SavePNG(surface, "test.png");
-		font_bitmap.loadFromSurface(surface);
+		//IMG_SavePNG(surface, "test.png");
+		if (!cache->font_bitmap.loadFromSurface(surface))
+		{
+			LOG_ERR_("Failed to load texture from surface for font size");
+		}
 		SDL_FreeSurface(surface);
 
-		if (m_face) {
-			FT_Done_Face(m_face);
-		}
-		m_face = face;
-		return true;
+		cache->valid = true;
+		return cache.get();
 	}
-
-
-	Vec2i Font::getKerning(char left, char right) const
-	{
-		if ( m_face && FT_HAS_KERNING(m_face) )
-		{
-			FT_Vector kerning;
-			auto err = FT_Get_Kerning(
-				m_face, 
-				glyph_metrics[left].glyph_index,
-				glyph_metrics[right].glyph_index,
-				FT_KERNING_DEFAULT,
-				&kerning);
-
-			if (err)
-				return {};
-
-			return Vec2i{
-				get22_6p(kerning.x),
-				get22_6p(kerning.y),
-			};
-		}
-		return {};
-	}
-
 }

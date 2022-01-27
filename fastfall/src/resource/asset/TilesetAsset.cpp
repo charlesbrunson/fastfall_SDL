@@ -101,6 +101,12 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 	{
 		using namespace nlohmann;
 
+		if (state.tile.auto_substitute)
+		{
+			LOG_ERR_("cannot set auto_constraint for tile with auto_substitute set: {}", state.tile.id.to_vec());
+			return;
+		}
+
 		json autotile_json;
 		try {
 			autotile_json = json::parse(value);
@@ -171,7 +177,14 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 	// make tile as auto substitutable
 	{ "auto_substitute", [](TilesetAsset& asset, TileData& state, char* value)
 	{
-		state.tile.auto_substitute = std::string_view{value} == "true";
+		bool has = std::string_view{value} == "true";
+		if (has && ((state.has_prop_bits & TileHasProp::HasConstraint) > 0))
+		{
+			LOG_ERR_("cannot set auto_substitute for tile with auto_constraint set: {}", state.tile.id.to_vec());
+		}
+		else {
+			state.tile.auto_substitute = has;
+		}
 	}},
 
 	//padding
@@ -351,6 +364,7 @@ bool TilesetAsset::loadFromFile(const std::string& relpath) {
 	tileLogic.clear();
 	tileMat.clear();
 	constraints.clear();
+	auto_shape_cache.clear();
 
 	texTileSize = Vec2u{};
 
@@ -424,6 +438,7 @@ bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder)
 	tileLogic.clear();
 	tileMat.clear();
 	constraints.clear();
+	auto_shape_cache.clear();
 
 	//tiles = std::make_unique<TileData[]>((size_t)texTileSize.x * texTileSize.y);
 	tiles = grid_vector<TileData>(texTileSize);
@@ -607,6 +622,27 @@ const TileMaterial& TilesetAsset::getMaterial(TileID tile_id) const {
 	else {
 		return Tile::standardMat;
 	}
+}
+
+
+std::optional<TileID> TilesetAsset::getAutoTileForShape(TileShape shape) const
+{
+	for (auto& [cached_shape, cached_id] : auto_shape_cache)
+	{
+		if (cached_shape == shape)
+		{
+			return cached_id;
+		}
+	}
+	for (auto& tile : tiles)
+	{
+		if (tile.tile.auto_substitute && tile.tile.shape == shape)
+		{
+			auto_shape_cache.push_back({ tile.tile.shape, tile.tile.id });
+			return tile.tile.id;
+		}
+	}
+	return {};
 }
 
 void TilesetAsset::ImGui_getContent() {

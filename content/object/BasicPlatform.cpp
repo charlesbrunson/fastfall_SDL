@@ -8,16 +8,14 @@ constexpr ff::Color platformColor = ff::Color{ 0x285cc4FF };
 
 const ObjectType BasicPlatform::Type{
 	.type = { "BasicPlatform" },
-	.allow_level_data = true,
+	.allow_as_level_data = true,
 	.anim = std::nullopt,
 	.tile_size = {0, 0},
-	.group_tags = {
-		"platform"
-	},
+	.group_tags = {	"platform" },
 	.properties = {
-		ObjectProperty{"acceleration", ObjectPropertyType::Float},
-		ObjectProperty{"max_velocity", ObjectPropertyType::Float},
-		ObjectProperty{"path", ObjLevelID{}}
+		{"acceleration", ObjectPropertyType::Float},
+		{"max_velocity", ObjectPropertyType::Float},
+		{"path",		 ObjLevelID{}}
 	}
 };
 

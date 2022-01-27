@@ -15,18 +15,19 @@ namespace ff {
 	{
 	public:
 		Text();
-		Text(const Font& font);
-		Text(const Font& font, std::string_view text);
+		Text(Font& font);
+		Text(Font& font, unsigned size);
+		Text(Font& font, unsigned size, std::string_view text);
 
-		void set(std::optional<std::reference_wrapper<const Font>> font, std::optional<std::string_view> text);
+		void setText(std::optional<std::reference_wrapper<Font>> font, std::optional<unsigned> pixel_size, std::optional<std::string_view> text);
 		void clear();
 
-		void set_color(Color color);
+		void setColor(Color color);
 
-		std::string_view get_text() const { return m_text; };
-		const Font* get_font() const { return m_font; };
-		Rectf get_bounds() const  { return bounding_size; };
-		Rectf get_scaled_bounds() const { 
+		std::string_view getText() const { return m_text; };
+		const Font* getFont() const { return m_font; };
+		Rectf getBounds() const  { return bounding_size; };
+		Rectf getScaledBounds() const { 
 			return Rectf{
 				bounding_size.left * getScale().x,
 				bounding_size.top * getScale().y,
@@ -34,9 +35,9 @@ namespace ff {
 				bounding_size.height * getScale().y
 			};
 		};
-		Color get_color() const { return m_color; }
+		Color getColor() const { return m_color; }
 
-		void set_vert_spacing(float spacing_factor) { v_spacing = spacing_factor; };
+		void setVertSpacing(float spacing_factor) { v_spacing = spacing_factor; };
 
 	private:
 		virtual void draw(RenderTarget& target, RenderState state = RenderState()) const;
@@ -47,9 +48,13 @@ namespace ff {
 		VertexArray m_varr;
 		Rectf bounding_size;
 
+		TextureRef bitmap_texture;
+
+		unsigned px_size = 0;
+
 		float v_spacing = 1.f;
 
-		const Font* m_font = nullptr;
+		Font* m_font = nullptr;
 		Color m_color = Color::White;
 	};
 }
