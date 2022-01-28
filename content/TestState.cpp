@@ -134,7 +134,7 @@ void TestState::update(secs deltaTime) {
 				}
 			});
 
-		onKeyPressed(SDL_SCANCODE_H, [&]() {
+		onKeyPressed(SDL_SCANCODE_F, [&]() {
 				if (edit->get_tile_layer()
 					&& edit->get_tileset()
 					&& edit->get_tile()
@@ -187,6 +187,23 @@ void TestState::update(secs deltaTime) {
 		else {
 			painting = false;
 		}
+
+		auto tileset = edit->get_tileset();
+		auto tile = edit->get_tile();
+
+
+		if (tileset && tile)
+		{
+			
+			std::string str = fmt::format("{}\nLAYER={}\nTILE=({}, {})\nTPOS=({}, {})\nMPOS=({}, {})",
+				tileset->getAssetName(),
+				layer,
+				(unsigned)tile->getX(), (unsigned)tile->getY(),
+				tpos.x, tpos.y,
+				(long)mpos.x, (long)mpos.y);
+			tile_text.setText(font, 8, str);
+			
+		}
 	}
 
 	if (currKeys) {
@@ -228,21 +245,15 @@ void TestState::predraw(secs deltaTime) {
 					Vec2f{ 1, 1 } * TILESIZE_F
 				});
 
-			std::string str = fmt::format("{}\nLAYER={}\nTILE=({:2}, {:2})\nTPOS=({:3}, {:3})\nMPOS=({:4d}, {:4d})", 
-				tileset->getAssetName(),
-				layer,
-				(unsigned)tile->getX(), (unsigned)tile->getY(),
-				tpos.x, tpos.y,
-				(long)mpos.x, (long)mpos.y);
 
-			float scale = viewZoom / Engine::get().getWindowScale();
-			tile_text.setScale(Vec2f{ 1.f, 1.f } * scale);
+			unsigned win_scale = Engine::get().getWindowScale();
+			float scale = viewZoom / win_scale;
+			tile_text.setScale( Vec2f{ 1.f, 1.f } * scale * (win_scale > 2 ? 2.f : 1.f) );
 			tile_text.setColor(ff::Color::White);
-			tile_text.setText(font, 8, str);
 
 			tile_text.setPosition(
 				Input::getMouseWorldPosition() 
-				+ instance->getCamera().deltaPosition
+				//+ instance->getCamera().deltaPosition
 				- Vec2f{ 0.f, tile_text.getScaledBounds().height}
 			);
 

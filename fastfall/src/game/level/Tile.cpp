@@ -127,11 +127,12 @@ namespace ff {
 	bool autotile_has_edge(
 		Cardinal dir,
 		const TileTouch& auto_shape,
-		const cardinal_array<TileTouch>& edges)
+		const TileTouch& to_shape)
+		//const cardinal_array<TileTouch>& edges)
 	{
 		using namespace direction;
 		return (auto_shape.get_edge(dir) > 0)
-			&& (auto_shape.get_edge(dir) == edges[dir].get_edge(opposite(dir)));
+			&& (auto_shape.get_edge(dir) == to_shape.get_edge(opposite(dir)));
 	}
 
 	bool autotile_has_inner_corner(
@@ -147,12 +148,11 @@ namespace ff {
 		const TileTouch& v_adj = edges[V];
 		const TileTouch& d_adj = corners[dir];
 
-		bool corner_open = !h_adj.get_corner(*combine(V, opposite(H)))
-			|| !v_adj.get_corner(*combine(opposite(V), H))
-			|| !d_adj.get_corner(opposite(dir));
+		bool corner_open = !autotile_has_edge(V, h_adj, d_adj)
+						|| !autotile_has_edge(H, v_adj, d_adj);
 
-		return autotile_has_edge(V, auto_shape, edges)
-			&& autotile_has_edge(H, auto_shape, edges)
+		return autotile_has_edge(V, auto_shape, v_adj)
+			&& autotile_has_edge(H, auto_shape, h_adj)
 			&& auto_shape.get_corner(dir)
 			&& corner_open;
 	}
@@ -183,7 +183,7 @@ namespace ff {
 
 		std::ranges::for_each(direction::cardinals,
 			[&](Cardinal dir) {
-				state.occupied_edges[dir] = autotile_has_edge(dir, auto_shape, neighbors_card);
+				state.occupied_edges[dir] = autotile_has_edge(dir, auto_shape, neighbors_card[dir]);
 				state.card_shapes[dir] = neighbors_card[dir].shape;
 			}
 		);
@@ -277,7 +277,7 @@ namespace ff {
 					counter++;
 				}
 				else {
-					match.match_count = 0;
+					//match.match_count = 0;
 					return {};
 				}
 			}
@@ -292,7 +292,7 @@ namespace ff {
 					counter++;
 				}
 				else {
-					match.match_count = 0;
+					//match.match_count = 0;
 					return {};
 				}
 			}
@@ -321,7 +321,7 @@ namespace ff {
 				}
 				else {
 					//match.match_count = 0;
-					return match;
+					return {};
 				}
 			}
 		}

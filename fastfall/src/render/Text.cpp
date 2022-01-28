@@ -85,7 +85,14 @@ namespace ff {
 				return;
 			}
 
-			m_varr = { Primitive::TRIANGLES, 6 * m_text.size() };
+			size_t vertex_count = 6 * m_text.size();
+			if (m_varr.size() < vertex_count) {
+				m_varr.insert(m_varr.size(), vertex_count - m_varr.size(), Vertex{});
+			}
+			else if (m_varr.size() > vertex_count) {
+				m_varr.erase(vertex_count, m_varr.size() - vertex_count);
+			}
+
 			bounding_size = { 0, 0, 0, 0 };
 
 			size_t ndx = 0;
@@ -166,6 +173,14 @@ namespace ff {
 
 				bitmap_texture = m_font->getBitmapTex();
 			}
+
+			
+			ndx++;
+			for (; ndx < m_varr.size(); ndx++)
+			{
+				m_varr[ndx] = Vertex{};
+			}
+			
 		}
 		else {
 			clear();
@@ -174,6 +189,11 @@ namespace ff {
 
 	void Text::draw(RenderTarget& target, RenderState state) const
 	{
+		if (m_font && !bitmap_texture.exists())
+		{
+			m_font->loadBitmapTex(px_size);
+		}
+
 		state.transform = Transform::combine(state.transform, getTransform());
 		state.texture	= bitmap_texture;
 		target.draw(m_varr, state);

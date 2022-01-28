@@ -2,8 +2,7 @@
 #include "error.hpp"
 
 #include "fastfall/render/opengl.hpp"
-
-#include <iostream>
+#include "fastfall/util//log.hpp"
 
 namespace ff {
 
@@ -19,13 +18,13 @@ namespace ff {
     void glCheckError(const char* file, unsigned int line, const char* expression) {
 
         // Get the last error
-        GLenum errorCode = glGetError();
 
-        if (errorCode != GL_NO_ERROR)
+        GLenum errorCode;
+        while ((errorCode = glGetError()) != GL_NO_ERROR)
         {
-            std::string fileString = file;
-            std::string error = "Unknown error";
-            std::string description = "No description";
+            std::string_view fileString = file;
+            std::string_view error = "Unknown error";
+            std::string_view description = "No description";
 
             // Decode the error code
             switch (errorCode)
@@ -36,42 +35,36 @@ namespace ff {
                 description = "An unacceptable value has been specified for an enumerated argument.";
                 break;
             }
-
             case GL_INVALID_VALUE:
             {
                 error = "GL_INVALID_VALUE";
                 description = "A numeric argument is out of range.";
                 break;
             }
-
             case GL_INVALID_OPERATION:
             {
                 error = "GL_INVALID_OPERATION";
                 description = "The specified operation is not allowed in the current state.";
                 break;
             }
-
             case GL_STACK_OVERFLOW:
             {
                 error = "GL_STACK_OVERFLOW";
                 description = "This command would cause a stack overflow.";
                 break;
             }
-
             case GL_STACK_UNDERFLOW:
             {
                 error = "GL_STACK_UNDERFLOW";
                 description = "This command would cause a stack underflow.";
                 break;
             }
-
             case GL_OUT_OF_MEMORY:
             {
                 error = "GL_OUT_OF_MEMORY";
                 description = "There is not enough memory left to execute the command.";
                 break;
             }
-
             case GL_INVALID_FRAMEBUFFER_OPERATION:
             {
                 error = "GL_INVALID_FRAMEBUFFER_OPERATION";
@@ -81,6 +74,7 @@ namespace ff {
             }
 
             // Log the error
+            /*
             std::stringstream ss;
             ss << "An internal OpenGL call failed in "
                 << fileString.substr(fileString.find_last_of("\\/") + 1) << "(" << line << ")."
@@ -88,6 +82,17 @@ namespace ff {
                 << "\nError description:\n   " << error << "\n   " << description << "\n"
                 << std::endl;
             LOG_ERR_(ss.str());
+            */
+
+            LOG_ERR_("");
+            LOG_ERR_("An internal OpenGL call failed in");
+            LOG_ERR_("{}({})", fileString.substr(fileString.find_last_of("\\/") + 1), line);
+            LOG_ERR_("Expression:");
+            LOG_ERR_("\t{}", expression);
+            LOG_ERR_("Error description:");
+            LOG_ERR_("\t{}", error);
+            LOG_ERR_("\t{}", description);
+
         }
     }
 }

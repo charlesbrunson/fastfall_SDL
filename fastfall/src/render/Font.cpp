@@ -187,8 +187,8 @@ namespace ff {
 			}
 		}
 
-		SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(0, cache->glyph_max_size.x * 16, cache->glyph_max_size.y * 8, 32, SDL_PIXELFORMAT_RGBA32);
-		if (!surface) {
+		cache->bitmap_surface = SDL_CreateRGBSurfaceWithFormat(0, cache->glyph_max_size.x * 16, cache->glyph_max_size.y * 8, 32, SDL_PIXELFORMAT_RGBA32);
+		if (!cache->bitmap_surface) {
 			LOG_ERR_("Failed to create SDL surface for font size");
 			return cache.get();
 		}
@@ -204,7 +204,7 @@ namespace ff {
 				// render glyph
 				draw_glyph(
 					m_face->glyph->bitmap,
-					surface, 
+					cache->bitmap_surface,
 					cache->glyph_max_size.x * (i % 16),
 					cache->glyph_max_size.y * (i / 16)
 				);
@@ -212,13 +212,40 @@ namespace ff {
 		}
 
 		//IMG_SavePNG(surface, "test.png");
-		if (!cache->font_bitmap.loadFromSurface(surface))
+		/*
+		if (!cache->font_bitmap_texture.loadFromSurface(surface))
 		{
 			LOG_ERR_("Failed to load texture from surface for font size");
 		}
 		SDL_FreeSurface(surface);
+		*/
 
 		cache->valid = true;
 		return cache.get();
+	}
+
+	void Font::loadBitmapTex(unsigned px_size) const
+	{
+		auto it = std::find_if(caches.begin(), caches.end(), [&](auto& cache) {
+			return cache->px_size == px_size;
+			});
+
+		FontCache* cache;
+		if (it != caches.end())
+		{
+			cache = it->get();
+
+			if (cache->valid 
+				&& cache->bitmap_surface 
+				&& !cache->bitmap_texture.exists()) 
+			{
+				if (!cache->bitmap_texture.loadFromSurface(cache->bitmap_surface))
+				{
+					LOG_ERR_("Failed to load texture from surface for font size");
+				}
+				SDL_FreeSurface(cache->bitmap_surface);
+
+			}
+		}
 	}
 }

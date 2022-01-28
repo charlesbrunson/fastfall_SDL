@@ -669,37 +669,37 @@
  </tile>
  <tile id="116">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;slope&quot;,&quot;e&quot;:&quot;yes&quot;, &quot;s&quot;:&quot;yes&quot;, &quot;w&quot;:&quot;slope&quot;, &quot;se&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;slope&quot;,&quot;e&quot;:&quot;yes&quot;, &quot;s&quot;:&quot;yes&quot;, &quot;w&quot;:&quot;slope&quot;,&quot;nw&quot;:&quot;yes&quot;,&quot;ne&quot;:&quot;no&quot;, &quot;se&quot;:&quot;no&quot;,&quot;sw&quot;:&quot;no&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="117">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;slope-h&quot;,&quot;e&quot;:&quot;slope-h&quot;, &quot;s&quot;:&quot;yes&quot;, &quot;w&quot;:&quot;yes&quot;, &quot;sw&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;slope-h&quot;,&quot;e&quot;:&quot;slope-h&quot;, &quot;s&quot;:&quot;yes&quot;, &quot;w&quot;:&quot;yes&quot;, &quot;nw&quot;:&quot;no&quot;,&quot;ne&quot;:&quot;yes&quot;, &quot;se&quot;:&quot;no&quot;,&quot;sw&quot;:&quot;no&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="118">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;steep1&quot;,&quot;e&quot;:&quot;yes&quot;, &quot;s&quot;:&quot;yes&quot;, &quot;w&quot;:&quot;steep2&quot;, &quot;se&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;steep1&quot;,&quot;e&quot;:&quot;yes&quot;, &quot;s&quot;:&quot;yes&quot;, &quot;w&quot;:&quot;steep2&quot;,&quot;nw&quot;:&quot;yes&quot;,&quot;ne&quot;:&quot;no&quot;, &quot;se&quot;:&quot;no&quot;,&quot;sw&quot;:&quot;no&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="119">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;steep1-h&quot;,&quot;e&quot;:&quot;steep2-h&quot;, &quot;s&quot;:&quot;yes&quot;, &quot;w&quot;:&quot;yes&quot;, &quot;sw&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;steep1-h&quot;,&quot;e&quot;:&quot;steep2-h&quot;, &quot;s&quot;:&quot;yes&quot;, &quot;w&quot;:&quot;yes&quot;,  &quot;nw&quot;:&quot;no&quot;,&quot;ne&quot;:&quot;yes&quot;, &quot;se&quot;:&quot;no&quot;,&quot;sw&quot;:&quot;no&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="120">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;shallow1&quot;,&quot;e&quot;:&quot;yes&quot;, &quot;s&quot;:&quot;yes&quot;, &quot;w&quot;:&quot;shallow2&quot;, &quot;se&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;shallow1&quot;,&quot;e&quot;:&quot;yes&quot;, &quot;s&quot;:&quot;yes&quot;, &quot;w&quot;:&quot;shallow2&quot;,&quot;nw&quot;:&quot;yes&quot;,&quot;ne&quot;:&quot;no&quot;, &quot;se&quot;:&quot;no&quot;,&quot;sw&quot;:&quot;no&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="121">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;shallow1-h&quot;,&quot;e&quot;:&quot;shallow2-h&quot;, &quot;s&quot;:&quot;yes&quot;, &quot;w&quot;:&quot;yes&quot;, &quot;sw&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;shallow1-h&quot;,&quot;e&quot;:&quot;shallow2-h&quot;, &quot;s&quot;:&quot;yes&quot;, &quot;w&quot;:&quot;yes&quot;, &quot;nw&quot;:&quot;no&quot;,&quot;ne&quot;:&quot;yes&quot;, &quot;se&quot;:&quot;no&quot;,&quot;sw&quot;:&quot;no&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
@@ -747,73 +747,73 @@
  </tile>
  <tile id="132">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;yes&quot;,&quot;e&quot;:&quot;yes&quot;, &quot;s&quot;:&quot;slope-v&quot;, &quot;w&quot;:&quot;slope-v&quot;, &quot;ne&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;yes&quot;,&quot;e&quot;:&quot;yes&quot;, &quot;s&quot;:&quot;slope-v&quot;, &quot;w&quot;:&quot;slope-v&quot;, &quot;nw&quot;:&quot;no&quot;,&quot;ne&quot;:&quot;no&quot;, &quot;se&quot;:&quot;no&quot;,&quot;sw&quot;:&quot;yes&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="133">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;yes&quot;,&quot;e&quot;:&quot;slope-hv&quot;, &quot;s&quot;:&quot;slope-hv&quot;, &quot;w&quot;:&quot;yes&quot;, &quot;nw&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;yes&quot;,&quot;e&quot;:&quot;slope-hv&quot;, &quot;s&quot;:&quot;slope-hv&quot;, &quot;w&quot;:&quot;yes&quot;, &quot;nw&quot;:&quot;no&quot;,&quot;ne&quot;:&quot;no&quot;, &quot;se&quot;:&quot;yes&quot;,&quot;sw&quot;:&quot;no&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="134">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;yes&quot;,&quot;e&quot;:&quot;yes&quot;, &quot;s&quot;:&quot;steep1-v&quot;, &quot;w&quot;:&quot;steep2-v&quot;, &quot;ne&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;yes&quot;,&quot;e&quot;:&quot;yes&quot;, &quot;s&quot;:&quot;steep1-v&quot;, &quot;w&quot;:&quot;steep2-v&quot;,  &quot;nw&quot;:&quot;no&quot;,&quot;ne&quot;:&quot;no&quot;, &quot;se&quot;:&quot;no&quot;,&quot;sw&quot;:&quot;yes&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="135">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;yes&quot;,&quot;e&quot;:&quot;steep2-hv&quot;, &quot;s&quot;:&quot;steep1-hv&quot;, &quot;w&quot;:&quot;yes&quot;, &quot;nw&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;yes&quot;,&quot;e&quot;:&quot;steep2-hv&quot;, &quot;s&quot;:&quot;steep1-hv&quot;, &quot;w&quot;:&quot;yes&quot;, &quot;nw&quot;:&quot;no&quot;,&quot;ne&quot;:&quot;no&quot;, &quot;se&quot;:&quot;yes&quot;,&quot;sw&quot;:&quot;no&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="136">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;yes&quot;,&quot;e&quot;:&quot;yes&quot;, &quot;s&quot;:&quot;shallow1-v&quot;, &quot;w&quot;:&quot;shallow2-v&quot;, &quot;ne&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;yes&quot;,&quot;e&quot;:&quot;yes&quot;, &quot;s&quot;:&quot;shallow1-v&quot;, &quot;w&quot;:&quot;shallow2-v&quot;, &quot;nw&quot;:&quot;no&quot;,&quot;ne&quot;:&quot;no&quot;, &quot;se&quot;:&quot;no&quot;,&quot;sw&quot;:&quot;yes&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="137">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;yes&quot;,&quot;e&quot;:&quot;shallow2-hv&quot;, &quot;s&quot;:&quot;shallow1-hv&quot;, &quot;w&quot;:&quot;yes&quot;, &quot;nw&quot;:&quot;no&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;yes&quot;,&quot;e&quot;:&quot;shallow2-hv&quot;, &quot;s&quot;:&quot;shallow1-hv&quot;, &quot;w&quot;:&quot;yes&quot;,&quot;nw&quot;:&quot;no&quot;,&quot;ne&quot;:&quot;no&quot;, &quot;se&quot;:&quot;yes&quot;,&quot;sw&quot;:&quot;no&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="138">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;slope&quot;,&quot;e&quot;:&quot;slope-hv&quot;, &quot;s&quot;:&quot;slope-hv&quot;, &quot;w&quot;:&quot;slope&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;slope&quot;,&quot;e&quot;:&quot;slope-hv&quot;, &quot;s&quot;:&quot;slope-hv&quot;, &quot;w&quot;:&quot;slope&quot;,&quot;nw&quot;:&quot;yes&quot;,&quot;ne&quot;:&quot;no&quot;, &quot;se&quot;:&quot;yes&quot;,&quot;sw&quot;:&quot;no&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="139">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;slope-h&quot;,&quot;e&quot;:&quot;slope-h&quot;, &quot;s&quot;:&quot;slope-v&quot;, &quot;w&quot;:&quot;slope-v&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;slope-h&quot;,&quot;e&quot;:&quot;slope-h&quot;, &quot;s&quot;:&quot;slope-v&quot;, &quot;w&quot;:&quot;slope-v&quot;,&quot;nw&quot;:&quot;no&quot;,&quot;ne&quot;:&quot;yes&quot;, &quot;se&quot;:&quot;no&quot;,&quot;sw&quot;:&quot;yes&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="140">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;steep1&quot;,&quot;e&quot;:&quot;steep2-hv&quot;, &quot;s&quot;:&quot;steep1-hv&quot;, &quot;w&quot;:&quot;steep2&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;steep1&quot;,&quot;e&quot;:&quot;steep2-hv&quot;, &quot;s&quot;:&quot;steep1-hv&quot;, &quot;w&quot;:&quot;steep2&quot;,&quot;nw&quot;:&quot;yes&quot;,&quot;ne&quot;:&quot;no&quot;, &quot;se&quot;:&quot;yes&quot;,&quot;sw&quot;:&quot;no&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="141">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;steep1-h&quot;,&quot;e&quot;:&quot;steep2-h&quot;, &quot;s&quot;:&quot;steep1-v&quot;, &quot;w&quot;:&quot;steep2-v&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;steep1-h&quot;,&quot;e&quot;:&quot;steep2-h&quot;, &quot;s&quot;:&quot;steep1-v&quot;, &quot;w&quot;:&quot;steep2-v&quot;,&quot;nw&quot;:&quot;no&quot;,&quot;ne&quot;:&quot;yes&quot;, &quot;se&quot;:&quot;no&quot;,&quot;sw&quot;:&quot;yes&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="142">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;shallow1&quot;,&quot;e&quot;:&quot;shallow2-hv&quot;, &quot;s&quot;:&quot;shallow1-hv&quot;, &quot;w&quot;:&quot;shallow2&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;shallow1&quot;,&quot;e&quot;:&quot;shallow2-hv&quot;, &quot;s&quot;:&quot;shallow1-hv&quot;, &quot;w&quot;:&quot;shallow2&quot;,&quot;nw&quot;:&quot;yes&quot;,&quot;ne&quot;:&quot;no&quot;, &quot;se&quot;:&quot;yes&quot;,&quot;sw&quot;:&quot;no&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>
  <tile id="143">
   <properties>
-   <property name="auto_constraint" value="{&quot;n&quot;:&quot;shallow1-h&quot;,&quot;e&quot;:&quot;shallow2-h&quot;, &quot;s&quot;:&quot;shallow1-v&quot;, &quot;w&quot;:&quot;shallow2-v&quot;}"/>
+   <property name="auto_constraint" value="{&quot;n&quot;:&quot;shallow1-h&quot;,&quot;e&quot;:&quot;shallow2-h&quot;, &quot;s&quot;:&quot;shallow1-v&quot;, &quot;w&quot;:&quot;shallow2-v&quot;,&quot;nw&quot;:&quot;no&quot;,&quot;ne&quot;:&quot;yes&quot;, &quot;se&quot;:&quot;no&quot;,&quot;sw&quot;:&quot;yes&quot;}"/>
    <property name="shape" value="solid"/>
   </properties>
  </tile>

@@ -48,7 +48,7 @@ public:
 
 	bool loadFromFile(const std::string_view filename);
 	bool loadFromStream(const void* data, short length);
-	bool loadFromSurface(SDL_Surface* surface);
+	bool loadFromSurface(const SDL_Surface* surface);
 
 	bool create(glm::uvec2 size);
 	bool create(unsigned sizeX, unsigned sizeY);

@@ -34,7 +34,11 @@ public:
 	bool cachePixelSize(unsigned pixel_size);
 	bool setPixelSize(unsigned pixel_size);
 
-	const Texture&		getBitmapTex() const { return curr_cache->font_bitmap; };
+	const Texture& getBitmapTex() const { return curr_cache->bitmap_texture; };
+	void loadBitmapTex(unsigned px_size) const;
+
+	//const SDL_Surface*  getBitmapSurface() const { return curr_cache->font_bitmap_surface; };
+
 	const GlyphMetrics& getMetrics(unsigned char ch) const { return curr_cache->glyph_metrics[ch]; };
 	glm::i64vec2		getGlyphSize() const { return curr_cache->glyph_max_size; };
 	unsigned			getPixelSize() const { return curr_cache->px_size; };
@@ -59,7 +63,9 @@ private:
 		int height = 0;
 		unsigned px_size = 0;
 
-		Texture font_bitmap;
+		SDL_Surface* bitmap_surface = nullptr;
+		Texture bitmap_texture;
+
 		glm::i64vec2 glyph_max_size;
 		std::array<GlyphMetrics, CHAR_COUNT> glyph_metrics;
 	};
