@@ -82,21 +82,6 @@ void debugDrawContact(const Contact& contact) {
 	line[0].color = Color::Yellow;
 	line[1].color = Color::Yellow;
 
-	line[2].pos = contact.collider.surface.p1 - contact.collider_normal;
-	line[3].pos = contact.collider.surface.p2 - contact.collider_normal;
-	line[2].color = Color::White;
-	line[3].color = Color::White;
-
-	auto& surf = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(Primitive::LINE_STRIP, 4);
-	surf[0].color = contact.collider.g0virtual ? Color::Blue : Color::White;
-	surf[1].color = Color::White;
-	surf[2].color = Color::White;
-	surf[3].color = contact.collider.g3virtual ? Color::Blue : Color::White;
-	surf[0].pos = contact.collider.ghostp0;
-	surf[1].pos = contact.collider.surface.p1;
-	surf[2].pos = contact.collider.surface.p2;
-	surf[3].pos = contact.collider.ghostp3;
-
 	if (contact.collider.surface.p1 == contact.collider.surface.p2) {
 
 		auto& corner = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(Primitive::TRIANGLES, 3);
@@ -107,6 +92,35 @@ void debugDrawContact(const Contact& contact) {
 		corner[0].pos = contact.collider.surface.p1;
 		corner[1].pos = contact.collider.surface.p1 - (contact.ortho_normal - contact.ortho_normal.lefthand()) * 2.f;
 		corner[2].pos = contact.collider.surface.p1 - (contact.ortho_normal + contact.ortho_normal.lefthand()) * 2.f;
+	}
+	else {
+		auto& surf = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(Primitive::TRIANGLES, 18);
+
+		Linef g1 = { contact.collider.ghostp0, contact.collider.surface.p1 };
+		Linef g2 = { contact.collider.surface.p2, contact.collider.ghostp3 };
+
+		auto draw_surf = [&](Linef s, size_t start_ndx, Color left, Color right)
+		{
+			Vec2f n = math::vector(s).lefthand().unit() * 0.5f;
+
+			surf[start_ndx + 0].pos = s.p1;
+			surf[start_ndx + 1].pos = s.p2;
+			surf[start_ndx + 2].pos = s.p1 - n;
+			surf[start_ndx + 3].pos = s.p1 - n;
+			surf[start_ndx + 4].pos = s.p2;
+			surf[start_ndx + 5].pos = s.p2 - n;
+
+			surf[start_ndx + 0].color = left;
+			surf[start_ndx + 1].color = right;
+			surf[start_ndx + 2].color = left;
+			surf[start_ndx + 3].color = left;
+			surf[start_ndx + 4].color = right;
+			surf[start_ndx + 5].color = right;
+		};
+
+		draw_surf(g1, 0, (contact.collider.g3virtual ? Color::Blue : Color::White), Color::White);
+		draw_surf(contact.collider.surface, 6, Color::White, Color::White);
+		draw_surf(g2, 12, Color::White, (contact.collider.g3virtual ? Color::Blue : Color::White));
 	}
 }
 

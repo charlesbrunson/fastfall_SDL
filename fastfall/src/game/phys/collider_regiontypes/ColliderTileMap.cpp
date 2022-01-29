@@ -470,7 +470,9 @@ namespace ff {
 
 		for (auto& tile : nearby) {
 
-			if (!tile.second || (!isOneWay && tile.second->hasOneWay))
+			//if (!tile.second || (!isOneWay && tile.second->hasOneWay))
+			//	continue;
+			if (!tile.second)
 				continue;
 
 			for (auto& qsurf : tile.second->surfaces) {

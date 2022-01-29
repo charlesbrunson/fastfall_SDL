@@ -251,12 +251,22 @@ struct fmt::formatter<ff::Vec2<T>> {
 
 	constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
 		auto it = ctx.begin(), end = ctx.end();
+
 		if (it != end) {
-			presentation = std::string{"{:"} 
-			+ std::string{ctx.begin(), ctx.end()};
-			return end - 1;
+			bool has_arg = it != end && *it != '}';
+
+			while (it != end && *it != '}') 
+				it++;
+
+			if (has_arg)
+			{
+				presentation = std::string{ "{:" }
+				+ std::string{ ctx.begin(), it + 1 };
+			}
 		}
-		return end;
+
+		if (it != end && *it != '}') throw format_error("invalid format");
+		return it;
 	}
 
 	// Formats the point p using the parsed format specification (presentation)

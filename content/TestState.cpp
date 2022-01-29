@@ -195,12 +195,15 @@ void TestState::update(secs deltaTime) {
 		if (tileset && tile)
 		{
 			
-			std::string str = fmt::format("{}\nLAYER={}\nTILE=({}, {})\nTPOS=({}, {})\nMPOS=({}, {})",
+			std::string str = fmt::format(
+				"tileset\t{}\nlayer\t\t{}\ntile\t\t\t{:2d}\t{}\npos\t\t\t{:3d}",
+
 				tileset->getAssetName(),
 				layer,
-				(unsigned)tile->getX(), (unsigned)tile->getY(),
-				tpos.x, tpos.y,
-				(long)mpos.x, (long)mpos.y);
+				tile->to_vec(),
+				(tileset->getTile(*tile).auto_substitute ? "auto" : ""),
+				Vec2u{ tpos }
+			);
 			tile_text.setText(font, 8, str);
 			
 		}
@@ -251,11 +254,11 @@ void TestState::predraw(secs deltaTime) {
 			tile_text.setScale( Vec2f{ 1.f, 1.f } * scale * (win_scale > 2 ? 2.f : 1.f) );
 			tile_text.setColor(ff::Color::White);
 
-			tile_text.setPosition(
-				Input::getMouseWorldPosition() 
-				//+ instance->getCamera().deltaPosition
-				- Vec2f{ 0.f, tile_text.getScaledBounds().height}
-			);
+			Vec2f text_pos = Input::getMouseWorldPosition()
+				+ instance->getCamera().deltaPosition
+				- Vec2f{ 0.f, tile_text.getScaledBounds().height };
+
+			tile_text.setPosition(text_pos);
 
 		}
 	}

@@ -109,6 +109,21 @@ namespace ff {
 					continue;
 				}
 
+				if (ch == '\t') {
+					unsigned space_width = m_font->getMetrics(' ').advance_x;
+
+					float x = 0.f;
+					while (x <= pen.x)
+					{
+						x += 4.f * space_width;
+					}
+					pen.x = x;
+
+					//pen.x = pen.x /
+					continue;
+
+				}
+
 				auto& metrics = m_font->getMetrics(ch);
 
 				Rectf draw_rect{
