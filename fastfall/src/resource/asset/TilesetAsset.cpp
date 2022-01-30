@@ -18,6 +18,7 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 	{"shape", [](TilesetAsset& asset, TileData& state, char* value)
 	{
 		state.tile.shape = TileShape::from_string(value);
+		state.has_prop_bits |= TileHasProp::HasTile;
 
 		if (state.has_prop_bits & TileHasProp::HasConstraint)
 		{
@@ -343,14 +344,16 @@ void TilesetAsset::loadFromFile_Tile(xml_node<>* tile_node)
 	int id = atoi(tile_node->first_attribute("id")->value());
 
 	TileData& t = tiles[id];
-	t.has_prop_bits |= TileHasProp::HasTile;
+	//t.has_prop_bits |= TileHasProp::HasTile;
 	t.tile.id = TileID{ id % texTileSize.x, id / texTileSize.x };
 	t.tile.origin = this;
 
 	xml_node<>* propNode = tile_node->first_node("properties");
 	loadFromFile_TileProperties(propNode, t);
 
-	tiles[t.tile.id.to_vec()] = t;
+	if (t.has_prop_bits & TileHasProp::HasTile) {
+		tiles[t.tile.id.to_vec()] = t;
+	}
 }
 
 bool TilesetAsset::loadFromFile(const std::string& relpath) {
@@ -573,7 +576,7 @@ flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(fl
 
 }
 
-Tile TilesetAsset::getTile(TileID tile_id) const {
+std::optional<Tile> TilesetAsset::getTile(TileID tile_id) const {
 	// assert this is actually on our texture
 	assert(tile_id.getX() < texTileSize.x && tile_id.getY() < texTileSize.y);
 
@@ -583,12 +586,7 @@ Tile TilesetAsset::getTile(TileID tile_id) const {
 		return r.tile;
 	}
 	else {
-		// create a default, empty tile here
-		return Tile{
-			.id = tile_id,
-			.origin = this,
-			.shape = {},
-		};
+		return {};
 	}
 }
 

@@ -135,9 +135,10 @@ void TestState::update(secs deltaTime) {
 				if (edit->get_tile_layer()
 					&& edit->get_tileset()
 					&& edit->get_tile()
-					&& edit->get_tileset()->getTile(*edit->get_tile()).auto_substitute)
+					&& edit->get_tileset()->getTile(*edit->get_tile())
+					&& edit->get_tileset()->getTile(*edit->get_tile())->auto_substitute)
 				{	
-					auto shape = edit->get_tileset()->getTile(*edit->get_tile()).shape;
+					auto shape = edit->get_tileset()->getTile(*edit->get_tile())->shape;
 					shape = TileShape{ shape.type, !shape.flip_h, shape.flip_v };
 
 					if (auto flip_id = edit->get_tileset()->getAutoTileForShape(shape))
@@ -151,9 +152,10 @@ void TestState::update(secs deltaTime) {
 			if (edit->get_tile_layer()
 				&& edit->get_tileset()
 				&& edit->get_tile()
-				&& edit->get_tileset()->getTile(*edit->get_tile()).auto_substitute)
+				&& edit->get_tileset()->getTile(*edit->get_tile())
+				&& edit->get_tileset()->getTile(*edit->get_tile())->auto_substitute)
 			{
-				auto shape = edit->get_tileset()->getTile(*edit->get_tile()).shape;
+				auto shape = edit->get_tileset()->getTile(*edit->get_tile())->shape;
 				shape = TileShape{ shape.type, shape.flip_h, !shape.flip_v };
 
 				if (auto flip_id = edit->get_tileset()->getAutoTileForShape(shape))
@@ -186,19 +188,21 @@ void TestState::update(secs deltaTime) {
 		}
 
 		auto tileset = edit->get_tileset();
-		auto tile = edit->get_tile();
+		auto tile_id = edit->get_tile();
 
 
-		if (tileset && tile)
+		if (tileset && tile_id)
 		{
-			
+			auto tile = tileset->getTile(*tile_id);
+
+
 			std::string str = fmt::format(
 				"tileset\t{}\nlayer\t\t{}\ntile\t\t\t{:2d}\t{}\npos\t\t\t{:3d}",
 
 				tileset->getAssetName(),
 				layer,
-				tile->to_vec(),
-				(tileset->getTile(*tile).auto_substitute ? "auto" : ""),
+				tile_id->to_vec(),
+				( tile ? (tile->auto_substitute ? "auto" : "") : "null"),
 				Vec2u{ tpos }
 			);
 			tile_text.setText({}, {}, str);

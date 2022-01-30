@@ -176,9 +176,13 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 			continue;
 
 		const auto* tileset = layer_data.getTilesetFromNdx(tile.tileset_ndx);
-		auto& chunk = dyn.chunks.at(tile.tileset_ndx);
+		auto opt_tile = tileset->getTile(tile.tile_id);
 
-		chunk.setTile(tile.pos, tile.tile_id);
+		if (!opt_tile)
+			continue;
+
+		auto& chunk = dyn.chunks.at(tile.tileset_ndx);
+		chunk.setTile(tile.pos, opt_tile->id);
 
 		if (auto [logic, args] = tileset->getTileLogic(tile.tile_id); !logic.empty())
 		{
@@ -194,13 +198,13 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 			if (logic_it != dyn.tile_logic.end())
 			{
 				dyn_tile.logic_id = logic_ndx - 1;
-				logic_it->get()->addTile(tile.pos, tileset->getTile(tile.tile_id), args);
+				logic_it->get()->addTile(tile.pos, *opt_tile, args);
 			}
 			else
 			{
 				dyn_tile.logic_id = dyn.tile_logic.size();
 				dyn.tile_logic.push_back(TileLogic::create(m_context, logic));
-				dyn.tile_logic.back()->addTile(tile.pos, tileset->getTile(tile.tile_id), args);
+				dyn.tile_logic.back()->addTile(tile.pos, *opt_tile, args);
 			}
 		}
 	}
@@ -243,16 +247,17 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 			{
 				if (tile_data.has_tile && tile_data.tileset_ndx != TILEDATA_NONE)
 				{
-					const TilesetAsset* tileset = layer_data.getTilesetFromNdx(tile_data.tileset_ndx);
+					const auto* tileset = layer_data.getTilesetFromNdx(tile_data.tileset_ndx);
+					auto tile = tileset->getTile(tile_data.tile_id);
 
-					Tile tile = tileset->getTile(tile_data.tile_id);
-
-					dyn.collision.tilemap_ptr->setTile(
-						Vec2i{ tile_data.pos },
-						tile.shape,
-						&tileset->getMaterial(tile_data.tile_id),
-						tile.matFacing
-					);
+					if (tile) {
+						dyn.collision.tilemap_ptr->setTile(
+							Vec2i{ tile_data.pos },
+							tile->shape,
+							&tileset->getMaterial(tile_data.tile_id),
+							tile->matFacing
+						);
+					}
 				}
 			}
 
@@ -473,7 +478,7 @@ void TileLayer::setTile(const Vec2u& position, TileID tile_id, const TilesetAsse
 		updateTile(
 			change.position, 
 			change.position == position ? prev_tileset_ndx : tile_data[change.position].tileset_ndx, 
-			*change.tileset, 
+			change.tileset, 
 			useLogic);
 	}
 }
@@ -507,13 +512,13 @@ void TileLayer::removeTile(const Vec2u& position) {
 		updateTile(
 			change.position,
 			tile_data[change.position].tileset_ndx,
-			*change.tileset,
+			change.tileset,
 			true);
 	}
 
 }
 
-void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset& next_tileset, bool useLogic)
+void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic)
 {
 	uint8_t tileset_ndx = prev_tileset_ndx;
 	if (tileset_ndx != TILEDATA_NONE) {
@@ -526,13 +531,23 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 		tiles_dyn[at].logic_id = TILEDATA_NONE;
 	}
 
-	//auto& tile_data = layer_data.getTileData();
 	auto& tile = layer_data.getTileData()[at];
+
+	if (!next_tileset || !next_tileset->getTile(tile.tile_id)) 
+	{
+		if (hasCollision())
+		{
+			dyn.collision.tilemap_ptr->removeTile(Vec2i(at));
+		}
+		return;
+	}
+
+	std::optional<Tile> next_tile = next_tileset->getTile(tile.tile_id);
 
 	if (tile.tileset_ndx == dyn.chunks.size())
 	{
 		dyn.chunks.push_back(ChunkVertexArray(getSize(), kChunkSize));
-		dyn.chunks.back().setTexture(next_tileset.getTexture());
+		dyn.chunks.back().setTexture(next_tileset->getTexture());
 		dyn.chunks.back().setTile(at, tile.tile_id);
 		dyn.chunks.back().use_visible_rect = true;
 	}
@@ -540,20 +555,18 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 		dyn.chunks.at(tile.tileset_ndx).setTile(at, tile.tile_id);
 	}
 
-	if (hasCollision()) {
-		Tile t = next_tileset.getTile(tile.tile_id);
+	if (hasCollision() && next_tile) {
 		dyn.collision.tilemap_ptr->setTile(
 			Vec2i(at),
-			t.shape,
-			&next_tileset.getMaterial(tile.tile_id),
-			t.matFacing
+			next_tile->shape,
+			&next_tileset->getMaterial(tile.tile_id),
+			next_tile->matFacing
 		);
 	}
 
 	if (useLogic) {
-		if (auto [logic, args] = next_tileset.getTileLogic(tile.tile_id); !logic.empty()) {
+		if (auto [logic, args] = next_tileset->getTileLogic(tile.tile_id); !logic.empty()) {
 			std::string_view logic_var = logic;
-
 
 			unsigned dist = 0;
 			auto it = std::find_if(dyn.tile_logic.begin(), dyn.tile_logic.end(),
@@ -563,15 +576,13 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 				});
 			dist--;
 
-			Tile t = next_tileset.getTile(tile.tile_id);
-
 			if (it == dyn.tile_logic.end()) {
 				if (dyn.tile_logic.size() < UINT8_MAX - 1) {
 
 					auto logic_ptr = TileLogic::create(m_context, logic);
 					if (logic_ptr) {
 						dyn.tile_logic.push_back(std::move(logic_ptr));
-						dyn.tile_logic.back()->addTile(at, t, args.data());
+						dyn.tile_logic.back()->addTile(at, *next_tile, args.data());
 						tiles_dyn[at].logic_id = dyn.tile_logic.size() - 1;
 					}
 					else {
@@ -583,7 +594,7 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 				}
 			}
 			else {
-				it->get()->addTile(at, t, args.data());
+				it->get()->addTile(at, *next_tile, args.data());
 				tiles_dyn[at].logic_id = dist;
 			}
 		}

@@ -68,7 +68,7 @@ public:
 
 	bool reloadFromFile() override;
 
-	Tile getTile(TileID tile_id) const;
+	std::optional<Tile> getTile(TileID tile_id) const;
 	inline const Vec2u& getTileSize() const { return texTileSize; };
 
 	void ImGui_getContent() override;

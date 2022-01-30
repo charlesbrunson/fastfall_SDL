@@ -60,7 +60,7 @@ void AnimLogic::update(secs deltaTime) {
 			bool nLogic = true;
 			if (auto [logic, args] = next->getTileLogic(tex_pos); logic == getName()) {
 				timer->time_to_anim += ms_to_secs(std::stoi(args.data()));
-				timer->tile = next->getTile(tex_pos);
+				timer->tile = *next->getTile(tex_pos);
 
 				// move it prior of deletion range
 				std::swap(*timer, *iter);

@@ -139,7 +139,7 @@ protected:
 	bool handlePreContact(Vec2i pos, const Contact& contact, secs duration);
 	void handlePostContact(Vec2i pos, const PersistantContact& contact);
 
-	void updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset& next_tileset, bool useLogic = true);
+	void updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic = true);
 
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;

@@ -119,26 +119,34 @@ TileLayerData::TileChangeArray TileLayerData::setTile(Vec2u at, TileID tile_id, 
 		LOG_ERR_("unable to set tile, tileset max reached for layer: {}", tilesets.size());
 	}
 
-	Tile tile = tileset.getTile(tile_id);
-	TileID placed_tiled_id = tile.id;
-
-	if (tile.auto_substitute)
+	std::optional<Tile> tile = tileset.getTile(tile_id);
+	if (!tile)
 	{
-		auto state = get_autotile_state(tile.shape, shapes, at);
+		changes.push({ nullptr, at });
+		setShape(at, TileShape{}, changes);
+		tiles[at] = TileData{};
+		return changes;
+	}
+
+	TileID placed_tiled_id = tile->id;
+
+	if (tile->auto_substitute)
+	{
+		auto state = get_autotile_state(tile->shape, shapes, at);
 		auto opt_tile_id = auto_best_tile(state, tileset.getConstraints());
 		placed_tiled_id = opt_tile_id.value_or(placed_tiled_id);
 	}
 
 	changes.push({ &tileset, at });
 
-	setShape(at, tile.shape, changes);
+	setShape(at, tile->shape, changes);
 
 	tiles[at].has_tile = true;
 	tiles[at].pos = at;
-	tiles[at].base_id = tile.id;
+	tiles[at].base_id = tile->id;
 	tiles[at].tile_id = placed_tiled_id;
 	tiles[at].tileset_ndx = tileset_ndx;
-	tiles[at].is_autotile = tile.auto_substitute;
+	tiles[at].is_autotile = tile->auto_substitute;
 
 	return changes;
 }

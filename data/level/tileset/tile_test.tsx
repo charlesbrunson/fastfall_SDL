@@ -402,4 +402,24 @@
    <property name="shape" value="solid"/>
   </properties>
  </tile>
+ <tile id="80">
+  <properties>
+   <property name="shape" value="empty"/>
+  </properties>
+ </tile>
+ <tile id="81">
+  <properties>
+   <property name="shape" value="empty"/>
+  </properties>
+ </tile>
+ <tile id="82">
+  <properties>
+   <property name="shape" value="empty"/>
+  </properties>
+ </tile>
+ <tile id="96">
+  <properties>
+   <property name="shape" value="empty"/>
+  </properties>
+ </tile>
 </tileset>
