@@ -26,7 +26,7 @@ namespace ff {
 		setText(font, size, text);
 	}
 
-	void Text::setText(std::optional<std::reference_wrapper<Font>> font, std::optional<unsigned> pixel_size, std::optional<std::string_view> text)
+	void Text::setText(std::optional<const_font_ref> font, std::optional<unsigned> pixel_size, std::optional<std::string_view> text)
 	{
 		bool update = false;
 

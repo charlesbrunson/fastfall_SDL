@@ -13,14 +13,9 @@
 		<level name="map_test.tmx"/>
 	</levels>
 	<fonts path="font/">
-		<font name="pixelated.ttf">
-			<cache>8</cache>
-		</font>
-		<font name="dogicapixel.ttf">
-			<cache>8</cache>
-		</font>
-		<font name="dogicapixelbold.ttf">
-			<cache>8</cache>
-		</font>
+		<font name="pixelated.ttf"/>
+		<font name="dogicapixel.ttf"/>
+		<font name="dogicapixelbold.ttf"/>
+		<font name="LionelMicroNbp-gA25.ttf"/>
 	</fonts>
 </index>

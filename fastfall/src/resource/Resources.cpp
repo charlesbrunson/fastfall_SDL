@@ -41,7 +41,7 @@ Resources::~Resources() {
 	//unloadAll();
 }
 
-template<class Type>
+template<is_asset Type>
 Type* Resources::get(AssetMap<Type>& map, const std::string_view filename) {
 	auto r = map.find(filename);
 
@@ -66,6 +66,7 @@ const Type& Resources::add(const std::string& name, std::unique_ptr<Type>&& asse
 ADDRESOURCE(SpriteAsset, resource.sprites)
 ADDRESOURCE(TilesetAsset, resource.tilesets)
 ADDRESOURCE(LevelAsset, resource.levels)
+ADDRESOURCE(FontAsset, resource.fonts)
 
 #undef ADDRESOURCE
 
@@ -81,6 +82,7 @@ Type* Resources::get<Type>(const std::string_view filename) {	\
 GETRESOURCE(SpriteAsset, resource.sprites)
 GETRESOURCE(TilesetAsset, resource.tilesets)
 GETRESOURCE(LevelAsset, resource.levels)
+GETRESOURCE(FontAsset, resource.fonts)
 
 #undef GETRESOURCE
 
@@ -198,6 +200,7 @@ bool Resources::loadAll(AssetSource loadType, const std::string& filename) {
 }
 void Resources::unloadAll() {
 
+	resource.fonts.clear();
 	resource.anim_lookup_table.clear();
 	resource.animation_table.clear();
 	AnimID::resetCounter();
@@ -348,22 +351,22 @@ bool Resources::buildPackFile(const std::string& packFilename) {
 // indexfile parsing
 std::vector<std::string> parseDataNodes(xml_node<>* first_node, const char* type);
 
-template<class Type>
+template<is_asset Type>
 bool loadAssets(const std::string& path, std::vector<std::string>& names) {
 
-	for (const auto& asset : names) {
-		std::string info = "\t" + path + asset + " ... ";
+	for (const auto& asset : names) 
+	{
+		//std::string info = "\t" + path + asset + " ... ";
 		std::unique_ptr<Type> ptr = std::make_unique<Type>(asset);
+		std::string small_path = path.substr(path.rfind("data/") + 5);
+
 		log::scope scope;
 		if (ptr->loadFromFile(path)) {
 			Resources::add(asset, std::move(ptr));
-			std::string small_path = path.substr(path.rfind("data/") + 5);
 			LOG_INFO("{}{} ... complete", small_path, asset);
 		}
 		else {
-			//std::cout << "failed to load: " << typeid(*ptr.get()).name() << ", " << asset << std::endl;
-			std::string small_path = path.substr(path.rfind("data/") + 5);
-			LOG_ERR_("{}{} ... failed to load: {}, {1}", small_path, asset, typeid(*ptr.get()).name());
+			LOG_ERR_("{0}{1} ... failed to load: {2}, {1}", small_path, asset, typeid(*ptr.get()).name());
 			return false;
 		}
 	}
@@ -384,6 +387,9 @@ bool loadFromIndex(const std::string& indexFile) {
 
 	std::string levelRelPath;
 	std::vector<std::string> levelNames;
+
+	std::string fontRelPath;
+	std::vector<std::string> fontNames;
 
 	std::string dataPath = std::string(FF_DATAPATH) + "data/";
 
@@ -429,6 +435,10 @@ bool loadFromIndex(const std::string& indexFile) {
 						levelRelPath = dataPath + datatypePath;
 						levelNames = parseDataNodes(datatype->first_node(), "level");
 					}
+					else if (strcmp(name, "fonts") == 0) {
+						fontRelPath = dataPath + datatypePath;
+						fontNames = parseDataNodes(datatype->first_node(), "font");
+					}
 					datatype = datatype->next_sibling();
 				}
 			}
@@ -449,6 +459,9 @@ bool loadFromIndex(const std::string& indexFile) {
 
 	LOG_INFO("Loading assets");
 	//sf::Clock timer;
+
+	// load fonts
+	r &= loadAssets<FontAsset>(fontRelPath, fontNames);
 
 	// load sprites
 	r &= loadAssets<SpriteAsset>(spriteRelPath, spriteNames);
@@ -472,10 +485,10 @@ std::vector<std::string> parseDataNodes(xml_node<>* first_node, const char* type
 	std::vector<std::string> names;
 
 	while (node) {
-		if (strcmp(node->name(), type) == 0
-			&& node->first_attribute("name")) 
+		if (auto name_attr = node->first_attribute("name");
+			strcmp(node->name(), type) == 0	&& name_attr)
 		{
-			names.push_back(node->first_attribute("name")->value());
+			names.push_back(name_attr->value());
 		}
 		else {
 			throw parse_error("incorrect type", node->name());
@@ -517,6 +530,14 @@ void Resources::ImGui_getContent() {
 void Resources::addLoadedToWatcher() {
 	assert(resource.loadMethod != AssetSource::PACK_FILE);
 
+	for (auto& [key, val] : resource.fonts) {
+		ResourceWatcher::add_watch(
+			val.get(),
+			{
+				val->getFilePath() + val->getAssetName()
+			}
+		);
+	}
 	for (auto& [key, val] : resource.sprites) {
 		ResourceWatcher::add_watch(
 			val.get(),
@@ -592,6 +613,7 @@ bool Resources::reloadOutOfDateAssets()
 
 
 	std::vector<const Asset*> assets_changed;
+	reloadAssets(resource.fonts, assets_changed);
 	reloadAssets(resource.sprites, assets_changed);
 	reloadAssets(resource.tilesets, assets_changed);
 	reloadAssets(resource.levels, assets_changed);

@@ -19,7 +19,9 @@ namespace ff {
 		Text(Font& font, unsigned size);
 		Text(Font& font, unsigned size, std::string_view text);
 
-		void setText(std::optional<std::reference_wrapper<Font>> font, std::optional<unsigned> pixel_size, std::optional<std::string_view> text);
+		using const_font_ref = std::reference_wrapper<const Font>;
+
+		void setText(std::optional<const_font_ref> font, std::optional<unsigned> pixel_size, std::optional<std::string_view> text);
 		void clear();
 
 		void setColor(Color color);
@@ -54,7 +56,7 @@ namespace ff {
 
 		float v_spacing = 1.f;
 
-		Font* m_font = nullptr;
+		const Font* m_font = nullptr;
 		Color m_color = Color::White;
 	};
 }

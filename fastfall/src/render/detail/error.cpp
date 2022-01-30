@@ -20,7 +20,7 @@ namespace ff {
         // Get the last error
 
         GLenum errorCode;
-        while ((errorCode = glGetError()) != GL_NO_ERROR)
+        if ((errorCode = glGetError()) != GL_NO_ERROR)
         {
             std::string_view fileString = file;
             std::string_view error = "Unknown error";

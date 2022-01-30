@@ -109,7 +109,7 @@ namespace ff {
 	}
 
 
-	bool Font::cachePixelSize(unsigned pixel_size)
+	bool Font::cachePixelSize(unsigned pixel_size) const
 	{
 		auto prev = curr_cache;
 		bool result = setPixelSize(pixel_size);
@@ -117,7 +117,7 @@ namespace ff {
 		return result;
 	}
 
-	bool Font::setPixelSize(unsigned pixel_size)
+	bool Font::setPixelSize(unsigned pixel_size) const
 	{
 		if (pixel_size == 0)
 		{
@@ -142,7 +142,7 @@ namespace ff {
 	}
 
 
-	Font::FontCache* Font::cache_for_size(unsigned size)
+	Font::FontCache* Font::cache_for_size(unsigned size) const
 	{
 		if (!m_face)
 		{
@@ -152,10 +152,8 @@ namespace ff {
 
 		auto& cache = *caches.insert(
 			std::lower_bound(caches.begin(), caches.end(), size,
-				[](auto& cache, unsigned size) {
-					return size > cache->px_size;
-				}),
-			std::make_unique<FontCache>(FontCache{.px_size = size})
+				[](const auto& cache, unsigned size) { return size > cache->px_size; }),
+			std::make_unique<FontCache>(size)
 		);
 
 		if (FT_Set_Pixel_Sizes(m_face, 0, size))
@@ -244,6 +242,7 @@ namespace ff {
 					LOG_ERR_("Failed to load texture from surface for font size");
 				}
 				SDL_FreeSurface(cache->bitmap_surface);
+				cache->bitmap_surface = nullptr;
 
 			}
 		}

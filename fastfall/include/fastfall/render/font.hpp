@@ -24,20 +24,23 @@ public:
 public:
 
 	Font();
+	Font(const Font&) = delete;
+	Font(Font&&) = default;
 	~Font();
+
+	Font& operator=(const Font&) = delete;
+	Font& operator=(Font&&) = default;
 
 	bool loadFromFile(std::string_view font_file);
 	bool loadFromStream(const void* font_data, short length);
 
 	void unload();
 
-	bool cachePixelSize(unsigned pixel_size);
-	bool setPixelSize(unsigned pixel_size);
+	bool cachePixelSize(unsigned pixel_size) const;
+	bool setPixelSize(unsigned pixel_size) const;
 
 	const Texture& getBitmapTex() const { return curr_cache->bitmap_texture; };
 	void loadBitmapTex(unsigned px_size) const;
-
-	//const SDL_Surface*  getBitmapSurface() const { return curr_cache->font_bitmap_surface; };
 
 	const GlyphMetrics& getMetrics(unsigned char ch) const { return curr_cache->glyph_metrics[ch]; };
 	glm::i64vec2		getGlyphSize() const { return curr_cache->glyph_max_size; };
@@ -47,8 +50,6 @@ public:
 	int getYMax()	const { return curr_cache->yMax; };
 	int getHeight() const { return curr_cache->height; };
 
-	//Vec2i getKerning(char left, char right) const;
-
 	bool isLoaded() const { return m_face != nullptr; }
 
 	constexpr static uint8_t CHAR_COUNT = 128;
@@ -56,6 +57,16 @@ public:
 private:
 	struct FontCache
 	{
+		FontCache(unsigned pixel_size) 
+			: px_size{ pixel_size }
+		{
+		}
+		~FontCache() {
+			if (bitmap_surface) {
+				SDL_FreeSurface(bitmap_surface);
+			}
+		}
+
 		bool valid = false;
 
 		int yMin = 0;
@@ -70,12 +81,13 @@ private:
 		std::array<GlyphMetrics, CHAR_COUNT> glyph_metrics;
 	};
 
-	FontCache* cache_for_size(unsigned size);
-
-	std::vector<std::unique_ptr<FontCache>> caches;
-	FontCache* curr_cache = nullptr;
+	FontCache* cache_for_size(unsigned size) const;
 
 	FT_Face m_face = nullptr;
+
+	mutable std::vector<std::unique_ptr<FontCache>> caches;
+	mutable FontCache* curr_cache = nullptr;
+
 };
 
 }

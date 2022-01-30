@@ -51,8 +51,5 @@ private:
 	ff::Vec2i tpos;
 	ff::Vec2f mpos;
 
-
-	ff::Font font;
 	ff::Text tile_text;
-
 };

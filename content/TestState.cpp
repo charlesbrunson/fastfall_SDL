@@ -38,11 +38,8 @@ TestState::TestState()
 	edit->select_tileset("tech_fg.tsx");
 	edit->select_tile(edit->get_tileset()->getAutoTileForShape("slope"_ts).value_or(TileID{0u, 0u}));
 
-	
-	std::string font_file_path = fmt::format("{}{}", FF_DATA_DIR, "data/font/LionelMicroNbp-gA25.ttf");
-	font.loadFromFile(font_file_path);
-	//font.setPixelSize(8u);
-
+	auto font = ff::Resources::get<ff::FontAsset>("LionelMicroNbp-gA25.ttf");
+	tile_text.setText(*font, 8, {});
 	tile_text.setVertSpacing(1.f);
 }
 
@@ -204,7 +201,7 @@ void TestState::update(secs deltaTime) {
 				(tileset->getTile(*tile).auto_substitute ? "auto" : ""),
 				Vec2u{ tpos }
 			);
-			tile_text.setText(font, 8, str);
+			tile_text.setText({}, {}, str);
 			
 		}
 	}
