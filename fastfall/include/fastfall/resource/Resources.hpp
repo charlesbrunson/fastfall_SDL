@@ -77,7 +77,7 @@ public:
 	template<is_asset Type>
 	static const Type& add(const std::string& name, std::unique_ptr<Type>&& sprite);
 
-	static void add_animation(const SpriteAsset::ParsedAnim& panim);
+	static AnimID add_animation(const SpriteAsset::ParsedAnim& panim);
 
 	static const Animation* get_animation(AnimID id);
 	static AnimID get_animation_id(std::string_view sprite_name, std::string_view anim_name);

@@ -109,7 +109,7 @@ AnimID Resources::get_animation_id(std::string_view sprite_name, std::string_vie
 }
 
 
-void Resources::add_animation(const SpriteAsset::ParsedAnim& panim) {
+AnimID Resources::add_animation(const SpriteAsset::ParsedAnim& panim) {
 
 	auto doChain = [&panim](Animation& anim) {
 
@@ -134,6 +134,7 @@ void Resources::add_animation(const SpriteAsset::ParsedAnim& panim) {
 	log::scope scope;
 
 	AnimID existing_id = get_animation_id(panim.owner->getAssetName(), panim.name);
+
 	if (existing_id == AnimID::NONE) {
 		AnimID nID = AnimID::reserve_id();
 		auto key = std::pair<std::string, std::string>(panim.owner->getAssetName(), panim.name);
@@ -152,7 +153,7 @@ void Resources::add_animation(const SpriteAsset::ParsedAnim& panim) {
 
 		//resource.animation_table.insert(std::make_pair( anim.anim_id, anim ));
 		resource.animation_table[anim.anim_id] = std::move(anim);
-
+		existing_id = anim.anim_id;
 	}
 	else {
 		Animation anim{ panim.owner, existing_id };
@@ -168,6 +169,7 @@ void Resources::add_animation(const SpriteAsset::ParsedAnim& panim) {
 		resource.animation_table[existing_id] = std::move(anim);
 	}
 	LOG_INFO("loaded anim: {} - {}", panim.owner->getAssetName(), panim.name);
+	return existing_id;
 }
 
 ////////////////////////////////////////////////////////////

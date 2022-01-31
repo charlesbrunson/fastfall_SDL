@@ -18,6 +18,7 @@
 		<origin x="16" y="32" />
 		<framerate>
 			<frame>80</frame>
+			<frame>80</frame>
 		</framerate>
 		<loop>1</loop>
 		<chainsTo sprite="player.sax" name="idle" frame="0"/>

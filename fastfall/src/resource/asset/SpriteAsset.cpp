@@ -1,10 +1,12 @@
 
 #include "fastfall/resource/asset/SpriteAsset.hpp"
 #include "fastfall/resource/asset/AnimAsset.hpp"
+#include "fastfall/render/AnimatedSprite.hpp"
 
 #include "fastfall/util/xml.hpp"
 
 #include <fstream>
+#include <chrono>
 
 #include "fastfall/resource/Resources.hpp"
 
@@ -12,19 +14,8 @@ namespace ff {
 
 class AnimCompiler {
 public:
-	static bool parseAnimation(xml_node<>* animationNode, SpriteAsset& asset);
+	static AnimID parseAnimation(xml_node<>* animationNode, SpriteAsset& asset);
 };
-
-/*
-const Animation* SpriteAsset::getAnimation(const std::string_view animName) const {
-	auto r = animations.find(animName);
-
-	if (r != animations.end()) {
-		return &r->second;
-	}
-	return nullptr;
-}
-*/
 
 SpriteAsset::SpriteAsset(const std::string& filename) :
 	TextureAsset(filename)
@@ -35,35 +26,6 @@ SpriteAsset::SpriteAsset(const std::string& filename) :
 const std::vector<SpriteAsset::ParsedAnim>& SpriteAsset::getParsedAnims() {
 	return parsedAnims;
 }
-
-/*
-std::map<AnimID, Animation> SpriteAsset::addAnimations(const std::vector<SpriteAsset::ParsedAnim>& allParsed) {
-
-	std::map<AnimID, Animation> anims;
-
-	for (const auto& animp : allParsed) {
-
-		AnimID id = AnimID::reserve_id();
-
-		Animation anim{ animp.owner };
-		anim.anim_id = id;
-		anim.anim_name = animp.name;
-		anim.area = animp.area;
-		anim.origin = animp.origin;
-		anim.framerateMS = animp.framerateMS;
-		anim.loop = animp.loop;
-
-		//anims.push_back(Animation{ animp.owner, AnimID::reserve_id() });
-		//Animation& anim = &anims.back();
-
-		auto [iter, inserted] = anims.insert( std::make_pair(id, std::move(anim)) );
-		assert(inserted);
-
-	}
-	return anims;
-}
-*/
-
 bool SpriteAsset::loadFromFile(const std::string& relpath) {
 
 	bool texLoaded = false;
@@ -73,6 +35,7 @@ bool SpriteAsset::loadFromFile(const std::string& relpath) {
 	std::unique_ptr<char[]> charPtr = readXML(assetFilePath + assetName);
 
 	parsedAnims.clear();
+	anims.clear();
 
 	if (charPtr) {
 		char* xmlContent = charPtr.get();
@@ -107,7 +70,7 @@ bool SpriteAsset::loadFromFile(const std::string& relpath) {
 				}
 				// parse animation
 				else if (strcmp("animation", node->name()) == 0) {
-					AnimCompiler::parseAnimation(node, *this);
+					anims.push_back(AnimCompiler::parseAnimation(node, *this));
 				}
 				node = node->next_sibling();
 			}
@@ -131,25 +94,11 @@ bool SpriteAsset::loadFromFile(const std::string& relpath) {
 
 
 bool SpriteAsset::reloadFromFile() {
-	/*
-	if (TextureAsset::reloadFromFile()) {
-
-		// reload anims
-
-		return true;
-	}
-	*/
-
 	return loadFromFile(assetFilePath);
-
-	//return false;
 }
 
-bool AnimCompiler::parseAnimation(xml_node<>* animationNode, SpriteAsset& asset) {
-
-
-	//auto [iter, inserted] = asset.animations.insert(std::make_pair(name, std::move(Animation{ &asset })));
-
+AnimID AnimCompiler::parseAnimation(xml_node<>* animationNode, SpriteAsset& asset)
+{
 	SpriteAsset::ParsedAnim& anim = asset.parsedAnims.emplace_back(SpriteAsset::ParsedAnim{});
 
 	if (!animationNode->first_attribute("name"))
@@ -212,12 +161,145 @@ bool AnimCompiler::parseAnimation(xml_node<>* animationNode, SpriteAsset& asset)
 		prop = prop->next_sibling();
 	}
 
-	Resources::add_animation(anim);
-
-	return true;
+	return Resources::add_animation(anim);
 }
 void SpriteAsset::ImGui_getContent() {
-	TextureAsset::ImGui_getContent();
+	ImGui::Text("%s", getAssetName().c_str());
+	ImGui::SameLine(ImGui::GetWindowWidth() - 100);
+	if (ImGui::Button("Show Sprite")) {
+		imgui_showTex = true;
+	}
+
+	using namespace std::chrono;
+	
+	static steady_clock anim_clock;
+	static time_point<steady_clock> last_time;
+	static time_point<steady_clock> curr_time = anim_clock.now();
+
+	last_time = curr_time;
+	curr_time = anim_clock.now();
+
+	duration<double> elapsed = (curr_time - last_time);
+	double secs = elapsed.count();
+
+	if (imgui_showTex) {
+		if (ImGui::Begin(imgui_title.c_str(), &imgui_showTex)) {
+
+			static char tab_name[32];
+			snprintf(tab_name, 32, "Sprite Asset#%p", this);
+
+			if (ImGui::BeginTabBar(tab_name)) {
+
+				if (ImGui::BeginTabItem("Animations"))
+				{
+					static unsigned scale = 4;
+					static float playback_speed = 1.f;
+
+					ImGui::Text("This is for animations!");
+					if (!imgui_anim || anims_labels.empty())
+					{
+						imgui_anim = std::make_unique<AnimatedSprite>();
+						anims_labels.clear();
+							
+						std::transform(anims.begin(), anims.end(), std::back_inserter(anims_labels), 
+							[](const AnimID& id) {
+								auto anim = Resources::get_animation(id);
+								return anim ? anim->anim_name.data() : "";
+							});
+						anims_current = 0;
+					}
+					if (!imgui_anim->has_anim())
+					{
+						if (!anims.empty())
+						{
+							imgui_anim->set_anim(*anims.begin());
+						}
+
+						scale = 4;
+						playback_speed = 1.0;
+					}
+					if (imgui_anim->has_anim()) 
+					{
+						imgui_anim->update(secs * playback_speed);
+						imgui_anim->predraw(secs * playback_speed);
+
+						if (imgui_anim->is_complete() 
+							&& imgui_anim->get_anim()->loop != 0)
+						{
+							imgui_anim->reset_anim();
+						}
+						else if (imgui_anim->get_anim()->anim_id != anims[anims_current])
+						{
+							imgui_anim->set_anim(anims[anims_current]);
+						}
+
+						Sprite spr = imgui_anim->get_sprite();
+						TextureRef tex = *spr.getTexture();
+
+						Rectf rect = spr.getTextureRect();
+
+
+						ImVec2 tex_size = {
+							(float)rect.width * scale,
+							(float)rect.height * scale
+						};
+
+						ImVec2 uv0 = {
+							rect.left * tex.get()->inverseSize().x,
+							rect.top * tex.get()->inverseSize().y
+						};
+
+						ImVec2 uv1 = {
+							(rect.left + rect.width) * tex.get()->inverseSize().x,
+							(rect.top + rect.height) * tex.get()->inverseSize().y
+						};
+
+						if (ImGui::Combo("Animations", &anims_current, anims_labels.data(), anims_labels.size()))
+						{
+							imgui_anim->set_anim(anims[anims_current]);
+						}
+
+						if (ImGui::Button("-")) { scale = std::max(1u, scale - 1); }
+						ImGui::SameLine();
+						if (ImGui::Button("+")) { scale = std::min(16u, scale + 1); }
+						ImGui::SameLine();
+						ImGui::Text("%2dx", scale);
+
+						ImGui::DragFloat("Playback Rate", &playback_speed, 0.05f, 0.1f, 5.f);
+						if (ImGui::Button("Reset Playback")) { playback_speed = 1.f; }
+
+						static ImVec4 bg_color = { 0.75f, 0.75f, 0.75f, 1.f };
+						ImGui::ColorEdit3("Bg Color", (float*)&bg_color);
+
+						static char anim_child[32];
+						snprintf(anim_child, 32, "##%p", this);
+						ImGui::PushStyleColor(ImGuiCol_ChildBg, bg_color);
+						if (ImGui::BeginChild(anim_child)) {
+							ImGui::Image((void*)(intptr_t)tex.get()->getID(), tex_size, uv0, uv1);
+						}
+						ImGui::EndChild();
+						ImGui::PopStyleColor();
+
+					}
+					ImGui::EndTabItem();
+				}
+
+				if (ImGui::BeginTabItem("Texture"))
+				{
+					ImGui::Image((void*)(intptr_t)tex.getID(), ImVec2(tex.size().x, tex.size().y));
+					ImGui::EndTabItem();
+				}
+				ImGui::EndTabBar();
+			}
+		}
+		else {
+			imgui_anim.reset();
+			anims_labels.clear();
+			anims_current = 0;
+		}
+
+		ImGui::End();
+	}
 }
 
 bool SpriteAsset::loadFromFlat(const flat::resources::SpriteAssetF* builder) {

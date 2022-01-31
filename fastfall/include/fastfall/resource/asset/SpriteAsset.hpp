@@ -17,6 +17,7 @@ using namespace std::chrono;
 namespace ff {
 
 class AnimCompiler;
+class AnimatedSprite;
 
 class SpriteAsset : public TextureAsset {
 public:
@@ -50,6 +51,8 @@ public:
 	[[nodiscard]]
 	const std::vector<ParsedAnim>& getParsedAnims();
 
+	void set_anim_IDs(std::vector<AnimID>&& anim_ids);
+
 	void ImGui_getContent() override;
 
 	//static std::map<AnimID, Animation> addAnimations(const std::vector<ParsedAnim>& allParsedAnims);
@@ -58,6 +61,14 @@ protected:
 	friend AnimCompiler;
 
 	std::vector<ParsedAnim> parsedAnims;
+
+	bool imgui_showAnim = false;
+
+	std::unique_ptr<AnimatedSprite> imgui_anim;
+
+	std::vector<AnimID> anims;
+	std::vector<const char*> anims_labels;
+	int anims_current = 0;
 
 	//AnimMap animations;
 };
