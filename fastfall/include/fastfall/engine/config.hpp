@@ -1,13 +1,13 @@
 #pragma once
 
 constexpr unsigned int TILESIZE = 16u;
-constexpr float TILESIZE_F = 16.f;
+constexpr float TILESIZE_F = (float)TILESIZE;
 
 constexpr unsigned int GAME_TILE_W = 20u;
 constexpr unsigned int GAME_TILE_H = 15u;
 
-constexpr float GAME_TILE_W_F = 20.f;
-constexpr float GAME_TILE_H_F = 15.f;
+constexpr float GAME_TILE_W_F = (float)GAME_TILE_W;
+constexpr float GAME_TILE_H_F = (float)GAME_TILE_H;
 
 constexpr unsigned int GAME_W = (GAME_TILE_W * TILESIZE); // 320u
 constexpr unsigned int GAME_H = (GAME_TILE_H * TILESIZE); // 240u

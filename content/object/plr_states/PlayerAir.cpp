@@ -77,9 +77,7 @@ PlayerStateID PlayerAirState::update(plr::members& plr, secs deltaTime)
 			}
 		}
 
-
-
-		move = move_t(plr);
+		move = { plr };
 
 		// air control
 		if (move.rel_wishx != 0)
@@ -105,6 +103,7 @@ PlayerStateID PlayerAirState::update(plr::members& plr, secs deltaTime)
 	else {
 		if (prevVelY > 150.f + plr.ground->get_contact()->velocity.y) {
 			plr.sprite->set_anim(anim::land);
+			plr.sprite->set_frame(1);
 		}
 		else if (!plr.sprite->is_playing_any(anim::get_ground_anims())) {
 			plr.sprite->set_anim(anim::idle);
@@ -119,6 +118,9 @@ PlayerStateID PlayerAirState::post_collision(plr::members& plr)
 	if (plr.ground->has_contact()) {
 		if (prevVelY > 150.f + plr.ground->get_contact()->velocity.y) {
 			plr.sprite->set_anim(anim::land);
+
+			if (prevVelY < 350.f)
+				plr.sprite->set_frame(1);
 		}
 		else if (!plr.sprite->is_playing_any(anim::get_ground_anims())) {
 			plr.sprite->set_anim(anim::idle);
