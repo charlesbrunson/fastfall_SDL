@@ -336,7 +336,8 @@ namespace ff {
 
 	std::optional<TileID> auto_best_tile(
 		const TileState& state,
-		const std::vector<TileConstraint>& constraints)
+		const std::vector<TileConstraint>& constraints,
+		unsigned seed)
 	{
 		//std::vector<Match> matches;
 		std::vector<Match> matches;
@@ -365,7 +366,9 @@ namespace ff {
 			}
 
 			// multiple valid matches, pick random one
+			srand(seed);
 			return (matches.rbegin() + (rand() % count))->tile_id;
+			srand(1);
 		}
 		else
 		{

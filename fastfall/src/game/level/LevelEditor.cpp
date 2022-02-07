@@ -342,7 +342,6 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 	for (auto& layer : lvl_layers.get_tile_layers())
 	{
 		if (nLayers.contains(layer.tilelayer.getID())) {
-			// this is a created layer, no need to update
 			it++;
 			continue;
 		}
@@ -350,7 +349,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		assert(layer.tilelayer.getID() == it->tilelayer.getID());
 
 		const TileLayerData& tile_ref = it->tilelayer;
-
+		const auto& tile_ref_data = tile_ref.getTileData();
 
 		select_layer(layer.position);
 
@@ -392,35 +391,34 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		}
 
 		// update tiles
-		//unsigned tile_ndx = 0;
-
 		unsigned width = tile_ref.getSize().x;
 		unsigned height = tile_ref.getSize().y;
 
 		unsigned paint_count = 0;
 		unsigned erase_count = 0;
-		for (const auto& tile : tile_ref.getTileData()) {
-
+		for (auto tile_it = tile_ref_data.cbegin(); tile_it != tile_ref_data.cend(); tile_it++) 
+		{
 			auto& tilelayer = layer.tilelayer;
+			Vec2u pos = { (unsigned)tile_it.column(), (unsigned)tile_it.row() };
 
-			if (tile.has_tile)
+			if (tile_it->has_tile)
 			{
-				auto tile_id = tile.base_id;
-				auto tileset = tile_ref.getTilesetFromNdx(tile.tileset_ndx);
+				auto tile_id = tile_it->base_id;
+				auto tileset = tile_ref.getTilesetFromNdx(tile_it->tileset_ndx);
 
-				if ((!tilelayer.hasTileAt(tile.pos))
-					|| (tilelayer.getTileBaseID(tile.pos).value() != tile_id)
-					|| (tilelayer.getTileTileset(tile.pos) != tileset))
+				if (   (!tilelayer.hasTileAt(pos))
+					|| (tilelayer.getTileBaseID(pos).value() != tile_id)
+					|| (tilelayer.getTileTileset(pos) != tileset))
 				{
 					paint_count++;
 					select_tileset(tileset);
 					select_tile(tile_id);
-					paint_tile(tile.pos);
+					paint_tile(pos);
 				}
 			}
-			else if (tilelayer.hasTileAt(tile.pos)) {
+			else if (tilelayer.hasTileAt(pos)) {
 				erase_count++;
-				erase_tile(tile.pos);
+				erase_tile(pos);
 			}
 		}
 

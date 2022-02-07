@@ -473,7 +473,8 @@ void Engine::sleep() {
         displayTime = std::chrono::steady_clock::now() - displayStart;
     }
 
-    clock.sleepUntilTick(!window);
+
+    clock.sleepUntilTick(!window || settings.vsyncEnabled);
 }
 
 // -------------------------------------------
@@ -874,6 +875,8 @@ void Engine::ImGui_getContent() {
         tickMS = clock.data().activeTime.count() * 1000.f;
     }
     ImGui::Text("Tick MS:%2.1f | ", tickMS);
+    ImGui::SameLine();
+    ImGui::Text("Delta Time MS:%2.1f | ", deltaTime * 1000.0);
 
     ImGui::SameLine();
 
@@ -888,15 +891,13 @@ void Engine::ImGui_getContent() {
 
     if (ImGui::Checkbox("Freeze", &pauseUpdate)) {
         if (!pauseUpdate)
-            log::set_verbosity(log::level::VERB);
+            unfreeze();
         else
-            log::set_verbosity(log::level::STEP);
+            freeze();
     }
     ImGui::SameLine();
     if (ImGui::Button("Step")) {
-        pauseUpdate = true;
-        stepUpdate = true;
-        LOG_STEP("STEP");
+        freezeStepOnce();
     }
 
     if (ImGui::Checkbox("Set FPS Unlimited", &fpsUnlimited)) {
@@ -930,6 +931,20 @@ void Engine::ImGui_getExtraContent() {
     if (showImGuiDemo) ImGui::ShowDemoWindow(&showImGuiDemo);
     if (showImPlotDemo) ImPlot::ShowDemoWindow(&showImPlotDemo);
 }
+
+void Engine::freeze() {
+    log::set_verbosity(log::level::STEP);  pauseUpdate = true; stepUpdate = false;
+};
+void Engine::freezeStepOnce() {
+    log::set_verbosity(log::level::STEP); pauseUpdate = true; stepUpdate = true; LOG_STEP("STEP");
+};
+void Engine::unfreeze() {
+    log::set_verbosity(log::level::VERB); pauseUpdate = false; stepUpdate = false;
+};
+bool Engine::isFrozen() const noexcept {
+    return pauseUpdate;
+};
+
 
 std::optional<unsigned> getDisplayRefreshRate(const Window& win) 
 {

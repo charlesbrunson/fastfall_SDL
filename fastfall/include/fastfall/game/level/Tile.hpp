@@ -84,7 +84,8 @@ namespace ff {
 
 	std::optional<TileID> auto_best_tile(
 		const TileState& state,
-		const std::vector<TileConstraint>& constraints);
+		const std::vector<TileConstraint>& constraints,
+		unsigned seed = time(0));
 
 	// Tile Material
 

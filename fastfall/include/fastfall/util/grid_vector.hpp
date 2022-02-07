@@ -98,6 +98,8 @@ namespace ff {
 			auto temp = *this;
 			return temp;
 		}
+		constexpr value_type* operator->() { return m_ptr; }
+		constexpr const value_type* operator->() const { return m_ptr; }
 
 		constexpr value_type& operator* () { return *m_ptr; }
 		constexpr const value_type& operator* () const { return *m_ptr; }
@@ -203,6 +205,8 @@ namespace ff {
 			auto temp = *this;
 			return temp;
 		}
+
+		constexpr const value_type* operator->() const { return m_ptr; }
 
 		constexpr const value_type& operator* () const { return *m_ptr; }
 

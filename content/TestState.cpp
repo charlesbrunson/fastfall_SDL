@@ -255,8 +255,12 @@ void TestState::predraw(secs deltaTime) {
 			tile_text.setScale( Vec2f{ 1.f, 1.f } * scale * (win_scale > 2 ? 2.f : 1.f) );
 			tile_text.setColor(ff::Color::White);
 
-			Vec2f text_pos = Input::getMouseWorldPosition()
-				+ instance->getCamera().deltaPosition
+			int posx, posy;
+			SDL_GetMouseState(&posx, &posy);
+
+			Vec2f text_pos = viewPos 
+				+ Vec2f{ Input::getMouseWindowPosition() } / Engine::get().getWindowScale()
+				- Vec2f{ GAME_W_F, GAME_H_F } / 2.f
 				- Vec2f{ 0.f, tile_text.getScaledBounds().height };
 
 			tile_text.setPosition(text_pos);

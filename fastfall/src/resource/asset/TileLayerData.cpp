@@ -132,8 +132,9 @@ TileLayerData::TileChangeArray TileLayerData::setTile(Vec2u at, TileID tile_id, 
 
 	if (tile->auto_substitute)
 	{
+		unsigned rseed = (at.x + at.y * getSize().x);
 		auto state = get_autotile_state(tile->shape, shapes, at);
-		auto opt_tile_id = auto_best_tile(state, tileset.getConstraints());
+		auto opt_tile_id = auto_best_tile(state, tileset.getConstraints(), rseed);
 		placed_tiled_id = opt_tile_id.value_or(placed_tiled_id);
 	}
 
@@ -198,9 +199,10 @@ void TileLayerData::setShape(Vec2u at, TileShape shape, TileChangeArray& changes
 		auto update_adj_tile = [&](auto dir) {
 			Vec2u adj_at = at + direction::to_vector(dir);
 			if (tiles.valid(adj_at) && tiles[adj_at].is_autotile) {
+				unsigned rseed = (adj_at.x + adj_at.y * getSize().x);
 				const TilesetAsset* tileset_ptr = tilesets[tiles[adj_at].tileset_ndx].tileset;
 				auto state = get_autotile_state(shapes[adj_at], shapes, adj_at);
-				auto opt_tile_id = auto_best_tile(state, tileset_ptr->getConstraints());
+				auto opt_tile_id = auto_best_tile(state, tileset_ptr->getConstraints(), rseed);
 
 				if (opt_tile_id)
 				{

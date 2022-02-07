@@ -100,15 +100,12 @@ public:
 	inline bool isRunning() const noexcept { return running; };
 	inline bool isInit() const noexcept { return initialized; }
 
-	inline void freeze() { pauseUpdate = true; stepUpdate = false; };
-	inline void freezeStepOnce() { pauseUpdate = true; stepUpdate = true; };
-	inline void unfreeze() { pauseUpdate = false; stepUpdate = false; };
-	inline bool isFrozen() const noexcept { return pauseUpdate; };
+	void freeze();
+	void freezeStepOnce();
+	void unfreeze();
+	bool isFrozen() const noexcept;
 
 	inline int getWindowScale() const noexcept { return windowZoom; }
-
-
-
 
 private:
 	bool run_doubleThread();
