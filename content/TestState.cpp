@@ -195,15 +195,20 @@ void TestState::update(secs deltaTime) {
 		{
 			auto tile = tileset->getTile(*tile_id);
 
+			std::string_view tileset_name = tileset->getAssetName();
 
-			std::string str = fmt::format(
-				"tileset\t{}\nlayer\t\t{}\ntile\t\t\t{:2d}\t{}\npos\t\t\t{:3d}",
+			std::string_view layer_name = edit->get_tile_layer()->tilelayer.getName();
+			unsigned layer_id = edit->get_tile_layer()->tilelayer.getID();
+			int layer_pos = layer;
 
-				tileset->getAssetName(),
-				layer,
-				tile_id->to_vec(),
-				( tile ? (tile->auto_substitute ? "auto" : "") : "null"),
-				Vec2u{ tpos }
+			Vec2u tile_origin = tile_id->to_vec();
+			std::string_view tile_type = (tile ? (tile->auto_substitute ? "auto" : "") : "null");
+
+			std::string str = fmt::format("{}\n{}\n{}\n{}",
+				fmt::format("tileset\t{}", tileset_name),
+				fmt::format("layer\t\t{}#{} ({})", layer_name, layer_id, layer_pos),
+				fmt::format("tile\t\t\t{:2d}\t{}", tile_origin, tile_type),
+				fmt::format("pos\t\t{:3d}", tpos)
 			);
 			tile_text.setText({}, {}, str);
 			
@@ -250,7 +255,9 @@ void TestState::predraw(secs deltaTime) {
 				});
 
 
-			unsigned win_scale = Engine::get().getWindowScale();
+			///unsigned win_scale = Engine::get().getWindowScale();
+			float win_scale{ (float)Engine::get().getWindowScale() };
+
 			float scale = viewZoom / win_scale;
 			tile_text.setScale( Vec2f{ 1.f, 1.f } * scale * (win_scale > 2 ? 2.f : 1.f) );
 			tile_text.setColor(ff::Color::White);
@@ -258,10 +265,23 @@ void TestState::predraw(secs deltaTime) {
 			int posx, posy;
 			SDL_GetMouseState(&posx, &posy);
 
-			Vec2f text_pos = viewPos 
+			Vec2f mouse_pos { Input::getMouseWindowPosition() };
+			Vec2f win_size  { Engine::get().getWindow()->getSize() };
+			Vec2f text_off  { 0.f, -tile_text.getScaledBounds().height };
+
+			Vec2f mouse_from_cam = (mouse_pos - (win_size / 2.f));
+			mouse_from_cam.x = floorf(mouse_from_cam.x);
+			mouse_from_cam.y = floorf(mouse_from_cam.y);
+			mouse_from_cam /= win_scale;
+
+			Vec2f text_pos = viewPos + text_off + mouse_from_cam;
+
+			/*
 				+ Vec2f{ Input::getMouseWindowPosition() } / Engine::get().getWindowScale()
-				- Vec2f{ GAME_W_F, GAME_H_F } / 2.f
+				- Vec2f{ Engine::get().getWindow()->getSize() } / (2.f * Engine::get().getWindowScale())
 				- Vec2f{ 0.f, tile_text.getScaledBounds().height };
+			*/
+
 
 			tile_text.setPosition(text_pos);
 

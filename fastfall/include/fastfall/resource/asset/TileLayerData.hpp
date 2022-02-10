@@ -47,6 +47,7 @@ private:
 	std::vector<TilesetData> tilesets;
 
 	unsigned layer_id = 0;
+	std::string layer_name;
 
 public:
 
@@ -103,6 +104,9 @@ public:
 
 	TileChangeArray setTile(Vec2u at, TileID tile_id, const TilesetAsset& tileset);
 	RemoveResult removeTile(Vec2u at);
+
+	std::string_view getName() const { return layer_name; };
+	void setName(std::string_view name) { layer_name = name; };
 
 	void clearTiles();
 

@@ -123,6 +123,13 @@ void parseObjectRefs(xml_node<>* objectNode, ObjectLayerData& objLayer) {
 ObjectLayerData ObjectTMX::parse(xml_node<>* layerNode) {
 	ObjectLayerData layer;
 	layer.layer_id = atoi(layerNode->first_attribute("id")->value());
+
+	if (auto* name_attr = layerNode->first_attribute("name")) {
+		layer.layer_name = name_attr->value();
+	}
+	else {
+		layer.layer_name = "unknown";
+	}
 	parseObjectRefs(layerNode->first_node("object"), layer);
 	return layer;
 }

@@ -113,7 +113,7 @@ namespace ff {
 					unsigned space_width = m_font->getMetrics(' ').advance_x;
 
 					float x = 0.f;
-					while (x <= pen.x)
+					while (x < pen.x + space_width)
 					{
 						x += 4.f * space_width;
 					}

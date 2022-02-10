@@ -107,6 +107,8 @@ public:
 
 	inline int getWindowScale() const noexcept { return windowZoom; }
 
+	const Window* getWindow() const noexcept { return window.get(); }
+
 private:
 	bool run_doubleThread();
 	bool run_singleThread();

@@ -69,7 +69,7 @@ void log::detail_log(level lvl, const std::string_view& file, int line, std::str
 	messages.push_back(LogMessage{
 		.lvl = lvl,
 		.message = fmt::format("{:<10}{:<5s}{:<30s}{:<s}", currentTick, levelStr, fileContent, msg)
-		});
+	});
 
 	int fillSize = 28 - fileContent.size();
 	if (fillSize > 0) {
@@ -77,9 +77,8 @@ void log::detail_log(level lvl, const std::string_view& file, int line, std::str
 		std::fill_n(&messages.back().message[15 + fileContent.size() + 1], fillSize, fillChar);
 	}
 
-
 	if (lvl >= get_verbosity())
-		std::cout << messages.back().message << std::endl;
+		fmt::print("{}\n", messages.back().message);
 }
 
 

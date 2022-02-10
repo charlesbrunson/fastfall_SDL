@@ -226,11 +226,18 @@ void TileLayerData::setShape(Vec2u at, TileShape shape, TileChangeArray& changes
 
 TileLayerData TileLayerData::loadFromTMX(xml_node<>* layerNode, const TilesetMap& tilesets)
 {
+
 	unsigned id = atoi(layerNode->first_attribute("id")->value());
 	unsigned size_x = atoi(layerNode->first_attribute("width")->value());
 	unsigned size_y = atoi(layerNode->first_attribute("height")->value());
 
 	TileLayerData layer(id, Vec2u{ size_x, size_y });
+	if (auto* name_attr = layerNode->first_attribute("name")) {
+		layer.setName(name_attr->value());
+	}
+	else {
+		layer.setName("unknown");
+	}
 
 	// PARSE LAYER PROPERTIES
 

@@ -103,6 +103,8 @@ public:
 	inline unsigned		getID()					const { return layer_data.getID();				};
 	inline Vec2u		getLevelSize()			const { return layer_data.getSize();			};
 
+	inline std::string_view getName()			const { return layer_data.getName();			}
+
 	// size varies based on parallax enabled
 	inline Vec2u		getSize() const { return hasParallax() ? getParallaxSize() : getLevelSize(); };
 

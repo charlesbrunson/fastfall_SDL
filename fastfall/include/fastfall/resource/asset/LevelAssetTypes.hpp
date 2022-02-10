@@ -86,6 +86,8 @@ struct ObjectLevelData : public ObjectData {
 
 struct ObjectLayerData {
 	unsigned layer_id = 0;
+	std::string layer_name;
+
 	std::vector<ObjectLevelData> objects;
 
 	unsigned getID() const { return layer_id; }
