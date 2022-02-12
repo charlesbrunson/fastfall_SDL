@@ -237,7 +237,7 @@ Vec2f SurfaceTracker::do_max_speed(secs deltaTime) noexcept {
 
 // ----------------------------
 
-Vec2f SurfaceTracker::postmove_update(Vec2f wish_pos, secs deltaTime) {
+Vec2f SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime) {
 
 	Vec2f position = wish_pos;
 
@@ -291,13 +291,15 @@ Vec2f SurfaceTracker::postmove_update(Vec2f wish_pos, secs deltaTime) {
 			bool goingLeft = false;
 			bool goingRight = false;
 
-			if (wish_pos.x > right) {
+			if (wish_pos.x > right && prev_pos.x <= right) {
 				goingRight = true;
 				next = goRight(contact.collider);
+				LOG_INFO("RIGHT {}", fmt::ptr(next));
 			}
-			else if (wish_pos.x < left) {
+			else if (wish_pos.x < left && prev_pos.x >= left) {
 				goingLeft = true;
 				next = goLeft(contact.collider);
+				LOG_INFO("LEFT {}", fmt::ptr(next));
 			}
 
 			if (next) {

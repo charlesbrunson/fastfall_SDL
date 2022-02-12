@@ -63,6 +63,8 @@ void collisionContent(GameContext context) {
 
 
 			ImGui::Text("Velocity:     %3.2f, %3.2f", col.get_vel().x, col.get_vel().y);
+			ImGui::Text("Accel:        %3.2f, %3.2f", col.get_acc().x, col.get_acc().y);
+			ImGui::Text("Friction:     %3.2f, %3.2f", col.get_friction().x, col.get_friction().y);
 			ImGui::Text("Speed:        %3.2f", col.get_vel().magnitude());
 			ImGui::Text("Gravity:      %3.2f, %3.2f", col.get_gravity().x, col.get_gravity().y);
 

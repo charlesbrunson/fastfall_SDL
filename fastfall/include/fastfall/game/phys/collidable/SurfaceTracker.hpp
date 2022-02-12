@@ -29,7 +29,7 @@ public:
 	Vec2f premove_update(secs deltaTime);
 
 	// new position out
-	Vec2f postmove_update(Vec2f wish_pos, secs deltaTime);
+	Vec2f postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime);
 
 	void process_contacts(std::vector<PersistantContact>& contacts);
 	bool has_contact() const noexcept;

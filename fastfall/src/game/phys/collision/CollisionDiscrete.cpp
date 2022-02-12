@@ -132,7 +132,7 @@ void CollisionDiscrete::createAxes() noexcept
 			hasFloor = true;
 			non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::N, .surface = surf, .is_real = true, .is_valid = true, .quadNdx = ndx };
 
-			if (surface.hasSurface && !math::is_horizontal(v)) {
+			if (surface.hasSurface) {
 				if (!hasEastCorner && surf.ghostp3.x <= surf.surface.p2.x && surf.ghostp3.y >= surf.surface.p2.y) {
 					//east corner
 					hasEastCorner = true;
@@ -161,7 +161,7 @@ void CollisionDiscrete::createAxes() noexcept
 			hasCeil = true;
 			non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::S, .surface = surf, .is_real = true, .is_valid = true, .quadNdx = ndx };
 
-			if (surface.hasSurface && !math::is_horizontal(v)) {
+			if (surface.hasSurface) {
 				if (!hasEastCorner && surf.ghostp0.x <= surf.surface.p1.x && surf.ghostp0.y <= surf.surface.p1.y) {
 					//east corner
 					hasEastCorner = true;
@@ -258,7 +258,6 @@ void CollisionDiscrete::updateContact() noexcept {
 	initCollidableData();
 
 	// calculate separation, position, collider_normal
-	//for (auto& axis : axes) {
 	for (unsigned i = 0; i < axis_count; i++)
 	{
 		auto& axis = axes[i];
@@ -365,7 +364,6 @@ void CollisionDiscrete::evalContact() noexcept {
 
 			axis.contact.hasValley = valley_SE || valley_SW;
 		}
-		//assert(!std::isnan(axis.contact.separation));
 		axis.contact.hasContact = axis.axisValid && axis.is_intersecting();
 
 		if (!axis.contact.hasContact) noContactCounter++;
@@ -430,7 +428,6 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
 	if (cQuad.material) {
 		axis.contact.material = &cQuad.material->getSurface(Cardinal::N, cQuad.matFacing);
 	}
-	//axis.contact.
 
 	// if this is a oneway, invalidate it if the collider's previous position is not above it
 	if (!collidePrevious && cQuad.isOneWay(Cardinal::N)) {
@@ -451,7 +448,6 @@ CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcep
 
 	// if this is a oneway, invalidate it if the collider's previous position is not below it
 	if (!collidePrevious && cQuad.isOneWay(Cardinal::S)) {
-		//LOG_INFO("{} >= {}", math::rect_topleft(cPrev).y, tMid.y + tHalf.y);
 		axis.axisValid = math::rect_topleft(cPrev).y >= tMid.y + tHalf.y;
 	}
 
@@ -480,34 +476,34 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 	}
 
 	// check if north or south axis has a valley in it 
-	bool has_valley = !axis.is_collider_valid() && std::any_of(std::begin(axes), std::begin(axes) + axis_count,
+	bool has_valley = !axis.is_collider_valid() 
+		&& std::any_of(std::begin(axes), std::begin(axes) + axis_count,
+			[this](CollisionAxis& other_axis) {
+				if (other_axis.dir == Cardinal::N && other_axis.is_collider_real()) {
+					ColliderSurface& surf = other_axis.contact.collider;
 
-		[this](CollisionAxis& other_axis) {
-			if (other_axis.dir == Cardinal::N && other_axis.is_collider_real()) {
-				ColliderSurface& surf = other_axis.contact.collider;
-
-				if (surf.surface.p2.y > surf.ghostp3.y && surf.surface.p2.y > surf.surface.p1.y) {
-					valley_NE = true;
-					return true;
+					if (surf.surface.p2.y > surf.ghostp3.y && surf.surface.p2.y > surf.surface.p1.y) {
+						valley_NE = true;
+						return true;
+					}
 				}
-			}
-			else if (other_axis.dir == Cardinal::S && other_axis.is_collider_real()) {
-				ColliderSurface& surf = other_axis.contact.collider;
+				else if (other_axis.dir == Cardinal::S && other_axis.is_collider_real()) {
+					ColliderSurface& surf = other_axis.contact.collider;
 
-				if (surf.surface.p1.y < surf.ghostp0.y && surf.surface.p1.y < surf.surface.p2.y) {
-					valley_SE = true;
-					return true;
+					if (surf.surface.p1.y < surf.ghostp0.y && surf.surface.p1.y < surf.surface.p2.y) {
+						valley_SE = true;
+						return true;
+					}
 				}
-			}
-			return false;
-		});
+				return false;
+			});
 
 	// if this is a oneway, invalidate it if the collider's previous position is not left of it
 	if (!collidePrevious && cQuad.isOneWay(Cardinal::E)) {
 		axis.axisValid = math::rect_topleft(cPrev).x >= tPos.x + tArea.width;
 	}
 
-	axis.separationOffset = (extend ? cHalf : Vec2f()).x + (has_valley ? VALLEY_FLATTEN_THRESH : 0.f);
+	axis.separationOffset = (extend ? cHalf.x : 0.f) + (has_valley ? VALLEY_FLATTEN_THRESH : 0.f);
 	return axis;
 }
 
@@ -533,33 +529,34 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 	}
 
 	// check if north or south axis has a valley in it 
-	bool has_valley = !axis.is_collider_valid() && std::any_of(std::begin(axes), std::begin(axes) + axis_count,
-		[this](CollisionAxis& other_axis) {
-			if (other_axis.dir == Cardinal::N && other_axis.is_collider_real()) {
-				ColliderSurface& surf = other_axis.contact.collider;
+	bool has_valley = !axis.is_collider_valid() 
+		&& std::any_of(std::begin(axes), std::begin(axes) + axis_count,
+			[this](CollisionAxis& other_axis) {
+				if (other_axis.dir == Cardinal::N && other_axis.is_collider_real()) {
+					ColliderSurface& surf = other_axis.contact.collider;
 
-				if (surf.surface.p1.y > surf.ghostp0.y && surf.surface.p1.y > surf.surface.p2.y) {
-					valley_NW = true;
-					return true;
+					if (surf.surface.p1.y > surf.ghostp0.y && surf.surface.p1.y > surf.surface.p2.y) {
+						valley_NW = true;
+						return true;
+					}
 				}
-			}
-			else if (other_axis.dir == Cardinal::S && other_axis.is_collider_real()) {
-				ColliderSurface& surf = other_axis.contact.collider;
+				else if (other_axis.dir == Cardinal::S && other_axis.is_collider_real()) {
+					ColliderSurface& surf = other_axis.contact.collider;
 
-				if (surf.surface.p2.y < surf.ghostp3.y && surf.surface.p2.y < surf.surface.p1.y) {
-					valley_SW = true;
-					return true;
+					if (surf.surface.p2.y < surf.ghostp3.y && surf.surface.p2.y < surf.surface.p1.y) {
+						valley_SW = true;
+						return true;
+					}
 				}
-			}
-			return false;
-		});
+				return false;
+			});
 
 	// if this is a oneway, invalidate it if the collider's previous position is not left of it
 	if (!collidePrevious && cQuad.isOneWay(Cardinal::W)) {
 		axis.axisValid = math::rect_topright(cPrev).x <= tArea.left;
 	}
 
-	axis.separationOffset = (extend ? cHalf : Vec2f()).x + (has_valley ? VALLEY_FLATTEN_THRESH : 0.f);
+	axis.separationOffset = (extend ? cHalf.x : 0.f) + (has_valley ? VALLEY_FLATTEN_THRESH : 0.f);
 	return axis;
 }
 

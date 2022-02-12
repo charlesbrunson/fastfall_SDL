@@ -118,7 +118,7 @@ void debugDrawContact(const Contact& contact) {
 			surf[start_ndx + 5].color = right;
 		};
 
-		draw_surf(g1, 0, (contact.collider.g3virtual ? Color::Blue : Color::White), Color::White);
+		draw_surf(g1, 0, (contact.collider.g0virtual ? Color::Blue : Color::White), Color::White);
 		draw_surf(contact.collider.surface, 6, Color::White, Color::White);
 		draw_surf(g2, 12, Color::White, (contact.collider.g3virtual ? Color::Blue : Color::White));
 	}
@@ -240,6 +240,8 @@ void Collidable::init(Vec2f position, Vec2f size, Vec2f gravity) {
 
 void Collidable::update(secs deltaTime) {
 
+	Vec2f prev_pos = pos;
+
 	if (deltaTime > 0.0) {
 
 		prev_vel = vel;
@@ -275,7 +277,7 @@ void Collidable::update(secs deltaTime) {
 	}
 
 	for (auto& tracker : trackers) {
-		Vec2f p = tracker->postmove_update(pos, deltaTime);
+		Vec2f p = tracker->postmove_update(pos, prev_pos, deltaTime);
 		if (deltaTime > 0.0)
 			pos = p;
 	}

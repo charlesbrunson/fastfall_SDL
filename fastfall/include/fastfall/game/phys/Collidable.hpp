@@ -70,7 +70,9 @@ public:
 	inline void add_decelX(float deceleration) { decel_accum.x += deceleration; };
 	inline void add_decelY(float deceleration) { decel_accum.y += deceleration; };
 
-	inline Vec2f get_acc() { return acc; };
+	inline Vec2f get_friction()   const noexcept { return friction; };
+
+	inline Vec2f get_acc() const noexcept { return acc; };
 
 	void applyContact(const Contact& contact, ContactType type);
 

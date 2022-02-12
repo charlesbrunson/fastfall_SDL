@@ -28,9 +28,7 @@ States
 		Dash {dash}
 			Instantly redirects velocity left or right
 		Boost {dash(hold)}
-			Accelerates left or right, retains momentum at higher speeds
-		Slope Boost {down AND dash(hold) AND on slope}
-			Much faster than regular boosting if on a slope
+			Accelerates left or right, retains momentum at higher speeds, more effective going downhill
 		
 	Air
 		Idle {left OR right OR nothing}
@@ -49,13 +47,15 @@ States
 	Wall
 		Cling {}
 			Holds onto a wall, slowly slides down. two poses for clinging before/after a wall boost
+		Slide {down(hold)}
+			slides down wall faster
 		Jump {jump}
 			Jumps off wall
-		Dash {dash AND (NOT up)}
+		Dash {dash AND away from wall}
 			Dashes off wall
-		Boost {up AND (dash OR dash(hold))}
+		Wall Dash {dash AND NOT away from wall AND NOT down}
 			Runs up wall, can transition into if you ground boost up a slope into the wall (this can allow you to go very high up the wall)
 		Down Boost (ungrabs) {down AND dash}
 			ungrabs into a air down boost
-		Ungrab {left away from wall OR right away from wall}
+		Ungrab {away from wall(hold)}
 			Releases the wall, into air idle
