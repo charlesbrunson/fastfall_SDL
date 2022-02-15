@@ -274,7 +274,7 @@ void TestState::predraw(secs deltaTime) {
 			mouse_from_cam.y = floorf(mouse_from_cam.y);
 			mouse_from_cam /= win_scale;
 
-			Vec2f text_pos = viewPos + text_off + mouse_from_cam;
+			Vec2f text_pos = viewPos + text_off + mouse_from_cam * viewZoom;
 
 			/*
 				+ Vec2f{ Input::getMouseWindowPosition() } / Engine::get().getWindowScale()

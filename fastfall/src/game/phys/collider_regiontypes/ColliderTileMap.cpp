@@ -501,7 +501,7 @@ namespace ff {
 			//[&surf, &v, idealAng](const Vec2f& lhs, const Vec2f& rhs) -> bool {
 			[&surface, &v, idealAng](const ColliderSurface* lhs, const ColliderSurface* rhs) -> bool {
 				if (lhs == rhs) return false;
-
+				
 				auto v1 = math::vector(Linef(lhs->surface.p1, surface.p1));
 				auto v2 = math::vector(Linef(rhs->surface.p1, surface.p1));
 

@@ -294,12 +294,10 @@ Vec2f SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs delta
 			if (wish_pos.x > right && prev_pos.x <= right) {
 				goingRight = true;
 				next = goRight(contact.collider);
-				LOG_INFO("RIGHT {}", fmt::ptr(next));
 			}
 			else if (wish_pos.x < left && prev_pos.x >= left) {
 				goingLeft = true;
 				next = goLeft(contact.collider);
-				LOG_INFO("LEFT {}", fmt::ptr(next));
 			}
 
 			if (next) {
@@ -322,7 +320,9 @@ Vec2f SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs delta
 
 					Vec2f nVel;
 
-					float vel_mag = owner->get_vel().magnitude();
+					float slow = 1.f - settings.slope_stick_speed_factor * abs(diff.degrees() / settings.stick_angle_max.degrees());
+
+					float vel_mag = owner->get_vel().magnitude() * slow;
 					nVel.x = cosf(gAng.radians()) * vel_mag;
 					nVel.y = sinf(gAng.radians()) * vel_mag;
 

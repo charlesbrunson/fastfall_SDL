@@ -90,6 +90,8 @@ public:
 		Angle stick_angle_max;
 		Friction surface_friction;
 		float max_speed = 0.f;
+
+		float slope_stick_speed_factor = 0.25f;
 	} settings;
 
 private:

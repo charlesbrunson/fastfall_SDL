@@ -85,10 +85,10 @@ protected:
 	float rad;
 	float deg;
 
-	constexpr void calcDeg() {
+	constexpr inline void calcDeg() {
 		deg = rad * 180.f / PI_F;
 	}
-	constexpr void calcRad() {
+	constexpr inline void calcRad() {
 		rad = deg * PI_F / 180.f;
 	}
 	constexpr void normalize() {
@@ -112,13 +112,15 @@ protected:
 		}
 	}
 
-	static constexpr float remainder(float _X, float _Y) {
+	// dunno why this doesn't already exist
+	static constexpr inline float constexpr_abs(float v)
+	{
+		return (v < 0.f ? -v : v);
+	}
 
-		// no idea if this works
-		return (_X < float() ? float(-1) : float(1)) * (
-			(_X < float() ? -_X : _X) -
-			static_cast<long long int>((_X / _Y < float() ? -_X / _Y : _X / _Y)) * (_Y < float() ? -_Y : _Y)
-			);
+	static constexpr inline float remainder(float _X, float _Y) {
+		float sign = (_X < 0.f ? -1.f : 1.f);
+		return sign * (constexpr_abs(_X) - static_cast<long long int>(constexpr_abs(_X / _Y)) * constexpr_abs(_Y));
 	}
 };
 

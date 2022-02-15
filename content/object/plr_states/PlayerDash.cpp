@@ -93,7 +93,7 @@ void PlayerDashState::enter(plr::members& plr, PlayerState* from)
 			Vec2f pos = plr.box->getPosition();
 			ObjectFactory::create<SimpleEffect>(plr.plr_context, dash_anims.fx->id(), pos, plr.sprite->get_hflip());
 		}
-		dash_speed = plr.ground->traverse_get_speed();
+		dash_speed = plr.ground->traverse_get_speed() * (plr.sprite->get_hflip() ? -1.f : 1.f);
 	}
 
 	//plr.ground->settings.slope_sticking = false;
