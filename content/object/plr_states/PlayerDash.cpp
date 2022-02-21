@@ -10,8 +10,8 @@ using namespace plr;
 
 constexpr secs dash_duration = 0.24;
 
-constexpr float start_velx = 240.f;
-constexpr float end_velx = 240.f;
+constexpr float start_velx = 220.f;
+constexpr float end_velx = 220.f;
 
 float get_dash_vel(secs dash_time, float min_speed) {
 

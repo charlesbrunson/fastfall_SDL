@@ -55,21 +55,26 @@ PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
 
 		auto brake = [&plr, &move](bool is_idle)
 		{
+
+			bool heavy_brake = false;
 			if (move.speed > 100.f) {
+
 				plr.sprite->set_anim(
 					move.rel_movex < 0 ? anim::brakeb : anim::brakef
 				);
 
-				if (move.speed <= 300.f) {
+				if (move.speed <= 250.f) {
 					plr.sprite->set_frame(1);
 				}
+				heavy_brake = plr.sprite->get_frame() == 0;
 			}
 
 			plr.ground->settings.surface_friction = constants::braking;
 
 			if (plr.ground->settings.has_friction) {
 				plr.ground->traverse_add_decel(
-					is_idle ? constants::ground_idle_decel : constants::ground_high_decel
+					(is_idle ? constants::ground_idle_decel : constants::ground_high_decel)
+					 * (heavy_brake ? 0.5f : 1.f)
 				);
 			}
 		};

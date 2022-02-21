@@ -88,13 +88,13 @@ namespace plr::constants {
 	Friction braking{ .stationary = 1.2f, .kinetic = 0.6f };
 	Friction moving { .stationary = 0.0f, .kinetic = 0.0f };
 
-	Default<float> max_speed = 500.f;
-	Default<float> norm_speed = 180.f;
+	Default<float> max_speed = 400.f;
+	Default<float> norm_speed = 150.f;
 	Default<float> jumpVelY = -190.f;
 
-	Default<float> ground_accel = 1200.f;
-	Default<float> ground_high_decel = 300.f;
-	Default<float> ground_idle_decel = 450.f;
+	Default<float> ground_accel = 1000.f;
+	Default<float> ground_high_decel = 200.f;
+	Default<float> ground_idle_decel = 300.f;
 
 	Default<Vec2f> grav_normal = Vec2f{ 0.f, 500.f };
 	Default<Vec2f> grav_light = Vec2f{ 0.f, 400.f };
