@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 #include <concepts>
+#include <array>
 
 #include "Vec2.hpp"
 #include "Angle.hpp"
@@ -184,3 +185,33 @@ namespace ff {
 	}
 
 }
+
+template <> struct fmt::formatter<ff::Cardinal> : formatter<string_view> {
+	// parse is inherited from formatter<string_view>.
+	template <typename FormatContext>
+	auto format(ff::Cardinal dir, FormatContext& ctx) {
+		string_view name = "unknown";
+		switch (dir) {
+		case ff::Cardinal::N: name = "N"; break;
+		case ff::Cardinal::E: name = "E"; break;
+		case ff::Cardinal::S: name = "S"; break;
+		case ff::Cardinal::W: name = "W"; break;
+		}
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <> struct fmt::formatter<ff::Ordinal> : formatter<string_view> {
+	// parse is inherited from formatter<string_view>.
+	template <typename FormatContext>
+	auto format(ff::Ordinal dir, FormatContext& ctx) {
+		string_view name = "unknown";
+		switch (dir) {
+		case ff::Ordinal::NW: name = "NW"; break;
+		case ff::Ordinal::NE: name = "NE"; break;
+		case ff::Ordinal::SE: name = "SE"; break;
+		case ff::Ordinal::SW: name = "SW"; break;
+		}
+		return formatter<string_view>::format(name, ctx);
+	}
+};

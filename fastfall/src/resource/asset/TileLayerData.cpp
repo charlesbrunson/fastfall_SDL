@@ -133,7 +133,18 @@ TileLayerData::TileChangeArray TileLayerData::setTile(Vec2u at, TileID tile_id, 
 	if (tile->auto_substitute)
 	{
 		unsigned rseed = (at.x + at.y * getSize().x);
-		auto state = get_autotile_state(tile->shape, shapes, at);
+
+		TileState state;
+
+		auto shapes_view = shapes.take_view({ 0, 0 },
+			hasParallax() ? getParallaxSize() : getSize());
+
+		if (hasScrolling()) {
+			state = get_autotile_state(tile->shape, shapes_view, at, AUTOTILE_GRID_WRAP{});
+		}
+		else {
+			state = get_autotile_state(tile->shape, shapes_view, at, TileShape{ TileShape::Type::Solid });
+		}
 		auto opt_tile_id = auto_best_tile(state, tileset.getConstraints(), rseed);
 		placed_tiled_id = opt_tile_id.value_or(placed_tiled_id);
 	}
@@ -142,13 +153,14 @@ TileLayerData::TileChangeArray TileLayerData::setTile(Vec2u at, TileID tile_id, 
 
 	setShape(at, tile->shape, changes);
 
-	tiles[at].has_tile = true;
-	tiles[at].pos = at;
-	tiles[at].base_id = tile->id;
-	tiles[at].tile_id = placed_tiled_id;
-	tiles[at].tileset_ndx = tileset_ndx;
-	tiles[at].is_autotile = tile->auto_substitute;
-
+	tiles[at] = TileData{
+		.has_tile = true,
+		.is_autotile = tile->auto_substitute,
+		.pos = at,
+		.base_id = tile->id,
+		.tile_id = placed_tiled_id,
+		.tileset_ndx = tileset_ndx
+	};
 	return changes;
 }
 
@@ -197,11 +209,37 @@ void TileLayerData::setShape(Vec2u at, TileShape shape, TileChangeArray& changes
 		shapes[at] = shape;
 
 		auto update_adj_tile = [&](auto dir) {
-			Vec2u adj_at = at + direction::to_vector(dir);
+			Vec2i vdir = direction::to_vector<int>(dir);
+			Vec2u adj_at;
+
+			auto shapes_view = shapes.take_view({ 0, 0 },
+				hasParallax() ? getParallaxSize() : getSize());
+
+			if (hasScrolling()) {
+				adj_at = at;
+				if (vdir.x < 0 && adj_at.x == 0) adj_at.x += shapes_view.column_count();
+				if (vdir.y < 0 && adj_at.y == 0) adj_at.y += shapes_view.row_count();
+				adj_at += vdir;
+				adj_at.x %= shapes_view.column_count();
+				adj_at.y %= shapes_view.row_count();
+			}
+			else {
+				adj_at = at + vdir;
+			}
+
+
 			if (tiles.valid(adj_at) && tiles[adj_at].is_autotile) {
 				unsigned rseed = (adj_at.x + adj_at.y * getSize().x);
 				const TilesetAsset* tileset_ptr = tilesets[tiles[adj_at].tileset_ndx].tileset;
-				auto state = get_autotile_state(shapes[adj_at], shapes, adj_at);
+
+				TileState state;
+				if (hasScrolling()) {
+					state = get_autotile_state(shapes_view[adj_at], shapes_view, adj_at, AUTOTILE_GRID_WRAP{});
+				}
+				else {
+					state = get_autotile_state(shapes_view[adj_at], shapes_view, adj_at, TileShape{ TileShape::Type::Solid });
+				}
+
 				auto opt_tile_id = auto_best_tile(state, tileset_ptr->getConstraints(), rseed);
 
 				if (opt_tile_id)

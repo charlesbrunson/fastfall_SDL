@@ -79,7 +79,7 @@ Engine::Engine(
 
     stepUpdate = false;
     pauseUpdate = false;
-    maxDeltaTime = secs(1.0 / 30.0);
+    maxDeltaTime = secs{ 1.0 / 30.0 };
 
     initRenderTarget(false);
 
@@ -359,8 +359,6 @@ void Engine::close() {
 
 void Engine::updateTimer() {
     elapsedTime = clock.tick();
-
-	//LOG_INFO("{}", elapsedTime);
 
     if (window) {
         bool resetTimers = false;

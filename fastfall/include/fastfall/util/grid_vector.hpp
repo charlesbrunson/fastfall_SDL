@@ -388,14 +388,18 @@ namespace ff {
 		constexpr bool valid(size_type column_x, size_type row_y) const noexcept
 		{
 			return column_x < column_count()
-				&& row_y < row_count();
+				&& column_x >= 0
+				&& row_y < row_count()
+				&& row_y >= 0;
 		}
 
 		template<detail::vector_type Vec>
 		constexpr bool valid(const Vec& position) const noexcept
 		{
 			return position.x < column_count()
-				&& position.y < row_count();
+				&& position.x >= 0
+				&& position.y < row_count()
+				&& position.y >= 0;
 		}
 
 	private:
@@ -633,14 +637,18 @@ namespace ff {
 		constexpr bool valid(size_type column_x, size_type row_y) const noexcept
 		{
 			return column_x < column_count()
-				&& row_y < row_count();
+				&& column_x >= 0
+				&& row_y < row_count()
+				&& row_y >= 0;
 		}
 
 		template<detail::vector_type Vec>
 		constexpr bool valid(const Vec& position) const noexcept
 		{
 			return position.x < column_count()
-				&& position.y < row_count();
+				&& position.x >= 0
+				&& position.y < row_count()
+				&& position.y >= 0;
 		}
 		
 	private:

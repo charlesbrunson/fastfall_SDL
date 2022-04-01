@@ -23,8 +23,6 @@ class SurfaceTracker {
 public:
 	SurfaceTracker(GameContext game_context, Angle ang_min, Angle ang_max, bool inclusive = true);
 
-	~SurfaceTracker();
-
 	// acceleration out
 	Vec2f premove_update(secs deltaTime);
 

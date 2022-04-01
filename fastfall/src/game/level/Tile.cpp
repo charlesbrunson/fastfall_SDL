@@ -162,14 +162,35 @@ namespace ff {
 		TileShape init_shape,
 		grid_view<TileShape> grid,
 		Vec2u position,
-		const TileShape& offgrid_shape)
+		std::variant<TileShape, AUTOTILE_GRID_WRAP> offgrid_shape)
 	{
 		auto dir_transform = [&]<typename T>(const std::initializer_list<T>& directions_list)
 		{
 			directional_array<TileTouch, T> out;
 			for (auto dir : directions_list) {
-				Vec2u pos = position + direction::to_vector<int>(dir);
-				out[dir] = TileTouch{ (grid.valid(pos) ? grid[pos] : offgrid_shape) };
+				Vec2i vdir = direction::to_vector<int>(dir);
+				Vec2u pos = position + vdir;
+
+				if (grid.valid(pos)) {
+					out[dir] = TileTouch{ grid[pos] };
+				}
+				else {
+					if (std::holds_alternative<TileShape>(offgrid_shape))
+					{
+						out[dir] = TileTouch{ std::get<TileShape>(offgrid_shape) };
+					}
+					else
+					{
+						Vec2u wrapped_pos = position;
+						if (vdir.x < 0 && wrapped_pos.x == 0) wrapped_pos.x += grid.column_count();
+						if (vdir.y < 0 && wrapped_pos.y == 0) wrapped_pos.y += grid.row_count();
+						wrapped_pos += vdir;
+						wrapped_pos.x %= grid.column_count();
+						wrapped_pos.y %= grid.row_count();
+
+						out[dir] = TileTouch{ grid[wrapped_pos] };
+					}
+				}
 			}
 			return out;
 		};

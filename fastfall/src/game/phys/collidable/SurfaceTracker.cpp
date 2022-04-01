@@ -1,12 +1,5 @@
 #include "fastfall/game/phys/collidable/SurfaceTracker.hpp"
 
-/*
-#include "fastfall/game/phys//Collidable.hpp"
-#include "fastfall/game/phys//ColliderRegion.hpp"
-*/
-
-//#include "fastfall/game/DebugDraw.hpp"
-
 #include "fastfall/game/InstanceInterface.hpp"
 #include "fastfall/render/DebugDraw.hpp"
 
@@ -19,13 +12,6 @@ SurfaceTracker::SurfaceTracker(GameContext game_context, Angle ang_min, Angle an
 	angle_inclusive(inclusive)
 {
 
-}
-
-SurfaceTracker::~SurfaceTracker() {
-	//if (owner)
-	//	owner->remove_tracker(*this);
-
-	owner = nullptr;
 }
 
 bool SurfaceTracker::has_contact() const noexcept {

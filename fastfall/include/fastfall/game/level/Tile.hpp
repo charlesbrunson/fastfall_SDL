@@ -57,12 +57,14 @@ namespace ff {
 		ordinal_array<TileShape>  ord_shapes = {};
 	};
 
+	struct AUTOTILE_GRID_WRAP {};
 
 	TileState get_autotile_state(
 		TileShape init_shape,
 		grid_view<TileShape> grid,
 		Vec2u position,
-		const TileShape& offgrid_shape = { TileShape::Type::Solid });
+		std::variant<TileShape, AUTOTILE_GRID_WRAP> offgrid_shape
+	);
 
 	// Tile Constraint
 
