@@ -29,7 +29,8 @@ void SurfaceTracker::process_contacts(std::vector<PersistantContact>& contacts) 
 
 	wallContact = std::nullopt;
 
-	for (auto& contact : contacts) {
+	for (auto rit = contacts.rbegin(); rit != contacts.rend(); rit++) {
+		auto& contact = *rit;
 		if (contact.isSlip)
 			continue;
 
