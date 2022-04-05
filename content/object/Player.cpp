@@ -55,6 +55,7 @@ void Player::init() {
 			.use_surf_vel = true,
 			.stick_angle_max = Angle::Degree(90),
 			.max_speed = constants::norm_speed,
+			.slope_stick_speed_factor = 0.1f,
 		});
 
 	// trigger testing

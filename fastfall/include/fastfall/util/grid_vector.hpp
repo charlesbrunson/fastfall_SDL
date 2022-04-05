@@ -24,7 +24,6 @@ namespace ff {
 	template<typename T>
 	class grid_view;
 
-
 	template<typename T>
 	struct grid_const_iterator;
 
