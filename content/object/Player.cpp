@@ -145,9 +145,9 @@ Player::CmdResponse Player::do_command(ObjCmd cmd, const std::any& payload)
 		;
 }
 
-void Player::predraw(secs deltaTime) {
+void Player::predraw(float interp) {
 	sprite->set_pos(box->getPosition());
-	sprite->predraw(deltaTime);
+	sprite->predraw(interp);
 }
 
 void Player::ImGui_Inspect() {

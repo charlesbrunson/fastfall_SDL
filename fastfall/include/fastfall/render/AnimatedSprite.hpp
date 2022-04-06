@@ -37,7 +37,7 @@ public:
 	inline unsigned	get_frame()  noexcept { return current_frame; };
 
 	void update(secs deltaTime);
-	void predraw(secs deltaTime);
+	void predraw(float interp);
 
 	bool is_complete() const noexcept;
 	bool is_complete(AnimID id) const noexcept;

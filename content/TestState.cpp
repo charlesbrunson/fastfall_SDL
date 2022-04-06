@@ -222,12 +222,12 @@ void TestState::update(secs deltaTime) {
 	}
 }
 
-void TestState::predraw(secs deltaTime) {
+void TestState::predraw(float interp) {
 	if (instance->want_reset)
 		instance->reset();
 
-	instance->getObject().predraw(deltaTime);
-	instance->getActiveLevel()->predraw(deltaTime);
+	instance->getObject().predraw(interp);
+	instance->getActiveLevel()->predraw(interp);
 
 	viewPos = instance->getCamera().currentPosition;
 	viewZoom = instance->getCamera().zoomFactor;

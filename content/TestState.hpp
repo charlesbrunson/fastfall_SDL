@@ -20,7 +20,7 @@ public:
 	~TestState();
 
 	void update(secs deltaTime) override;
-	void predraw(secs deltaTime) override;
+	void predraw(float interp) override;
 
 
 	//void updateImGUI();

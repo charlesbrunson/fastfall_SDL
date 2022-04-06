@@ -224,6 +224,17 @@ void TileLayer::update(secs deltaTime) {
 	if (hasCollision()) {
 		dyn.collision.tilemap_ptr->update(deltaTime);
 	}
+	if (hasScrolling()) {
+		dyn.scroll.offset += getScrollRate() * deltaTime;
+
+		Vec2f sizef = Vec2f{ getSize() } *TILESIZE_F;
+
+		while (dyn.scroll.offset.x < 0.f) dyn.scroll.offset.x += sizef.x;
+		while (dyn.scroll.offset.x >= sizef.x) dyn.scroll.offset.x -= sizef.x;
+
+		while (dyn.scroll.offset.y < 0.f) dyn.scroll.offset.y += sizef.y;
+		while (dyn.scroll.offset.y >= sizef.y) dyn.scroll.offset.y -= sizef.y;
+	}
 	for (auto& logic : dyn.tile_logic) {
 		logic->update(deltaTime);
 	}
@@ -362,7 +373,7 @@ void TileLayer::handlePostContact(Vec2i pos, const PersistantContact& contact) {
 	}
 }
 
-void TileLayer::predraw(secs deltaTime) {
+void TileLayer::predraw(float interp) {
 	const auto& tile_data = layer_data.getTileData();
 
 	bool changed = false;
@@ -418,17 +429,6 @@ void TileLayer::predraw(secs deltaTime) {
 
 	// scroll update
 	if (hasScrolling()) {
-		dyn.scroll.offset += getScrollRate() * deltaTime;
-
-		Vec2f sizef = Vec2f{ getSize() } * TILESIZE_F;
-
-		while (dyn.scroll.offset.x < 0.f) dyn.scroll.offset.x += sizef.x;
-		while (dyn.scroll.offset.x >= sizef.x) dyn.scroll.offset.x -= sizef.x;
-
-		while (dyn.scroll.offset.y < 0.f) dyn.scroll.offset.y += sizef.y;
-		while (dyn.scroll.offset.y >= sizef.y) dyn.scroll.offset.y -= sizef.y;
-
-
 		for (auto& chunk : dyn.chunks) {
 			chunk.scroll = dyn.scroll.offset;
 		}

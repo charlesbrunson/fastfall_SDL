@@ -67,7 +67,7 @@ public:
 	}
 
 	virtual void update(secs deltaTime) = 0;
-	virtual void predraw(secs deltaTime) = 0;
+	virtual void predraw(float interp) = 0;
 
 	virtual void updateImGUI() {};
 

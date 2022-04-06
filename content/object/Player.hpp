@@ -22,7 +22,7 @@ public:
 	std::unique_ptr<ff::GameObject> clone() const override;
 
 	void update(secs deltaTime) override;
-	void predraw(secs deltaTime) override;
+	void predraw(float interp) override;
 
 	void ImGui_Inspect() override;
 

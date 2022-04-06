@@ -32,8 +32,8 @@ public:
 		}
 	};
 
-	void predraw(secs deltaTime) override {
-		sprite->predraw(deltaTime);
+	void predraw(float interp) override {
+		sprite->predraw(interp);
 	};
 
 	ff::Scene_ptr<ff::AnimatedSprite> sprite;

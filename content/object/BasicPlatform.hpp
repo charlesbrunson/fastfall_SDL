@@ -22,7 +22,7 @@ public:
 
 	void update(secs deltaTime) override;
 
-	void predraw(secs deltaTime) override;
+	void predraw(float interp) override;
 
 protected:
 	bool has_path = false;

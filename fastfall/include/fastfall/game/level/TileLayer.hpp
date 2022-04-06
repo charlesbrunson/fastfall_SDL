@@ -75,7 +75,7 @@ public:
 
 	void initFromAsset(const TileLayerData& layerData);
 	void update(secs deltaTime);
-	void predraw(secs deltaTime);
+	void predraw(float interp);
 
 	void setTile(const Vec2u& position, TileID tile_id, const TilesetAsset& tileset, bool useLogic = true);
 	void removeTile(const Vec2u& position);

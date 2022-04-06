@@ -31,10 +31,10 @@ void Level::update(secs deltaTime) {
 	}	
 }
 
-void Level::predraw(secs deltaTime) {
+void Level::predraw(float interp) {
 
 	for (auto& [pos, layer] : layers.get_tile_layers()) {
-		layer.predraw(deltaTime);
+		layer.predraw(interp);
 	}
 }
 

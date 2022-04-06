@@ -58,7 +58,7 @@ void GameObjectManager::update(secs deltaTime) {
 	}
 	created_objects.clear();
 }
-void GameObjectManager::predraw(secs deltaTime) {
+void GameObjectManager::predraw(float interp) {
 
 	auto it = std::remove_if(
 		std::begin(objects),
@@ -70,7 +70,7 @@ void GameObjectManager::predraw(secs deltaTime) {
 	objects.erase(it, std::end(objects));
 
 	for (auto& obj : objects) {
-		obj->predraw(deltaTime);
+		obj->predraw(interp);
 	}
 }
 

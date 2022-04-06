@@ -23,7 +23,7 @@ public:
 	GameObjectManager& operator=(GameObjectManager&& obj) noexcept;
 
 	void update(secs deltaTime);
-	void predraw(secs deltaTime);
+	void predraw(float interp);
 
 	void clear();
 
