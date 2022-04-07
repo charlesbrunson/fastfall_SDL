@@ -60,9 +60,9 @@ Engine::Engine(
 
     initWinSize(initWindowSize),
     settings(engineSettings),
-    clock(engineSettings.refreshRate), // set default FPS
+    clock(60, 250), // set default FPS
 
-    deltaTime(0.0),
+    //deltaTime(0.0),
     elapsedTime(0.0),
     windowZoom(1),
 
@@ -79,7 +79,7 @@ Engine::Engine(
 
     stepUpdate = false;
     pauseUpdate = false;
-    maxDeltaTime = secs{ 1.0 / 30.0 };
+    //maxDeltaTime = secs{ 1.0 / 30.0 };
 
     initRenderTarget(false);
 
@@ -171,9 +171,12 @@ bool Engine::run_singleThread()
 
         updateTimer();
 
-        Input::update(deltaTime);
+        Input::update(elapsedTime);
 
-        updateRunnables();
+        while (update_counter > 0) {
+            updateRunnables();
+            update_counter--;
+        }
 
         predrawRunnables();
 
@@ -226,7 +229,7 @@ bool Engine::run_doubleThread()
     while (isRunning() && !runnables.empty()) {
         updateTimer();
 
-        Input::update(deltaTime);
+        Input::update(elapsedTime);
 
         bar.arrive_and_wait();
 
@@ -324,7 +327,7 @@ void Engine::emscripten_loop(void* engine_ptr) {
 
 	engine->updateTimer();
 
-	Input::update(engine->deltaTime);
+	Input::update(engine->elapsedTime);
 
 	engine->updateRunnables();
 
@@ -358,7 +361,12 @@ void Engine::close() {
 // -------------------------------------------
 
 void Engine::updateTimer() {
-    elapsedTime = clock.tick();
+
+    auto [delta, update_count, interp] = clock.tick();
+    //elapsedTime = elapsed;
+    elapsedTime = delta;
+    update_counter = update_count;
+    interpolation = interp;
 
     if (window) {
         bool resetTimers = false;
@@ -375,16 +383,19 @@ void Engine::updateTimer() {
         }
     }
 
-    log::set_tick(clock.getTickCount());
+   // log::set_tick(clock.getTickCount());
+    log::set_tick(0);
     
     //update deltatime
-    deltaTime = std::min(elapsedTime, maxDeltaTime);
+    /*
+    deltaTime = elapsedTime;
     if (deltaTime > 0.0) {
         if (pauseUpdate && !stepUpdate) {
             deltaTime = 0.0;
         }
         stepUpdate = false;
     }
+    */
 
 }
 
@@ -418,12 +429,12 @@ void Engine::updateView() {
 
 void Engine::updateRunnables() {
     for (auto& run : runnables) {
-        run.getStateHandle().getActiveState()->update(deltaTime);
+        run.getStateHandle().getActiveState()->update(clock.upsDuration());
     }
 }
 void Engine::predrawRunnables() {
     for (auto& run : runnables) {
-        run.getStateHandle().getActiveState()->predraw(deltaTime);
+        run.getStateHandle().getActiveState()->predraw(interpolation);
     }
     if (settings.showDebug)
         debug_draw::swapDrawLists();
@@ -472,7 +483,9 @@ void Engine::sleep() {
     }
 
 
-    clock.sleepUntilTick(!window || settings.vsyncEnabled);
+    //clock.sleepUntilTick(!window || settings.vsyncEnabled);
+
+    clock.sleep();
 }
 
 // -------------------------------------------
@@ -819,11 +832,11 @@ void Engine::ImGui_getContent() {
     memmove(&display_y[0], &display_y[1], sizeof(float) * last);
     
     float acc = 0.f;
-    acc += clock.data().activeTime.count() * 1000.0 - (displayTime.count() * 1000.0);
+    //acc += clock.data().activeTime.count() * 1000.0 - (displayTime.count() * 1000.0);
     active_y [last] = acc;
-    acc += displayTime.count() * 1000.0;
+    //acc += displayTime.count() * 1000.0;
     display_y[last] = acc;
-    acc += clock.data().sleepTime.count() * 1000.0;
+    //acc += clock.data().sleepTime.count() * 1000.0;
     sleep_y  [last] = acc;
 
     roller++;
@@ -862,19 +875,19 @@ void Engine::ImGui_getContent() {
 
     ImGui::Text("| FPS:%4d |", clock.getAvgFPS());
     ImGui::SameLine();
-    ImGui::Text("Speed:%3.0f%% | ", 100.0 * (elapsedTime > maxDeltaTime ? maxDeltaTime / elapsedTime : 1.f));
+    //ImGui::Text("Speed:%3.0f%% | ", 100.0 * (elapsedTime > maxDeltaTime ? maxDeltaTime / elapsedTime : 1.f));
     ImGui::SameLine();
-    ImGui::Text("Tick#:%6d | ", clock.data().tickTotal);
+    //ImGui::Text("Tick#:%6d | ", clock.data().tickTotal);
     ImGui::SameLine();
-    ImGui::Text("Tick Miss:%2d | ", clock.data().tickMissPerSec);
+    //ImGui::Text("Tick Miss:%2d | ", clock.data().tickMissPerSec);
    // ImGui::SameLine();
     static float tickMS = 0.f;
     if (roller == 0) {
-        tickMS = clock.data().activeTime.count() * 1000.f;
+        //tickMS = clock.data().activeTime.count() * 1000.f;
     }
     ImGui::Text("Tick MS:%2.1f | ", tickMS);
     ImGui::SameLine();
-    ImGui::Text("Delta Time MS:%2.1f | ", deltaTime * 1000.0);
+    //ImGui::Text("Delta Time MS:%2.1f | ", deltaTime * 1000.0);
 
     ImGui::SameLine();
 
@@ -900,27 +913,27 @@ void Engine::ImGui_getContent() {
 
     if (ImGui::Checkbox("Set FPS Unlimited", &fpsUnlimited)) {
         settings.refreshRate = fpsUnlimited ? 0 : fpsMax;
-        clock.setTargetFPS(settings.refreshRate);
+        //clock.setTargetFPS(settings.refreshRate);
     }
     if (ImGui::Checkbox("Set Steady Tickrate", &steady)) {
-        clock.setSteady(steady);
+        //clock.setSteady(steady);
     }
     if (ImGui::Checkbox("Set Vsync", &settings.vsyncEnabled)) {
         if (settings.vsyncEnabled) 
         {
             unsigned vsyncRefreshRate = getDisplayRefreshRate(*window).value_or(60);
             fpsMax = vsyncRefreshRate;
-            clock.setTargetFPS(vsyncRefreshRate);
+            //clock.setTargetFPS(vsyncRefreshRate);
         }
         else {
-            clock.setTargetFPS(settings.refreshRate);
+            //clock.setTargetFPS(settings.refreshRate);
         }
         window->setVsyncEnabled(settings.vsyncEnabled);
     }
 
     if (ImGui::DragInt("Set Frame Limit", &fpsMax, 5, 10, 500, "%.0f")) {
         settings.refreshRate = fpsUnlimited ? 0 : fpsMax;
-        clock.setTargetFPS(settings.refreshRate);
+        //clock.setTargetFPS(settings.refreshRate);
     }
 
 }

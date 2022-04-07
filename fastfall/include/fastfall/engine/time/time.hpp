@@ -2,7 +2,7 @@
 
 typedef double secs;
 
-constexpr secs ms_to_secs(unsigned ms) noexcept {
+constexpr secs ms_to_secs(size_t ms) noexcept {
 	return 0.001 * ms;
 }
 

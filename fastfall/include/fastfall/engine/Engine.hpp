@@ -1,6 +1,7 @@
 #pragma once
 
 #include "time/EngineClock.hpp"
+#include "time/FixedEngineClock.hpp"
 #include "state/EngineStateHandler.hpp"
 #include "EngineRunnable.hpp"
 
@@ -158,10 +159,13 @@ private:
 	View marginView;
 
 	// framerate & time management
-	EngineClock clock;
+	//EngineClock clock;
+	FixedEngineClock clock;
+	unsigned update_counter = 0;
 	secs elapsedTime;
-	secs maxDeltaTime;
-	secs deltaTime;
+	float interpolation;
+	//secs maxDeltaTime;
+	//secs deltaTime;
 
 	// event handling
 	unsigned event_count = 0u;
