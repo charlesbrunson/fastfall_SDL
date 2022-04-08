@@ -47,7 +47,7 @@ public:
 	bool is_playing(AnimID id, unsigned incl_chain_anims_depth = 1) const noexcept;
 	bool is_playing_any(std::vector<AnimID> ids, unsigned incl_chain_anims_depth = 1) const noexcept;
 	
-	inline void  set_pos(Vec2f pos) noexcept { position = pos; };
+	inline void  set_pos(Vec2f pos) noexcept { prev_position = position;  position = pos; };
 	inline Vec2f get_pos()          noexcept { return position; };
 
 	inline bool get_hflip()	const noexcept {
@@ -79,6 +79,7 @@ private:
 
 	void draw(RenderTarget& target, RenderState states = RenderState{}) const;
 
+	Vec2f prev_position;
 	Vec2f position;
 
 	bool hflip = false;

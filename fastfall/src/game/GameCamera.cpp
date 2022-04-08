@@ -33,6 +33,8 @@ GameCamera::GameCamera(Vec2f initPos) :
 void GameCamera::update(secs deltaTime) {
 
 	if (deltaTime > 0.0) {
+
+		prevPosition = currentPosition;
 		deltaPosition = Vec2f{};
 
 		for (auto target : targets) {

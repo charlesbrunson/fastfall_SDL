@@ -16,6 +16,7 @@ public:
 		, sprite(context, ff::AnimatedSprite{}, ff::SceneType::Object, 0, ff::SceneManager::Priority::High)
 	{
 		sprite->set_pos(position);
+		sprite->set_pos(position);
 		sprite->set_hflip(hflip);
 		m_remove = !sprite->set_anim(anim);
 	};
@@ -32,7 +33,7 @@ public:
 		}
 	};
 
-	void predraw(float interp) override {
+	void predraw(float interp, bool updated) override {
 		sprite->predraw(interp);
 	};
 

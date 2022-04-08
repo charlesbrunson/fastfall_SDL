@@ -145,8 +145,10 @@ Player::CmdResponse Player::do_command(ObjCmd cmd, const std::any& payload)
 		;
 }
 
-void Player::predraw(float interp) {
-	sprite->set_pos(box->getPosition());
+void Player::predraw(float interp, bool updated) {
+	if (updated) {
+		sprite->set_pos(box->getPosition());
+	}
 	sprite->predraw(interp);
 }
 

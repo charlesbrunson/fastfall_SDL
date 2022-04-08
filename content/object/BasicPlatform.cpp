@@ -112,7 +112,7 @@ void BasicPlatform::update(secs deltaTime) {
 	collider->update(deltaTime);
 }
 
-void BasicPlatform::predraw(float interp) {
+void BasicPlatform::predraw(float interp, bool updated) {
 	shape->setPosition(collider->getPosition() + collider_offset);
 	shape->setSize(ff::Vec2f{ collider->getBoundingBox().getSize() });
 }

@@ -423,7 +423,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		}
 
 		// predraw to apply changes
-		layer.tilelayer.predraw(0.0);
+		layer.tilelayer.predraw(0.0, true);
 
 		// increment to next tilelayer ref
 		it++; 

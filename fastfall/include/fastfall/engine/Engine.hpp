@@ -164,6 +164,7 @@ private:
 	unsigned update_counter = 0;
 	secs elapsedTime;
 	float interpolation;
+	bool hasUpdated = false;
 	//secs maxDeltaTime;
 	//secs deltaTime;
 

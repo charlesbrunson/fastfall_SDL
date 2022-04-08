@@ -29,7 +29,7 @@ public:
 
 	void update(secs deltaTime);
 
-	void predraw(float interp);
+	void predraw(float interp, bool updated);
 
 	inline const Color& getBGColor() const { return bgColor; };
 	inline const Vec2u& size() const { return levelSize; };

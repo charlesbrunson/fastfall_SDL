@@ -66,6 +66,7 @@ public:
 	bool lockPosition = false;
 
 	Vec2f deltaPosition;
+	Vec2f prevPosition;
 	Vec2f currentPosition;
 
 private:

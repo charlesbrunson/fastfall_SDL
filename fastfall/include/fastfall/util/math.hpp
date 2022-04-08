@@ -46,6 +46,15 @@ inline T increase(const T& val, const T& amount, const T& zero) {
 }
 
 // Vec2 stuff
+
+template<typename T>
+inline Vec2<T> lerp(const Vec2<T>& from, const Vec2<T>& to, std::floating_point auto lerp_val) {
+	return Vec2<T>{
+		std::lerp(from.x, to.x, lerp_val),
+		std::lerp(from.y, to.y, lerp_val)
+	};
+}
+
 template<typename T>
 inline Vec2<T> unit(const Vec2<T>& a) {
 	return a / a.magnitude();

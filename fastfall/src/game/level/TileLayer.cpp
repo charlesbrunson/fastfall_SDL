@@ -373,7 +373,7 @@ void TileLayer::handlePostContact(Vec2i pos, const PersistantContact& contact) {
 	}
 }
 
-void TileLayer::predraw(float interp) {
+void TileLayer::predraw(float interp, bool updated) {
 	const auto& tile_data = layer_data.getTileData();
 
 	bool changed = false;

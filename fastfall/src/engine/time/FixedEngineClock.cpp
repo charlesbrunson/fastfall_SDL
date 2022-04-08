@@ -81,20 +81,28 @@ void FixedEngineClock::reset() noexcept
 void FixedEngineClock::updateTickWindow() noexcept 
 {
 	using namespace std::chrono;
-	auto now = engineClock.now().time_since_epoch();
+	auto now = engineClock.now();
 
-	auto ups_delta = time_res{ 1s } / target_ups;
-	auto fps_delta = time_res{ 1s } / target_fps;
+	if (target_ups > 0) {
+		auto ups_delta = time_res{ 1s } / target_ups;
+		fixed_tick_prev = fixed_tick;
+		fixed_tick = (now.time_since_epoch() / ups_delta);
+		fixed_start = time_point{ (now.time_since_epoch() / ups_delta) * ups_delta };
+		fixed_end = fixed_start + ups_delta;
+	}
 
-	fixed_tick_prev = fixed_tick;
-	frame_tick_prev = frame_tick;
 
-	fixed_tick = (now / ups_delta);
-	frame_tick = (now / fps_delta);
-
-	fixed_start = time_point{ (now / ups_delta) * ups_delta };
-	frame_start = time_point{ (now / fps_delta) * fps_delta };
-
-	fixed_end = fixed_start + ups_delta;
-	frame_end = frame_start + fps_delta;
+	if (target_fps > 0) {
+		auto fps_delta = time_res{ 1s } / target_fps;
+		frame_tick_prev = frame_tick;
+		frame_tick = (now.time_since_epoch() / fps_delta);
+		frame_start = time_point{ (now.time_since_epoch() / fps_delta) * fps_delta };
+		frame_end = frame_start + fps_delta;
+	}
+	else {
+		frame_tick_prev = 0;
+		frame_tick = 0;
+		frame_start =  now;
+		frame_end =  now;
+	}
 }

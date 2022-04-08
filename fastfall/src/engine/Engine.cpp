@@ -60,7 +60,7 @@ Engine::Engine(
 
     initWinSize(initWindowSize),
     settings(engineSettings),
-    clock(60, 250), // set default FPS
+    clock(60), // set default FPS
 
     //deltaTime(0.0),
     elapsedTime(0.0),
@@ -367,6 +367,9 @@ void Engine::updateTimer() {
     elapsedTime = delta;
     update_counter = update_count;
     interpolation = interp;
+    hasUpdated = false;
+
+    LOG_INFO("elapsedus={:.5f} update={} interp={}", elapsedTime * 1000'000.0, update_counter, interpolation)
 
     if (window) {
         bool resetTimers = false;
@@ -428,18 +431,23 @@ void Engine::updateView() {
 }
 
 void Engine::updateRunnables() {
+    hasUpdated = true;
     for (auto& run : runnables) {
         run.getStateHandle().getActiveState()->update(clock.upsDuration());
     }
 }
 void Engine::predrawRunnables() {
     for (auto& run : runnables) {
-        run.getStateHandle().getActiveState()->predraw(interpolation);
+        run.getStateHandle().getActiveState()->predraw(interpolation, hasUpdated);
     }
-    if (settings.showDebug)
-        debug_draw::swapDrawLists();
-    else
+    if (settings.showDebug) {
+        if (hasUpdated) {
+            debug_draw::swapDrawLists();
+        }
+    }
+    else {
         debug_draw::clear();
+    }
 }
 
 void Engine::drawRunnables() {

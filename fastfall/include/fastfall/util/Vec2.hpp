@@ -140,6 +140,7 @@ public:
 			y < right.y;
 	}
 
+
 	Type x;
 	Type y;
 };

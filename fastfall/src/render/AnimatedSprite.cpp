@@ -132,7 +132,7 @@ void AnimatedSprite::predraw(float interp)
 			sprite.setColor(Color::White);
 			flag_dirty = false;
 		}
-		sprite.setPosition(position);
+		sprite.setPosition(math::lerp(prev_position, position, interp));
 	}
 	else {
 		// reset sprite
