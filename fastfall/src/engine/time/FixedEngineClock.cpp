@@ -29,10 +29,10 @@ FixedEngineClock::Tick FixedEngineClock::tick() noexcept
 	unsigned update_count = (unsigned)std::min(UPDATE_MAX, fixed_tick - fixed_tick_prev);
 	float interp = sec_rep{ curr_now - fixed_start } / ups_delta;
 
-	return { 
+	return {
 		sec_rep{ curr_now - last_now }.count(),
 		update_count,
-		interp
+		(target_ups == target_fps) ? 1.f : interp
 	};
 }
 void FixedEngineClock::sleep() noexcept 

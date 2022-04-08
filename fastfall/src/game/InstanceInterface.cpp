@@ -184,6 +184,12 @@ namespace ff::instance {
 			inst->getCamera().removeTarget(target);
 		}
 	}
+	Vec2f cam_get_interpolated_pos(GameContext context, float interp) {
+		if (auto* man = cam_get_man(context)) {
+			return math::lerp(man->prevPosition, man->currentPosition, interp);
+		}
+		return Vec2f{};
+	}
 	Vec2f cam_get_pos(GameContext context) {
 		if (auto* man = cam_get_man(context)) {
 			return man->currentPosition;

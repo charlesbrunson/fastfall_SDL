@@ -113,6 +113,6 @@ void BasicPlatform::update(secs deltaTime) {
 }
 
 void BasicPlatform::predraw(float interp, bool updated) {
-	shape->setPosition(collider->getPosition() + collider_offset);
+	shape->setPosition(math::lerp(collider->getPrevPosition(), collider->getPosition() + collider_offset, interp));
 	shape->setSize(ff::Vec2f{ collider->getBoundingBox().getSize() });
 }

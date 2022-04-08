@@ -32,7 +32,7 @@ public:
 
 	inline bool empty() noexcept { return m_chunks.empty(); };
 
-	void predraw();
+	void predraw(float interp, bool updated);
 
 	Vec2f offset;
 	Vec2f scroll;

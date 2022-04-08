@@ -215,7 +215,7 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 	set_scroll(layerData.hasScrolling(), layerData.getScrollRate());
 
 	for (auto& chunk : dyn.chunks) {
-		chunk.predraw();
+		chunk.predraw(1.f, true);
 	}
 
 }
@@ -225,15 +225,28 @@ void TileLayer::update(secs deltaTime) {
 		dyn.collision.tilemap_ptr->update(deltaTime);
 	}
 	if (hasScrolling()) {
+		dyn.scroll.prev_offset = dyn.scroll.offset;
 		dyn.scroll.offset += getScrollRate() * deltaTime;
 
 		Vec2f sizef = Vec2f{ getSize() } *TILESIZE_F;
 
-		while (dyn.scroll.offset.x < 0.f) dyn.scroll.offset.x += sizef.x;
-		while (dyn.scroll.offset.x >= sizef.x) dyn.scroll.offset.x -= sizef.x;
+		while (dyn.scroll.offset.x < 0.f) {
+			dyn.scroll.prev_offset.x += sizef.x;
+			dyn.scroll.offset.x += sizef.x;
+		}
+		while (dyn.scroll.offset.x >= sizef.x) {
+			dyn.scroll.prev_offset.x -= sizef.x;
+			dyn.scroll.offset.x -= sizef.x;
+		}
 
-		while (dyn.scroll.offset.y < 0.f) dyn.scroll.offset.y += sizef.y;
-		while (dyn.scroll.offset.y >= sizef.y) dyn.scroll.offset.y -= sizef.y;
+		while (dyn.scroll.offset.y < 0.f) {
+			dyn.scroll.prev_offset.y += sizef.y;
+			dyn.scroll.offset.y += sizef.y;
+		}
+		while (dyn.scroll.offset.y >= sizef.y) {
+			dyn.scroll.prev_offset.y -= sizef.y;
+			dyn.scroll.offset.y -= sizef.y;
+		}
 	}
 	for (auto& logic : dyn.tile_logic) {
 		logic->update(deltaTime);
@@ -379,32 +392,34 @@ void TileLayer::predraw(float interp, bool updated) {
 	bool changed = false;
 
 	// update logic
-	for (auto& logic : dyn.tile_logic) {
-		TileLogic* ptr = logic.get();
-		
-		while (ptr->hasNextCommand()) {
+	if (updated) {
+		for (auto& logic : dyn.tile_logic) {
+			TileLogic* ptr = logic.get();
 
-			const TileLogicCommand& cmd = ptr->nextCommand();
+			while (ptr->hasNextCommand()) {
 
-			if (cmd.type == TileLogicCommand::Type::Set) {
-				setTile(cmd.position, cmd.texposition, cmd.tileset, cmd.updateLogic);
+				const TileLogicCommand& cmd = ptr->nextCommand();
+
+				if (cmd.type == TileLogicCommand::Type::Set) {
+					setTile(cmd.position, cmd.texposition, cmd.tileset, cmd.updateLogic);
+				}
+				else if (tile_data[cmd.position].has_tile && cmd.type == TileLogicCommand::Type::Remove) {
+					removeTile(cmd.position);
+				}
+				changed = true;
+
+				ptr->popCommand();
 			}
-			else if (tile_data[cmd.position].has_tile && cmd.type == TileLogicCommand::Type::Remove) {
-				removeTile(cmd.position);
-			}
-			changed = true;
-			
-			ptr->popCommand();
 		}
-	}
 
-	if (changed && hasCollision())
-		dyn.collision.tilemap_ptr->applyChanges();
+		if (changed && hasCollision())
+			dyn.collision.tilemap_ptr->applyChanges();
+	}
 
 
 
 	Rectf visible;
-	Vec2f cam_pos = instance::cam_get_pos(m_context);
+	Vec2f cam_pos = instance::cam_get_interpolated_pos(m_context, interp);
 	float cam_zoom = instance::cam_get_zoom(m_context);
 	visible.width = GAME_W_F * cam_zoom;
 	visible.height = GAME_H_F * cam_zoom;
@@ -430,11 +445,11 @@ void TileLayer::predraw(float interp, bool updated) {
 	// scroll update
 	if (hasScrolling()) {
 		for (auto& chunk : dyn.chunks) {
-			chunk.scroll = dyn.scroll.offset;
+			chunk.scroll = math::lerp(dyn.scroll.prev_offset, dyn.scroll.offset, interp);
 		}
 	}
 
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_AREA))
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_AREA) && updated)
 	{
 		Vec2f pSize = Vec2f{ getLevelSize() } * TILESIZE_F;
 
@@ -457,7 +472,7 @@ void TileLayer::predraw(float interp, bool updated) {
 
 	if (!hidden) {
 		for (auto& chunk : dyn.chunks) {
-			chunk.predraw();
+			chunk.predraw(interp, updated);
 		}
 	}
 

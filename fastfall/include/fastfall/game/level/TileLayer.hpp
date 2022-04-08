@@ -44,6 +44,7 @@ private:
 		} parallax;
 
 		struct scroll_dyn_t {
+			Vec2f prev_offset;
 			Vec2f offset;
 		} scroll;
 

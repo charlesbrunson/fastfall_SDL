@@ -94,6 +94,7 @@ namespace ff::instance {
 	void cam_add_target(GameContext context, CameraTarget* target);
 	void cam_remove_target(GameContext context, CameraTarget* target);
 
+	Vec2f cam_get_interpolated_pos(GameContext context, float interp);
 	Vec2f cam_get_pos(GameContext context);
 	void cam_set_pos(GameContext context, Vec2f pos);
 

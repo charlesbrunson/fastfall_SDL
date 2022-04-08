@@ -120,21 +120,23 @@ void ChunkVertexArray::do_clear() {
 	m_chunks.clear();
 }
 
-void ChunkVertexArray::predraw() {
+void ChunkVertexArray::predraw(float interp, bool updated) {
 
-	while (!commands.empty()) {
-		switch (commands.front().type) {
-		case Command::Type::Set:
-			do_setTile(commands.front().tile_pos, commands.front().tile);
-			break;
-		case Command::Type::Blank:
-			do_blank(commands.front().tile_pos);
-			break;
-		case Command::Type::Clear:
-			do_clear();
-			break;
+	if (updated) {
+		while (!commands.empty()) {
+			switch (commands.front().type) {
+			case Command::Type::Set:
+				do_setTile(commands.front().tile_pos, commands.front().tile);
+				break;
+			case Command::Type::Blank:
+				do_blank(commands.front().tile_pos);
+				break;
+			case Command::Type::Clear:
+				do_clear();
+				break;
+			}
+			commands.pop();
 		}
-		commands.pop();
 	}
 
 	// update draw flags for all chunks
@@ -176,7 +178,7 @@ void ChunkVertexArray::predraw() {
 		}
 	}
 
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_CHUNK)) {
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_CHUNK) && updated) {
 		for (const auto& chunk : m_chunks) {
 			if (!debug_draw::repeat((void*)&chunk, offset + scroll)) {
 
