@@ -60,7 +60,7 @@ Engine::Engine(
 
     initWinSize(initWindowSize),
     settings(engineSettings),
-    clock(60), // set default FPS
+    clock(), // set default FPS
 
     //deltaTime(0.0),
     elapsedTime(0.0),
@@ -369,7 +369,7 @@ void Engine::updateTimer() {
     interpolation = interp;
     hasUpdated = false;
 
-    LOG_INFO("elapsed={:.5f}ms update={} interp={}", elapsedTime * 1000.0, update_counter, interpolation)
+    //LOG_INFO("elapsed={:.5f}ms update={} interp={}", elapsedTime * 1000.0, update_counter, interpolation)
 
     if (window) {
         bool resetTimers = false;

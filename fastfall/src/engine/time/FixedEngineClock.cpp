@@ -26,7 +26,7 @@ FixedEngineClock::Tick FixedEngineClock::tick() noexcept
 
 	auto ups_delta = time_res{ 1s } / target_ups;
 
-	unsigned update_count = (unsigned)std::min(UPDATE_MAX, fixed_tick - fixed_tick_prev);
+	unsigned update_count = (unsigned)std::min(100llu, fixed_tick - fixed_tick_prev);
 	float interp = sec_rep{ curr_now - fixed_start } / ups_delta;
 
 
