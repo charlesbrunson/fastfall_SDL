@@ -68,18 +68,18 @@ void main()
 {
 	const float TILESIZE = 16.0;
 
-	const uint Y_MASK 			= (63u << 6);
-	const uint X_MASK 			= (63u);
+	const uint Y_MASK  = (63u << 6);
+	const uint X_MASK  = (63u);
 	const uint XY_MASK = (X_MASK | Y_MASK);
 	const uint INVALID = 4095u;
 
 	// non-empty tile
 	if ((aTileId & XY_MASK) != INVALID) {
 
-		uint pad_top 	= (aTileId >> 15) & 1;
-		uint pad_right 	= (aTileId >> 14) & 1;
-		uint pad_bot 	= (aTileId >> 13) & 1;
-		uint pad_left 	= (aTileId >> 12) & 1;
+		uint pad_top 	= (aTileId >> 15) & 1u;
+		uint pad_right 	= (aTileId >> 14) & 1u;
+		uint pad_bot 	= (aTileId >> 13) & 1u;
+		uint pad_left 	= (aTileId >> 12) & 1u;
 
 		uvec2 tile_id = uvec2(
 			aTileId & X_MASK,
@@ -224,7 +224,7 @@ void ShaderProgram::add(ShaderType type, const std::string_view shader_code) {
 		shaders.pop_back();
 
 		LOG_ERR_("Could not compile shader: {}", log);
-		LOG_ERR_("{}", shader_code);
+		LOG_ERR_("\n{}", shader_code);
 
 		throw Error(std::string("Could not compile shader: \n") + log);
 	}
