@@ -148,7 +148,7 @@ protected:
 		}
 
 		template<Enum C, typename Callable>
-		requires !std::is_void_v<cmd_payload_t<Enum, C>>
+		requires (!std::is_void_v<cmd_payload_t<Enum, C>>)
 			&& std::is_invocable_r_v<cmd_return_t<Enum, C>, Callable, cmd_payload_t<Enum, C>>
 		Behavior& match(Callable&& call)
 		{

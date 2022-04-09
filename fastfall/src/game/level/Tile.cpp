@@ -6,6 +6,7 @@
 //#include <map>
 #include <unordered_map>
 #include <array>
+#include <ranges>
 
 namespace ff {
 
@@ -202,18 +203,14 @@ namespace ff {
 		TileState state;
 		state.shape = init_shape;
 
-		std::ranges::for_each(direction::cardinals,
-			[&](Cardinal dir) {
-				state.occupied_edges[dir] = autotile_has_edge(dir, auto_shape, neighbors_card[dir]);
-				state.card_shapes[dir] = neighbors_card[dir].shape;
-			}
-		);
-		std::ranges::for_each(direction::ordinals,
-			[&](Ordinal dir) {
-				state.inner_corners[dir] = autotile_has_inner_corner(dir, auto_shape, neighbors_card, neighbors_ord);
-				state.ord_shapes[dir] = neighbors_ord[dir].shape;
-			}
-		);
+		for ( auto dir : direction::cardinals ) {
+			state.occupied_edges[dir] = autotile_has_edge(dir, auto_shape, neighbors_card[dir]);
+			state.card_shapes[dir] = neighbors_card[dir].shape;
+		}
+		for ( auto dir : direction::ordinals ) {
+			state.inner_corners[dir] = autotile_has_inner_corner(dir, auto_shape, neighbors_card, neighbors_ord);
+			state.ord_shapes[dir] = neighbors_ord[dir].shape;
+		}
 
 		return state;
 	}

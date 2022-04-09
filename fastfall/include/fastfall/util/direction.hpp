@@ -24,10 +24,10 @@ namespace ff {
 			return data[static_cast<size_t>(dir)];
 		}
 
-		using iterator = std::array<T, 4>::iterator;
-		using const_iterator = std::array<T, 4>::const_iterator;
-		using reverse_iterator = std::array<T, 4>::reverse_iterator;
-		using const_reverse_iterator = std::array<T, 4>::const_reverse_iterator;
+		using iterator = typename std::array<T, 4>::iterator;
+		using const_iterator = typename std::array<T, 4>::const_iterator;
+		using reverse_iterator = typename std::array<T, 4>::reverse_iterator;
+		using const_reverse_iterator = typename std::array<T, 4>::const_reverse_iterator;
 
 		constexpr iterator					begin()			  { return data.begin();	};
 		constexpr iterator					end()			  { return data.end();		};
@@ -113,10 +113,10 @@ namespace ff {
 			Vec2<T> v;
 			switch (card)
 			{
-			case Cardinal::N: v = { 0, -1 }; break;
-			case Cardinal::E: v = { 1,  0 }; break;
-			case Cardinal::S: v = { 0,  1 }; break;
-			case Cardinal::W: v = { -1,  0 }; break;
+			case Cardinal::N: v = Vec2<T>{ 0, -1 }; break;
+			case Cardinal::E: v = Vec2<T>{ 1,  0 }; break;
+			case Cardinal::S: v = Vec2<T>{ 0,  1 }; break;
+			case Cardinal::W: v = Vec2<T>{-1,  0 }; break;
 			}
 			return v;
 		}
@@ -128,10 +128,10 @@ namespace ff {
 			Vec2<T> v;
 			switch (card)
 			{
-			case Ordinal::NW: v = { -1, -1 }; break;
-			case Ordinal::NE: v = { 1, -1 }; break;
-			case Ordinal::SE: v = { 1,  1 }; break;
-			case Ordinal::SW: v = { -1, 1 }; break;
+			case Ordinal::NW: v = Vec2<T>{-1, -1 }; break;
+			case Ordinal::NE: v = Vec2<T>{ 1, -1 }; break;
+			case Ordinal::SE: v = Vec2<T>{ 1,  1 }; break;
+			case Ordinal::SW: v = Vec2<T>{-1,  1 }; break;
 			}
 			return v;
 		}

@@ -5,6 +5,7 @@
 #include "fastfall/util/log.hpp"
 
 #include <map>
+#include <unordered_map>
 #include <vector>
 #include <memory>
 #include <variant>

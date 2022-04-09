@@ -153,12 +153,14 @@ void Player::predraw(float interp, bool updated) {
 void Player::ImGui_Inspect() {
 	using namespace ImGui;
 
-	auto [id, name] = visit_state(
+	std::pair<PlayerStateID, std::string_view> pair = visit_state(
 		[](PlayerState& state) { 
 			return make_pair(state.get_id(), state.get_name());
 		});
+	auto id = pair.first;
+	auto name = pair.second;
 
-	ImGui::Text("Current State: %d %s", id, name);
+	ImGui::Text("Current State: %d %s", id, name.data());
 	ImGui::Text("Position(%3.2f, %3.2f)", box->getPosition().x, box->getPosition().y);
 	ImGui::Text("Velocity(%3.2f, %3.2f)", box->get_vel().x, box->get_vel().y);
 

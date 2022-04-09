@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <array>
+
 namespace ff {
 
 	class TileShape {
@@ -28,7 +31,16 @@ namespace ff {
 		bool flip_v = false;
 
 		constexpr static TileShape from_string(std::string_view str);
-		constexpr std::string to_string() const;
+		std::string to_string() const {
+			std::string str{ get_type_label(type) };
+			if (flip_h || flip_v)
+			{
+				str += '-';
+				if (flip_h) str += 'h';
+				if (flip_v) str += 'v';
+			}
+			return str;
+		}
 
 		constexpr bool operator== (const TileShape& rhs) const;
 		constexpr bool operator!= (const TileShape& rhs) const;
@@ -90,17 +102,17 @@ namespace ff {
 		};
 	}
 
-	constexpr std::string TileShape::to_string() const
-	{
-		std::string str{ get_type_label(type) };
-		if (flip_h || flip_v)
-		{
-			str += '-';
-			if (flip_h) str += 'h';
-			if (flip_v) str += 'v';
-		}
-		return str;
-	}
+//	std::string TileShape::to_string() const
+//	{
+//		std::string str{ get_type_label(type) };
+//		if (flip_h || flip_v)
+//		{
+//			str += '-';
+//			if (flip_h) str += 'h';
+//			if (flip_v) str += 'v';
+//		}
+//		return str;
+//	}
 
 	constexpr bool TileShape::operator== (const TileShape& rhs) const
 	{

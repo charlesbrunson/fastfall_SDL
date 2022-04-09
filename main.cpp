@@ -11,8 +11,8 @@
 #include "content/TestState.hpp"
 
 #include "fastfall/render/freetype.hpp"
-#include "fastfall/render/font.hpp"
-#include "fastfall/render/text.hpp"
+#include "fastfall/render/Font.hpp"
+#include "fastfall/render/Text.hpp"
 
 #include "fastfall/game/level/TileID.hpp"
 

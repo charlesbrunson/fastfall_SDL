@@ -23,6 +23,12 @@ SpriteAsset::SpriteAsset(const std::string& filename) :
 
 }
 
+SpriteAsset::~SpriteAsset() {
+	if (imgui_anim) {
+		delete imgui_anim;
+	}
+}
+
 const std::vector<SpriteAsset::ParsedAnim>& SpriteAsset::getParsedAnims() {
 	return parsedAnims;
 }
@@ -198,7 +204,8 @@ void SpriteAsset::ImGui_getContent() {
 					ImGui::Text("This is for animations!");
 					if (!imgui_anim || anims_labels.empty())
 					{
-						imgui_anim = std::make_unique<AnimatedSprite>();
+						//imgui_anim = std::make_unique<AnimatedSprite>();
+						imgui_anim = new AnimatedSprite();
 						anims_labels.clear();
 							
 						std::transform(anims.begin(), anims.end(), std::back_inserter(anims_labels), 
@@ -293,7 +300,10 @@ void SpriteAsset::ImGui_getContent() {
 			}
 		}
 		else {
-			imgui_anim.reset();
+			//imgui_anim.reset();
+			if (imgui_anim) {
+				delete imgui_anim;
+			}
 			anims_labels.clear();
 			anims_current = 0;
 		}

@@ -58,7 +58,7 @@ namespace ff {
 	{
 		m_text = {};
 		m_varr.clear();
-		bitmap_texture = {};
+		bitmap_texture = TextureRef{};
 	}
 
 
@@ -99,7 +99,7 @@ namespace ff {
 
 			glm::fvec2 pen = {0, m_font->getYMax() };
 
-			for (auto ch : m_text)
+			for (unsigned char ch : m_text)
 			{
 				if (ch >= 128)
 					continue;

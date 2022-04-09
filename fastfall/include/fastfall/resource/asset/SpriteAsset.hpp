@@ -38,6 +38,7 @@ public:
 
 
 	SpriteAsset(const std::string& filename);
+	~SpriteAsset();
 
 	bool loadFromFile(const std::string& relpath) override;
 	bool loadFromFlat(const flat::resources::SpriteAssetF* builder);
@@ -64,7 +65,9 @@ protected:
 
 	bool imgui_showAnim = false;
 
-	std::unique_ptr<AnimatedSprite> imgui_anim;
+	//std::unique_ptr<AnimatedSprite> imgui_anim;
+
+	AnimatedSprite* imgui_anim = nullptr;
 
 	std::vector<AnimID> anims;
 	std::vector<const char*> anims_labels;

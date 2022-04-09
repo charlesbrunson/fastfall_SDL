@@ -368,13 +368,13 @@ void objectContent(GameContext context) {
 		if (obj->level_data()) {
 			ImGui::Text("%s level:%u, spawn:%u",
 				obj->type().type.name.c_str(),
-				obj->level_data()->level_id,
-				obj->spawn_id());
+				obj->level_data()->level_id.id,
+				(unsigned)obj->spawn_id());
 		}
 		else {
 			ImGui::Text("%s spawn:%u",
 				obj->type().type.name.c_str(),
-				obj->spawn_id());
+				(unsigned)obj->spawn_id());
 		}
 
 

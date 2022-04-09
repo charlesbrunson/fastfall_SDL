@@ -788,8 +788,8 @@ void Engine::ImGui_getContent() {
 #endif
 
     ImGui::BulletText("Window");
-    ImGui::Text("Window Vertex Counter = %4d", window->getVertexCounter());
-    ImGui::Text("Window Draw Counter = %4d", window->getDrawCallCounter());
+    ImGui::Text("Window Vertex Counter = %4zu", window->getVertexCounter());
+    ImGui::Text("Window Draw Counter = %4zu", window->getDrawCallCounter());
     ImGui::Text("Window Pos   = (%4d, %4d)", window->getPosition().x, window->getPosition().y);
     ImGui::Text("Window Size  = (%4d, %4d)", window->getSize().x, window->getSize().y);
     bool goFullscreen = settings.fullscreen;
