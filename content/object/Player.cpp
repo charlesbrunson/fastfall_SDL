@@ -85,6 +85,7 @@ void Player::init() {
 	box->set_onPostCollision(
 		[this] {
 			manage_state(get_state().post_collision(*this));
+			sprite->set_pos(box->getPosition());
 		});
 }
 
@@ -146,9 +147,6 @@ Player::CmdResponse Player::do_command(ObjCmd cmd, const std::any& payload)
 }
 
 void Player::predraw(float interp, bool updated) {
-	if (updated) {
-		sprite->set_pos(box->getPosition());
-	}
 	sprite->predraw(interp);
 }
 

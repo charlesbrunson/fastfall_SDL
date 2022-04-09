@@ -369,7 +369,7 @@ void Engine::updateTimer() {
     interpolation = interp;
     hasUpdated = false;
 
-    LOG_INFO("elapsedus={:.5f} update={} interp={}", elapsedTime * 1000'000.0, update_counter, interpolation)
+    LOG_INFO("elapsed={:.5f}ms update={} interp={}", elapsedTime * 1000.0, update_counter, interpolation)
 
     if (window) {
         bool resetTimers = false;
@@ -421,9 +421,10 @@ void Engine::updateView() {
         window->setView(v);
 
 
-        if (avgFPS != clock.getAvgFPS()) {
+        if (avgFPS != clock.getAvgFPS() || avgUPS != clock.getAvgUPS()) {
             avgFPS = clock.getAvgFPS();
-            std::string title = fmt::format("game v{}.{}.{} fps={}", VERSION[0], VERSION[1], VERSION[2], avgFPS);
+            avgUPS = clock.getAvgUPS();
+            std::string title = fmt::format("game v{}.{}.{} fps={} ups={}", VERSION[0], VERSION[1], VERSION[2], avgFPS, avgUPS);
             window->setWindowTitle(title);
         }
 

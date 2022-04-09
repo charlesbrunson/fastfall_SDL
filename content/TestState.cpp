@@ -220,6 +220,7 @@ void TestState::update(secs deltaTime) {
 			prevKeys = std::make_unique<Uint8[]>(key_count);
 		std::memcpy(&prevKeys[0], currKeys, key_count);
 	}
+
 }
 
 void TestState::predraw(float interp, bool updated) {

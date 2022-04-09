@@ -16,7 +16,7 @@ private:
 	using sec_rep = std::chrono::duration<double>;
 
 public:
-	constexpr static unsigned MIN_UPS = 60;
+	constexpr static unsigned MIN_UPS = 10;
 	constexpr static unsigned FPS_UNLIMITED = 0;
 
 	constexpr static size_t UPDATE_MAX = 3;
@@ -28,7 +28,7 @@ public:
 	};
 
 public:
-	FixedEngineClock(unsigned ups = MIN_UPS, unsigned fps = FPS_UNLIMITED) noexcept;
+	FixedEngineClock(unsigned ups = 60, unsigned fps = FPS_UNLIMITED) noexcept;
 
 public:
 	void setFPS(unsigned fps) noexcept;
@@ -37,9 +37,11 @@ public:
 
 	void reset() noexcept;
 public:
-	unsigned getTargetFPS()  const noexcept;
-	unsigned getAvgFPS()	 const noexcept;
-	unsigned getInstantFPS() const noexcept;
+	inline unsigned getTargetFPS()  const noexcept { return target_fps; }
+	inline unsigned getTargetUPS()  const noexcept { return target_ups; }
+
+	inline unsigned getAvgFPS()		const noexcept { return stats.avgFps; }
+	inline unsigned getAvgUPS()		const noexcept { return stats.avgUps; }
 
 	secs upsDuration() const noexcept;
 	secs fpsDuration() const noexcept;
@@ -68,4 +70,16 @@ private:
 	time_point frame_end;
 	size_t frame_tick_prev;
 	size_t frame_tick;
+
+	time_res sec_accum;
+	size_t sec_update_counter = 0;
+	size_t sec_frame_counter = 0;
+
+	struct Stats {
+		unsigned avgFps = 0;
+		unsigned avgUps = 0;
+
+	};
+	Stats stats;
+
 };

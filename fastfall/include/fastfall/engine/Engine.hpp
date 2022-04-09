@@ -141,7 +141,8 @@ private:
 
 	float gamespeed = 1.f;
 
-	unsigned int avgFPS = UINT_MAX;
+	unsigned int avgFPS = 0;
+	unsigned int avgUPS = 0;
 
 	// display management
 	//bool windowless;

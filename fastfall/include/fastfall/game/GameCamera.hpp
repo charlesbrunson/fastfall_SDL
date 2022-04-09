@@ -33,7 +33,6 @@ public:
 	CamTargetPriority get_priority() const { return m_priority; };
 	CamTargetState get_state() const { return m_state; };
 
-
 	friend bool operator< (const CameraTarget& lhs, const CameraTarget& rhs) {
 		return lhs.m_priority < rhs.m_priority;
 	}
