@@ -104,12 +104,12 @@ void main()
 
 		// add padding to position offset
 		p_offset.x = p_offset.x 
-			+ (-1.0 * pad_left  * float((gl_VertexID + 1) & 1)) 
-			+ ( 1.0 * pad_right * float((gl_VertexID)     & 1));
+			+ (-1.0 * float(pad_left)  * float((gl_VertexID + 1) & 1)) 
+			+ ( 1.0 * float(pad_right) * float((gl_VertexID)     & 1));
 
 		p_offset.y = p_offset.y
-			+ (-1.0 * pad_top * float((((gl_VertexID & 2) >> 1) + 1) & 1) ) 
-			+ ( 1.0 * pad_bot * float(( (gl_VertexID & 2) >> 1)));
+			+ (-1.0 * float(pad_top) * float((((gl_VertexID & 2) >> 1) + 1) & 1) ) 
+			+ ( 1.0 * float(pad_bot) * float(( (gl_VertexID & 2) >> 1)));
 
 		// position of tile based on instance id + position offset
 		vec2 position = p_offset + vec2(
