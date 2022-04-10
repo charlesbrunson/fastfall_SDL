@@ -47,6 +47,7 @@ set(FF_INCLUDES
 	${CMAKE_CURRENT_SOURCE_DIR}/include
 
 
+	${CMAKE_CURRENT_SOURCE_DIR}/external/freetype/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/rapidxml
 	${CMAKE_CURRENT_SOURCE_DIR}/external/json/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/fmt/include
@@ -58,6 +59,7 @@ set(FF_INCLUDES
 )
 
 set(FF_LIBRARIES
+	freetype
 	glm
 	fmt::fmt-header-only
 	flatbuffers
@@ -68,7 +70,6 @@ if(NOT EMSCRIPTEN)
 
 	set(FF_INCLUDES
 		${FF_INCLUDES}
-		${CMAKE_CURRENT_SOURCE_DIR}/external/freetype/include
 		${CMAKE_CURRENT_SOURCE_DIR}/external/glew/include
 		${CMAKE_CURRENT_SOURCE_DIR}/external/sdl_image
 		${CMAKE_CURRENT_SOURCE_DIR}/external/sdl/include
@@ -76,7 +77,6 @@ if(NOT EMSCRIPTEN)
 
 	set(FF_LIBRARIES 
 		${FF_LIBRARIES}
-		freetype
 		zlibstatic
 		SDL2image 
 		glew_s
@@ -132,11 +132,12 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 	else()
 		set(CMAKE_EXECUTABLE_SUFFIX .html)
 
-		set(EM_COMPILE_FLAGS "-O3 -s FULL_ES3=1 -s WASM=1 -s OFFSCREEN_FRAMEBUFFER=1 -s ALLOW_MEMORY_GROWTH=1")
-		set(EM_FLAGS "-s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_FREETYPE=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"bmp\",\"png\"]' -g --preload-file ../data@/data --preload-file ../gamecontrollerdb.txt@/gamecontrollerdb.txt")
+		set(EM_FLAGS "-O2 -s WASM_BIGINT -s WASM=1 -s FULL_ES3=1 -s OFFSCREEN_FRAMEBUFFER=1 -s ALLOW_MEMORY_GROWTH=1 -s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"bmp\",\"png\"]' -g --profiling")
+		set(EM_COMPILE_FLAGS "")
+		set(EM_LINK_FLAGS "--preload-file ../data@/data --preload-file ../gamecontrollerdb.txt@/gamecontrollerdb.txt")
 
-		set_target_properties(fastfall PROPERTIES LINK_FLAGS "${EM_COMPILE} ${EM_FLAGS} --emrun")
-		set_target_properties(fastfall PROPERTIES COMPILE_FLAGS "${EM_COMPILE} ${EM_FLAGS}")
+		set_target_properties(fastfall PROPERTIES LINK_FLAGS "${EM_FLAGS} ${EM_LINK_FLAGS} ${EM_COMPILE_FLAGS} --emrun")
+		set_target_properties(fastfall PROPERTIES COMPILE_FLAGS "${EM_FLAGS} ${EM_COMPILE_FLAGS} ")
 	endif()
 endif()
 

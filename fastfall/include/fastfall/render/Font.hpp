@@ -77,7 +77,7 @@ private:
 		SDL_Surface* bitmap_surface = nullptr;
 		Texture bitmap_texture;
 
-		glm::i64vec2 glyph_max_size;
+		glm::i64vec2 glyph_max_size = { 0, 0 };
 		std::array<GlyphMetrics, CHAR_COUNT> glyph_metrics;
 	};
 

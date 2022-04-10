@@ -70,7 +70,7 @@ Engine::Engine(
 {
 
 #if defined(__EMSCRIPTEN__)
-    clock.setSteady(false);
+    //clock.setSteady(false);
 #endif
 
     // use first runnable to determine if we need a window
@@ -311,7 +311,9 @@ bool Engine::run_emscripten() {
 
     running = true;
 
-	emscripten_set_main_loop_arg(Engine::emscripten_loop, this, 0, false);
+	clock.reset();
+
+	emscripten_set_main_loop_arg(Engine::emscripten_loop, (void*)this, 0, false);
     //window->setVsyncEnabled(settings.vsyncEnabled);
 
 #endif
@@ -329,7 +331,10 @@ void Engine::emscripten_loop(void* engine_ptr) {
 
 	Input::update(engine->elapsedTime);
 
-	engine->updateRunnables();
+	while (engine->update_counter > 0) {
+		engine->updateRunnables();
+		engine->update_counter--;
+	}
 
 	engine->predrawRunnables();
 
@@ -494,7 +499,9 @@ void Engine::sleep() {
 
     //clock.sleepUntilTick(!window || settings.vsyncEnabled);
 
+#if not defined(__EMSCRIPTEN__)
     clock.sleep();
+#endif
 }
 
 // -------------------------------------------

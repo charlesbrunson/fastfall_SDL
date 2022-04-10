@@ -71,7 +71,16 @@ FetchContent_Declare(
     SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/implot
 )
 
+
+#freetype
+FetchContent_Declare(
+	freetype
+	URL https://download.savannah.gnu.org/releases/freetype/freetype-2.11.1.tar.xz
+	SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/freetype
+)
+
 FetchContent_MakeAvailable(
+	freetype
 	glm
 	fmt	
 	flatbuffers
@@ -109,13 +118,6 @@ if (NOT EMSCRIPTEN)
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
 	)
 
-	#freetype
-	FetchContent_Declare(
-		freetype
-		URL https://download.savannah.gnu.org/releases/freetype/freetype-2.11.1.tar.xz
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/freetype
-	)
-
 
 	#libpng
 	set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/zlib)
@@ -147,7 +149,6 @@ if (NOT EMSCRIPTEN)
 		glew
 		zlib
 		libpng
-		freetype
 		sdl
 		sdl_image
 	)
