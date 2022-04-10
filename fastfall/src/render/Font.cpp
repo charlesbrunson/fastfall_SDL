@@ -185,6 +185,8 @@ namespace ff {
 			}
 		}
 
+		LOG_INFO("glyph max size x={} y={}", cache->glyph_max_size.x, cache->glyph_max_size.y);
+
 		cache->bitmap_surface = SDL_CreateRGBSurfaceWithFormat(0, cache->glyph_max_size.x * 16, cache->glyph_max_size.y * 8, 32, SDL_PIXELFORMAT_RGBA32);
 		if (!cache->bitmap_surface) {
 			LOG_ERR_("Failed to create SDL surface for font size");

@@ -114,19 +114,22 @@ Vec2f SurfaceTracker::get_friction(Vec2f prevVel) {
 	return friction;
 }
 
-Vec2f SurfaceTracker::premove_update(secs deltaTime) {
-	Vec2f acceleration;
+CollidableOffsets SurfaceTracker::premove_update(secs deltaTime) {
+	//Vec2f acceleration;
+
+	CollidableOffsets out;
 
 	if (deltaTime > 0.0) {
 		if (!has_contact())
-			return acceleration;
+			return {};
 
-		do_move_with_platform();
+		out = do_move_with_platform(out);
 
-		acceleration += do_max_speed(deltaTime);
+		out.acceleration += do_max_speed(deltaTime);
 	}
 
-	return acceleration;
+	//return acceleration;
+	return out;
 }
 
 // ----------------------------
@@ -166,15 +169,15 @@ bool SurfaceTracker::do_slope_wall_stop(bool had_wall) noexcept {
 			surface,
 			Linef{ Vec2f{X, 0.f}, Vec2f{X, 1.f} }
 		);
-		owner->setPosition(intersect);
+		owner->setPosition(intersect, false);
 	}
 	return can_stop;
 
 }
 
-bool SurfaceTracker::do_move_with_platform() noexcept {
+CollidableOffsets SurfaceTracker::do_move_with_platform(CollidableOffsets in) noexcept {
 
-	bool did_move = false;
+	//bool did_move = false;
 
 	if (settings.move_with_platforms) {
 		PersistantContact& contact = currentContact.value();
@@ -183,13 +186,18 @@ bool SurfaceTracker::do_move_with_platform() noexcept {
 			if (region->getPosition() != region->getPrevPosition()) {
 				Vec2f offset = region->getPosition() - region->getPrevPosition();
 
-				owner->move(math::projection(offset, contact.collider_normal.lefthand(), true));
-				owner->set_vel(owner->get_vel() + math::projection(region->delta_velocity, contact.collider_normal, true));
-				did_move = true;
+				Vec2f move_off = math::projection(offset, contact.collider_normal.lefthand(), true);
+
+				in.position += move_off;
+				in.velocity += math::projection(region->delta_velocity, contact.collider_normal, true);
+
+				//owner->move(move_off, false);
+				//owner->set_vel(owner->get_vel() + math::projection(region->delta_velocity, contact.collider_normal, true));
+				//did_move = true;
 			}
 		}
 	}
-	return did_move;
+	return in;
 }
 
 Vec2f SurfaceTracker::do_max_speed(secs deltaTime) noexcept {
@@ -224,7 +232,9 @@ Vec2f SurfaceTracker::do_max_speed(secs deltaTime) noexcept {
 
 // ----------------------------
 
-Vec2f SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime) {
+CollidableOffsets SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime) {
+
+	CollidableOffsets out;
 
 	Vec2f position = wish_pos;
 
@@ -382,8 +392,8 @@ Vec2f SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs delta
 		}
 		
 	}
-
-	return position;
+	out.position = position - wish_pos;
+	return out;
 }
 
 void SurfaceTracker::start_touch(PersistantContact& contact) {

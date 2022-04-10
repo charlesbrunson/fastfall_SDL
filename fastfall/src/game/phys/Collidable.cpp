@@ -22,7 +22,6 @@ void drawDrawCollidable(const Collidable& c) {
 	Rectf curRect = c.getBox();
 	Rectf prevRect = c.getPrevBox();
 
-
 	auto& curShape  = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDABLE>(Primitive::TRIANGLE_STRIP, 4);
 	auto& prevShape = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDABLE>(Primitive::LINE_LOOP, 4);
 	auto& bounding  = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDABLE>(Primitive::LINE_LOOP, 4);
@@ -159,6 +158,7 @@ Collidable::Collidable(const Collidable& rhs)
 	decel_accum = rhs.decel_accum;
 	acc = rhs.acc;
 	pos = rhs.pos;
+	prevPos = rhs.prevPos;
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
 	friction_vel = rhs.friction_vel;
@@ -179,6 +179,7 @@ Collidable::Collidable(Collidable&& rhs) noexcept
 	decel_accum = rhs.decel_accum;
 	acc = rhs.acc;
 	pos = rhs.pos;
+	prevPos = rhs.prevPos;
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
 	friction_vel = rhs.friction_vel;
@@ -196,6 +197,7 @@ Collidable& Collidable::operator=(const Collidable& rhs)
 	decel_accum = rhs.decel_accum;
 	acc = rhs.acc;
 	pos = rhs.pos;
+	prevPos = rhs.prevPos;
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
 	friction_vel = rhs.friction_vel;
@@ -217,6 +219,7 @@ Collidable& Collidable::operator=(Collidable&& rhs) noexcept
 	decel_accum = rhs.decel_accum;
 	acc = rhs.acc;
 	pos = rhs.pos;
+	prevPos = rhs.prevPos;
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
 	friction_vel = rhs.friction_vel;
@@ -235,21 +238,31 @@ void Collidable::init(Vec2f position, Vec2f size, Vec2f gravity) {
 	curRect = Rectf(topleft, size);
 	prevRect = curRect;
 	pos = Vec2f(curRect.getPosition()) + Vec2f(curRect.width / 2, curRect.height);
+	prevPos = pos;
 	gravity_acc = gravity;
 }
 
 void Collidable::update(secs deltaTime) {
 
 	Vec2f prev_pos = pos;
+	Vec2f next_pos = pos;
 
 	if (deltaTime > 0.0) {
+
+		//prevRect = curRect;
+		//prevPos = Vec2f(prevRect.getPosition()) + Vec2f(prevRect.width / 2, prevRect.height);
 
 		prev_vel = vel;
 		vel -= friction;
 		acc = accel_accum;
 
 		for (auto& tracker : trackers) {
-			acc += tracker->premove_update(deltaTime);
+			CollidableOffsets offsets = tracker->premove_update(deltaTime);
+
+			next_pos += offsets.position;
+			vel += offsets.velocity;
+			acc += offsets.acceleration;
+
 			if (tracker->has_contact()) {
 				tracker->contact_time += deltaTime;
 				tracker->air_time = 0.0;
@@ -273,23 +286,26 @@ void Collidable::update(secs deltaTime) {
 
 		//vel += gravity_acc * deltaTime;
 
-		pos += vel * deltaTime;
+		next_pos += vel * deltaTime;
 	}
 
 	for (auto& tracker : trackers) {
-		Vec2f p = tracker->postmove_update(pos, prev_pos, deltaTime);
-		if (deltaTime > 0.0)
-			pos = p;
+		CollidableOffsets offsets = tracker->postmove_update(next_pos, prev_pos, deltaTime);
+		if (deltaTime > 0.0) {
+			next_pos += offsets.position;
+			vel += offsets.velocity;
+			acc += offsets.acceleration;
+		}
 	}
 
 	if (deltaTime > 0.0) {
 
 		vel += gravity_acc * deltaTime;
-		pos += gravity_acc * deltaTime * deltaTime;
+		next_pos += gravity_acc * deltaTime * deltaTime;
 
 
 		friction_vel = vel;
-		setPosition(pos);
+		setPosition(next_pos);
 
 		accel_accum = Vec2f{};
 		decel_accum = Vec2f{};
@@ -312,6 +328,7 @@ Rectf Collidable::getBoundingBox() {
 void Collidable::setPosition(Vec2f position, bool swapPrev) noexcept {
 	if (swapPrev) {
 		prevRect = curRect;
+		prevPos = Vec2f(prevRect.getPosition()) + Vec2f(prevRect.width / 2, prevRect.height);
 	}
 
 	assert(!std::isnan(position.x) && !std::isnan(position.y));
@@ -345,6 +362,7 @@ void Collidable::teleport(Vec2f position) noexcept {
 	curRect.top = position.y - curRect.height;
 	prevRect = curRect;
 	pos = Vec2f(curRect.getPosition()) + Vec2f(curRect.width / 2, curRect.height);
+	prevPos = pos;
 
 	for (auto& tracker : trackers) {
 		if (tracker->currentContact.has_value()) {

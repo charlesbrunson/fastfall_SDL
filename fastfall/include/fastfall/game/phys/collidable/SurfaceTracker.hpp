@@ -18,16 +18,22 @@ struct Friction {
 	float kinetic = 0.f;
 };
 
+struct CollidableOffsets {
+	Vec2f position = { 0.f, 0.f };
+	Vec2f velocity = { 0.f, 0.f };
+	Vec2f acceleration = { 0.f, 0.f };
+};
+
 // track contact duration for surfaces between the given angle ranges
 class SurfaceTracker {
 public:
 	SurfaceTracker(GameContext game_context, Angle ang_min, Angle ang_max, bool inclusive = true);
 
 	// acceleration out
-	Vec2f premove_update(secs deltaTime);
+	CollidableOffsets premove_update(secs deltaTime);
 
 	// new position out
-	Vec2f postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime);
+	CollidableOffsets postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime);
 
 	void process_contacts(std::vector<PersistantContact>& contacts);
 	bool has_contact() const noexcept;
@@ -101,7 +107,7 @@ private:
 	std::optional<PersistantContact> currentContact = std::nullopt;
 
 	bool do_slope_wall_stop(bool had_wall) noexcept;
-	bool do_move_with_platform() noexcept;
+	CollidableOffsets do_move_with_platform(CollidableOffsets in) noexcept;
 	Vec2f do_max_speed(secs deltaTime) noexcept;
 
 	float wallYadj = 0.f;

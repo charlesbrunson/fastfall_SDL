@@ -18,6 +18,7 @@
 
 namespace ff {
 
+
 class Collidable {
 private:
 	enum class SlipState {
@@ -47,7 +48,19 @@ public:
 	inline Rectf getPrevBox() const noexcept { return prevRect; };
 
 	inline const Vec2f& getPosition() const noexcept { return pos; };
-	inline void move(Vec2f offset, bool swapPrev = true) { setPosition(getPosition() + offset, swapPrev); };
+	inline const Vec2f& getPrevPosition() const noexcept { return prevPos; };
+	inline void move(Vec2f offset, bool swapPrev = true) { 
+		setPosition(getPosition() + offset, swapPrev); 
+	};
+
+	/*
+	inline void shift_prev(Vec2f offset) {
+		prevRect.left += offset.x;
+		prevRect.top += offset.y;
+		prevPos += offset;
+	};
+	*/
+
 
 	void setPosition(Vec2f position, bool swapPrev = true) noexcept;
 	void setSize(Vec2f size) noexcept;
@@ -134,6 +147,8 @@ private:
 	//GameContext context;
 
 	Vec2f pos;
+	Vec2f prevPos;
+
 	Rectf curRect;
 	Rectf prevRect;
 
