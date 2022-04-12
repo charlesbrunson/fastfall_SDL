@@ -15,6 +15,7 @@ namespace ff {
 class Drawable;
 class VertexArray;
 class TileArray;
+class Text;
 
 class RenderTarget {
 public:
@@ -35,6 +36,7 @@ public:
 	void draw(const Drawable& drawable, const RenderState& state = RenderState());
 	void draw(const VertexArray& varray, const RenderState& state = RenderState());
 	void draw(const TileArray& varray, RenderState state = RenderState());
+	void draw(const Text& text, RenderState state = RenderState());
 
 	size_t getVertexCounter() { return vertex_draw_counter; }
 	void resetVertexCounter() { vertex_draw_counter = 0; }

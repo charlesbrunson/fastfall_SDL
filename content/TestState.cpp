@@ -234,7 +234,9 @@ void TestState::predraw(float interp, bool updated) {
 	viewZoom = instance->getCamera().zoomFactor;
 
 	instance->getScene().set_cam_pos(viewPos);
-	
+
+	tile_text.predraw();
+
 	if (edit) 
 	{
 		auto tileset = edit->get_tileset();

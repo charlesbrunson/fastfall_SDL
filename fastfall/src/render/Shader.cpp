@@ -142,11 +142,54 @@ void main()
     FragColor = texture(texture0, texCoord);
 })";
 
+
+
+const static std::string text_vertex =
+gl_header +
+R"(
+uniform mat3 model;
+uniform mat3 view;
+uniform sampler2D texture0;
+
+uniform vec2 char_size;
+
+out vec2 texCoord;
+
+layout (location = 0) in uint character;
+layout (location = 1) in vec2 offset;
+layout (location = 2) in vec4 color;
+
+void main()
+{
+	const uint CHARS_PER_COLUMN = 16u;
+
+	gl_Position = vec4( view * model * vec3(offset * char_size, 1.0), 1.0);
+
+	texCoord = vec2(0.0, 0.0);
+
+})";
+
+
+const static std::string text_fragment =
+gl_header +
+R"(
+precision mediump float;
+uniform sampler2D texture0;
+in vec2 texCoord;
+out vec4 FragColor;
+
+void main()
+{
+    FragColor = texture(texture0, texCoord);
+})";
+
+
 }
 
 
 ShaderProgram DefaultProgram;
 ShaderProgram TileArrayProgram;
+ShaderProgram TextProgram;
 
 const ShaderProgram& ShaderProgram::getDefaultProgram() {
 	if (!DefaultProgram.isLinked() && FFisGLEWInit()) {
@@ -162,9 +205,20 @@ const ShaderProgram& ShaderProgram::getTileArrayProgram() {
 		TileArrayProgram.add(ff::ShaderType::VERTEX,   tilearray_vertex);
 		TileArrayProgram.add(ff::ShaderType::FRAGMENT, tilearray_fragment);
 		TileArrayProgram.link();
+		TileArrayProgram.cacheUniform("columns");
 		LOG_INFO("tile program: {}", TileArrayProgram.getID());
 	}
 	return TileArrayProgram;
+}
+const ShaderProgram& ShaderProgram::getTextProgram() {
+	if (!TextProgram.isLinked() && FFisGLEWInit()) {
+		TextProgram.add(ff::ShaderType::VERTEX, text_vertex);
+		TextProgram.add(ff::ShaderType::FRAGMENT, text_fragment);
+		TextProgram.link();
+		TextProgram.cacheUniform("char_size");
+		LOG_INFO("text program: {}", TextProgram.getID());
+	}
+	return TextProgram;
 }
 
 ShaderProgram::ShaderProgram()
@@ -191,7 +245,7 @@ void ShaderProgram::add(ShaderType type, const std::string_view shader_code) {
 		glCheck(id = glCreateProgram());
 	}
 
-	GLint shader_id;
+	GLint shader_id = -1;
 	switch (type)
 	{
 		case ShaderType::GEOMETRY: 
@@ -204,7 +258,14 @@ void ShaderProgram::add(ShaderType type, const std::string_view shader_code) {
 			glCheck(shader_id = glCreateShader(GL_FRAGMENT_SHADER));
 			break;
 	}
-	shaders.push_back(shader_id);
+
+	if (shader_id != -1) {
+		shaders.push_back(shader_id);
+	}
+	else {
+		LOG_ERR_("Could not create shader");
+		return;
+	}
 
 	GLint len = shader_code.length();
 	const GLchar* data = shader_code.data();
@@ -256,7 +317,7 @@ void ShaderProgram::link() {
 
 	mdl_loc  	= glGetUniformLocation(id, "model");
 	view_loc 	= glGetUniformLocation(id, "view");
-	columns_loc = glGetUniformLocation(id, "columns");
+	//columns_loc = glGetUniformLocation(id, "columns");
 
 	m_is_linked = true;
 }
@@ -272,6 +333,25 @@ void ShaderProgram::use() const {
 	else {
 		LOG_ERR_("Attempted to use unlinked shader id: {}", id);
 		glCheck(glUseProgram(0));
+	}
+}
+
+
+int ShaderProgram::getOtherUniformID(std::string_view uniform_name) const {
+	auto it = other_locs.find(uniform_name);
+	if (it != other_locs.end()) {
+		return it->second;
+	}
+	return -1;
+}
+
+void ShaderProgram::cacheUniform(std::string_view uniform_name) {
+	int uniform_id = glGetUniformLocation(id, uniform_name.data());
+	if (uniform_id != -1) {
+		other_locs.emplace(uniform_name, uniform_id);
+	}
+	else {
+		LOG_ERR_("Could not cache uniform for shader {}: {}", id, uniform_name);
 	}
 }
 

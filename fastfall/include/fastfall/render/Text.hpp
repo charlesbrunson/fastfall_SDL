@@ -11,7 +11,7 @@
 
 namespace ff {
 
-	class Text : public Transformable, public Drawable
+	class Text : public Transformable
 	{
 	public:
 		Text();
@@ -25,6 +25,8 @@ namespace ff {
 		void clear();
 
 		void setColor(Color color);
+
+		void predraw();
 
 		std::string_view getText() const { return m_text; };
 		const Font* getFont() const { return m_font; };
@@ -43,17 +45,34 @@ namespace ff {
 
 	private:
 
-		struct GLChar {
+		struct glChar {
 			uint8_t character;
+			Vec2f offset;
 			ff::Color color;
 		};
 
-		virtual void draw(RenderTarget& target, RenderState state = RenderState()) const;
+		bool gl_text_fresh = false;
+		std::vector<glChar> gl_text;
 
-		void update_varray();
+		struct GPUState {
+			GLuint m_array = 0;
+			GLuint m_buffer = 0;
+
+			size_t m_bufsize = 0;
+			bool m_bound = false;
+
+			bool sync = false;
+		} mutable gl;
+
+		friend class RenderTarget;
+		void glTransfer() const;
+
+		//virtual void draw(RenderTarget& target, RenderState state = RenderState()) const;
+
+		void update_text();
 
 		std::string m_text;
-		VertexArray m_varr;
+		//VertexArray m_varr;
 		Rectf bounding_size;
 
 		TextureRef bitmap_texture;

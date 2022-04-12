@@ -3,6 +3,7 @@
 #include "fastfall/render/Drawable.hpp"
 #include "fastfall/render/VertexArray.hpp"
 #include "fastfall/render/TileArray.hpp"
+#include "fastfall/render/Text.hpp"
 
 #include "detail/error.hpp"
 
@@ -125,8 +126,9 @@ void RenderTarget::draw(const TileArray& tarray, RenderState state) {
 
 	if (state.program) {
 		applyUniforms(Transform::combine(tarray.getTransform(), state.transform), state);
-		if (state.program->getColumnsUniformID() >= 0) {
-			glCheck(glUniform1ui(state.program->getColumnsUniformID(), tarray.m_size.x));
+		int columns_uniform_id = state.program->getOtherUniformID("columns");
+		if (columns_uniform_id >= 0) {
+			glCheck(glUniform1ui(columns_uniform_id, tarray.m_size.x));
 		}
 	}
 
@@ -138,6 +140,58 @@ void RenderTarget::draw(const TileArray& tarray, RenderState state) {
 	glCheck(glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, tarray.tiles.size()));
 
 	vertex_draw_counter += tarray.tiles.size();
+	draw_call_counter++;
+
+	previousRender = state;
+	justCleared = false;
+}
+
+
+void RenderTarget::draw(const Text& text, RenderState state) {
+	if (text.gl_text.size() == 0)
+		return;
+
+	if (text.m_font && !text.bitmap_texture.exists())
+	{
+		text.m_font->loadBitmapTex(text.px_size);
+	}
+
+	state.texture = text.bitmap_texture;
+	state.program = &ShaderProgram::getTextProgram();
+
+	text.glTransfer();
+
+	if (!previousRender) {
+		previousRender = RenderState{};
+	}
+
+	if (state.blend != previousRender->blend || !hasBlend) {
+		applyBlend(state.blend);
+		hasBlend = true;
+	}
+
+	if (state.program != previousRender->program || !hasShader) {
+		applyShader(state.program);
+		hasShader = (state.program != nullptr);
+	}
+
+	if (state.program) {
+		applyUniforms(Transform::combine(text.getTransform(), state.transform), state);
+		int char_size_uni_id = state.program->getOtherUniformID("char_size");
+		if (char_size_uni_id >= 0) {
+			Vec2f size { text.getFont()->getGlyphSize() };
+			glCheck(glUniform2f(char_size_uni_id, size.x, size.y));
+		}
+	}
+
+	if (state.texture.get()->getID() != previousRender->texture.get()->getID() || justCleared) {
+		applyTexture(state.texture);
+	}
+
+	glCheck(glBindVertexArray(text.gl.m_array));
+	glCheck(glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, text.gl_text.size()));
+
+	vertex_draw_counter += text.gl_text.size();
 	draw_call_counter++;
 
 	previousRender = state;

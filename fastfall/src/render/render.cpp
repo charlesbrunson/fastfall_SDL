@@ -142,6 +142,9 @@ void FFinitGLEW() {
 	ShaderProgram::getTileArrayProgram();
     LOG_INFO("Loaded tile array shader");
 
+    ShaderProgram::getTextProgram();
+    LOG_INFO("Loaded text shader");
+
 #if not defined(__EMSCRIPTEN__)
     glCheck(glEnable(GL_DEBUG_OUTPUT));
     glDebugMessageCallback(MessageCallback, 0);
