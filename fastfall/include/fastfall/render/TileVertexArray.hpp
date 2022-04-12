@@ -32,6 +32,8 @@ protected:
 	TextureRef m_tex;
 	Vec2u m_size;
 	VertexArray m_verts;
+	std::vector<bool> m_has_tile;
+	size_t m_tile_count;
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 

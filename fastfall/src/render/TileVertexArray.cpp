@@ -16,13 +16,16 @@ TileVertexArray::TileVertexArray()
 	: m_verts(ff::Primitive::TRIANGLES)
 {
 	m_tex = TextureRef{};
+	m_tile_count = 0;
 }
 
 TileVertexArray::TileVertexArray(Vec2u arr_size)
 	: m_verts(ff::Primitive::TRIANGLES, (size_t)arr_size.x * arr_size.y * VERTICES_PER_TILE)
+	, m_has_tile((size_t)arr_size.x * arr_size.y, false)
 {
 	m_tex = TextureRef{};
 	m_size = arr_size;
+	m_tile_count = 0;
 }
 
 void TileVertexArray::setTexture(const Texture& texture) noexcept {
@@ -33,6 +36,8 @@ void TileVertexArray::resize(Vec2u size)
 {
 	m_size = size;
 	m_verts = VertexArray{ ff::Primitive::TRIANGLES, (size_t)m_size.x * m_size.y * VERTICES_PER_TILE };
+	m_has_tile = std::vector<bool>((size_t)m_size.x * m_size.y, false);
+	m_tile_count = 0;
 }
 
 const TextureRef& TileVertexArray::getTexture() const noexcept {
@@ -66,7 +71,11 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 	auto pos = glm::fvec2(at.x, at.y);
 	auto texpos = glm::fvec2(texPos.x, texPos.y);
 
-	size_t vndx = (size_t)(at.x) + (size_t)(at.y * m_size.x);
+	size_t vndx = (size_t)(at.x) + ((size_t)at.y * m_size.x);
+
+	if (!m_has_tile[vndx]) { m_tile_count++; }
+	m_has_tile[vndx] = true;
+
 	vndx *= VERTICES_PER_TILE;
 
 	for (int i = 0; i < VERTICES_PER_TILE; i++) {
@@ -76,15 +85,18 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 		glm::fvec2 tilesize {m_tex.get()->inverseSize() * TILESIZE_F};
 		m_verts[vndx + i].tex_pos = ((texpos + offsets[i]) * tilesize) + bias[i];
 	}
+
 }
 
 void TileVertexArray::blank(Vec2u at) {
 	assert(at.x <= m_size.x && at.y <= m_size.y);
 
-	size_t vndx = (size_t)(at.x) + (size_t)(at.y * m_size.x);
+	size_t vndx = (size_t)(at.x) + ((size_t)at.y * m_size.x);
+
+	if (m_has_tile[vndx]) { m_tile_count--; }
+	m_has_tile[vndx] = false;
+
 	vndx *= VERTICES_PER_TILE;
-
-
 	memset(&m_verts[vndx], 0, sizeof(Vertex) * VERTICES_PER_TILE);
 	
 	/*
@@ -102,7 +114,9 @@ void TileVertexArray::clear() {
 }
 
 void TileVertexArray::draw(RenderTarget& target, RenderState states) const {
-	if (m_verts.empty())
+	LOG_INFO("tiles={}", m_tile_count);
+
+	if (m_verts.empty() || m_tile_count == 0)
 		return;
 
 	states.transform = Transform::combine(states.transform, Transform(offset));

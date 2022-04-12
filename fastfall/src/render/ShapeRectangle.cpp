@@ -105,8 +105,12 @@ ff::Color ShapeRectangle::getOutlineColor() const {
 void ShapeRectangle::draw(RenderTarget& target, RenderState state) const {
 
 	state.transform = Transform::combine(state.transform, getTransform());
-	target.draw(m_verts, state);
-	target.draw(m_outline_verts, state);
+	if (m_color.a > 0) {
+		target.draw(m_verts, state);
+	}
+	if (m_lineColor.a > 0) {
+		target.draw(m_outline_verts, state);
+	}
 }
 
 }

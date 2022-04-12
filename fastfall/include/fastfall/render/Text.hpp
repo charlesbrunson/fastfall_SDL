@@ -42,6 +42,12 @@ namespace ff {
 		void setVertSpacing(float spacing_factor) { v_spacing = spacing_factor; };
 
 	private:
+
+		struct GLChar {
+			uint8_t character;
+			ff::Color color;
+		};
+
 		virtual void draw(RenderTarget& target, RenderState state = RenderState()) const;
 
 		void update_varray();
