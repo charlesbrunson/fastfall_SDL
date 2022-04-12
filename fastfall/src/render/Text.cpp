@@ -124,15 +124,21 @@ namespace ff {
 
 				}
 
+				if (ch == ' ') {
+					unsigned space_width = m_font->getMetrics(' ').advance_x;
+					pen.x += space_width;
+					continue;
+				}
+
 				auto& metrics = m_font->getMetrics(ch);
 
 				gl_text.push_back({
-					.character = ch,
 					.offset = {
 						pen.x + metrics.bearing.x,
 						pen.y - metrics.bearing.y
 					},
 					.color = m_color,
+					.character = ch,
 					});
 
 				pen.x += metrics.advance_x;
@@ -169,23 +175,23 @@ namespace ff {
 
 			size_t position = 0lu;
 
-			// character
-			glCheck(glVertexAttribIPointer(0, 1, GL_UNSIGNED_BYTE, sizeof(glChar), (void*)position));
-			glCheck(glEnableVertexAttribArray(0));
-			glCheck(glVertexAttribDivisor(0, 1)); // one per instance
-			position += sizeof(glChar::character);
-
 			// offset
 			glCheck(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(glChar), (void*)position));
 			glCheck(glEnableVertexAttribArray(1));
 			glCheck(glVertexAttribDivisor(1, 1)); // one per instance
-			position += sizeof(glChar::offset);
+			position += sizeof(Vec2f);
 
 			// color
 			glCheck(glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(glChar), (void*)position));
 			glCheck(glEnableVertexAttribArray(2));
 			glCheck(glVertexAttribDivisor(2, 1)); // one per instance
-			position += sizeof(glChar::color);
+			position += sizeof(Color);
+
+			// character
+			glCheck(glVertexAttribIPointer(0, 1, GL_UNSIGNED_BYTE, sizeof(glChar), (void*)position));
+			glCheck(glEnableVertexAttribArray(0));
+			glCheck(glVertexAttribDivisor(0, 1)); // one per instance
+			position += sizeof(uint8_t);
 
 			if (gl.m_array == 0 || gl.m_buffer == 0) {
 				LOG_ERR_("Unable to initialize vertex array for opengl");

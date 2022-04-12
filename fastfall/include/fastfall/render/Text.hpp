@@ -46,9 +46,9 @@ namespace ff {
 	private:
 
 		struct glChar {
-			uint8_t character;
 			Vec2f offset;
-			ff::Color color;
+			Color color;
+			uint8_t character;
 		};
 
 		bool gl_text_fresh = false;

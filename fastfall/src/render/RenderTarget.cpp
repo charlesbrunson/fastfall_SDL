@@ -139,7 +139,7 @@ void RenderTarget::draw(const TileArray& tarray, RenderState state) {
 	glCheck(glBindVertexArray(tarray.gl.m_array));
 	glCheck(glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, tarray.tiles.size()));
 
-	vertex_draw_counter += tarray.tiles.size();
+	vertex_draw_counter += tarray.tiles.size() * 2;
 	draw_call_counter++;
 
 	previousRender = state;
@@ -191,7 +191,7 @@ void RenderTarget::draw(const Text& text, RenderState state) {
 	glCheck(glBindVertexArray(text.gl.m_array));
 	glCheck(glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, text.gl_text.size()));
 
-	vertex_draw_counter += text.gl_text.size();
+	vertex_draw_counter += text.gl_text.size() * 2;
 	draw_call_counter++;
 
 	previousRender = state;

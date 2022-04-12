@@ -153,6 +153,7 @@ uniform sampler2D texture0;
 
 uniform vec2 char_size;
 
+out vec4 v_color;
 out vec2 texCoord;
 
 layout (location = 0) in uint character;
@@ -163,9 +164,28 @@ void main()
 {
 	const uint CHARS_PER_COLUMN = 16u;
 
-	gl_Position = vec4( view * model * vec3(offset * char_size, 1.0), 1.0);
+	float horz_side = float(gl_VertexID & 1) * 2.0 - 1.0;
+	float vert_side = float((gl_VertexID & 2) >> 1) * 2.0 - 1.0;
 
-	texCoord = vec2(0.0, 0.0);
+	vec2 p_offset = vec2(
+		(0.5 + horz_side * 0.5),
+		(0.5 + vert_side * 0.5)
+	);
+
+	vec2 pos = vec2(
+		offset + (p_offset * char_size)
+	);
+
+	vec2 tpos = (vec2(
+		float(character % CHARS_PER_COLUMN),
+		float(character / CHARS_PER_COLUMN)
+	) + p_offset) * char_size;
+
+	gl_Position = vec4( view * model * vec3(pos, 1.0), 1.0);
+
+	v_color = color;
+
+	texCoord = tpos / textureSize(texture0, 0);
 
 })";
 
@@ -175,12 +195,16 @@ gl_header +
 R"(
 precision mediump float;
 uniform sampler2D texture0;
+
+
+in vec4 v_color;
 in vec2 texCoord;
+
 out vec4 FragColor;
 
 void main()
 {
-    FragColor = texture(texture0, texCoord);
+	FragColor = texture(texture0, texCoord) * v_color;
 })";
 
 
