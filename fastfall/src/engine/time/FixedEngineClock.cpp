@@ -30,6 +30,7 @@ FixedEngineClock::Tick FixedEngineClock::tick() noexcept
 	unsigned update_count = (unsigned)std::min(size_t{ 100 }, fixed_tick - fixed_tick_prev);
 	float interp = sec_rep{ curr_now - fixed_start } / ups_delta;
 
+	tickCount += update_count;
 
 	sec_update_counter += update_count;
 	sec_frame_counter++;

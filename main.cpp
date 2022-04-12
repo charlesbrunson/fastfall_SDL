@@ -37,10 +37,10 @@ ff::EngineSettings getSettings() {
 	settings.vsyncEnabled = false;
 	settings.runstyle = ff::EngineRunStyle::Emscripten;
 #else
-	settings.refreshRate = 144;
+	settings.refreshRate = 0;
 	settings.vsyncEnabled = true;
-	settings.runstyle = ff::EngineRunStyle::SingleThread;
-	//settings.runstyle = ff::EngineRunStyle::DoubleThread;
+	//settings.runstyle = ff::EngineRunStyle::SingleThread;
+	settings.runstyle = ff::EngineRunStyle::DoubleThread;
 #endif
 
 #if defined(DEBUG)

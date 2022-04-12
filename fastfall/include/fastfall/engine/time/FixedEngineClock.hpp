@@ -36,7 +36,13 @@ public:
 	void sleep() noexcept;
 
 	void reset() noexcept;
+
+	inline size_t getTickCount() const noexcept { return tickCount; }
+
 public:
+	inline void setTargetFPS(unsigned fps)  noexcept { target_fps = fps; }
+	inline void setTargetUPS(unsigned ups)  noexcept { target_ups = std::max(ups, MIN_UPS); }
+
 	inline unsigned getTargetFPS()  const noexcept { return target_fps; }
 	inline unsigned getTargetUPS()  const noexcept { return target_ups; }
 
@@ -54,6 +60,8 @@ private:
 
 	clock_type engineClock;
 	time_res tickDuration;
+
+	size_t tickCount = 0;
 
 	time_point clock_start;
 	time_point last_now;

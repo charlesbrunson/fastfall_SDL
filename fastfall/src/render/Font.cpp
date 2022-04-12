@@ -185,8 +185,6 @@ namespace ff {
 			}
 		}
 
-		LOG_INFO("glyph max size x={} y={}", cache->glyph_max_size.x, cache->glyph_max_size.y);
-
 		cache->bitmap_surface = SDL_CreateRGBSurfaceWithFormat(0, cache->glyph_max_size.x * 16, cache->glyph_max_size.y * 8, 32, SDL_PIXELFORMAT_RGBA32);
 		if (!cache->bitmap_surface) {
 			LOG_ERR_("Failed to create SDL surface for font size");
@@ -210,15 +208,6 @@ namespace ff {
 				);
 			}
 		}
-
-		//IMG_SavePNG(surface, "test.png");
-		/*
-		if (!cache->font_bitmap_texture.loadFromSurface(surface))
-		{
-			LOG_ERR_("Failed to load texture from surface for font size");
-		}
-		SDL_FreeSurface(surface);
-		*/
 
 		cache->valid = true;
 		return cache.get();

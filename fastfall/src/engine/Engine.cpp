@@ -173,10 +173,7 @@ bool Engine::run_singleThread()
 
         Input::update(elapsedTime);
 
-        while (update_counter > 0) {
-            updateRunnables();
-            update_counter--;
-        }
+        updateRunnables();
 
         predrawRunnables();
 
@@ -331,10 +328,7 @@ void Engine::emscripten_loop(void* engine_ptr) {
 
 	Input::update(engine->elapsedTime);
 
-	while (engine->update_counter > 0) {
-		engine->updateRunnables();
-		engine->update_counter--;
-	}
+    engine->updateRunnables();
 
 	engine->predrawRunnables();
 
@@ -374,6 +368,8 @@ void Engine::updateTimer() {
     interpolation = interp;
     hasUpdated = false;
 
+
+
     //LOG_INFO("elapsed={:.5f}ms update={} interp={}", elapsedTime * 1000.0, update_counter, interpolation)
 
     if (window) {
@@ -391,20 +387,8 @@ void Engine::updateTimer() {
         }
     }
 
-   // log::set_tick(clock.getTickCount());
-    log::set_tick(0);
+    log::set_tick(clock.getTickCount());
     
-    //update deltatime
-    /*
-    deltaTime = elapsedTime;
-    if (deltaTime > 0.0) {
-        if (pauseUpdate && !stepUpdate) {
-            deltaTime = 0.0;
-        }
-        stepUpdate = false;
-    }
-    */
-
 }
 
 void Engine::updateStateHandler() {
@@ -437,14 +421,41 @@ void Engine::updateView() {
 }
 
 void Engine::updateRunnables() {
-    hasUpdated = true;
-    for (auto& run : runnables) {
-        run.getStateHandle().getActiveState()->update(clock.upsDuration());
+    hasUpdated = update_counter > 0;
+    while (update_counter > 0) {
+
+        auto tickDuration = clock.upsDuration();
+
+        if (pauseUpdate && !stepUpdate) {
+            tickDuration = 0.0;
+        }
+        stepUpdate = false;
+
+        for (auto& run : runnables) {
+            run.getStateHandle().getActiveState()->update(tickDuration);
+        }
+        update_counter--;
     }
 }
 void Engine::predrawRunnables() {
+
+    static bool latch_interp = false;
+
+    float interp = interpolation;
+
+    if (pauseUpdate && hasUpdated) {
+        pauseInterpolation = true;
+    }
+    else if (!pauseUpdate) {
+        pauseInterpolation = false;
+    }
+
+    if (pauseInterpolation) {
+        interp = 1.f;
+    }
+
     for (auto& run : runnables) {
-        run.getStateHandle().getActiveState()->predraw(interpolation, hasUpdated);
+        run.getStateHandle().getActiveState()->predraw(interp, hasUpdated);
     }
     if (settings.showDebug) {
         if (hasUpdated) {
@@ -929,27 +940,31 @@ void Engine::ImGui_getContent() {
 
     if (ImGui::Checkbox("Set FPS Unlimited", &fpsUnlimited)) {
         settings.refreshRate = fpsUnlimited ? 0 : fpsMax;
-        //clock.setTargetFPS(settings.refreshRate);
+        clock.setTargetFPS(settings.refreshRate);
     }
-    if (ImGui::Checkbox("Set Steady Tickrate", &steady)) {
+   // if (ImGui::Checkbox("Set Steady Tickrate", &steady)) {
         //clock.setSteady(steady);
-    }
+    //}
     if (ImGui::Checkbox("Set Vsync", &settings.vsyncEnabled)) {
+
+        /*
         if (settings.vsyncEnabled) 
         {
             unsigned vsyncRefreshRate = getDisplayRefreshRate(*window).value_or(60);
             fpsMax = vsyncRefreshRate;
-            //clock.setTargetFPS(vsyncRefreshRate);
+            clock.setTargetFPS(vsyncRefreshRate);
         }
         else {
-            //clock.setTargetFPS(settings.refreshRate);
+            clock.setTargetFPS(settings.refreshRate);
         }
+        */
+
         window->setVsyncEnabled(settings.vsyncEnabled);
     }
 
     if (ImGui::DragInt("Set Frame Limit", &fpsMax, 5, 10, 500, "%.0f")) {
         settings.refreshRate = fpsUnlimited ? 0 : fpsMax;
-        //clock.setTargetFPS(settings.refreshRate);
+        clock.setTargetFPS(settings.refreshRate);
     }
 
 }

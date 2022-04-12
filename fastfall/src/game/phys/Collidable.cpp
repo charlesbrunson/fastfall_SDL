@@ -50,7 +50,7 @@ void drawDrawCollidable(const Collidable& c) {
 	curShape[3].pos = math::rect_botright(curRect);
 
 	Rectf r = math::rect_bound(
-		Rectf(curShape[0].pos, curShape[2].pos - curShape[0].pos),
+		Rectf(curShape[0].pos, curShape[3].pos - curShape[0].pos),
 		Rectf(prevShape[0].pos, prevShape[2].pos - prevShape[0].pos)
 	);
 	bounding[0].pos = math::rect_topleft(r);

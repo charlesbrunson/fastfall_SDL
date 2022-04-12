@@ -176,6 +176,7 @@ private:
 	std::chrono::duration<float> displayTime;
 
 	bool pauseUpdate, stepUpdate;
+	bool pauseInterpolation;
 
 	std::vector<EngineRunnable> runnables;
 
