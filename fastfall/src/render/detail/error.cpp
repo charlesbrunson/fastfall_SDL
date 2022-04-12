@@ -17,6 +17,8 @@ namespace ff {
 
     void glCheckError(const char* file, unsigned int line, const char* expression) {
 
+#if not defined(__EMSCRIPTEN__)
+
         // Get the last error
 
         GLenum errorCode;
@@ -73,17 +75,6 @@ namespace ff {
             }
             }
 
-            // Log the error
-            /*
-            std::stringstream ss;
-            ss << "An internal OpenGL call failed in "
-                << fileString.substr(fileString.find_last_of("\\/") + 1) << "(" << line << ")."
-                << "\nExpression:\n   " << expression
-                << "\nError description:\n   " << error << "\n   " << description << "\n"
-                << std::endl;
-            LOG_ERR_(ss.str());
-            */
-
             LOG_ERR_("");
             LOG_ERR_("An internal OpenGL call failed in");
             LOG_ERR_("{}({})", fileString.substr(fileString.find_last_of("\\/") + 1), line);
@@ -94,5 +85,6 @@ namespace ff {
             LOG_ERR_("\t{}", description);
 
         }
+#endif
     }
 }

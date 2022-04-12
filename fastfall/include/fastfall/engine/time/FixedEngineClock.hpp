@@ -2,6 +2,7 @@
 
 #include "fastfall/engine/time/time.hpp"
 
+#include <algorithm>
 #include <chrono>
 
 class FixedEngineClock {

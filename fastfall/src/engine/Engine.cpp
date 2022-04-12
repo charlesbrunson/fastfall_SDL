@@ -428,6 +428,7 @@ void Engine::updateRunnables() {
 
         if (pauseUpdate && !stepUpdate) {
             tickDuration = 0.0;
+			update_counter = 1;
         }
         stepUpdate = false;
 
