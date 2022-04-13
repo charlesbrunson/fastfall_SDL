@@ -174,12 +174,12 @@ namespace ff::instance {
 		return nullptr;
 	}
 
-	void cam_add_target(GameContext context, CameraTarget* target) {
+	void cam_add_target(GameContext context, CameraTarget& target) {
 		if (auto* inst = getInstance(context)) {
 			inst->getCamera().addTarget(target);
 		}
 	}
-	void cam_remove_target(GameContext context, CameraTarget* target) {
+	void cam_remove_target(GameContext context, CameraTarget& target) {
 		if (auto* inst = getInstance(context)) {
 			inst->getCamera().removeTarget(target);
 		}

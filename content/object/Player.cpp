@@ -58,6 +58,8 @@ void Player::init() {
 			.slope_stick_speed_factor = 0.1f,
 		});
 
+	instance::cam_add_target(context(), cam_target);
+
 	// trigger testing
 	/*
 	hurtbox->set_trigger_callback(

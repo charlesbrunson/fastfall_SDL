@@ -220,6 +220,7 @@ bool Engine::run_doubleThread()
     std::barrier<> bar{ 2 };
 
     running = true;
+    bool first_frame = true;
     clock.reset();
     std::thread stateWorker(&Engine::runUpdate, this, &bar);
 
@@ -232,9 +233,13 @@ bool Engine::run_doubleThread()
 
         // do update/draw
 
-        updateView();
-
-        drawRunnables();
+        if (!first_frame) {
+            updateView();
+            drawRunnables();
+        }
+        else {
+            first_frame = false;
+        }
 
         bar.arrive_and_wait();
 
@@ -402,7 +407,7 @@ void Engine::updateView() {
     if (window) {
         View v = window->getView();
         EngineState* st = runnables.front().getStateHandle().getActiveState();
-        Vec2f vPos = Vec2f(st->getViewPos());
+        Vec2f vPos = st->getViewPos();
         float vZoom = st->getViewZoom();
 
         v.setCenter(vPos);

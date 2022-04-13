@@ -9,18 +9,15 @@
 namespace ff {
 
 
-CameraTarget::CameraTarget(GameContext context, CamTargetPriority priority, bool add_to_cam)
+CameraTarget::CameraTarget(GameContext context, CamTargetPriority priority)
 	: m_context(context)
 	, m_priority(priority)
 {
-	if (add_to_cam) {
-		instance::cam_add_target(m_context, this);
-	}
 }
 
 CameraTarget::~CameraTarget() {
 	if (has_camera) {
-		instance::cam_remove_target(m_context, this);
+		instance::cam_remove_target(m_context, *this);
 	}
 }
 
@@ -55,8 +52,9 @@ void GameCamera::update(secs deltaTime) {
 		}
 
 		if (active_target && !lockPosition) {
-			deltaPosition = active_target->get_target_pos() - currentPosition;
-			currentPosition = active_target->get_target_pos();
+			auto pos = active_target->get_target_pos();
+			deltaPosition = pos - currentPosition;
+			currentPosition = pos;
 		}
 	}
 
@@ -130,27 +128,38 @@ void GameCamera::update(secs deltaTime) {
 }
 
 
-void GameCamera::addTarget(CameraTarget* target) {
+void GameCamera::addTarget(CameraTarget& target) {
 	auto iter_pair = std::equal_range(
-		targets.begin(), targets.end(),
-		target,
+		targets.begin(), targets.end(), &target,
 		[](const CameraTarget* lhs, const CameraTarget* rhs) {
 			return lhs->get_priority() < rhs->get_priority();
 		});
 
-	targets.insert(iter_pair.second, target);
-	target->has_camera = true;
-}
-bool GameCamera::removeTarget(CameraTarget* target) {
+	bool first_target = targets.empty();
 
-	auto iter = std::find(targets.begin(), targets.end(), target);
+	targets.insert(iter_pair.second, &target);
+
+	if (first_target) {
+		targets.back()->m_state = CamTargetState::Active;
+		active_target = targets.back();
+
+		currentPosition = target.get_target_pos();
+		prevPosition = currentPosition;
+		deltaPosition = Vec2f{};
+	}
+
+	target.has_camera = true;
+}
+bool GameCamera::removeTarget(CameraTarget& target) {
+
+	auto iter = std::find(targets.begin(), targets.end(), &target);
 	bool has_target = iter != targets.end();
 	if (has_target) {
-		if (active_target == target) {
+		if (active_target == &target) {
 			active_target = nullptr;
 		}
 		targets.erase(iter);
-		target->has_camera = false;
+		target.has_camera = false;
 	}
 	return has_target;
 }

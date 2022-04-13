@@ -207,9 +207,7 @@ void main()
 	FragColor = texture(texture0, texCoord) * v_color;
 })";
 
-
 }
-
 
 ShaderProgram DefaultProgram;
 ShaderProgram TileArrayProgram;

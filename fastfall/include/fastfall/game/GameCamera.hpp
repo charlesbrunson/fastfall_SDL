@@ -23,7 +23,7 @@ enum class CamTargetState {
 
 class CameraTarget {
 public:
-	CameraTarget(GameContext context, CamTargetPriority priority, bool add_to_cam = true);
+	CameraTarget(GameContext context, CamTargetPriority priority);
 	virtual ~CameraTarget();
 
 	virtual void update(secs delta) = 0;
@@ -37,12 +37,11 @@ public:
 		return lhs.m_priority < rhs.m_priority;
 	}
 
-
 private:
 	friend class GameCamera;
 
 	bool has_camera = false;
-	CamTargetState m_state;
+	CamTargetState m_state = CamTargetState::Active;
 	CamTargetPriority m_priority;
 	GameContext m_context;
 };
@@ -54,8 +53,8 @@ public:
 
 	void update(secs deltaTime);
 
-	void addTarget(CameraTarget* target);
-	bool removeTarget(CameraTarget* target);
+	void addTarget(CameraTarget& target);
+	bool removeTarget(CameraTarget& target);
 
 	void removeAllTargets();
 

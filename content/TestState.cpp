@@ -40,7 +40,7 @@ TestState::TestState()
 
 	auto font = ff::Resources::get<ff::FontAsset>("LionelMicroNbp-gA25.ttf");
 	tile_text.setText(*font, 8, {});
-	tile_text.setVertSpacing(1.f);
+	//tile_text.setVertSpacing(1.f);
 }
 
 TestState::~TestState() {
@@ -204,12 +204,14 @@ void TestState::update(secs deltaTime) {
 			Vec2u tile_origin = tile_id->to_vec();
 			std::string_view tile_type = (tile ? (tile->auto_substitute ? "auto" : "") : "null");
 
-			std::string str = fmt::format("{}\n{}\n{}\n{}",
-				fmt::format("tileset\t{}", tileset_name),
-				fmt::format("layer\t\t{}#{} ({})", layer_name, layer_id, layer_pos),
-				fmt::format("tile\t\t\t{:2d}\t{}", tile_origin, tile_type),
-				fmt::format("pos\t\t{:3d}", tpos)
-			);
+			std::string str = 
+				  fmt::format("tileset\t{}\n",			tileset_name)
+				+ fmt::format("layer\t\t{}#{} ({})\n",	layer_name, layer_id, layer_pos)
+				+ fmt::format("tile\t\t\t{:2d}\t{}\n",	tile_origin, tile_type)
+				+ fmt::format("pos\t\t{:3d}\n",			tpos)
+				+ fmt::format("pixel\t\t{:4d}\n",		Vec2i{ mpos });
+
+
 			tile_text.setText({}, {}, str);
 			
 		}
