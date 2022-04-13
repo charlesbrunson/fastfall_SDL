@@ -185,7 +185,7 @@ void main()
 
 	v_color = color;
 
-	texCoord = tpos / textureSize(texture0, 0);
+	texCoord = tpos / vec2(textureSize(texture0, 0));
 
 })";
 
