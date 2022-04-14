@@ -18,8 +18,8 @@ const ObjectType Player::Type{
 	.tile_size = { 1u, 2u },
 	.group_tags = {	"player" },
 	.properties = {
-		{"anotherprop",		ObjectPropertyType::String},
-		{"faceleft",		false}
+		{ "faceleft",	 false },
+		{ "anotherprop", ObjectPropertyType::String }
 	}
 };
 
@@ -36,7 +36,6 @@ Player::Player(GameContext context, ObjectLevelData& data)
 	, plr::members{ context, *this, Vec2f{ data.position } }
 {
 	init();
-
 	sprite->set_hflip(data.getPropAsBool("faceleft"));
 };
 

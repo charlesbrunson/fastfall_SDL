@@ -261,26 +261,28 @@ void levelContent(GameContext context) {
 	};
 
 	constexpr auto displayObjectRef = [](const ObjectLevelData& objdata) {
-		//ImGui::Checkbox("Hidden", &layer.hidden);
 
-		ImGui::Text("Name : \"%s\"", objdata.name.c_str());
-		ImGui::Text("Type ID : %d", objdata.level_id.id);
+		if (!objdata.name.empty()) {
+			ImGui::Text("Name     : \"%s\"", objdata.name.c_str());
+		}
+
+		ImGui::Text("Level ID : %d", objdata.level_id.id);
 		ImGui::Text("Position : (%4d, %4d)", objdata.position.x, objdata.position.y);
-		ImGui::Text("Size : (%2d, %2d)", objdata.size.x, objdata.size.y);
+		ImGui::Text("Size     : (%2d, %2d)", objdata.size.x, objdata.size.y);
 
 		if (!objdata.properties.empty()) {
-			if (ImGui::TreeNode("Properties")) {
+			if (ImGui::TreeNode((void*)&objdata, "Properties")) {
 				for (auto& prop : objdata.properties) {
-					ImGui::Text("%s : %s", prop.first.c_str(), prop.second.c_str());
+					ImGui::Text("%-12s : %s", prop.first.c_str(), prop.second.c_str());
 				}
 				ImGui::TreePop();
 			}
 		}
 		if (!objdata.points.empty()) {
-			if (ImGui::TreeNode("Points")) {
+			if (ImGui::TreeNode((void*)&objdata, "Points")) {
 				unsigned pCount = 0;
 				for (auto& p : objdata.points) {
-					ImGui::Text("points[%2d] : (% 4d, % 4d)", pCount++, p.x, p.y);
+					ImGui::Text("%2d : (% 4d, % 4d)", pCount++, p.x, p.y);
 
 				}
 				ImGui::TreePop();
@@ -323,15 +325,16 @@ void levelContent(GameContext context) {
 				0, 
 				layer.getID())) 
 			{
-				for (auto& objdata : layer.getObjectData()) {
+				const auto& obj_vec = layer.getObjectData();
+				for (auto& objdata : obj_vec) {
 
 					const std::string* type = &ObjectFactory::getType(objdata.typehash)->type.name;
-					if (ImGui::TreeNode((char*)&objdata, "%s #%u", (type ? type->c_str() : "Anonymous Type"), objdata.level_id.id)) {
+					if (ImGui::TreeNode((void*)(&objdata), "%s #%u", (type ? type->c_str() : "Anonymous Type"), objdata.level_id.id)) {
 
-						if (ImGui::BeginChild((char*)&objdata, ImVec2(0, 100), true)) {
+						//if (ImGui::BeginChild((ImGuiID)(objdata.level_id.id), ImVec2(0, 100), true)) {
 							displayObjectRef(objdata);
-						}
-						ImGui::EndChild();
+						//}
+						//ImGui::EndChild();
 						ImGui::TreePop();
 					}
 				}

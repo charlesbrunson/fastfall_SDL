@@ -598,6 +598,8 @@ void Engine::handleEvents(bool* timeWasted)
                 break;
             case SDLK_KP_3:
                 settings.showDebug = !settings.showDebug;
+                unsigned scale = settings.showDebug ? 2 : 1;
+                SDL_SetWindowMinimumSize(window->getSDL_Window(), GAME_W * scale, GAME_H * scale);
                 resizeWindow(Vec2u(window->getSize()));
                 debug_draw::enable(settings.showDebug);
                 LOG_INFO("Toggling debug mode");
@@ -665,6 +667,9 @@ void Engine::initRenderTarget(bool fullscreen)
     for (int i = 0; i < 10; i++) {
         (*margins.get())[i].color = Color::Black;
     }
+
+    unsigned scale = settings.showDebug ? 2 : 1;
+    SDL_SetWindowMinimumSize(window->getSDL_Window(), GAME_W * scale, GAME_H * scale);
 
     resizeWindow(Vec2u(window->getSize()));
 }
@@ -929,11 +934,6 @@ void Engine::ImGui_getContent() {
 
     ImGui::Separator();
 
-    static bool fpsUnlimited = false;
-    static int fpsMax = settings.refreshRate;
-    static bool steady = true;
-    //static bool vsync = false;
-
     if (ImGui::Checkbox("Freeze", &pauseUpdate)) {
         if (!pauseUpdate)
             unfreeze();
@@ -945,35 +945,27 @@ void Engine::ImGui_getContent() {
         freezeStepOnce();
     }
 
-    if (ImGui::Checkbox("Set FPS Unlimited", &fpsUnlimited)) {
-        settings.refreshRate = fpsUnlimited ? 0 : fpsMax;
-        clock.setTargetFPS(settings.refreshRate);
-    }
-   // if (ImGui::Checkbox("Set Steady Tickrate", &steady)) {
-        //clock.setSteady(steady);
-    //}
-    if (ImGui::Checkbox("Set Vsync", &settings.vsyncEnabled)) {
-
-        /*
-        if (settings.vsyncEnabled) 
-        {
-            unsigned vsyncRefreshRate = getDisplayRefreshRate(*window).value_or(60);
-            fpsMax = vsyncRefreshRate;
-            clock.setTargetFPS(vsyncRefreshRate);
-        }
-        else {
-            clock.setTargetFPS(settings.refreshRate);
-        }
-        */
-
+    if (ImGui::Checkbox("Vsync Enabled", &settings.vsyncEnabled)) {
+#if not defined(__EMSCRIPTEN__)
         window->setVsyncEnabled(settings.vsyncEnabled);
+#endif
+
     }
 
-    if (ImGui::DragInt("Set Frame Limit", &fpsMax, 5, 10, 500, "%.0f")) {
-        settings.refreshRate = fpsUnlimited ? 0 : fpsMax;
-        clock.setTargetFPS(settings.refreshRate);
-    }
+    int fps = clock.getTargetFPS();
+    constexpr std::string_view show_inf = "UNLIMITED";
+    constexpr std::string_view show_fps = "%d";
 
+    if (ImGui::DragInt("FPS", &fps, 5, 0, 500, (fps == 0 ? show_inf : show_fps).data())) {
+#if not defined(__EMSCRIPTEN__)
+        settings.refreshRate = fps;
+        clock.setTargetFPS(fps);
+#endif
+    }
+    int ups = clock.getTargetUPS();
+    if (ImGui::DragInt("UPS", &ups, 5, 10, 500, "%d")) {
+        clock.setTargetUPS(ups);
+    }
 }
 
 void Engine::ImGui_getExtraContent() {
