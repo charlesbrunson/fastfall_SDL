@@ -48,7 +48,7 @@ protected:
 
 	static constexpr float VALLEY_FLATTEN_THRESH = 0.25f;
 
-	constexpr void initCollidableData() {
+	void initCollidableData() {
 		if (!collidePrevious) {
 			cBox = cAble->getBox();
 			cPrev = cAble->getPrevBox();

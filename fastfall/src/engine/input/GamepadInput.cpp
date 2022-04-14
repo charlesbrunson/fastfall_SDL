@@ -8,14 +8,14 @@
 
 using namespace ff::Input;
 
-GamepadInput GamepadInput::Axis(JoystickAxis axis, bool positiveEnd) {
+GamepadInput GamepadInput::makeAxis(JoystickAxis axis, bool positiveEnd) {
 	GamepadInput r;
 	r.type = GamepadInputType::AXIS;
 	r.axis = axis;
 	r.positiveSide = positiveEnd;
 	return r;
 };
-GamepadInput GamepadInput::Button(Input::Button button) {
+GamepadInput GamepadInput::makeButton(Input::Button button) {
 	GamepadInput r;
 	r.type = GamepadInputType::BUTTON;
 	r.button = button;

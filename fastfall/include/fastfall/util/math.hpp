@@ -205,7 +205,7 @@ Vec2<T> intersection(const Line<T>& a, const Line<T>& b) {
 	T ixOut = xnom / denom;
 	T iyOut = ynom / denom;
 
-	if (!isfinite(ixOut) || !isfinite(iyOut)) {
+	if (!std::isfinite(ixOut) || !std::isfinite(iyOut)) {
 		//numerical issue?
 		return Vec2<T>(NAN, NAN);
 	}
