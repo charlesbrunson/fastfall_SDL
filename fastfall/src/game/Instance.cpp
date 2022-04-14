@@ -31,9 +31,14 @@ void GameInstance::clear() {
 	currentLevels.clear();
 
 	debug_draw::clear();
+
+	update_counter = 0;
 }
 
-void GameInstance::reset() {
+void GameInstance::reset() 
+{
+
+	update_counter = 0;
 
 	objMan.clear();
 	sceneMan.clear();
@@ -82,6 +87,38 @@ void GameInstance::populateSceneFromLevel(Level& lvl)
 	}
 	sceneMan.set_bg_color(lvl.getBGColor());
 	sceneMan.set_size(lvl.size());
+}
+
+void GameInstance::update(secs deltaTime)
+{
+	if (activeLevel)
+	{
+		getActiveLevel()->update(deltaTime);
+		objMan.update(deltaTime);
+		triMan.update(deltaTime);
+		colMan.update(deltaTime);
+		camera.update(deltaTime);
+		//LOG_INFO("{}", update_counter);
+		update_counter++;
+	}
+}
+
+void GameInstance::predraw(float interp, bool updated)
+{
+	if (want_reset)
+		reset();
+
+	if (activeLevel)
+	{
+		objMan.predraw(interp, updated);
+		getActiveLevel()->predraw(interp, updated);
+		sceneMan.set_cam_pos(getCamera().getPosition(interp));
+	}
+}
+
+void GameInstance::draw(RenderTarget& target, RenderState state) const
+{
+	target.draw(sceneMan, state);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

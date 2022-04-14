@@ -60,6 +60,8 @@ public:
 
 	const std::vector<CameraTarget*>& getTargets() const;
 
+	Vec2f getPosition(float interpolation);
+
 	float zoomFactor = 1.f;
 	bool lockPosition = false;
 

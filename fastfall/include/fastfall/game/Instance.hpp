@@ -18,7 +18,7 @@
 
 namespace ff {
 
-class GameInstance {
+class GameInstance : public Drawable {
 public:
 
 	//static constexpr unsigned int NO_INSTANCE = 0u;
@@ -46,10 +46,15 @@ public:
 
 	void populateSceneFromLevel(Level& lvl);
 	
+	void update(secs deltaTime);
+	void predraw(float interp, bool updated);
+
 
 	bool want_reset = false;
 
 private:
+	void draw(RenderTarget& target, RenderState state = RenderState()) const override;
+
 	InstanceID instanceID;
 
 	//unsigned int activelevel;
@@ -65,6 +70,7 @@ private:
 	TriggerManager triMan;
 	SceneManager sceneMan;
 
+	size_t update_counter = 0;
 
 };
 

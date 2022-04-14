@@ -25,13 +25,8 @@ TestState::TestState()
 	{
 		instance->addLevel(*lvlptr);
 	}
-	assert(instance->getActiveLevel());
 	Level* lvl = instance->getActiveLevel();
-
-	lvl->update(0.0);
-	instance->getObject().update(0.0);
-	instance->getCollision().update(0.0);
-
+	assert(lvl);
 
 	edit = std::make_unique<LevelEditor>( *lvl, false );
 	edit->select_layer(-1);
@@ -49,11 +44,9 @@ TestState::~TestState() {
 
 void TestState::update(secs deltaTime) {
 
-	instance->getActiveLevel()->update(deltaTime);
-	instance->getObject().update(deltaTime);
-	instance->getTrigger().update(deltaTime);
-	instance->getCollision().update(deltaTime);
-	instance->getCamera().update(deltaTime);
+	instance->update(deltaTime);
+	return;
+	// --------------
 
 	currKeys = SDL_GetKeyboardState(&key_count);
 
@@ -226,18 +219,17 @@ void TestState::update(secs deltaTime) {
 }
 
 void TestState::predraw(float interp, bool updated) {
-	if (instance->want_reset)
-		instance->reset();
 
-	instance->getObject().predraw(interp, updated);
-	instance->getActiveLevel()->predraw(interp, updated);
+	instance->predraw(interp, updated);
 
-	viewPos = math::lerp(instance->getCamera().prevPosition, instance->getCamera().currentPosition, interp);
+	viewPos = instance->getCamera().getPosition(interp);
 	viewZoom = instance->getCamera().zoomFactor;
 
-	instance->getScene().set_cam_pos(viewPos);
+	return;
+	// --------------
 
 	tile_text.predraw();
+
 
 	if (edit) 
 	{
@@ -300,7 +292,10 @@ void TestState::predraw(float interp, bool updated) {
 
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const 
 {
-	target.draw(instance->getScene(), state);
+	target.draw(*instance, state);
+
+	return;
+	// --------------
 
 	if (edit && edit->get_tile_layer()) {
 		target.draw(tile_ghost, state);

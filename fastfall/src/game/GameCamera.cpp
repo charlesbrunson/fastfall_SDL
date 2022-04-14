@@ -177,4 +177,9 @@ const std::vector<CameraTarget*>& GameCamera::getTargets() const {
 	return targets;
 }
 
+
+Vec2f GameCamera::getPosition(float interpolation) {
+	return math::lerp(prevPosition, currentPosition, interpolation);
+}
+
 }
