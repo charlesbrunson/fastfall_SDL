@@ -112,9 +112,7 @@ if (NOT EMSCRIPTEN)
 	#zlib
 	FetchContent_Declare(
 		zlib
-		URL			https://zlib.net/zlib-1.2.11.tar.gz
-		#GIT_REPOSITORY	https://github.com/madler/zlib.git
-		#GIT_TAG			v1.2.11
+		URL			http://zlib.net/fossils/zlib-1.2.12.tar.gz
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
 	)
 

@@ -24,8 +24,8 @@ namespace ff {
 			bool positiveSide = true;
 			//short axisPrevPos = 0;
 
-			static GamepadInput Axis(JoystickAxis axis, bool positiveEnd = true);
-			static GamepadInput Button(Button button);
+			static GamepadInput makeAxis(JoystickAxis axis, bool positiveEnd = true);
+			static GamepadInput makeButton(Button button);
 			std::string toString() const;
 			bool operator< (const GamepadInput& rhs) const;
 

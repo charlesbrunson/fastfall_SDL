@@ -132,7 +132,7 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 	else()
 		set(CMAKE_EXECUTABLE_SUFFIX .html)
 
-		#set(CMAKE_BUILD_TYPE Release CACHE STRING "Build Type")
+		set(CMAKE_BUILD_TYPE Release CACHE STRING "Build Type")
 
 		#set(INIT_MEMORY 67108864 CACHE STRING "Total Memory")
 

@@ -79,17 +79,17 @@ namespace Input {
 
         // default input mapping for joysticks
         std::map<GamepadInput, InputMapValue> joystickMap = {
-            {GamepadInput::Axis(SDL_CONTROLLER_AXIS_LEFTY, false),   {InputType::UP}},
-            {GamepadInput::Axis(SDL_CONTROLLER_AXIS_LEFTX, false),   {InputType::LEFT}},
-            {GamepadInput::Axis(SDL_CONTROLLER_AXIS_LEFTY, true),    {InputType::DOWN}},
-            {GamepadInput::Axis(SDL_CONTROLLER_AXIS_LEFTX, true),    {InputType::RIGHT}},
-            {GamepadInput::Button(SDL_CONTROLLER_BUTTON_DPAD_UP),    {InputType::UP}},
-            {GamepadInput::Button(SDL_CONTROLLER_BUTTON_DPAD_LEFT),  {InputType::LEFT}},
-            {GamepadInput::Button(SDL_CONTROLLER_BUTTON_DPAD_DOWN),  {InputType::DOWN}},
-            {GamepadInput::Button(SDL_CONTROLLER_BUTTON_DPAD_RIGHT), {InputType::RIGHT}},
-            {GamepadInput::Button(SDL_CONTROLLER_BUTTON_A),          {InputType::JUMP}},
-            {GamepadInput::Button(SDL_CONTROLLER_BUTTON_B),          {InputType::DASH}},
-            {GamepadInput::Button(SDL_CONTROLLER_BUTTON_X),          {InputType::ATTACK}},
+            {GamepadInput::makeAxis(SDL_CONTROLLER_AXIS_LEFTY, false),   {InputType::UP}},
+            {GamepadInput::makeAxis(SDL_CONTROLLER_AXIS_LEFTX, false),   {InputType::LEFT}},
+            {GamepadInput::makeAxis(SDL_CONTROLLER_AXIS_LEFTY, true),    {InputType::DOWN}},
+            {GamepadInput::makeAxis(SDL_CONTROLLER_AXIS_LEFTX, true),    {InputType::RIGHT}},
+            {GamepadInput::makeButton(SDL_CONTROLLER_BUTTON_DPAD_UP),    {InputType::UP}},
+            {GamepadInput::makeButton(SDL_CONTROLLER_BUTTON_DPAD_LEFT),  {InputType::LEFT}},
+            {GamepadInput::makeButton(SDL_CONTROLLER_BUTTON_DPAD_DOWN),  {InputType::DOWN}},
+            {GamepadInput::makeButton(SDL_CONTROLLER_BUTTON_DPAD_RIGHT), {InputType::RIGHT}},
+            {GamepadInput::makeButton(SDL_CONTROLLER_BUTTON_A),          {InputType::JUMP}},
+            {GamepadInput::makeButton(SDL_CONTROLLER_BUTTON_B),          {InputType::DASH}},
+            {GamepadInput::makeButton(SDL_CONTROLLER_BUTTON_X),          {InputType::ATTACK}},
         };
 
 
@@ -108,14 +108,14 @@ namespace Input {
             return nullptr;
         }
         InputState* getJoyInput(Button button) {
-            auto t = joystickMap.find(GamepadInput::Button(button));
+            auto t = joystickMap.find(GamepadInput::makeButton(button));
             if (t != joystickMap.end()) {
                 return &inputs[t->second.type];
             }
             return nullptr;
         }
         std::pair<InputState*, const GamepadInput*> getAxisInput(JoystickAxis axis, bool side) {
-            auto t = joystickMap.find(GamepadInput::Axis(axis, side));
+            auto t = joystickMap.find(GamepadInput::makeAxis(axis, side));
             if (t != joystickMap.end()) {
                 return std::make_pair(&inputs[t->second.type], &t->first);
             }
@@ -211,11 +211,11 @@ namespace Input {
                 break;
             case SDL_CONTROLLERBUTTONDOWN:
                 if (waitingForInput != InputType::NONE) {
-                    bindInput(waitingForInput, GamepadInput::Button(e.cbutton.button));
+                    bindInput(waitingForInput, GamepadInput::makeButton(e.cbutton.button));
                     waitingForInput = InputType::NONE;
                 }
                 else if (auto ptr = getJoyInput(e.cbutton.button)) {
-                    auto& button = joystickMap.at(Input::GamepadInput::Button(e.cbutton.button));
+                    auto& button = joystickMap.at(Input::GamepadInput::makeButton(e.cbutton.button));
                     if (!button.active) {
                         ptr->activate();
                     }
@@ -224,7 +224,7 @@ namespace Input {
                 break;
             case SDL_CONTROLLERBUTTONUP:
                 if (auto ptr = getJoyInput(e.cbutton.button)) {
-                    auto& button = joystickMap.at(Input::GamepadInput::Button(e.cbutton.button));
+                    auto& button = joystickMap.at(Input::GamepadInput::makeButton(e.cbutton.button));
                     if (button.active) {
                         ptr->deactivate();
                         button.active = false;
@@ -236,7 +236,7 @@ namespace Input {
             case SDL_CONTROLLERAXISMOTION:
 
                 if (waitingForInput != InputType::NONE && abs(e.caxis.value) > JOY_AXIS_MAP_THRESHOLD) {
-                    bindInput(waitingForInput, GamepadInput::Axis(e.caxis.axis, e.caxis.value > JOY_AXIS_MAP_THRESHOLD));
+                    bindInput(waitingForInput, GamepadInput::makeAxis(e.caxis.axis, e.caxis.value > JOY_AXIS_MAP_THRESHOLD));
                     waitingForInput = InputType::NONE;
                 }
                 else {
