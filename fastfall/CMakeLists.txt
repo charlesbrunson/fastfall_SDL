@@ -3,9 +3,9 @@
 #
 cmake_minimum_required (VERSION 3.16)
 
-set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 20)
+#set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#set(CMAKE_CXX_STANDARD 20)
 
 # build fastfall dependencies
 add_subdirectory("external")
@@ -121,6 +121,11 @@ set(FF_HEADERS
 )
 
 add_library(fastfall STATIC ${FF_SOURCES} ${FF_HEADERS})
+set_target_properties(fastfall PROPERTIES
+	CXX_STANDARD 20
+	CXX_STANDARD_REQUIRED YES
+	CXX_EXTENSIONS NO
+)
 
 message(STATUS "FASTFALL COMPILER   -- ${CMAKE_CXX_COMPILER_ID}")
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
@@ -145,9 +150,8 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 		set(EM_COMPILE_FLAGS "")
 		set(EM_LINK_FLAGS "-s WASM=1 -s WASM_BIGINT=1 -s BINARYEN_IGNORE_IMPLICIT_TRAPS=1 -s FULL_ES3=1 -s ALLOW_MEMORY_GROWTH=1 --preload-file ../data@/data --preload-file ../gamecontrollerdb.txt@/gamecontrollerdb.txt")
 
-		set_target_properties(fastfall PROPERTIES LINK_FLAGS "${EM_FLAGS} ${EM_LINK_FLAGS} ${EM_COMPILE_FLAGS} --emrun")
-
-		set_target_properties(fastfall PROPERTIES COMPILE_FLAGS "${EM_FLAGS} ${EM_COMPILE_FLAGS}")
+		target_link_options(fastfall PRIVATE "${EM_FLAGS} ${EM_LINK_FLAGS} ${EM_COMPILE_FLAGS} --emrun")
+		target_link_options(fastfall PRIVATE "${EM_FLAGS} ${EM_COMPILE_FLAGS}")
 
 	endif()
 endif()
@@ -167,7 +171,7 @@ add_dependencies(fastfall fbs_compiled)
 target_include_directories(fastfall PUBLIC ${FF_INCLUDES})
 
 # libraries
-target_link_libraries(fastfall PUBLIC ${FF_LIBRARIES})
+target_link_libraries(fastfall PRIVATE ${FF_LIBRARIES})
 
 # compile definitions
 target_compile_definitions(fastfall PUBLIC
@@ -179,16 +183,16 @@ target_compile_definitions(fastfall PRIVATE
 )
 
 
-if(NOT EMSCRIPTEN)
-	target_compile_definitions(fastfall PUBLIC
-		FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
-	)
-else()
+if(EMSCRIPTEN)
 	target_compile_definitions(fastfall PUBLIC
 		IMGUI_IMPL_OPENGL_ES3
 	)
 	target_compile_definitions(fastfall PRIVATE
 		FF_DATA_DIR=""
+	)
+else()
+	target_compile_definitions(fastfall PUBLIC
+		FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
 	)
 endif()
 

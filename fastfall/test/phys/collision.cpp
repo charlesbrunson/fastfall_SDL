@@ -22,6 +22,7 @@ TEST(collision, ghostcheck_slopedceil_to_wall)
 	collidable.set_vel(Vec2f{ 0.f, -8.f  } / one_frame);
 	collidable.update(one_frame);
 
+
 	RegionArbiter arb{ &collider, &collidable };
 	arb.updateRegion(collidable.getBoundingBox());
 

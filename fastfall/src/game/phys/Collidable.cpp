@@ -392,16 +392,16 @@ void Collidable::applyContact(const Contact& contact, ContactType type) {
 
 // --------------------------------------------------
 
-SurfaceTracker& Collidable::create_tracker(GameContext context, Angle ang_min, Angle ang_max, bool inclusive) {
+SurfaceTracker& Collidable::create_tracker(Angle ang_min, Angle ang_max, bool inclusive) {
 
-	auto tracker = std::make_unique<SurfaceTracker>(context, ang_min, ang_max, inclusive);
+	auto tracker = std::make_unique<SurfaceTracker>(ang_min, ang_max, inclusive);
 	tracker->owner = this;
 	trackers.push_back(std::move(tracker));
 	return *trackers.back().get();
 }
 
-SurfaceTracker& Collidable::create_tracker(GameContext context, Angle ang_min, Angle ang_max, SurfaceTracker::Settings settings, bool inclusive) {
-	SurfaceTracker& track = create_tracker(context, ang_min, ang_max, inclusive);
+SurfaceTracker& Collidable::create_tracker(Angle ang_min, Angle ang_max, SurfaceTracker::Settings settings, bool inclusive) {
+	SurfaceTracker& track = create_tracker(ang_min, ang_max, inclusive);
 	track.settings = settings;
 	return track;
 }

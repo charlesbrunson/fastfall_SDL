@@ -32,6 +32,7 @@ create_ff_test(ff_test_utils
 )
 create_ff_test(ff_test_phys 
 	phys/collision.cpp
+	phys/surfacetracker.cpp
 )
 # add more tests...
 

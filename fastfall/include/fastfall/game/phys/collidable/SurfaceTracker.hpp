@@ -27,7 +27,7 @@ struct CollidableOffsets {
 // track contact duration for surfaces between the given angle ranges
 class SurfaceTracker {
 public:
-	SurfaceTracker(GameContext game_context, Angle ang_min, Angle ang_max, bool inclusive = true);
+	SurfaceTracker(Angle ang_min, Angle ang_max, bool inclusive = true);
 
 	// acceleration out
 	CollidableOffsets premove_update(secs deltaTime);
@@ -120,7 +120,7 @@ private:
 
 	std::optional<PersistantContact> wallContact;
 
-	GameContext context;
+	//GameContext context;
 
 	Vec2f get_friction(Vec2f prevVel);
 

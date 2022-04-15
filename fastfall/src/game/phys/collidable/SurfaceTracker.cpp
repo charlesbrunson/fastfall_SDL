@@ -3,13 +3,14 @@
 #include "fastfall/game/InstanceInterface.hpp"
 #include "fastfall/render/DebugDraw.hpp"
 
+#include "fastfall/game/phys/ColliderRegion.hpp"
+
 namespace ff {
 
-SurfaceTracker::SurfaceTracker(GameContext game_context, Angle ang_min, Angle ang_max, bool inclusive) :
-	context(game_context),
-	angle_min(ang_min),
-	angle_max(ang_max),
-	angle_inclusive(inclusive)
+SurfaceTracker::SurfaceTracker(Angle ang_min, Angle ang_max, bool inclusive) 
+	: angle_min(ang_min)
+	, angle_max(ang_max)
+	, angle_inclusive(inclusive)
 {
 
 }
@@ -42,7 +43,7 @@ void SurfaceTracker::process_contacts(std::vector<PersistantContact>& contacts) 
 			found = true;
 
 			if (had_contact
-				&& currentContact->collider_id.value != contact.collider_id.value)
+				&& currentContact->region != contact.region)
 			{
 				end_touch(currentContact.value());
 				start_touch(contact);
@@ -148,14 +149,12 @@ bool SurfaceTracker::do_slope_wall_stop(bool had_wall) noexcept {
 		// correct velocity and position so we're still grounded
 		owner->set_vel(Vec2f{});
 
-		const auto* region = instance::phys_get_region(context, currentContact->collider_id);
+		const auto* region = currentContact->region;
 
-		if (settings.move_with_platforms) {
-			if (region) {
-				if (region->getPosition() != region->getPrevPosition()) {
-					owner->set_vel(owner->get_vel() + math::projection(region->delta_velocity, currentContact->collider_normal, true));
-				}
-			}
+		if (settings.move_with_platforms && region
+			&& region->getPosition() != region->getPrevPosition()) 
+		{
+			owner->set_vel(owner->get_vel() + math::projection(region->delta_velocity, currentContact->collider_normal, true));
 		}
 
 		float X = owner->getPosition().x;
@@ -181,8 +180,7 @@ CollidableOffsets SurfaceTracker::do_move_with_platform(CollidableOffsets in) no
 
 	if (settings.move_with_platforms) {
 		PersistantContact& contact = currentContact.value();
-		const auto* region = instance::phys_get_region(context, currentContact->collider_id);
-		if (region) {
+		if (const auto* region = currentContact->region) {
 			if (region->getPosition() != region->getPrevPosition()) {
 				Vec2f offset = region->getPosition() - region->getPrevPosition();
 
@@ -241,7 +239,7 @@ CollidableOffsets SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos
 	if (has_contact() && deltaTime > 0.0) {
 
 		Vec2f regionOffset;
-		if (const auto* region = instance::phys_get_region(context, currentContact->collider_id)) {
+		if (const auto* region = currentContact->region) {
 			regionOffset = region->getPosition();
 		}
 
@@ -412,7 +410,7 @@ void SurfaceTracker::end_touch(PersistantContact& contact) {
 		// have to avoid collider velocity being double-applied
 		bool still_touching = false;
 		for (auto& contact_ : owner->get_contacts()) {
-			if (contact.collider_id.value == contact_.collider_id.value) {
+			if (contact.region == contact_.region) {
 				still_touching = true;
 			}
 		}
@@ -450,7 +448,7 @@ void SurfaceTracker::traverse_set_speed(float speed) {
 
 		Vec2f surfNV;
 
-		if (const auto* region = instance::phys_get_region(context, currentContact->collider_id)) {
+		if (const auto* region = currentContact->region) {
 			surfNV = math::projection(region->velocity, currentContact->collider_normal, true);
 		}
 

@@ -14,10 +14,7 @@ struct DebugDrawable {
 	const void* signature = nullptr;
 };
 
-bool isEnabled = true;
-
-
-
+bool isEnabled = false;
 
 std::deque<DebugDrawable> debugDrawListA;
 std::deque<DebugDrawable> debugDrawListB;

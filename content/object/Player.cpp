@@ -44,8 +44,8 @@ void Player::init() {
 
 	// surface tracker
 	ground = &box->create_tracker(
-		context(),
-		Angle::Degree(-135), Angle::Degree(-45),
+		Angle::Degree(-135), 
+		Angle::Degree(-45),
 		SurfaceTracker::Settings{
 			.move_with_platforms = true,
 			.slope_sticking = true,
@@ -54,7 +54,7 @@ void Player::init() {
 			.use_surf_vel = true,
 			.stick_angle_max = Angle::Degree(90),
 			.max_speed = constants::norm_speed,
-			.slope_stick_speed_factor = 0.1f,
+			.slope_stick_speed_factor = 0.f,
 		});
 
 	instance::cam_add_target(context(), cam_target);

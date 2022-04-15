@@ -71,6 +71,7 @@ struct Contact {
 
 };
 
+class ColliderRegion;
 
 struct PersistantContact : public Contact {
 	PersistantContact(Contact c) :
@@ -83,6 +84,7 @@ struct PersistantContact : public Contact {
 	ContactType type = ContactType::NO_SOLUTION;
 
 	ColliderID collider_id = ColliderID{ ColliderID::NO_ID };
+	const ColliderRegion* region = nullptr;
 	int quad_id = 0u;
 };
 

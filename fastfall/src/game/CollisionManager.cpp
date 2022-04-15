@@ -229,8 +229,10 @@ void CollisionManager::solve(CollidableData& collidableData) {
 		contact.touchDuration = (applied.arbiter ? applied.arbiter->getTouchDuration() : 0.0);
 		contact.type = applied.type;
 
-		if (applied.region)
+		if (applied.region) {
 			contact.collider_id = applied.region->get_ID();
+			contact.region = applied.region;
+		}
 
 		if (applied.arbiter && applied.arbiter->collider)
 			contact.quad_id = applied.arbiter->collider->getID();
