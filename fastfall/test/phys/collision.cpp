@@ -11,12 +11,11 @@ TEST(collision, ghostcheck_slopedceil_to_wall)
 {
 	constexpr float one_frame = (1.f / 60.f);
 
-
 	ColliderTileMap collider{ Vec2i{ 5, 5 } };
-	collider.setTile({ 0, 0 }, { "solid" });
-	collider.setTile({ 0, 1 }, { "slope-hv" });
-	collider.setTile({ 0, 3 }, { "solid" });
-	collider.setTile({ 1, 3 }, { "solid" });
+	collider.setTile({ 0, 0 }, "solid"_ts);
+	collider.setTile({ 0, 1 }, "slope-hv"_ts);
+	collider.setTile({ 0, 3 }, "solid"_ts);
+	collider.setTile({ 1, 3 }, "solid"_ts);
 	collider.applyChanges();
 
 	Collidable collidable{ Vec2f{ 20, 48 }, Vec2f{ 16, 32 } };

@@ -132,11 +132,13 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 	else()
 		set(CMAKE_EXECUTABLE_SUFFIX .html)
 
-		set(CMAKE_BUILD_TYPE Release CACHE STRING "Build Type")
-
 		#set(INIT_MEMORY 67108864 CACHE STRING "Total Memory")
 
-		set(EM_FLAGS "-g -O3 -s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"bmp\",\"png\"]'")
+		set(EM_FLAGS "-O3 -s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"bmp\",\"png\"]'")
+
+		if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
+			set(EM_FLAGS "${EM_FLAGS} -g")
+		endif()
 
 		# -s INITIAL_MEMORY=${INIT_MEMORY} 
 
@@ -177,7 +179,6 @@ target_compile_definitions(fastfall PRIVATE
 )
 
 
-
 if(NOT EMSCRIPTEN)
 	target_compile_definitions(fastfall PUBLIC
 		FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
@@ -191,7 +192,5 @@ else()
 	)
 endif()
 
-set(BUILD_TESTING ON)
-include(CTest)
-enable_testing()
 add_subdirectory("test")
+

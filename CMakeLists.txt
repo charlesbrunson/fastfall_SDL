@@ -14,6 +14,10 @@ message(STATUS "C Compiler executable:   ${CMAKE_C_COMPILER}")
 message(STATUS "CXX Compiler executable: ${CMAKE_CXX_COMPILER}")
 message(STATUS "Linker executable:       ${CMAKE_LINKER}")
 
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    include(CTest)
+endif()
+
 add_subdirectory ("fastfall")
 
 add_executable(test_project	
@@ -54,3 +58,4 @@ if(EMSCRIPTEN)
 	set_target_properties(test_project PROPERTIES LINK_FLAGS "${USE_FLAGS} --emrun")
 	set_target_properties(test_project PROPERTIES COMPILE_FLAGS ${USE_FLAGS})
 endif()
+

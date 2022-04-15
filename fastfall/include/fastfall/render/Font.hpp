@@ -15,7 +15,7 @@ class Font
 public:
 	struct GlyphMetrics
 	{
-		unsigned glyph_index;
+		unsigned glyph_index = 0;
 		glm::ivec2 size		= { 0,0 };
 		glm::ivec2 bearing	= { 0,0 };
 		unsigned advance_x	= 0;

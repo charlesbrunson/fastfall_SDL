@@ -9,28 +9,31 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-include(GoogleTest)
 
-macro(create_ff_test test_cpp)
+macro(create_ff_test TESTNAME)
 
-	string(REPLACE "/" "_" test_name ${test_cpp})
-	string(REPLACE ".cpp" "" test_name ${test_name})
-	
-	message(STATUS "AAAAAAAAAAA ${test_name}  -  ${test_cpp}")
+    add_executable(${TESTNAME} ${ARGN})
+	target_link_libraries(${TESTNAME} gtest gtest_main fastfall)
+		
+	gtest_discover_tests(${TESTNAME}
+		WORKING_DIRECTORY ${PROJECT_DIR}
+        PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}"
+	)
+    set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
 
-	add_executable(${test_name} ${test_cpp})
-	target_link_libraries(${test_name} gtest_main fastfall)
-	target_include_directories(${test_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/google_test/google_test/include)
-	gtest_discover_tests(${test_name})
-	message(STATUS "built test ${test_name}")
-	
-	if (DEFINED FF_TESTS)
-		list(APPEND FF_TESTS ${test_name})
-	else()
-		set(FF_TESTS ${test_name})
-	endif()
 endmacro()
 
-create_ff_test("util/grid-vector.cpp")
-create_ff_test("game/phys/collision.cpp")
+enable_testing()
+
+include(GoogleTest)
+
+create_ff_test(ff_test_utils 
+	utils/grid-vector.cpp
+)
+create_ff_test(ff_test_phys 
+	phys/collision.cpp
+)
 # add more tests...
+
+
+
