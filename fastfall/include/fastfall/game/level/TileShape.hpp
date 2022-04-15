@@ -83,12 +83,12 @@ namespace ff {
 			flip_str = str.substr(ndx + 1);
 		}
 
-		TileShape::Type shape_type;
+		Type shape_type = Type::Empty;
 		for (int i = 0; i < TileShape::type_labels.size(); i++)
 		{
 			if (TileShape::type_labels[i] == shape_str)
 			{
-				shape_type = static_cast<TileShape::Type>(i);
+				shape_type = static_cast<Type>(i);
 				break;
 			}
 		}

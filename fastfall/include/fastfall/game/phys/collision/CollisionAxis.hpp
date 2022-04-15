@@ -8,7 +8,7 @@
 namespace ff {
 
 struct AxisPreStep {
-	Cardinal dir;
+	Cardinal dir = Cardinal::N;
 	ColliderSurface surface;
 	bool is_real = false;
 	bool is_valid = false;
@@ -17,11 +17,11 @@ struct AxisPreStep {
 
 class CollisionAxis {
 public:
-	CollisionAxis(const AxisPreStep& initData) :
-		dir(initData.dir),
-		quadIndex(initData.quadNdx),
-		collider_real(initData.is_real),
-		collider_valid(initData.is_valid)
+	CollisionAxis(const AxisPreStep& initData) 
+		: dir(initData.dir)
+		, quadIndex(initData.quadNdx)
+		, collider_real(initData.is_real)
+		, collider_valid(initData.is_valid)
 	{
 		contact.collider = initData.surface;
 	}
@@ -34,10 +34,10 @@ public:
 	Contact contact;
 
 	// the index of this surface in the original quad
-	uint8_t quadIndex;
+	uint8_t quadIndex = 255u;
 
 	// direction of the surface
-	Cardinal dir;
+	Cardinal dir = Cardinal::N;
 
 	// flag to invalidate entire collision
 	bool axisValid = true;

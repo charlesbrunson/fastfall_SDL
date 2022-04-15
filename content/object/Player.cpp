@@ -125,7 +125,6 @@ void Player::manage_state(PlayerStateID n_id)
 }
 
 void Player::update(secs deltaTime) {
-
 	manage_state(get_state().update(*this, deltaTime));
 
 	box->update(deltaTime);

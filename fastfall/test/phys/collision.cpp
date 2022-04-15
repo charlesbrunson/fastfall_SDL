@@ -19,7 +19,7 @@ TEST(collision, ghostcheck_slopedceil_to_wall)
 	collider.applyChanges();
 
 	Collidable collidable{ Vec2f{ 20, 48 }, Vec2f{ 16, 32 } };
-	collidable.set_vel(Vec2f{ 0.f, -8.f / one_frame });
+	collidable.set_vel(Vec2f{ 0.f, -8.f  } / one_frame);
 	collidable.update(one_frame);
 
 	RegionArbiter arb{ &collider, &collidable };
