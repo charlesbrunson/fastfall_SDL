@@ -18,6 +18,7 @@ public:
 	}
 
 	inline std::map<const ColliderQuad*, Arbiter>& getQuadArbiters() { return quadArbiters; };
+	inline const std::map<const ColliderQuad*, Arbiter>& getQuadArbiters() const { return quadArbiters; };
 
 	void updateRegion(Rectf bounds);
 	//void updateArbiters(secs deltaTime);

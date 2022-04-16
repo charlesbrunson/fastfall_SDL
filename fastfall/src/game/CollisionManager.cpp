@@ -94,14 +94,14 @@ bool CollisionManager::erase_collider(ColliderRegion* region) {
 
 void CollisionManager::broadPhase(secs deltaTime) {
 
+	std::vector<const Arbiter*> updatedBuffer;
+
 	for (auto& colData : collidables) {
 		Rectf body_rect(colData.collidable.getBox());
 
 		// using double for this as float can lead to infinite loop due to floating point inaccuracy when pushing boundary
 		Rectf body_bound(colData.collidable.getBoundingBox());
 		Rectf push_bound(body_bound);
-
-		std::vector<const Arbiter*> updatedBuffer;
 
 		static auto is_updated = [&](const Arbiter& arbiter) {
 			return std::find(updatedBuffer.cbegin(), updatedBuffer.cend(), &arbiter) != updatedBuffer.end();
@@ -134,6 +134,8 @@ void CollisionManager::broadPhase(secs deltaTime) {
 			}
 
 		} while (body_bound != push_bound);
+
+		updatedBuffer.clear();
 	}
 };
 

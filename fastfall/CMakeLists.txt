@@ -46,7 +46,6 @@ add_custom_target(fbs_compiled
 set(FF_INCLUDES
 	${CMAKE_CURRENT_SOURCE_DIR}/include
 
-
 	${CMAKE_CURRENT_SOURCE_DIR}/external/freetype/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/rapidxml
 	${CMAKE_CURRENT_SOURCE_DIR}/external/json/include

@@ -33,7 +33,12 @@ create_ff_test(ff_test_utils
 create_ff_test(ff_test_phys 
 	phys/collision.cpp
 	phys/surfacetracker.cpp
+
+	phys/TestPhysRenderer.cpp
 )
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/phys_render_out)
+
 # add more tests...
 
 
