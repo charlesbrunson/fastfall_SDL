@@ -75,10 +75,10 @@ TEST_F(collision, ghostcheck_slopedceil_to_wall)
 	box->set_vel(Vec2f{ 0.f, -8.f  } / one_frame);
 
 	TestPhysRenderer render({ 0, 0, 80, 80 });
-	render.render(colMan);
+	render.draw(colMan);
 
 	update();
-	render.render(colMan);
+	render.draw(colMan);
 
 	EXPECT_EQ(box->get_contacts().size(), 1);
 
@@ -91,7 +91,7 @@ TEST_F(collision, ghostcheck_slopedceil_to_wall)
 
 	while (render.curr_frame < 8) {
 		update();
-		render.render(colMan);
+		render.draw(colMan);
 	}
 
 }
