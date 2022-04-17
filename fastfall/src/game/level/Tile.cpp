@@ -385,8 +385,10 @@ namespace ff {
 
 			// multiple valid matches, pick random one
 			srand(seed);
-			return (matches.rbegin() + (rand() % count))->tile_id;
+			TileID tID = (matches.rbegin() + (rand() % count))->tile_id;
 			srand(1);
+
+			return tID;
 		}
 		else
 		{

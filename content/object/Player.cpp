@@ -161,7 +161,7 @@ void Player::ImGui_Inspect() {
 	auto id = pair.first;
 	auto name = pair.second;
 
-	ImGui::Text("Current State: %d %s", id, name.data());
+	ImGui::Text("Current State: %d %s", (int)id, name.data());
 	ImGui::Text("Position(%3.2f, %3.2f)", box->getPosition().x, box->getPosition().y);
 	ImGui::Text("Velocity(%3.2f, %3.2f)", box->get_vel().x, box->get_vel().y);
 

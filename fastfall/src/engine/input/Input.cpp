@@ -556,7 +556,8 @@ namespace Input {
                     }
                     else {
                         if (i == 0u) {
-                            ImGui::Text("");
+                            //ImGui::Text("");
+							ImGui::NewLine();
                         }
                         else {
                             break;

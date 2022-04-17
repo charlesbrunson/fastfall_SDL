@@ -33,7 +33,7 @@ public:
 	CollidableOffsets premove_update(secs deltaTime);
 
 	// new position out
-	CollidableOffsets postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime) const;
+	CollidableOffsets postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime, std::optional<PersistantContact> contact_override = {}) const;
 
 	void process_contacts(std::vector<PersistantContact>& contacts);
 	bool has_contact() const noexcept;

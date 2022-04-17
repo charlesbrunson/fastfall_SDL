@@ -230,16 +230,27 @@ Vec2f SurfaceTracker::do_max_speed(secs deltaTime) noexcept {
 
 // ----------------------------
 
-CollidableOffsets SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime) const {
+CollidableOffsets SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime, std::optional<PersistantContact> contact_override) const {
+
+	std::optional<PersistantContact> local_contact;
+
+	if (contact_override) {
+		local_contact = *contact_override;
+	}
+	else if (currentContact) {
+		local_contact = *currentContact;
+	}
+	bool local_has_contact = local_contact && local_contact->hasContact;
+
 
 	CollidableOffsets out;
 
 	Vec2f position = wish_pos;
 
-	if (has_contact() && deltaTime > 0.0) {
+	if (local_has_contact && deltaTime > 0.0) {
 
 		Vec2f regionOffset;
-		if (const auto* region = currentContact->region) {
+		if (const auto* region = local_contact->region) {
 			regionOffset = region->getPosition();
 		}
 
@@ -274,7 +285,7 @@ CollidableOffsets SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos
 		};
 
 
-		auto& contact = currentContact.value();
+		const auto& contact = local_contact.value();
 
 		float left = std::min(contact.collider.surface.p1.x, contact.collider.surface.p2.x);
 		float right = std::max(contact.collider.surface.p1.x, contact.collider.surface.p2.x);
