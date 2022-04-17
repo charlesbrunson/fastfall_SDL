@@ -34,7 +34,7 @@
 
 namespace ff {
 
-std::optional<unsigned> getDisplayRefreshRate(const Window& win);
+//std::optional<unsigned> getDisplayRefreshRate(const Window& win);
 
 std::unique_ptr<Engine> Engine::engineInstance;
 
@@ -599,7 +599,9 @@ void Engine::handleEvents(bool* timeWasted)
             case SDLK_KP_3:
                 settings.showDebug = !settings.showDebug;
                 unsigned scale = settings.showDebug ? 2 : 1;
+#if not defined(__EMSCRIPTEN__)
                 SDL_SetWindowMinimumSize(window->getSDL_Window(), GAME_W * scale, GAME_H * scale);
+#endif
                 resizeWindow(Vec2u(window->getSize()));
                 debug_draw::enable(settings.showDebug);
                 LOG_INFO("Toggling debug mode");
@@ -669,7 +671,9 @@ void Engine::initRenderTarget(bool fullscreen)
     }
 
     unsigned scale = settings.showDebug ? 2 : 1;
+#if not defined(__EMSCRIPTEN__)
     SDL_SetWindowMinimumSize(window->getSDL_Window(), GAME_W * scale, GAME_H * scale);
+#endif
 
     resizeWindow(Vec2u(window->getSize()));
 }
@@ -987,6 +991,7 @@ bool Engine::isFrozen() const noexcept {
 };
 
 
+/*
 std::optional<unsigned> getDisplayRefreshRate(const Window& win) 
 {
     SDL_DisplayMode mode;
@@ -998,6 +1003,7 @@ std::optional<unsigned> getDisplayRefreshRate(const Window& win)
     } 
     return mode.refresh_rate;
 }
+*/
 
 
 DebugDrawImgui::DebugDrawImgui() :

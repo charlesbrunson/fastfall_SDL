@@ -230,7 +230,7 @@ Vec2f SurfaceTracker::do_max_speed(secs deltaTime) noexcept {
 
 // ----------------------------
 
-CollidableOffsets SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime) {
+CollidableOffsets SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime) const {
 
 	CollidableOffsets out;
 

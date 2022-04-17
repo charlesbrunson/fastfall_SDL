@@ -33,7 +33,7 @@ public:
 	CollidableOffsets premove_update(secs deltaTime);
 
 	// new position out
-	CollidableOffsets postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime);
+	CollidableOffsets postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime) const;
 
 	void process_contacts(std::vector<PersistantContact>& contacts);
 	bool has_contact() const noexcept;
@@ -58,7 +58,7 @@ public:
 	inline void air_time_acc(secs deltaTime) { air_time += deltaTime; };
 	inline secs get_air_time() const noexcept { return air_time; };
 
-	inline bool is_angle_in_range(Angle ang) { return ang.isBetween(angle_min, angle_max, angle_inclusive); }
+	inline bool is_angle_in_range(Angle ang) const { return ang.isBetween(angle_min, angle_max, angle_inclusive); }
 	inline Angle get_angle_min() { return angle_min; };
 	inline Angle get_angle_max() { return angle_max; };
 	inline bool get_angle_inclusive() { return angle_inclusive; };

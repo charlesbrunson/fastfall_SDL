@@ -17,7 +17,7 @@
                 "Mimode": "gdb",
                 "args": [],
                 "cwd": "${workspaceRoot}",
-                "program": "/home/cbru/fastfall_SDL/cmake-build-Release/test_project",
+                "program": "/home/cbru/fastfall_SDL/cmake-build-Debug/test_project",
                 "request": "launch",
                 "type": "cppdbg"
             }

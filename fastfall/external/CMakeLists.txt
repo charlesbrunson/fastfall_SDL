@@ -3,8 +3,10 @@ cmake_minimum_required (VERSION 3.18)
 
 include(FetchContent)
 
-set(BUILD_STATIC_LIBS ON)
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
+set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
+set(OpenGL_GL_PREFERENCE "GLVND" CACHE INTERNAL "")
 
 # glm
 FetchContent_Declare(
@@ -12,9 +14,10 @@ FetchContent_Declare(
 	URL			https://github.com/g-truc/glm/releases/download/0.9.9.8/glm-0.9.9.8.zip
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glm
 )
-if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-	add_compile_options(-Wno-deprecated-volatile)
-endif()
+
+#if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+#	add_compile_options(-Wno-deprecated-volatile)
+#endif()
 
 #fmt
 FetchContent_Declare(
@@ -25,18 +28,18 @@ FetchContent_Declare(
 )
 
 #flatbuffers
-set(FLATBUFFERS_BUILD_TESTS OFF)
-set(FLATBUFFERS_INSTALL OFF)
-set(FLATBUFFERS_BUILD_FLATLIB OFF)
-set(FLATBUFFERS_BUILD_FLATC OFF)
-set(FLATBUFFERS_BUILD_CPP17 OFF)
-set(FLATBUFFERS_LIBCXX_WITH_CLANG OFF)
+set(FLATBUFFERS_BUILD_TESTS 	OFF CACHE INTERNAL "")
+set(FLATBUFFERS_INSTALL 		OFF CACHE INTERNAL "")
+set(FLATBUFFERS_BUILD_FLATC 	OFF CACHE INTERNAL "")
+set(FLATBUFFERS_BUILD_FLATLIB 	ON  CACHE INTERNAL "")
+set(FLATBUFFERS_BUILD_CPP17 	ON  CACHE INTERNAL "")
 FetchContent_Declare(
 	flatbuffers
 	GIT_REPOSITORY https://github.com/google/flatbuffers.git
 	GIT_TAG        v1.12.0
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers
 )
+
 
 #rapidxml
 FetchContent_Declare(
@@ -73,6 +76,7 @@ FetchContent_Declare(
 
 
 #freetype
+set(FT_DISABLE_HARFBUZZ ON CACHE INTERNAL "")
 FetchContent_Declare(
 	freetype
 	URL https://download.savannah.gnu.org/releases/freetype/freetype-2.11.1.tar.xz
@@ -94,6 +98,8 @@ FetchContent_MakeAvailable(
 if (NOT EMSCRIPTEN)
 
 	# sdl
+	set(SDL_SHARED OFF CACHE INTERNAL "")
+	set(SDL_STATIC ON  CACHE INTERNAL "")
 	FetchContent_Declare(
 		sdl
 		URL			https://www.libsdl.org/release/SDL2-2.0.14.tar.gz
@@ -101,7 +107,7 @@ if (NOT EMSCRIPTEN)
 	)
 
 	# glew
-	set(BUILD_UTILS OFF)
+	set(BUILD_UTILS OFF PARENT)
 	FetchContent_Declare(
 		glew
 		URL			https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0.tgz/download
@@ -118,10 +124,10 @@ if (NOT EMSCRIPTEN)
 
 
 	#libpng
-	set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/zlib)
-	set(PNG_SHARED OFF)
-	set(PNG_TESTS OFF)
-	set(PNG_BUILD_ZLIB ON)
+	set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/zlib )
+	set(PNG_SHARED OFF 		CACHE INTERNAL "")
+	set(PNG_TESTS OFF 		CACHE INTERNAL "")
+	set(PNG_BUILD_ZLIB ON 	CACHE INTERNAL "" )
 	include_directories(${ZLIB_INCLUDE_DIR})
 	FetchContent_Declare(
 		libpng
@@ -177,23 +183,21 @@ if (NOT EMSCRIPTEN)
 endif()
 
 # build flatbuffers as a library
-add_library(flatbuffers STATIC 
-  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/base.h
-  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/flatbuffers.h
-  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/hash.h
-  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/idl.h
-  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/util.h
-  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/reflection.h
-  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/reflection_generated.h
-  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/stl_emulation.h
-  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/flexbuffers.h
-  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/registry.h
-  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/minireflect.h
-  ${flatbuffers_SOURCE_DIR}/src/idl_parser.cpp
-  ${flatbuffers_SOURCE_DIR}/src/idl_gen_text.cpp
-  ${flatbuffers_SOURCE_DIR}/src/reflection.cpp
-  ${flatbuffers_SOURCE_DIR}/src/util.cpp
-)
-target_include_directories(flatbuffers PUBLIC
-    ${flatbuffers_SOURCE_DIR}/include
-)
+#add_library(flatbuffers STATIC 
+#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/hash.h
+#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/idl.h
+#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/util.h
+#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/reflection.h
+#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/reflection_generated.h
+#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/stl_emulation.h
+#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/flexbuffers.h
+#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/registry.h
+#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/minireflect.h
+#  ${flatbuffers_SOURCE_DIR}/src/idl_parser.cpp
+#  ${flatbuffers_SOURCE_DIR}/src/idl_gen_text.cpp
+#  ${flatbuffers_SOURCE_DIR}/src/reflection.cpp
+#  ${flatbuffers_SOURCE_DIR}/src/util.cpp
+#)
+#target_include_directories(flatbuffers PUBLIC
+#    ${flatbuffers_SOURCE_DIR}/include
+#)
