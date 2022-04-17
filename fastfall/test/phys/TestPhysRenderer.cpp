@@ -1,8 +1,10 @@
 #include "TestPhysRenderer.hpp"
 
+#include "gtest/gtest.h"
+
 using namespace ff;
 
-void TestPhysRenderer::render(CollisionManager& colMan, std::string_view name, unsigned frame) {
+void TestPhysRenderer::render(CollisionManager& colMan) {
 
 #if FF_TESTPHYSRENDERER_ENABLED
 
@@ -75,6 +77,15 @@ void TestPhysRenderer::render(CollisionManager& colMan, std::string_view name, u
 		drawRectOutline(prev, 0, 100, 0, 255);
 		drawRectOutline(box, 0, 255, 0, 255);
 
+		{
+			SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
+			Vec2f p1 = math::rect_mid(box);
+			Vec2f p2 = p1 + collidable.collidable.get_vel() * 0.05f;
+			p1 *= scale;
+			p2 *= scale;
+			SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
+		}
+
 		// draw contacts
 
 		SDL_SetRenderDrawColor(render, 255, 255, 0, 255);
@@ -82,7 +93,7 @@ void TestPhysRenderer::render(CollisionManager& colMan, std::string_view name, u
 			if (contact.hasContact) {
 
 				Vec2f p1 = contact.position;
-				Vec2f p2 = p1 + contact.ortho_normal * contact.separation * 25.f;
+				Vec2f p2 = p1 + contact.ortho_normal * contact.separation * 1.f;
 				p1 *= scale;
 				p2 *= scale;
 
@@ -92,12 +103,18 @@ void TestPhysRenderer::render(CollisionManager& colMan, std::string_view name, u
 		}
 	}
 
-	std::string filename = fmt::format("phys_render_out/{}{:05d}.bmp", name, frame);
+	std::string test_name = fmt::format("{}__{}",
+		::testing::UnitTest::GetInstance()->current_test_info()->test_suite_name(),
+		::testing::UnitTest::GetInstance()->current_test_info()->name());
+
+	std::string filename = fmt::format("phys_render_out/{}{:05d}.bmp", test_name, curr_frame);
 	SDL_SaveBMP(surf, filename.c_str());
 
 	SDL_DestroyRenderer(render);
 	SDL_FreeSurface(surf);
 
 #endif
+
+	curr_frame++;
 
 }

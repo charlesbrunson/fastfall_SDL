@@ -15,6 +15,7 @@ public:
 	}
 
 	ff::Rectf render_area;
+	size_t curr_frame = 0;
 
-	void render(ff::CollisionManager& colMan, std::string_view name, unsigned frame);
+	void render(ff::CollisionManager& colMan);
 };

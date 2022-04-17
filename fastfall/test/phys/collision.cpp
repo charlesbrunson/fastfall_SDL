@@ -5,41 +5,93 @@
 #include "fastfall/game/phys/collider_regiontypes/ColliderTileMap.hpp"
 #include "fastfall/game/phys/Collidable.hpp"
 
+#include "TestPhysRenderer.hpp"
+
 using namespace ff;
 
-TEST(collision, ghostcheck_slopedceil_to_wall)
-{
-	constexpr float one_frame = (1.f / 60.f);
 
-	ColliderTileMap collider{ Vec2i{ 5, 5 } };
-	collider.setTile({ 0, 0 }, "solid"_ts);
-	collider.setTile({ 0, 1 }, "slope-hv"_ts);
-	collider.setTile({ 0, 3 }, "solid"_ts);
-	collider.setTile({ 1, 3 }, "solid"_ts);
-	collider.applyChanges();
+class collision : public ::testing::Test {
 
-	Collidable collidable{ Vec2f{ 20, 48 }, Vec2f{ 16, 32 } };
-	collidable.set_vel(Vec2f{ 0.f, -8.f  } / one_frame);
-	collidable.update(one_frame);
+protected:
+	CollisionManager colMan;
+	Collidable* box;
+	ColliderTileMap* collider = nullptr;
 
+	static constexpr secs one_frame = (1.0 / 60.0);
 
-	RegionArbiter arb{ &collider, &collidable };
-	arb.updateRegion(collidable.getBoundingBox());
-
-	CollisionSolver solver{ &collidable };
-	for (auto& [quad, arbiter] : arb.getQuadArbiters())
+	collision()
+		: colMan{ 0u }
 	{
-		arbiter.update(1.f / 60.f);
-		solver.pushArbiter(&arbiter);
 	}
-	solver.solve();
 
-	EXPECT_EQ(solver.frame.size(), 1);
+	virtual ~collision() {
+	}
 
-	Contact contact = solver.frame[0].contact;
+	void SetUp() override {
+		Vec2f pos = { 0, 0 };
+		Vec2f size = { 16, 32 };
+		Vec2f grav = { 0, 0 };
+		box = colMan.create_collidable(pos, size, grav);
+	}
+
+	void TearDown() override
+	{
+	}
+
+	void update()
+	{
+		if (collider) {
+			collider->update(one_frame);
+		}
+		box->update(one_frame);
+		colMan.update(one_frame);
+	}
+
+	void initTileMap(grid_vector<std::string_view> tiles)
+	{
+		collider = colMan.create_collider<ColliderTileMap>(Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() });
+		for (auto it = tiles.begin(); it != tiles.end(); it++) {
+			if (!it->empty()) {
+				collider->setTile({ (int)it.column(), (int)it.row() }, TileShape::from_string(*it));
+			}
+		}
+		collider->applyChanges();
+	}
+};
+
+
+TEST_F(collision, ghostcheck_slopedceil_to_wall)
+{
+	initTileMap({
+		/*          x:0         x:16		x:32		x:48		x:64 */
+		/* y:0 _*/ {"solid",	"",			"",			"",			""},
+		/* y:16_*/ {"slope-hv",	"",			"",			"",			""},
+		/* y:32_*/ {"",			"",			"",			"",			""},
+		/* y:48_*/ {"solid",	"solid",	"",			"",			""},
+		/* y:64_*/ {"",			"",			"",			"",			""},
+		});
+
+	box->teleport(Vec2f{ 20, 48 });
+	box->set_vel(Vec2f{ 0.f, -8.f  } / one_frame);
+
+	TestPhysRenderer render({ 0, 0, 80, 80 });
+	render.render(colMan);
+
+	update();
+	render.render(colMan);
+
+	EXPECT_EQ(box->get_contacts().size(), 1);
+
+	const auto& contact = box->get_contacts().at(0);
 	EXPECT_TRUE(contact.hasContact);
 	EXPECT_TRUE(contact.ortho_normal == Vec2f(0.f, 1.f) );
 	EXPECT_TRUE(contact.collider_normal == Vec2f(1.f, 1.f).unit() );
 	EXPECT_EQ(contact.impactTime, 0.5f);
+
+
+	while (render.curr_frame < 8) {
+		update();
+		render.render(colMan);
+	}
 
 }
