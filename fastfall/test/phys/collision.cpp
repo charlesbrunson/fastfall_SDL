@@ -1,4 +1,3 @@
-#include "gtest/gtest.h"
 
 #include "fastfall/game/Instance.hpp"
 #include "fastfall/game/object/ObjectComponents.hpp"
@@ -6,6 +5,7 @@
 #include "fastfall/game/phys/Collidable.hpp"
 
 #include "TestPhysRenderer.hpp"
+#include "gtest/gtest.h"
 
 using namespace ff;
 

@@ -207,7 +207,7 @@ TEST_F(surfacetracker, move_platform_lateral)
 	while (render.curr_frame < 128)
 	{
 		if (render.curr_frame == 64) {
-			dir = { -1.f, 0.f };
+			dir = Vec2f{ -1.f, 0.f };
 		}
 
 		collider->setPosition(collider->getPosition() + dir);
@@ -278,10 +278,10 @@ TEST_F(surfacetracker, move_platform_vertical)
 	while (render.curr_frame < 150)
 	{
 		if (render.curr_frame == 50) {
-			dir = { 0.f, -2.f };
+			dir = Vec2f{ 0.f, -2.f };
 		}
 		if (render.curr_frame == 100) {
-			dir = { 0.f, 2.f };
+			dir = Vec2f{ 0.f, 2.f };
 		}
 
 		collider->setPosition({ sinf((float)render.curr_frame / 5.f) * 8.f, collider->getPosition().y + dir.y });

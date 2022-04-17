@@ -58,6 +58,7 @@ void Player::init() {
 		});
 
 	instance::cam_add_target(context(), cam_target);
+	
 
 	// trigger testing
 	/*
