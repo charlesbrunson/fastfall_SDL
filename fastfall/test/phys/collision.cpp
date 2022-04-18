@@ -95,3 +95,39 @@ TEST_F(collision, ghostcheck_slopedceil_to_wall)
 	}
 
 }
+
+TEST_F(collision, tunneling)
+{
+	initTileMap({
+		/*          x:0         x:16		x:32		x:48		x:64 */
+		/* y:0 _*/ {"",			"",			"",			"",			""},
+		/* y:16_*/ {"",			"",			"",			"",			""},
+		/* y:32_*/ {"",			"",			"halfvert-h", "",			""},
+		});
+
+	box->teleport(Vec2f{ 8, 40 });
+	box->set_vel(Vec2f{ 32.f, 0.f } / one_frame);
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.draw(colMan);
+
+	update();
+	render.draw(colMan);
+
+	EXPECT_EQ(box->get_contacts().size(), 1);
+
+	const auto& contact = box->get_contacts().at(0);
+	EXPECT_TRUE(contact.hasContact);
+	EXPECT_TRUE(contact.ortho_normal == Vec2f(-1.f, 0.f));
+	EXPECT_TRUE(contact.collider_normal == Vec2f(-1.f, 0.f));
+	//EXPECT_EQ(contact.impactTime, 0.5f);
+
+	EXPECT_TRUE(box->getPosition().x == 32.f);
+
+
+	//while (render.curr_frame < 8) {
+	//	update();
+	//	render.draw(colMan);
+	//}
+
+}

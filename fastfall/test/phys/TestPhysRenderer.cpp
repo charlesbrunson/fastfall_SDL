@@ -28,7 +28,7 @@ TestPhysRenderer::TestPhysRenderer(ff::Rectf area)
 	SDL_FillRect(surface, NULL, 0);
 	render = SDL_CreateSoftwareRenderer(surface);
 
-	GifBegin(&impl->writer, test_name.c_str(), render_area.width * scale, render_area.height * scale, 50);
+	GifBegin(&impl->writer, test_name.c_str(), render_area.width * scale, render_area.height * scale, 1000);
 #endif
 }
 

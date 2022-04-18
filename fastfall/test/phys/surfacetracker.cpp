@@ -43,7 +43,7 @@ protected:
 			Angle::Degree(-45),
 			SurfaceTracker::Settings{
 				.slope_sticking = true,
-				.stick_angle_max = Angle::Degree(91)
+				.stick_angle_max = Angle::Degree(90)
 			});
 	}
 
@@ -78,19 +78,18 @@ TEST_F(surfacetracker, stick_slope_down)
 	// Action: slide down a slope and don't lose contact on any frame
 
 	initTileMap({
-		/*          x:0         x:16		x:32		x:48		x:64 */
-		/* y:0 _*/ {"",			"",			"",			"",			""},
-		/* y:16_*/ {"",			"",			"",			"",			""},		
-		/* y:32_*/ {"solid",	"solid",	"slope-h",	"",			""},
-		/* y:48_*/ {"solid",	"solid",	"solid",	"slope-h",	""},		
-		/* y:64_*/ {"solid",	"solid",	"solid",	"solid",	"slope-h"}, 
+		{"",		"",			"",			"",			""},
+		{"",		"",			"",			"",			""},		
+		{"solid",	"solid",	"slope-h",	"",			""},
+		{"solid",	"solid",	"solid",	"slope-h",	""},		
+		{"solid",	"solid",	"solid",	"solid",	"slope-h"}, 
 	});
 
 	box->teleport({ 8, 32 });
-	box->set_vel(Vec2f{ 100.f, 0.f });
+	box->set_vel({ 100.f, 0.f });
 	box->set_gravity({ 0, 400 });
 
-	TestPhysRenderer render({ 0, 0, 80, 80 });
+	TestPhysRenderer render(collider->getBoundingBox());
 	render.draw(colMan);
 
 	while (render.curr_frame < 60 && box->getPosition().x < 80)
@@ -107,13 +106,12 @@ TEST_F(surfacetracker, stick_on_touch)
 	// Action: fall onto ground just before, keep sliding without losing contact
 
 	initTileMap({
-		/*          x:0         x:16		x:32		x:48		x:64 */
-		/* y:0 _*/ {"",			"",			"",			"",			""},
-		/* y:16_*/ {"",			"",			"",			"",			""},
-		/* y:32_*/ {"solid",	"solid",	"slope-h",	"",			""},
-		/* y:48_*/ {"solid",	"solid",	"solid",	"slope-h",	""},
-		/* y:64_*/ {"solid",	"solid",	"solid",	"solid",	"slope-h"},
-		});
+		{"",		"",			"",			"",			""},
+		{"",		"",			"",			"",			""},
+		{"solid",	"solid",	"slope-h",	"",			""},
+		{"solid",	"solid",	"solid",	"slope-h",	""},
+		{"solid",	"solid",	"solid",	"solid",	"slope-h"},
+	});
 
 	box->teleport({ 32 - 5, 31 });
 	box->set_vel(Vec2f{ 6.f, 6.f } / one_frame);
@@ -128,7 +126,6 @@ TEST_F(surfacetracker, stick_on_touch)
 		render.draw(colMan);
 		EXPECT_TRUE(ground->has_contact());
 	}
-
 }
 
 TEST_F(surfacetracker, friction_slide_to_stop)
@@ -137,13 +134,12 @@ TEST_F(surfacetracker, friction_slide_to_stop)
 	// Action: fall onto ground just before, keep sliding without losing contact
 
 	initTileMap({
-		/*          x:0         x:16		x:32		x:48		x:64 */
-		/* y:0 _*/ {"",			"",			"",			"",			"",			""},
-		/* y:16_*/ {"",			"",			"",			"",			"",			""},
-		/* y:32_*/ {"slope-h",	"",			"",			"",			"",			""},
-		/* y:48_*/ {"solid",	"slope-h",	"",			"",			"",			""},
-		/* y:64_*/ {"solid",	"solid",	"solid",	"solid",	"solid",	"solid"},
-		});
+		{"",		"",			"",			"",			"",			""},
+		{"",		"",			"",			"",			"",			""},
+		{"slope-h",	"",			"",			"",			"",			""},
+		{"solid",	"slope-h",	"",			"",			"",			""},
+		{"solid",	"solid",	"solid",	"solid",	"solid",	"solid"},
+	});
 
 	box->teleport({ 8, 32 });
 	box->set_vel({0, 200});
@@ -179,12 +175,11 @@ TEST_F(surfacetracker, move_platform_lateral)
 {
 
 	initTileMap({
-		/*          x:0         x:16		x:32		x:48		x:64 */
-		/* y:0 _*/ {"",			"",			"",			"",			"",			""},
-		/* y:16_*/ {"",			"",			"",			"",			"",			""},
-		/* y:32_*/ {"",			"",			"",			"",			"",			""},
-		/* y:48_*/ {"solid",	"solid",	"",			"",			"",			""},
-		/* y:64_*/ {"",			"",			"",			"",			"",			""},
+		{"",		"",			"",			"",			"",			""},
+		{"",		"",			"",			"",			"",			""},
+		{"",		"",			"",			"",			"",			""},
+		{"solid",	"solid",	"",			"",			"",			""},
+		{"",		"",			"",			"",			"",			""},
 	});
 
 	box->teleport({ 32, 32 });
@@ -244,19 +239,18 @@ TEST_F(surfacetracker, move_platform_lateral)
 TEST_F(surfacetracker, move_platform_vertical)
 {
 	initTileMap({
-		/*          x:0         x:16		x:32		x:48		x:64 */
-		/* y:0 _*/ {"",			"",			""},
-		/* y:16_*/ {"",			"",			""},
-		/* y:32_*/ {"",			"",			""},
-		/* y:48_*/ {"",			"solid",	""},
-		/* y:64_*/ {"",			"",			""},
-				   {"",			"",			""},
-				   {"",			"",			""},
-				   {"",			"",			""},
-				   {"",			"",			""},
-				   {"",			"",			""},
-				   {"",			"",			""},
-		});
+		{"",			"",			""},
+		{"",			"",			""},
+		{"",			"",			""},
+		{"",			"solid",	""},
+		{"",			"",			""},
+		{"",			"",			""},
+		{"",			"",			""},
+		{"",			"",			""},
+		{"",			"",			""},
+		{"",			"",			""},
+		{"",			"",			""},
+	});
 
 	box->teleport({ 24, 32 });
 	box->set_vel({ 0, 0 });
@@ -313,4 +307,39 @@ TEST_F(surfacetracker, move_platform_vertical)
 	EXPECT_TRUE(contact);
 	EXPECT_TRUE(rest_offset.has_value());
 
+}
+
+TEST_F(surfacetracker, higrav_launch_off_hill)
+{
+	initTileMap({
+		{"",		"",			"",			"",			""},
+		{"",		"",			"",			"",			""},
+		{"",		"",			"",			"",			""},
+		{"",		"",			"slope",	"slope-h",	""},
+		{"solid",	"solid",	"solid",	"solid",	"solid"},
+		});
+
+	box->teleport({ 7, 64 });
+	box->set_gravity({ 0, 2000 });
+	ground->traverse_set_speed(220.f);
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.draw(colMan);
+		
+	while (render.curr_frame < 120 && box->getPosition().x < 80)
+	{
+		ground->traverse_set_speed(220.f); // this should not stick to the reverse side of the hill
+		update();
+		render.draw(colMan);
+
+
+		if (box->getPosition().x < 48)
+		{
+			EXPECT_TRUE(ground->has_contact());
+		}
+		else {
+			fmt::print(stderr, "{:.2f}", box->getPosition());
+			EXPECT_TRUE(!ground->has_contact());
+		}
+	}
 }

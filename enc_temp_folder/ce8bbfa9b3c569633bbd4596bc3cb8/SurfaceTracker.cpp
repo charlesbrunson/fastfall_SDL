@@ -61,7 +61,7 @@ void SurfaceTracker::process_contacts(std::vector<PersistantContact>& contacts) 
 					start_touch(contact);
 				}
 			}
-			else {
+			else if (!had_contact) {
 
 				start_touch(contact);
 			}
