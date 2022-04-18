@@ -96,16 +96,17 @@ void CollisionManager::broadPhase(secs deltaTime) {
 
 	std::vector<const Arbiter*> updatedBuffer;
 
-	for (auto& colData : collidables) {
+	auto is_updated = [&](const Arbiter& arbiter) {
+		return std::find(updatedBuffer.cbegin(), updatedBuffer.cend(), &arbiter) != updatedBuffer.end();
+	};
+
+	for (auto& colData : collidables) 
+	{
 		Rectf body_rect(colData.collidable.getBox());
 
 		// using double for this as float can lead to infinite loop due to floating point inaccuracy when pushing boundary
 		Rectf body_bound(colData.collidable.getBoundingBox());
 		Rectf push_bound(body_bound);
-
-		static auto is_updated = [&](const Arbiter& arbiter) {
-			return std::find(updatedBuffer.cbegin(), updatedBuffer.cend(), &arbiter) != updatedBuffer.end();
-		};
 
 		do {
 			body_bound = push_bound;
