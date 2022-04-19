@@ -36,6 +36,7 @@ namespace ff {
 			Vec2f(size_min * TILESIZE_F),
 			Vec2f(size_max * TILESIZE_F)
 		);
+		prevBoundingBox = boundingBox;
 	}
 
 	void ColliderTileMap::update(secs deltaTime) {
@@ -378,6 +379,22 @@ namespace ff {
 		Rectf boundingBox = area;
 		boundingBox.left -= getPosition().x;
 		boundingBox.top -= getPosition().y;
+
+		Vec2f deltap = getPosition() - getPrevPosition();
+		if (deltap.x < 0.f)	{
+			boundingBox = math::rect_extend(boundingBox, Cardinal::W, abs(deltap.x));
+		}
+		else if (deltap.x > 0.f) {
+			boundingBox = math::rect_extend(boundingBox, Cardinal::E, abs(deltap.x));
+		}
+
+		if (deltap.y < 0.f)	{
+			boundingBox = math::rect_extend(boundingBox, Cardinal::N, abs(deltap.y));
+		}
+		else if (deltap.y > 0.f) {
+			boundingBox = math::rect_extend(boundingBox, Cardinal::S, abs(deltap.y));
+		}
+
 
 		Recti tileArea;
 		tileArea.top = static_cast<int>(floorf(boundingBox.top / TILESIZE_F));

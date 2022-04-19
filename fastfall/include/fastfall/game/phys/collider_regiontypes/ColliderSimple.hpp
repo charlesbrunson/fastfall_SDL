@@ -18,6 +18,7 @@ public:
 	{
 
 		boundingBox = shape;
+		prevBoundingBox = shape;
 
 		quad.setID(0u);
 
@@ -37,6 +38,20 @@ public:
 		box.left += getPosition().x;
 		box.top += getPosition().y;
 
+		Vec2f deltap = getPosition() - getPrevPosition();
+		if (deltap.x < 0.f) {
+			box = math::rect_extend(boundingBox, Cardinal::W, abs(deltap.x));
+		}
+		else if (deltap.x > 0.f) {
+			box = math::rect_extend(boundingBox, Cardinal::E, abs(deltap.x));
+		}
+
+		if (deltap.y < 0.f) {
+			box = math::rect_extend(boundingBox, Cardinal::N, abs(deltap.y));
+		}
+		else if (deltap.y > 0.f) {
+			box = math::rect_extend(boundingBox, Cardinal::S, abs(deltap.y));
+		}
 
 		// Compute the min and max of the first rectangle on both axes
 		float r1MinX = std::min(box.left, (box.left + box.width));

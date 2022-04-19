@@ -61,7 +61,7 @@ public:
 	}
 	inline void setPosition(Vec2<T> position)
 	{
-		left = position[0]; top = position[1];
+		left = position.x; top = position.y;
 	}
 	inline void setSize(T W, T H)
 	{

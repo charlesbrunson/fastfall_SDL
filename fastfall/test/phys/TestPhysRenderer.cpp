@@ -83,6 +83,9 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 
 		Vec2f offset = collider->getPosition();
 
+		//Rectf bb = collider->getSweptBoundingBox();
+		//drawRectOutline(bb, 100, 100, 0, 255);
+
 		for (const auto& quad : quads) {
 
 			SDL_SetRenderDrawColor(render, 50, 50, 50, 255);
@@ -118,7 +121,9 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 
 		Rectf prev = collidable.collidable.getPrevBox();
 		Rectf box = collidable.collidable.getBox();
+		//Rectf bb = math::rect_bound(prev, box);
 
+		//drawRectOutline(bb, 100, 100, 0, 255);
 		drawRectOutline(prev, 0, 50, 0, 255);
 		drawRectOutline(box, 0, 255, 0, 255);
 

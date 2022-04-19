@@ -156,7 +156,7 @@ void CollisionManager::updateRegionArbiters(CollidableData& data) {
 		bool exists = arbiter != data.regionArbiters.end() && arbiter->getRegion() == region.get();
 
 		// check if collidable is in this region
-		if (region->getBoundingBox().intersects(data.collidable.getBoundingBox())) {
+		if (region->getSweptBoundingBox().intersects(data.collidable.getBoundingBox())) {
 
 			if (!exists) {
 				// just entered this region

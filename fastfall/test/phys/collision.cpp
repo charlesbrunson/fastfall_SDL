@@ -163,7 +163,7 @@ TEST_F(collision, moving_tunneling)
 		update();
 		render.draw(colMan);
 
-		if (render.curr_frame == 2)
+		if (render.curr_frame == 3)
 		{
 			EXPECT_EQ(box->get_contacts().size(), 1);
 

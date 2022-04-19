@@ -54,6 +54,15 @@ public:
 		return Rectf(Vec2f(boundingBox.getPosition()) + position, Vec2f(boundingBox.getSize()));
 	}
 
+	
+	inline Rectf getSweptBoundingBox() const noexcept {
+		Rectf prevB( Vec2f(prevBoundingBox.getPosition()) + prevPosition, Vec2f(prevBoundingBox.getSize()) );
+		Rectf currB( Vec2f(boundingBox.getPosition()) + position, Vec2f(boundingBox.getSize()) );
+
+		return math::rect_bound(prevB, currB);
+	}
+	
+
 	inline ColliderID get_ID() const noexcept { return id; };
 
 	Vec2f velocity;
@@ -66,6 +75,7 @@ public:
 
 protected:
 	Rectf boundingBox;
+	Rectf prevBoundingBox;
 
 	ColliderID id;
 
