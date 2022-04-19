@@ -49,9 +49,7 @@ void SurfaceTracker::process_contacts(std::vector<PersistantContact>& contacts) 
 
 		if (!found && angle.isBetween(angle_min, angle_max, angle_inclusive) && withinStickMax)
 		{
-
 			found = true;
-
 
 			if (had_contact)
 			{

@@ -75,6 +75,7 @@ TEST_F(collision, ghostcheck_slopedceil_to_wall)
 	box->set_vel(Vec2f{ 0.f, -8.f  } / one_frame);
 
 	TestPhysRenderer render({ 0, 0, 80, 80 });
+	render.frame_delay = 20;
 	render.draw(colMan);
 
 	update();
@@ -96,38 +97,82 @@ TEST_F(collision, ghostcheck_slopedceil_to_wall)
 
 }
 
-TEST_F(collision, tunneling)
+TEST_F(collision, static_tunneling)
 {
 	initTileMap({
 		/*          x:0         x:16		x:32		x:48		x:64 */
-		/* y:0 _*/ {"",			"",			"",			"",			""},
-		/* y:16_*/ {"",			"",			"",			"",			""},
+		/* y:0 _*/ {"",			"",			"halfvert-h", "",			""},
+		/* y:16_*/ {"",			"",			"halfvert-h", "",			""},
 		/* y:32_*/ {"",			"",			"halfvert-h", "",			""},
 		});
 
 	box->teleport(Vec2f{ 8, 40 });
-	box->set_vel(Vec2f{ 32.f, 0.f } / one_frame);
+	box->set_vel(Vec2f{ 128.f, 0.f } / one_frame); // very fast
+
 
 	TestPhysRenderer render(collider->getBoundingBox());
+	render.frame_delay = 20;
 	render.draw(colMan);
 
-	update();
+	while (render.curr_frame < 8) {
+
+		update();
+		render.draw(colMan);
+
+		if (render.curr_frame == 1)
+		{
+			EXPECT_EQ(box->get_contacts().size(), 1);
+
+			if (!box->get_contacts().empty()) {
+				const auto& contact = box->get_contacts().at(0);
+				EXPECT_TRUE(contact.hasContact);
+				EXPECT_TRUE(contact.ortho_normal == Vec2f(-1.f, 0.f));
+				EXPECT_TRUE(contact.collider_normal == Vec2f(-1.f, 0.f));
+				//EXPECT_EQ(contact.impactTime, 0.5f);
+
+				EXPECT_TRUE(box->getPosition().x == 32.f);
+			}
+		}
+	}
+
+}
+
+TEST_F(collision, moving_tunneling)
+{
+	initTileMap({
+		/*          x:0         x:16		x:32		x:48		x:64 */
+		/* y:0 _*/ {"",			"",			"",			"",			"halfvert-h"},
+		/* y:16_*/ {"",			"",			"",			"",			"halfvert-h"},
+		/* y:32_*/ {"",			"",			"",			"",			"halfvert-h"},
+		});
+
+	box->teleport(Vec2f{ 8, 40 });
+	box->set_vel(Vec2f{ 20.f, 0.f } / one_frame);
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.frame_delay = 20;
 	render.draw(colMan);
 
-	EXPECT_EQ(box->get_contacts().size(), 1);
+	while (render.curr_frame < 8) {
 
-	const auto& contact = box->get_contacts().at(0);
-	EXPECT_TRUE(contact.hasContact);
-	EXPECT_TRUE(contact.ortho_normal == Vec2f(-1.f, 0.f));
-	EXPECT_TRUE(contact.collider_normal == Vec2f(-1.f, 0.f));
-	//EXPECT_EQ(contact.impactTime, 0.5f);
+		collider->setPosition(collider->getPosition() + Vec2f{ -32.f, 0.f });
+		ff::Vec2f nVel = (collider->getPosition() - collider->getPrevPosition()) / one_frame;
+		collider->delta_velocity = nVel - collider->velocity;
+		collider->velocity = nVel;
 
-	EXPECT_TRUE(box->getPosition().x == 32.f);
+		update();
+		render.draw(colMan);
 
+		if (render.curr_frame == 2)
+		{
+			EXPECT_EQ(box->get_contacts().size(), 1);
 
-	//while (render.curr_frame < 8) {
-	//	update();
-	//	render.draw(colMan);
-	//}
-
+			if (!box->get_contacts().empty()) {
+				const auto& contact = box->get_contacts().at(0);
+				EXPECT_TRUE(contact.hasContact);
+				EXPECT_TRUE(contact.ortho_normal == Vec2f(-1.f, 0.f));
+				EXPECT_TRUE(contact.collider_normal == Vec2f(-1.f, 0.f));
+			}
+		}
+	}
 }

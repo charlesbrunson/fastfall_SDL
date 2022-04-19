@@ -28,7 +28,7 @@ TestPhysRenderer::TestPhysRenderer(ff::Rectf area)
 	SDL_FillRect(surface, NULL, 0);
 	render = SDL_CreateSoftwareRenderer(surface);
 
-	GifBegin(&impl->writer, test_name.c_str(), render_area.width * scale, render_area.height * scale, 1000);
+	GifBegin(&impl->writer, test_name.c_str(), render_area.width * scale, render_area.height * scale, frame_delay);
 #endif
 }
 
@@ -125,7 +125,7 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 		{
 			SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
 			Vec2f p1 = math::rect_mid(box);
-			Vec2f p2 = p1 + collidable.collidable.get_vel() * 0.05f;
+			Vec2f p2 = p1 + collidable.collidable.get_vel() * (1.f / 60.f);
 			p1 *= scale;
 			p2 *= scale;
 			SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
@@ -161,7 +161,7 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 		}
 	}
 
-	GifWriteFrame(&impl->writer, (const uint8_t*)surface->pixels, render_area.width * scale, render_area.height * scale, 2);
+	GifWriteFrame(&impl->writer, (const uint8_t*)surface->pixels, render_area.width * scale, render_area.height * scale, frame_delay);
 
 #endif
 
