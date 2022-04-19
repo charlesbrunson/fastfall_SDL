@@ -32,38 +32,37 @@ public:
 	}
 
 	void getQuads(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& buffer) const override {
-		//std::vector<std::pair<Rectf, const ColliderQuad*>> r;
-
-		Rectf box = boundingBox;
-		box.left += getPosition().x;
-		box.top += getPosition().y;
+		
+		Rectf bbox = area;
+		bbox.left -= getPosition().x;
+		bbox.top -= getPosition().y;
 
 		Vec2f deltap = getPosition() - getPrevPosition();
 		if (deltap.x < 0.f) {
-			box = math::rect_extend(boundingBox, Cardinal::W, abs(deltap.x));
+			bbox = math::rect_extend(bbox, Cardinal::E, abs(deltap.x));
 		}
 		else if (deltap.x > 0.f) {
-			box = math::rect_extend(boundingBox, Cardinal::E, abs(deltap.x));
+			bbox = math::rect_extend(bbox, Cardinal::W, abs(deltap.x));
 		}
 
 		if (deltap.y < 0.f) {
-			box = math::rect_extend(boundingBox, Cardinal::N, abs(deltap.y));
+			bbox = math::rect_extend(bbox, Cardinal::S, abs(deltap.y));
 		}
 		else if (deltap.y > 0.f) {
-			box = math::rect_extend(boundingBox, Cardinal::S, abs(deltap.y));
+			bbox = math::rect_extend(bbox, Cardinal::N, abs(deltap.y));
 		}
-
+		
 		// Compute the min and max of the first rectangle on both axes
-		float r1MinX = std::min(box.left, (box.left + box.width));
-		float r1MaxX = std::max(box.left, (box.left + box.width));
-		float r1MinY = std::min(box.top, (box.top + box.height));
-		float r1MaxY = std::max(box.top, (box.top + box.height));
+		float r1MinX = std::min(boundingBox.left, (boundingBox.left + boundingBox.width));
+		float r1MaxX = std::max(boundingBox.left, (boundingBox.left + boundingBox.width));
+		float r1MinY = std::min(boundingBox.top, (boundingBox.top + boundingBox.height));
+		float r1MaxY = std::max(boundingBox.top, (boundingBox.top + boundingBox.height));
 
 		// Compute the min and max of the second rectangle on both axes
-		float r2MinX = std::min(area.left, (area.left + area.width));
-		float r2MaxX = std::max(area.left, (area.left + area.width));
-		float r2MinY = std::min(area.top, (area.top + area.height));
-		float r2MaxY = std::max(area.top, (area.top + area.height));
+		float r2MinX = std::min(bbox.left, (bbox.left + bbox.width));
+		float r2MaxX = std::max(bbox.left, (bbox.left + bbox.width));
+		float r2MinY = std::min(bbox.top, (bbox.top + bbox.height));
+		float r2MaxY = std::max(bbox.top, (bbox.top + bbox.height));
 
 		// Compute the intersection boundaries
 		float interLeft = std::max(r1MinX, r2MinX);
@@ -72,7 +71,7 @@ public:
 		float interBottom = std::min(r1MaxY, r2MaxY);
 
 		if ((interLeft <= interRight) && (interTop <= interBottom)) {
-			buffer.push_back(std::make_pair(box, &quad));
+			buffer.push_back(std::make_pair(boundingBox, &quad));
 		}
 		//return r;
 	}

@@ -376,31 +376,31 @@ namespace ff {
 
 	void ColliderTileMap::getQuads(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& buffer) const {
 
-		Rectf boundingBox = area;
-		boundingBox.left -= getPosition().x;
-		boundingBox.top -= getPosition().y;
+		Rectf bbox = area;
+		bbox.left -= getPosition().x;
+		bbox.top -= getPosition().y;
 
 		Vec2f deltap = getPosition() - getPrevPosition();
 		if (deltap.x < 0.f)	{
-			boundingBox = math::rect_extend(boundingBox, Cardinal::W, abs(deltap.x));
+			bbox = math::rect_extend(bbox, Cardinal::W, abs(deltap.x));
 		}
 		else if (deltap.x > 0.f) {
-			boundingBox = math::rect_extend(boundingBox, Cardinal::E, abs(deltap.x));
+			bbox = math::rect_extend(bbox, Cardinal::E, abs(deltap.x));
 		}
 
 		if (deltap.y < 0.f)	{
-			boundingBox = math::rect_extend(boundingBox, Cardinal::N, abs(deltap.y));
+			bbox = math::rect_extend(bbox, Cardinal::N, abs(deltap.y));
 		}
 		else if (deltap.y > 0.f) {
-			boundingBox = math::rect_extend(boundingBox, Cardinal::S, abs(deltap.y));
+			bbox = math::rect_extend(bbox, Cardinal::S, abs(deltap.y));
 		}
 
 
 		Recti tileArea;
-		tileArea.top = static_cast<int>(floorf(boundingBox.top / TILESIZE_F));
-		tileArea.left = static_cast<int>(floorf(boundingBox.left / TILESIZE_F));
-		tileArea.width = static_cast<int>(ceilf((boundingBox.left + boundingBox.width) / TILESIZE_F)) - tileArea.left;
-		tileArea.height = static_cast<int>(ceilf((boundingBox.top + boundingBox.height) / TILESIZE_F)) - tileArea.top;
+		tileArea.top = static_cast<int>(floorf(bbox.top / TILESIZE_F));
+		tileArea.left = static_cast<int>(floorf(bbox.left / TILESIZE_F));
+		tileArea.width = static_cast<int>(ceilf((bbox.left + bbox.width) / TILESIZE_F)) - tileArea.left;
+		tileArea.height = static_cast<int>(ceilf((bbox.top + bbox.height) / TILESIZE_F)) - tileArea.top;
 
 		if (tileArea.width == 0) {
 			tileArea.left -= 1;
