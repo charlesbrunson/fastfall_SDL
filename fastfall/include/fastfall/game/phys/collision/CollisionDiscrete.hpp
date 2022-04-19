@@ -50,11 +50,12 @@ protected:
 
 	void initCollidableData() {
 		if (!collidePrevious) {
-			cBox = cAble->getBox();
+			cBox  = cAble->getBox();
 			cPrev = cAble->getPrevBox();
 		}
 		else {
-			cBox = cAble->getPrevBox();
+			cBox  = cAble->getPrevBox();
+			cPrev = cAble->getPrevBox();
 		}
 		cMid = math::rect_mid(cBox);
 		cHalf = cBox.getSize() / 2.f;

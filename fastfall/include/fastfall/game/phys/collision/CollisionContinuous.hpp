@@ -26,7 +26,7 @@ private:
 	Contact contact;
 	bool evaluated = false;
 
-	Vec2f regionPosition;
+	//Vec2f regionPosition;
 
 	Vec2f velocity;
 

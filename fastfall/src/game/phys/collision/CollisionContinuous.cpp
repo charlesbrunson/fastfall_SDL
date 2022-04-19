@@ -19,13 +19,14 @@ CollisionContinuous::CollisionContinuous(const Collidable* collidable, const Col
 
 void CollisionContinuous::update(secs deltaTime) {
 
-	Vec2f prevPosition = region->getPrevPosition();
+	//Vec2f prevPosition = region->getPrevPosition();
+	//regionPosition = region->getPosition();
 
 	if (deltaTime > 0.0) {
 
 		// check if conditions are similar enough we can reuse the
 		// collision data from last frame
-		if (prevPosition == regionPosition
+		if (region->getPrevPosition() == region->getPosition()
 			&& prevTile == *cTile)
 		{
 			prevCollision = std::move(currCollision);
@@ -44,7 +45,6 @@ void CollisionContinuous::update(secs deltaTime) {
 		currCollision.updateContact();
 		evalContact(deltaTime);
 	}
-	regionPosition = region->getPosition();
 	prevTile = *cTile;
 }
 
