@@ -77,6 +77,7 @@ FetchContent_Declare(
 
 
 #freetype
+set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/zlib )
 set(FT_DISABLE_HARFBUZZ ON CACHE INTERNAL "")
 FetchContent_Declare(
 	freetype
@@ -94,6 +95,13 @@ FetchContent_MakeAvailable(
 	imgui
 	implot
 )
+
+if (EMSCRIPTEN)
+
+	target_compile_options(freetype PRIVATE -s USE_LIBPNG=1)
+	target_link_options(freetype PRIVATE -s USE_LIBPNG=1)
+
+endif()
 
 
 if (NOT EMSCRIPTEN)
@@ -125,11 +133,10 @@ if (NOT EMSCRIPTEN)
 
 
 	#libpng
-	set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/zlib )
 	set(PNG_SHARED OFF 		CACHE INTERNAL "")
 	set(PNG_TESTS OFF 		CACHE INTERNAL "")
 	set(PNG_BUILD_ZLIB ON 	CACHE INTERNAL "" )
-	include_directories(${ZLIB_INCLUDE_DIR})
+	#include_directories(${ZLIB_INCLUDE_DIR})
 	FetchContent_Declare(
 		libpng
 		URL			https://download.sourceforge.net/libpng/libpng-1.6.37.tar.gz
@@ -183,22 +190,3 @@ if (NOT EMSCRIPTEN)
 
 endif()
 
-# build flatbuffers as a library
-#add_library(flatbuffers STATIC 
-#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/hash.h
-#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/idl.h
-#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/util.h
-#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/reflection.h
-#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/reflection_generated.h
-#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/stl_emulation.h
-#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/flexbuffers.h
-#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/registry.h
-#  ${flatbuffers_SOURCE_DIR}/include/flatbuffers/minireflect.h
-#  ${flatbuffers_SOURCE_DIR}/src/idl_parser.cpp
-#  ${flatbuffers_SOURCE_DIR}/src/idl_gen_text.cpp
-#  ${flatbuffers_SOURCE_DIR}/src/reflection.cpp
-#  ${flatbuffers_SOURCE_DIR}/src/util.cpp
-#)
-#target_include_directories(flatbuffers PUBLIC
-#    ${flatbuffers_SOURCE_DIR}/include
-#)

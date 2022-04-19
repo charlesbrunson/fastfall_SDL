@@ -218,7 +218,7 @@ const ShaderProgram& ShaderProgram::getDefaultProgram() {
 		DefaultProgram.add(ff::ShaderType::VERTEX, vertex_default);
 		DefaultProgram.add(ff::ShaderType::FRAGMENT, fragment_default);
 		DefaultProgram.link();
-		LOG_INFO("default program: {}", DefaultProgram.getID());
+		//LOG_INFO("default program: {}", DefaultProgram.getID());
 	}
 	return DefaultProgram;
 }
@@ -228,7 +228,7 @@ const ShaderProgram& ShaderProgram::getTileArrayProgram() {
 		TileArrayProgram.add(ff::ShaderType::FRAGMENT, tilearray_fragment);
 		TileArrayProgram.link();
 		TileArrayProgram.cacheUniform("columns");
-		LOG_INFO("tile program: {}", TileArrayProgram.getID());
+		//LOG_INFO("tile program: {}", TileArrayProgram.getID());
 	}
 	return TileArrayProgram;
 }
@@ -238,7 +238,7 @@ const ShaderProgram& ShaderProgram::getTextProgram() {
 		TextProgram.add(ff::ShaderType::FRAGMENT, text_fragment);
 		TextProgram.link();
 		TextProgram.cacheUniform("char_size");
-		LOG_INFO("text program: {}", TextProgram.getID());
+		//LOG_INFO("text program: {}", TextProgram.getID());
 	}
 	return TextProgram;
 }

@@ -53,7 +53,7 @@ target_link_libraries(test_project PRIVATE
 #target_compile_definitions(test_project PUBLIC DEBUG)
 
 if(EMSCRIPTEN)
-	#set(CMAKE_EXECUTABLE_SUFFIX .html)
+	set(CMAKE_EXECUTABLE_SUFFIX .html)
 	#set(USE_FLAGS "-s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"bmp\",\"png\"]' -s FULL_ES3=1 -s WASM=1 -s OFFSCREEN_FRAMEBUFFER=1 -g --preload-file ../data@/data --preload-file ../gamecontrollerdb.txt@/gamecontrollerdb.txt -s ALLOW_MEMORY_GROWTH=1")
 	#set_target_properties(test_project PROPERTIES LINK_FLAGS "${USE_FLAGS} --emrun")
 	#set_target_properties(test_project PROPERTIES COMPILE_FLAGS ${USE_FLAGS})

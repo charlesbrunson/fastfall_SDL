@@ -128,31 +128,48 @@ set_target_properties(fastfall PROPERTIES
 
 message(STATUS "FASTFALL COMPILER   -- ${CMAKE_CXX_COMPILER_ID}")
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-	target_compile_options(fastfall PUBLIC -Wno-deprecated-volatile)
-	if(NOT EMSCRIPTEN)
-		target_compile_options(fastfall PUBLIC -stdlib=libc++)
-		target_link_options(fastfall PUBLIC -lz)
-		target_link_options(fastfall PUBLIC -lc++)
-	else()
-		set(CMAKE_EXECUTABLE_SUFFIX .html)
+	#target_compile_options(fastfall PUBLIC -Wno-deprecated-volatile)
+	#if(NOT EMSCRIPTEN)
+	#	target_compile_options(fastfall PUBLIC -stdlib=libc++)
+	#	target_link_options(fastfall PUBLIC -lz)
+	#	target_link_options(fastfall PUBLIC -lc++)
+	#endif()
+endif()
 
-		#set(INIT_MEMORY 67108864 CACHE STRING "Total Memory")
+if(EMSCRIPTEN)
+	#set(CMAKE_EXECUTABLE_SUFFIX .html CACHE INTERNAL "set executable suffix for emscripten build")
 
-		set(EM_FLAGS "-O3 -s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"bmp\",\"png\"]'")
-
-		if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
-			set(EM_FLAGS "${EM_FLAGS} -g")
-		endif()
-
-		# -s INITIAL_MEMORY=${INIT_MEMORY} 
-
-		set(EM_COMPILE_FLAGS "")
-		set(EM_LINK_FLAGS "-s WASM=1 -s WASM_BIGINT=1 -s BINARYEN_IGNORE_IMPLICIT_TRAPS=1 -s FULL_ES3=1 -s ALLOW_MEMORY_GROWTH=1 --preload-file ../data@/data --preload-file ../gamecontrollerdb.txt@/gamecontrollerdb.txt")
-
-		target_link_options(fastfall PRIVATE "${EM_FLAGS} ${EM_LINK_FLAGS} ${EM_COMPILE_FLAGS} --emrun")
-		target_link_options(fastfall PRIVATE "${EM_FLAGS} ${EM_COMPILE_FLAGS}")
-
+	if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
+		target_compile_options(fastfall PUBLIC -g)
+		target_link_options(fastfall PUBLIC -g)
 	endif()
+
+	target_compile_options(fastfall PUBLIC 
+		-O3 
+		-sUSE_ZLIB=1 
+		-sUSE_LIBPNG=1 
+		-sUSE_SDL=2 
+		-sUSE_SDL_IMAGE=2 
+		-sSDL2_IMAGE_FORMATS=["bmp","png"]	
+	)
+
+	target_link_options(fastfall PUBLIC 
+		-O3 
+		-sUSE_ZLIB=1 
+		-sUSE_LIBPNG=1 
+		-sUSE_SDL=2 
+		-sUSE_SDL_IMAGE=2 
+		-sSDL2_IMAGE_FORMATS=["bmp","png"]	
+		-sWASM=1
+		-sWASM_BIGINT=1 
+		-sBINARYEN_IGNORE_IMPLICIT_TRAPS=1 
+		-sFULL_ES3=1 
+		-sALLOW_MEMORY_GROWTH=1 
+		"SHELL:--preload-file ../data@/data" 
+		"SHELL:--preload-file ../gamecontrollerdb.txt@/gamecontrollerdb.txt"
+		--emrun
+	)
+
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" AND EMSCRIPTEN)
@@ -193,7 +210,9 @@ else()
 	target_compile_definitions(fastfall PUBLIC
 		FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
 	)
+
+	add_subdirectory("test")
 endif()
 
-add_subdirectory("test")
+
 
