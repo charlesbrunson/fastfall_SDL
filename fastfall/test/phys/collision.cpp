@@ -149,7 +149,7 @@ TEST_F(collision, moving_tunneling)
 	box->teleport(Vec2f{ 8, 40 });
 	box->set_vel(Vec2f{ 20.f, 0.f } / one_frame);
 
-	TestPhysRenderer render(collider->getBoundingBox());
+	TestPhysRenderer render(math::rect_extend(collider->getBoundingBox(), Cardinal::W, 64.f));
 	render.frame_delay = 20;
 	render.draw(colMan);
 

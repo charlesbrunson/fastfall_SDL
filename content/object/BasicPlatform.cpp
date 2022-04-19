@@ -76,38 +76,46 @@ std::unique_ptr<ff::GameObject> BasicPlatform::clone() const {
 
 void BasicPlatform::update(secs deltaTime) {
 
-	if (has_path && deltaTime > 0) {
+	if (deltaTime > 0)
+	{
+		if (has_path)
+		{
+			ff::Vec2f next_pos;
+			if (waypoints->size() > 1) {
+				progress += deltaTime;
+				if (progress > (totalDistance / max_vel)) {
+					progress -= (totalDistance / max_vel);
+					reverser = !reverser;
+				}
+				if (!reverser) {
+					from = ff::Vec2f{ waypoints->at(0u) };
+					to = ff::Vec2f{ waypoints->at(1u) };
+				}
+				else {
+					from = ff::Vec2f{ waypoints->at(1u) };
+					to = ff::Vec2f{ waypoints->at(0u) };
+				}
 
+				next_pos = from + ((to - from) * (progress * max_vel / totalDistance));
 
-		ff::Vec2f next_pos;
-		if (waypoints->size() > 1) {
-			progress += deltaTime;
-			if (progress > (totalDistance / max_vel)) {
-				progress -= (totalDistance / max_vel);
-				reverser = !reverser;
-			}
-			if (!reverser) {
-				from = ff::Vec2f{ waypoints->at(0u) };
-				to = ff::Vec2f{ waypoints->at(1u) };
 			}
 			else {
-				from = ff::Vec2f{ waypoints->at(1u) };
-				to = ff::Vec2f{ waypoints->at(0u) };
+				next_pos = ff::Vec2f{ waypoints->at(waypoint_ndx) };
 			}
+			collider->setPosition(ff::Vec2f(waypoints_origin) + next_pos);
 
-			next_pos = from + ((to - from) * (progress * max_vel / totalDistance));
+			ff::Vec2f nVel = (collider->getPosition() - collider->getPrevPosition()) / deltaTime;
+
+			collider->delta_velocity = nVel - collider->velocity;
+			collider->velocity = nVel;
 
 		}
-		else {
-			next_pos = ff::Vec2f{ waypoints->at(waypoint_ndx) };
+		else if (!has_path) {
+
+			collider->setPosition(collider->getPosition());
+			collider->delta_velocity = Vec2f{};
+			collider->velocity = Vec2f{};
 		}
-		collider->setPosition(ff::Vec2f(waypoints_origin) + next_pos);
-
-		ff::Vec2f nVel = (collider->getPosition() - collider->getPrevPosition()) / deltaTime;
-
-		collider->delta_velocity = nVel - collider->velocity;
-		collider->velocity = nVel;
-
 	}
 	collider->update(deltaTime);
 }

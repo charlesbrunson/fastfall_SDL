@@ -222,6 +222,11 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 
 void TileLayer::update(secs deltaTime) {
 	if (hasCollision()) {
+
+		dyn.collision.tilemap_ptr->setPosition(dyn.collision.tilemap_ptr->getPosition());
+		dyn.collision.tilemap_ptr->delta_velocity = Vec2f{};
+		dyn.collision.tilemap_ptr->velocity = Vec2f{};
+
 		dyn.collision.tilemap_ptr->update(deltaTime);
 	}
 	if (hasScrolling()) {

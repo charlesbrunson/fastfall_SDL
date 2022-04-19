@@ -238,12 +238,16 @@ void collisionContent(GameContext context) {
 
 			ImGui::Text("Curr Position: %3.2f, %3.2f", col->getPosition().x, col->getPosition().y);
 			ImGui::Text("Prev Position: %3.2f, %3.2f", col->getPrevPosition().x, col->getPrevPosition().y);
-
+			ImGui::Text("Velocity:      %3.2f, %3.2f", col->velocity.x, col->velocity.y);
 
 			float pos[2] = { col->getPosition().x, col->getPosition().y };
 
 			if (ImGui::DragFloat2("Set Pos", pos)) {
 				col->setPosition(Vec2f(pos[0], pos[1]));
+
+				Vec2f nVel = (col->getPosition() - col->getPrevPosition()) / (1.0 / 60.0);
+				col->delta_velocity = nVel - col->velocity;
+				col->velocity = nVel;
 			}
 			ImGui::TreePop();
 		}

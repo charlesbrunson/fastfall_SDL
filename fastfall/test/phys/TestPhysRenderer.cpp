@@ -54,24 +54,26 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 
 	//SDL_RenderSetScale(render, 4, 4);
 
+	Vec2f off = -render_area.getPosition();
+
 	auto drawRectOutline = [&](Rectf rect, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 		SDL_SetRenderDrawColor(render, r, g, b, a);
 		Vec2f p1, p2;
 
-		p1 = math::rect_topleft(rect) * scale;
-		p2 = math::rect_topright(rect) * scale;
+		p1 = (off + math::rect_topleft(rect)) * scale;
+		p2 = (off + math::rect_topright(rect)) * scale;
 		SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
 
-		p1 = math::rect_topright(rect) * scale;
-		p2 = math::rect_botright(rect) * scale;
+		p1 = (off + math::rect_topright(rect)) * scale;
+		p2 = (off + math::rect_botright(rect)) * scale;
 		SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
 
-		p1 = math::rect_botright(rect) * scale;
-		p2 = math::rect_botleft(rect) * scale;
+		p1 = (off + math::rect_botright(rect)) * scale;
+		p2 = (off + math::rect_botleft(rect)) * scale;
 		SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
 
-		p1 = math::rect_botleft(rect) * scale;
-		p2 = math::rect_topleft(rect) * scale;
+		p1 = (off + math::rect_botleft(rect)) * scale;
+		p2 = (off + math::rect_topleft(rect)) * scale;
 		SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
 	};
 
@@ -92,8 +94,8 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 			for (const auto& line : quad.second->surfaces) {
 				if (!line.hasSurface) {
 					Linef li = line.collider.surface;
-					li.p1 += offset;
-					li.p2 += offset;
+					li.p1 += off + offset;
+					li.p2 += off + offset;
 					li.p1 *= scale;
 					li.p2 *= scale;
 					SDL_RenderDrawLineF(render, li.p1.x, li.p1.y, li.p2.x, li.p2.y);
@@ -105,8 +107,8 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 			for (const auto& line : quad.second->surfaces) {
 				if (line.hasSurface) {
 					Linef li = line.collider.surface;
-					li.p1 += offset;
-					li.p2 += offset;
+					li.p1 += off + offset;
+					li.p2 += off + offset;
 					li.p1 *= scale;
 					li.p2 *= scale;
 					SDL_RenderDrawLineF(render, li.p1.x, li.p1.y, li.p2.x, li.p2.y);
@@ -129,8 +131,8 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 
 		{
 			SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
-			Vec2f p1 = math::rect_mid(box);
-			Vec2f p2 = p1 + collidable.collidable.get_vel() * (1.f / 60.f);
+			Vec2f p1 = off + math::rect_mid(box);
+			Vec2f p2 = off + p1 + collidable.collidable.get_vel() * (1.f / 60.f);
 			p1 *= scale;
 			p2 *= scale;
 			SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
@@ -142,21 +144,21 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 			if (contact.hasContact) {
 
 				SDL_SetRenderDrawColor(render, 255, 255, 0, 255);
-				Vec2f p1 = contact.position;
-				Vec2f p2 = p1 + contact.ortho_normal * contact.separation * 1.f;
+				Vec2f p1 = off + contact.position;
+				Vec2f p2 = off + p1 + contact.ortho_normal * contact.separation * 1.f;
 				p1 *= scale;
 				p2 *= scale;
 				SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
 
 
 				SDL_SetRenderDrawColor(render, 255, 255, 0, 255);
-				p1 = contact.collider.surface.p1;
-				p2 = contact.collider.surface.p2;
+				p1 = off + contact.collider.surface.p1;
+				p2 = off + contact.collider.surface.p2;
 				p1 *= scale;
 				p2 *= scale;
 				SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
-				p1 = contact.collider.surface.p1 - contact.collider_normal;
-				p2 = contact.collider.surface.p2 - contact.collider_normal;
+				p1 = off + contact.collider.surface.p1 - contact.collider_normal;
+				p2 = off + contact.collider.surface.p2 - contact.collider_normal;
 				p1 *= scale;
 				p2 *= scale;
 				SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
