@@ -22,7 +22,6 @@ macro(create_ff_test TESTNAME)
 		#EXTRA_ARGS --gtest_throw_on_failure=0
 	)
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
-
 endmacro()
 
 enable_testing()

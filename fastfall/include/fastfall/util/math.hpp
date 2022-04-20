@@ -134,9 +134,9 @@ bool is_vertical(const Line<T>& a) {
 
 template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
 Vec2<T> rotate(const Vec2<T>& a, const Angle& ang) {
-	return Vec2f{
-		a.x * cos(ang.radians()) - a.y * sin(ang.radians()),
-		a.x * sin(ang.radians()) + a.y * cos(ang.radians())
+	return Vec2<T>{
+		a.x * (T)cos(ang.radians()) - a.y * (T)sin(ang.radians()),
+		a.x * (T)sin(ang.radians()) + a.y * (T)cos(ang.radians())
 	};
 }
 

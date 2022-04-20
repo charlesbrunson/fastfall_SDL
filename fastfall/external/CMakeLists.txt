@@ -16,10 +16,6 @@ FetchContent_Declare(
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glm
 )
 
-#if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-#	add_compile_options(-Wno-deprecated-volatile)
-#endif()
-
 #fmt
 FetchContent_Declare(
 	fmt
@@ -77,7 +73,7 @@ FetchContent_Declare(
 
 
 #freetype
-set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/zlib )
+set(ZLIB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/zlib" CACHE INTERNAL "")
 set(FT_DISABLE_HARFBUZZ ON CACHE INTERNAL "")
 FetchContent_Declare(
 	freetype
@@ -136,7 +132,6 @@ if (NOT EMSCRIPTEN)
 	set(PNG_SHARED OFF 		CACHE INTERNAL "")
 	set(PNG_TESTS OFF 		CACHE INTERNAL "")
 	set(PNG_BUILD_ZLIB ON 	CACHE INTERNAL "" )
-	#include_directories(${ZLIB_INCLUDE_DIR})
 	FetchContent_Declare(
 		libpng
 		URL			https://download.sourceforge.net/libpng/libpng-1.6.37.tar.gz

@@ -3,10 +3,6 @@
 #
 cmake_minimum_required (VERSION 3.16)
 
-#set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
-#set(CMAKE_CXX_STANDARD_REQUIRED ON)
-#set(CMAKE_CXX_STANDARD 20)
-
 # build fastfall dependencies
 add_subdirectory("external")
 
@@ -60,7 +56,7 @@ set(FF_INCLUDES
 set(FF_LIBRARIES
 	freetype
 	glm
-	fmt::fmt-header-only
+	fmt::fmt
 	flatbuffers
 )
 
@@ -127,14 +123,6 @@ set_target_properties(fastfall PROPERTIES
 )
 
 message(STATUS "FASTFALL COMPILER   -- ${CMAKE_CXX_COMPILER_ID}")
-if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-	#target_compile_options(fastfall PUBLIC -Wno-deprecated-volatile)
-	#if(NOT EMSCRIPTEN)
-	#	target_compile_options(fastfall PUBLIC -stdlib=libc++)
-	#	target_link_options(fastfall PUBLIC -lz)
-	#	target_link_options(fastfall PUBLIC -lc++)
-	#endif()
-endif()
 
 if(EMSCRIPTEN)
 	#set(CMAKE_EXECUTABLE_SUFFIX .html CACHE INTERNAL "set executable suffix for emscripten build")
@@ -165,8 +153,6 @@ if(EMSCRIPTEN)
 		-sBINARYEN_IGNORE_IMPLICIT_TRAPS=1 
 		-sFULL_ES3=1 
 		-sALLOW_MEMORY_GROWTH=1 
-		"SHELL:--preload-file ../data@/data" 
-		"SHELL:--preload-file ../gamecontrollerdb.txt@/gamecontrollerdb.txt"
 		--emrun
 	)
 
@@ -211,8 +197,8 @@ else()
 		FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
 	)
 
-	add_subdirectory("test")
 endif()
 
+add_subdirectory("test")
 
 
