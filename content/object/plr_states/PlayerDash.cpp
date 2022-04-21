@@ -23,14 +23,21 @@ float get_dash_vel(secs dash_time, float min_speed) {
 void apply_dash_vel(plr::members& plr, float min_vel) {
 
 	float vel = min_vel;
-	if (
-		plr.ground->traverse_get_speed() == 0 ||
-		plr.ground->traverse_get_speed() < 0 == plr.sprite->get_hflip()) 
+	float speed = plr.ground->has_contact() 
+		? *plr.ground->traverse_get_speed()
+		: plr.box->get_vel().x;
+
+	if (speed == 0 || speed < 0 == plr.sprite->get_hflip()) 
 	{
-		vel = std::max(min_vel, abs(plr.ground->traverse_get_speed()));
+		vel = std::max(min_vel, abs(speed));
 	}
 
-	plr.ground->traverse_set_speed(vel * (plr.sprite->get_hflip() ? -1.f : 1.f));
+	if (plr.ground->has_contact()) {
+		plr.ground->traverse_set_speed(vel * (plr.sprite->get_hflip() ? -1.f : 1.f));
+	}
+	else {
+		plr.box->set_vel(vel, {});
+	}
 
 }
 
@@ -93,11 +100,8 @@ void PlayerDashState::enter(plr::members& plr, PlayerState* from)
 			Vec2f pos = plr.box->getPosition();
 			ObjectFactory::create<SimpleEffect>(plr.plr_context, dash_anims.fx->id(), pos, plr.sprite->get_hflip());
 		}
-		dash_speed = plr.ground->traverse_get_speed() * (plr.sprite->get_hflip() ? -1.f : 1.f);
+		dash_speed = *plr.ground->traverse_get_speed() * (plr.sprite->get_hflip() ? -1.f : 1.f);
 	}
-
-	//plr.ground->settings.slope_sticking = false;
-
 	plr.ground->settings.slope_wall_stop = false;
 	plr.ground->settings.use_surf_vel = true;
 }

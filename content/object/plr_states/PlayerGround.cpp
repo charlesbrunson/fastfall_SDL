@@ -11,7 +11,9 @@ void PlayerGroundState::enter(plr::members& plr, PlayerState* from)
 	plr.ground->settings.slope_sticking = true;
 	plr.ground->settings.slope_wall_stop = true;
 
-	float speed = plr.ground->traverse_get_speed();
+	auto gspeed = plr.ground->traverse_get_speed();
+	float speed = gspeed ? *gspeed : plr.box->get_vel().x;
+	//float speed = plr.ground->traverse_get_speed();
 
 	// set initial ground max speed
 	plr.ground->settings.max_speed =

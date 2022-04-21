@@ -479,7 +479,7 @@ void Collidable::process_current_frame() {
 					Angle surf_ang = math::angle(tracker->currentContact->collider.surface);
 
 					float speed = contact.velocity.x / cosf(surf_ang.radians());
-					float curr_speed = tracker->traverse_get_speed();
+					float curr_speed = *tracker->traverse_get_speed();
 
 					if (speed < 0.f) {
 						curr_speed = std::min(curr_speed, speed);

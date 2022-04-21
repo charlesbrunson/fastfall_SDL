@@ -12,7 +12,8 @@ plr::move_t::move_t(const plr::members& plr)
 
 	int flipper = (plr.sprite->get_hflip() ? -1 : 1);
 
-	speed = plr.ground->traverse_get_speed();
+	auto gspeed = plr.ground->traverse_get_speed();
+	speed = gspeed ? *gspeed : plr.box->get_vel().x;
 	rel_speed = speed * flipper;
 
 	movex = (speed == 0.f ? 0 : (speed < 0.f ? -1 : 1));
@@ -134,7 +135,12 @@ namespace plr::action {
 			// neutral jump
 
 			if (move.speed < 100.f && move.wishx != 0) {
-				plr.ground->traverse_set_speed(plr.ground->traverse_get_speed() + 50.f * move.wishx);
+				if (plr.ground->has_contact()) {
+					plr.ground->traverse_set_speed(*plr.ground->traverse_get_speed() + 50.f * move.wishx);
+				}
+				else {
+					plr.box->set_vel(plr.box->get_vel().x + 50.f * move.wishx, {});
+				}
 			}
 			plr.sprite->set_anim(anim::jump);
 

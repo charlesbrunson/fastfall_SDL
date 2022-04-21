@@ -36,8 +36,8 @@ public:
 	bool has_contact() const noexcept;
 
 	// applies velocity/acceleration accounting for gravity (for movement consistency)
-	// is !has_contact, will apply on the X axis
-	float traverse_get_speed();
+	// if !has_contact, no op
+	std::optional<float> traverse_get_speed();
 	void traverse_set_speed(float speed);
 	void traverse_add_accel(float accel);
 	void traverse_add_decel(float decel);

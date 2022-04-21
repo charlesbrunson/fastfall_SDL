@@ -213,7 +213,7 @@ CollidableOffsets SurfaceTracker::do_max_speed(CollidableOffsets in, secs deltaT
 			surface_mag = surfaceVel.x > 0 ? surfaceVel.magnitude() : -surfaceVel.magnitude();
 		}
 
-		float speed = traverse_get_speed();
+		float speed = *traverse_get_speed();
 
 		Vec2f acc_vec = math::projection(owner->get_acc(), math::vector(currentContact->collider.surface));
 		float acc_mag = acc_vec.magnitude();
@@ -394,75 +394,58 @@ void SurfaceTracker::end_touch(PersistantContact& contact) {
 
 
 void SurfaceTracker::traverse_set_speed(float speed) {
-	if (!has_contact()) {
-		owner->set_vel(speed, {});
-		return;
-	}
+	if (has_contact()) 
+	{
+		Vec2f surf_unit = math::vector(currentContact->collider.surface).unit();
 
-	Vec2f surf_unit = math::vector(currentContact->collider.surface).unit();
-
-	float surface_mag = 0.f;
-	if (settings.use_surf_vel) {
-		Vec2f surfaceVel = currentContact->getSurfaceVel();
-		surface_mag = surfaceVel.x > 0 ? surfaceVel.magnitude() : -surfaceVel.magnitude();
-	}
-
-	if (settings.move_with_platforms && has_contact()) {
-
-		Vec2f surfNV;
-
-		if (const auto* region = currentContact->region) {
-			surfNV = math::projection(region->velocity, currentContact->collider_normal, true);
+		float surface_mag = 0.f;
+		if (settings.use_surf_vel) {
+			Vec2f surfaceVel = currentContact->getSurfaceVel();
+			surface_mag = surfaceVel.x > 0 ? surfaceVel.magnitude() : -surfaceVel.magnitude();
 		}
 
- 		owner->set_vel(surf_unit * (speed + surface_mag) + surfNV);
-	}
-	else {
-		owner->set_vel(surf_unit * (speed + surface_mag));
-
+		Vec2f surfNV;
+		if (const auto* region = currentContact->region;
+			region && settings.move_with_platforms) 
+		{
+			surfNV = math::projection(region->velocity, currentContact->collider_normal, true);
+		}
+		owner->set_vel(surf_unit * (speed + surface_mag) + surfNV);
 	}
 }
 
 void SurfaceTracker::traverse_add_accel(float accel) {
-	if (!has_contact()) {
-		owner->add_accel({accel, 0.f});
-		return;
+	if (has_contact()) {
+		Vec2f surf_unit = math::vector(currentContact->collider.surface).unit();
+		owner->add_accel(surf_unit * accel);
 	}
-
-	Vec2f surf_unit = math::vector(currentContact->collider.surface).unit();
-
-	owner->add_accel(surf_unit * accel);
 }
 
 void SurfaceTracker::traverse_add_decel(float decel) {
-	if (!has_contact()) {
-		owner->add_decel({decel, 0.f});
-		return;
+	if (has_contact()) {
+		Vec2f surf_unit = math::vector(currentContact->collider.surface).unit();
+		owner->add_decel(Vec2f{ abs(surf_unit.x), abs(surf_unit.y) } *decel);
 	}
-
-	Vec2f surf_unit = math::vector(currentContact->collider.surface).unit();
-	owner->add_decel(Vec2f{ abs(surf_unit.x), abs(surf_unit.y) } *decel);
 }
 
-float SurfaceTracker::traverse_get_speed() {
-	if (!has_contact()) {
-		return owner->get_vel().x;
-	}
+std::optional<float> SurfaceTracker::traverse_get_speed() {
+	std::optional<float> speed;
+	if (has_contact()) {
+		Vec2f surfVel = (settings.use_surf_vel ? currentContact->getSurfaceVel() : Vec2f{});
+		Vec2f surf = math::vector(currentContact->collider.surface);
+		Vec2f proj = math::projection(owner->get_vel(), surf) - surfVel;
 
-	Vec2f surfVel = (settings.use_surf_vel ? currentContact->getSurfaceVel() : Vec2f{});
-
-	Vec2f surf = math::vector(currentContact->collider.surface);
-	Vec2f proj = math::projection(owner->get_vel(), surf) - surfVel;
-
-	if (proj.x == 0.f) {
-		return 0.f;
+		if (proj.x == 0.f) {
+			speed = 0.f;
+		}
+		else if (proj.x < 0.f != surf.x < 0.f) {
+			speed = -proj.magnitude();
+		}
+		else {
+			speed = proj.magnitude();
+		}
 	}
-	else if (proj.x < 0.f != surf.x < 0.f) {
-		return -proj.magnitude();
-	}
-	else {
-		return proj.magnitude();
-	}
+	return speed;
 }
 
 }
