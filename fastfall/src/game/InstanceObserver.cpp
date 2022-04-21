@@ -115,7 +115,8 @@ void collisionContent(GameContext context) {
 					ImGui::Text("%3.2f", tracker->air_time); ImGui::NextColumn();
 
 					ImGui::Text("Traversal Speed"); ImGui::NextColumn();
-					ImGui::Text("%3.2f", tracker->traverse_get_speed()); ImGui::NextColumn();
+					auto tspeed = tracker->traverse_get_speed();
+					ImGui::Text("%3.2f", tspeed ? *tspeed : 0.f); ImGui::NextColumn();
 
 					ImGui::Text("Max Speed"); ImGui::NextColumn();
 					ImGui::Text("%3.2f", tracker->settings.max_speed); ImGui::NextColumn();

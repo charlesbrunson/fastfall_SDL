@@ -140,9 +140,14 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 		contact = touchingAxis->contact;
 		contact.hasContact = touchingAxis->is_intersecting();
 
-		if (lastEntry == 0.f && firstExit < 1.f) {
+		/*
+		* TODO THIS DOESN'T WORK
+		* 
+		if (lastEntry == 0.f && firstExit < 1.f) 
+		{
 			contact.hasContact &= currCollision.getContact().hasContact;
 		}
+		*/		
 
 		contact.hasImpactTime = lastEntry > 0;
 		contact.impactTime = lastEntry;

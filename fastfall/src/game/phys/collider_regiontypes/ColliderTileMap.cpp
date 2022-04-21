@@ -134,7 +134,7 @@ namespace ff {
 			return;
 
 		//Vec2i size = size_max - size_min;
-		std::vector<bool> impacted(maxIndex + 1);
+		std::vector<bool> impacted(maxIndex - minIndex);
 
 		Vec2i change_min{ INT_MAX, INT_MAX };
 		Vec2i change_max{ -INT_MAX, -INT_MAX };
@@ -347,7 +347,7 @@ namespace ff {
 			&& at.y >= size_min.y && at.y < size_max.y;
 	}
 	bool ColliderTileMap::validPosition(size_t ndx) const noexcept {
-		return ndx >= minIndex && ndx <= maxIndex;
+		return ndx >= minIndex && ndx < maxIndex;
 	}
 
 	size_t ColliderTileMap::getTileIndex(const Vec2i& at) const noexcept {

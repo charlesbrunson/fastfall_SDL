@@ -332,13 +332,12 @@ TEST_F(surfacetracker, higrav_launch_off_hill)
 		update();
 		render.draw(colMan);
 
-
-		if (box->getPosition().x < 48)
+		if (box->getPosition().x <= 48)
 		{
 			EXPECT_TRUE(ground->has_contact());
 		}
-		else {
-			fmt::print(stderr, "{:.2f}", box->getPosition());
+		else if (box->getPosition().x <= 75) {
+			//fmt::print(stderr, "{:.2f}\n", box->getPosition());
 			EXPECT_TRUE(!ground->has_contact());
 		}
 	}

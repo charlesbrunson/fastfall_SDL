@@ -107,7 +107,7 @@ TEST_F(collision, static_tunneling)
 		});
 
 	box->teleport(Vec2f{ 8, 40 });
-	box->set_vel(Vec2f{ 128.f, 0.f } / one_frame); // very fast
+	box->set_vel(Vec2f{ 5000.f, 0.f }); // very fast
 
 
 	TestPhysRenderer render(collider->getBoundingBox());
@@ -116,25 +116,19 @@ TEST_F(collision, static_tunneling)
 
 	while (render.curr_frame < 8) {
 
+		box->set_vel(Vec2f{ 5000.f, 0.f });
 		update();
 		render.draw(colMan);
 
-		if (render.curr_frame == 1)
-		{
-			EXPECT_EQ(box->get_contacts().size(), 1);
+		EXPECT_EQ(box->get_contacts().size(), 1);
 
-			if (!box->get_contacts().empty()) {
-				const auto& contact = box->get_contacts().at(0);
-				EXPECT_TRUE(contact.hasContact);
-				EXPECT_TRUE(contact.ortho_normal == Vec2f(-1.f, 0.f));
-				EXPECT_TRUE(contact.collider_normal == Vec2f(-1.f, 0.f));
-				//EXPECT_EQ(contact.impactTime, 0.5f);
-
-				EXPECT_TRUE(box->getPosition().x == 32.f);
-			}
+		if (!box->get_contacts().empty()) {
+			const auto& contact = box->get_contacts().at(0);
+			EXPECT_TRUE(contact.hasContact);
+			EXPECT_TRUE(contact.ortho_normal == Vec2f(-1.f, 0.f));
+			EXPECT_TRUE(contact.collider_normal == Vec2f(-1.f, 0.f));
 		}
 	}
-
 }
 
 TEST_F(collision, moving_tunneling)
@@ -147,7 +141,7 @@ TEST_F(collision, moving_tunneling)
 		});
 
 	box->teleport(Vec2f{ 8, 40 });
-	box->set_vel(Vec2f{ 20.f, 0.f } / one_frame);
+	box->set_vel(Vec2f{ 5000.f, 0.f });
 
 	TestPhysRenderer render(math::rect_extend(collider->getBoundingBox(), Cardinal::W, 64.f));
 	render.frame_delay = 20;
@@ -160,19 +154,17 @@ TEST_F(collision, moving_tunneling)
 		collider->delta_velocity = nVel - collider->velocity;
 		collider->velocity = nVel;
 
+		box->set_vel(Vec2f{ 5000.f, 0.f });
 		update();
 		render.draw(colMan);
 
-		if (render.curr_frame == 3)
-		{
-			EXPECT_EQ(box->get_contacts().size(), 1);
+		EXPECT_EQ(box->get_contacts().size(), 1);
 
-			if (!box->get_contacts().empty()) {
-				const auto& contact = box->get_contacts().at(0);
-				EXPECT_TRUE(contact.hasContact);
-				EXPECT_TRUE(contact.ortho_normal == Vec2f(-1.f, 0.f));
-				EXPECT_TRUE(contact.collider_normal == Vec2f(-1.f, 0.f));
-			}
+		if (!box->get_contacts().empty()) {
+			const auto& contact = box->get_contacts().at(0);
+			EXPECT_TRUE(contact.hasContact);
+			EXPECT_TRUE(contact.ortho_normal == Vec2f(-1.f, 0.f));
+			EXPECT_TRUE(contact.collider_normal == Vec2f(-1.f, 0.f));
 		}
 	}
 }

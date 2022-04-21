@@ -56,6 +56,8 @@ namespace plr::constants {
 
 	extern ff::Default<ff::Vec2f> grav_normal;
 	extern ff::Default<ff::Vec2f> grav_light;
+
+	extern ff::Default<float> dash_speed;
 }
 
 

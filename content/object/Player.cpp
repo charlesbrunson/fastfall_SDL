@@ -189,6 +189,12 @@ void Player::ImGui_Inspect() {
 		constants::jumpVelY.restore();
 	}
 
+	DragFloat("Dash Speed", &constants::dash_speed.get(), 10.f, 0.f, 5000.f);
+	SameLine(GetWindowWidth() - 60);
+	if (SmallButton("reset##3")) {
+		constants::dash_speed.restore();
+	}
+
 	Separator();
 
 	get_state().get_imgui(*this);

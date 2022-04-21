@@ -10,14 +10,13 @@ using namespace plr;
 
 constexpr secs dash_duration = 0.24;
 
-constexpr float start_velx = 220.f;
-constexpr float end_velx = 220.f;
+//constexpr float dash_vel = 220.f;
 
-float get_dash_vel(secs dash_time, float min_speed) {
+float get_dash_vel(float min_speed) {
 
-	float ratio = dash_time / dash_duration;
-	float velx = (start_velx * (1 - ratio)) + (end_velx * (ratio));
-	return std::max(min_speed, velx);
+	//float ratio = dash_time / dash_duration;
+	//float velx = (start_velx * (1 - ratio)) + (end_velx * (ratio));
+	return std::max(min_speed, plr::constants::dash_speed.get());
 }
 
 void apply_dash_vel(plr::members& plr, float min_vel) {
@@ -115,7 +114,7 @@ PlayerStateID PlayerDashState::update(plr::members& plr, secs deltaTime)
 		plr.box->setSlipNone();
 		ground_flag = true;
 		plr.box->set_gravity(constants::grav_normal);
-		apply_dash_vel(plr, get_dash_vel(dash_time, dash_speed));
+		apply_dash_vel(plr, get_dash_vel(dash_speed));
 
 		auto dash_anims = select_dash_anim(plr);
 		plr.sprite->set_anim_if_not(dash_anims.dash->id());
@@ -157,7 +156,7 @@ PlayerStateID PlayerDashState::update(plr::members& plr, secs deltaTime)
 			}
 		}
 		else if (!ground_flag) {
-			apply_dash_vel(plr, get_dash_vel(dash_time, dash_speed));
+			apply_dash_vel(plr, get_dash_vel(dash_speed));
 		}
 	}
 
@@ -169,7 +168,7 @@ void PlayerDashState::exit(plr::members& plr, PlayerState* to)
 	plr.box->set_gravity(constants::grav_normal);
 
 	if (to->get_id() == PlayerStateID::Ground) {
-		apply_dash_vel(plr, end_velx);
+		apply_dash_vel(plr, plr::constants::dash_speed);
 	}
 
 	plr.ground->settings.use_surf_vel = true;
