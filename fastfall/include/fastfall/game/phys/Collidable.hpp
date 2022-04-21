@@ -49,20 +49,12 @@ public:
 
 	inline const Vec2f& getPosition() const noexcept { return pos; };
 	inline const Vec2f& getPrevPosition() const noexcept { return prevPos; };
-	inline void move(Vec2f offset, bool swapPrev = true) { 
-		setPosition(getPosition() + offset, swapPrev); 
-	};
-
-	/*
-	inline void shift_prev(Vec2f offset) {
-		prevRect.left += offset.x;
-		prevRect.top += offset.y;
-		prevPos += offset;
-	};
-	*/
-
 
 	void setPosition(Vec2f position, bool swapPrev = true) noexcept;
+	inline void move(Vec2f offset, bool swapPrev = true) {
+		setPosition(getPosition() + offset, swapPrev);
+	};
+
 	void setSize(Vec2f size) noexcept;
 	void teleport(Vec2f position) noexcept;
 
@@ -70,7 +62,7 @@ public:
 	inline void set_gravity(Vec2f grav) noexcept { gravity_acc = grav; };
 
 	inline Vec2f get_vel()   const noexcept { return vel; };
-	inline Vec2f get_prev_vel()   const noexcept { return prev_vel; };
+	//inline Vec2f get_prev_vel()   const noexcept { return prev_vel; };
 	inline void  set_vel(Vec2f velocity) noexcept { vel = velocity; };
 	inline void  set_velX(float velocity) noexcept { vel.x = velocity; };
 	inline void  set_velY(float velocity) noexcept { vel.y = velocity; };
@@ -100,6 +92,8 @@ public:
 	SurfaceTracker& create_tracker(Angle ang_min, Angle ang_max, SurfaceTracker::Settings settings, bool inclusive = true);
 	bool remove_tracker(SurfaceTracker& tracker);
 
+	// -----------------------------------------
+
 	const PersistantContact* get_contact(Angle angle) const noexcept;
 	const PersistantContact* get_contact(Cardinal dir) const noexcept;
 
@@ -123,15 +117,9 @@ public:
 	float getSlipH() const noexcept { return slipState == SlipState::SlipHorizontal ? slipLeeway : 0.f; };
 	float getSlipV() const noexcept { return slipState == SlipState::SlipVertical ? slipLeeway : 0.f; };
 
-	template<class Fun>
-	requires std::is_invocable_v<Fun>
-	void set_onPostCollision(Fun&& fun) {
-		onPostCollision = fun;
-	}
-
-	void clear_onPostCollision() {
-		onPostCollision = std::function<void()>{};
-	}
+	struct callbacks_t {
+		std::function<void()> onPostCollision;
+	} callbacks;
 
 private:
 	SlipState slipState = SlipState::SlipNone;
@@ -144,7 +132,6 @@ private:
 	void process_current_frame();
 
 	CollidableID id;
-	//GameContext context;
 
 	Vec2f pos;
 	Vec2f prevPos;
@@ -153,9 +140,8 @@ private:
 	Rectf prevRect;
 
 	Vec2f vel;
-	Vec2f prev_vel;
+	Vec2f precollision_vel; // velocity saved before collision, used for friction calculation
 
-	Vec2f friction_vel;
 	Vec2f friction;
 
 	Vec2f acc;
@@ -163,11 +149,8 @@ private:
 	Vec2f accel_accum;
 	Vec2f decel_accum;
 
-	std::function<void()> onPostCollision;
-
 	std::vector<PersistantContact> currContacts;
 	std::vector<std::unique_ptr<SurfaceTracker>> trackers;
-
 };
 
 }

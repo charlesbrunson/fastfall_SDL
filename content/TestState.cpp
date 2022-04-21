@@ -45,7 +45,7 @@ TestState::~TestState() {
 void TestState::update(secs deltaTime) {
 
 	instance->update(deltaTime);
-	return;
+	//return;
 	// --------------
 
 	currKeys = SDL_GetKeyboardState(&key_count);
@@ -225,7 +225,7 @@ void TestState::predraw(float interp, bool updated) {
 	viewPos = instance->getCamera().getPosition(interp);
 	viewZoom = instance->getCamera().zoomFactor;
 
-	return;
+	//return;
 	// --------------
 
 	tile_text.predraw();
@@ -252,7 +252,6 @@ void TestState::predraw(float interp, bool updated) {
 				});
 
 
-			///unsigned win_scale = Engine::get().getWindowScale();
 			float win_scale{ (float)Engine::get().getWindowScale() };
 
 			float scale = viewZoom / win_scale;
@@ -272,14 +271,7 @@ void TestState::predraw(float interp, bool updated) {
 			mouse_from_cam /= win_scale;
 
 			Vec2f text_pos = viewPos + text_off + mouse_from_cam * viewZoom;
-
-			/*
-				+ Vec2f{ Input::getMouseWindowPosition() } / Engine::get().getWindowScale()
-				- Vec2f{ Engine::get().getWindow()->getSize() } / (2.f * Engine::get().getWindowScale())
-				- Vec2f{ 0.f, tile_text.getScaledBounds().height };
-			*/
-
-
+			
 			tile_text.setPosition(text_pos);
 
 		}
@@ -294,7 +286,7 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const
 {
 	target.draw(*instance, state);
 
-	return;
+	//return;
 	// --------------
 
 	if (edit && edit->get_tile_layer()) {

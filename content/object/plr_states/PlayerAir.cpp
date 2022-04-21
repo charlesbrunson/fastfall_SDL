@@ -8,6 +8,7 @@ using namespace plr;
 
 void PlayerAirState::enter(plr::members& plr, PlayerState* from)
 {
+	prevVelY = plr.box->get_vel().y;
 }
 
 PlayerStateID PlayerAirState::update(plr::members& plr, secs deltaTime)
@@ -69,7 +70,7 @@ PlayerStateID PlayerAirState::update(plr::members& plr, secs deltaTime)
 			// idle jump turn around at apex
 			if (plr.sprite->is_playing(anim::fall)
 				&& plr.box->get_vel().y > -100.f
-				&& plr.box->get_prev_vel().y <= -100.f
+				&& prevVelY <= -100.f
 				&& move.rel_movex < 0
 				&& move.rel_wishx < 0)
 			{

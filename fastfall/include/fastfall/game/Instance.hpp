@@ -24,6 +24,11 @@ public:
 	//static constexpr unsigned int NO_INSTANCE = 0u;
 
 	GameInstance(InstanceID instance);
+
+	// currently unsupported lmao
+	GameInstance(const GameInstance&) = delete;
+	GameInstance& operator=(const GameInstance&) = delete;
+
 	~GameInstance();
 
 	void clear();

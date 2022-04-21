@@ -74,6 +74,7 @@ public:
 	void start_touch(PersistantContact& contact);
 	void end_touch(PersistantContact& contact);
 
+	/*
 	inline void set_start_touch(std::function<void(PersistantContact&)> func) {
 		callback_start_touch = func;
 	}
@@ -83,6 +84,13 @@ public:
 	inline void set_on_stick(std::function<void(const ColliderSurface&)> func) {
 		callback_on_stick = func;
 	}
+	*/
+
+	struct callbacks_t {
+		std::function<void(PersistantContact&)> on_start_touch;
+		std::function<void(PersistantContact&)> on_end_touch;
+		std::function<void(const ColliderSurface&)> on_stick;
+	} callbacks;
 
 	struct Settings {
 		bool move_with_platforms = false;
@@ -106,17 +114,29 @@ private:
 	// based on angle and contact duration
 	std::optional<PersistantContact> currentContact = std::nullopt;
 
+
 	bool do_slope_wall_stop(bool had_wall) noexcept;
+
 	CollidableOffsets do_move_with_platform(CollidableOffsets in) noexcept;
+
 	Vec2f do_max_speed(secs deltaTime) noexcept;
+
+	// returns position offset
+	Vec2f do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left, float right, const PersistantContact& contact) const noexcept;
+
+	void update_curr_contacts();
+
+	bool can_make_contact_with(const PersistantContact& contact) const noexcept;
 
 	float wallYadj = 0.f;
 
 	// applied when max_speed > 0.f
 
+	/*
 	std::function<void(PersistantContact&)> callback_start_touch;
 	std::function<void(PersistantContact&)> callback_end_touch;
 	std::function<void(const ColliderSurface&)> callback_on_stick;
+	*/
 
 	std::optional<PersistantContact> wallContact;
 

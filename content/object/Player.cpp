@@ -84,10 +84,9 @@ void Player::init() {
 	sprite->set_anim(plr::anim::idle);
 	sprite->set_pos(box->getPosition());
 
-	box->set_onPostCollision(
-		[this] {
+	box->callbacks.onPostCollision = [this] {
 			manage_state(get_state().post_collision(*this));
-		});
+		};
 }
 
 std::unique_ptr<GameObject> Player::clone() const 

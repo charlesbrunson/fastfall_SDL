@@ -161,8 +161,8 @@ Collidable::Collidable(const Collidable& rhs)
 	prevPos = rhs.prevPos;
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
-	friction_vel = rhs.friction_vel;
-	prev_vel = rhs.prev_vel;
+	precollision_vel = rhs.precollision_vel;
+	//prev_vel = rhs.prev_vel;
 	currContacts = rhs.currContacts;
 
 	for (auto& t : rhs.trackers) {
@@ -182,8 +182,8 @@ Collidable::Collidable(Collidable&& rhs) noexcept
 	prevPos = rhs.prevPos;
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
-	friction_vel = rhs.friction_vel;
-	prev_vel = rhs.prev_vel;
+	precollision_vel = rhs.precollision_vel;
+	//prev_vel = rhs.prev_vel;
 	std::swap(currContacts, rhs.currContacts);
 	std::swap(trackers, rhs.trackers);
 }
@@ -200,8 +200,8 @@ Collidable& Collidable::operator=(const Collidable& rhs)
 	prevPos = rhs.prevPos;
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
-	friction_vel = rhs.friction_vel;
-	prev_vel = rhs.prev_vel;
+	precollision_vel = rhs.precollision_vel;
+	//prev_vel = rhs.prev_vel;
 	currContacts = rhs.currContacts;
 
 	for (auto& t : rhs.trackers) {
@@ -222,8 +222,8 @@ Collidable& Collidable::operator=(Collidable&& rhs) noexcept
 	prevPos = rhs.prevPos;
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
-	friction_vel = rhs.friction_vel;
-	prev_vel = rhs.prev_vel;
+	precollision_vel = rhs.precollision_vel;
+	//prev_vel = rhs.prev_vel;
 	std::swap(currContacts, rhs.currContacts);
 	std::swap(trackers, rhs.trackers);
 	return *this;
@@ -252,7 +252,7 @@ void Collidable::update(secs deltaTime) {
 		//prevRect = curRect;
 		//prevPos = Vec2f(prevRect.getPosition()) + Vec2f(prevRect.width / 2, prevRect.height);
 
-		prev_vel = vel;
+		//prev_vel = vel;
 		vel -= friction;
 		acc = accel_accum;
 
@@ -285,26 +285,21 @@ void Collidable::update(secs deltaTime) {
 		vel.y = math::reduce(vel.y, decel_accum.y * (float)deltaTime, surfaceVel.y);
 
 		//vel += gravity_acc * deltaTime;
-
 		next_pos += vel * deltaTime;
-	}
 
-	for (auto& tracker : trackers) {
-		CollidableOffsets offsets = tracker->postmove_update(next_pos, prev_pos, deltaTime);
-		if (deltaTime > 0.0) {
+		// perform post move before applying gravity
+		for (auto& tracker : trackers) {
+			CollidableOffsets offsets = tracker->postmove_update(next_pos, prev_pos, deltaTime);
 			next_pos += offsets.position;
 			vel += offsets.velocity;
 			acc += offsets.acceleration;
 		}
-	}
-
-	if (deltaTime > 0.0) {
 
 		vel += gravity_acc * deltaTime;
 		next_pos += gravity_acc * deltaTime * deltaTime;
 
 
-		friction_vel = vel;
+		precollision_vel = vel;
 		setPosition(next_pos);
 
 		accel_accum = Vec2f{};
@@ -412,8 +407,8 @@ bool Collidable::remove_tracker(SurfaceTracker& tracker) {
 	if (tracker_iter != trackers.cend()) {
 		SurfaceTracker* ptr = tracker_iter->get();
 
-		if (ptr->has_contact())
-			ptr->callback_end_touch(ptr->currentContact.value());
+		if (ptr->has_contact() && ptr->callbacks.on_end_touch)
+			ptr->callbacks.on_end_touch(ptr->currentContact.value());
 
 		trackers.erase(tracker_iter);
 		return true;
@@ -520,19 +515,16 @@ void Collidable::process_current_frame() {
 	if (trackers.empty())
 		return;
 
-	//Vec2f friction;
 	friction = Vec2f{};
 	for (auto& tracker : trackers) {
 		tracker->process_contacts(currContacts);
-		friction += tracker->get_friction(friction_vel);
+		friction += tracker->get_friction(precollision_vel);
+		//friction += tracker->get_friction(vel);
 	}
 	Vec2f prev = vel;
 
-	//vel -= friction;
-
-	if (onPostCollision)
-		onPostCollision();
-
+	if (callbacks.onPostCollision)
+		callbacks.onPostCollision();
 }
 
 
