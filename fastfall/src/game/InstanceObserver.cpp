@@ -103,16 +103,16 @@ void collisionContent(GameContext context) {
 					ImGui::Separator();
 
 					ImGui::Text("Angle Range"); ImGui::NextColumn();
-					ImGui::Text("(%3.2f, %3.2f)", tracker->get_angle_min().degrees(), tracker->get_angle_max().degrees()); ImGui::NextColumn();
+					ImGui::Text("(%3.2f, %3.2f)", tracker->angle_range.min.degrees(), tracker->angle_range.max.degrees()); ImGui::NextColumn();
 
 					ImGui::Text("Has Contact"); ImGui::NextColumn();
 					ImGui::Text("%s", tracker->has_contact() ? "true" : "false"); ImGui::NextColumn();
 
 					ImGui::Text("Contact Duration"); ImGui::NextColumn();
-					ImGui::Text("%3.2f", tracker->get_contact_time()); ImGui::NextColumn();
+					ImGui::Text("%3.2f", tracker->contact_time); ImGui::NextColumn();
 
 					ImGui::Text("Air Duration"); ImGui::NextColumn();
-					ImGui::Text("%3.2f", tracker->get_air_time()); ImGui::NextColumn();
+					ImGui::Text("%3.2f", tracker->air_time); ImGui::NextColumn();
 
 					ImGui::Text("Traversal Speed"); ImGui::NextColumn();
 					ImGui::Text("%3.2f", tracker->traverse_get_speed()); ImGui::NextColumn();

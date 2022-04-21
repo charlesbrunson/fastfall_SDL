@@ -29,10 +29,7 @@ class SurfaceTracker {
 public:
 	SurfaceTracker(Angle ang_min, Angle ang_max, bool inclusive = true);
 
-	// acceleration out
 	CollidableOffsets premove_update(secs deltaTime);
-
-	// new position out
 	CollidableOffsets postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime, std::optional<PersistantContact> contact_override = {}) const;
 
 	void process_contacts(std::vector<PersistantContact>& contacts);
@@ -40,51 +37,25 @@ public:
 
 	// applies velocity/acceleration accounting for gravity (for movement consistency)
 	// is !has_contact, will apply on the X axis
-	//void traverse_set_max_speed(float speed);
-	//float traverse_get_max_speed() const noexcept { return max_speed; };
+	float traverse_get_speed();
 	void traverse_set_speed(float speed);
 	void traverse_add_accel(float accel);
 	void traverse_add_decel(float decel);
 
-	float traverse_get_speed();
-
 	inline Collidable* get_collidable() { return owner; };
 
-	inline void time_reset() { contact_time = 0.0; air_time = 0.0; };
-
-	inline void contact_time_acc(secs deltaTime) { contact_time += deltaTime; };
-	inline secs get_contact_time() const noexcept { return contact_time; };
-
-	inline void air_time_acc(secs deltaTime) { air_time += deltaTime; };
-	inline secs get_air_time() const noexcept { return air_time; };
-
-	inline bool is_angle_in_range(Angle ang) const { return ang.isBetween(angle_min, angle_max, angle_inclusive); }
-	inline Angle get_angle_min() { return angle_min; };
-	inline Angle get_angle_max() { return angle_max; };
-	inline bool get_angle_inclusive() { return angle_inclusive; };
-
-	inline void set_angle_range(Angle ang_min, Angle ang_max, bool inclusive = true) { 
-		angle_min = ang_min; 
-		angle_max = ang_max; 
-		angle_inclusive = inclusive;
-	};
+	bool can_make_contact_with(const PersistantContact& contact) const noexcept;
 
 	const std::optional<PersistantContact>& get_contact() { return currentContact; };
 
 	void start_touch(PersistantContact& contact);
 	void end_touch(PersistantContact& contact);
 
-	/*
-	inline void set_start_touch(std::function<void(PersistantContact&)> func) {
-		callback_start_touch = func;
-	}
-	inline void set_end_touch(std::function<void(PersistantContact&)> func) {
-		callback_end_touch = func;
-	}
-	inline void set_on_stick(std::function<void(const ColliderSurface&)> func) {
-		callback_on_stick = func;
-	}
-	*/
+	// time in contact
+	// this will propogate across different surfaces
+	// as long as they're within the angle range
+	secs contact_time = 0.0;
+	secs air_time = 0.0;
 
 	struct callbacks_t {
 		std::function<void(PersistantContact&)> on_start_touch;
@@ -106,6 +77,21 @@ public:
 		float slope_stick_speed_factor = 0.25f;
 	} settings;
 
+	struct applicable_ang_t {
+		Angle min;
+		Angle max;
+		bool  inclusive;
+
+		inline bool within_range(Angle ang) const { 
+			return ang.isBetween(min, max, inclusive); 
+		};
+		inline void set_angle_range(Angle ang_min, Angle ang_max, bool inclusive = true) { 
+			min = ang_min; 
+			max = ang_max; 
+			inclusive = inclusive;
+		};
+	} angle_range;
+
 private:
 	friend class Collidable;
 
@@ -113,48 +99,17 @@ private:
 	// from the current contact frame
 	// based on angle and contact duration
 	std::optional<PersistantContact> currentContact = std::nullopt;
+	std::optional<PersistantContact> wallContact = std::nullopt;
 
 
 	bool do_slope_wall_stop(bool had_wall) noexcept;
-
 	CollidableOffsets do_move_with_platform(CollidableOffsets in) noexcept;
-
-	Vec2f do_max_speed(secs deltaTime) noexcept;
+	CollidableOffsets do_max_speed(CollidableOffsets in, secs deltaTime) noexcept;
 
 	// returns position offset
 	Vec2f do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left, float right, const PersistantContact& contact) const noexcept;
 
-	void update_curr_contacts();
-
-	bool can_make_contact_with(const PersistantContact& contact) const noexcept;
-
-	float wallYadj = 0.f;
-
-	// applied when max_speed > 0.f
-
-	/*
-	std::function<void(PersistantContact&)> callback_start_touch;
-	std::function<void(PersistantContact&)> callback_end_touch;
-	std::function<void(const ColliderSurface&)> callback_on_stick;
-	*/
-
-	std::optional<PersistantContact> wallContact;
-
-	//GameContext context;
-
-	Vec2f get_friction(Vec2f prevVel);
-
-	// time in contact
-	// this will propogate across different surfaces
-	// as long as they're within the angle range
-	secs contact_time = 0.0;
-	secs air_time = 0.0;
-
-	// applicable range
-	// based on contact surface_normal
-	Angle angle_min;
-	Angle angle_max;
-	bool angle_inclusive;
+	Vec2f calc_friction(Vec2f prevVel);
 
 	Collidable* owner = nullptr;
 };

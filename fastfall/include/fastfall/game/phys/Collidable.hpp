@@ -62,21 +62,17 @@ public:
 	inline void set_gravity(Vec2f grav) noexcept { gravity_acc = grav; };
 
 	inline Vec2f get_vel()   const noexcept { return vel; };
-	//inline Vec2f get_prev_vel()   const noexcept { return prev_vel; };
+
 	inline void  set_vel(Vec2f velocity) noexcept { vel = velocity; };
-	inline void  set_velX(float velocity) noexcept { vel.x = velocity; };
-	inline void  set_velY(float velocity) noexcept { vel.y = velocity; };
+	inline void  set_vel(std::optional<float> X, std::optional<float> Y) noexcept { 
+		if (X) { vel.x = *X; }
+		if (Y) { vel.y = *Y; }
+	}
 
 	inline void add_accel(Vec2f acceleration) { accel_accum += acceleration; };
-	inline void add_accelX(float acceleration) { accel_accum.x += acceleration; };
-	inline void add_accelY(float acceleration) { accel_accum.y += acceleration; };
-
 	inline void add_decel(Vec2f deceleration) { decel_accum += deceleration; };
-	inline void add_decelX(float deceleration) { decel_accum.x += deceleration; };
-	inline void add_decelY(float deceleration) { decel_accum.y += deceleration; };
 
 	inline Vec2f get_friction()   const noexcept { return friction; };
-
 	inline Vec2f get_acc() const noexcept { return acc; };
 
 	void applyContact(const Contact& contact, ContactType type);

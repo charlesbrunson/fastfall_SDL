@@ -44,7 +44,7 @@ PlayerStateID PlayerAirState::update(plr::members& plr, secs deltaTime)
 		}
 
 		move_t move(plr);
-		if (plr.ground->get_air_time() > 0.05) {
+		if (plr.ground->air_time > 0.05) {
 
 			if (!plr.sprite->is_playing_any({ 
 					anim::jump, anim::fall,
@@ -86,18 +86,17 @@ PlayerStateID PlayerAirState::update(plr::members& plr, secs deltaTime)
 			float air_control_hi = plr.box->get_vel().y < 100.f && plr.box->get_vel().y > -100.f ? 500.f : 300.f;
 			float air_control_lo = plr.box->get_vel().y < 100.f && plr.box->get_vel().y > -100.f ? 400.f : 250.f;
 
-
 			if (move.speed < 150.f)
 			{
-				plr.box->add_accelX(air_control_hi * move.wishx);
+				plr.box->add_accel({air_control_hi * move.wishx, 0.f});
 			}
 			else if (move.rel_speed >= 150.f == move.rel_wishx < 0) 
 			{
-				plr.box->add_accelX(air_control_lo * move.wishx);
+				plr.box->add_accel({air_control_lo * move.wishx, 0.f});
 			}
 		}
 		else {
-			plr.box->add_decelX(50.f);
+			plr.box->add_decel({50.f, 0.f});
 		}
 		prevVelY = plr.box->get_vel().y;
 	}

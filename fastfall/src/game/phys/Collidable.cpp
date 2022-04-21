@@ -162,7 +162,6 @@ Collidable::Collidable(const Collidable& rhs)
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
 	precollision_vel = rhs.precollision_vel;
-	//prev_vel = rhs.prev_vel;
 	currContacts = rhs.currContacts;
 
 	for (auto& t : rhs.trackers) {
@@ -183,7 +182,6 @@ Collidable::Collidable(Collidable&& rhs) noexcept
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
 	precollision_vel = rhs.precollision_vel;
-	//prev_vel = rhs.prev_vel;
 	std::swap(currContacts, rhs.currContacts);
 	std::swap(trackers, rhs.trackers);
 }
@@ -201,7 +199,6 @@ Collidable& Collidable::operator=(const Collidable& rhs)
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
 	precollision_vel = rhs.precollision_vel;
-	//prev_vel = rhs.prev_vel;
 	currContacts = rhs.currContacts;
 
 	for (auto& t : rhs.trackers) {
@@ -223,7 +220,6 @@ Collidable& Collidable::operator=(Collidable&& rhs) noexcept
 	curRect = rhs.curRect;
 	prevRect = rhs.prevRect;
 	precollision_vel = rhs.precollision_vel;
-	//prev_vel = rhs.prev_vel;
 	std::swap(currContacts, rhs.currContacts);
 	std::swap(trackers, rhs.trackers);
 	return *this;
@@ -249,10 +245,6 @@ void Collidable::update(secs deltaTime) {
 
 	if (deltaTime > 0.0) {
 
-		//prevRect = curRect;
-		//prevPos = Vec2f(prevRect.getPosition()) + Vec2f(prevRect.width / 2, prevRect.height);
-
-		//prev_vel = vel;
 		vel -= friction;
 		acc = accel_accum;
 
@@ -271,7 +263,6 @@ void Collidable::update(secs deltaTime) {
 				tracker->air_time += deltaTime;
 			}
 		}
-		//acc += gravity_acc;
 
 		Vec2f surfaceVel;
 		for (auto& tracker : trackers) {
@@ -284,7 +275,6 @@ void Collidable::update(secs deltaTime) {
 		vel.x = math::reduce(vel.x, decel_accum.x * (float)deltaTime, surfaceVel.x);
 		vel.y = math::reduce(vel.y, decel_accum.y * (float)deltaTime, surfaceVel.y);
 
-		//vel += gravity_acc * deltaTime;
 		next_pos += vel * deltaTime;
 
 		// perform post move before applying gravity
@@ -420,7 +410,8 @@ bool Collidable::remove_tracker(SurfaceTracker& tracker) {
 const PersistantContact* Collidable::get_contact(Angle angle) const noexcept {
 
 	for (const auto& tracker : trackers) {
-		if (tracker->is_angle_in_range(angle)) {
+		if (tracker->angle_range.within_range(angle)) {
+
 			return tracker->currentContact.has_value() ? &tracker->currentContact.value() : nullptr;
 		}
 	}
@@ -518,8 +509,7 @@ void Collidable::process_current_frame() {
 	friction = Vec2f{};
 	for (auto& tracker : trackers) {
 		tracker->process_contacts(currContacts);
-		friction += tracker->get_friction(precollision_vel);
-		//friction += tracker->get_friction(vel);
+		friction += tracker->calc_friction(precollision_vel);
 	}
 	Vec2f prev = vel;
 

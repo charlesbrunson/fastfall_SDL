@@ -8,9 +8,7 @@
 namespace ff {
 
 SurfaceTracker::SurfaceTracker(Angle ang_min, Angle ang_max, bool inclusive) 
-	: angle_min(ang_min)
-	, angle_max(ang_max)
-	, angle_inclusive(inclusive)
+	: angle_range{ang_min, ang_max, inclusive}
 {
 
 }
@@ -33,7 +31,7 @@ bool SurfaceTracker::can_make_contact_with(const PersistantContact& contact) con
 
 		withinStickMax = abs(diff.degrees()) < abs(settings.stick_angle_max.degrees());
 	}
-	return angle.isBetween(angle_min, angle_max, angle_inclusive) && withinStickMax;
+	return angle_range.within_range(angle) && withinStickMax;
 }
 
 void SurfaceTracker::process_contacts(std::vector<PersistantContact>& contacts) {
@@ -41,7 +39,7 @@ void SurfaceTracker::process_contacts(std::vector<PersistantContact>& contacts) 
 	bool found = false;
 	bool had_contact = currentContact.has_value();
 
-	wallYadj = 0.f;
+	//wallYadj = 0.f;
 
 	bool had_wall = wallContact.has_value();
 
@@ -96,7 +94,7 @@ void SurfaceTracker::process_contacts(std::vector<PersistantContact>& contacts) 
 }
 
 
-Vec2f SurfaceTracker::get_friction(Vec2f prevVel) {
+Vec2f SurfaceTracker::calc_friction(Vec2f prevVel) {
 	Vec2f friction;
 	if (has_contact() 
 		&& (!currentContact->hasImpactTime || contact_time > 0.0)
@@ -132,20 +130,16 @@ Vec2f SurfaceTracker::get_friction(Vec2f prevVel) {
 }
 
 CollidableOffsets SurfaceTracker::premove_update(secs deltaTime) {
-	//Vec2f acceleration;
 
 	CollidableOffsets out;
 
-	if (deltaTime > 0.0) {
-		if (!has_contact())
-			return {};
-
+	if (deltaTime > 0.0 
+		&& has_contact()) 
+	{
 		out = do_move_with_platform(out);
-
-		out.acceleration += do_max_speed(deltaTime);
+		out = do_max_speed(out, deltaTime);
 	}
 
-	//return acceleration;
 	return out;
 }
 
@@ -192,34 +186,26 @@ bool SurfaceTracker::do_slope_wall_stop(bool had_wall) noexcept {
 
 CollidableOffsets SurfaceTracker::do_move_with_platform(CollidableOffsets in) noexcept {
 
-	//bool did_move = false;
-
-	if (settings.move_with_platforms) {
+	if (currentContact && settings.move_with_platforms) 
+	{
 		PersistantContact& contact = currentContact.value();
-		if (const auto* region = currentContact->region) {
-			if (region->getPosition() != region->getPrevPosition()) {
-				Vec2f offset = region->getPosition() - region->getPrevPosition();
-
-				Vec2f move_off = math::projection(offset, contact.collider_normal.lefthand(), true);
-
-				in.position += move_off;
-				in.velocity += math::projection(region->delta_velocity, contact.collider_normal, true);
-
-				//owner->move(move_off, false);
-				//owner->set_vel(owner->get_vel() + math::projection(region->delta_velocity, contact.collider_normal, true));
-				//did_move = true;
-			}
+		if (const auto* region = currentContact->region; 
+			region && region->hasMoved()) 
+		{
+			in.position += math::projection(region->getDeltaPosition(), contact.collider_normal.lefthand(), true);
+			in.velocity += math::projection(region->delta_velocity, 	contact.collider_normal, 			true);
 		}
 	}
 	return in;
 }
 
-Vec2f SurfaceTracker::do_max_speed(secs deltaTime) noexcept {
+CollidableOffsets SurfaceTracker::do_max_speed(CollidableOffsets in, secs deltaTime) noexcept {
 
-	//Vec2f accel{};
-	Vec2f decel{};
-
-	if (deltaTime > 0.0 && has_contact() && settings.slope_sticking && settings.max_speed > 0.f) {
+	if (deltaTime > 0.0 
+		&& has_contact() 
+		&& settings.slope_sticking 
+		&& settings.max_speed > 0.f) 
+	{
 
 		float surface_mag = 0.f;
 		if (settings.use_surf_vel) {
@@ -237,11 +223,10 @@ Vec2f SurfaceTracker::do_max_speed(secs deltaTime) noexcept {
 
 		if (abs(speed + (acc_mag * deltaTime)) > settings.max_speed) {
 			traverse_set_speed(settings.max_speed * (speed < 0.f ? -1.f : 1.f));
-			decel -= acc_vec;
+			in.acceleration -= acc_vec;
 		}
 	}
-	//return accel;
-	return decel;
+	return in;
 }
 
 // ----------------------------
@@ -306,7 +291,7 @@ Vec2f SurfaceTracker::do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left,
 		Angle diff = next_ang - curr_ang;
 
 		if (next_ang.radians() != curr_ang.radians()
-			&& is_angle_in_range(next_ang - Angle::Degree(90.f))
+			&& angle_range.within_range(next_ang - Angle::Degree(90.f))
 			&& abs(diff.degrees()) < abs(settings.stick_angle_max.degrees()))
 		{
 			Vec2f hyp = wish_pos - ((goingRight ? next->surface.p1 : next->surface.p2) + regionOffset);
@@ -410,7 +395,7 @@ void SurfaceTracker::end_touch(PersistantContact& contact) {
 
 void SurfaceTracker::traverse_set_speed(float speed) {
 	if (!has_contact()) {
-		owner->set_velX(speed);
+		owner->set_vel(speed, {});
 		return;
 	}
 
@@ -440,7 +425,7 @@ void SurfaceTracker::traverse_set_speed(float speed) {
 
 void SurfaceTracker::traverse_add_accel(float accel) {
 	if (!has_contact()) {
-		owner->add_accelX(accel);
+		owner->add_accel({accel, 0.f});
 		return;
 	}
 
@@ -451,7 +436,7 @@ void SurfaceTracker::traverse_add_accel(float accel) {
 
 void SurfaceTracker::traverse_add_decel(float decel) {
 	if (!has_contact()) {
-		owner->add_decelX(decel);
+		owner->add_decel({decel, 0.f});
 		return;
 	}
 
