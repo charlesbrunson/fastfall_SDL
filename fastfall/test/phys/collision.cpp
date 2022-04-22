@@ -59,6 +59,44 @@ protected:
 	}
 };
 
+TEST_F(collision, wall_to_ceil_clip)
+{
+	initTileMap({
+		/*          x:0         x:16		x:32		x:48		x:64 */
+		/* y:0 _*/ {"solid",	"solid",	"",			"",			""},
+		/* y:16_*/ {"solid",	"solid",	"",			"",			""},
+		/* y:32_*/ {"solid",	"solid",	"solid",	"solid",	"solid"},
+		/* y:48_*/ {"",			"",			"",			"",			""},
+		/* y:64_*/ {"",			"",			"",			"",			""},
+		});
+
+	box->teleport(Vec2f{ 72, 32 });
+	box->set_vel(Vec2f{ -800.f, 0.f });
+	box->set_gravity(Vec2f{ 0.f, 500.f });
+
+	TestPhysRenderer render({ 0, 0, 80, 80 });
+	render.frame_delay = 2;
+	render.draw(colMan);
+
+	bool hitwall = false;
+
+	while (render.curr_frame < 20) {
+
+		box->set_vel(Vec2f{ -800.f, 0.f });
+		update();
+		render.draw(colMan);
+
+		if (!hitwall) {
+			hitwall = box->get_contacts().size() == 2;
+		}
+
+		if (hitwall) {
+			EXPECT_EQ(box->get_contacts().size(), 2);
+			EXPECT_LE(box->getPosition().y, 32.f);
+		}
+	}
+	EXPECT_TRUE(hitwall);
+}
 
 TEST_F(collision, ghostcheck_slopedceil_to_wall)
 {

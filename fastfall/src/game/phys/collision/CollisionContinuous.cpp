@@ -141,13 +141,29 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 		contact.hasContact = touchingAxis->is_intersecting();
 
 		/*
-		* TODO THIS DOESN'T WORK
-		* 
-		if (lastEntry == 0.f && firstExit < 1.f) 
+		auto opposite = direction::opposite(touchingAxis->dir);
+		bool opposite_intersecting = false;
+		for (int ndx = 0; ndx < currCollision.getAxisCount(); ndx++)
+		{
+			if (ndx == touchingAxisNdx)
+				continue;
+
+			if (currCollision.getCollisionAxis(ndx).dir == opposite
+				&& currCollision.getCollisionAxis(ndx).contact.separation > 0)
+			{
+				opposite_intersecting = true;
+				break;
+			}
+		}
+
+		// if the collidable is no longer intersecting the collider,
+		// yet hasn't completely passed through this collider on this axis
+		// require current collision has contact
+		if (lastEntry == 0.f && firstExit < 1.f && opposite_intersecting)
 		{
 			contact.hasContact &= currCollision.getContact().hasContact;
 		}
-		*/		
+		*/
 
 		contact.hasImpactTime = lastEntry > 0;
 		contact.impactTime = lastEntry;
@@ -171,9 +187,16 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 		else {
 			copiedContact = nullptr;
 			contact = currCollision.getContact();
+			contact.hasContact &= 
+				(math::is_horizontal(contact.ortho_normal) && abs(contact.separation) < currCollision.cAble->getBox().width)
+				|| (abs(contact.separation) < currCollision.cAble->getBox().height);
 			lastAxisCollided = -1;
 			resolve = 4;
 		}
+	}
+
+	if (resolve >= 0) {
+		//LOG_INFO("resolve={}", resolve);
 	}
 
 	if (deltaTime > 0.0) {

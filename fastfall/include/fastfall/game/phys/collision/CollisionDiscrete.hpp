@@ -44,6 +44,10 @@ public:
 		return cTile && cTile->hasAnySurface();
 	};
 
+	const ColliderRegion* region;
+	const ColliderQuad* cTile;
+	const Collidable* cAble;
+
 protected:
 
 	static constexpr float VALLEY_FLATTEN_THRESH = 0.25f;
@@ -69,9 +73,6 @@ protected:
 	CollisionAxis createEastWall(const AxisPreStep& initData) noexcept;
 	CollisionAxis createWestWall(const AxisPreStep& initData) noexcept;
 
-	const ColliderRegion* region;
-	const ColliderQuad* cTile;
-	const Collidable* cAble;
 
 	ColliderQuad cQuad;
 
@@ -90,11 +91,6 @@ protected:
 	Vec2f cMid;
 	Vec2f cHalf;
 
-	//bool valley_NE = false;
-	//bool valley_SE = false;
-
-	//bool valley_NW = false;
-	//bool valley_SW = false;
 	ordinal_array<bool> valleys = { false, false, false, false };
 
 	std::array<CollisionAxis, 5> axes; // 5 axes in worst case

@@ -300,18 +300,18 @@ void CollisionDiscrete::updateContact() noexcept {
 				&& pMid.x >= tArea.left) 
 			{
 				float stickY = getYforX(left, cMid.x);
-				axis.contact.stickOffset = std::min(-stickY + axis.contact.separation + (cMid.y + cHalf.y), 0.f);
-				//axis.contact.collider_normal = math::vector(left).lefthand().unit();
-				LOG_INFO("LEFT FLOOR {} {}", axis.contact.separation, axis.contact.stickOffset);
+				axis.contact.stickOffset = -stickY + (cMid.y + cHalf.y) - axis.contact.separation;
+				axis.contact.stickLine = left;
+				//LOG_INFO("LEFT FLOOR {} {}", axis.contact.separation, axis.contact.stickOffset);
 			}
 			else if (right.p1.x < right.p2.x
 				&& cMid.x > tArea.left + tArea.width
 				&& pMid.x <= tArea.left + tArea.width) 
 			{
 				float stickY = getYforX(right, cMid.x);
-				axis.contact.stickOffset = std::min(-stickY + axis.contact.separation + (cMid.y + cHalf.y), 0.f);
-				//axis.contact.collider_normal = math::vector(right).lefthand().unit();
-				LOG_INFO("RIGHT FLOOR {} {}", axis.contact.separation, axis.contact.stickOffset);
+				axis.contact.stickOffset = -stickY + (cMid.y + cHalf.y) - axis.contact.separation;
+				axis.contact.stickLine = right;
+				//LOG_INFO("RIGHT FLOOR {} {}", axis.contact.separation, axis.contact.stickOffset);
 			}
 		}
 		else if (axis.dir == Cardinal::S) {

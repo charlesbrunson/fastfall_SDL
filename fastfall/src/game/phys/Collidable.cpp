@@ -360,7 +360,9 @@ void Collidable::teleport(Vec2f position) noexcept {
 
 void Collidable::applyContact(const Contact& contact, ContactType type) {
 
-	Vec2f offset = contact.ortho_normal * contact.separation;
+	//Vec2f offset = contact.ortho_normal * (contact.separation + contact.stickOffset);
+	Vec2f offset = contact.ortho_normal * (contact.separation);
+
 	move(offset, false);
 
 	if ((type == ContactType::CRUSH_VERTICAL) || (type == ContactType::CRUSH_HORIZONTAL) || (type == ContactType::WEDGE_OPPOSITE) ||
@@ -372,6 +374,7 @@ void Collidable::applyContact(const Contact& contact, ContactType type) {
 	else if (math::dot(get_vel() - contact.velocity, contact.collider_normal) <= 0.f) {
 
 		set_vel(phys_resp::get(*this, contact));
+		
 	}
 }
 
