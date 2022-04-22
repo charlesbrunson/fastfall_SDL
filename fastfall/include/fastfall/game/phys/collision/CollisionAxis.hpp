@@ -48,6 +48,7 @@ public:
 	// cached calcuations for contact updating
 	float separationOffset = 0.f;
 
+
 	// this axis can be used for resolving a collision
 	inline bool is_collider_valid() const noexcept {
 		return collider_valid;

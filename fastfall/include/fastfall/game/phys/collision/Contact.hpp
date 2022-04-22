@@ -61,6 +61,9 @@ struct Contact {
 		return material ? collider_normal.righthand() * material->velocity : Vec2f{};
 	}
 	
+	// offset to stick to the surface after the contact
+	// multiply with ortho_normal
+	float stickOffset = 0.f;
 
 	// moment that the object started intersecting the collider,
 	// represented as a fraction of the tick deltatime [0, 1.0]

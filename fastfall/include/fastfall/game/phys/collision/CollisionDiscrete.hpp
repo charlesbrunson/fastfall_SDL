@@ -90,21 +90,16 @@ protected:
 	Vec2f cMid;
 	Vec2f cHalf;
 
-	bool valley_NE = false;
-	bool valley_SE = false;
+	//bool valley_NE = false;
+	//bool valley_SE = false;
 
-	bool valley_NW = false;
-	bool valley_SW = false;
+	//bool valley_NW = false;
+	//bool valley_SW = false;
+	ordinal_array<bool> valleys = { false, false, false, false };
 
 	std::array<CollisionAxis, 5> axes; // 5 axes in worst case
 	unsigned axis_count = 0;
 
-	inline float getYforX(const Linef& onLine, float X) {
-		Vec2f v = math::vector(onLine);
-		assert(v.x != 0.f); // no vertical lines
-		float scale = ((X - onLine.p1.x) / v.x);
-		return (scale * v.y) + onLine.p1.y;
-	};
 };
 
 }

@@ -332,34 +332,34 @@ Vec2f SurfaceTracker::do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left,
 
 CollidableOffsets SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime, std::optional<PersistantContact> contact_override) const {
 
-	std::optional<PersistantContact> local_contact;
+	//std::optional<PersistantContact> local_contact;
 
-	if (contact_override) {
-		local_contact = *contact_override;
-	}
-	else if (currentContact) {
-		local_contact = *currentContact;
-	}
-	bool local_has_contact = local_contact && local_contact->hasContact;
+	//if (contact_override) {
+	//	local_contact = *contact_override;
+	//}
+	//else if (currentContact) {
+	//	local_contact = *currentContact;
+	//}
+	//bool local_has_contact = local_contact && local_contact->hasContact;
 
 
 	CollidableOffsets out;
 
-	Vec2f position = wish_pos;
+	//Vec2f position = wish_pos;
 
-	if (local_has_contact && deltaTime > 0.0) {
+	//if (local_has_contact && deltaTime > 0.0) {
 
-		const auto& contact = local_contact.value();
+	//	const auto& contact = local_contact.value();
 
-		float left = std::min(contact.collider.surface.p1.x, contact.collider.surface.p2.x);
-		float right = std::max(contact.collider.surface.p1.x, contact.collider.surface.p2.x);
+	//	float left = std::min(contact.collider.surface.p1.x, contact.collider.surface.p2.x);
+	//	float right = std::max(contact.collider.surface.p1.x, contact.collider.surface.p2.x);
 
-		if (settings.slope_sticking && left < right) {
+	//	if (settings.slope_sticking && left < right) {
 
-			position += do_slope_stick(wish_pos, prev_pos, left, right, contact);
-		}
-	}
-	out.position = position - wish_pos;
+	//		position += do_slope_stick(wish_pos, prev_pos, left, right, contact);
+	//	}
+	//}
+	//out.position = position - wish_pos;
 	return out;
 }
 

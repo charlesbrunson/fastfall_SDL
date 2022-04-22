@@ -3,14 +3,22 @@
 #include "fastfall/util/log.hpp"
 #include "fastfall/engine/config.hpp"
 
+
 namespace ff {
 
-	CollisionDiscrete::CollisionDiscrete(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion, bool collidePreviousFrame) :
-		cAble(collidable),
-		cTile(collisionTile),
-		cQuad(*collisionTile),
-		collidePrevious(collidePreviousFrame),
-		region(colliderRegion)
+inline float getYforX(const Linef& onLine, float X) {
+	Vec2f v = math::vector(onLine);
+	assert(v.x != 0.f); // no vertical lines
+	float scale = ((X - onLine.p1.x) / v.x);
+	return (scale * v.y) + onLine.p1.y;
+};
+
+CollisionDiscrete::CollisionDiscrete(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion, bool collidePreviousFrame) :
+	cAble(collidable),
+	cTile(collisionTile),
+	cQuad(*collisionTile),
+	collidePrevious(collidePreviousFrame),
+	region(colliderRegion)
 {
 	//axes.reserve(8u);
 	reset(collisionTile, colliderRegion, collidePreviousFrame);
@@ -20,11 +28,12 @@ void CollisionDiscrete::reset(const ColliderQuad* collisionTile, const ColliderR
 	collidePrevious = collidePreviousFrame;
 	cQuad = *collisionTile;
 
-	valley_NE = false;
-	valley_SE = false;
+	valleys = { false, false, false, false };
+	//valley_NE = false;
+	//valley_SE = false;
 
-	valley_NW = false;
-	valley_SW = false;
+	//valley_NW = false;
+	//valley_SW = false;
 
 	//evaluated = false;
 
@@ -193,29 +202,25 @@ void CollisionDiscrete::createAxes() noexcept
 	// these axis will only be used to determine intersection
 	// and cannot be selected for the resolving axis
 
-	if (!hasFloor) {
+	auto make_fake = [](Linef line, Cardinal dir) -> AxisPreStep{
 		ColliderSurface fake;
-		fake.surface.p1 = math::rect_topleft(tArea);
-		fake.surface.p2 = math::rect_topright(tArea);
-		non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::N, .surface = fake, .is_real = false, .is_valid = false, .quadNdx = 255u };
+		fake.surface = line;
+		return AxisPreStep{ .dir = dir, .surface = fake, .is_real = false, .is_valid = false, .quadNdx = 255u };
+	};
+
+	auto points = tArea.toPoints();
+
+	if (!hasFloor) {
+		non_verticals[hSize++] = make_fake({points[0], points[1]}, Cardinal::N);
 	}
 	if (!hasCeil) {
-		ColliderSurface fake;
-		fake.surface.p1 = math::rect_botright(tArea);
-		fake.surface.p2 = math::rect_botleft(tArea);
-		non_verticals[hSize++] = AxisPreStep{ .dir = Cardinal::S, .surface = fake, .is_real = false, .is_valid = false, .quadNdx = 255u };
+		non_verticals[hSize++] = make_fake({points[3], points[2]}, Cardinal::S);
 	}
 	if (!hasEast && !hasEastCorner) {
-		ColliderSurface fake;
-		fake.surface.p1 = math::rect_topright(tArea);
-		fake.surface.p2 = math::rect_botright(tArea);
-		verticals[vSize++] = AxisPreStep{ .dir = Cardinal::E, .surface = fake, .is_real = false,	.is_valid = false, .quadNdx = 255u };
+		verticals[vSize++] = make_fake({points[1], points[3]}, Cardinal::E);
 	}
 	if (!hasWest && !hasWestCorner) {
-		ColliderSurface fake;
-		fake.surface.p1 = math::rect_botleft(tArea);
-		fake.surface.p2 = math::rect_topleft(tArea);
-		verticals[vSize++] = AxisPreStep{ .dir = Cardinal::W, .surface = fake, .is_real = false, .is_valid = false, .quadNdx = 255u };
+		verticals[vSize++] = make_fake({points[2], points[0]}, Cardinal::W);
 	}
 
 	std::sort(verticals.begin(), verticals.begin() + vSize,
@@ -282,10 +287,32 @@ void CollisionDiscrete::updateContact() noexcept {
 				}
 			}
 
-
 			axis.contact.separation = -Y + (cMid.y + cHalf.y);
 			axis.contact.position = Vec2f(math::clamp(cMid.x, tArea.left, tArea.left + tArea.width), Y);
 
+			Vec2f pMid = math::rect_mid(cPrev);
+			Vec2f pHalf = cPrev.getSize() / 2.f;
+			Linef left{ axis.contact.collider.ghostp0, axis.contact.collider.surface.p1 };
+			Linef right{ axis.contact.collider.surface.p2, axis.contact.collider.ghostp3 };
+
+			if (left.p1.x < left.p2.x
+				&& cMid.x < tArea.left 
+				&& pMid.x >= tArea.left) 
+			{
+				float stickY = getYforX(left, cMid.x);
+				axis.contact.stickOffset = std::min(-stickY + axis.contact.separation + (cMid.y + cHalf.y), 0.f);
+				//axis.contact.collider_normal = math::vector(left).lefthand().unit();
+				LOG_INFO("LEFT FLOOR {} {}", axis.contact.separation, axis.contact.stickOffset);
+			}
+			else if (right.p1.x < right.p2.x
+				&& cMid.x > tArea.left + tArea.width
+				&& pMid.x <= tArea.left + tArea.width) 
+			{
+				float stickY = getYforX(right, cMid.x);
+				axis.contact.stickOffset = std::min(-stickY + axis.contact.separation + (cMid.y + cHalf.y), 0.f);
+				//axis.contact.collider_normal = math::vector(right).lefthand().unit();
+				LOG_INFO("RIGHT FLOOR {} {}", axis.contact.separation, axis.contact.stickOffset);
+			}
 		}
 		else if (axis.dir == Cardinal::S) {
 
@@ -339,8 +366,8 @@ void CollisionDiscrete::evalContact() noexcept {
 		// some post-processing
 		if (axis.dir == Cardinal::N) {
 			// follow up on valley check
-			if ((valley_NE && cMid.x > math::rect_topright(tArea).x - VALLEY_FLATTEN_THRESH) ||
-				(valley_NW && cMid.x < math::rect_topleft(tArea).x + VALLEY_FLATTEN_THRESH)) {
+			if ((valleys[Ordinal::NE] && cMid.x > math::rect_topright(tArea).x - VALLEY_FLATTEN_THRESH) ||
+				(valleys[Ordinal::NW] && cMid.x < math::rect_topleft(tArea).x + VALLEY_FLATTEN_THRESH)) {
 				axis.contact.collider_normal = axis.contact.ortho_normal;
 
 				float nSep = -std::max(axis.contact.collider.surface.p1.y, axis.contact.collider.surface.p2.y) + (cMid.y + cHalf.y);
@@ -348,12 +375,12 @@ void CollisionDiscrete::evalContact() noexcept {
 
 			}
 
-			axis.contact.hasValley = valley_NE || valley_NW;
+			axis.contact.hasValley = valleys[Ordinal::NE] || valleys[Ordinal::NW];
 		}
 		else if (axis.dir == Cardinal::S) {
 			// follow up on valley check
-			if ((valley_SE && cMid.x > math::rect_topright(tArea).x - VALLEY_FLATTEN_THRESH) ||
-				(valley_SW && cMid.x < math::rect_topleft(tArea).x + VALLEY_FLATTEN_THRESH)) {
+			if ((valleys[Ordinal::SE] && cMid.x > math::rect_topright(tArea).x - VALLEY_FLATTEN_THRESH) ||
+				(valleys[Ordinal::SW] && cMid.x < math::rect_topleft(tArea).x + VALLEY_FLATTEN_THRESH)) {
 				axis.contact.collider_normal = axis.contact.ortho_normal;
 
 				float nSep = std::min(axis.contact.collider.surface.p1.y, axis.contact.collider.surface.p2.y) - (cMid.y - cHalf.y);
@@ -362,7 +389,7 @@ void CollisionDiscrete::evalContact() noexcept {
 				axis.contact.separation = std::max(axis.contact.separation, nSep);
 			}
 
-			axis.contact.hasValley = valley_SE || valley_SW;
+			axis.contact.hasValley = valleys[Ordinal::SE] || valleys[Ordinal::SW];
 		}
 		axis.contact.hasContact = axis.axisValid && axis.is_intersecting();
 
@@ -483,7 +510,7 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 					ColliderSurface& surf = other_axis.contact.collider;
 
 					if (surf.surface.p2.y > surf.ghostp3.y && surf.surface.p2.y > surf.surface.p1.y) {
-						valley_NE = true;
+						valleys[Ordinal::NE] = true;
 						return true;
 					}
 				}
@@ -491,7 +518,7 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 					ColliderSurface& surf = other_axis.contact.collider;
 
 					if (surf.surface.p1.y < surf.ghostp0.y && surf.surface.p1.y < surf.surface.p2.y) {
-						valley_SE = true;
+						valleys[Ordinal::NW] = true;
 						return true;
 					}
 				}
@@ -536,7 +563,7 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 					ColliderSurface& surf = other_axis.contact.collider;
 
 					if (surf.surface.p1.y > surf.ghostp0.y && surf.surface.p1.y > surf.surface.p2.y) {
-						valley_NW = true;
+						valleys[Ordinal::NW] = true;
 						return true;
 					}
 				}
@@ -544,7 +571,7 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 					ColliderSurface& surf = other_axis.contact.collider;
 
 					if (surf.surface.p2.y < surf.ghostp3.y && surf.surface.p2.y < surf.surface.p1.y) {
-						valley_SW = true;
+						valleys[Ordinal::SW] = true;
 						return true;
 					}
 				}
