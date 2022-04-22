@@ -135,6 +135,35 @@ TEST_F(collision, ghostcheck_slopedceil_to_wall)
 
 }
 
+TEST_F(collision, half_pipe)
+{
+	initTileMap({
+		/*          x:0         x:16		x:32		x:48		x:64 */
+		/* y:0 _*/ {"", 		"",			"",			"",			"",			""},
+		/* y:16_*/ {"", 		"",			"",			"",			"",			"solid"},
+		/* y:32_*/ {"", 		"",			"",			"",			"steep2",	"solid"},
+		/* y:48_*/ {"", 		"",			"",			"",			"steep1",   "solid"},
+		/* y:64_*/ {"", 		"",			"",			"slope",	"solid",	"solid"},
+		/* y:80_*/ {"half", 	"half",		"shallow2",	"solid",	"solid",	"solid"},
+		/* y:96_*/ {"solid", 	"solid",	"solid",	"solid",	"solid",	"solid"},
+		});
+
+	box->teleport(Vec2f{ 8, 88 });
+	box->set_vel(Vec2f{ 400.f, 0.f  });
+	box->set_gravity(Vec2f{ 0.f, 500.f  });
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.frame_delay = 2;
+	render.draw(colMan);
+
+	while (render.curr_frame < 120) {
+		update();
+		render.draw(colMan);
+	}
+	ASSERT_LT(box->getPosition().x, 0.f);
+
+}
+
 TEST_F(collision, static_tunneling)
 {
 	initTileMap({

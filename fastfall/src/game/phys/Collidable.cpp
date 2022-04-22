@@ -279,7 +279,7 @@ void Collidable::update(secs deltaTime) {
 
 		// perform post move before applying gravity
 		for (auto& tracker : trackers) {
-			CollidableOffsets offsets = tracker->postmove_update(next_pos, prev_pos, deltaTime);
+			CollidableOffsets offsets = tracker->postmove_update(next_pos, prev_pos);
 			next_pos += offsets.position;
 			vel += offsets.velocity;
 			acc += offsets.acceleration;
@@ -375,6 +375,13 @@ void Collidable::applyContact(const Contact& contact, ContactType type) {
 
 		set_vel(phys_resp::get(*this, contact));
 		
+	}
+
+	if (contact.hasImpactTime) {
+		//LOG_INFO("ye");
+		for (auto& tracker : trackers) {
+			tracker->firstCollisionWith(contact);		
+		}
 	}
 }
 

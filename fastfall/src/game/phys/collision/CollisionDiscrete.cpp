@@ -302,7 +302,6 @@ void CollisionDiscrete::updateContact() noexcept {
 				float stickY = getYforX(left, cMid.x);
 				axis.contact.stickOffset = -stickY + (cMid.y + cHalf.y) - axis.contact.separation;
 				axis.contact.stickLine = left;
-				//LOG_INFO("LEFT FLOOR {} {}", axis.contact.separation, axis.contact.stickOffset);
 			}
 			else if (right.p1.x < right.p2.x
 				&& cMid.x > tArea.left + tArea.width
@@ -311,7 +310,6 @@ void CollisionDiscrete::updateContact() noexcept {
 				float stickY = getYforX(right, cMid.x);
 				axis.contact.stickOffset = -stickY + (cMid.y + cHalf.y) - axis.contact.separation;
 				axis.contact.stickLine = right;
-				//LOG_INFO("RIGHT FLOOR {} {}", axis.contact.separation, axis.contact.stickOffset);
 			}
 		}
 		else if (axis.dir == Cardinal::S) {
@@ -336,6 +334,28 @@ void CollisionDiscrete::updateContact() noexcept {
 
 			axis.contact.separation = Y - (cMid.y - cHalf.y);
 			axis.contact.position = Vec2f(math::clamp(cMid.x, tArea.left, tArea.left + tArea.width), Y);
+
+			Vec2f pMid = math::rect_mid(cPrev);
+			Vec2f pHalf = cPrev.getSize() / 2.f;
+			Linef left{ axis.contact.collider.surface.p2, axis.contact.collider.ghostp3 };
+			Linef right{ axis.contact.collider.ghostp0, axis.contact.collider.surface.p1 };
+
+			if (left.p1.x > left.p2.x
+				&& cMid.x < tArea.left 
+				&& pMid.x >= tArea.left) 
+			{
+				float stickY = getYforX(left, cMid.x);
+				axis.contact.stickOffset = -stickY + (cMid.y - cHalf.y) - axis.contact.separation;
+				axis.contact.stickLine = left;
+			}
+			else if (right.p1.x > right.p2.x
+				&& cMid.x > tArea.left + tArea.width
+				&& pMid.x <= tArea.left + tArea.width) 
+			{
+				float stickY = getYforX(right, cMid.x);
+				axis.contact.stickOffset = -stickY + (cMid.y - cHalf.y) - axis.contact.separation;
+				axis.contact.stickLine = right;
+			}
 		}
 		else if (axis.dir == Cardinal::E) {
 

@@ -30,7 +30,7 @@ public:
 	SurfaceTracker(Angle ang_min, Angle ang_max, bool inclusive = true);
 
 	CollidableOffsets premove_update(secs deltaTime);
-	CollidableOffsets postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime, std::optional<PersistantContact> contact_override = {}) const;
+	CollidableOffsets postmove_update(Vec2f wish_pos, Vec2f prev_pos, std::optional<PersistantContact> contact_override = {}) const;
 
 	void process_contacts(std::vector<PersistantContact>& contacts);
 	bool has_contact() const noexcept;
@@ -44,12 +44,14 @@ public:
 
 	inline Collidable* get_collidable() { return owner; };
 
-	bool can_make_contact_with(const PersistantContact& contact) const noexcept;
+	bool can_make_contact_with(const Contact& contact) const noexcept;
 
 	const std::optional<PersistantContact>& get_contact() { return currentContact; };
 
 	void start_touch(PersistantContact& contact);
 	void end_touch(PersistantContact& contact);
+
+	void firstCollisionWith(const Contact& contact);
 
 	// time in contact
 	// this will propogate across different surfaces

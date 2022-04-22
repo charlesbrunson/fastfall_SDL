@@ -18,9 +18,8 @@ bool SurfaceTracker::has_contact() const noexcept {
 };
 
 
-bool SurfaceTracker::can_make_contact_with(const PersistantContact& contact) const noexcept 
+bool SurfaceTracker::can_make_contact_with(const Contact& contact) const noexcept 
 {
-
 	Angle angle = math::angle(contact.collider_normal);
 	bool withinStickMax = true;
 	if (currentContact)
@@ -330,11 +329,11 @@ Vec2f SurfaceTracker::do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left,
 	return Vec2f{};
 }
 
-CollidableOffsets SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos, secs deltaTime, std::optional<PersistantContact> contact_override) const {
+CollidableOffsets SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos, std::optional<PersistantContact> contact_override) const {
 
-	return CollidableOffsets{};
+	//return CollidableOffsets{};
 
-	/*
+	
 	std::optional<PersistantContact> local_contact;
 
 	if (contact_override) {
@@ -350,7 +349,8 @@ CollidableOffsets SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos
 
 	Vec2f position = wish_pos;
 
-	if (local_has_contact && deltaTime > 0.0) {
+	//if (local_has_contact && deltaTime > 0.0) {
+	if (local_has_contact) {
 
 		const auto& contact = local_contact.value();
 
@@ -364,7 +364,7 @@ CollidableOffsets SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos
 	}
 	out.position = position - wish_pos;
 	return out;
-	*/
+	
 }
 
 void SurfaceTracker::start_touch(PersistantContact& contact) {
@@ -450,6 +450,25 @@ std::optional<float> SurfaceTracker::traverse_get_speed() {
 		}
 	}
 	return speed;
+}
+
+void SurfaceTracker::firstCollisionWith(const Contact& contact) 
+{
+	// ugly hack to let surface tracker stick on the first frame
+	if (!has_contact() 
+		&& can_make_contact_with(contact)
+		&& settings.slope_sticking
+		&& contact.stickOffset != 0.f)
+	{
+		PersistantContact pc{contact};
+		start_touch(pc);
+
+		owner->setPosition(owner->getPosition() + (contact.ortho_normal * contact.stickOffset), false);
+
+		float vmag = owner->get_vel().magnitude();
+		owner->set_vel(vmag * math::projection(owner->get_vel(), math::vector(contact.stickLine)).unit());
+
+	}
 }
 
 }

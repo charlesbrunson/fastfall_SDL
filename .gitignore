@@ -6,8 +6,6 @@
 fastfall/external/*/
 fastfall/test/googletest
 fastfall/test/googletest/*
-build/*
-build_em/*
 compile_commands.json
 
 # User-specific files
@@ -25,6 +23,8 @@ mono_crash.*
 
 # Build results
 cmake-build-*/
+build/*
+build_em/*
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/

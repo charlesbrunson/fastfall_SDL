@@ -130,17 +130,21 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 	bool intersectionOccurs = firstExit >= lastEntry;
 
 	if (noCollision) {
+		// no collision at all
 		copiedContact = nullptr;
 		contact = currCollision.getContact();
 
 		resolve = -2;
 	}
 	else if (hasTouchAxis && intersectionOccurs) {
+
+		// collision
+
 		copiedContact = &touchingAxis->contact;
 		contact = touchingAxis->contact;
 		contact.hasContact = touchingAxis->is_intersecting();
 
-		/*
+		
 		auto opposite = direction::opposite(touchingAxis->dir);
 		bool opposite_intersecting = false;
 		for (int ndx = 0; ndx < currCollision.getAxisCount(); ndx++)
@@ -163,7 +167,7 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 		{
 			contact.hasContact &= currCollision.getContact().hasContact;
 		}
-		*/
+		
 
 		contact.hasImpactTime = lastEntry > 0;
 		contact.impactTime = lastEntry;
@@ -196,6 +200,7 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 	}
 
 	if (resolve >= 0) {
+		//fmt::print(stderr, "resolve={}\n", resolve);
 		//LOG_INFO("resolve={}", resolve);
 	}
 
