@@ -208,14 +208,12 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 		velocity = region->velocity;
 	}
 
-	//if (contact.hasContact)
-		contact.velocity = velocity;
-
+	contact.velocity = velocity;
 	evaluated = true;
 
-	if (deltaTime == 0.0) {
+	//if (deltaTime == 0.0) {
 		slipUpdate();
-	}
+	//}
 
 	return resolve;
 }
@@ -224,8 +222,9 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 void CollisionContinuous::slipUpdate() {
 
 	// vertical slip
-	if (cAble->getSlipV() != 0.f) {
-		auto slip = getVerticalSlipContact(cAble->getSlipV());
+	if (cAble->hasSlipV()) 
+	{
+		auto slip = getVerticalSlipContact(cAble->getSlip().leeway);
 		if (slip) {
 			contact = slip.value();
 		}
@@ -241,12 +240,8 @@ std::optional<Contact> CollisionContinuous::getVerticalSlipContact(float leeway)
 		throw "contact must be evaluated first";
 
 	// leeway must be != 0.f
-	if (leeway == 0.f)
+	if (leeway <= 0.f)
 		return std::nullopt;
-
-	// leeway must be > 0
-	if (leeway < 0.f)
-		leeway *= -1.f;
 
 	// slip only applicable on first contact
 	if (!contact.hasContact  || !contact.hasImpactTime)
@@ -264,7 +259,7 @@ std::optional<Contact> CollisionContinuous::getVerticalSlipContact(float leeway)
 		if (!nAxis && axis.dir == Cardinal::N) {
 			nAxis = &axis;
 		}
-		else if (!sAxis && axis.dir == Cardinal::S) {
+		if (!sAxis && axis.dir == Cardinal::S) {
 			sAxis = &axis;
 		}
 	}
@@ -272,10 +267,18 @@ std::optional<Contact> CollisionContinuous::getVerticalSlipContact(float leeway)
 	bool canNorth = false;
 	bool canSouth = false;
 
-	if (nAxis && nAxis->is_collider_valid() && nAxis->contact.separation - leeway < 0.f) {
+	if (nAxis 
+		&& nAxis->is_collider_valid() 
+		&& nAxis->contact.separation >= 0.f
+		&& nAxis->contact.separation <= leeway) 
+	{
 		canNorth = true;
 	}
-	if (sAxis && sAxis->is_collider_valid() && sAxis->contact.separation - leeway < 0.f) {
+	if (sAxis 
+		&& sAxis->is_collider_valid() 
+		&& sAxis->contact.separation >= 0.f
+		&& sAxis->contact.separation <= leeway) 
+	{
 		canSouth = true;
 	}
 

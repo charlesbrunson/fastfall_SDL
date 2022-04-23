@@ -28,7 +28,7 @@ PlayerStateID PlayerAirState::update(plr::members& plr, secs deltaTime)
 
 		if (plr.box->get_vel().y > -100.f) 
 		{
-			plr.box->setSlipV(6.f);
+			plr.box->setSlip({Collidable::SlipState::SlipVertical, 6.f});
 		}
 
 		if (abs(plr.box->get_vel().y) < 50.f) {

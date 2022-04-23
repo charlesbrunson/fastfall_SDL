@@ -21,11 +21,6 @@ namespace ff {
 
 class Collidable {
 private:
-	enum class SlipState {
-		SlipNone,
-		SlipHorizontal,
-		SlipVertical
-	};
 
 public:
 
@@ -106,20 +101,31 @@ public:
 
 	inline CollidableID get_ID() const noexcept { return id; };
 
-	void setSlipNone() { slipState = SlipState::SlipNone; slipLeeway = 0.f; };
-	void setSlipH(float leeway) { slipState = SlipState::SlipHorizontal; slipLeeway = leeway; };
-	void setSlipV(float leeway) { slipState = SlipState::SlipVertical; slipLeeway = leeway; };
+	enum class SlipState {
+		SlipHorizontal,
+		SlipVertical
+	};
 
-	float getSlipH() const noexcept { return slipState == SlipState::SlipHorizontal ? slipLeeway : 0.f; };
-	float getSlipV() const noexcept { return slipState == SlipState::SlipVertical ? slipLeeway : 0.f; };
+	struct slip_t {
+		SlipState state = SlipState::SlipHorizontal;
+		float leeway 	= 0.f;
+	};
+
+	void setSlip(slip_t set) { slip = set; };
+
+	bool hasSlip() const noexcept { return slip.leeway != 0.f; };
+	bool hasSlipH() const noexcept { return hasSlip() && slip.state == SlipState::SlipHorizontal; };
+	bool hasSlipV() const noexcept { return hasSlip() && slip.state == SlipState::SlipVertical; };
+	slip_t getSlip() const noexcept { return slip; }
+
 
 	struct callbacks_t {
 		std::function<void()> onPostCollision;
 	} callbacks;
 
 private:
-	SlipState slipState = SlipState::SlipNone;
-	float slipLeeway = 0.f;
+
+	slip_t slip;
 
 	bool hori_crush = false;
 	bool vert_crush = false;

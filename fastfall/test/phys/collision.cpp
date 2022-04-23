@@ -164,6 +164,40 @@ TEST_F(collision, half_pipe)
 
 }
 
+TEST_F(collision, slip_v)
+{
+	initTileMap({
+		/*          x:0         x:16		x:32		x:48		x:64 */
+		/* y:0 _*/ {"", 		"",			""},
+		/* y:16_*/ {"", 		"",			""},
+		/* y:32_*/ {"solid", 	"",			""},
+		});
+
+	box->teleport(Vec2f{ 40, 36 });
+	box->set_vel(Vec2f{ -400.f, 0.f  });
+	box->set_gravity(Vec2f{ 0.f, 0.f  });
+	box->setSlip({Collidable::SlipState::SlipVertical, 6.f});
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.frame_delay = 20;
+	render.draw(colMan);
+
+	while (render.curr_frame < 8) {
+		update();
+		render.draw(colMan);
+	}
+	ASSERT_LT(box->getPosition().x, 0.f);
+
+	box->teleport(Vec2f{ 40, 37 });
+
+	while (render.curr_frame < 16) {
+		update();
+		render.draw(colMan);
+	}
+	ASSERT_EQ(box->getPosition().x, 24.f);
+
+}
+
 TEST_F(collision, static_tunneling)
 {
 	initTileMap({

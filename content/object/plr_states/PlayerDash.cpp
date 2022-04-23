@@ -111,7 +111,7 @@ PlayerStateID PlayerDashState::update(plr::members& plr, secs deltaTime)
 		return PlayerStateID::Continue;
 
 	if (plr.ground->has_contact()) {
-		plr.box->setSlipNone();
+		plr.box->setSlip({});
 		ground_flag = true;
 		plr.box->set_gravity(constants::grav_normal);
 		apply_dash_vel(plr, get_dash_vel(dash_speed));
@@ -138,7 +138,7 @@ PlayerStateID PlayerDashState::update(plr::members& plr, secs deltaTime)
 		}
 	}
 	else {
-		plr.box->setSlipV(6.f);
+		plr.box->setSlip({Collidable::SlipState::SlipVertical, 6.f});
 		plr.box->set_gravity(Vec2f{});
 		if (ground_flag) {
 
