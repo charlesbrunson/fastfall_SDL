@@ -377,6 +377,7 @@ void CollisionDiscrete::evalContact() noexcept {
 
 	bool hasContact = true;
 	unsigned noContactCounter = 0u;
+	chosen_axis = -1;
 	//for (auto& axis : axes) {
 	for (unsigned i = 0; i < axis_count; i++)
 	{
@@ -422,7 +423,7 @@ void CollisionDiscrete::evalContact() noexcept {
 	CollisionAxis* secondPick = nullptr; // determine best orthogonal movement to touch
 
 	if (noContactCounter == 0u) {
-		for (unsigned i = 0; i < axis_count; i++)
+		for (int i = 0; i < axis_count; i++)
 		{
 			auto& axis = axes[i];
 
@@ -432,6 +433,7 @@ void CollisionDiscrete::evalContact() noexcept {
 
 			if (axis.is_collider_valid() &&	sepCmp()) {
 				bestPick = &axis;
+				chosen_axis = i;
 			}
 		}
 	}
@@ -459,7 +461,8 @@ void CollisionDiscrete::evalContact() noexcept {
 	}
 	else if (secondPick) {
 		contact = secondPick->contact;
-		contact.hasContact = false;
+		chosen_axis = -1;
+		//contact.hasContact = false;
 	}
 
 	contact.hasContact = hasContact;

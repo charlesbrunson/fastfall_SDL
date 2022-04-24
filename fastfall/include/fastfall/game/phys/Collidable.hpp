@@ -18,52 +18,39 @@
 
 namespace ff {
 
-enum class CollisionStateFlags : unsigned {
-	None = 0,
-	Floor = 1,
-	Wall_L,
-	Wall_R,
-	Ceiling,
-
-	Crush_H,
-	Crush_V,
-	Wedge,
-
-};
 
 struct collision_state_t {
+	enum class flags : unsigned {
+		None = 0,
+		Floor = 1,
+		Wall_L,
+		Wall_R,
+		Ceiling,
 
-	bool has_set(CollisionStateFlags type)
-	{
-		return flags & (1 << static_cast<unsigned>(type));
-	}
+		Crush_H,
+		Crush_V,
+		Wedge,
+
+	};
+
+	void reset() { flags = 0u; }
+	void set_flag(flags type) { flags |= (1 << static_cast<unsigned>(type)); }
+
+	bool has_set(flags type) const { return flags & (1 << static_cast<unsigned>(type)); }
 
 	template<class ... Flags>
-	requires (std::same_as<Flags, CollisionStateFlags> && ...)
-	bool has_any(Flags... flag) noexcept {
-		return (has_collision(flag) || ...);
+	requires (std::same_as<Flags, flags> && ...)
+	bool has_any(Flags... flag) const noexcept {
+		return (has_set(flag) || ...);
 	};
 
 	template<class ... Flags>
-	requires (std::same_as<Flags, CollisionStateFlags> && ...)
-	bool has_all(Flags... flag) noexcept {
-		return (has_collision(flag) && ...);
+	requires (std::same_as<Flags, flags> && ...)
+	bool has_all(Flags... flag) const noexcept {
+		return (has_set(flag) && ...);
 	};
-
-
-	void set_flag(CollisionStateFlags type)
-	{
-		flags |= (1 << static_cast<unsigned>(type));
-	}
 
 private:
-	friend class Collidable;
-
-	void reset()
-	{
-		flags = 0u;
-	}
-
 	unsigned flags = 0u;
 };
 
@@ -171,9 +158,11 @@ public:
 		std::function<void()> onPostCollision;
 	} callbacks;
 
-	collision_state_t col_state;
+	const collision_state_t& get_state_flags() const { return col_state; }
 
 private:
+
+	collision_state_t col_state;
 
 	slip_t slip;
 

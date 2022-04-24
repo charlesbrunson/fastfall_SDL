@@ -501,13 +501,13 @@ void Collidable::process_current_frame()
 		switch(contact.type)
 		{
 		case ContactType::CRUSH_HORIZONTAL: 
-			col_state.set_flag(CollisionStateFlags::Crush_H);
+			col_state.set_flag(collision_state_t::flags::Crush_H);
 			break;
 		case ContactType::CRUSH_VERTICAL: 
-			col_state.set_flag(CollisionStateFlags::Crush_V);
+			col_state.set_flag(collision_state_t::flags::Crush_V);
 			break;
 		case ContactType::WEDGE_OPPOSITE: 
-			col_state.set_flag(CollisionStateFlags::Wedge);
+			col_state.set_flag(collision_state_t::flags::Wedge);
 			apply_wedge(contact);
 			break;
 		case ContactType::SINGLE: 
@@ -515,10 +515,10 @@ void Collidable::process_current_frame()
 			{
 				switch(optd.value()) 
 				{
-				case Cardinal::N: col_state.set_flag(CollisionStateFlags::Floor); 	break;
-				case Cardinal::S: col_state.set_flag(CollisionStateFlags::Ceiling); break;
-				case Cardinal::E: col_state.set_flag(CollisionStateFlags::Wall_L); 	break;
-				case Cardinal::W: col_state.set_flag(CollisionStateFlags::Wall_R); 	break;
+				case Cardinal::N: col_state.set_flag(collision_state_t::flags::Floor); 	break;
+				case Cardinal::S: col_state.set_flag(collision_state_t::flags::Ceiling); break;
+				case Cardinal::E: col_state.set_flag(collision_state_t::flags::Wall_L); 	break;
+				case Cardinal::W: col_state.set_flag(collision_state_t::flags::Wall_R); 	break;
 				}
 			}
 			break;

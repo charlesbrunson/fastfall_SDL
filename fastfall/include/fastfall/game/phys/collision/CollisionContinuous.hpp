@@ -14,9 +14,8 @@ private:
 
 	int lastAxisCollided = -1;
 
-	const Contact* copiedContact = nullptr;
+	//const Contact* copiedContact = nullptr;
 
-	int evalContact(secs deltaTime);
 
 	ColliderQuad prevTile;
 	const ColliderQuad* cTile;
@@ -29,6 +28,11 @@ private:
 	//Vec2f regionPosition;
 
 	Vec2f velocity;
+
+	void evalContact(secs deltaTime);
+
+	void slipUpdate();
+	std::optional<Contact> getVerticalSlipContact(float leeway);
 
 public:
 
@@ -52,15 +56,11 @@ public:
 	inline Contact getDiscretePreviousContact() const noexcept { return prevCollision.getContact(); }
 
 
-	int resolveType = -1;
+	//int resolveType = -1;
 
 	void setAxisApplied(Vec2f ortho_normal) noexcept {
 		currCollision.setAxisApplied(ortho_normal);
 	}
-private:
-	void slipUpdate();
-
-	std::optional<Contact> getVerticalSlipContact(float leeway);
 };
 
 }

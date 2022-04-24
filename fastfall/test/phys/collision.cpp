@@ -173,10 +173,10 @@ TEST_F(collision, slip_v)
 		/* y:32_*/ {"solid", 	"",			""},
 		});
 
-	box->teleport(Vec2f{ 40, 36 });
+	box->teleport(Vec2f{ 40, 32 + 5 });
 	box->set_vel(Vec2f{ -400.f, 0.f  });
 	box->set_gravity(Vec2f{ 0.f, 0.f  });
-	box->setSlip({Collidable::SlipState::SlipVertical, 6.f});
+	box->setSlip({Collidable::SlipState::SlipVertical, 5.f});
 
 	TestPhysRenderer render(collider->getBoundingBox());
 	render.frame_delay = 20;
@@ -188,7 +188,7 @@ TEST_F(collision, slip_v)
 	}
 	ASSERT_LT(box->getPosition().x, 0.f);
 
-	box->teleport(Vec2f{ 40, 37 });
+	box->teleport(Vec2f{ 40, 32 + 5.01f });
 
 	while (render.curr_frame < 16) {
 		update();

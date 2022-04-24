@@ -48,6 +48,8 @@ public:
 	const ColliderQuad* cTile;
 	const Collidable* cAble;
 
+	int getChosenAxis() const { return chosen_axis; };
+
 protected:
 
 	static constexpr float VALLEY_FLATTEN_THRESH = 0.25f;
@@ -77,6 +79,7 @@ protected:
 	ColliderQuad cQuad;
 
 	Contact contact;
+	int chosen_axis = -1;
 
 	bool collidePrevious;
 

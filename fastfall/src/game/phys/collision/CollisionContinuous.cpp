@@ -39,7 +39,8 @@ void CollisionContinuous::update(secs deltaTime) {
 		}
 
 		currCollision.reset(cTile, region, false);
-		resolveType = evalContact(deltaTime);
+		//resolveType = 
+		evalContact(deltaTime);
 	}
 	else {
 		currCollision.updateContact();
@@ -48,13 +49,12 @@ void CollisionContinuous::update(secs deltaTime) {
 	prevTile = *cTile;
 }
 
-int CollisionContinuous::evalContact(secs deltaTime) {
+void CollisionContinuous::evalContact(secs deltaTime) {
 	auto getRoot = [](float y0, float y1) {
 		return -1.f * (y0 / (y1 - y0));
 	};
 
 	contact = Contact{};
-	copiedContact = nullptr;
 
 	unsigned pCount = prevCollision.getAxisCount();
 	unsigned cCount = currCollision.getAxisCount();
@@ -65,8 +65,27 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 	float lastEntry = 0.f;
 
 	const CollisionAxis* touchingAxis = nullptr;
-
 	int touchingAxisNdx = 0;
+
+	auto update_touch_axis = [&](float nRoot, const CollisionAxis* axis, int axis_ndx) 
+	{
+		if (nRoot >= 0.f && nRoot < 1.f && nRoot >= lastEntry)
+		{
+			if (touchingAxis
+				&& nRoot == lastEntry
+				&& touchingAxis->contact.separation > axis->contact.separation)
+			{
+				touchingAxis = axis;
+				touchingAxisNdx = axis_ndx;
+			}
+			else {
+				lastEntry = nRoot;
+				touchingAxis = axis;
+				touchingAxisNdx = axis_ndx;
+			}
+		}
+	};
+
 
 	bool alwaysColliding = true;
 	bool noCollision = false;
@@ -77,82 +96,70 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 	bool pIntersects;
 	bool cIntersects;
 
-	float root;
-	int resolve = -1;
-
 	for (unsigned i = 0; i < cCount; i++) {
 		pAxis = &prevCollision.getCollisionAxis(i);
 		cAxis = &currCollision.getCollisionAxis(i);
 
 		pIntersects = pAxis->is_intersecting() && !pAxis->applied;
 		cIntersects = cAxis->is_intersecting();
+		alwaysColliding &= pIntersects && cIntersects;
 
 		assert(pAxis->dir == cAxis->dir);
 		assert(pAxis->contact.ortho_normal == cAxis->contact.ortho_normal);
 
-		if (!pIntersects && !cIntersects) {
+		if (!pIntersects && !cIntersects) 
+		{
 			contact.hasContact = false;
-			alwaysColliding = false;
 			noCollision = true;
 		}
-		else if (pIntersects && !cIntersects) {
-			alwaysColliding = false;
-
-			assert(getRoot(pAxis->contact.separation, cAxis->contact.separation) >= 0.f);
-			firstExit = std::min(firstExit, getRoot(pAxis->contact.separation, cAxis->contact.separation));
-
+		else if (pIntersects && !cIntersects) 
+		{
+			float root = getRoot(pAxis->contact.separation, cAxis->contact.separation);
+			firstExit = std::min(firstExit, root);
 		}
-		else if (!pIntersects && cIntersects) {
-			root = getRoot(pAxis->contact.separation, cAxis->contact.separation);
+		else if (!pIntersects && cIntersects) 
+		{
+			float root = getRoot(pAxis->contact.separation, cAxis->contact.separation);
 
-			if (root >= 0.f && root < 1.f && root >= lastEntry) {
-				alwaysColliding = false;
-
-				if (touchingAxis && root == lastEntry) {
-					
-					if (touchingAxis->contact.separation > cAxis->contact.separation && cAxis->is_collider_valid()) {
-						touchingAxis = cAxis;
-						touchingAxisNdx = i;
-					}
-				}
-				else {
-					lastEntry = root;
-					if (cAxis->is_collider_valid()) {
-						touchingAxis = cAxis;
-						touchingAxisNdx = i;
-					}
-				}
+			if (cAxis->is_collider_valid())
+			{
+				update_touch_axis(root, cAxis, i);
 			}
 		}
 	}
 
 	bool hasTouchAxis = touchingAxis != nullptr;
-	bool intersectionOccurs = firstExit >= lastEntry;
 
-	if (noCollision) {
+	bool isDeparting = firstExit < 1.f;
+	bool hasIntersect = firstExit >= lastEntry;
+
+	bool lastAxisRepeatable = lastAxisCollided >= 0 && currCollision.getCollisionAxis(lastAxisCollided).applied;
+
+	if (noCollision) 
+	{
 		// no collision at all
-		copiedContact = nullptr;
+
 		contact = currCollision.getContact();
-
-		resolve = -2;
+		lastAxisCollided = -1;
 	}
-	else if (hasTouchAxis && intersectionOccurs) {
+	else if (hasTouchAxis && hasIntersect) 
+	{
+		// collision occured on a valid collision axis
 
-		// collision
-
-		copiedContact = &touchingAxis->contact;
 		contact = touchingAxis->contact;
 		contact.hasContact = touchingAxis->is_intersecting();
 
 		
+		// anti-tunneling measure
+		// checks if opposite axis of this one
+		// is still intersecting with collider
+		// if not, object is tunneling though
 		auto opposite = direction::opposite(touchingAxis->dir);
 		bool opposite_intersecting = false;
 		for (int ndx = 0; ndx < currCollision.getAxisCount(); ndx++)
 		{
-			if (ndx == touchingAxisNdx)
-				continue;
-
-			if (currCollision.getCollisionAxis(ndx).dir == opposite
+			if (ndx != touchingAxisNdx
+				&& currCollision.getCollisionAxis(ndx).dir == opposite
 				&& currCollision.getCollisionAxis(ndx).contact.separation > 0)
 			{
 				opposite_intersecting = true;
@@ -160,10 +167,11 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 			}
 		}
 
+		// anti-tunneling measure
 		// if the collidable is no longer intersecting the collider,
-		// yet hasn't completely passed through this collider on this axis
+		// and hasn't completely passed through this collider on this axis
 		// require current collision has contact
-		if (lastEntry == 0.f && firstExit < 1.f && opposite_intersecting)
+		if (isDeparting && opposite_intersecting)
 		{
 			contact.hasContact &= currCollision.getContact().hasContact;
 		}
@@ -172,36 +180,25 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 		contact.hasImpactTime = lastEntry > 0;
 		contact.impactTime = lastEntry;
 		lastAxisCollided = touchingAxisNdx;
-		resolve = 1;
 	}
-	else if (!intersectionOccurs) {
-		copiedContact = nullptr;
-		contact = currCollision.getContact();
-		resolve = 2;
-	}
-	else {
-		if (alwaysColliding && lastAxisCollided >= 0 && currCollision.getCollisionAxis(lastAxisCollided).applied) {
-			auto& axis = currCollision.getCollisionAxis(lastAxisCollided);
+	else if (alwaysColliding) 
+	{
+		// complete intersection on both this and previous frame
 
-			copiedContact = &axis.contact;
+		if (lastAxisRepeatable) {
+			// if we know the axis we previously collided on
+			// just do it again
+
+			auto& axis = currCollision.getCollisionAxis(lastAxisCollided);
 			contact = axis.contact;
 			contact.hasContact = axis.is_intersecting();
-			resolve = 3;
 		}
 		else {
-			copiedContact = nullptr;
-			contact = currCollision.getContact();
-			contact.hasContact &= 
-				(math::is_horizontal(contact.ortho_normal) && abs(contact.separation) < currCollision.cAble->getBox().width)
-				|| (abs(contact.separation) < currCollision.cAble->getBox().height);
-			lastAxisCollided = -1;
-			resolve = 4;
-		}
-	}
+			// otherwise resort use current discrete contact
 
-	if (resolve >= 0) {
-		//fmt::print(stderr, "resolve={}\n", resolve);
-		//LOG_INFO("resolve={}", resolve);
+			contact = currCollision.getContact();
+			lastAxisCollided = currCollision.getChosenAxis();
+		}
 	}
 
 	if (deltaTime > 0.0) {
@@ -211,11 +208,7 @@ int CollisionContinuous::evalContact(secs deltaTime) {
 	contact.velocity = velocity;
 	evaluated = true;
 
-	//if (deltaTime == 0.0) {
-		slipUpdate();
-	//}
-
-	return resolve;
+	slipUpdate();
 }
 
 
