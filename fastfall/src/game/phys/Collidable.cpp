@@ -472,6 +472,7 @@ void Collidable::process_current_frame()
 			{
 				Angle surf_ang = math::angle(tracker->currentContact->collider.surface);
 
+				// TODO: wrong calc?
 				float speed = contact.velocity.x / cosf(surf_ang.radians());
 				float curr_speed = *tracker->traverse_get_speed();
 
@@ -487,11 +488,16 @@ void Collidable::process_current_frame()
 			}
 		}
 		if (!applied) {
-			if (contact.velocity.x < 0.f) {
-				vel.x = std::min(vel.x, contact.velocity.x);
+			
+			// TODO: wrong calc?
+			Angle surf_ang = math::angle(Vec2f{16.f, 0.f});
+			float speed = contact.velocity.x / cosf(surf_ang.radians());
+
+			if (speed < 0.f) {
+				vel.x = std::min(vel.x, speed);
 			}
-			else if (contact.velocity.x > 0.f) {
-				vel.x = std::max(vel.x, contact.velocity.x);
+			else if (speed > 0.f) {
+				vel.x = std::max(vel.x, speed);
 			}
 		}
 	};

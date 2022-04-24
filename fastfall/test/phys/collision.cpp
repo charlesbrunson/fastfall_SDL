@@ -57,6 +57,16 @@ protected:
 		}
 		collider->applyChanges();
 	}
+
+	void initTileMap(ColliderTileMap* map, grid_vector<std::string_view> tiles)
+	{
+		for (auto it = tiles.begin(); it != tiles.end(); it++) {
+			if (!it->empty()) {
+				map->setTile({ (int)it.column(), (int)it.row() }, TileShape::from_string(*it));
+			}
+		}
+		map->applyChanges();
+	}
 };
 
 TEST_F(collision, wall_to_ceil_clip)
@@ -266,6 +276,52 @@ TEST_F(collision, moving_tunneling)
 			EXPECT_TRUE(contact.hasContact);
 			EXPECT_TRUE(contact.ortho_normal == Vec2f(-1.f, 0.f));
 			EXPECT_TRUE(contact.collider_normal == Vec2f(-1.f, 0.f));
+		}
+	}
+}
+
+TEST_F(collision, wedge_against_floor)
+{
+	initTileMap({
+		/*          x:0         x:16		x:32		x:48		x:64 */
+		/* y:0 _*/ {"",			"",			"",			""},
+		/* y:16_*/ {"",			"",			"",			""},
+		/* y:32_*/ {"",			"",			"",			""},
+		/* y:32_*/ {"solid",	"solid",	"solid",	"solid"},
+		});
+
+	grid_vector<std::string_view> wedge_tiles{
+		{ "solid", 		"solid" },
+		{ "solid", 		"slope-hv" },
+		{ "slope-hv", 	"" },
+	};
+
+	auto wedge = colMan.create_collider<ColliderTileMap>(
+			Vec2i{ (int)wedge_tiles.column_count(), (int)wedge_tiles.row_count() }
+		);
+	initTileMap(wedge, wedge_tiles);
+	wedge->teleport(Vec2f{0.f, -32.f});
+
+	box->teleport(Vec2f{ 8, 48 });
+	box->set_gravity(Vec2f{0.f, 500.f});
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.frame_delay = 2;
+	render.draw(colMan);
+
+	while (render.curr_frame < 60) {
+
+		Vec2f vel{ 0.f, 300.f };
+		wedge->setPosition(wedge->getPosition() + (vel * one_frame));
+		wedge->delta_velocity = vel - wedge->velocity;
+		wedge->velocity = vel;
+		wedge->update(one_frame);
+
+		update();
+		render.draw(colMan);
+		
+		if (render.curr_frame > 5) {
+			EXPECT_GT(box->get_vel().x, 0.f);
 		}
 	}
 }
