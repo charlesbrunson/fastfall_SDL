@@ -465,6 +465,8 @@ void Collidable::debug_draw() const
 void Collidable::process_current_frame() 
 {
 	auto apply_wedge = [&](const PersistantContact& contact) {
+
+		
 		bool applied = false;
 		for (auto& tracker : trackers)
 		{
@@ -488,7 +490,9 @@ void Collidable::process_current_frame()
 			}
 		}
 		if (!applied) {
+			vel.x = contact.velocity.x;
 			
+			/*
 			// TODO: wrong calc?
 			Angle surf_ang = math::angle(Vec2f{16.f, 0.f});
 			float speed = contact.velocity.x / cosf(surf_ang.radians());
@@ -499,7 +503,11 @@ void Collidable::process_current_frame()
 			else if (speed > 0.f) {
 				vel.x = std::max(vel.x, speed);
 			}
+			*/
 		}
+		
+
+		
 	};
 
 	col_state.reset();

@@ -673,13 +673,10 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 			Angle ceilAng  = math::angle(sContact->collider.surface);
 
 			Linef floorLine = nContact->collider.surface;
-			Linef ceilLine  = sContact->collider.surface;
+			Linef ceilLine = math::shift(sContact->collider.surface, Vec2f{ 0.f, colBox.height });
 
 			Vec2f floorVel = nContact->velocity;
 			Vec2f ceilVel  = sContact->velocity;
-
-			ceilLine.p1.y += colBox.height;
-			ceilLine.p2.y += colBox.height;
 
 			Vec2f intersect = math::intersection(floorLine, ceilLine);
 
@@ -696,10 +693,7 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 				r.discardSecond = false;
 
 				Vec2f pos = collidable->getPosition();
-
 				Vec2f diff = Vec2f(intersect.x, 0.f) - Vec2f(pos.x, 0.f);
-
-
 
 				r.contact.hasContact = true;
 				r.contact.separation = abs(diff.x);
@@ -730,11 +724,16 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 					LOG_INFO("WEDGE INTO S VALLEY");
 				}
 				else {
-					float floorVelx = (tanf(floorAng.radians()) != 0.f ? ceilVel.y / tanf(floorAng.radians()) : 0.f);
-					float ceilVelx = (tanf(ceilAng.radians()) != 0.f ? floorVel.y / tanf(ceilAng.radians()) : 0.f);
+					float floorTan = tanf(floorAng.radians());
+					float ceilTan = tanf(ceilAng.radians());
+
+					float floorVelx = (floorTan != 0.f ? ceilVel.y / floorTan : 0.f);
+					float ceilVelx = (ceilTan != 0.f ? floorVel.y / ceilTan : 0.f);
 					float mag = floorVelx + ceilVelx;
 
 					r.contact.velocity = Vec2f{ mag, 0.f };
+					//r.contact.velocity = Vec2f{ diff.x / (1.f / 60.f), 0.f };
+					LOG_INFO("WEDGE");
 				}
 				return r;
 			}

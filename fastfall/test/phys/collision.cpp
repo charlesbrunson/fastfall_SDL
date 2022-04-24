@@ -287,7 +287,7 @@ TEST_F(collision, wedge_against_floor)
 		/* y:0 _*/ {"",			"",			"",			""},
 		/* y:16_*/ {"",			"",			"",			""},
 		/* y:32_*/ {"",			"",			"",			""},
-		/* y:32_*/ {"solid",	"solid",	"solid",	"solid"},
+		/* y:32_*/ {"shallow1",	"shallow2",	"solid",	"solid"},
 		});
 
 	grid_vector<std::string_view> wedge_tiles{
@@ -319,6 +319,7 @@ TEST_F(collision, wedge_against_floor)
 
 		update();
 		render.draw(colMan);
+		fmt::print(stderr, "{}\n", box->get_vel());
 		
 		if (render.curr_frame > 5) {
 			EXPECT_GT(box->get_vel().x, 0.f);

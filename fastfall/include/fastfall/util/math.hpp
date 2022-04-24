@@ -218,6 +218,14 @@ Vec2<T> midpoint(const Line<T>& a) {
 	return a.p1 + (math::vector(a) / static_cast<T>(2.0));
 }
 
+template<typename T>
+Line<T> shift(const Line<T>& a, Vec2<T> offset) {
+	Line<T> b = a;
+	b.p1 += offset;
+	b.p2 += offset;
+	return b;
+}
+
 // Rect stuff
 template<typename T>
 constexpr Vec2<T> rect_topleft(const Rect<T>& a) {
