@@ -443,7 +443,7 @@ bool Collidable::has_contact(Cardinal dir) const noexcept {
 
 void Collidable::set_frame(std::vector<PersistantContact>&& frame) {
 
-	currContacts = frame;
+	currContacts = std::move(frame);
 
 	process_current_frame();
 
@@ -462,54 +462,68 @@ void Collidable::debug_draw() const
 }
 
 
-void Collidable::process_current_frame() {
-
-	wedged = false;
-	hori_crush = false;
-	vert_crush = false;
-
-	for (auto& contact : currContacts) {
-		if (contact.type == ContactType::CRUSH_HORIZONTAL) 
+void Collidable::process_current_frame() 
+{
+	auto apply_wedge = [&](const PersistantContact& contact) {
+		bool applied = false;
+		for (auto& tracker : trackers)
 		{
-			hori_crush = true;
-		}
-		else if (contact.type == ContactType::CRUSH_VERTICAL) 
-		{
-			vert_crush = true;
-		}
-		else if (contact.type == ContactType::WEDGE_OPPOSITE) 
-		{
-			wedged = true;
-
-			bool applied = false;
-			for (auto& tracker : trackers)
+			if (tracker->has_contact())
 			{
-				if (tracker->has_contact())
+				Angle surf_ang = math::angle(tracker->currentContact->collider.surface);
+
+				float speed = contact.velocity.x / cosf(surf_ang.radians());
+				float curr_speed = *tracker->traverse_get_speed();
+
+				if (speed < 0.f) {
+					curr_speed = std::min(curr_speed, speed);
+				}
+				else if (speed > 0.f) {
+					curr_speed = std::max(curr_speed, speed);
+				}
+				tracker->traverse_set_speed(curr_speed);
+				applied = true;
+				break;
+			}
+		}
+		if (!applied) {
+			if (contact.velocity.x < 0.f) {
+				vel.x = std::min(vel.x, contact.velocity.x);
+			}
+			else if (contact.velocity.x > 0.f) {
+				vel.x = std::max(vel.x, contact.velocity.x);
+			}
+		}
+	};
+
+	col_state.reset();
+	for (auto& contact : currContacts) {
+		switch(contact.type)
+		{
+		case ContactType::CRUSH_HORIZONTAL: 
+			col_state.set_flag(CollisionStateFlags::Crush_H);
+			break;
+		case ContactType::CRUSH_VERTICAL: 
+			col_state.set_flag(CollisionStateFlags::Crush_V);
+			break;
+		case ContactType::WEDGE_OPPOSITE: 
+			col_state.set_flag(CollisionStateFlags::Wedge);
+			apply_wedge(contact);
+			break;
+		case ContactType::SINGLE: 
+			if (auto optd = direction::from_vector(contact.ortho_normal)) 
+			{
+				switch(optd.value()) 
 				{
-					Angle surf_ang = math::angle(tracker->currentContact->collider.surface);
-
-					float speed = contact.velocity.x / cosf(surf_ang.radians());
-					float curr_speed = *tracker->traverse_get_speed();
-
-					if (speed < 0.f) {
-						curr_speed = std::min(curr_speed, speed);
-					}
-					else if (speed > 0.f) {
-						curr_speed = std::max(curr_speed, speed);
-					}
-					tracker->traverse_set_speed(curr_speed);
-					applied = true;
-					break;
+				case Cardinal::N: col_state.set_flag(CollisionStateFlags::Floor); 	break;
+				case Cardinal::S: col_state.set_flag(CollisionStateFlags::Ceiling); break;
+				case Cardinal::E: col_state.set_flag(CollisionStateFlags::Wall_L); 	break;
+				case Cardinal::W: col_state.set_flag(CollisionStateFlags::Wall_R); 	break;
 				}
 			}
-			if (!applied) {
-				if (contact.velocity.x < 0.f) {
-					vel.x = std::min(vel.x, contact.velocity.x);
-				}
-				else if (contact.velocity.x > 0.f) {
-					vel.x = std::max(vel.x, contact.velocity.x);
-				}
-			}
+			break;
+		default: 
+			break;
 		}
 	}
 

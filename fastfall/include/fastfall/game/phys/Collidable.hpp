@@ -18,6 +18,54 @@
 
 namespace ff {
 
+enum class CollisionStateFlags : unsigned {
+	None = 0,
+	Floor = 1,
+	Wall_L,
+	Wall_R,
+	Ceiling,
+
+	Crush_H,
+	Crush_V,
+	Wedge,
+
+};
+
+struct collision_state_t {
+
+	bool has_set(CollisionStateFlags type)
+	{
+		return flags & (1 << static_cast<unsigned>(type));
+	}
+
+	template<class ... Flags>
+	requires (std::same_as<Flags, CollisionStateFlags> && ...)
+	bool has_any(Flags... flag) noexcept {
+		return (has_collision(flag) || ...);
+	};
+
+	template<class ... Flags>
+	requires (std::same_as<Flags, CollisionStateFlags> && ...)
+	bool has_all(Flags... flag) noexcept {
+		return (has_collision(flag) && ...);
+	};
+
+
+	void set_flag(CollisionStateFlags type)
+	{
+		flags |= (1 << static_cast<unsigned>(type));
+	}
+
+private:
+	friend class Collidable;
+
+	void reset()
+	{
+		flags = 0u;
+	}
+
+	unsigned flags = 0u;
+};
 
 class Collidable {
 private:
@@ -95,9 +143,9 @@ public:
 
 	void set_frame(std::vector<PersistantContact>&& frame);
 
-	inline bool is_crush_any() const noexcept { return hori_crush || vert_crush; };
-	inline bool is_crush_hori() const noexcept { return hori_crush; };
-	inline bool is_crush_vert() const noexcept { return vert_crush; };
+	//inline bool is_crush_any() const noexcept { return hori_crush || vert_crush; };
+	//inline bool is_crush_hori() const noexcept { return hori_crush; };
+	//inline bool is_crush_vert() const noexcept { return vert_crush; };
 
 	inline CollidableID get_ID() const noexcept { return id; };
 
@@ -123,13 +171,11 @@ public:
 		std::function<void()> onPostCollision;
 	} callbacks;
 
+	collision_state_t col_state;
+
 private:
 
 	slip_t slip;
-
-	bool hori_crush = false;
-	bool vert_crush = false;
-	bool wedged = false;
 
 	void process_current_frame();
 
