@@ -50,6 +50,8 @@ struct collision_state_t {
 		return (has_set(flag) && ...);
 	};
 
+	unsigned value() const { return flags; }
+
 private:
 	unsigned flags = 0u;
 };

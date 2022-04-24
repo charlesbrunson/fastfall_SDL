@@ -466,6 +466,9 @@ void Collidable::process_current_frame()
 {
 	auto apply_wedge = [&](const PersistantContact& contact) {
 
+
+		vel = contact.velocity;
+		return;
 		
 		bool applied = false;
 		for (auto& tracker : trackers)

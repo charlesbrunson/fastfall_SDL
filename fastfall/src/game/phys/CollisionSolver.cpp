@@ -641,7 +641,7 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 	}
 
 	// arbs are converging
-	if (crush > 0.f
+	if (crush >= 0.f
 		&& nContact->ortho_normal + sContact->ortho_normal == Vec2f(0.f, 0.f)) {
 
 		if (nContact->collider_normal + sContact->collider_normal == Vec2f(0.f, 0.f)) {
@@ -695,6 +695,39 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 				Vec2f pos = collidable->getPosition();
 				Vec2f diff = Vec2f(intersect.x, 0.f) - Vec2f(pos.x, 0.f);
 
+				float side = (nContact->collider_normal.x + sContact->collider_normal.x < 0.f ? -1.f : 1.f);
+
+				r.contact.hasContact = true;
+				r.contact.separation = abs(diff.x);
+				r.contact.collider_normal = Vec2f{ side, 0.f };
+				r.contact.ortho_normal = r.contact.collider_normal;
+				r.contact.position = Vec2f{ pos.x, math::rect_mid(colBox).y };
+
+				Vec2f ceilV = math::projection(nContact->velocity, nContact->collider_normal, true);
+				ceilV = math::projection(ceilV, math::vector(sContact->collider.surface));
+
+				Vec2f floorV = math::projection(sContact->velocity, sContact->collider_normal, true);
+				floorV = math::projection(floorV, math::vector(nContact->collider.surface));
+
+				r.contact.velocity = 
+					  (ceilV  * tanf( ceilAng.radians() - floorAng.radians())) 
+					+ (floorV * tanf(floorAng.radians() -  ceilAng.radians()));
+
+				r.contact.velocity *= 2.f;
+
+				return r;
+
+				/*
+				ArbCompResult r;
+				r.createdContact = true;
+				r.contactType = ContactType::WEDGE_OPPOSITE;
+
+				r.discardFirst = false;
+				r.discardSecond = false;
+
+				Vec2f pos = collidable->getPosition();
+				Vec2f diff = Vec2f(intersect.x, 0.f) - Vec2f(pos.x, 0.f);
+
 				r.contact.hasContact = true;
 				r.contact.separation = abs(diff.x);
 				r.contact.collider_normal = Vec2f((nContact->collider_normal.x + sContact->collider_normal.x < 0.f ? -1.f : 1.f), 0.f);
@@ -736,6 +769,7 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 					LOG_INFO("WEDGE");
 				}
 				return r;
+				*/
 			}
 			//else do nothing
 		}
