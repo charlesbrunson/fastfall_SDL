@@ -588,13 +588,17 @@ CollisionSolver::ArbCompResult CollisionSolver::pickHArbiter(const Arbiter* east
 
 Vec2f CollisionSolver::calcWedgeVel(Vec2f n1, Vec2f n2, Vec2f v1, Vec2f v2) {
 
+	if (n1 + n2 == Vec2f{})
+		return {};
 
+	float tan1 = !math::is_vertical(n1) ? tanf(math::angle(n1).radians()) : 0.f;
+	float tan2 = !math::is_vertical(n2) ? tanf(math::angle(n2).radians()) : 0.f;
 
+	float velx1 = (tan1 != 0.f ? (v1 - v2).y * tan1 : 0.f);
+	float velx2 = (tan2 != 0.f ? (v2 - v1).y * tan2 : 0.f);
+	float mag = velx1 + velx2;
 
-
-
-
-	return Vec2f{};
+	return Vec2f{ mag, 0.f };
 }
 
 
@@ -705,8 +709,8 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 				r.discardSecond = false;
 
 				Vec2f pos = collidable->getPosition();
-				Vec2f diff = Vec2f(intersect.x, 0.f) - Vec2f(pos.x, 0.f);
 
+				Vec2f diff = Vec2f(intersect.x, 0.f) - Vec2f(pos.x, 0.f);
 				float side = (nContact->collider_normal.x + sContact->collider_normal.x < 0.f ? -1.f : 1.f);
 
 				r.contact.hasContact = true;
@@ -714,19 +718,6 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 				r.contact.collider_normal = Vec2f{ side, 0.f };
 				r.contact.ortho_normal = r.contact.collider_normal;
 				r.contact.position = Vec2f{ pos.x, math::rect_mid(colBox).y };
-
-				//TODO: VEL CALCULATION IS WRONG??? MAYBE?????? IDK LMAO
-
-				/*
-				Vec2f ceilV = math::projection(nContact->velocity, nContact->collider_normal, true);
-				ceilV = math::projection(ceilV, math::vector(sContact->collider.surface));
-
-				Vec2f floorV = math::projection(sContact->velocity, sContact->collider_normal, true);
-				floorV = math::projection(floorV, math::vector(nContact->collider.surface));
-				
-				Vec2f ceil_comp = ceilV;
-				Vec2f floor_comp = floorV;
-				*/
 
 				r.contact.velocity = calcWedgeVel(
 					nContact->collider_normal, sContact->collider_normal,

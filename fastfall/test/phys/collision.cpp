@@ -287,7 +287,7 @@ TEST_F(collision, wedge_against_floor_right)
 		{"",			"",			"",			""},
 		{"",			"",			"",			""},
 		{"",			"",			"",			""},
-		{"shallow1",	"shallow2",	"solid",	"solid"},
+		{"solid",	"solid",	"solid",	"solid"},
 	});
 
 	grid_vector<std::string_view> wedge_tiles{
@@ -302,7 +302,7 @@ TEST_F(collision, wedge_against_floor_right)
 	initTileMap(wedge, wedge_tiles);
 	wedge->teleport(Vec2f{0.f, -16.f});
 
-	box->teleport(Vec2f{ 16, 64 });
+	box->teleport(Vec2f{ 8, 64 });
 	box->set_gravity(Vec2f{0.f, 500.f});
 
 	TestPhysRenderer render(collider->getBoundingBox());
@@ -346,8 +346,8 @@ TEST_F(collision, floor_into_wedge_left)
 		});
 
 	grid_vector<std::string_view> floor_tiles{
-		{ "", 		"slope"},
-		{ "slope", 		"solid"},
+		{ "", 		""},
+		{ "solid", 		"solid"},
 	};
 
 	auto floor = colMan.create_collider<ColliderTileMap>(
