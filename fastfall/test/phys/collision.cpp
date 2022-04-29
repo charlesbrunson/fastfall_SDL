@@ -280,15 +280,15 @@ TEST_F(collision, moving_tunneling)
 	}
 }
 
-TEST_F(collision, wedge_against_floor)
+TEST_F(collision, wedge_against_floor_right)
 {
 	initTileMap({
-		/*          x:0         x:16		x:32		x:48		x:64 */
-		/* y:0 _*/ {"",			"",			"",			""},
-		/* y:16_*/ {"",			"",			"",			""},
-		/* y:32_*/ {"",			"",			"",			""},
-		/* y:32_*/ {"shallow1",	"shallow2",	"solid",	"solid"},
-		});
+		{"",			"",			"",			""},
+		{"",			"",			"",			""},
+		{"",			"",			"",			""},
+		{"",			"",			"",			""},
+		{"shallow1",	"shallow2",	"solid",	"solid"},
+	});
 
 	grid_vector<std::string_view> wedge_tiles{
 		{ "solid", 		"solid", 	""},
@@ -300,9 +300,9 @@ TEST_F(collision, wedge_against_floor)
 			Vec2i{ (int)wedge_tiles.column_count(), (int)wedge_tiles.row_count() }
 		);
 	initTileMap(wedge, wedge_tiles);
-	wedge->teleport(Vec2f{0.f, -32.f});
+	wedge->teleport(Vec2f{0.f, -16.f});
 
-	box->teleport(Vec2f{ 16, 56 });
+	box->teleport(Vec2f{ 16, 64 });
 	box->set_gravity(Vec2f{0.f, 500.f});
 
 	TestPhysRenderer render(collider->getBoundingBox());
@@ -330,6 +330,57 @@ TEST_F(collision, wedge_against_floor)
 			fmt::print(stderr, "{:08b}\n", box->get_state_flags().value());
 			EXPECT_GT(box->get_vel().x, 0.f);
 			//EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
+		}
+	}
+}
+
+
+TEST_F(collision, floor_into_wedge_left)
+{
+	initTileMap({
+		{"",			"",			"slope-v",	"solid"},
+		{"",			"",			"",			"slope-v"},
+		{"half",		"half",		"",			""},
+		{"half-v",		"half-v",	"",			""},
+		{"",			"",			"",			""},
+		});
+
+	grid_vector<std::string_view> floor_tiles{
+		{ "", 		"slope"},
+		{ "slope", 		"solid"},
+	};
+
+	auto floor = colMan.create_collider<ColliderTileMap>(
+		Vec2i{ (int)floor_tiles.column_count(), (int)floor_tiles.row_count() }
+	);
+	initTileMap(floor, floor_tiles);
+	floor->teleport(Vec2f{ 32.f, 64.f });
+
+	box->teleport(Vec2f{ 56, 64 });
+	box->set_gravity(Vec2f{ 0.f, 500.f });
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.frame_delay = 2;
+	render.draw(colMan);
+
+	while (render.curr_frame < 60) {
+
+		//Vec2f vel{ 0.f, -50.f };
+		Vec2f vel{ 0.f, (float)std::max(-100.0, (0.f - floor->getPosition().y) / one_frame) };
+
+		floor->setPosition(floor->getPosition() + (vel * one_frame));
+		floor->delta_velocity = vel - floor->velocity;
+		floor->velocity = vel;
+		floor->update(one_frame);
+
+		update();
+		render.draw(colMan);
+		fmt::print(stderr, "{}\n", box->get_vel());
+
+
+		if (render.curr_frame > 24 && box->getPosition().x > 0) {
+			fmt::print(stderr, "{:08b}\n", box->get_state_flags().value());
+			EXPECT_LT(box->get_vel().x, 0.f);
 		}
 	}
 }

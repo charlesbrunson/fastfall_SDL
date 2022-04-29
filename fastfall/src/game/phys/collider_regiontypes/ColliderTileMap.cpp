@@ -413,6 +413,8 @@ namespace ff {
 
 		Rectf tileBounds(Vec2f(), Vec2f(TILESIZE_F, TILESIZE_F));
 
+		// TODO: RESIZE TILE AREA TO BE JUST WHATS IN TILE MAP
+
 		for (int yy = tileArea.top; yy < tileArea.top + tileArea.height; yy++) {
 			for (int xx = tileArea.left; xx < tileArea.left + tileArea.width; xx++) {
 				if (auto* tile = get_quad({ xx, yy })) {

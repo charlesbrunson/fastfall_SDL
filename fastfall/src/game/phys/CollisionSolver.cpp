@@ -586,6 +586,18 @@ CollisionSolver::ArbCompResult CollisionSolver::pickHArbiter(const Arbiter* east
 	return ArbCompResult{};
 }
 
+Vec2f CollisionSolver::calcWedgeVel(Vec2f n1, Vec2f n2, Vec2f v1, Vec2f v2) {
+
+
+
+
+
+
+
+	return Vec2f{};
+}
+
+
 CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* north, const Arbiter* south) {
 
 	const Contact* nContact = north->getContactPtr();
@@ -703,73 +715,25 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 				r.contact.ortho_normal = r.contact.collider_normal;
 				r.contact.position = Vec2f{ pos.x, math::rect_mid(colBox).y };
 
+				//TODO: VEL CALCULATION IS WRONG??? MAYBE?????? IDK LMAO
+
+				/*
 				Vec2f ceilV = math::projection(nContact->velocity, nContact->collider_normal, true);
 				ceilV = math::projection(ceilV, math::vector(sContact->collider.surface));
 
 				Vec2f floorV = math::projection(sContact->velocity, sContact->collider_normal, true);
 				floorV = math::projection(floorV, math::vector(nContact->collider.surface));
-
-				r.contact.velocity = 
-					  (ceilV  * tanf( ceilAng.radians() - floorAng.radians())) 
-					+ (floorV * tanf(floorAng.radians() -  ceilAng.radians()));
-
-				r.contact.velocity *= 2.f;
-
-				return r;
-
-				/*
-				ArbCompResult r;
-				r.createdContact = true;
-				r.contactType = ContactType::WEDGE_OPPOSITE;
-
-				r.discardFirst = false;
-				r.discardSecond = false;
-
-				Vec2f pos = collidable->getPosition();
-				Vec2f diff = Vec2f(intersect.x, 0.f) - Vec2f(pos.x, 0.f);
-
-				r.contact.hasContact = true;
-				r.contact.separation = abs(diff.x);
-				r.contact.collider_normal = Vec2f((nContact->collider_normal.x + sContact->collider_normal.x < 0.f ? -1.f : 1.f), 0.f);
-				r.contact.ortho_normal = r.contact.collider_normal;
-				r.contact.position = Vec2f(pos.x, (colBox.top + colBox.height / 2.f));
-
-				float n_dist_west = abs(std::min(nContact->collider.surface.p1.x, nContact->collider.surface.p2.x) - pos.x);
-				float n_dist_east = abs(std::max(nContact->collider.surface.p1.x, nContact->collider.surface.p2.x) - pos.x);
-
-				float s_dist_west = abs(std::min(sContact->collider.surface.p1.x, sContact->collider.surface.p2.x) - pos.x);
-				float s_dist_east = abs(std::max(sContact->collider.surface.p1.x, sContact->collider.surface.p2.x) - pos.x);
-
-				if (nContact->hasValley
-					&& (nContact->collider_normal.x < 0.f) == (r.contact.collider_normal.x < 0.f)
-					&& (nContact->collider_normal.x < 0.f ? n_dist_west : n_dist_east) < r.contact.separation)
-				{
-					// wedge into north contact's valley
-					r.contact.separation = (nContact->collider_normal.x < 0.f ? n_dist_west : n_dist_east);
-					LOG_INFO("WEDGE INTO N VALLEY");
-				}
-				else if (sContact->hasValley
-					&& (sContact->collider_normal.x < 0.f) == (r.contact.collider_normal.x < 0.f)
-					&& (sContact->collider_normal.x < 0.f ? s_dist_west : s_dist_east) < r.contact.separation)
-				{
-					// wedge into south contact's valley
-					r.contact.separation = (sContact->collider_normal.x < 0.f ? s_dist_west : s_dist_east);
-					LOG_INFO("WEDGE INTO S VALLEY");
-				}
-				else {
-					float floorTan = tanf(floorAng.radians());
-					float ceilTan = tanf(ceilAng.radians());
-
-					float floorVelx = (floorTan != 0.f ? ceilVel.y / floorTan : 0.f);
-					float ceilVelx = (ceilTan != 0.f ? floorVel.y / ceilTan : 0.f);
-					float mag = floorVelx + ceilVelx;
-
-					r.contact.velocity = Vec2f{ mag, 0.f };
-					//r.contact.velocity = Vec2f{ diff.x / (1.f / 60.f), 0.f };
-					LOG_INFO("WEDGE");
-				}
-				return r;
+				
+				Vec2f ceil_comp = ceilV;
+				Vec2f floor_comp = floorV;
 				*/
+
+				r.contact.velocity = calcWedgeVel(
+					nContact->collider_normal, sContact->collider_normal,
+					nContact->velocity, sContact->velocity
+				);
+
+				return r;
 			}
 			//else do nothing
 		}

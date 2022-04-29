@@ -139,7 +139,6 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 		}
 
 		// draw contacts
-
 		for (const auto& contact : collidable.collidable.get_contacts()) {
 			if (contact.hasContact) {
 
@@ -164,7 +163,6 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 				SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
 
 			}
-
 		}
 	}
 

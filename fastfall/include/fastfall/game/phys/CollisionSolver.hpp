@@ -109,6 +109,7 @@ public:
 	// returns vector of each arbiter applied to resolve the collision set
 	//inline const CollisionFrame* getCollisionFrame() { return &frame; }
 
+	static Vec2f calcWedgeVel(Vec2f n1, Vec2f n2, Vec2f v1, Vec2f v2);
 
 	enum class Ghost {
 		NO_GHOST = 0,
