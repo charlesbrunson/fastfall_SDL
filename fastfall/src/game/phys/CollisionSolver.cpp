@@ -487,9 +487,7 @@ CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact& basis, const 
 	float dotp1 = math::dot(basisNormal, candLine.p1 - basisLine.p2);
 	float dotp2 = math::dot(basisNormal, candLine.p2 - basisLine.p1);
 
-	// god i wish i knew how this worked
-	bool opt1 = (dotp1 < 0.f && dotp2 < 0.f);
-	//bool opt1 = (dotp1 <= 0.f && dotp2 < 0.f) || (dotp1 < 0.f && dotp2 <= 0.f);
+	bool opt1 = (dotp1 < 0.f && dotp2 < 0.f); // candidate is full *behind* basis surface
 
 	bool opt2 = (!math::is_vertical(basisLine) && math::is_vertical(candLine) && dotp1 <= 0.f && dotp2 <= 0.f); // prefer selecting verticals as the ghost edge
 	bool opt3 = (basisLine == Linef(candLine.p2, candLine.p1)); // candidate is opposite of basis
@@ -594,8 +592,10 @@ Vec2f CollisionSolver::calcWedgeVel(Vec2f n1, Vec2f n2, Vec2f v1, Vec2f v2) {
 	auto a1 = math::angle(n1);
 	auto a2 = math::angle(n2);
 
-	auto diff = a2 - a1;
-	float tand = tanf(diff.radians());
+	auto diff1 = a2 - a1;
+	auto diff2 = a1 - a2;
+	float tand1 = tanf(diff1.radians());
+	float tand2 = tanf(diff2.radians());
 
 
 

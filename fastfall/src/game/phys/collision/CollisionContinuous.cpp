@@ -81,7 +81,7 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 				}
 			}
 			else {
-				lastEntry = nRoot;
+				//lastEntry = nRoot;
 				touchingAxis = axis;
 				touchingAxisNdx = axis_ndx;
 			}
@@ -98,9 +98,19 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 	bool pIntersects;
 	bool cIntersects;
 
+	float prev_min_valid_sep = FLT_MAX;
+	float curr_min_valid_sep = FLT_MAX;
+
 	for (unsigned i = 0; i < cCount; i++) {
 		pAxis = &prevCollision.getCollisionAxis(i);
 		cAxis = &currCollision.getCollisionAxis(i);
+
+		if (pAxis->axisValid) {
+			prev_min_valid_sep = std::min(pAxis->contact.separation, prev_min_valid_sep);
+		}
+		if (cAxis->axisValid) {
+			curr_min_valid_sep = std::min(cAxis->contact.separation, curr_min_valid_sep);
+		}
 
 		pIntersects = pAxis->is_intersecting() && !pAxis->applied;
 		cIntersects = cAxis->is_intersecting();
@@ -122,6 +132,7 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 		else if (!pIntersects && cIntersects) 
 		{
 			float root = getRoot(pAxis->contact.separation, cAxis->contact.separation);
+			lastEntry = std::max(lastEntry, root);
 
 			if (cAxis->is_collider_valid())
 			{
@@ -137,6 +148,7 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 
 	bool lastAxisRepeatable = lastAxisCollided >= 0 && currCollision.getCollisionAxis(lastAxisCollided).applied;
 
+
 	if (noCollision) 
 	{
 		// no collision at all
@@ -151,17 +163,15 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 		contact = touchingAxis->contact;
 		contact.hasContact = touchingAxis->is_intersecting();
 
-		
 		// anti-tunneling measure
 		// checks if opposite axis of this one
 		// is still intersecting with collider
 		// if not, object is tunneling though
-		auto opposite = direction::opposite(touchingAxis->dir);
 		bool opposite_intersecting = false;
 		for (int ndx = 0; ndx < currCollision.getAxisCount(); ndx++)
 		{
 			if (ndx != touchingAxisNdx
-				&& currCollision.getCollisionAxis(ndx).dir == opposite
+				&& currCollision.getCollisionAxis(ndx).dir == direction::opposite(touchingAxis->dir)
 				&& currCollision.getCollisionAxis(ndx).contact.separation > 0)
 			{
 				opposite_intersecting = true;
@@ -183,7 +193,7 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 		contact.impactTime = lastEntry;
 		lastAxisCollided = touchingAxisNdx;
 	}
-	else if (alwaysColliding) 
+	else if (hasIntersect)
 	{
 		// complete intersection on both this and previous frame
 

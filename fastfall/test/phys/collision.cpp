@@ -73,14 +73,14 @@ TEST_F(collision, wall_to_ceil_clip)
 {
 	initTileMap({
 		/*          x:0         x:16		x:32		x:48		x:64 */
-		/* y:0 _*/ {"solid",	"solid",	"",			"",			""},
+		/* y:0 _*/ {"",			"",			"",			"",			""},
 		/* y:16_*/ {"solid",	"solid",	"",			"",			""},
 		/* y:32_*/ {"solid",	"solid",	"solid",	"solid",	"solid"},
 		/* y:48_*/ {"",			"",			"",			"",			""},
 		/* y:64_*/ {"",			"",			"",			"",			""},
 		});
 
-	box->teleport(Vec2f{ 72, 32 });
+	box->teleport(Vec2f{ 40, 32 });
 	box->set_vel(Vec2f{ -800.f, 0.f });
 	box->set_gravity(Vec2f{ 0.f, 500.f });
 

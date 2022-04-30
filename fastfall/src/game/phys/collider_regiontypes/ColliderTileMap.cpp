@@ -411,9 +411,14 @@ namespace ff {
 			tileArea.height += 2;
 		}
 
-		Rectf tileBounds(Vec2f(), Vec2f(TILESIZE_F, TILESIZE_F));
+		Recti selfbounds{
+			size_min,
+			size_max - size_min,
+		};
+		selfbounds.intersects(tileArea, tileArea);
 
-		// TODO: RESIZE TILE AREA TO BE JUST WHATS IN TILE MAP
+
+		Rectf tileBounds(Vec2f(), Vec2f(TILESIZE_F, TILESIZE_F));
 
 		for (int yy = tileArea.top; yy < tileArea.top + tileArea.height; yy++) {
 			for (int xx = tileArea.left; xx < tileArea.left + tileArea.width; xx++) {

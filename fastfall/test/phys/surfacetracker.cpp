@@ -343,3 +343,42 @@ TEST_F(surfacetracker, higrav_launch_off_hill)
 		}
 	}
 }
+
+TEST_F(surfacetracker, uphill)
+{
+	initTileMap({
+		{"",		"",			""},
+		{"",		"",			""},
+		{"",		"slope",	"solid"},
+		{"solid",	"solid",	"solid"},
+		});
+
+	box->teleport({ 8, 48 });
+	box->set_gravity({ 0, 500 });
+	ground->traverse_set_speed(50.f);
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.draw(colMan);
+
+	while (render.curr_frame < 60 && box->getPosition().x < 48)
+	{
+		ground->traverse_set_speed(50.f); // this should not stick to the reverse side of the hill
+		update();
+
+		int contacts = 0;
+		for (auto& col : colMan.get_collidables()) {
+			for (auto& arb : col.regionArbiters) {
+
+				contacts += arb.getQuadArbiters().size();
+				//for (auto& quad : arb.getQuadArbiters()) {
+				//	fmt::print(stderr, "{}", quad.second.getCollision()->getContact().hasContact);
+				//}
+			}
+		}
+		fmt::print(stderr, "{}\n", contacts);
+		fmt::print(stderr, "{:2d}: p:{:2.2f} v:{:2.2f} c:{}\n", render.curr_frame, box->getPosition(), box->get_vel(), box->get_contacts().size());
+		render.draw(colMan);
+
+		EXPECT_TRUE(ground->has_contact());
+	}
+}
