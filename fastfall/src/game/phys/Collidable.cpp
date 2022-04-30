@@ -467,10 +467,12 @@ void Collidable::process_current_frame()
 	auto apply_wedge = [&](const PersistantContact& contact) {
 
 
-		vel = contact.velocity;
-		return;
+		//vel = contact.velocity;
+		//return;
 		
 		bool applied = false;
+
+		
 		for (auto& tracker : trackers)
 		{
 			if (tracker->has_contact())
@@ -492,9 +494,21 @@ void Collidable::process_current_frame()
 				break;
 			}
 		}
+		
+
+
 		if (!applied) {
-			vel.x = contact.velocity.x;
+
+			//vel.x = contact.velocity.x;
 			
+			if (contact.velocity.x < 0) {
+				vel.x = std::min(vel.x, contact.velocity.x);
+			}
+			else if (contact.velocity.x > 0) {
+				vel.x = std::max(vel.x, contact.velocity.x);
+			}
+
+
 			/*
 			// TODO: wrong calc?
 			Angle surf_ang = math::angle(Vec2f{16.f, 0.f});
@@ -552,7 +566,8 @@ void Collidable::process_current_frame()
 		tracker->process_contacts(currContacts);
 		friction += tracker->calc_friction(precollision_vel);
 	}
-	Vec2f prev = vel;
+
+	//Vec2f prev = vel;
 
 	if (callbacks.onPostCollision)
 		callbacks.onPostCollision();

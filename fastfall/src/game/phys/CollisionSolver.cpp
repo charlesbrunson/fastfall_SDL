@@ -591,8 +591,16 @@ Vec2f CollisionSolver::calcWedgeVel(Vec2f n1, Vec2f n2, Vec2f v1, Vec2f v2) {
 	if (n1 + n2 == Vec2f{})
 		return {};
 
-	float tan1 = !math::is_vertical(n1) ? tanf(math::angle(n1).radians()) : 0.f;
-	float tan2 = !math::is_vertical(n2) ? tanf(math::angle(n2).radians()) : 0.f;
+	auto a1 = math::angle(n1);
+	auto a2 = math::angle(n2);
+
+	auto diff = a2 - a1;
+	float tand = tanf(diff.radians());
+
+
+
+	float tan1 = !math::is_vertical(n1) ? tanf(a1.radians()) : 0.f;
+	float tan2 = !math::is_vertical(n2) ? tanf(a2.radians()) : 0.f;
 
 	float velx1 = (tan1 != 0.f ? (v1 - v2).y * tan1 : 0.f);
 	float velx2 = (tan2 != 0.f ? (v2 - v1).y * tan2 : 0.f);

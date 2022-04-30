@@ -208,6 +208,32 @@ TEST_F(collision, slip_v)
 
 }
 
+
+TEST_F(collision, floor_to_steep)
+{
+	initTileMap({
+		/*          x:0         x:16		x:32		x:48		x:64 */
+		/* y:0 _*/ {"", 		"",			""},
+		/* y:16_*/ {"", 		"",			""},
+		/* y:32_*/ {"solid", 	"steep1-h",	""},
+		});
+
+	box->teleport(Vec2f{ 15.9f, 32 });
+	box->set_vel(Vec2f{ 50.f, 0.f });
+	box->set_gravity(Vec2f{ 0.f, 500.f });
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.frame_delay = 20;
+	render.draw(colMan);
+
+	update();
+	render.draw(colMan);
+
+	ASSERT_EQ(box->getPosition().y, 32.f);
+}
+
+// TUNNELING
+
 TEST_F(collision, static_tunneling)
 {
 	initTileMap({
@@ -280,6 +306,8 @@ TEST_F(collision, moving_tunneling)
 	}
 }
 
+// WEDGES
+
 TEST_F(collision, wedge_against_floor_right)
 {
 	initTileMap({
@@ -287,7 +315,7 @@ TEST_F(collision, wedge_against_floor_right)
 		{"",			"",			"",			""},
 		{"",			"",			"",			""},
 		{"",			"",			"",			""},
-		{"solid",	"solid",	"solid",	"solid"},
+		{"shallow1",	"shallow2",	"solid",	"solid"},
 	});
 
 	grid_vector<std::string_view> wedge_tiles{
@@ -324,7 +352,7 @@ TEST_F(collision, wedge_against_floor_right)
 
 		update();
 		render.draw(colMan);
-		fmt::print(stderr, "{}\n", box->get_vel());
+		fmt::print(stderr, "{:2d}: p:{:.3f} v:{:.3f}\n", render.curr_frame, box->getPosition(), box->get_vel());
 		
 		if (render.curr_frame > 24 && box->getPosition().x < 64) {
 			fmt::print(stderr, "{:08b}\n", box->get_state_flags().value());

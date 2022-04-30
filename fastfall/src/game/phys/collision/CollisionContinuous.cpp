@@ -71,12 +71,14 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 	{
 		if (nRoot >= 0.f && nRoot < 1.f && nRoot >= lastEntry)
 		{
-			if (touchingAxis
-				&& nRoot == lastEntry
-				&& touchingAxis->contact.separation > axis->contact.separation)
+			if (touchingAxis)
 			{
-				touchingAxis = axis;
-				touchingAxisNdx = axis_ndx;
+				if (nRoot == lastEntry
+					&& touchingAxis->contact.separation > axis->contact.separation) 
+				{
+					touchingAxis = axis;
+					touchingAxisNdx = axis_ndx;
+				}
 			}
 			else {
 				lastEntry = nRoot;

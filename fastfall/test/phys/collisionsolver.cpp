@@ -134,4 +134,19 @@ TEST(collisionsolver, wedge_velocity) {
 		EXPECT_NEAR(result.x, -200.f, err);
 		EXPECT_NEAR(result.y, 0.f, err);
 	}
+
+
+
+
+	// 45 degree slope (open +x) above 22.5 sloped ground (open -x)
+	{
+		n1 = Vec2f{ 1, 1 }.unit();
+		n2 = Vec2f{ -1, -2 }.unit();
+		v1 = Vec2f{ 0, 50 };
+		v2 = Vec2f{ 0, 0 };
+		result = CollisionSolver::calcWedgeVel(n1, n2, v1, v2);
+		EXPECT_NEAR(result.x, 200.f, err);
+		EXPECT_NEAR(result.y, 0.f, err);
+	}
+
 }
