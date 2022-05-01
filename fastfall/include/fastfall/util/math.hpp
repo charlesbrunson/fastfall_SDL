@@ -290,12 +290,12 @@ Rect<T> rect_extend(const Rect<T>& a, Cardinal dir, T amount) {
 // Angle stuff
 template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
 Angle angle(const Vec2<T>& a) {
-	return Angle(atan2f(a.y, a.x));
+	return Angle(std::atan2(a.y, a.x));
 }
 
 template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
 Angle angle(const Line<T>& a) {
-	return Angle(atan2f(a.p2.y - a.p1.y, a.p2.x - a.p1.x));
+	return Angle(std::atan2(a.p2.y - a.p1.y, a.p2.x - a.p1.x));
 }
 
 }

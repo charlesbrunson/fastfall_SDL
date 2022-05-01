@@ -613,27 +613,42 @@ CollisionSolver::ArbCompResult CollisionSolver::pickHArbiter(const Arbiter* east
 
 Vec2f CollisionSolver::calcWedgeVel(Vec2f n1, Vec2f n2, Vec2f v1, Vec2f v2) {
 
-	if (n1 + n2 == Vec2f{})
+	if (n1 + n2 == Vec2f{}
+		|| math::is_horizontal(n1)
+		|| math::is_horizontal(n2))
+	{
 		return {};
+	}
 
-	auto a1 = math::angle(n1);
-	auto a2 = math::angle(n2);
+	Cardinal open_dir = (math::angle(n1) - math::angle(n2) > Angle{} ? Cardinal::E : Cardinal::W);
+	if (   (open_dir == Cardinal::E && n1.y > 0)
+		|| (open_dir == Cardinal::W && n1.y < 0))
+	{
+		n1 = n1.lefthand();
+		n2 = n2.righthand();
+	}
+	else 
+	{
+		n1 = n1.righthand();
+		n2 = n2.lefthand();
+	}
 
-	auto diff1 = a2 - a1;
-	auto diff2 = a1 - a2;
-	float tand1 = tanf(diff1.radians());
-	float tand2 = tanf(diff2.radians());
+	Angle a1 = math::angle(n1);
+	Angle a2 = math::angle(n2);
 
+	Angle open_angle = abs(a1 - a2);
 
+	Angle avg_ang = (open_angle / 2.f) + (a1 < a2 ? a1 : a2);
 
-	float tan1 = !math::is_vertical(n1) ? tanf(a1.radians()) : 0.f;
-	float tan2 = !math::is_vertical(n2) ? tanf(a2.radians()) : 0.f;
+	Vec2f vn1 = math::projection(v1 - v2, n1, true);
+	Vec2f vn2 = math::projection(v2 - v1, n2, true);
 
-	float velx1 = (tan1 != 0.f ? (v1 - v2).y * tan1 : 0.f);
-	float velx2 = (tan2 != 0.f ? (v2 - v1).y * tan2 : 0.f);
-	float mag = velx1 + velx2;
+	float wv1 = vn1.magnitude() / cosf(open_angle.radians());
+	float wv2 = vn2.magnitude() / cosf(open_angle.radians());
 
-	return Vec2f{ mag, 0.f };
+	Vec2f result = (wv1 + wv2) * math::rotate(Vec2f{ -1.f, 0.f }, avg_ang);
+
+	return result;
 }
 
 
