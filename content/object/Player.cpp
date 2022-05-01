@@ -44,15 +44,15 @@ void Player::init() {
 
 	// surface tracker
 	ground = &box->create_tracker(
-		Angle::Degree(-135), 
-		Angle::Degree(-45),
+		Angle::Degree(-135.f),
+		Angle::Degree( -45.f),
 		SurfaceTracker::Settings{
 			.move_with_platforms = true,
 			.slope_sticking = true,
 			.slope_wall_stop = true,
 			.has_friction = true,
 			.use_surf_vel = true,
-			.stick_angle_max = Angle::Degree(90),
+			.stick_angle_max = Angle::Degree(90.f),
 			.max_speed = constants::norm_speed,
 			.slope_stick_speed_factor = 0.f,
 		});

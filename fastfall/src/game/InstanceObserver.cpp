@@ -125,10 +125,10 @@ void collisionContent(GameContext context) {
 						const PersistantContact& c = tracker->get_contact().value();
 
 						ImGui::Text("Surface Normal"); ImGui::NextColumn();
-						ImGui::Text("(%3.2f, %3.2f)", c.collider_normal.x, c.collider_normal.y); ImGui::NextColumn();
+						ImGui::Text("(%3.2f, %3.2f)", c.collider_n.x, c.collider_n.y); ImGui::NextColumn();
 
 						ImGui::Text("Ortho Normal"); ImGui::NextColumn();
-						ImGui::Text("(%1.f, %1.f)", c.ortho_normal.x, c.ortho_normal.y); ImGui::NextColumn();
+						ImGui::Text("(%1.f, %1.f)", c.ortho_n.x, c.ortho_n.y); ImGui::NextColumn();
 
 						ImGui::Text("Separation"); ImGui::NextColumn();
 						ImGui::Text("%s%3.3f", (c.separation == 0 ? " " : (c.separation > 0 ? "+" : "-")), c.separation); ImGui::NextColumn();
@@ -184,10 +184,10 @@ void collisionContent(GameContext context) {
 						}
 
 						ImGui::Text("Surface Normal"); ImGui::NextColumn();
-						ImGui::Text("(%3.2f, %3.2f)", c.collider_normal.x, c.collider_normal.y); ImGui::NextColumn();
+						ImGui::Text("(%3.2f, %3.2f)", c.collider_n.x, c.collider_n.y); ImGui::NextColumn();
 
 						ImGui::Text("Ortho Normal"); ImGui::NextColumn();
-						ImGui::Text("(%1.f, %1.f)", c.ortho_normal.x, c.ortho_normal.y); ImGui::NextColumn();
+						ImGui::Text("(%1.f, %1.f)", c.ortho_n.x, c.ortho_n.y); ImGui::NextColumn();
 
 						ImGui::Text("Separation"); ImGui::NextColumn();
 						ImGui::Text("%s%3.3f", (c.separation == 0 ? " " : (c.separation > 0 ? "+" : "-")), c.separation); ImGui::NextColumn();

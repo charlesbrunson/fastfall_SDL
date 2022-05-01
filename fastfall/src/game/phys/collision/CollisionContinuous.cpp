@@ -117,7 +117,7 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 		alwaysColliding &= pIntersects && cIntersects;
 
 		assert(pAxis->dir == cAxis->dir);
-		assert(pAxis->contact.ortho_normal == cAxis->contact.ortho_normal);
+		assert(pAxis->contact.ortho_n == cAxis->contact.ortho_n);
 
 		if (!pIntersects && !cIntersects) 
 		{
@@ -254,7 +254,7 @@ std::optional<Contact> CollisionContinuous::getVerticalSlipContact(float leeway)
 
 	// if we're trying to slip vertically then the 
 	// contact must be horizontal
-	if (contact.ortho_normal.y != 0.f)
+	if (contact.ortho_n.y != 0.f)
 		return std::nullopt;
 
 	const CollisionAxis* nAxis = nullptr;

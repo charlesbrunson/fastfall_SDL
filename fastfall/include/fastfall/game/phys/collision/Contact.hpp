@@ -34,11 +34,11 @@ const char* contactTypeToString(ContactType t);
 struct Contact {
 
 	inline bool isResolvable() const noexcept {
-		return ortho_normal != Vec2f();
+		return ortho_n != Vec2f();
 	}
 
 	inline bool isTransposable() const noexcept {
-		return std::abs(collider_normal.x) > std::abs(collider_normal.y) &&
+		return std::abs(collider_n.x) > std::abs(collider_n.y) &&
 			hasImpactTime && !hasValley;
 	}
 
@@ -46,8 +46,8 @@ struct Contact {
 	bool hasContact = false;
 
 	Vec2f position;
-	Vec2f ortho_normal;
-	Vec2f collider_normal;
+	Vec2f ortho_n;
+	Vec2f collider_n;
 	ColliderSurface collider;
 
 	bool hasValley = false;
@@ -58,7 +58,7 @@ struct Contact {
 		
 	const SurfaceMaterial* material = nullptr;
 	Vec2f getSurfaceVel() const { 
-		return material ? collider_normal.righthand() * material->velocity : Vec2f{};
+		return material ? collider_n.righthand() * material->velocity : Vec2f{};
 	}
 	
 	// offset to stick to the surface after the contact

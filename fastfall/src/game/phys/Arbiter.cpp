@@ -19,7 +19,7 @@ Arbiter::Arbiter(Collidable* col_dable, const ColliderQuad* col_der, const Colli
 
 
 void Arbiter::setApplied() {
-	collision.setAxisApplied(collision.getContact().ortho_normal);
+	collision.setAxisApplied(collision.getContact().ortho_n);
 }
 
 void Arbiter::update(secs deltaTime) {

@@ -6,6 +6,71 @@
 
 using namespace ff;
 
+
+TEST(collisionsolver, ghost_edge) {
+
+	{
+		Contact c1{
+			.separation = 1.f,
+			.hasContact = true,
+			.ortho_n = {0.f, 1.f},
+			.collider_n = {0.f, 1.f},
+			.collider = ColliderSurface{
+				.surface = {
+					{  0, 0 },
+					{ 16, 0 }
+				}
+			}
+		};
+		Contact c2{
+			.separation = 1.f,
+			.hasContact = true,
+			.ortho_n = { 1.f, 0.f },
+			.collider_n = { 1.f, 0.f },
+			.collider = ColliderSurface{
+				.surface = {
+					{  0,  0 },
+					{  0, 16 }
+				}
+			}
+		};
+
+		CollisionSolver::Ghost ghost = CollisionSolver::isGhostEdge(c1, c2);
+		EXPECT_EQ(ghost, CollisionSolver::Ghost::FULL_GHOST);
+	}
+
+	{
+		// see wall_to_ceil_clip
+		Contact c1{
+			.separation	= 1.f,
+			.hasContact	= true,
+			.ortho_n	= {0.f, 1.f},
+			.collider_n = {0.f, 1.f},
+			.collider = ColliderSurface{
+				.surface = { 
+					{ 32, 32 }, 
+					{ 16, 32 } 
+				}
+			}
+		};
+		Contact c2{
+			.separation = 1.f,
+			.hasContact = true,
+			.ortho_n    = { 1.f, 0.f },
+			.collider_n = { 1.f, 0.f },
+			.collider = ColliderSurface{
+				.surface = {
+					{ 32,  0 },
+					{ 32, 16 }
+				}
+			}
+		};
+
+		CollisionSolver::Ghost ghost = CollisionSolver::isGhostEdge(c1, c2);
+		EXPECT_EQ(ghost, CollisionSolver::Ghost::FULL_GHOST);
+	}
+}
+
 TEST(collisionsolver, wedge_velocity) {
 
 	Vec2f n1;

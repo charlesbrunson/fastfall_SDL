@@ -133,8 +133,8 @@ TEST_F(collision, ghostcheck_slopedceil_to_wall)
 
 	const auto& contact = box->get_contacts().at(0);
 	EXPECT_TRUE(contact.hasContact);
-	EXPECT_TRUE(contact.ortho_normal == Vec2f(0.f, 1.f) );
-	EXPECT_TRUE(contact.collider_normal == Vec2f(1.f, 1.f).unit() );
+	EXPECT_TRUE(contact.ortho_n == Vec2f(0.f, 1.f) );
+	EXPECT_TRUE(contact.collider_n == Vec2f(1.f, 1.f).unit() );
 	EXPECT_EQ(contact.impactTime, 0.5f);
 
 
@@ -262,8 +262,8 @@ TEST_F(collision, static_tunneling)
 		if (!box->get_contacts().empty()) {
 			const auto& contact = box->get_contacts().at(0);
 			EXPECT_TRUE(contact.hasContact);
-			EXPECT_TRUE(contact.ortho_normal == Vec2f(-1.f, 0.f));
-			EXPECT_TRUE(contact.collider_normal == Vec2f(-1.f, 0.f));
+			EXPECT_TRUE(contact.ortho_n == Vec2f(-1.f, 0.f));
+			EXPECT_TRUE(contact.collider_n == Vec2f(-1.f, 0.f));
 		}
 	}
 }
@@ -300,8 +300,8 @@ TEST_F(collision, moving_tunneling)
 		if (!box->get_contacts().empty()) {
 			const auto& contact = box->get_contacts().at(0);
 			EXPECT_TRUE(contact.hasContact);
-			EXPECT_TRUE(contact.ortho_normal == Vec2f(-1.f, 0.f));
-			EXPECT_TRUE(contact.collider_normal == Vec2f(-1.f, 0.f));
+			EXPECT_TRUE(contact.ortho_n == Vec2f(-1.f, 0.f));
+			EXPECT_TRUE(contact.collider_n == Vec2f(-1.f, 0.f));
 		}
 	}
 }

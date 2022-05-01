@@ -120,7 +120,7 @@ namespace plr::action {
 		Vec2f contact_velocity = Vec2f{};
 
 		if (plr.ground->has_contact()) {
-			contact_normal = plr.ground->get_contact()->collider_normal;
+			contact_normal = plr.ground->get_contact()->collider_n;
 			contact_velocity = plr.ground->get_contact()->velocity;
 		}
 

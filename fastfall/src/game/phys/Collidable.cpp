@@ -77,7 +77,7 @@ void debugDrawContact(const Contact& contact) {
 
 	auto& line = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(Primitive::LINES, 4);
 	line[0].pos = contact.position;
-	line[1].pos = contact.position + (contact.ortho_normal * contact.separation);
+	line[1].pos = contact.position + (contact.ortho_n * contact.separation);
 	line[0].color = Color::Yellow;
 	line[1].color = Color::Yellow;
 
@@ -89,8 +89,8 @@ void debugDrawContact(const Contact& contact) {
 		corner[2].color = Color::White;
 
 		corner[0].pos = contact.collider.surface.p1;
-		corner[1].pos = contact.collider.surface.p1 - (contact.ortho_normal - contact.ortho_normal.lefthand()) * 2.f;
-		corner[2].pos = contact.collider.surface.p1 - (contact.ortho_normal + contact.ortho_normal.lefthand()) * 2.f;
+		corner[1].pos = contact.collider.surface.p1 - (contact.ortho_n - contact.ortho_n.lefthand()) * 2.f;
+		corner[2].pos = contact.collider.surface.p1 - (contact.ortho_n + contact.ortho_n.lefthand()) * 2.f;
 	}
 	else {
 		auto& surf = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(Primitive::TRIANGLES, 18);
@@ -360,8 +360,8 @@ void Collidable::teleport(Vec2f position) noexcept {
 
 void Collidable::applyContact(const Contact& contact, ContactType type) {
 
-	//Vec2f offset = contact.ortho_normal * (contact.separation + contact.stickOffset);
-	Vec2f offset = contact.ortho_normal * (contact.separation);
+	//Vec2f offset = contact.ortho_n * (contact.separation + contact.stickOffset);
+	Vec2f offset = contact.ortho_n * (contact.separation);
 
 	move(offset, false);
 
@@ -371,7 +371,7 @@ void Collidable::applyContact(const Contact& contact, ContactType type) {
 		set_vel(Vec2f{});
 
 	}
-	else if (math::dot(get_vel() - contact.velocity, contact.collider_normal) <= 0.f) {
+	else if (math::dot(get_vel() - contact.velocity, contact.collider_n) <= 0.f) {
 
 		set_vel(phys_resp::get(*this, contact));
 		
@@ -542,7 +542,7 @@ void Collidable::process_current_frame()
 			apply_wedge(contact);
 			break;
 		case ContactType::SINGLE: 
-			if (auto optd = direction::from_vector(contact.ortho_normal)) 
+			if (auto optd = direction::from_vector(contact.ortho_n)) 
 			{
 				switch(optd.value()) 
 				{

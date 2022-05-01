@@ -12,21 +12,21 @@ bool CollisionSolver::canApplyAltArbiters(std::deque<Arbiter*>& north_alt, std::
 	bool allWest =
 		east.empty() &&
 		std::all_of(north_alt.cbegin(), north_alt.cend(), [](const Arbiter* arb) {
-		float nX = arb->getContactPtr()->collider_normal.x;
+		float nX = arb->getContactPtr()->collider_n.x;
 		return (nX < 0.f) && (nX != 0.f);
 			}) &&
 		std::all_of(south_alt.cbegin(), south_alt.cend(), [](const Arbiter* arb) {
-				float nX = arb->getContactPtr()->collider_normal.x;
+				float nX = arb->getContactPtr()->collider_n.x;
 				return (nX < 0.f) && (nX != 0.f);
 			});
 		bool allEast =
 			west.empty() &&
 			std::all_of(north_alt.cbegin(), north_alt.cend(), [](const Arbiter* arb) {
-			float nX = arb->getContactPtr()->collider_normal.x;
+			float nX = arb->getContactPtr()->collider_n.x;
 			return (nX > 0.f) && (nX != 0.f);
 				}) &&
 		std::all_of(south_alt.cbegin(), south_alt.cend(), [](const Arbiter* arb) {
-				float nX = arb->getContactPtr()->collider_normal.x;
+				float nX = arb->getContactPtr()->collider_n.x;
 				return (nX > 0.f) && (nX != 0.f);
 			});
 
@@ -51,9 +51,6 @@ void CollisionSolver::solve() {
 		return;
 
 	// do arbiter-to-arbiter comparisons 
-
-
-	//LOG_STEP("ARB COUNT: {}", arbiters.size());
 	for (size_t i = 0; i < arbiters.size() - 1; i++) {
 		for (size_t j = i + 1; j < arbiters.size(); ) {
 			ArbCompResult result = compArbiters(arbiters.at(i), arbiters.at(j));
@@ -80,8 +77,8 @@ void CollisionSolver::solve() {
 
 	for (auto* arb : arbiters) {
 		const Contact* contact = arb->getContactPtr();
-		Vec2f oN = contact->ortho_normal;
-		Vec2f cN = contact->collider_normal;
+		Vec2f oN = contact->ortho_n;
+		Vec2f cN = contact->collider_n;
 
 
 		auto dir = direction::from_vector(oN);
@@ -151,9 +148,6 @@ void CollisionSolver::solveX() {
 		arb->update(0.0);
 	}
 
-	//std::ranges::sort(east, ArbiterCompare);
-	//std::ranges::sort(west, ArbiterCompare);
-
 	std::sort(east.begin(), east.end(), ArbiterCompare);
 	std::sort(west.begin(), west.end(), ArbiterCompare);
 
@@ -213,9 +207,6 @@ void CollisionSolver::solveY() {
 	for (auto arb : south) {
 		arb->update(0.0);
 	}
-
-	//std::ranges::sort(north, ArbiterCompare);
-	//std::ranges::sort(south, ArbiterCompare);
 
 	std::sort(north.begin(), north.begin(), ArbiterCompare);
 	std::sort(south.begin(), south.begin(), ArbiterCompare);
@@ -295,8 +286,6 @@ void CollisionSolver::updateArbiterStack(std::deque<Arbiter*>& stack) {
 	for (auto arb = stack.begin(); arb != stack.end(); arb++) {
 		(*arb)->update(0.0);
 	}
-
-	//std::ranges::sort(stack, ArbiterCompare);
 	std::sort(stack.begin(), stack.end(), ArbiterCompare);
 }
 
@@ -327,7 +316,7 @@ void CollisionSolver::applyArbiterFirst(std::deque<Arbiter*>& stack) {
 				const Contact* c2 = (*it)->getContactPtr();
 				Vec2f mid = math::rect_mid(collidable->getBox());
 
-				if (math::is_horizontal(c->ortho_normal)) {
+				if (math::is_horizontal(c->ortho_n)) {
 					if (abs(c2->position.y - mid.y) < abs(c1->position.y - mid.y)) {
 						pick = it;
 						continue;
@@ -358,16 +347,16 @@ void CollisionSolver::applyArbVertAsHori(std::deque<Arbiter*>& altList, std::deq
 		bool updateRemaining = false;
 
 		if (c->hasContact) {
-			assert(abs(c->collider_normal.x) > 0.f && abs(c->collider_normal.x) < 1.f);
+			assert(abs(c->collider_n.x) > 0.f && abs(c->collider_n.x) < 1.f);
 
-			Vec2f alt_ortho_normal = (c->collider_normal.x < 0.f ? Vec2f(-1.f, 0.f) : Vec2f(1.f, 0.f));
-			float alt_separation = abs((c->collider_normal.y * c->separation) / c->collider_normal.x);
+			Vec2f alt_ortho_normal = (c->collider_n.x < 0.f ? Vec2f(-1.f, 0.f) : Vec2f(1.f, 0.f));
+			float alt_separation = abs((c->collider_n.y * c->separation) / c->collider_n.x);
 
 			ArbCompResult r;
 			r.contactType = ContactType::SINGLE;
 			r.createdContact = true;
 			r.contact = *c;
-			r.contact.ortho_normal = alt_ortho_normal;
+			r.contact.ortho_n = alt_ortho_normal;
 			r.contact.separation = alt_separation;
 			apply(&r.contact, nullptr, r.contactType);
 			updateRemaining = true;
@@ -390,16 +379,16 @@ void CollisionSolver::apply(const Contact* contact, Arbiter* arbiter, ContactTyp
 	assert(contact);
 
 	if (contact->hasContact) {
-		if (contact->ortho_normal == Vec2f(0.f, -1.f)) {
+		if (contact->ortho_n == Vec2f(0.f, -1.f)) {
 			appliedCollisionCount[Cardinal::N]++;
 		}
-		else if (contact->ortho_normal == Vec2f(1.f, 0.f)) {
+		else if (contact->ortho_n == Vec2f(1.f, 0.f)) {
 			appliedCollisionCount[Cardinal::E]++;
 		}
-		else if (contact->ortho_normal == Vec2f(0.f, 1.f)) {
+		else if (contact->ortho_n == Vec2f(0.f, 1.f)) {
 			appliedCollisionCount[Cardinal::S]++;
 		}
-		else if (contact->ortho_normal == Vec2f(-1.f, 0.f)) {
+		else if (contact->ortho_n == Vec2f(-1.f, 0.f)) {
 			appliedCollisionCount[Cardinal::W]++;
 		}
 
@@ -436,10 +425,9 @@ CollisionSolver::ArbCompResult CollisionSolver::compArbiters(const Arbiter* lhs,
 	comp.discardSecond = !rhs->getCollision()->tileValid();
 
 	// ghost check
-	if (!comp.discardFirst && !comp.discardSecond) {
-		//LOG_STEP("G1");
+	if (!comp.discardFirst && !comp.discardSecond) 
+	{
 		Ghost g1 = isGhostEdge(rhsContact, lhsContact);
-		//LOG_STEP("G2");
 		Ghost g2 = isGhostEdge(lhsContact, rhsContact);
 
 		bool g1_isGhost = (g1 != Ghost::NO_GHOST);
@@ -458,14 +446,9 @@ CollisionSolver::ArbCompResult CollisionSolver::compArbiters(const Arbiter* lhs,
 				g2_isGhost = !g1_isGhost;
 			}
 
-			//LOG_STEP("GHOST IS {}", (g1_isGhost ? "G1" : "G2"));
-
 			comp.discardFirst = g1_isGhost;
 			comp.discardSecond = g2_isGhost;
 			return comp;
-		}
-		else {
-			//LOG_STEP("NO GHOST");
 		}
 	}
 	return comp;
@@ -487,10 +470,14 @@ CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact& basis, const 
 	float dotp1 = math::dot(basisNormal, candLine.p1 - basisLine.p2);
 	float dotp2 = math::dot(basisNormal, candLine.p2 - basisLine.p1);
 
-	bool opt1 = (dotp1 < 0.f && dotp2 < 0.f); // candidate is full *behind* basis surface
+	// candidate is full *behind* basis surface
+	bool opt1 = (dotp1 < 0.f && dotp2 < 0.f); 
 
-	bool opt2 = (!math::is_vertical(basisLine) && math::is_vertical(candLine) && dotp1 <= 0.f && dotp2 <= 0.f); // prefer selecting verticals as the ghost edge
-	bool opt3 = (basisLine == Linef(candLine.p2, candLine.p1)); // candidate is opposite of basis
+	// prefer selecting verticals as the ghost edge
+	bool opt2 = (!math::is_vertical(basisLine) && math::is_vertical(candLine) && dotp1 <= 0.f && dotp2 <= 0.f); 
+
+	// candidate is opposite of basis
+	bool opt3 = (basisLine == Linef(candLine.p2, candLine.p1)); 
 
 	bool candidateBehind = opt1 || opt2 || opt3;
 
@@ -666,9 +653,9 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 
 	// arbs are converging
 	if (crush >= 0.f
-		&& nContact->ortho_normal + sContact->ortho_normal == Vec2f(0.f, 0.f)) {
+		&& nContact->ortho_n + sContact->ortho_n == Vec2f(0.f, 0.f)) {
 
-		if (nContact->collider_normal + sContact->collider_normal == Vec2f(0.f, 0.f)) {
+		if (nContact->collider_n + sContact->collider_n == Vec2f(0.f, 0.f)) {
 
 			// crush
 			ArbCompResult r;
@@ -719,16 +706,16 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 				Vec2f pos = collidable->getPosition();
 
 				Vec2f diff = Vec2f(intersect.x, 0.f) - Vec2f(pos.x, 0.f);
-				float side = (nContact->collider_normal.x + sContact->collider_normal.x < 0.f ? -1.f : 1.f);
+				float side = (nContact->collider_n.x + sContact->collider_n.x < 0.f ? -1.f : 1.f);
 
 				r.contact.hasContact = true;
 				r.contact.separation = abs(diff.x);
-				r.contact.collider_normal = Vec2f{ side, 0.f };
-				r.contact.ortho_normal = r.contact.collider_normal;
+				r.contact.collider_n = Vec2f{ side, 0.f };
+				r.contact.ortho_n = r.contact.collider_n;
 				r.contact.position = Vec2f{ pos.x, math::rect_mid(colBox).y };
 
 				r.contact.velocity = calcWedgeVel(
-					nContact->collider_normal, sContact->collider_normal,
+					nContact->collider_n, sContact->collider_n,
 					nContact->velocity, sContact->velocity
 				);
 

@@ -13,16 +13,16 @@ namespace phys_resp {
 
 		NormalTangent resp_standard(Vec2f curr_vel, const Contact& contact) {
 
-			Vec2f normal = math::projection(contact.velocity, contact.collider_normal, true);
-			Vec2f tangent = math::projection(curr_vel, contact.collider_normal.righthand(), true);
+			Vec2f normal = math::projection(contact.velocity, contact.collider_n, true);
+			Vec2f tangent = math::projection(curr_vel, contact.collider_n.righthand(), true);
 
 			return std::make_pair(normal, tangent);
 		}
 
 		NormalTangent resp_flatten(Vec2f curr_vel, const Contact& contact) {
 
-			Vec2f normal = math::projection(contact.velocity, contact.ortho_normal, true);
-			Vec2f tangent = math::projection(curr_vel, contact.ortho_normal.righthand(), true);
+			Vec2f normal = math::projection(contact.velocity, contact.ortho_n, true);
+			Vec2f tangent = math::projection(curr_vel, contact.ortho_n.righthand(), true);
 			return std::make_pair(normal, tangent);
 
 		}

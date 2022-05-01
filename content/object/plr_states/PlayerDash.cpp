@@ -54,7 +54,7 @@ dash_anims select_dash_anim(const plr::members& plr)
 	dash_anims anims{ &anim::dash_0, &anim::fx::dash_0 };
 
 	if (plr.ground->has_contact()) {
-		Vec2f cNorm = plr.ground->get_contact()->collider_normal;
+		Vec2f cNorm = plr.ground->get_contact()->collider_n;
 		Angle ang = math::angle(cNorm) + Angle::Radian((float)PI_F / 2.f);
 
 		if (plr.sprite->get_hflip()) {

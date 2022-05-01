@@ -6,6 +6,7 @@ namespace ff {
 
 class ColliderSurface {
 public:
+	/*
 	constexpr ColliderSurface() :
 		surface(),
 		ghostp0(),
@@ -22,6 +23,7 @@ public:
 	};
 
 	~ColliderSurface() = default;
+	*/
 
 
 	// ghost point provide additional info for collision 

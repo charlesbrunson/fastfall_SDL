@@ -26,17 +26,18 @@ using CollisionFrame = std::vector<AppliedContact>;
 // class for resolving a system of collisions on one collidable
 class CollisionSolver {
 private:
+	struct ArbCompResult {
+		bool discardFirst = false;
+		bool discardSecond = false;
 
-	//std::array<std::list<Arbiter*>, 4u> arbPerDir;
-
+		bool createdContact = false;
+		Contact contact;
+		ContactType contactType = ContactType::NO_SOLUTION;
+	};
 
 	cardinal_array<unsigned> allCollisionCount;
 	cardinal_array<unsigned> initialCollisionCount;
 	cardinal_array<unsigned> appliedCollisionCount;
-
-	//std::array<unsigned, 4> allCollisionCount;
-	//std::array<unsigned, 4> initialCollisionCount;
-	//std::array<unsigned, 4> appliedCollisionCount;
 
 	std::deque<Arbiter*> north;
 	std::deque<Arbiter*> south;
@@ -49,37 +50,23 @@ private:
 	// whether solve() has been run yet
 	size_t applyCounter;
 
-	//bool solved;
-
 	// collision set of arbiters to solve
 	std::vector<Arbiter*> arbiters;
-
-
-
-	struct ArbCompResult {
-		bool discardFirst = false;
-		bool discardSecond = false;
-
-		bool createdContact = false;
-		Contact contact;
-		ContactType contactType = ContactType::NO_SOLUTION;
-	};
 
 	// arbiters that are determined invalid to moved here
 	std::vector<std::pair<Arbiter*, ArbCompResult>> discard;
 
 	ArbCompResult compArbiters(const Arbiter* lhs, const Arbiter* rhs);
-
 	ArbCompResult pickVArbiter(const Arbiter* north, const Arbiter* south);
 	ArbCompResult pickHArbiter(const Arbiter* east, const Arbiter* west);
 
 	// arbiter may be nullptr
 	void apply(const Contact* contact, Arbiter* arbiter, ContactType type = ContactType::SINGLE);
-
-	void updateArbiterStack(std::deque<Arbiter*>& stack);
 	void applyArbiterStack(std::deque<Arbiter*>& stack);
 	void applyArbiterFirst(std::deque<Arbiter*>& stack);
 	void applyArbVertAsHori(std::deque<Arbiter*>& altList, std::deque<Arbiter*>& backupList);
+
+	void updateArbiterStack(std::deque<Arbiter*>& stack);
 
 	void solveX();
 	void solveY();
@@ -88,11 +75,21 @@ private:
 
 
 public:
+	enum class Ghost {
+		NO_GHOST = 0,
+		PARTIAL_GHOST = 1,
+		FULL_GHOST = 2
+	};
+
+
 	CollisionSolver(Collidable* _collidable);
 	CollisionSolver(CollisionSolver&&) = default;
 	CollisionSolver(const CollisionSolver&) = default;
 	CollisionSolver& operator=(CollisionSolver&&) = default;
 	CollisionSolver& operator=(const CollisionSolver&) = default;
+
+	// vector of AppliedArbiter in order of application
+	CollisionFrame frame;
 
 	// add an arbiter associated with the collidable to the collision set
 	inline void pushArbiter(Arbiter* arbiter) { arbiters.push_back(arbiter); };
@@ -103,20 +100,7 @@ public:
 	// should be reinitialized after each solve
 	void solve();
 
-	// vector of AppliedArbiter in order of application
-	CollisionFrame frame;
-
-	// returns vector of each arbiter applied to resolve the collision set
-	//inline const CollisionFrame* getCollisionFrame() { return &frame; }
-
 	static Vec2f calcWedgeVel(Vec2f n1, Vec2f n2, Vec2f v1, Vec2f v2);
-
-	enum class Ghost {
-		NO_GHOST = 0,
-		PARTIAL_GHOST = 1,
-		FULL_GHOST = 2
-	};
-
 	static Ghost isGhostEdge(const Contact& basis, const Contact& candidate) noexcept;
 
 };

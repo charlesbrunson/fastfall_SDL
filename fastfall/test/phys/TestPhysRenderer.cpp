@@ -144,7 +144,7 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 
 				SDL_SetRenderDrawColor(render, 255, 255, 0, 255);
 				Vec2f p1 = off + contact.position;
-				Vec2f p2 = off + p1 + contact.ortho_normal * contact.separation * 1.f;
+				Vec2f p2 = off + p1 + contact.ortho_n * contact.separation * 1.f;
 				p1 *= scale;
 				p2 *= scale;
 				SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
@@ -156,8 +156,8 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 				p1 *= scale;
 				p2 *= scale;
 				SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
-				p1 = off + contact.collider.surface.p1 - contact.collider_normal;
-				p2 = off + contact.collider.surface.p2 - contact.collider_normal;
+				p1 = off + contact.collider.surface.p1 - contact.collider_n;
+				p2 = off + contact.collider.surface.p2 - contact.collider_n;
 				p1 *= scale;
 				p2 *= scale;
 				SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);

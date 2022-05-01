@@ -176,10 +176,10 @@ void CollisionManager::updateRegionArbiters(CollidableData& data) {
 
 Rectf CollisionManager::updatePushBound(Rectf init_push_bound, const cardinal_array<float>& boundDist, const Contact* contact) {
 
-	if (!contact->hasContact || !direction::from_vector(contact->ortho_normal).has_value())
+	if (!contact->hasContact || !direction::from_vector(contact->ortho_n).has_value())
 		return init_push_bound;
 
-	Cardinal dir = direction::from_vector(contact->ortho_normal).value();
+	Cardinal dir = direction::from_vector(contact->ortho_n).value();
 
 	Rectf push = init_push_bound;
 
@@ -188,15 +188,15 @@ Rectf CollisionManager::updatePushBound(Rectf init_push_bound, const cardinal_ar
 		push = math::rect_extend(push, dir, diff);
 	}
 
-	if (math::is_vertical(contact->ortho_normal) && contact->isTransposable()) {
+	if (math::is_vertical(contact->ortho_n) && contact->isTransposable()) {
 
-		Vec2f alt_ortho_normal = Vec2f{ (contact->collider_normal.x < 0.f ? -1.f : 1.f), 0.f };
+		Vec2f alt_ortho_normal = Vec2f{ (contact->collider_n.x < 0.f ? -1.f : 1.f), 0.f };
 		auto alt_dir = direction::from_vector(alt_ortho_normal);
 
 		if (alt_dir.has_value()) {
-			//float alt_separation = abs((contact->collider_normal.y / contact->collider_normal.x) * contact->separation);
+			//float alt_separation = abs((contact->collider_n.y / contact->collider_n.x) * contact->separation);
 
-			float alt_separation = abs(contact->collider_normal.y * contact->separation * (1.f / contact->collider_normal.x));
+			float alt_separation = abs(contact->collider_n.y * contact->separation * (1.f / contact->collider_n.x));
 
 			float alt_diff = alt_separation - boundDist[alt_dir.value()];
 

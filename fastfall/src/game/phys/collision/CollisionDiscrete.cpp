@@ -279,11 +279,11 @@ void CollisionDiscrete::updateContact() noexcept {
 					cQuad.getSurface(Cardinal(axis.quadIndex)) &&
 					math::clamp(cMid.x, tArea.left, tArea.left + tArea.width) != cMid.x)
 				{
-					axis.contact.collider_normal = Vec2f(0.f, -1.f);
+					axis.contact.collider_n = Vec2f(0.f, -1.f);
 					Y = tArea.top;
 				}
 				else {
-					axis.contact.collider_normal = math::vector(axis.contact.collider.surface).lefthand().unit();
+					axis.contact.collider_n = math::vector(axis.contact.collider.surface).lefthand().unit();
 				}
 			}
 
@@ -324,11 +324,11 @@ void CollisionDiscrete::updateContact() noexcept {
 					cQuad.getSurface(Cardinal(axis.quadIndex)) &&
 					math::clamp(cMid.x, tArea.left, tArea.left + tArea.width) != cMid.x)
 				{
-					axis.contact.collider_normal = Vec2f(0.f, 1.f);
+					axis.contact.collider_n = Vec2f(0.f, 1.f);
 					Y = tArea.top + tArea.height;
 				}
 				else {
-					axis.contact.collider_normal = math::vector(axis.contact.collider.surface).lefthand().unit();
+					axis.contact.collider_n = math::vector(axis.contact.collider.surface).lefthand().unit();
 				}
 			}
 
@@ -389,7 +389,7 @@ void CollisionDiscrete::evalContact() noexcept {
 			// follow up on valley check
 			if ((valleys[Ordinal::NE] && cMid.x > math::rect_topright(tArea).x - VALLEY_FLATTEN_THRESH) ||
 				(valleys[Ordinal::NW] && cMid.x < math::rect_topleft(tArea).x + VALLEY_FLATTEN_THRESH)) {
-				axis.contact.collider_normal = axis.contact.ortho_normal;
+				axis.contact.collider_n = axis.contact.ortho_n;
 
 				float nSep = -std::max(axis.contact.collider.surface.p1.y, axis.contact.collider.surface.p2.y) + (cMid.y + cHalf.y);
 				axis.contact.separation = std::max(axis.contact.separation, nSep);
@@ -402,7 +402,7 @@ void CollisionDiscrete::evalContact() noexcept {
 			// follow up on valley check
 			if ((valleys[Ordinal::SE] && cMid.x > math::rect_topright(tArea).x - VALLEY_FLATTEN_THRESH) ||
 				(valleys[Ordinal::SW] && cMid.x < math::rect_topleft(tArea).x + VALLEY_FLATTEN_THRESH)) {
-				axis.contact.collider_normal = axis.contact.ortho_normal;
+				axis.contact.collider_n = axis.contact.ortho_n;
 
 				float nSep = std::min(axis.contact.collider.surface.p1.y, axis.contact.collider.surface.p2.y) - (cMid.y - cHalf.y);
 
@@ -473,8 +473,8 @@ void CollisionDiscrete::evalContact() noexcept {
 CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexcept {
 
 	CollisionAxis axis(initData);
-	axis.contact.ortho_normal = Vec2f(0.f, -1.f);
-	axis.contact.collider_normal = Vec2f(0.f, -1.f);
+	axis.contact.ortho_n    = Vec2f(0.f, -1.f);
+	axis.contact.collider_n = Vec2f(0.f, -1.f);
 	if (cQuad.material) {
 		axis.contact.material = &cQuad.material->getSurface(Cardinal::N, cQuad.matFacing);
 	}
@@ -490,8 +490,8 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
 CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcept {
 
 	CollisionAxis axis(initData);
-	axis.contact.ortho_normal = Vec2f(0.f, 1.f);
-	axis.contact.collider_normal = Vec2f(0.f, 1.f);
+	axis.contact.ortho_n    = Vec2f(0.f, 1.f);
+	axis.contact.collider_n = Vec2f(0.f, 1.f);
 	if (cQuad.material) {
 		axis.contact.material = &cQuad.material->getSurface(Cardinal::S, cQuad.matFacing);
 	}
@@ -507,8 +507,8 @@ CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcep
 CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noexcept {
 
 	CollisionAxis axis(initData);
-	axis.contact.ortho_normal = Vec2f(1.f, 0.f);
-	axis.contact.collider_normal = Vec2f(1.f, 0.f);
+	axis.contact.ortho_n    = Vec2f(1.f, 0.f);
+	axis.contact.collider_n = Vec2f(1.f, 0.f);
 	if (cQuad.material) {
 		axis.contact.material = &cQuad.material->getSurface(Cardinal::E, cQuad.matFacing);
 	}
@@ -560,8 +560,8 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noexcept {
 
 	CollisionAxis axis(initData);
-	axis.contact.ortho_normal = Vec2f(-1.f, 0.f);
-	axis.contact.collider_normal = Vec2f(-1.f, 0.f);
+	axis.contact.ortho_n    = Vec2f(-1.f, 0.f);
+	axis.contact.collider_n = Vec2f(-1.f, 0.f);
 	if (cQuad.material) {
 		axis.contact.material = &cQuad.material->getSurface(Cardinal::W, cQuad.matFacing);
 	}

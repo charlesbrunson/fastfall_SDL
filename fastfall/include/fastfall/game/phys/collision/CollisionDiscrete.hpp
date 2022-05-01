@@ -24,7 +24,7 @@ public:
 
 	void setAxisApplied(Vec2f ortho_normal) noexcept {
 		for (auto& axis : axes) {
-			if (axis.contact.ortho_normal == ortho_normal)
+			if (axis.contact.ortho_n == ortho_normal)
 				axis.applied = true;
 		}
 	}
