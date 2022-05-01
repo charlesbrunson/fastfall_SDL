@@ -367,11 +367,10 @@ void Engine::close() {
 void Engine::updateTimer() {
 
     auto [delta, update_count, interp] = clock.tick();
-    //elapsedTime = elapsed;
+
     elapsedTime = delta;
     update_counter = update_count;
     interpolation = interp;
-    hasUpdated = false;
 
 
 
@@ -381,7 +380,11 @@ void Engine::updateTimer() {
         bool resetTimers = false;
         handleEvents(&resetTimers);
         if (resetTimers) {
-            clock.tick();
+			auto [delta, update_count, interp] = clock.tick();
+
+			elapsedTime = delta;
+			update_counter = update_count;
+			interpolation = interp;
         }
 
     }

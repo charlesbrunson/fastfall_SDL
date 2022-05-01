@@ -1,4 +1,3 @@
-
 #include "gtest/gtest.h"
 
 #include "fastfall/util/math.hpp"
@@ -10,11 +9,13 @@ using namespace ff;
 TEST(collisionsolver, ghost_edge) {
 
 	{
+
+		// floor
 		Contact c1{
 			.separation = 1.f,
 			.hasContact = true,
-			.ortho_n = {0.f, 1.f},
-			.collider_n = {0.f, 1.f},
+			.ortho_n = {0.f, -1.f},
+			.collider_n = {0.f, -1.f},
 			.collider = ColliderSurface{
 				.surface = {
 					{  0, 0 },
@@ -22,6 +23,8 @@ TEST(collisionsolver, ghost_edge) {
 				}
 			}
 		};
+
+		// wall under floor
 		Contact c2{
 			.separation = 1.f,
 			.hasContact = true,
@@ -35,12 +38,18 @@ TEST(collisionsolver, ghost_edge) {
 			}
 		};
 
-		CollisionSolver::Ghost ghost = CollisionSolver::isGhostEdge(c1, c2);
-		EXPECT_EQ(ghost, CollisionSolver::Ghost::FULL_GHOST);
+		auto g1 = CollisionSolver::isGhostEdge(c1, c2);
+		auto g2 = CollisionSolver::isGhostEdge(c1, c2);
+		fmt::print(stderr, "g1:{} g2:{}", g1, g2);
+
+		EXPECT_EQ(g1, CollisionSolver::Ghost::FULL_GHOST);
+		EXPECT_EQ(g2, CollisionSolver::Ghost::FULL_GHOST);
 	}
 
 	{
 		// see wall_to_ceil_clip
+		
+		// ceil under wall
 		Contact c1{
 			.separation	= 1.f,
 			.hasContact	= true,
@@ -53,6 +62,8 @@ TEST(collisionsolver, ghost_edge) {
 				}
 			}
 		};
+
+		// wall
 		Contact c2{
 			.separation = 1.f,
 			.hasContact = true,
@@ -66,8 +77,12 @@ TEST(collisionsolver, ghost_edge) {
 			}
 		};
 
-		CollisionSolver::Ghost ghost = CollisionSolver::isGhostEdge(c1, c2);
-		EXPECT_EQ(ghost, CollisionSolver::Ghost::FULL_GHOST);
+		auto g1 = CollisionSolver::isGhostEdge(c1, c2);
+		auto g2 = CollisionSolver::isGhostEdge(c1, c2);
+		fmt::print(stderr, "g1:{} g2:{}", g1, g2);
+
+		EXPECT_EQ(g1, CollisionSolver::Ghost::FULL_GHOST);
+		EXPECT_EQ(g2, CollisionSolver::Ghost::FULL_GHOST);
 	}
 }
 

@@ -93,14 +93,25 @@ TEST_F(collision, wall_to_ceil_clip)
 	while (render.curr_frame < 20) {
 
 		box->set_vel(Vec2f{ -800.f, 0.f });
+		fmt::print(stderr, "{}\n", render.curr_frame);
 		update();
 		render.draw(colMan);
 
-		if (!hitwall) {
-			hitwall = box->get_contacts().size() == 2;
-		}
+		hitwall = box->getPosition().x <= 40.f;
+
+		//if (!hitwall) {
+		//	hitwall = box->get_contacts().size() == 2;
+		//}
+
+//		for (auto& contact : box->get_contacts()) {
+//			fmt::print(stderr, "\thasContact:{}\n", contact.hasContact);
+//			fmt::print(stderr, "\tortho_n:{}\n", contact.ortho_n);
+//			fmt::print(stderr, "\thasImpactTime:{}\n", contact.hasImpactTime);
+//			fmt::print(stderr, "\timpactTime:{}\n", contact.impactTime);
+//		}
 
 		if (hitwall) {
+
 			EXPECT_EQ(box->get_contacts().size(), 2);
 			EXPECT_LE(box->getPosition().y, 32.f);
 		}

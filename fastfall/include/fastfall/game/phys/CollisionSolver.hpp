@@ -81,7 +81,6 @@ public:
 		FULL_GHOST = 2
 	};
 
-
 	CollisionSolver(Collidable* _collidable);
 	CollisionSolver(CollisionSolver&&) = default;
 	CollisionSolver(const CollisionSolver&) = default;

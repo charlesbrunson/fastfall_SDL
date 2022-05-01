@@ -46,4 +46,44 @@ void Arbiter::update(secs deltaTime) {
 
 }
 
+bool ArbiterCompare(const Arbiter* a, const Arbiter* b)
+{
+	const Contact& aC = a->getContact();
+	const Contact& bC = b->getContact();
+
+	// favor valid contact
+	if (aC.hasContact != bC.hasContact) {
+		return aC.hasContact && !bC.hasContact;
+	}
+
+	// favor contact with impact time
+	if (aC.hasImpactTime != bC.hasImpactTime) {
+		return aC.hasImpactTime;
+	}
+
+	// favor earliest impact time
+	if (aC.hasImpactTime && bC.hasImpactTime && aC.impactTime != bC.impactTime) {
+		return aC.impactTime < bC.impactTime;
+	}
+
+	// favor least separation
+	if (aC.separation != bC.separation) {
+		return aC.separation < bC.separation;
+	}
+
+	// favor unmoving contact
+	float aVelMag = aC.velocity.magnitudeSquared();
+	float bVelMag = bC.velocity.magnitudeSquared();
+	if (aVelMag != bVelMag) {
+		return aVelMag < bVelMag;
+	}
+
+	// favor oldest contact
+	if (a->getAliveDuration() != b->getAliveDuration()) {
+		return a->getAliveDuration() > b->getAliveDuration();
+	}
+
+	return false;
+};
+
 }

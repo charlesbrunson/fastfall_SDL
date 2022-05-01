@@ -12,11 +12,6 @@ private:
 	CollisionDiscrete currCollision;
 	CollisionDiscrete prevCollision;
 
-	int lastAxisCollided = -1;
-
-	//const Contact* copiedContact = nullptr;
-
-
 	ColliderQuad prevTile;
 	const ColliderQuad* cTile;
 	const Collidable* cAble;
@@ -24,28 +19,16 @@ private:
 
 	Contact contact;
 	bool evaluated = false;
-
-	//Vec2f regionPosition;
-
+	int lastAxisCollided = -1;
 	Vec2f velocity;
 
 	void evalContact(secs deltaTime);
-
 	void slipUpdate();
 	std::optional<Contact> getVerticalSlipContact(float leeway);
 
 public:
-
-	inline bool tileValid() const noexcept {
-		return cTile && cTile->hasAnySurface();
-	};
-
 	CollisionContinuous(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion);
-	//CollisionContinuous(CollisionContinuous&&) = default;
-	//CollisionContinuous(const CollisionContinuous&) = default;
 
-
-	// advances the collision state to the next tick
 	void update(secs deltaTime);
 
 	inline void updateContact() noexcept { currCollision.updateContact(); };
@@ -55,12 +38,8 @@ public:
 	inline Contact getDiscreteContact() const noexcept { return currCollision.getContact(); }
 	inline Contact getDiscretePreviousContact() const noexcept { return prevCollision.getContact(); }
 
-
-	//int resolveType = -1;
-
-	void setAxisApplied(Vec2f ortho_normal) noexcept {
-		currCollision.setAxisApplied(ortho_normal);
-	}
+	inline bool tileValid() const noexcept { return cTile && cTile->hasAnySurface(); };
+	inline void setAxisApplied(Vec2f ortho_normal) noexcept { currCollision.setAxisApplied(ortho_normal); }
 };
 
 }

@@ -163,35 +163,40 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 		contact = touchingAxis->contact;
 		contact.hasContact = touchingAxis->is_intersecting();
 
-		// anti-tunneling measure
-		// checks if opposite axis of this one
-		// is still intersecting with collider
-		// if not, object is tunneling though
-		bool opposite_intersecting = false;
-		for (int ndx = 0; ndx < currCollision.getAxisCount(); ndx++)
+		if (contact.hasContact) 
 		{
-			if (ndx != touchingAxisNdx
-				&& currCollision.getCollisionAxis(ndx).dir == direction::opposite(touchingAxis->dir)
-				&& currCollision.getCollisionAxis(ndx).contact.separation > 0)
+			// anti-tunneling measure
+			// checks if opposite axis of this one
+			// is still intersecting with collider
+			// if not, object is tunneling though
+			bool opposite_intersecting = false;
+			for (int ndx = 0; ndx < currCollision.getAxisCount(); ndx++)
 			{
-				opposite_intersecting = true;
-				break;
+				if (ndx != touchingAxisNdx
+					&& currCollision.getCollisionAxis(ndx).dir == direction::opposite(touchingAxis->dir)
+					&& currCollision.getCollisionAxis(ndx).contact.separation > 0)
+				{
+					opposite_intersecting = true;
+					break;
+				}
 			}
-		}
 
-		// anti-tunneling measure
-		// if the collidable is no longer intersecting the collider,
-		// and hasn't completely passed through this collider on this axis
-		// require current collision has contact
-		if (isDeparting && opposite_intersecting)
-		{
-			contact.hasContact &= currCollision.getContact().hasContact;
+			// anti-tunneling measure
+			// if the collidable is no longer intersecting the collider,
+			// and hasn't completely passed through this collider on this axis
+			// require current collision has contact
+			if (isDeparting && opposite_intersecting)
+			{
+				contact.hasContact &= currCollision.getContact().hasContact;
+				//fmt::print(stderr, "whoops\n");
+			}
 		}
 		
 
 		contact.hasImpactTime = lastEntry > 0;
 		contact.impactTime = lastEntry;
 		lastAxisCollided = touchingAxisNdx;
+		//fmt::print(stderr, "impact {}:{}\n", contact.collider_n, contact.hasContact);
 	}
 	else if (hasIntersect)
 	{
@@ -204,12 +209,14 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 			auto& axis = currCollision.getCollisionAxis(lastAxisCollided);
 			contact = axis.contact;
 			contact.hasContact = axis.is_intersecting();
+			//fmt::print(stderr, "repeat {}:{}\n", contact.collider_n, contact.hasContact);
 		}
 		else {
 			// otherwise resort use current discrete contact
 
 			contact = currCollision.getContact();
 			lastAxisCollided = currCollision.getChosenAxis();
+			//fmt::print(stderr, "default {}:{}\n", contact.collider_n, contact.hasContact);
 		}
 	}
 
@@ -219,6 +226,7 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 
 	contact.velocity = velocity;
 	evaluated = true;
+
 
 	slipUpdate();
 }
