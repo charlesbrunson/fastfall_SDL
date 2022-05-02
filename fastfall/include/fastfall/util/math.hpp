@@ -219,7 +219,7 @@ Vec2<T> midpoint(const Line<T>& a) {
 }
 
 template<typename T>
-Line<T> shift(const Line<T>& a, Vec2<T> offset) {
+Line<T> shift(const Line<T>& a, const Vec2<T>& offset) {
 	Line<T> b = a;
 	b.p1 += offset;
 	b.p2 += offset;

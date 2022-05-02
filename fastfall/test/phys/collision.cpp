@@ -339,6 +339,7 @@ TEST_F(collision, wedge_against_floor_right)
 			Vec2i{ (int)wedge_tiles.column_count(), (int)wedge_tiles.row_count() }
 		);
 	initTileMap(wedge, wedge_tiles);
+	//auto quad = wedge->get_quad({ 1, 0 });
 	wedge->teleport(Vec2f{0.f, -16.f});
 
 	box->teleport(Vec2f{ 8, 64 });
@@ -371,6 +372,7 @@ TEST_F(collision, wedge_against_floor_right)
 			//EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
 		}
 	}
+	EXPECT_TRUE(false);
 }
 
 

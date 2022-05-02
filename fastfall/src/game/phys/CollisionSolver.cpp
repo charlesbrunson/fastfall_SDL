@@ -50,22 +50,23 @@ void CollisionSolver::solve() {
 	if (arbiters.empty())
 		return;
 
-	//size_t c = 0;
-	//for (auto& arb : arbiters) {
-	//	auto& contact = *arb->getContactPtr();
-	//	fmt::print(stderr, "\t-------------\n");
-	//	fmt::print(stderr, "\t{}.hasContact:   {}\n", c, contact.hasContact);
-	//	fmt::print(stderr, "\t{}.ortho_n:      {}\n", c, contact.ortho_n);
-	//	fmt::print(stderr, "\t{}.collider_n:   {}\n", c, contact.collider_n);
-	//	fmt::print(stderr, "\t{}.hasImpactTime:{}\n", c, contact.hasImpactTime);
-	//	fmt::print(stderr, "\t{}.impactTime:   {}\n", c, contact.impactTime);
-	//	c++;
-	//}
+	size_t c = 0;
+	for (auto& arb : arbiters) {
+		auto& contact = *arb->getContactPtr();
+		fmt::print(stderr, "\t-------------\n");
+		fmt::print(stderr, "\t{}.hasContact:   {}\n", c, contact.hasContact);
+		fmt::print(stderr, "\t{}.ortho_n:      {}\n", c, contact.ortho_n);
+		fmt::print(stderr, "\t{}.collider_n:   {}\n", c, contact.collider_n);
+		fmt::print(stderr, "\t{}.hasImpactTime:{}\n", c, contact.hasImpactTime);
+		fmt::print(stderr, "\t{}.impactTime:   {}\n", c, contact.impactTime);
+		fmt::print(stderr, "\t{}.region:       {}\n", c, arb->region->get_ID().value);
+		c++;
+	}
 
 	// do arbiter-to-arbiter comparisons 
 	for (size_t i = 0; i < arbiters.size() - 1; i++) {
 		for (size_t j = i + 1; j < arbiters.size(); ) {
-			//fmt::print(stderr, "\t\tcompare {} and {}\n", i, j);
+			fmt::print(stderr, "\t\tcompare {} and {}\n", i, j);
 			ArbCompResult result = compArbiters(arbiters.at(i), arbiters.at(j));
 
 			if (result.discardFirst) {
@@ -437,28 +438,12 @@ CollisionSolver::ArbCompResult CollisionSolver::compArbiters(const Arbiter* lhs,
 	comp.discardFirst  = !lhs->getCollision()->tileValid();
 	comp.discardSecond = !rhs->getCollision()->tileValid();
 
-	//if (!comp.discardFirst && !comp.discardSecond 
-	//	&& lhsContact.hasContact != rhsContact.hasContact) 
-	//{
-	//	comp.discardFirst  = !lhsContact.hasContact;
-	//	comp.discardSecond = !rhsContact.hasContact;
-	//	fmt::print(stderr, "\t\thas contact\n");
-	//}
-
-	//	if (!comp.discardFirst && !comp.discardSecond 
-	//		&& lhsContact.hasImpactTime != rhsContact.hasImpactTime) 
-	//	{
-	//		comp.discardFirst  = !lhsContact.hasImpactTime;
-	//		comp.discardSecond = !rhsContact.hasImpactTime;
-	//		fmt::print(stderr, "\t\timpact time\n");
-	//	}
-
 	// ghost check
 	if (!comp.discardFirst && !comp.discardSecond) 
 	{
 		Ghost g1 = isGhostEdge(rhsContact, lhsContact);
 		Ghost g2 = isGhostEdge(lhsContact, rhsContact);
-		//fmt::print(stderr, "\t\tghost {} {}\n", g1, g2);
+		fmt::print(stderr, "\t\tghost {} {}\n", g1, g2);
 
 		bool g1_isGhost = (g1 != Ghost::NO_GHOST);
 		bool g2_isGhost = (g2 != Ghost::NO_GHOST);
@@ -480,12 +465,12 @@ CollisionSolver::ArbCompResult CollisionSolver::compArbiters(const Arbiter* lhs,
 			comp.discardSecond = g2_isGhost;
 		}
 	}
-	//if (comp.discardFirst) {
-	//	fmt::print(stderr, "\t\tdiscard 0\n");
-	//}
-	//if (comp.discardSecond) {
-	//	fmt::print(stderr, "\t\tdiscard 1\n");
-	//}
+	if (comp.discardFirst) {
+		fmt::print(stderr, "\t\tdiscard 0\n");
+	}
+	if (comp.discardSecond) {
+		fmt::print(stderr, "\t\tdiscard 1\n");
+	}
 	return comp;
 }
 
@@ -516,8 +501,8 @@ CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact& basis, const 
 	// candidate is opposite of basis
 	bool opt3 = (basisLine == Linef(candLine.p2, candLine.p1)); 
 
-	//fmt::print(stderr, "\t\tdot 1:{} 2:{}\n", dotp1, dotp2);
-	//fmt::print(stderr, "\t\topts 1:{} 2:{} 3:{}\n", opt1, opt2, opt3);
+	fmt::print(stderr, "\t\tdot 1:{} 2:{}\n", dotp1, dotp2);
+	fmt::print(stderr, "\t\topts 1:{} 2:{} 3:{}\n", opt1, opt2, opt3);
 
 	bool candidateBehind = opt1 || opt2 || opt3;
 
@@ -769,11 +754,10 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 				r.contact.ortho_n = r.contact.collider_n;
 				r.contact.position = Vec2f{ pos.x, math::rect_mid(colBox).y };
 
-				r.contact.velocity = calcWedgeVel(
-					nContact->collider_n, sContact->collider_n,
-					nContact->velocity, sContact->velocity
+				r.contact.velocity = intersect - math::intersection(
+					math::shift(floorLine, -floorVel), 
+					math::shift(ceilLine, -ceilVel)
 				);
-
 				return r;
 			}
 			//else do nothing

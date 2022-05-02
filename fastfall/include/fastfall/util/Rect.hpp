@@ -174,7 +174,14 @@ public:
 		}
 	}
 
+
 	bool touches(const Rect<T>& rectangle) const
+	{
+		Rect<T> intersection;
+		return touches(rectangle, intersection);
+	}
+
+	bool touches(const Rect<T>& rectangle, Rect<T>& intersection) const
 	{
 		// Compute the min and max of the first rectangle on both axes
 		T r1MinX = std::min(left, static_cast<T>(left + width));
@@ -194,7 +201,16 @@ public:
 		T interRight = std::min(r1MaxX, r2MaxX);
 		T interBottom = std::min(r1MaxY, r2MaxY);
 
-		return (interLeft <= interRight) && (interTop <= interBottom);
+		if ((interLeft <= interRight) && (interTop <= interBottom))
+		{
+			intersection = Rect<T>(interLeft, interTop, interRight - interLeft, interBottom - interTop);
+			return true;
+		}
+		else
+		{
+			intersection = Rect<T>(0, 0, 0, 0);
+			return false;
+		}
 	}
 
 	bool contains(const Vec2<T>& pos) const

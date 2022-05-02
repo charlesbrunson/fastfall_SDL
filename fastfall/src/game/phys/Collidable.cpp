@@ -464,74 +464,6 @@ void Collidable::debug_draw() const
 
 void Collidable::process_current_frame() 
 {
-	auto apply_wedge = [&](const PersistantContact& contact) {
-
-
-		//vel = contact.velocity;
-		//return;
-		
-		bool applied = false;
-
-		
-		for (auto& tracker : trackers)
-		{
-			if (tracker->has_contact())
-			{
-				Angle surf_ang = math::angle(tracker->currentContact->collider.surface);
-
-				// TODO: wrong calc?
-				//float speed = contact.velocity.x / cosf(surf_ang.radians());
-				float speed = math::projection(contact.velocity, math::vector(tracker->currentContact->collider.surface)).magnitude();
-				float curr_speed = *tracker->traverse_get_speed();
-
-				if (speed < 0.f) {
-					curr_speed = std::min(curr_speed, speed);
-				}
-				else if (speed > 0.f) {
-					curr_speed = std::max(curr_speed, speed);
-				}
-				tracker->traverse_set_speed(curr_speed);
-				applied = true;
-				break;
-			}
-		}
-		
-
-
-		if (!applied) {
-
-			//vel.x = contact.velocity.x;
-
-			vel = contact.velocity;
-
-			/*
-			if (contact.velocity.x < 0) {
-				vel.x = std::min(vel.x, contact.velocity.x);
-			}
-			else if (contact.velocity.x > 0) {
-				vel.x = std::max(vel.x, contact.velocity.x);
-			}
-			*/
-
-
-			/*
-			// TODO: wrong calc?
-			Angle surf_ang = math::angle(Vec2f{16.f, 0.f});
-			float speed = contact.velocity.x / cosf(surf_ang.radians());
-
-			if (speed < 0.f) {
-				vel.x = std::min(vel.x, speed);
-			}
-			else if (speed > 0.f) {
-				vel.x = std::max(vel.x, speed);
-			}
-			*/
-		}
-		
-
-		
-	};
-
 	col_state.reset();
 	for (auto& contact : currContacts) {
 		switch(contact.type)
@@ -544,7 +476,7 @@ void Collidable::process_current_frame()
 			break;
 		case ContactType::WEDGE_OPPOSITE: 
 			col_state.set_flag(collision_state_t::flags::Wedge);
-			apply_wedge(contact);
+			vel = contact.velocity;
 			break;
 		case ContactType::SINGLE: 
 			if (auto optd = direction::from_vector(contact.ortho_n)) 
