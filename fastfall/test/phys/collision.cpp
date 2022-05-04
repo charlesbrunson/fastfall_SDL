@@ -345,7 +345,7 @@ TEST_F(collision, wedge_against_floor_right)
 	box->teleport(Vec2f{ 8, 64 });
 	box->set_gravity(Vec2f{0.f, 500.f});
 
-	TestPhysRenderer render(collider->getBoundingBox());
+	TestPhysRenderer render(math::rect_extend(collider->getBoundingBox(), Cardinal::E, 64.f));
 	render.frame_delay = 2;
 	render.draw(colMan);
 
@@ -357,7 +357,7 @@ TEST_F(collision, wedge_against_floor_right)
 		wedge->velocity = vel;
 		wedge->update(one_frame);
 
-		Vec2f vel2{ 0.f, 0.f };
+		Vec2f vel2{ 0.f, -10.f };
 		collider->setPosition(collider->getPosition() + (vel2 * one_frame));
 		collider->delta_velocity = vel2 - collider->velocity;
 		collider->velocity = vel2;
@@ -366,13 +366,12 @@ TEST_F(collision, wedge_against_floor_right)
 		render.draw(colMan);
 		fmt::print(stderr, "{:2d}: p:{:.3f} v:{:.3f}\n", render.curr_frame, box->getPosition(), box->get_vel());
 		
-		if (render.curr_frame > 24 && box->getPosition().x < 64) {
+		if (render.curr_frame > 24 && box->getPosition().x < 32) {
 			fmt::print(stderr, "{:08b}\n", box->get_state_flags().value());
 			EXPECT_GT(box->get_vel().x, 0.f);
-			//EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
+			EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
 		}
 	}
-	EXPECT_TRUE(false);
 }
 
 

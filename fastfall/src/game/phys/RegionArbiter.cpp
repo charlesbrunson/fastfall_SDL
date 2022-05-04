@@ -33,32 +33,6 @@ void RegionArbiter::updateRegion(Rectf bounds) {
 	}
 
 	std::erase_if(quadArbiters, [](const auto& pair) { return pair.second.stale; });
-	//std::swap(prevQuads, currQuads);
-	
-	/*
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_CONTACT)) {
-		for (auto& arb : quadArbiters)
-		{
-			if (!debug_draw::repeat(&arb, Vec2f{}))
-			{
-				Rectf bound;
-				auto& shape = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>((const void*)&arb, Primitive::LINES, 8);
-				size_t n = 0;
-				for (auto& side : arb.first->surfaces)
-				{
-					if (side.hasSurface) {
-						shape[n].pos		= side.collider.surface.p1;
-						shape[n + 1].pos	= side.collider.surface.p2;
-
-						shape[n].color		= Color::Red;
-						shape[n + 1].color	= Color::Red;
-					}
-					n += 2;
-				}
-			}
-		}
-	}
-	*/
 }
 
 }

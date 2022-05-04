@@ -86,6 +86,7 @@ TEST(collisionsolver, ghost_edge) {
 	}
 }
 
+/*
 TEST(collisionsolver, wedge_velocity) {
 
 	Vec2f n1;
@@ -227,3 +228,5 @@ TEST(collisionsolver, wedge_velocity) {
 	}
 
 }
+
+*/

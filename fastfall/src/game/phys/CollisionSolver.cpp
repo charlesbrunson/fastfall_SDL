@@ -50,6 +50,7 @@ void CollisionSolver::solve() {
 	if (arbiters.empty())
 		return;
 
+	/*
 	size_t c = 0;
 	for (auto& arb : arbiters) {
 		auto& contact = *arb->getContactPtr();
@@ -62,11 +63,12 @@ void CollisionSolver::solve() {
 		fmt::print(stderr, "\t{}.region:       {}\n", c, arb->region->get_ID().value);
 		c++;
 	}
+	*/
 
 	// do arbiter-to-arbiter comparisons 
 	for (size_t i = 0; i < arbiters.size() - 1; i++) {
 		for (size_t j = i + 1; j < arbiters.size(); ) {
-			fmt::print(stderr, "\t\tcompare {} and {}\n", i, j);
+			//fmt::print(stderr, "\t\tcompare {} and {}\n", i, j);
 			ArbCompResult result = compArbiters(arbiters.at(i), arbiters.at(j));
 
 			if (result.discardFirst) {
@@ -443,7 +445,7 @@ CollisionSolver::ArbCompResult CollisionSolver::compArbiters(const Arbiter* lhs,
 	{
 		Ghost g1 = isGhostEdge(rhsContact, lhsContact);
 		Ghost g2 = isGhostEdge(lhsContact, rhsContact);
-		fmt::print(stderr, "\t\tghost {} {}\n", g1, g2);
+		//fmt::print(stderr, "\t\tghost {} {}\n", g1, g2);
 
 		bool g1_isGhost = (g1 != Ghost::NO_GHOST);
 		bool g2_isGhost = (g2 != Ghost::NO_GHOST);
@@ -465,12 +467,14 @@ CollisionSolver::ArbCompResult CollisionSolver::compArbiters(const Arbiter* lhs,
 			comp.discardSecond = g2_isGhost;
 		}
 	}
+	/*
 	if (comp.discardFirst) {
 		fmt::print(stderr, "\t\tdiscard 0\n");
 	}
 	if (comp.discardSecond) {
 		fmt::print(stderr, "\t\tdiscard 1\n");
 	}
+	*/
 	return comp;
 }
 
@@ -493,7 +497,17 @@ CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact& basis, const 
 	bool is_ghost = false;
 
 	// candidate is full *behind* basis surface
-	bool opt1 = (dotp1 <= 0.f && dotp2 < 0.f) || (dotp1 < 0.f && dotp2 <= 0.f); 
+	bool opt1;
+	if (   candLine.p1 == basisLine.p2
+		|| candLine.p2 == basisLine.p1) 
+	{
+		// surfaces share a point
+		opt1 = (dotp1 < 0.f && dotp2 < 0.f); // always false?
+	}
+	else {
+		opt1 = (dotp1 <= 0.f && dotp2 < 0.f) || (dotp1 < 0.f && dotp2 <= 0.f);
+	}
+
 
 	// prefer selecting verticals as the ghost edge
 	bool opt2 = (!math::is_vertical(basisLine) && math::is_vertical(candLine) && dotp1 <= 0.f && dotp2 <= 0.f); 
@@ -501,8 +515,8 @@ CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact& basis, const 
 	// candidate is opposite of basis
 	bool opt3 = (basisLine == Linef(candLine.p2, candLine.p1)); 
 
-	fmt::print(stderr, "\t\tdot 1:{} 2:{}\n", dotp1, dotp2);
-	fmt::print(stderr, "\t\topts 1:{} 2:{} 3:{}\n", opt1, opt2, opt3);
+	//fmt::print(stderr, "\t\tdot 1:{} 2:{}\n", dotp1, dotp2);
+	//fmt::print(stderr, "\t\topts 1:{} 2:{} 3:{}\n", opt1, opt2, opt3);
 
 	bool candidateBehind = opt1 || opt2 || opt3;
 
@@ -693,9 +707,16 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 
 	// arbs are converging
 	if (crush >= 0.f
-		&& nContact->ortho_n + sContact->ortho_n == Vec2f(0.f, 0.f)) {
+		&& nContact->ortho_n == -sContact->ortho_n) 
+	{
 
-		if (nContact->collider_n + sContact->collider_n == Vec2f(0.f, 0.f)) {
+		Vec2f sum = nContact->collider_n + sContact->collider_n;
+
+		//fmt::print(stderr, "s:{}\n", sum);
+
+		if (   abs(sum.x) < 1e-5
+			&& abs(sum.y) < 1e-5)
+		{
 
 			// crush
 			ArbCompResult r;
@@ -758,6 +779,7 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 					math::shift(floorLine, -floorVel), 
 					math::shift(ceilLine, -ceilVel)
 				);
+				//fmt::print(stderr, "v:{}\n", r.contact.velocity);
 				return r;
 			}
 			//else do nothing
