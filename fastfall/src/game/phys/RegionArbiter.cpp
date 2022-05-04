@@ -1,6 +1,7 @@
 #include "fastfall/game/phys/RegionArbiter.hpp"
 
 #include "fastfall/util/log.hpp"
+#include "fastfall/render/DebugDraw.hpp"
 
 namespace ff {
 
@@ -10,16 +11,10 @@ void RegionArbiter::updateRegion(Rectf bounds) {
 	collider_->getQuads(bounds, currQuads);
 
 	// check for stale (out of bounds) quads to remove
-	for (auto q = prevQuads.cbegin(); q != prevQuads.cend(); q++) {
-		//if (!bounds.intersects(q->first)) {
-		if (!bounds.touches(q->first)) { // fixes oneway collision?
-
-			// just exited this quad
-			//quadArbiters.erase(q->second);
-			auto quad_iter = quadArbiters.find(q->second);
-			if (quad_iter != quadArbiters.end()) {
-				quad_iter->second.stale = true;
-			}
+	for (auto& [_, arb] : quadArbiters) {
+		if (!bounds.touches(arb.quad_bounds)) 
+		{
+			arb.stale = true;
 		}
 	}
 
@@ -38,15 +33,32 @@ void RegionArbiter::updateRegion(Rectf bounds) {
 	}
 
 	std::erase_if(quadArbiters, [](const auto& pair) { return pair.second.stale; });
-	std::swap(prevQuads, currQuads);
-}
+	//std::swap(prevQuads, currQuads);
+	
+	/*
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_CONTACT)) {
+		for (auto& arb : quadArbiters)
+		{
+			if (!debug_draw::repeat(&arb, Vec2f{}))
+			{
+				Rectf bound;
+				auto& shape = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>((const void*)&arb, Primitive::LINES, 8);
+				size_t n = 0;
+				for (auto& side : arb.first->surfaces)
+				{
+					if (side.hasSurface) {
+						shape[n].pos		= side.collider.surface.p1;
+						shape[n + 1].pos	= side.collider.surface.p2;
 
-/*
-void RegionArbiter::updateArbiters(secs deltaTime) {
-	for (auto& [quad, arbiter] : quadArbiters) {
-		arbiter.update(deltaTime);
+						shape[n].color		= Color::Red;
+						shape[n + 1].color	= Color::Red;
+					}
+					n += 2;
+				}
+			}
+		}
 	}
+	*/
 }
-*/
 
 }

@@ -41,6 +41,8 @@ public:
 	const ColliderQuad* collider;
 	const ColliderRegion* region;
 
+	Rectf quad_bounds;
+
 	bool stale = false;
 
 };

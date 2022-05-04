@@ -418,13 +418,13 @@ namespace ff {
 		selfbounds.intersects(tileArea, tileArea);
 
 
-		Rectf tileBounds(Vec2f(), Vec2f(TILESIZE_F, TILESIZE_F));
+		Rectf tileBounds{ Vec2f{}, Vec2f{TILESIZE_F, TILESIZE_F} };
 
 		for (int yy = tileArea.top; yy < tileArea.top + tileArea.height; yy++) {
 			for (int xx = tileArea.left; xx < tileArea.left + tileArea.width; xx++) {
 				if (auto* tile = get_quad({ xx, yy })) {
 					tileBounds.left = xx * TILESIZE_F;
-					tileBounds.top = yy * TILESIZE_F;
+					tileBounds.top  = yy * TILESIZE_F;
 
 					buffer.push_back(std::make_pair(tileBounds, tile));
 				}

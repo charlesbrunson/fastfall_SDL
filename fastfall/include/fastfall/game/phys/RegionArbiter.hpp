@@ -33,7 +33,7 @@ private:
 	ColliderRegion* collider_;
 	Collidable* collidable_;
 
-	std::vector<std::pair<Rectf, const ColliderQuad*>> prevQuads;
+	//std::vector<std::pair<Rectf, const ColliderQuad*>> prevQuads;
 	std::vector<std::pair<Rectf, const ColliderQuad*>> currQuads;
 	std::map<const ColliderQuad*, Arbiter> quadArbiters;
 
