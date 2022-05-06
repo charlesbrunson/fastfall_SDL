@@ -383,7 +383,7 @@ TEST_F(collision, floor_into_wedge_left)
 		{"half",		"half",		"",			""},
 		{"half-v",		"half-v",	"",			""},
 		{"",			"",			"",			""},
-		});
+	});
 
 	grid_vector<std::string_view> floor_tiles{
 		{ "", 		""},
@@ -423,4 +423,30 @@ TEST_F(collision, floor_into_wedge_left)
 			EXPECT_LT(box->get_vel().x, 0.f);
 		}
 	}
+}
+
+TEST_F(collision, wedge_with_oneway_floor) {
+
+	initTileMap({
+		{"solid", 		"shallow2-hv",	"shallow1-hv"},
+		{"shallow1-hv", "",				""},
+		{"oneway", 		"oneway",		"oneway"},
+	});
+
+	box->setSize({ 16, 24 });
+	box->teleport({ 32, 32 });
+	box->set_vel({ -100, -100 });
+	box->set_gravity({ 0, 500 });
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.frame_delay = 20;
+	render.draw(colMan);
+
+	while (render.curr_frame < 8) {
+		fmt::print(stderr, "{}\n", render.curr_frame);
+		update();
+		render.draw(colMan);
+	}
+	ASSERT_EQ(box->getPosition().y, 32.f);
+
 }

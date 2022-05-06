@@ -92,7 +92,7 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 
 			SDL_SetRenderDrawColor(render, 50, 50, 50, 255);
 			for (const auto& line : quad.second->surfaces) {
-				if (!line.hasSurface) {
+				if (!line.hasSurface && !quad.second->hasOneWay) {
 					Linef li = line.collider.surface;
 					li.p1 += off + offset;
 					li.p2 += off + offset;
@@ -112,6 +112,17 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 					li.p1 *= scale;
 					li.p2 *= scale;
 					SDL_RenderDrawLineF(render, li.p1.x, li.p1.y, li.p2.x, li.p2.y);
+
+					// add extra line for one ways
+					if (quad.second->hasOneWay
+						&& quad.second->getSurface(quad.second->oneWayDir) == &line.collider)
+					{
+						Vec2f n = math::vector(line.collider.surface).lefthand().unit();
+						Linef li2 = math::shift(li, -n * scale);
+						li2.p1 += n.righthand() * scale;
+						li2.p2 += n.lefthand() * scale;
+						SDL_RenderDrawLineF(render, li2.p1.x, li2.p1.y, li2.p2.x, li2.p2.y);
+					}
 				}
 			}
 		}
