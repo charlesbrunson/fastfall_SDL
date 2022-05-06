@@ -51,6 +51,7 @@ void CollisionSolver::solve() {
 		return;
 
 	
+	/*
 	size_t c = 0;
 	for (auto& arb : arbiters) {
 		auto& contact = *arb->getContactPtr();
@@ -64,6 +65,7 @@ void CollisionSolver::solve() {
 		fmt::print(stderr, "\t{}.region:       {}\n", c, arb->region->get_ID().value);
 		c++;
 	}
+	*/
 	
 	// do arbiter-to-arbiter comparisons 
 	for (size_t i = 0; i < arbiters.size() - 1; i++) {
@@ -433,7 +435,7 @@ CollisionSolver::ArbCompResult CollisionSolver::compArbiters(const Arbiter* lhs,
 	{
 		Ghost g1 = isGhostEdge(rhsContact, lhsContact);
 		Ghost g2 = isGhostEdge(lhsContact, rhsContact);
-		fmt::print(stderr, "\t\tghost {} {}\n", g1, g2);
+		//fmt::print(stderr, "\t\tghost {} {}\n", g1, g2);
 
 		bool g1_isGhost = (g1 != Ghost::NO_GHOST);
 		bool g2_isGhost = (g2 != Ghost::NO_GHOST);
@@ -456,12 +458,14 @@ CollisionSolver::ArbCompResult CollisionSolver::compArbiters(const Arbiter* lhs,
 		}
 	}
 	
+	/*
 	if (comp.discardFirst) {
 		fmt::print(stderr, "\t\tdiscard 0\n");
 	}
 	if (comp.discardSecond) {
 		fmt::print(stderr, "\t\tdiscard 1\n");
 	}
+	*/
 	
 	return comp;
 }
@@ -503,8 +507,8 @@ CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact& basis, const 
 	// candidate is opposite of basis
 	bool opt3 = (basisLine == Linef(candLine.p2, candLine.p1)); 
 
-	fmt::print(stderr, "\t\tdot 1:{} 2:{}\n", dotp1, dotp2);
-	fmt::print(stderr, "\t\topts 1:{} 2:{} 3:{}\n", opt1, opt2, opt3);
+	//fmt::print(stderr, "\t\tdot 1:{} 2:{}\n", dotp1, dotp2);
+	//fmt::print(stderr, "\t\topts 1:{} 2:{} 3:{}\n", opt1, opt2, opt3);
 
 	bool candidateBehind = opt1 || opt2 || opt3;
 

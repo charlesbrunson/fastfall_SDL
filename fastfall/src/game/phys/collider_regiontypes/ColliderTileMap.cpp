@@ -383,10 +383,8 @@ namespace ff {
 		bbox = math::rect_extend(bbox, (deltap.y < 0.f ? Cardinal::N : Cardinal::S), abs(deltap.y));
 
 		Rectf ts_bbox{
-			bbox.left   / TILESIZE_F,
-			bbox.top    / TILESIZE_F,
-			bbox.width  / TILESIZE_F,
-			bbox.height / TILESIZE_F,
+			bbox.getPosition() / TILESIZE_F,
+			bbox.getSize()     / TILESIZE_F
 		};
 
 		Recti tsi_bbox;

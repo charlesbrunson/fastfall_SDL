@@ -476,7 +476,10 @@ void Collidable::process_current_frame()
 			break;
 		case ContactType::WEDGE_OPPOSITE: 
 			col_state.set_flag(collision_state_t::flags::Wedge);
-			vel = contact.velocity;
+			if (math::dot(vel - contact.velocity, contact.velocity) < 0.f) 
+			{
+				vel = contact.velocity;
+			}
 			break;
 		case ContactType::SINGLE: 
 			if (auto optd = direction::from_vector(contact.ortho_n)) 
