@@ -442,11 +442,11 @@ TEST_F(collision, wedge_with_oneway_floor) {
 	render.frame_delay = 20;
 	render.draw(colMan);
 
-	while (render.curr_frame < 8) {
+	while (render.curr_frame < 2) {
 		fmt::print(stderr, "{}\n", render.curr_frame);
 		update();
 		render.draw(colMan);
+		ASSERT_EQ(box->getPosition().y, 32.f);
 	}
-	ASSERT_EQ(box->getPosition().y, 32.f);
-
 }
+

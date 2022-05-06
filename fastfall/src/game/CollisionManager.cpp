@@ -180,7 +180,6 @@ Rectf CollisionManager::updatePushBound(Rectf init_push_bound, const cardinal_ar
 		return init_push_bound;
 
 	Cardinal dir = direction::from_vector(contact->ortho_n).value();
-
 	Rectf push = init_push_bound;
 
 	float diff = contact->separation - boundDist[dir];

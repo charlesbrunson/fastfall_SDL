@@ -376,57 +376,56 @@ namespace ff {
 
 	void ColliderTileMap::getQuads(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& buffer) const {
 
-		Rectf bbox = area;
-		bbox.left -= getPosition().x;
-		bbox.top -= getPosition().y;
+		Rectf bbox = math::shift(area, -getPosition());
 
 		Vec2f deltap = getPosition() - getPrevPosition();
-		if (deltap.x < 0.f)	{
-			bbox = math::rect_extend(bbox, Cardinal::W, abs(deltap.x));
-		}
-		else if (deltap.x > 0.f) {
-			bbox = math::rect_extend(bbox, Cardinal::E, abs(deltap.x));
-		}
+		bbox = math::rect_extend(bbox, (deltap.x < 0.f ? Cardinal::W : Cardinal::E), abs(deltap.x));
+		bbox = math::rect_extend(bbox, (deltap.y < 0.f ? Cardinal::N : Cardinal::S), abs(deltap.y));
 
-		if (deltap.y < 0.f)	{
-			bbox = math::rect_extend(bbox, Cardinal::N, abs(deltap.y));
-		}
-		else if (deltap.y > 0.f) {
-			bbox = math::rect_extend(bbox, Cardinal::S, abs(deltap.y));
-		}
-
-
-		Recti tileArea;
-		tileArea.top = static_cast<int>(floorf(bbox.top / TILESIZE_F));
-		tileArea.left = static_cast<int>(floorf(bbox.left / TILESIZE_F));
-		tileArea.width = static_cast<int>(ceilf((bbox.left + bbox.width) / TILESIZE_F)) - tileArea.left;
-		tileArea.height = static_cast<int>(ceilf((bbox.top + bbox.height) / TILESIZE_F)) - tileArea.top;
-
-		if (tileArea.width == 0) {
-			tileArea.left -= 1;
-			tileArea.width += 2;
-		}
-		else if (tileArea.height == 0) {
-			tileArea.top -= 1;
-			tileArea.height += 2;
-		}
-
-		Recti selfbounds{
-			size_min,
-			size_max - size_min,
+		Rectf ts_bbox{
+			bbox.left   / TILESIZE_F,
+			bbox.top    / TILESIZE_F,
+			bbox.width  / TILESIZE_F,
+			bbox.height / TILESIZE_F,
 		};
-		selfbounds.intersects(tileArea, tileArea);
 
+		if (floorf(ts_bbox.top) == ts_bbox.top) {
+			ts_bbox = math::rect_extend(ts_bbox, Cardinal::N, 1.f);
+		}
+		if (floorf(ts_bbox.left) == ts_bbox.left) {
+			ts_bbox = math::rect_extend(ts_bbox, Cardinal::W, 1.f);
+		}
+		if (ceilf(ts_bbox.top + ts_bbox.height) == ts_bbox.top + ts_bbox.height) {
+			ts_bbox = math::rect_extend(ts_bbox, Cardinal::S, 1.f);
+		}
+		if (ceilf(ts_bbox.left + ts_bbox.width) == ts_bbox.left + ts_bbox.width) {
+			ts_bbox = math::rect_extend(ts_bbox, Cardinal::E, 1.f);
+		}
 
-		Rectf tileBounds{ Vec2f{}, Vec2f{TILESIZE_F, TILESIZE_F} };
+		Recti tsi_bbox;
+		tsi_bbox.top    = static_cast<int>(floorf(ts_bbox.top  ));
+		tsi_bbox.left   = static_cast<int>(floorf(ts_bbox.left ));
+		tsi_bbox.width  = static_cast<int>(ceilf(ts_bbox.left + ts_bbox.width  )) - tsi_bbox.left;
+		tsi_bbox.height = static_cast<int>(ceilf(ts_bbox.top  + ts_bbox.height )) - tsi_bbox.top;
 
-		for (int yy = tileArea.top; yy < tileArea.top + tileArea.height; yy++) {
-			for (int xx = tileArea.left; xx < tileArea.left + tileArea.width; xx++) {
-				if (auto* tile = get_quad({ xx, yy })) {
-					tileBounds.left = xx * TILESIZE_F;
-					tileBounds.top  = yy * TILESIZE_F;
+		if (tsi_bbox.width == 0) {
+			tsi_bbox.left--;
+			tsi_bbox.width = 2;
+		}
+		if (tsi_bbox.height == 0) {
+			tsi_bbox.top--;
+			tsi_bbox.height = 2;
+		}
 
-					buffer.push_back(std::make_pair(tileBounds, tile));
+		Recti tilemap_bounds{ size_min, size_max - size_min };
+		tilemap_bounds.intersects(tsi_bbox, tsi_bbox);
+
+		Vec2i pos{ tsi_bbox.left, tsi_bbox.top };
+		for (; pos.y < tsi_bbox.top + tsi_bbox.height; pos.y++, pos.x = tsi_bbox.left) {
+			for (; pos.x < tsi_bbox.left + tsi_bbox.width; pos.x++) {
+				if (auto* tile = get_quad(pos)) {
+					Rectf tile_bounds{ Vec2f{ pos } * TILESIZE_F, { TILESIZE_F, TILESIZE_F }};
+					buffer.push_back(std::make_pair(tile_bounds, tile));
 				}
 			}
 		}

@@ -254,6 +254,16 @@ constexpr Line<T> shift(const Line<T>& a, const Vec2<T>& offset) {
 }
 
 // Rect stuff
+
+template<typename T>
+[[nodiscard]] 
+constexpr Rect<T> shift(const Rect<T>& a, const Vec2<T>& offset) {
+	Rect<T> b = a;
+	b.left += offset.x;
+	b.top  += offset.y;
+	return b;
+}
+
 template<typename T>
 [[nodiscard]]
 constexpr Vec2<T> rect_topleft(const Rect<T>& a) {

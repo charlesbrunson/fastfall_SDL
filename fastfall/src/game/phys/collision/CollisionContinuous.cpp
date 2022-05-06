@@ -188,7 +188,6 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 			if (isDeparting && opposite_intersecting)
 			{
 				contact.hasContact &= currCollision.getContact().hasContact;
-				//fmt::print(stderr, "whoops\n");
 			}
 		}
 		
