@@ -173,8 +173,8 @@ void CollisionSolver::solveX() {
 
 		auto r = pickHArbiter(eastArb, westArb);
 
-		if (r.createdContact) {
-			apply(&r.contact, nullptr, r.contactType);
+		if (r.contact) {
+			apply(*r.contact, nullptr, r.contactType);
 
 			if (r.contactType == ContactType::CRUSH_HORIZONTAL)
 				return;
@@ -233,8 +233,8 @@ void CollisionSolver::solveY() {
 
 		auto r = pickVArbiter(northArb, southArb);
 
-		if (r.createdContact) {
-			apply(&r.contact, nullptr, r.contactType);
+		if (r.contact) {
+			apply(*r.contact, nullptr, r.contactType);
 
 			if (r.contactType == ContactType::CRUSH_VERTICAL)
 				return;
@@ -347,7 +347,7 @@ void CollisionSolver::applyArbiterFirst(std::deque<Arbiter*>& stack) {
 			}
 		}
 	}
-	apply((*pick)->getContactPtr(), *pick);
+	apply(*(*pick)->getContactPtr(), *pick);
 	stack.erase(pick);
 
 	updateArbiterStack(stack);
@@ -370,11 +370,10 @@ void CollisionSolver::applyArbVertAsHori(std::deque<Arbiter*>& altList, std::deq
 
 			ArbCompResult r;
 			r.contactType = ContactType::SINGLE;
-			r.createdContact = true;
 			r.contact = *c;
-			r.contact.ortho_n = alt_ortho_normal;
-			r.contact.separation = alt_separation;
-			apply(&r.contact, nullptr, r.contactType);
+			r.contact->ortho_n = alt_ortho_normal;
+			r.contact->separation = alt_separation;
+			apply(*r.contact, nullptr, r.contactType);
 			updateRemaining = true;
 		}
 
@@ -390,29 +389,17 @@ void CollisionSolver::applyArbVertAsHori(std::deque<Arbiter*>& altList, std::deq
 
 // ----------------------------------------------------------------------------
 
-void CollisionSolver::apply(const Contact* contact, Arbiter* arbiter, ContactType type) {
+void CollisionSolver::apply(const Contact& contact, Arbiter* arbiter, ContactType type) {
 
-	assert(contact);
 
-	if (contact->hasContact) {
-		if (contact->ortho_n == Vec2f(0.f, -1.f)) {
-			appliedCollisionCount[Cardinal::N]++;
-		}
-		else if (contact->ortho_n == Vec2f(1.f, 0.f)) {
-			appliedCollisionCount[Cardinal::E]++;
-		}
-		else if (contact->ortho_n == Vec2f(0.f, 1.f)) {
-			appliedCollisionCount[Cardinal::S]++;
-		}
-		else if (contact->ortho_n == Vec2f(-1.f, 0.f)) {
-			appliedCollisionCount[Cardinal::W]++;
-		}
+	if (contact.hasContact) {
+		appliedCollisionCount[direction::from_vector(contact.ortho_n).value()]++;
 
-		collidable->applyContact(*contact, type);
+		collidable->applyContact(contact, type);
 
 		AppliedContact applied;
 		applied.arbiter = arbiter;
-		applied.contact = *contact;
+		applied.contact = contact;
 		applied.type = type;
 
 		if (arbiter != nullptr) {
@@ -420,6 +407,7 @@ void CollisionSolver::apply(const Contact* contact, Arbiter* arbiter, ContactTyp
 			arbiter->update(0.0);
 			applied.region = arbiter->region;
 		}
+
 		frame.push_back(applied);
 		applyCounter++;
 	}
@@ -574,7 +562,6 @@ CollisionSolver::ArbCompResult CollisionSolver::pickHArbiter(const Arbiter* east
 	// crush
 	if (crush > 0.f) {
 		ArbCompResult r;
-		r.createdContact = true;
 		r.contactType = ContactType::CRUSH_HORIZONTAL;
 
 		r.discardFirst = true;
@@ -582,13 +569,13 @@ CollisionSolver::ArbCompResult CollisionSolver::pickHArbiter(const Arbiter* east
 
 		if (eSep > wSep) {
 			r.contact = *eContact;
-			r.contact.separation -= wSep;
-			r.contact.separation /= 2.f;
+			r.contact->separation -= wSep;
+			r.contact->separation /= 2.f;
 		}
 		else {
 			r.contact = *wContact;
-			r.contact.separation -= eSep;
-			r.contact.separation /= 2.f;
+			r.contact->separation -= eSep;
+			r.contact->separation /= 2.f;
 		}
 		return r;
 	}
@@ -720,7 +707,6 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 
 			// crush
 			ArbCompResult r;
-			r.createdContact = true;
 			r.contactType = ContactType::CRUSH_VERTICAL;
 
 			r.discardFirst = true;
@@ -728,13 +714,13 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 
 			if (nSep > sSep) {
 				r.contact = *nContact;
-				r.contact.separation -= sSep;
-				r.contact.separation /= 2.f;
+				r.contact->separation -= sSep;
+				r.contact->separation /= 2.f;
 			}
 			else {
 				r.contact = *sContact;
-				r.contact.separation -= nSep;
-				r.contact.separation /= 2.f;
+				r.contact->separation -= nSep;
+				r.contact->separation /= 2.f;
 			}
 			return r;
 		}
@@ -758,7 +744,7 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 			else if (intersect.x != collidable->getPosition().x) {
 
 				ArbCompResult r;
-				r.createdContact = true;
+				//r.createdContact = true;
 				r.contactType = ContactType::WEDGE_OPPOSITE;
 
 				r.discardFirst = false;
@@ -769,13 +755,14 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 				Vec2f diff = Vec2f(intersect.x, 0.f) - Vec2f(pos.x, 0.f);
 				float side = (nContact->collider_n.x + sContact->collider_n.x < 0.f ? -1.f : 1.f);
 
-				r.contact.hasContact = true;
-				r.contact.separation = abs(diff.x);
-				r.contact.collider_n = Vec2f{ side, 0.f };
-				r.contact.ortho_n = r.contact.collider_n;
-				r.contact.position = Vec2f{ pos.x, math::rect_mid(colBox).y };
+				r.contact = Contact{};
+				r.contact->hasContact = true;
+				r.contact->separation = abs(diff.x);
+				r.contact->collider_n = Vec2f{ side, 0.f };
+				r.contact->ortho_n = r.contact->collider_n;
+				r.contact->position = Vec2f{ pos.x, math::rect_mid(colBox).y };
 
-				r.contact.velocity = intersect - math::intersection(
+				r.contact->velocity = intersect - math::intersection(
 					math::shift(floorLine, -floorVel), 
 					math::shift(ceilLine, -ceilVel)
 				);

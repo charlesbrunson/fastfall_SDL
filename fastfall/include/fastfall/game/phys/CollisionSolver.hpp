@@ -30,8 +30,7 @@ private:
 		bool discardFirst = false;
 		bool discardSecond = false;
 
-		bool createdContact = false;
-		Contact contact;
+		std::optional<Contact> contact;
 		ContactType contactType = ContactType::NO_SOLUTION;
 	};
 
@@ -61,7 +60,7 @@ private:
 	ArbCompResult pickHArbiter(const Arbiter* east, const Arbiter* west);
 
 	// arbiter may be nullptr
-	void apply(const Contact* contact, Arbiter* arbiter, ContactType type = ContactType::SINGLE);
+	void apply(const Contact& contact, Arbiter* arbiter, ContactType type = ContactType::SINGLE);
 	void applyArbiterStack(std::deque<Arbiter*>& stack);
 	void applyArbiterFirst(std::deque<Arbiter*>& stack);
 	void applyArbVertAsHori(std::deque<Arbiter*>& altList, std::deque<Arbiter*>& backupList);

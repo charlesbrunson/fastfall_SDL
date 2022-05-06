@@ -389,24 +389,11 @@ namespace ff {
 			bbox.height / TILESIZE_F,
 		};
 
-		if (floorf(ts_bbox.top) == ts_bbox.top) {
-			ts_bbox = math::rect_extend(ts_bbox, Cardinal::N, 1.f);
-		}
-		if (floorf(ts_bbox.left) == ts_bbox.left) {
-			ts_bbox = math::rect_extend(ts_bbox, Cardinal::W, 1.f);
-		}
-		if (ceilf(ts_bbox.top + ts_bbox.height) == ts_bbox.top + ts_bbox.height) {
-			ts_bbox = math::rect_extend(ts_bbox, Cardinal::S, 1.f);
-		}
-		if (ceilf(ts_bbox.left + ts_bbox.width) == ts_bbox.left + ts_bbox.width) {
-			ts_bbox = math::rect_extend(ts_bbox, Cardinal::E, 1.f);
-		}
-
 		Recti tsi_bbox;
-		tsi_bbox.top    = static_cast<int>(floorf(ts_bbox.top  ));
-		tsi_bbox.left   = static_cast<int>(floorf(ts_bbox.left ));
-		tsi_bbox.width  = static_cast<int>(ceilf(ts_bbox.left + ts_bbox.width  )) - tsi_bbox.left;
-		tsi_bbox.height = static_cast<int>(ceilf(ts_bbox.top  + ts_bbox.height )) - tsi_bbox.top;
+		tsi_bbox.top    = static_cast<int>( ceilf(ts_bbox.top  - 1));
+		tsi_bbox.left   = static_cast<int>( ceilf(ts_bbox.left - 1));
+		tsi_bbox.width  = static_cast<int>(floorf(ts_bbox.left + ts_bbox.width  + 1)) - tsi_bbox.left;
+		tsi_bbox.height = static_cast<int>(floorf(ts_bbox.top  + ts_bbox.height + 1)) - tsi_bbox.top;
 
 		if (tsi_bbox.width == 0) {
 			tsi_bbox.left--;

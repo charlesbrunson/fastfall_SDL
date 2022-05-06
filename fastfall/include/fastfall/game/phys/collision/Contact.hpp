@@ -45,6 +45,7 @@ struct Contact {
 	float separation = 0.f;
 	bool hasContact = false;
 
+
 	Vec2f position;
 	Vec2f ortho_n;
 	Vec2f collider_n;
@@ -72,7 +73,6 @@ struct Contact {
 	float impactTime = -1.0;
 	bool  hasImpactTime = false;
 	bool  isSlip = false;
-
 };
 
 class ColliderRegion;
