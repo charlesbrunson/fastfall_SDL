@@ -6,7 +6,7 @@
 
 #include "fastfall/game/Instance.hpp"
 
-#define FF_TESTPHYSRENDERER_ENABLED 0
+#define FF_TESTPHYSRENDERER_ENABLED 1
 
 class TestPhysRenderer {
 public:

@@ -450,3 +450,30 @@ TEST_F(collision, wedge_with_oneway_floor) {
 	}
 }
 
+TEST_F(collision, wedge_with_oneway_ceil) {
+	initTileMap({
+		{"oneway-v", 	"oneway-v", 	"oneway-v",		"oneway-v"},
+		{"", 			"", 			"",				"shallow1"},
+		{"", 			"shallow1", 	"shallow2",		"solid"},
+		{"shallow2",	"solid", 		"solid",		"solid"},
+	});
+
+	box->setSize({ 16, 24 });
+	box->teleport({ 0, 48 });
+	box->set_vel({ 500, 0 });
+	box->set_gravity({ 0, 500 });
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.frame_delay = 20;
+	render.draw(colMan);
+
+	while (render.curr_frame < 8) {
+		fmt::print(stderr, "{}\n", render.curr_frame);
+		update();
+		render.draw(colMan);
+		fmt::print(stderr, "Y:{}\n", box->getPosition().y);
+		ASSERT_GE(box->getPosition().y, 40.f);
+	}
+}
+
+
