@@ -446,7 +446,7 @@ TEST_F(collision, wedge_with_oneway_floor) {
 		fmt::print(stderr, "{}\n", render.curr_frame);
 		update();
 		render.draw(colMan);
-		ASSERT_EQ(box->getPosition().y, 32.f);
+		EXPECT_EQ(box->getPosition().y, 32.f);
 	}
 }
 
@@ -464,15 +464,15 @@ TEST_F(collision, wedge_with_oneway_ceil) {
 	box->set_gravity({ 0, 500 });
 
 	TestPhysRenderer render(collider->getBoundingBox());
-	render.frame_delay = 20;
+	render.frame_delay = 2;
 	render.draw(colMan);
 
-	while (render.curr_frame < 8) {
+	while (render.curr_frame < 30) {
 		fmt::print(stderr, "{}\n", render.curr_frame);
 		update();
 		render.draw(colMan);
 		fmt::print(stderr, "Y:{}\n", box->getPosition().y);
-		ASSERT_GE(box->getPosition().y, 40.f);
+		EXPECT_GE(box->getPosition().y, 40.f);
 	}
 }
 

@@ -202,9 +202,11 @@ void CollisionSolver::solveX() {
 		else {
 			if (eastArb->getContactPtr()->separation < westArb->getContactPtr()->separation) {
 				applyArbiterFirst(east);
+				updateArbiterStack(west);
 			}
 			else {
 				applyArbiterFirst(west);
+				updateArbiterStack(east);
 			}
 		}
 	}
@@ -280,9 +282,11 @@ void CollisionSolver::solveY() {
 		else {
 			if (northArb->getContactPtr()->separation < southArb->getContactPtr()->separation) {
 				applyArbiterFirst(north);
+				updateArbiterStack(south);
 			}
 			else {
 				applyArbiterFirst(south);
+				updateArbiterStack(north);
 			}
 		}
 	}
@@ -396,7 +400,7 @@ void CollisionSolver::apply(const Contact& contact, Arbiter* arbiter, ContactTyp
 
 	if (contact.hasContact) {
 
-		fmt::print(stderr, "\t\t\tAPPLY {:1.3f}:{:1.3f}\n", contact.collider_n, contact.separation);
+		fmt::print(stderr, "\t\t\tAPPLY n:{:1.3f} s:{:1.3f}\n", contact.collider_n, contact.separation, contact.hasContact);
 		appliedCollisionCount[direction::from_vector(contact.ortho_n).value()]++;
 
 		collidable->applyContact(contact, type);
@@ -538,6 +542,7 @@ CollisionSolver::ArbCompResult CollisionSolver::pickHArbiter(const Arbiter* east
 	float crush = eContact->separation + wContact->separation;
 
 	// one-way check
+	/*
 	if (eSep > 0.f && !eContact->hasContact) {
 		ArbCompResult r;
 		r.discardFirst = true;
@@ -550,6 +555,7 @@ CollisionSolver::ArbCompResult CollisionSolver::pickHArbiter(const Arbiter* east
 		r.discardSecond = true;
 		return r;
 	}
+	*/
 
 	// diverging check
 	if (eSep > colBox.width && wSep < colBox.width) {
@@ -660,6 +666,7 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 
 	// one-way check
 	
+	/*
 	if (nSep > 0.f && !nContact->hasContact) {
 		ArbCompResult r;
 		fmt::print(stderr, "\t\t\tONEWAY CHECK N\n");
@@ -674,7 +681,7 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 		r.discardSecond = true;
 		return r;
 	}
-	
+	*/
 
 	// diverging check
 	if (crush > 0.f) {
