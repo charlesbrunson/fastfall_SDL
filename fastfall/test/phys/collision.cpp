@@ -7,6 +7,8 @@
 #include "TestPhysRenderer.hpp"
 #include "gtest/gtest.h"
 
+#include "nlohmann/json.hpp"
+
 using namespace ff;
 
 
@@ -44,7 +46,11 @@ protected:
 			collider->update(one_frame);
 		}
 		box->update(one_frame);
+
+		nlohmann::ordered_json data;
+		colMan.dumpCollisionDataThisFrame(&data);
 		colMan.update(one_frame);
+		std::cerr << data.dump(4) << std::endl;
 	}
 
 	void initTileMap(grid_vector<std::string_view> tiles)
@@ -93,22 +99,10 @@ TEST_F(collision, wall_to_ceil_clip)
 	while (render.curr_frame < 20) {
 
 		box->set_vel(Vec2f{ -800.f, 0.f });
-		fmt::print(stderr, "{}\n", render.curr_frame);
 		update();
 		render.draw(colMan);
 
 		hitwall = box->getPosition().x <= 40.f;
-
-		//if (!hitwall) {
-		//	hitwall = box->get_contacts().size() == 2;
-		//}
-
-//		for (auto& contact : box->get_contacts()) {
-//			fmt::print(stderr, "\thasContact:{}\n", contact.hasContact);
-//			fmt::print(stderr, "\tortho_n:{}\n", contact.ortho_n);
-//			fmt::print(stderr, "\thasImpactTime:{}\n", contact.hasImpactTime);
-//			fmt::print(stderr, "\timpactTime:{}\n", contact.impactTime);
-//		}
 
 		if (hitwall) {
 
@@ -364,10 +358,8 @@ TEST_F(collision, wedge_against_floor_right)
 
 		update();
 		render.draw(colMan);
-		fmt::print(stderr, "{:2d}: p:{:.3f} v:{:.3f}\n", render.curr_frame, box->getPosition(), box->get_vel());
-		
+
 		if (render.curr_frame > 24 && box->getPosition().x < 32) {
-			fmt::print(stderr, "{:08b}\n", box->get_state_flags().value());
 			EXPECT_GT(box->get_vel().x, 0.f);
 			EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
 		}
@@ -415,11 +407,8 @@ TEST_F(collision, floor_into_wedge_left)
 
 		update();
 		render.draw(colMan);
-		fmt::print(stderr, "{}\n", box->get_vel());
-
 
 		if (render.curr_frame > 24 && box->getPosition().x > 0) {
-			fmt::print(stderr, "{:08b}\n", box->get_state_flags().value());
 			EXPECT_LT(box->get_vel().x, 0.f);
 		}
 	}
@@ -443,7 +432,6 @@ TEST_F(collision, wedge_with_oneway_floor) {
 	render.draw(colMan);
 
 	while (render.curr_frame < 2) {
-		fmt::print(stderr, "{}\n", render.curr_frame);
 		update();
 		render.draw(colMan);
 		EXPECT_EQ(box->getPosition().y, 32.f);
@@ -467,11 +455,16 @@ TEST_F(collision, wedge_with_oneway_ceil) {
 	render.frame_delay = 2;
 	render.draw(colMan);
 
-	while (render.curr_frame < 30) {
-		fmt::print(stderr, "{}\n", render.curr_frame);
+	while (render.curr_frame < 4) {
+		box->set_vel({ 500, 0 });
 		update();
 		render.draw(colMan);
-		fmt::print(stderr, "Y:{}\n", box->getPosition().y);
+	}
+
+	while (render.curr_frame < 30) {
+		box->set_vel({ 500, 0 });
+		update();
+		render.draw(colMan);
 		EXPECT_GE(box->getPosition().y, 40.f);
 	}
 }

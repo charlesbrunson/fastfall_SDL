@@ -365,11 +365,16 @@ void Collidable::applyContact(const Contact& contact, ContactType type) {
 
 	move(offset, false);
 
-	if ((type == ContactType::CRUSH_VERTICAL) || (type == ContactType::CRUSH_HORIZONTAL) || (type == ContactType::WEDGE_OPPOSITE) ||
-		(type == ContactType::WEDGE_SAME) || (type == ContactType::WEDGE_WALL)) {
+	if ((type == ContactType::CRUSH_VERTICAL) || (type == ContactType::CRUSH_HORIZONTAL)) {
 
 		set_vel(Vec2f{});
 
+	}
+	else if (type == ContactType::WEDGE) {
+		if (math::dot(vel - contact.velocity, contact.velocity) < 0.f)
+		{
+		}
+		set_vel(contact.velocity);
 	}
 	else if (math::dot(get_vel() - contact.velocity, contact.collider_n) <= 0.f) {
 
@@ -474,12 +479,8 @@ void Collidable::process_current_frame()
 		case ContactType::CRUSH_VERTICAL: 
 			col_state.set_flag(collision_state_t::flags::Crush_V);
 			break;
-		case ContactType::WEDGE_OPPOSITE: 
+		case ContactType::WEDGE: 
 			col_state.set_flag(collision_state_t::flags::Wedge);
-			if (math::dot(vel - contact.velocity, contact.velocity) < 0.f) 
-			{
-				vel = contact.velocity;
-			}
 			break;
 		case ContactType::SINGLE: 
 			if (auto optd = direction::from_vector(contact.ortho_n)) 

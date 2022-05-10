@@ -195,7 +195,6 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 		contact.hasImpactTime = lastEntry > 0;
 		contact.impactTime = lastEntry;
 		lastAxisCollided = touchingAxisNdx;
-		//fmt::print(stderr, "impact {}:{}\n", contact.collider_n, contact.hasContact);
 	}
 	else if (hasIntersect)
 	{
@@ -208,14 +207,12 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 			auto& axis = currCollision.getCollisionAxis(lastAxisCollided);
 			contact = axis.contact;
 			contact.hasContact = axis.is_intersecting();
-			//fmt::print(stderr, "repeat {}:{}\n", contact.collider_n, contact.hasContact);
 		}
 		else {
 			// otherwise resort use current discrete contact
 
 			contact = currCollision.getContact();
 			lastAxisCollided = currCollision.getChosenAxis();
-			//fmt::print(stderr, "default {}:{}\n", contact.collider_n, contact.hasContact);
 		}
 	}
 

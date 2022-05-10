@@ -10,6 +10,8 @@
 #include "fastfall/game/phys/CollisionSolver.hpp"
 #include "fastfall/game/Instance.hpp"
 
+#include "nlohmann/json.hpp"
+
 namespace ff {
 
 CollisionManager::CollisionManager(unsigned instance) :
@@ -19,6 +21,15 @@ CollisionManager::CollisionManager(unsigned instance) :
 }
 
 void CollisionManager::update(secs deltaTime) {
+
+	if (collision_dump)
+	{
+		(*collision_dump) = {
+			{"frame", frame_count},
+			{"delta", deltaTime}
+		};
+	}
+
 	if (deltaTime > 0.0) {
 		broadPhase(deltaTime);
 
@@ -30,6 +41,8 @@ void CollisionManager::update(secs deltaTime) {
 	for (auto& colData : collidables) {
 		colData.collidable.debug_draw();
 	}
+	collision_dump = nullptr;
+	frame_count++;
 };
 
 // --------------------------------------------------------------
@@ -117,7 +130,7 @@ void CollisionManager::broadPhase(secs deltaTime) {
 				body_rect.left - body_bound.left											// WEST
 			};
 
-			updateRegionArbiters(colData);
+			updateRegionArbiters(colData, body_bound);
 
 			// try to push out collidable bounds
 			for (auto& regionArb : colData.regionArbiters) {
@@ -140,7 +153,7 @@ void CollisionManager::broadPhase(secs deltaTime) {
 	}
 };
 
-void CollisionManager::updateRegionArbiters(CollidableData& data) {
+void CollisionManager::updateRegionArbiters(CollidableData& data, Rectf bounds) {
 
 	for (const auto& region : regions) {
 
@@ -156,7 +169,7 @@ void CollisionManager::updateRegionArbiters(CollidableData& data) {
 		bool exists = arbiter != data.regionArbiters.end() && arbiter->getRegion() == region.get();
 
 		// check if collidable is in this region
-		if (region->getSweptBoundingBox().intersects(data.collidable.getBoundingBox())) {
+		if (region->getSweptBoundingBox().intersects(bounds)) {
 
 			if (!exists) {
 				// just entered this region
@@ -164,7 +177,7 @@ void CollisionManager::updateRegionArbiters(CollidableData& data) {
 				RegionArbiter rarb(region.get(), &data.collidable);
 				arbiter = data.regionArbiters.emplace(arbiter, rarb);
 			}
-			arbiter->updateRegion(data.collidable.getBoundingBox());
+			arbiter->updateRegion(bounds);
 		}
 		else if (exists) {
 			// just left this region
@@ -220,7 +233,7 @@ void CollisionManager::solve(CollidableData& collidableData) {
 		}
 	}
 
-	solver.solve();
+	solver.solve(collision_dump ? &(*collision_dump)["solver"] : nullptr);
 
 	// push collision data to collidable
 	std::vector<PersistantContact> c;

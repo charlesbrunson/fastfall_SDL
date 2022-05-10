@@ -19,6 +19,8 @@
 #include <list>
 #include <memory>
 
+#include "nlohmann/json_fwd.hpp"
+
 namespace ff {
 
 class CollisionManager {
@@ -41,8 +43,6 @@ private:
 
 public:
 
-
-
 	CollisionManager(unsigned instance);
 
 	void update(secs deltaTime);
@@ -63,18 +63,26 @@ public:
 	inline const std::vector<std::unique_ptr<ColliderRegion>>& get_colliders() const { return regions; };
 	inline const plf::colony<CollidableData>& get_collidables() const { return collidables; };
 
+	// dump collision data from this frame into json, is reset at the end of the update
+	inline void dumpCollisionDataThisFrame(nlohmann::ordered_json* dump_ptr) { collision_dump = dump_ptr; };
+
+	inline void resetFrameCount() { frame_count = 0; };
+	inline size_t getFrameCount() const { return frame_count; };
+
 private:
 
 	void broadPhase(secs deltaTime);
 
-	void updateRegionArbiters(CollidableData& data);
+	void updateRegionArbiters(CollidableData& data, Rectf bounds);
 
 	Rectf updatePushBound(Rectf push_bound, const cardinal_array<float>& boundDist, const Contact* contact);
 
 	void solve(CollidableData& collidableData);
 
 	unsigned instanceID;
+	size_t frame_count = 0;
 	
+	nlohmann::ordered_json* collision_dump = nullptr;
 
 };
 

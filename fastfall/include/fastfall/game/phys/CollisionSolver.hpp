@@ -6,6 +6,8 @@
 #include <array>
 #include <deque>
 
+#include "nlohmann/json_fwd.hpp"
+
 namespace ff {
 
 // struct with the arbiter and contact information prior to application
@@ -96,7 +98,7 @@ public:
 	// arbiters will be cleared after solving
 	// resolution set will be populated
 	// should be reinitialized after each solve
-	void solve();
+	void solve(nlohmann::ordered_json* dump_ptr = nullptr);
 
 	static Vec2f calcWedgeVel(Vec2f n1, Vec2f n2, Vec2f v1, Vec2f v2);
 	static Ghost isGhostEdge(const Contact& basis, const Contact& candidate) noexcept;

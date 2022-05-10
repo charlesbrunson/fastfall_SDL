@@ -334,11 +334,9 @@ TEST_F(surfacetracker, higrav_launch_off_hill)
 
 		if (box->getPosition().x <= 48)
 		{
-			fmt::print(stderr, "{}: {}\n", render.curr_frame, box->getPosition().x);
 			EXPECT_TRUE(ground->has_contact());
 		}
 		else if (box->getPosition().x <= 75) {
-			fmt::print(stderr, "{}: {}\n", render.curr_frame, box->getPosition().x);
 			EXPECT_TRUE(!ground->has_contact());
 		}
 	}
@@ -370,13 +368,8 @@ TEST_F(surfacetracker, uphill)
 			for (auto& arb : col.regionArbiters) {
 
 				contacts += arb.getQuadArbiters().size();
-				//for (auto& quad : arb.getQuadArbiters()) {
-				//	fmt::print(stderr, "{}", quad.second.getCollision()->getContact().hasContact);
-				//}
 			}
 		}
-		fmt::print(stderr, "{}\n", contacts);
-		fmt::print(stderr, "{:2d}: p:{:2.2f} v:{:2.2f} c:{}\n", render.curr_frame, box->getPosition(), box->get_vel(), box->get_contacts().size());
 		render.draw(colMan);
 
 		EXPECT_TRUE(ground->has_contact());

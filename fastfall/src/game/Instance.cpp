@@ -33,13 +33,11 @@ void GameInstance::clear() {
 	debug_draw::clear();
 
 	update_counter = 0;
+	colMan.resetFrameCount();
 }
 
 void GameInstance::reset() 
 {
-
-	update_counter = 0;
-
 	objMan.clear();
 	sceneMan.clear();
 	debug_draw::clear();
@@ -61,6 +59,9 @@ void GameInstance::reset()
 		lvl->get_layers().get_obj_layer().createObjectsFromData(GameContext{ instanceID });
 	}
 	want_reset = false;
+
+	update_counter = 0;
+	colMan.resetFrameCount();
 }
 
 

@@ -20,16 +20,14 @@ enum class ContactType : unsigned char {
 
 	// wedge solution
 	// derived from two arbiters
-	WEDGE_SAME,
-	WEDGE_OPPOSITE,
-	WEDGE_WALL,
+	WEDGE,
 
 	// crush solution
 	// derived from two arbiters
 	CRUSH_HORIZONTAL,
 	CRUSH_VERTICAL
 };
-const char* contactTypeToString(ContactType t);
+std::string_view contactTypeToString(ContactType t);
 
 struct Contact {
 
@@ -38,13 +36,17 @@ struct Contact {
 	}
 
 	inline bool isTransposable() const noexcept {
-		return std::abs(collider_n.x) > std::abs(collider_n.y) &&
-			hasImpactTime && !hasValley;
+		return std::abs(collider_n.x) > std::abs(collider_n.y) 
+			&& hasImpactTime 
+			&& !hasValley;
+	}
+
+	inline Vec2f getSurfaceVel() const {
+		return (material ? collider_n.righthand() * material->velocity : Vec2f{});
 	}
 
 	float separation = 0.f;
 	bool hasContact = false;
-
 
 	Vec2f position;
 	Vec2f ortho_n;
@@ -58,9 +60,6 @@ struct Contact {
 	Vec2f velocity;
 		
 	const SurfaceMaterial* material = nullptr;
-	Vec2f getSurfaceVel() const { 
-		return material ? collider_n.righthand() * material->velocity : Vec2f{};
-	}
 	
 	// offset to stick to the surface after the contact
 	// multiply with ortho_normal
@@ -72,6 +71,8 @@ struct Contact {
 	// used by continuous collision
 	float impactTime = -1.0;
 	bool  hasImpactTime = false;
+
+
 	bool  isSlip = false;
 };
 

@@ -2,17 +2,15 @@
 
 namespace ff {
 
-const char* contactTypeToString(ContactType t) {
-	const char* types[] = {
+std::string_view contactTypeToString(ContactType t) {
+	static const std::string_view types[] = {
 		"No solution",
 		"Single",
-		"Wedge same",
-		"Wedge opposite",
-		"Wedge wall",
+		"Wedge",
 		"Crush horizontal",
 		"Crush vertical"
 	};
-	return types[static_cast<unsigned char>(t)];
+	return types[static_cast<int>(t)];
 };
 
 }

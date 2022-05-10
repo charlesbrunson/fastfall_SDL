@@ -5,35 +5,47 @@
 
 //#include <ranges>
 
-namespace ff {
+#include "nlohmann/json.hpp"
 
-bool CollisionSolver::canApplyAltArbiters(std::deque<Arbiter*>& north_alt, std::deque<Arbiter*>& south_alt) {
-
-	bool allWest =
-		east.empty() &&
-		std::all_of(north_alt.cbegin(), north_alt.cend(), [](const Arbiter* arb) {
-		float nX = arb->getContactPtr()->collider_n.x;
-		return (nX < 0.f) && (nX != 0.f);
-			}) &&
-		std::all_of(south_alt.cbegin(), south_alt.cend(), [](const Arbiter* arb) {
-				float nX = arb->getContactPtr()->collider_n.x;
-				return (nX < 0.f) && (nX != 0.f);
-			});
-		bool allEast =
-			west.empty() &&
-			std::all_of(north_alt.cbegin(), north_alt.cend(), [](const Arbiter* arb) {
-			float nX = arb->getContactPtr()->collider_n.x;
-			return (nX > 0.f) && (nX != 0.f);
-				}) &&
-		std::all_of(south_alt.cbegin(), south_alt.cend(), [](const Arbiter* arb) {
-				float nX = arb->getContactPtr()->collider_n.x;
-				return (nX > 0.f) && (nX != 0.f);
-			});
-
-		return (!north_alt.empty() || !south_alt.empty()) && (allWest || allEast);
+nlohmann::ordered_json toJson(const ff::Arbiter* arb)
+{
+	auto& contact = *arb->getContactPtr();
+	return {
+		{"address",			fmt::format("{}", fmt::ptr(arb)) },
+		{"hasContact",		contact.hasContact},
+		{"separation",		contact.separation},
+		{"ortho_n",			fmt::format("{}", contact.ortho_n)},
+		{"collider_n",		fmt::format("{}", contact.collider_n)},
+		{"hasImpactTime",	contact.hasImpactTime},
+		{"impactTime",		contact.impactTime},
+		{"region",			arb->region->get_ID().value},
+	};
 }
 
 
+namespace ff {
+
+bool CollisionSolver::canApplyAltArbiters(std::deque<Arbiter*>& north_alt, std::deque<Arbiter*>& south_alt) 
+{
+	auto isArbEast = [](const Arbiter* arb) {
+		return arb->getContactPtr()->collider_n.x > 0.f;
+	};
+
+	auto isArbWest = [](const Arbiter* arb) {
+		return arb->getContactPtr()->collider_n.x < 0.f;
+	};
+
+	bool allNorthAltWest = std::all_of(north_alt.cbegin(), north_alt.cend(), isArbWest);
+	bool allSouthAltWest = std::all_of(south_alt.cbegin(), south_alt.cend(), isArbWest);
+
+	bool allNorthAltEast = std::all_of(north_alt.cbegin(), north_alt.cend(), isArbEast);
+	bool allSouthAltEast = std::all_of(south_alt.cbegin(), south_alt.cend(), isArbEast);
+
+	bool allWest = east.empty() && allNorthAltWest && allSouthAltWest;
+	bool allEast = west.empty() && allNorthAltEast && allSouthAltEast;
+
+	return (!north_alt.empty() || !south_alt.empty()) && (allWest || allEast);
+}
 
 CollisionSolver::CollisionSolver(Collidable* _collidable) :
 	collidable(_collidable),
@@ -42,36 +54,44 @@ CollisionSolver::CollisionSolver(Collidable* _collidable) :
 	appliedCollisionCount({ 0u, 0u, 0u, 0u }),
 	applyCounter(0u)
 {
-
 }
 
-void CollisionSolver::solve() {
+void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr) {
 
 	if (arbiters.empty())
 		return;
 
-	
-	
-	size_t c = 0;
-	for (auto& arb : arbiters) {
-		auto& contact = *arb->getContactPtr();
-		fmt::print(stderr, "\t-------------\n");
-		fmt::print(stderr, "\t{}.hasContact:   {}\n", c, contact.hasContact);
-		fmt::print(stderr, "\t{}.separation:   {}\n", c, contact.separation);
-		fmt::print(stderr, "\t{}.ortho_n:      {}\n", c, contact.ortho_n);
-		fmt::print(stderr, "\t{}.collider_n:   {}\n", c, contact.collider_n);
-		fmt::print(stderr, "\t{}.hasImpactTime:{}\n", c, contact.hasImpactTime);
-		fmt::print(stderr, "\t{}.impactTime:   {}\n", c, contact.impactTime);
-		fmt::print(stderr, "\t{}.region:       {}\n", c, arb->region->get_ID().value);
-		c++;
+
+	if (dump_ptr)
+	{
+		size_t ndx = 0;
+		for (auto& arb : arbiters) {
+			(*dump_ptr)["precompare"][ndx] = toJson(arb);
+			ndx++;
+		}
 	}
-	
-	
+		
 	// do arbiter-to-arbiter comparisons 
+
+	size_t cmp_count = 0;
 	for (size_t i = 0; i < arbiters.size() - 1; i++) {
 		for (size_t j = i + 1; j < arbiters.size(); ) {
-			fmt::print(stderr, "\t\tcompare {} and {}\n", i, j);
+
+			if (dump_ptr)
+			{
+				(*dump_ptr)["compare"][cmp_count]["arb1"] = fmt::format("{}", fmt::ptr(arbiters.at(i)));
+				(*dump_ptr)["compare"][cmp_count]["arb2"] = fmt::format("{}", fmt::ptr(arbiters.at(j)));
+			}
+
 			ArbCompResult result = compArbiters(arbiters.at(i), arbiters.at(j));
+
+			if (dump_ptr)
+			{
+				(*dump_ptr)["compare"][cmp_count]["result"] = {
+					{"arb1", (result.discardFirst  ? "discard" : "keep")},
+					{"arb2", (result.discardSecond ? "discard" : "keep")},
+				};
+			}
 
 			if (result.discardFirst) {
 				discard.push_back(std::make_pair(*(arbiters.begin() + i), result));
@@ -86,6 +106,18 @@ void CollisionSolver::solve() {
 			else {
 				j++;
 			}
+			cmp_count++;
+		}
+	}
+
+	if (dump_ptr)
+	{
+		size_t ndx = 0;
+		for (auto& arb : arbiters) {
+			auto& contact = *arb->getContactPtr();
+
+			(*dump_ptr)["postcompare"][ndx] = toJson(arb);
+			ndx++;
 		}
 	}
 
@@ -399,8 +431,6 @@ void CollisionSolver::apply(const Contact& contact, Arbiter* arbiter, ContactTyp
 
 
 	if (contact.hasContact) {
-
-		fmt::print(stderr, "\t\t\tAPPLY n:{:1.3f} s:{:1.3f}\n", contact.collider_n, contact.separation, contact.hasContact);
 		appliedCollisionCount[direction::from_vector(contact.ortho_n).value()]++;
 
 		collidable->applyContact(contact, type);
@@ -441,7 +471,6 @@ CollisionSolver::ArbCompResult CollisionSolver::compArbiters(const Arbiter* lhs,
 	{
 		Ghost g1 = isGhostEdge(rhsContact, lhsContact);
 		Ghost g2 = isGhostEdge(lhsContact, rhsContact);
-		fmt::print(stderr, "\t\tghost {} {}\n", g1, g2);
 
 		bool g1_isGhost = (g1 != Ghost::NO_GHOST);
 		bool g2_isGhost = (g2 != Ghost::NO_GHOST);
@@ -462,17 +491,7 @@ CollisionSolver::ArbCompResult CollisionSolver::compArbiters(const Arbiter* lhs,
 			comp.discardFirst = g1_isGhost;
 			comp.discardSecond = g2_isGhost;
 		}
-	}
-	
-	
-	if (comp.discardFirst) {
-		fmt::print(stderr, "\t\tdiscard 0\n");
-	}
-	if (comp.discardSecond) {
-		fmt::print(stderr, "\t\tdiscard 1\n");
-	}
-	
-	
+	}	
 	return comp;
 }
 
@@ -512,9 +531,6 @@ CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact& basis, const 
 
 	// candidate is opposite of basis
 	bool opt3 = (basisLine == Linef(candLine.p2, candLine.p1)); 
-
-	fmt::print(stderr, "\t\tdot 1:{} 2:{}\n", dotp1, dotp2);
-	fmt::print(stderr, "\t\topts 1:{} 2:{} 3:{}\n", opt1, opt2, opt3);
 
 	bool candidateBehind = opt1 || opt2 || opt3;
 
@@ -662,21 +678,19 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 
 	float crush = nSep + sSep;
 
-	fmt::print(stderr, "\t\t\tCRUSH {}\n", crush);
+	bool any_has_contact = nContact->hasContact || sContact->hasContact;
 
 	// one-way check
 	
 	/*
 	if (nSep > 0.f && !nContact->hasContact) {
 		ArbCompResult r;
-		fmt::print(stderr, "\t\t\tONEWAY CHECK N\n");
 		r.discardFirst = true;
 		r.discardSecond = false;
 		return r;
 	}
 	else if (sSep > 0.f && !sContact->hasContact) {
 		ArbCompResult r;
-		fmt::print(stderr, "\t\t\tONEWAY CHECK S\n");
 		r.discardFirst = false;
 		r.discardSecond = true;
 		return r;
@@ -712,13 +726,11 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 	}
 
 	// arbs are converging
-	if (crush >= 0.f
+	if (crush >= 0.f && any_has_contact
 		&& nContact->ortho_n == -sContact->ortho_n) 
 	{
 
 		Vec2f sum = nContact->collider_n + sContact->collider_n;
-
-		//fmt::print(stderr, "s:{}\n", sum);
 
 		if (   abs(sum.x) < 1e-5
 			&& abs(sum.y) < 1e-5)
@@ -764,7 +776,7 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 
 				ArbCompResult r;
 				//r.createdContact = true;
-				r.contactType = ContactType::WEDGE_OPPOSITE;
+				r.contactType = ContactType::WEDGE;
 
 				r.discardFirst = false;
 				r.discardSecond = false;
@@ -785,20 +797,20 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 					math::shift(floorLine, -floorVel), 
 					math::shift(ceilLine, -ceilVel)
 				);
-				//fmt::print(stderr, "v:{}\n", r.contact.velocity);
+
 				return r;
 			}
 			//else do nothing
 		}
 	}
-	if (!nContact->hasContact)
+	if (!nContact->hasContact && sContact->hasContact)
 	{
 		ArbCompResult r;
 		r.discardFirst = true;
 		r.discardSecond = false;
 		return r;
 	}
-	else if (!sContact->hasContact)
+	else if (!sContact->hasContact && nContact->hasContact)
 	{
 		ArbCompResult r;
 		r.discardFirst = false;
