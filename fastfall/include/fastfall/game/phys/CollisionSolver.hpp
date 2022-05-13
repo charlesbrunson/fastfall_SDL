@@ -74,6 +74,7 @@ private:
 
 	bool canApplyAltArbiters(std::deque<Arbiter*>& north_alt, std::deque<Arbiter*>& south_alt);
 
+	nlohmann::ordered_json* json_dump = nullptr;
 
 public:
 	enum class Ghost {
@@ -100,7 +101,6 @@ public:
 	// should be reinitialized after each solve
 	void solve(nlohmann::ordered_json* dump_ptr = nullptr);
 
-	static Vec2f calcWedgeVel(Vec2f n1, Vec2f n2, Vec2f v1, Vec2f v2);
 	static Ghost isGhostEdge(const Contact& basis, const Contact& candidate) noexcept;
 
 };

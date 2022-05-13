@@ -7,6 +7,18 @@
 
 #include "nlohmann/json.hpp"
 
+namespace ff {
+
+	NLOHMANN_JSON_SERIALIZE_ENUM(ContactType, {
+		{ContactType::NO_SOLUTION,		nullptr},
+		{ContactType::SINGLE,			"single"},
+		{ContactType::WEDGE,			"wedge"},
+		{ContactType::CRUSH_HORIZONTAL,	"horizontal crush"},
+		{ContactType::CRUSH_VERTICAL,	"vertical crush"},
+	})
+
+}
+
 nlohmann::ordered_json toJson(const ff::Arbiter* arb)
 {
 	auto& contact = *arb->getContactPtr();
@@ -18,10 +30,23 @@ nlohmann::ordered_json toJson(const ff::Arbiter* arb)
 		{"collider_n",		fmt::format("{}", contact.collider_n)},
 		{"hasImpactTime",	contact.hasImpactTime},
 		{"impactTime",		contact.impactTime},
-		{"region",			arb->region->get_ID().value},
+		{"region",			arb ? arb->region->get_ID().value : 0u},
 	};
 }
 
+nlohmann::ordered_json toJson(const ff::Contact& contact, const ff::Arbiter* arb)
+{
+	return {
+		{"address",			fmt::format("{}", fmt::ptr(arb)) },
+		{"hasContact",		contact.hasContact},
+		{"separation",		contact.separation},
+		{"ortho_n",			fmt::format("{}", contact.ortho_n)},
+		{"collider_n",		fmt::format("{}", contact.collider_n)},
+		{"hasImpactTime",	contact.hasImpactTime},
+		{"impactTime",		contact.impactTime},
+		{"region",			arb ? arb->region->get_ID().value : 0u},
+	};
+}
 
 namespace ff {
 
@@ -58,15 +83,17 @@ CollisionSolver::CollisionSolver(Collidable* _collidable) :
 
 void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr) {
 
+	json_dump = dump_ptr;
+
 	if (arbiters.empty())
 		return;
 
 
-	if (dump_ptr)
+	if (json_dump)
 	{
 		size_t ndx = 0;
 		for (auto& arb : arbiters) {
-			(*dump_ptr)["precompare"][ndx] = toJson(arb);
+			(*json_dump)["precompare"][ndx] = toJson(arb);
 			ndx++;
 		}
 	}
@@ -77,17 +104,17 @@ void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr) {
 	for (size_t i = 0; i < arbiters.size() - 1; i++) {
 		for (size_t j = i + 1; j < arbiters.size(); ) {
 
-			if (dump_ptr)
+			if (json_dump)
 			{
-				(*dump_ptr)["compare"][cmp_count]["arb1"] = fmt::format("{}", fmt::ptr(arbiters.at(i)));
-				(*dump_ptr)["compare"][cmp_count]["arb2"] = fmt::format("{}", fmt::ptr(arbiters.at(j)));
+				(*json_dump)["compare"][cmp_count]["arb1"] = fmt::format("{}", fmt::ptr(arbiters.at(i)));
+				(*json_dump)["compare"][cmp_count]["arb2"] = fmt::format("{}", fmt::ptr(arbiters.at(j)));
 			}
 
 			ArbCompResult result = compArbiters(arbiters.at(i), arbiters.at(j));
 
-			if (dump_ptr)
+			if (json_dump)
 			{
-				(*dump_ptr)["compare"][cmp_count]["result"] = {
+				(*json_dump)["compare"][cmp_count]["result"] = {
 					{"arb1", (result.discardFirst  ? "discard" : "keep")},
 					{"arb2", (result.discardSecond ? "discard" : "keep")},
 				};
@@ -110,13 +137,13 @@ void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr) {
 		}
 	}
 
-	if (dump_ptr)
+	if (json_dump)
 	{
 		size_t ndx = 0;
 		for (auto& arb : arbiters) {
 			auto& contact = *arb->getContactPtr();
 
-			(*dump_ptr)["postcompare"][ndx] = toJson(arb);
+			(*json_dump)["postcompare"][ndx] = toJson(arb);
 			ndx++;
 		}
 	}
@@ -169,23 +196,18 @@ void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr) {
 		south_alt.clear();
 	}
 
+	if (json_dump)
+	{
+		(*json_dump)["apply"];
+	}
+
+
 	// solve X axis
 	solveX();
 
 	// solve Y axis
 	solveY();
 
-	int appliedCount =
-		(appliedCollisionCount[Cardinal::N] > 0) +
-		(appliedCollisionCount[Cardinal::E] > 0) +
-		(appliedCollisionCount[Cardinal::S] > 0) +
-		(appliedCollisionCount[Cardinal::W] > 0);
-
-	if (collidable->getBox() == collidable->getPrevBox() && appliedCount >= 2) {
-		collidable->set_vel(Vec2f{});
-	}
-
-	return;
 }
 
 
@@ -427,11 +449,16 @@ void CollisionSolver::applyArbVertAsHori(std::deque<Arbiter*>& altList, std::deq
 
 // ----------------------------------------------------------------------------
 
-void CollisionSolver::apply(const Contact& contact, Arbiter* arbiter, ContactType type) {
+void CollisionSolver::apply(const Contact& contact, Arbiter* arbiter, ContactType type)  {
 
 
 	if (contact.hasContact) {
 		appliedCollisionCount[direction::from_vector(contact.ortho_n).value()]++;
+
+		if (json_dump) {
+			(*json_dump)["apply"][applyCounter]["type"] = type;
+			(*json_dump)["apply"][applyCounter] = toJson(contact, arbiter);
+		}
 
 		collidable->applyContact(contact, type);
 
@@ -557,22 +584,6 @@ CollisionSolver::ArbCompResult CollisionSolver::pickHArbiter(const Arbiter* east
 
 	float crush = eContact->separation + wContact->separation;
 
-	// one-way check
-	/*
-	if (eSep > 0.f && !eContact->hasContact) {
-		ArbCompResult r;
-		r.discardFirst = true;
-		r.discardSecond = false;
-		return r;
-	}
-	else if (wSep > 0.f && !wContact->hasContact) {
-		ArbCompResult r;
-		r.discardFirst = false;
-		r.discardSecond = true;
-		return r;
-	}
-	*/
-
 	// diverging check
 	if (eSep > colBox.width && wSep < colBox.width) {
 		ArbCompResult r;
@@ -625,47 +636,6 @@ CollisionSolver::ArbCompResult CollisionSolver::pickHArbiter(const Arbiter* east
 	return ArbCompResult{};
 }
 
-Vec2f CollisionSolver::calcWedgeVel(Vec2f n1, Vec2f n2, Vec2f v1, Vec2f v2) {
-
-	if (n1 + n2 == Vec2f{}
-		|| math::is_horizontal(n1)
-		|| math::is_horizontal(n2))
-	{
-		return {};
-	}
-
-	Cardinal open_dir = (math::angle(n1) - math::angle(n2) > Angle{} ? Cardinal::E : Cardinal::W);
-	if (   (open_dir == Cardinal::E && n1.y > 0)
-		|| (open_dir == Cardinal::W && n1.y < 0))
-	{
-		n1 = n1.lefthand();
-		n2 = n2.righthand();
-	}
-	else 
-	{
-		n1 = n1.righthand();
-		n2 = n2.lefthand();
-	}
-
-	Angle a1 = math::angle(n1);
-	Angle a2 = math::angle(n2);
-
-	Angle open_angle = abs(a1 - a2);
-
-	Angle avg_ang = (open_angle / 2.f) + (a1 < a2 ? a1 : a2);
-
-	Vec2f vn1 = math::projection(v1 - v2, n1, true);
-	Vec2f vn2 = math::projection(v2 - v1, n2, true);
-
-	float wv1 = vn1.magnitude() / cosf(open_angle.radians());
-	float wv2 = vn2.magnitude() / cosf(open_angle.radians());
-
-	Vec2f result = (wv1 + wv2) * math::rotate(Vec2f{ -1.f, 0.f }, avg_ang);
-
-	return result;
-}
-
-
 CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* north, const Arbiter* south) {
 
 	const Contact* nContact = north->getContactPtr();
@@ -679,23 +649,6 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 	float crush = nSep + sSep;
 
 	bool any_has_contact = nContact->hasContact || sContact->hasContact;
-
-	// one-way check
-	
-	/*
-	if (nSep > 0.f && !nContact->hasContact) {
-		ArbCompResult r;
-		r.discardFirst = true;
-		r.discardSecond = false;
-		return r;
-	}
-	else if (sSep > 0.f && !sContact->hasContact) {
-		ArbCompResult r;
-		r.discardFirst = false;
-		r.discardSecond = true;
-		return r;
-	}
-	*/
 
 	// diverging check
 	if (crush > 0.f) {

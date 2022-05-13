@@ -343,7 +343,7 @@ TEST_F(collision, wedge_against_floor_right)
 	render.frame_delay = 2;
 	render.draw(colMan);
 
-	while (render.curr_frame < 60) {
+	while (render.curr_frame < 120) {
 
 		Vec2f vel{ 0.f, 50.f };
 		wedge->setPosition(wedge->getPosition() + (vel * one_frame));
