@@ -31,6 +31,7 @@ nlohmann::ordered_json toJson(const ff::Arbiter* arb)
 		{"impactTime",		contact.impactTime},
 		{"velocity",		fmt::format("{}", contact.velocity)},
 		{"region",			arb ? arb->region->get_ID().value : 0u},
+		{"quad",			arb ? arb->collider->getID() : 0u}
 	};
 }
 
@@ -46,6 +47,7 @@ nlohmann::ordered_json toJson(const ff::Contact& contact, const ff::Arbiter* arb
 		{"impactTime",		contact.impactTime},
 		{"velocity",		fmt::format("{}", contact.velocity)},
 		{"region",			arb ? arb->region->get_ID().value : 0u},
+		{"quad",			arb ? arb->collider->getID() : 0u}
 	};
 }
 
@@ -105,19 +107,18 @@ void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr) {
 	for (size_t i = 0; i < arbiters.size() - 1; i++) {
 		for (size_t j = i + 1; j < arbiters.size(); ) {
 
-			if (json_dump)
-			{
-				(*json_dump)["compare"][cmp_count]["arb1"] = fmt::format("{}", fmt::ptr(arbiters.at(i)));
-				(*json_dump)["compare"][cmp_count]["arb2"] = fmt::format("{}", fmt::ptr(arbiters.at(j)));
-			}
-
 			ArbCompResult result = compArbiters(arbiters.at(i), arbiters.at(j));
 
 			if (json_dump)
 			{
-				(*json_dump)["compare"][cmp_count]["result"] = {
-					{"arb1", (result.discardFirst  ? "discard" : "keep")},
-					{"arb2", (result.discardSecond ? "discard" : "keep")},
+				(*json_dump)["compare"][cmp_count] = {
+					{"first",  fmt::format("{}", fmt::ptr(arbiters.at(i))) },
+					{"second", fmt::format("{}", fmt::ptr(arbiters.at(j))) },
+					{"result", {
+							{"first",  (result.discardFirst  ? "discard" : "keep")},
+							{"second", (result.discardSecond ? "discard" : "keep")}
+						}
+					}
 				};
 			}
 
@@ -277,7 +278,7 @@ void CollisionSolver::solveX() {
 			west.pop_front();
 		}
 		else {
-			if (eastArb->getContactPtr()->separation > westArb->getContactPtr()->separation) {
+			if (eastArb->getContactPtr()->separation < westArb->getContactPtr()->separation) {
 				applyArbiterFirst(east);
 				updateArbiterStack(west);
 			}
@@ -390,7 +391,7 @@ void CollisionSolver::solveY() {
 			south.pop_front();
 		}
 		else {
-			if (northArb->getContactPtr()->separation > southArb->getContactPtr()->separation) {
+			if (northArb->getContactPtr()->separation < southArb->getContactPtr()->separation) {
 				applyArbiterFirst(north);
 				updateArbiterStack(south);
 			}

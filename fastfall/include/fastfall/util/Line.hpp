@@ -51,6 +51,10 @@ public:
 	std::string to_string() const noexcept {
 		return p1.to_string() + "->" + p2.to_string();
 	}
+
+	Line<T> reverse() const {
+		return Line<T>(p2, p1);
+	}
 };
 
 typedef Line<int> Linei;

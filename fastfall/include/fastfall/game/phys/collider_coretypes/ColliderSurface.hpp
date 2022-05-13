@@ -6,29 +6,6 @@ namespace ff {
 
 class ColliderSurface {
 public:
-	/*
-	constexpr ColliderSurface() :
-		surface(),
-		ghostp0(),
-		ghostp3()
-	{
-
-	};
-	constexpr ColliderSurface(Linef colSurface, Vec2f ghost0 = Vec2f(), Vec2f ghost3 = Vec2f()) noexcept :
-		surface(colSurface),
-		ghostp0(ghost0),
-		ghostp3(ghost3)
-	{
-
-	};
-
-	~ColliderSurface() = default;
-	*/
-
-
-	// ghost point provide additional info for collision 
-	// (ghostp0 -> surface.p1 -> surface.p2 -> ghost3)
-
 	Linef surface;
 	Vec2f ghostp0;
 	Vec2f ghostp3;
@@ -39,7 +16,29 @@ public:
 	const ColliderSurface* prev = nullptr;
 	const ColliderSurface* next = nullptr;
 
-	//additional properties?
+	Linef getGhostPrev() const {
+		return { ghostp0, surface.p1 };
+	}
+
+	Linef getGhostNext() const {
+		return { surface.p2, ghostp3 };
+	}
+
+	ColliderSurface reverse() const {
+		ColliderSurface r;
+
+		r.surface = surface.reverse();
+		r.ghostp0 = ghostp3;
+		r.ghostp3 = ghostp0;
+
+		r.g0virtual = g3virtual;
+		r.g3virtual = g0virtual;
+
+		r.prev = next;
+		r.next = prev;
+
+		return r;
+	}
 };
 
 }

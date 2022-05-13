@@ -394,3 +394,37 @@ TEST_F(surfacetracker, uphill)
 		EXPECT_TRUE(ground->has_contact());
 	}
 }
+
+TEST_F(surfacetracker, uphill_oneway)
+{
+	initTileMap({
+		{"",		"",			""},
+		{"",		"",			""},
+		{"",		"slope",	"oneway"},
+		{"solid",	"solid",	"solid"},
+		});
+
+	box->teleport({ 8, 48 });
+	box->set_gravity({ 0, 500 });
+	ground->traverse_set_speed(50.f);
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.draw(colMan);
+
+	while (render.curr_frame < 6000 && box->getPosition().x < 48)
+	{
+		ground->traverse_set_speed(50.f); // this should not stick to the reverse side of the hill
+		update();
+
+		int contacts = 0;
+		for (auto& col : colMan.get_collidables()) {
+			for (auto& arb : col.regionArbiters) {
+
+				contacts += arb.getQuadArbiters().size();
+			}
+		}
+		render.draw(colMan);
+
+		EXPECT_TRUE(ground->has_contact());
+	}
+}

@@ -43,6 +43,7 @@ void CollisionManager::update(secs deltaTime) {
 	}
 	collision_dump = nullptr;
 	frame_count++;
+	frame_collision_count = 0u;
 };
 
 // --------------------------------------------------------------
@@ -233,7 +234,35 @@ void CollisionManager::solve(CollidableData& collidableData) {
 		}
 	}
 
-	solver.solve(collision_dump ? &(*collision_dump)["solver"] : nullptr);
+	nlohmann::ordered_json* json_dump = nullptr;
+	if (collision_dump) {
+
+		auto* entry = &(*collision_dump)["collisions"][frame_collision_count];
+
+		const auto& col = collidableData.collidable;
+
+		(*entry)["collidable"] = {
+			{ "id",		col.get_ID().value },
+			{ "pos",		fmt::format("{}", col.getPosition()) },
+			{ "delta_pos",	fmt::format("{}", col.getPosition() - col.getPrevPosition()) },
+			{ "vel",		fmt::format("{}", col.get_vel()) },
+			{ "size",		fmt::format("{}", Vec2f{col.getBox().getSize()}) }
+		};
+
+		size_t region_count = 0;
+		for (auto& rArb : collidableData.regionArbiters) {
+			(*entry)["colliders"][region_count] = {
+				{ "id",				rArb.getRegion()->get_ID().value},
+				{ "vel",			fmt::format("{}", rArb.getRegion()->velocity)},
+				{ "delta_pos",		fmt::format("{}", rArb.getRegion()->getPosition() - rArb.getRegion()->getPrevPosition()) },
+				{ "arbiter_count",	rArb.getQuadArbiters().size()},
+			};
+			region_count++;
+		}
+
+		json_dump = &(*entry)["solver"];
+	}
+	solver.solve(json_dump);
 
 	// push collision data to collidable
 	std::vector<PersistantContact> c;
@@ -257,6 +286,7 @@ void CollisionManager::solve(CollidableData& collidableData) {
 		
 	}
 	collidableData.collidable.set_frame(std::move(c));
+	frame_collision_count++;
 }
 
 }

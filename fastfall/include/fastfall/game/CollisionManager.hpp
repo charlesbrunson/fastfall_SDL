@@ -81,6 +81,7 @@ private:
 
 	unsigned instanceID;
 	size_t frame_count = 0;
+	size_t frame_collision_count = 0;
 	
 	nlohmann::ordered_json* collision_dump = nullptr;
 
