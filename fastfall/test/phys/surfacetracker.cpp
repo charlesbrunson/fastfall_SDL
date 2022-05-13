@@ -8,6 +8,10 @@
 
 #include "TestPhysRenderer.hpp"
 
+
+#include "nlohmann/json.hpp"
+#include <fstream>
+
 using namespace ff;
 
 class surfacetracker : public ::testing::Test {
@@ -19,15 +23,25 @@ protected:
 	SurfaceTracker* ground;
 
 	ColliderTileMap* collider = nullptr;
+	std::fstream log;
 
 	static constexpr secs one_frame = (1.0 / 60.0);
 
 	surfacetracker()
 		: colMan{0u}
 	{
+		std::string test_log_name = fmt::format("phys_render_out/{}__{}.log",
+			::testing::UnitTest::GetInstance()->current_test_info()->test_suite_name(),
+			::testing::UnitTest::GetInstance()->current_test_info()->name());
+
+		log.open(test_log_name,
+			std::ios_base::out
+			| std::ios_base::trunc
+		);
 	}
 
 	virtual ~surfacetracker() {
+		log.close();
 	}
 
 	void SetUp() override {
@@ -45,6 +59,7 @@ protected:
 				.slope_sticking = true,
 				.stick_angle_max = Angle::Degree(90)
 			});
+
 	}
 
 	void TearDown() override 
@@ -53,11 +68,15 @@ protected:
 
 	void update() 
 	{
+		nlohmann::ordered_json data;
 		if (collider) {
 			collider->update(one_frame);
 		}
 		box->update(one_frame);
+
+		colMan.dumpCollisionDataThisFrame(&data);
 		colMan.update(one_frame);
+		log << data.dump(4) << std::endl;
 	}
 
 	void initTileMap(grid_vector<std::string_view> tiles) 

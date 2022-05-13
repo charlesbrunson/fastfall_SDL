@@ -8,6 +8,7 @@
 #include "gtest/gtest.h"
 
 #include "nlohmann/json.hpp"
+#include <fstream>
 
 using namespace ff;
 
@@ -18,15 +19,27 @@ protected:
 	CollisionManager colMan;
 	Collidable* box;
 	ColliderTileMap* collider = nullptr;
+	std::fstream log;
 
 	static constexpr secs one_frame = (1.0 / 60.0);
 
 	collision()
 		: colMan{ 0u }
 	{
+
+		std::string test_log_name = fmt::format("phys_render_out/{}__{}.log",
+			::testing::UnitTest::GetInstance()->current_test_info()->test_suite_name(),
+			::testing::UnitTest::GetInstance()->current_test_info()->name());
+
+		log.open(test_log_name, 
+			  std::ios_base::out
+			| std::ios_base::trunc
+		);
 	}
 
-	virtual ~collision() {
+	virtual ~collision() 
+	{
+		log.close();
 	}
 
 	void SetUp() override {
@@ -50,7 +63,8 @@ protected:
 		nlohmann::ordered_json data;
 		colMan.dumpCollisionDataThisFrame(&data);
 		colMan.update(one_frame);
-		std::cerr << data.dump(4) << std::endl;
+
+		log << data.dump(4) << std::endl;
 	}
 
 	void initTileMap(grid_vector<std::string_view> tiles)
@@ -452,20 +466,17 @@ TEST_F(collision, wedge_with_oneway_ceil) {
 	box->set_gravity({ 0, 500 });
 
 	TestPhysRenderer render(collider->getBoundingBox());
-	render.frame_delay = 2;
+	render.frame_delay = 8;
 	render.draw(colMan);
 
-	while (render.curr_frame < 4) {
+	while (render.curr_frame < 20) {
 		box->set_vel({ 500, 0 });
 		update();
 		render.draw(colMan);
-	}
 
-	while (render.curr_frame < 30) {
-		box->set_vel({ 500, 0 });
-		update();
-		render.draw(colMan);
-		EXPECT_GE(box->getPosition().y, 40.f);
+		if (render.curr_frame >= 4) {
+			EXPECT_GE(box->getPosition().y, 40.f);
+		}
 	}
 }
 

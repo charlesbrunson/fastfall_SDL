@@ -7,29 +7,29 @@
 
 #include "nlohmann/json.hpp"
 
-namespace ff {
-
+namespace ff 
+{
 	NLOHMANN_JSON_SERIALIZE_ENUM(ContactType, {
-		{ContactType::NO_SOLUTION,		nullptr},
+		{ContactType::NO_SOLUTION,		"no solution"},
 		{ContactType::SINGLE,			"single"},
 		{ContactType::WEDGE,			"wedge"},
 		{ContactType::CRUSH_HORIZONTAL,	"horizontal crush"},
 		{ContactType::CRUSH_VERTICAL,	"vertical crush"},
 	})
-
 }
 
 nlohmann::ordered_json toJson(const ff::Arbiter* arb)
 {
 	auto& contact = *arb->getContactPtr();
 	return {
-		{"address",			fmt::format("{}", fmt::ptr(arb)) },
+		{"arbiter",			fmt::format("{}", fmt::ptr(arb)) },
 		{"hasContact",		contact.hasContact},
 		{"separation",		contact.separation},
 		{"ortho_n",			fmt::format("{}", contact.ortho_n)},
 		{"collider_n",		fmt::format("{}", contact.collider_n)},
 		{"hasImpactTime",	contact.hasImpactTime},
 		{"impactTime",		contact.impactTime},
+		{"velocity",		fmt::format("{}", contact.velocity)},
 		{"region",			arb ? arb->region->get_ID().value : 0u},
 	};
 }
@@ -37,13 +37,14 @@ nlohmann::ordered_json toJson(const ff::Arbiter* arb)
 nlohmann::ordered_json toJson(const ff::Contact& contact, const ff::Arbiter* arb)
 {
 	return {
-		{"address",			fmt::format("{}", fmt::ptr(arb)) },
+		{"arbiter",			fmt::format("{}", fmt::ptr(arb)) },
 		{"hasContact",		contact.hasContact},
 		{"separation",		contact.separation},
 		{"ortho_n",			fmt::format("{}", contact.ortho_n)},
 		{"collider_n",		fmt::format("{}", contact.collider_n)},
 		{"hasImpactTime",	contact.hasImpactTime},
 		{"impactTime",		contact.impactTime},
+		{"velocity",		fmt::format("{}", contact.velocity)},
 		{"region",			arb ? arb->region->get_ID().value : 0u},
 	};
 }
@@ -146,6 +147,8 @@ void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr) {
 			(*json_dump)["postcompare"][ndx] = toJson(arb);
 			ndx++;
 		}
+
+		(*json_dump)["apply"];
 	}
 
 	// initialize arbiter lists
@@ -160,6 +163,10 @@ void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr) {
 
 		auto dir = direction::from_vector(oN);
 		if (!dir.has_value()) {
+			if (json_dump) {
+				(*json_dump)["apply"][applyCounter]["discard"] = fmt::format("{}", fmt::ptr(arb));
+				applyCounter++;
+			}
 			discard.push_back(std::make_pair(arb, ArbCompResult{}));
 			continue;
 		}
@@ -196,10 +203,6 @@ void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr) {
 		south_alt.clear();
 	}
 
-	if (json_dump)
-	{
-		(*json_dump)["apply"];
-	}
 
 
 	// solve X axis
@@ -240,21 +243,41 @@ void CollisionSolver::solveX() {
 		}
 
 		if (r.discardFirst && !r.discardSecond) {
+
+			if (json_dump) {
+				(*json_dump)["apply"][applyCounter]["discard"] = fmt::format("{}", fmt::ptr(east.front()));
+				applyCounter++;
+			}
+
 			east.pop_front();
 			applyArbiterFirst(west);
 			updateArbiterStack(east);
 		}
 		else if (r.discardSecond && !r.discardFirst) {
+
+			if (json_dump) {
+				(*json_dump)["apply"][applyCounter]["discard"] = fmt::format("{}", fmt::ptr(west.front()));
+				applyCounter++;
+			}
+
 			west.pop_front();
 			applyArbiterFirst(east);
 			updateArbiterStack(west);
 		}
 		else if (r.discardFirst && r.discardSecond) {
+
+			if (json_dump) {
+				(*json_dump)["apply"][applyCounter]["discard"] = fmt::format("{}", fmt::ptr(east.front()));
+				applyCounter++;
+				(*json_dump)["apply"][applyCounter]["discard"] = fmt::format("{}", fmt::ptr(west.front()));
+				applyCounter++;
+			}
+
 			east.pop_front();
 			west.pop_front();
 		}
 		else {
-			if (eastArb->getContactPtr()->separation < westArb->getContactPtr()->separation) {
+			if (eastArb->getContactPtr()->separation > westArb->getContactPtr()->separation) {
 				applyArbiterFirst(east);
 				updateArbiterStack(west);
 			}
@@ -303,16 +326,30 @@ void CollisionSolver::solveY() {
 			if (!northArb->getContactPtr()->hasContact
 				&& !southArb->getContactPtr()->hasContact) 
 			{
+				if (json_dump) {
+					(*json_dump)["apply"][applyCounter]["discard"] = fmt::format("{}", fmt::ptr(north.front()));
+					applyCounter++;
+					(*json_dump)["apply"][applyCounter]["discard"] = fmt::format("{}", fmt::ptr(south.front()));
+					applyCounter++;
+				}
 				north.pop_front();
 				south.pop_front();
 				continue;
 			}
 
 			if (!northArb->getContactPtr()->hasContact) {
+				if (json_dump) {
+					(*json_dump)["apply"][applyCounter]["discard"] = fmt::format("{}", fmt::ptr(north.front()));
+					applyCounter++;
+				}
 				north.pop_front();
 				continue;
 			}
 			if (!southArb->getContactPtr()->hasContact) {
+				if (json_dump) {
+					(*json_dump)["apply"][applyCounter]["discard"] = fmt::format("{}", fmt::ptr(south.front()));
+					applyCounter++;
+				}
 				south.pop_front();
 				continue;
 			}
@@ -320,21 +357,40 @@ void CollisionSolver::solveY() {
 		}
 
 		if (r.discardFirst && !r.discardSecond) {
+
+			if (json_dump) {
+				(*json_dump)["apply"][applyCounter]["discard"] = fmt::format("{}", fmt::ptr(north.front()));
+				applyCounter++;
+			}
+
 			north.pop_front();
 			applyArbiterFirst(south);
 			updateArbiterStack(north);
 		}
 		else if (r.discardSecond && !r.discardFirst) {
+			if (json_dump) {
+				(*json_dump)["apply"][applyCounter]["discard"] = fmt::format("{}", fmt::ptr(south.front()));
+				applyCounter++;
+			}
+
 			south.pop_front();
 			applyArbiterFirst(north);
 			updateArbiterStack(south);
 		}
 		else if (r.discardFirst && r.discardSecond) {
+
+			if (json_dump) {
+				(*json_dump)["apply"][applyCounter]["discard"] = fmt::format("{}", fmt::ptr(north.front()));
+				applyCounter++;
+				(*json_dump)["apply"][applyCounter]["discard"] = fmt::format("{}", fmt::ptr(south.front()));
+				applyCounter++;
+			}
+
 			north.pop_front();
 			south.pop_front();
 		}
 		else {
-			if (northArb->getContactPtr()->separation < southArb->getContactPtr()->separation) {
+			if (northArb->getContactPtr()->separation > southArb->getContactPtr()->separation) {
 				applyArbiterFirst(north);
 				updateArbiterStack(south);
 			}
@@ -456,8 +512,8 @@ void CollisionSolver::apply(const Contact& contact, Arbiter* arbiter, ContactTyp
 		appliedCollisionCount[direction::from_vector(contact.ortho_n).value()]++;
 
 		if (json_dump) {
-			(*json_dump)["apply"][applyCounter]["type"] = type;
 			(*json_dump)["apply"][applyCounter] = toJson(contact, arbiter);
+			(*json_dump)["apply"][applyCounter]["type"] = type;
 		}
 
 		collidable->applyContact(contact, type);
@@ -475,6 +531,12 @@ void CollisionSolver::apply(const Contact& contact, Arbiter* arbiter, ContactTyp
 
 		frame.push_back(applied);
 		applyCounter++;
+	}
+	else {
+		if (json_dump) {
+			(*json_dump)["apply"][applyCounter]["discard"] = fmt::format("{}", fmt::ptr(arbiter));
+			applyCounter++;
+		}
 	}
 }
 
@@ -756,14 +818,14 @@ CollisionSolver::ArbCompResult CollisionSolver::pickVArbiter(const Arbiter* nort
 			//else do nothing
 		}
 	}
-	if (!nContact->hasContact && sContact->hasContact)
+	if (any_has_contact && !nContact->hasContact && sContact->hasContact)
 	{
 		ArbCompResult r;
 		r.discardFirst = true;
 		r.discardSecond = false;
 		return r;
 	}
-	else if (!sContact->hasContact && nContact->hasContact)
+	else if (any_has_contact && !sContact->hasContact && nContact->hasContact)
 	{
 		ArbCompResult r;
 		r.discardFirst = false;
