@@ -16,40 +16,42 @@ namespace ff
 		{ContactType::CRUSH_HORIZONTAL,	"horizontal crush"},
 		{ContactType::CRUSH_VERTICAL,	"vertical crush"},
 	})
+
+	nlohmann::ordered_json to_json(const Arbiter* arb)
+	{
+		auto& contact = *arb->getContactPtr();
+		return {
+			{"arbiter",			fmt::format("{}", fmt::ptr(arb)) },
+			{"hasContact",		contact.hasContact},
+			{"separation",		contact.separation},
+			{"ortho_n",			fmt::format("{}", contact.ortho_n)},
+			{"collider_n",		fmt::format("{}", contact.collider_n)},
+			{"hasImpactTime",	contact.hasImpactTime},
+			{"impactTime",		contact.impactTime},
+			{"velocity",		fmt::format("{}", contact.velocity)},
+			{"region",			arb ? arb->region->get_ID().value : 0u},
+			{"quad",			arb ? arb->collider->getID() : 0u}
+		};
+	}
+
+	nlohmann::ordered_json to_json(const Contact& contact, const Arbiter* arb)
+	{
+		return {
+			{"arbiter",			fmt::format("{}", fmt::ptr(arb)) },
+			{"hasContact",		contact.hasContact},
+			{"separation",		contact.separation},
+			{"ortho_n",			fmt::format("{}", contact.ortho_n)},
+			{"collider_n",		fmt::format("{}", contact.collider_n)},
+			{"hasImpactTime",	contact.hasImpactTime},
+			{"impactTime",		contact.impactTime},
+			{"velocity",		fmt::format("{}", contact.velocity)},
+			{"region",			arb ? arb->region->get_ID().value : 0u},
+			{"quad",			arb ? arb->collider->getID() : 0u}
+		};
+	}
+
 }
 
-nlohmann::ordered_json toJson(const ff::Arbiter* arb)
-{
-	auto& contact = *arb->getContactPtr();
-	return {
-		{"arbiter",			fmt::format("{}", fmt::ptr(arb)) },
-		{"hasContact",		contact.hasContact},
-		{"separation",		contact.separation},
-		{"ortho_n",			fmt::format("{}", contact.ortho_n)},
-		{"collider_n",		fmt::format("{}", contact.collider_n)},
-		{"hasImpactTime",	contact.hasImpactTime},
-		{"impactTime",		contact.impactTime},
-		{"velocity",		fmt::format("{}", contact.velocity)},
-		{"region",			arb ? arb->region->get_ID().value : 0u},
-		{"quad",			arb ? arb->collider->getID() : 0u}
-	};
-}
-
-nlohmann::ordered_json toJson(const ff::Contact& contact, const ff::Arbiter* arb)
-{
-	return {
-		{"arbiter",			fmt::format("{}", fmt::ptr(arb)) },
-		{"hasContact",		contact.hasContact},
-		{"separation",		contact.separation},
-		{"ortho_n",			fmt::format("{}", contact.ortho_n)},
-		{"collider_n",		fmt::format("{}", contact.collider_n)},
-		{"hasImpactTime",	contact.hasImpactTime},
-		{"impactTime",		contact.impactTime},
-		{"velocity",		fmt::format("{}", contact.velocity)},
-		{"region",			arb ? arb->region->get_ID().value : 0u},
-		{"quad",			arb ? arb->collider->getID() : 0u}
-	};
-}
 
 namespace ff {
 
@@ -91,17 +93,21 @@ void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr) {
 	if (arbiters.empty())
 		return;
 
-
 	if (json_dump)
 	{
 		size_t ndx = 0;
 		for (auto& arb : arbiters) {
-			(*json_dump)["precompare"][ndx] = toJson(arb);
+			(*json_dump)["precompare"][ndx] = to_json(arb);
 			ndx++;
 		}
 	}
-		
+
 	// do arbiter-to-arbiter comparisons 
+
+	if (json_dump && arbiters.size() == 1)
+	{
+		(*json_dump)["compare"];
+	}
 
 	size_t cmp_count = 0;
 	for (size_t i = 0; i < arbiters.size() - 1; i++) {
@@ -115,7 +121,7 @@ void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr) {
 					{"first",  fmt::format("{}", fmt::ptr(arbiters.at(i))) },
 					{"second", fmt::format("{}", fmt::ptr(arbiters.at(j))) },
 					{"result", {
-							{"first",  (result.discardFirst  ? "discard" : "keep")},
+							{"first",  (result.discardFirst ? "discard" : "keep")},
 							{"second", (result.discardSecond ? "discard" : "keep")}
 						}
 					}
@@ -145,10 +151,13 @@ void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr) {
 		for (auto& arb : arbiters) {
 			auto& contact = *arb->getContactPtr();
 
-			(*json_dump)["postcompare"][ndx] = toJson(arb);
+			(*json_dump)["postcompare"][ndx] = to_json(arb);
 			ndx++;
 		}
+	}
 
+	if (json_dump)
+	{
 		(*json_dump)["apply"];
 	}
 
@@ -480,7 +489,7 @@ void CollisionSolver::applyArbVertAsHori(std::deque<Arbiter*>& altList, std::deq
 		bool updateRemaining = false;
 
 		if (c->hasContact) {
-			assert(abs(c->collider_n.x) > 0.f && abs(c->collider_n.x) < 1.f);
+			//assert(abs(c->collider_n.x) > 0.f && abs(c->collider_n.x) < 1.f);
 
 			Vec2f alt_ortho_normal = (c->collider_n.x < 0.f ? Vec2f(-1.f, 0.f) : Vec2f(1.f, 0.f));
 			float alt_separation = abs((c->collider_n.y * c->separation) / c->collider_n.x);
@@ -513,7 +522,7 @@ void CollisionSolver::apply(const Contact& contact, Arbiter* arbiter, ContactTyp
 		appliedCollisionCount[direction::from_vector(contact.ortho_n).value()]++;
 
 		if (json_dump) {
-			(*json_dump)["apply"][applyCounter] = toJson(contact, arbiter);
+			(*json_dump)["apply"][applyCounter] = to_json(contact, arbiter);
 			(*json_dump)["apply"][applyCounter]["type"] = type;
 		}
 

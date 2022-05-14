@@ -151,7 +151,7 @@ void collisionContent(GameContext context) {
 						ImGui::Text("%3.2f", c.touchDuration); ImGui::NextColumn();
 
 						ImGui::Text("Contact Type"); ImGui::NextColumn();
-						ImGui::Text("%s", contactTypeToString(c.type)); ImGui::NextColumn();
+						ImGui::Text("%s", contactTypeToString(c.type).data()); ImGui::NextColumn();
 
 					}
 					ImGui::Columns(1);
@@ -211,7 +211,7 @@ void collisionContent(GameContext context) {
 
 
 						ImGui::Text("Contact Type"); ImGui::NextColumn();
-						ImGui::Text("%s", contactTypeToString(c.type)); ImGui::NextColumn();
+						ImGui::Text("%s", contactTypeToString(c.type).data()); ImGui::NextColumn();
 
 						ImGui::Separator();
 					}

@@ -19,7 +19,7 @@ class surfacetracker : public ::testing::Test {
 protected:
 	CollisionManager colMan;
 
-	Collidable* box;
+	Collidable* box = nullptr;
 	SurfaceTracker* ground;
 
 	ColliderTileMap* collider = nullptr;
@@ -27,9 +27,14 @@ protected:
 
 	static constexpr secs one_frame = (1.0 / 60.0);
 
+	nlohmann::ordered_json data;
+
 	surfacetracker()
 		: colMan{0u}
 	{
+	}
+
+	virtual ~surfacetracker() {
 		std::string test_log_name = fmt::format("phys_render_out/{}__{}.log",
 			::testing::UnitTest::GetInstance()->current_test_info()->test_suite_name(),
 			::testing::UnitTest::GetInstance()->current_test_info()->name());
@@ -38,9 +43,8 @@ protected:
 			std::ios_base::out
 			| std::ios_base::trunc
 		);
-	}
 
-	virtual ~surfacetracker() {
+		log << data.dump(4) << std::endl;
 		log.close();
 	}
 
@@ -68,15 +72,13 @@ protected:
 
 	void update() 
 	{
-		nlohmann::ordered_json data;
 		if (collider) {
 			collider->update(one_frame);
 		}
 		box->update(one_frame);
 
-		colMan.dumpCollisionDataThisFrame(&data);
+		colMan.dumpCollisionDataThisFrame(&data[colMan.getFrameCount()]);
 		colMan.update(one_frame);
-		log << data.dump(4) << std::endl;
 	}
 
 	void initTileMap(grid_vector<std::string_view> tiles) 

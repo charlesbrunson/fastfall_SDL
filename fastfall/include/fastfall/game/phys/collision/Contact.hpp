@@ -36,8 +36,8 @@ struct Contact {
 	}
 
 	inline bool isTransposable() const noexcept {
-		return std::abs(collider_n.x) > std::abs(collider_n.y) 
-			&& hasImpactTime 
+		return std::abs(collider_n.x) > std::abs(collider_n.y)
+			&& hasImpactTime
 			&& !hasValley;
 	}
 

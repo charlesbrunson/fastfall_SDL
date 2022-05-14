@@ -17,28 +17,33 @@ class collision : public ::testing::Test {
 
 protected:
 	CollisionManager colMan;
-	Collidable* box;
+	Collidable* box = nullptr;
 	ColliderTileMap* collider = nullptr;
 	std::fstream log;
 
 	static constexpr secs one_frame = (1.0 / 60.0);
 
+	nlohmann::ordered_json data;
+
 	collision()
 		: colMan{ 0u }
 	{
 
-		std::string test_log_name = fmt::format("phys_render_out/{}__{}.log",
-			::testing::UnitTest::GetInstance()->current_test_info()->test_suite_name(),
-			::testing::UnitTest::GetInstance()->current_test_info()->name());
-
-		log.open(test_log_name, 
-			  std::ios_base::out
-			| std::ios_base::trunc
-		);
 	}
 
 	virtual ~collision() 
 	{
+		std::string test_log_name = fmt::format("phys_render_out/{}__{}.log",
+			::testing::UnitTest::GetInstance()->current_test_info()->test_suite_name(),
+			::testing::UnitTest::GetInstance()->current_test_info()->name());
+
+		log.open(test_log_name,
+			std::ios_base::out
+			| std::ios_base::trunc
+		);
+
+		log << data.dump(4) << std::endl;
+
 		log.close();
 	}
 
@@ -60,11 +65,9 @@ protected:
 		}
 		box->update(one_frame);
 
-		nlohmann::ordered_json data;
-		colMan.dumpCollisionDataThisFrame(&data);
+		colMan.dumpCollisionDataThisFrame(&data[colMan.getFrameCount()]);
 		colMan.update(one_frame);
 
-		log << data.dump(4) << std::endl;
 	}
 
 	void initTileMap(grid_vector<std::string_view> tiles)

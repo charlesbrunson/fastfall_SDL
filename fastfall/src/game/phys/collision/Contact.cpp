@@ -10,7 +10,7 @@ std::string_view contactTypeToString(ContactType t) {
 		"Crush horizontal",
 		"Crush vertical"
 	};
-	return types[static_cast<int>(t)];
+	return types[static_cast<unsigned char>(t)];
 };
 
 }

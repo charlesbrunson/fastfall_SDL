@@ -457,6 +457,10 @@ void CollisionDiscrete::evalContact() noexcept {
 
 }
 
+
+
+
+
 CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexcept {
 
 	CollisionAxis axis(initData);
@@ -467,8 +471,31 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
 	}
 
 	// if this is a oneway, invalidate it if the collider's previous position is not above it
-	if (!collidePrevious && cQuad.isOneWay(Cardinal::N)) {
-		axis.axisValid = math::rect_botleft(cPrev).y <= tMid.y - tHalf.y;
+	if (!collidePrevious && cQuad.isOneWay(Cardinal::N)) 
+	{
+		Vec2f cpMid = math::rect_mid(cPrev);
+		Vec2f cpSize = cPrev.getSize() * 0.5f;
+
+		Linef line;
+		bool valid_ghost = true;
+		if (cpMid.x < axis.contact.collider.surface.p1.x)
+		{
+			valid_ghost = !axis.contact.collider.g0virtual;
+			line = axis.contact.collider.getGhostPrev();
+		}
+		else if (cpMid.x > axis.contact.collider.surface.p2.x)
+		{
+			valid_ghost = !axis.contact.collider.g3virtual;
+			line = axis.contact.collider.getGhostNext();
+		}
+		else 
+		{
+			line = axis.contact.collider.surface;
+		}
+		axis.axisValid = !math::is_vertical(line) 
+			&& valid_ghost 
+			&& getYforX(line, cpMid.x) >= cpMid.y + cpSize.y;
+
 	}
 
 	return axis;
@@ -484,8 +511,30 @@ CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcep
 	}
 
 	// if this is a oneway, invalidate it if the collider's previous position is not below it
-	if (!collidePrevious && cQuad.isOneWay(Cardinal::S)) {
-		axis.axisValid = math::rect_topleft(cPrev).y >= tMid.y + tHalf.y;
+	if (!collidePrevious && cQuad.isOneWay(Cardinal::S)) 
+	{
+		Vec2f cpMid = math::rect_mid(cPrev);
+		Vec2f cpSize = cPrev.getSize() * 0.5f;
+
+		Linef line;
+		bool valid_ghost = true;
+		if (cpMid.x < axis.contact.collider.surface.p2.x)
+		{
+			valid_ghost = !axis.contact.collider.g3virtual;
+			line = axis.contact.collider.getGhostNext();
+		}
+		else if (cpMid.x > axis.contact.collider.surface.p1.x)
+		{
+			valid_ghost = !axis.contact.collider.g0virtual;
+			line = axis.contact.collider.getGhostPrev();
+		}
+		else
+		{
+			line = axis.contact.collider.surface;
+		}
+		axis.axisValid = !math::is_vertical(line)
+			&& valid_ghost
+			&& getYforX(line, cpMid.x) <= cpMid.y - cpSize.y;
 	}
 
 	return axis;
@@ -493,7 +542,12 @@ CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcep
 
 // wall utils
 
-bool wallCanExtend(const CollisionAxis& axis, const ColliderQuad& quad, Cardinal dir) 
+bool wallCanExtend(
+	const CollisionAxis& axis, 
+	const ColliderQuad& quad, 
+	Cardinal dir, 
+	Vec2f pMid, Vec2f cMid, 
+	Vec2f tMid, Vec2f tHalf)
 {
 	if (dir == Cardinal::N
 		|| dir == Cardinal::S)
@@ -501,17 +555,19 @@ bool wallCanExtend(const CollisionAxis& axis, const ColliderQuad& quad, Cardinal
 		return false;
 	}
 
+	auto* north_ptr = quad.getSurface(Cardinal::N);
+	auto* south_ptr = quad.getSurface(Cardinal::S);
+
 	bool extend = axis.is_collider_valid();
 
 	if (!extend && (quad.isOneWay(Cardinal::N) || quad.isOneWay(Cardinal::S))) 
 	{
-		auto* north_ptr = quad.getSurface(Cardinal::N);
-		auto* south_ptr = quad.getSurface(Cardinal::S);
+		// extend if the oneway connects with another floor/ceiling
 
 		if (dir == Cardinal::E)
 		{
-			extend = (north_ptr && north_ptr->g3virtual)
-				  || (south_ptr && south_ptr->g0virtual);
+			extend = ((north_ptr && north_ptr->g3virtual)
+				  || (south_ptr && south_ptr->g0virtual));
 		}
 		else if (dir == Cardinal::W)
 		{
@@ -522,6 +578,54 @@ bool wallCanExtend(const CollisionAxis& axis, const ColliderQuad& quad, Cardinal
 			extend = false;
 		}
 	}
+	else if (extend)
+	{
+		// DONT extend if the floor/ceiling continues past the wall
+		// but only on the frame that the collision box Y center crosses the wall
+
+		bool prev_above = false;
+		bool prev_below = false;
+
+		bool is_passing;
+		if (dir == Cardinal::E)
+		{
+			is_passing = pMid.x <= tMid.x + tHalf.x
+					&& cMid.x > tMid.x + tHalf.x;
+		}
+		else
+		{
+			is_passing = pMid.x >= tMid.x - tHalf.x
+					&& cMid.x < tMid.x - tHalf.x;
+		}
+
+		if (is_passing && (dir == Cardinal::E ? north_ptr : south_ptr))
+		{
+			Linef line = (dir == Cardinal::E ? north_ptr->surface : south_ptr->surface);
+			Linef next = (dir == Cardinal::E ? north_ptr->getGhostNext() : south_ptr->getGhostPrev());
+
+			if (!math::is_vertical(next)
+				&& (next.p1.x < next.p2.x) == (line.p1.x < line.p2.x))
+			{
+				prev_above = true;
+			}
+		}
+
+		if (is_passing && (dir == Cardinal::W ? north_ptr : south_ptr))
+		{
+			Linef line = (dir == Cardinal::W ? north_ptr->surface : south_ptr->surface);
+			Linef next = (dir == Cardinal::W ? north_ptr->getGhostNext() : south_ptr->getGhostPrev());
+
+			if (!math::is_vertical(next)
+				&& (next.p1.x < next.p2.x) == (line.p1.x < line.p2.x))
+			{
+				prev_below = true;
+			}
+		}
+
+		if (prev_above || prev_below)
+			extend = false;
+	}
+
 	return extend;
 }
 
@@ -593,7 +697,8 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 		axis.contact.material = &cQuad.material->getSurface(Cardinal::E, cQuad.matFacing);
 	}
 
-	bool extend = wallCanExtend(axis, cQuad, Cardinal::E);
+	Vec2f pMid = math::rect_mid(cPrev);
+	bool extend = wallCanExtend(axis, cQuad, Cardinal::E, pMid, cMid, tMid, tHalf);
 	bool has_valley = wallHasValley(axis, axes, axis_count, Cardinal::E, valleys);
 
 	// if this is a oneway, invalidate it if the collider's previous position is not left of it
@@ -614,7 +719,8 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 		axis.contact.material = &cQuad.material->getSurface(Cardinal::W, cQuad.matFacing);
 	}
 
-	bool extend = wallCanExtend(axis, cQuad, Cardinal::W);
+	Vec2f pMid = math::rect_mid(cPrev);
+	bool extend = wallCanExtend(axis, cQuad, Cardinal::W, pMid, cMid, tMid, tHalf);
 	bool has_valley = wallHasValley(axis, axes, axis_count, Cardinal::W, valleys);
 
 	// if this is a oneway, invalidate it if the collider's previous position is not left of it
