@@ -379,7 +379,7 @@ TEST_F(surfacetracker, uphill)
 	TestPhysRenderer render(collider->getBoundingBox());
 	render.draw(colMan);
 
-	while (render.curr_frame < 6000 && box->getPosition().x < 48)
+	while (render.curr_frame < 120 && box->getPosition().x < 48)
 	{
 		ground->traverse_set_speed(20.f); // this should not stick to the reverse side of the hill
 		update();
@@ -413,7 +413,7 @@ TEST_F(surfacetracker, uphill_oneway)
 	TestPhysRenderer render(collider->getBoundingBox());
 	render.draw(colMan);
 
-	while (render.curr_frame < 6000 && box->getPosition().x < 48)
+	while (render.curr_frame < 120 && box->getPosition().x < 48)
 	{
 		ground->traverse_set_speed(50.f); // this should not stick to the reverse side of the hill
 		update();

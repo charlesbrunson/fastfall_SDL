@@ -29,6 +29,9 @@ enum class ContactType : unsigned char {
 };
 std::string_view contactTypeToString(ContactType t);
 
+class ColliderRegion;
+class Arbiter;
+
 struct Contact {
 
 	inline bool isResolvable() const noexcept {
@@ -59,7 +62,6 @@ struct Contact {
 	// relative to worldspace
 	Vec2f velocity;
 		
-	const SurfaceMaterial* material = nullptr;
 	
 	// offset to stick to the surface after the contact
 	// multiply with ortho_normal
@@ -74,9 +76,11 @@ struct Contact {
 
 
 	bool  isSlip = false;
-};
 
-class ColliderRegion;
+
+	const SurfaceMaterial* material = nullptr;
+	Arbiter* arbiter = nullptr;
+};
 
 struct PersistantContact : public Contact {
 	PersistantContact(Contact c) :
@@ -92,5 +96,7 @@ struct PersistantContact : public Contact {
 	const ColliderRegion* region = nullptr;
 	int quad_id = 0u;
 };
+
+bool ContactCompare(const Contact* lhs, const Contact* rhs);
 
 }

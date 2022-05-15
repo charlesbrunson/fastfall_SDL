@@ -13,7 +13,7 @@ inline float getYforX(const Linef& onLine, float X) {
 	return (scale * v.y) + onLine.p1.y;
 };
 
-CollisionDiscrete::CollisionDiscrete(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion, bool collidePreviousFrame) :
+CollisionDiscrete::CollisionDiscrete(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion, Arbiter* arbiter, bool collidePreviousFrame) :
 	cAble(collidable),
 	cTile(collisionTile),
 	cQuad(*collisionTile),
@@ -453,13 +453,8 @@ void CollisionDiscrete::evalContact() noexcept {
 	}
 
 	contact.hasContact = hasContact;
-
-
+	contact.arbiter = arbiter;
 }
-
-
-
-
 
 CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexcept {
 

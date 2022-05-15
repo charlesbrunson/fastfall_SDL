@@ -12,12 +12,14 @@
 
 namespace ff {
 
+class Arbiter;
+
 class CollisionDiscrete {
 public:
-	CollisionDiscrete(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion, bool collidePreviousFrame = false);
+	CollisionDiscrete(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion, Arbiter* arbiter, bool collidePreviousFrame = false);
 
 	inline void setPrevious() { collidePrevious = true; };
-	inline Contact getContact() const noexcept { return contact; };
+	//inline Contact getContact() const noexcept { return contact; };
 	inline const Contact* getContactPtr() const noexcept { return &contact; };
 
 	void updateContact() noexcept;
@@ -49,6 +51,15 @@ public:
 	const Collidable* cAble;
 
 	int getChosenAxis() const { return chosen_axis; };
+
+	void setArbiter(Arbiter* arb) { 
+		arbiter = arb; 
+		contact.arbiter = arb; 
+		for (int i = 0; i < axis_count; i++) {
+			axes[i].contact.arbiter = arb;
+		}
+	}
+	inline Arbiter* getArbiter() { return arbiter; }
 
 protected:
 
@@ -99,6 +110,8 @@ protected:
 	std::array<CollisionAxis, 5> axes; // 5 axes in worst case
 	unsigned axis_count = 0;
 
+
+	Arbiter* arbiter = nullptr;
 };
 
 }

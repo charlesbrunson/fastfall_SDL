@@ -12,15 +12,8 @@ namespace ff {
 
 // struct with the arbiter and contact information prior to application
 struct AppliedContact {
-	// contact state prior to application
 	Contact contact;
-
-	// this may be null depending on the type
-	const Arbiter* arbiter = nullptr;
-	const ColliderRegion* region = nullptr;
-
 	ContactType type = ContactType::NO_SOLUTION;
-
 };
 
 using CollisionFrame = std::vector<AppliedContact>;
@@ -28,7 +21,7 @@ using CollisionFrame = std::vector<AppliedContact>;
 // class for resolving a system of collisions on one collidable
 class CollisionSolver {
 private:
-	struct ArbCompResult {
+	struct CompResult {
 		bool discardFirst = false;
 		bool discardSecond = false;
 
@@ -40,10 +33,13 @@ private:
 	cardinal_array<unsigned> initialCollisionCount;
 	cardinal_array<unsigned> appliedCollisionCount;
 
-	std::deque<Arbiter*> north;
-	std::deque<Arbiter*> south;
-	std::deque<Arbiter*> east;
-	std::deque<Arbiter*> west;
+	std::deque<Contact*> north_alt;
+	std::deque<Contact*> south_alt;
+
+	std::deque<Contact*> north;
+	std::deque<Contact*> south;
+	std::deque<Contact*> east;
+	std::deque<Contact*> west;
 
 	// the collidable we're solving for
 	Collidable* collidable = nullptr;
@@ -52,29 +48,41 @@ private:
 	size_t applyCounter;
 
 	// collision set of arbiters to solve
-	std::vector<Arbiter*> arbiters;
+	std::vector<Contact*> contacts;
+	std::deque<Contact> created_contacts;
 
 	// arbiters that are determined invalid to moved here
-	std::vector<std::pair<Arbiter*, ArbCompResult>> discard;
+	std::vector<std::pair<Contact*, CompResult>> discard;
 
-	ArbCompResult compArbiters(const Arbiter* lhs, const Arbiter* rhs);
-	ArbCompResult pickVArbiter(const Arbiter* north, const Arbiter* south);
-	ArbCompResult pickHArbiter(const Arbiter* east, const Arbiter* west);
+	CompResult compare(const Contact* lhs, const Contact* rhs);
+	CompResult pickV(const Contact* north, const Contact* south);
+	CompResult pickH(const Contact* east, const Contact* west);
 
 	// arbiter may be nullptr
-	void apply(const Contact& contact, Arbiter* arbiter, ContactType type = ContactType::SINGLE);
-	void applyArbiterStack(std::deque<Arbiter*>& stack);
-	void applyArbiterFirst(std::deque<Arbiter*>& stack);
-	void applyArbVertAsHori(std::deque<Arbiter*>& altList, std::deque<Arbiter*>& backupList);
+	void apply(const Contact& contact, ContactType type = ContactType::SINGLE);
+	void applyStack(std::deque<Contact*>& stack);
+	void applyFirst(std::deque<Contact*>& stack);
+	void applyAltStack(std::deque<Contact*>& altList, std::deque<Contact*>& backupList);
 
-	void updateArbiterStack(std::deque<Arbiter*>& stack);
+	void updateContact(Contact* contact);
+	void updateStack(std::deque<Contact*>& stack);
 
 	void solveX();
 	void solveY();
 
-	bool canApplyAltArbiters(std::deque<Arbiter*>& north_alt, std::deque<Arbiter*>& south_alt);
+	bool canApplyAlt(std::deque<Contact*>& north_alt, std::deque<Contact*>& south_alt);
 
 	nlohmann::ordered_json* json_dump = nullptr;
+
+	void initStacks();
+
+	void compareAll();
+
+	void detectWedges();
+
+	std::optional<Contact> detectWedge(const Contact* north, const Contact* south);
+
+	//void updateStack(std::deque<Contact*>& stack);
 
 public:
 	enum class Ghost {
@@ -92,8 +100,10 @@ public:
 	// vector of AppliedArbiter in order of application
 	CollisionFrame frame;
 
+	size_t frame_count = 0;
+
 	// add an arbiter associated with the collidable to the collision set
-	inline void pushArbiter(Arbiter* arbiter) { arbiters.push_back(arbiter); };
+	inline void pushContact(Contact* contact) { contacts.push_back(contact); };
 
 	// attempts to resolve the combination of collisions
 	// arbiters will be cleared after solving

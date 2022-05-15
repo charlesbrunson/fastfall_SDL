@@ -256,7 +256,7 @@ TEST_F(collision, floor_to_steep)
 
 // TUNNELING
 
-TEST_F(collision, static_tunneling)
+TEST_F(collision, tunneling_static)
 {
 	initTileMap({
 		/*          x:0         x:16		x:32		x:48		x:64 */
@@ -290,7 +290,7 @@ TEST_F(collision, static_tunneling)
 	}
 }
 
-TEST_F(collision, moving_tunneling)
+TEST_F(collision, tunneling_moving)
 {
 	initTileMap({
 		/*          x:0         x:16		x:32		x:48		x:64 */

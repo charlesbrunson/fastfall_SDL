@@ -27,7 +27,7 @@ void RegionArbiter::updateRegion(Rectf bounds) {
 
 		if (iter == quadArbiters.end() || iter->first != q.second) {
 			// just entered this quad
-			iter = quadArbiters.insert(iter, std::make_pair(q.second, Arbiter(collidable_, q.second, collider_)));
+			iter = quadArbiters.insert(iter, { q.second, Arbiter{ collidable_, q.second, collider_ } });
 		}
 		iter->second.stale = false;
 	}

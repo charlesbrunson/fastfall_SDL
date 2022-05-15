@@ -19,6 +19,13 @@ private:
 
 public:
 	Arbiter(Collidable* col_dable, const ColliderQuad* col_der, const ColliderRegion* col_region);
+	
+	Arbiter(const Arbiter&);
+	Arbiter(Arbiter&&) noexcept;
+
+	Arbiter& operator=(const Arbiter&);
+	Arbiter& operator=(Arbiter&&) noexcept;
+
 	//Arbiter(Arbiter&& arb) noexcept;
 	//Arbiter& operator= (Arbiter&& arb) noexcept;
 
@@ -31,7 +38,7 @@ public:
 	inline const CollisionContinuous* getCollision() const noexcept { return &collision; };
 
 	inline Contact getContact() const noexcept { return collision.getContact(); };
-	inline const Contact* getContactPtr() const noexcept { return collision.getContactPtr(); };
+	inline Contact* getContactPtr() noexcept { return collision.getContactPtr(); };
 
 	inline secs getAliveDuration() const noexcept { return aliveTimer; };
 	inline secs getTouchDuration() const noexcept { return touchTimer; };
@@ -47,6 +54,6 @@ public:
 
 };
 
-bool ArbiterCompare(const Arbiter* a, const Arbiter* b);
+//bool ArbiterCompare(const Arbiter* a, const Arbiter* b);
 
 }

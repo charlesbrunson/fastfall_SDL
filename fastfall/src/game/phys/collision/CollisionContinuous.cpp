@@ -7,12 +7,13 @@
 
 namespace ff {
 
-CollisionContinuous::CollisionContinuous(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion) :
+CollisionContinuous::CollisionContinuous(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion, Arbiter* arbiter) :
 	cAble(collidable),
-	prevCollision(collidable, collisionTile, colliderRegion, true),
-	currCollision(collidable, collisionTile, colliderRegion, false),
+	prevCollision(collidable, collisionTile, colliderRegion, arbiter, true),
+	currCollision(collidable, collisionTile, colliderRegion, arbiter, false),
 	cTile(collisionTile),
-	region(colliderRegion)
+	region(colliderRegion),
+	arbiter(arbiter)
 {
 	evalContact(0.0);
 }
@@ -153,7 +154,7 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 	{
 		// no collision at all
 
-		contact = currCollision.getContact();
+		contact = *currCollision.getContactPtr();
 		lastAxisCollided = -1;
 	}
 	else if (hasTouchAxis && hasIntersect) 
@@ -187,7 +188,7 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 			// require current collision has contact
 			if (isDeparting && opposite_intersecting)
 			{
-				contact.hasContact &= currCollision.getContact().hasContact;
+				contact.hasContact &= currCollision.getContactPtr()->hasContact;
 			}
 		}
 		
@@ -211,7 +212,7 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 		else {
 			// otherwise resort use current discrete contact
 
-			contact = currCollision.getContact();
+			contact = *currCollision.getContactPtr();
 			lastAxisCollided = currCollision.getChosenAxis();
 		}
 	}
@@ -221,6 +222,7 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 	}
 
 	contact.velocity = velocity;
+	contact.arbiter = arbiter;
 	evaluated = true;
 
 

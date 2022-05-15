@@ -224,12 +224,15 @@ Rectf CollisionManager::updatePushBound(Rectf init_push_bound, const cardinal_ar
 void CollisionManager::solve(CollidableData& collidableData) {
 
 	CollisionSolver solver{ &collidableData.collidable };
+	solver.frame_count = frame_count;
 
 	for (auto& rArb : collidableData.regionArbiters) {
 
 		for (auto& qArb : rArb.getQuadArbiters()) {
-			if (rArb.getRegion()->on_precontact(qArb.second.collider->getID(), *qArb.second.getContactPtr(), qArb.second.getTouchDuration())) {
-				solver.pushArbiter(&qArb.second);
+			// allow precontact callback to reject collision
+			if (rArb.getRegion()->on_precontact(qArb.second.collider->getID(), *qArb.second.getContactPtr(), qArb.second.getTouchDuration())) 
+			{
+				solver.pushContact(qArb.second.getContactPtr());
 			}
 		}
 	}
@@ -268,22 +271,29 @@ void CollisionManager::solve(CollidableData& collidableData) {
 	std::vector<PersistantContact> c;
 	for (auto& applied : solver.frame) {
 		c.push_back(PersistantContact(applied.contact));
+
 		auto& contact = c.back();
+		auto* arbiter = applied.contact.arbiter;
 
-		contact.touchDuration = (applied.arbiter ? applied.arbiter->getTouchDuration() : 0.0);
 		contact.type = applied.type;
+		contact.touchDuration = (arbiter ? arbiter->getTouchDuration() : 0.0);
 
-		if (applied.region) {
-			contact.collider_id = applied.region->get_ID();
-			contact.region = applied.region;
+		if (arbiter)
+		{
+			auto* region = arbiter->region;
+
+			contact.collider_id = region->get_ID();
+			contact.region = region;
+
+			if (region)
+			{
+				region->on_postcontact(contact.quad_id, contact);
+			}
 		}
 
-		if (applied.arbiter && applied.arbiter->collider)
-			contact.quad_id = applied.arbiter->collider->getID();
-
-		if (applied.region)
-			applied.region->on_postcontact(contact.quad_id, contact);
-		
+		if (arbiter && arbiter->collider)
+			contact.quad_id = arbiter->collider->getID();
+				
 	}
 	collidableData.collidable.set_frame(std::move(c));
 	frame_collision_count++;
