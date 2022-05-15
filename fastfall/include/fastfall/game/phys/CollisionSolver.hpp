@@ -70,7 +70,7 @@ private:
 	void solveX();
 	void solveY();
 
-	bool canApplyAlt(std::deque<Contact*>& north_alt, std::deque<Contact*>& south_alt);
+	bool canApplyAlt(std::deque<Contact*>& north_alt, std::deque<Contact*>& south_alt) const;
 
 	nlohmann::ordered_json* json_dump = nullptr;
 

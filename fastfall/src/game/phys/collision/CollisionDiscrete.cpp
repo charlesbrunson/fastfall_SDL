@@ -557,8 +557,7 @@ bool wallCanExtend(
 
 	if (!extend && (quad.isOneWay(Cardinal::N) || quad.isOneWay(Cardinal::S))) 
 	{
-		// extend if the oneway connects with another floor/ceiling
-
+		// extend if the oneway doesn't connects with another floor/ceiling on this side
 		if (dir == Cardinal::E)
 		{
 			extend = ((north_ptr && north_ptr->g3virtual)
@@ -577,11 +576,11 @@ bool wallCanExtend(
 	{
 		// DONT extend if the floor/ceiling continues past the wall
 		// but only on the frame that the collision box Y center crosses the wall
-		// TODO: this actually isn't correct lmao
 
 		bool prev_above = false;
 		bool prev_below = false;
 
+		// are we crossing the X-extent of this side this frame?
 		bool is_passing;
 		if (dir == Cardinal::E)
 		{
@@ -594,10 +593,12 @@ bool wallCanExtend(
 					&& cMid.x < tMid.x - tHalf.x;
 		}
 
-		if (is_passing && (dir == Cardinal::E ? north_ptr : south_ptr))
+		// if prev collision box is above the quad's center
+		// check if the north_ptr's ghost extends past the wall
+		if (is_passing && north_ptr)
 		{
-			Linef line = (dir == Cardinal::E ? north_ptr->surface : south_ptr->surface);
-			Linef next = (dir == Cardinal::E ? north_ptr->getGhostNext() : south_ptr->getGhostPrev());
+			Linef line = north_ptr->surface;
+			Linef next = (dir == Cardinal::E ? north_ptr->getGhostNext() : north_ptr->getGhostPrev());
 
 			if (!math::is_vertical(next)
 				&& pMid.y < tMid.y
@@ -607,10 +608,11 @@ bool wallCanExtend(
 			}
 		}
 
-		if (is_passing && (dir == Cardinal::W ? north_ptr : south_ptr))
+		// ditto for south_ptr
+		if (is_passing && south_ptr)
 		{
-			Linef line = (dir == Cardinal::W ? north_ptr->surface : south_ptr->surface);
-			Linef next = (dir == Cardinal::W ? north_ptr->getGhostNext() : south_ptr->getGhostPrev());
+			Linef line = south_ptr->surface;
+			Linef next = (dir == Cardinal::W ? south_ptr->getGhostNext() : south_ptr->getGhostPrev());
 
 			if (!math::is_vertical(next)
 				&& pMid.y > tMid.y
@@ -620,9 +622,9 @@ bool wallCanExtend(
 			}
 		}
 
+		// if either then don't extend
 		if (prev_above || prev_below) {
 			extend = false;
-			LOG_INFO("WHOOPS");
 		}
 	}
 

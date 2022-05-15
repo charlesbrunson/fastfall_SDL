@@ -9,57 +9,32 @@
 
 namespace ff 
 {
-	NLOHMANN_JSON_SERIALIZE_ENUM(ContactType, {
-		{ContactType::NO_SOLUTION,		"no solution"},
-		{ContactType::SINGLE,			"single"},
-		{ContactType::WEDGE,			"wedge"},
-		{ContactType::CRUSH_HORIZONTAL,	"horizontal crush"},
-		{ContactType::CRUSH_VERTICAL,	"vertical crush"},
-	})
 
-	nlohmann::ordered_json to_json(const Contact* contact)
-	{
-		const auto* arb = contact->arbiter;
-		return {
-			{"arbiter",			fmt::format("{}", fmt::ptr(arb)) },
-			{"hasContact",		contact->hasContact},
-			{"separation",		contact->separation},
-			{"ortho_n",			fmt::format("{}", contact->ortho_n)},
-			{"collider_n",		fmt::format("{}", contact->collider_n)},
-			{"hasImpactTime",	contact->hasImpactTime},
-			{"impactTime",		contact->impactTime},
-			{"velocity",		fmt::format("{}", contact->velocity)},
-			{"region",			arb && arb->region   ? arb->region->get_ID().value : 0u},
-			{"quad",			arb && arb->collider ? arb->collider->getID()      : 0u}
-		};
-	}
+NLOHMANN_JSON_SERIALIZE_ENUM(ContactType, {
+	{ContactType::NO_SOLUTION,		"no solution"},
+	{ContactType::SINGLE,			"single"},
+	{ContactType::WEDGE,			"wedge"},
+	{ContactType::CRUSH_HORIZONTAL,	"horizontal crush"},
+	{ContactType::CRUSH_VERTICAL,	"vertical crush"},
+})
 
-}
-
-
-namespace ff {
-
-bool CollisionSolver::canApplyAlt(std::deque<Contact*>& north_alt, std::deque<Contact*>& south_alt)
+nlohmann::ordered_json to_json(const Contact* contact)
 {
-	auto isArbEast = [](const Contact* c) {
-		return c->collider_n.x > 0.f;
+	const auto* arb = contact->arbiter;
+	return {
+		{"arbiter",			fmt::format("{}", fmt::ptr(arb)) },
+		{"hasContact",		contact->hasContact},
+		{"separation",		contact->separation},
+		{"ortho_n",			fmt::format("{}", contact->ortho_n)},
+		{"collider_n",		fmt::format("{}", contact->collider_n)},
+		{"hasImpactTime",	contact->hasImpactTime},
+		{"impactTime",		contact->impactTime},
+		{"velocity",		fmt::format("{}", contact->velocity)},
+		{"region",			arb && arb->region   ? arb->region->get_ID().value : 0u},
+		{"quad",			arb && arb->collider ? arb->collider->getID()      : 0u}
 	};
-
-	auto isArbWest = [](const Contact* c) {
-		return c->collider_n.x < 0.f;
-	};
-
-	bool allNorthAltWest = std::all_of(north_alt.cbegin(), north_alt.cend(), isArbWest);
-	bool allSouthAltWest = std::all_of(south_alt.cbegin(), south_alt.cend(), isArbWest);
-
-	bool allNorthAltEast = std::all_of(north_alt.cbegin(), north_alt.cend(), isArbEast);
-	bool allSouthAltEast = std::all_of(south_alt.cbegin(), south_alt.cend(), isArbEast);
-
-	bool allWest = east.empty() && allNorthAltWest && allSouthAltWest;
-	bool allEast = west.empty() && allNorthAltEast && allSouthAltEast;
-
-	return (!north_alt.empty() || !south_alt.empty()) && (allWest || allEast);
 }
+
 
 CollisionSolver::CollisionSolver(Collidable* _collidable) :
 	collidable(_collidable),
@@ -276,37 +251,40 @@ void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr)
 	if (contacts.empty())
 		return;
 
-	// do arbiter-to-arbiter comparisons 
+	// do contact-to-contact comparisons 
+	// try to discard some redundant ones early
 	compareAll();
 
+	// organize contacts into north/east/south/west
 	initStacks();
 
+	// opportunistically determine if we can solve steeper slopes on the X axis instead of Y
 	if (canApplyAlt(north_alt, south_alt)) {
 		applyAltStack(north_alt, north);
 		applyAltStack(south_alt, south);
 	}
 	else {
-		// bail out
+		// else bail out
 		north.insert(north.end(), north_alt.begin(), north_alt.end());
 		south.insert(south.end(), south_alt.begin(), south_alt.end());
 		north_alt.clear();
 		south_alt.clear();
 	}
 
-	// detect wedges
+	// detect any wedges
+	// a wedge is any pair of north/south contacts that would force the collision box east/west instead
 	detectWedges();
 
 	// solve X axis
 	solveX();
 
+	// update north/south contacts for our new X-pos
 	updateStack(north);
 	updateStack(south);
 
 	// solve Y axis
 	solveY();
-
 }
-
 
 void CollisionSolver::solveX() {
 
@@ -549,9 +527,8 @@ void CollisionSolver::applyFirst(std::deque<Contact*>& stack) {
 	if (stack.empty())
 		return;
 
-	// if multiple arbiters with the same sep, prefer the one closest to the collidable's center
+	// if there are multiple arbiters with the same sep, prefer the one closest to the collidable's center
 	std::deque<Contact*>::iterator pick = stack.begin();
-	//const Contact* c = (*pick)->getContactPtr();
 	if (stack.size() > 1) 
 	{
 		float sep = (*pick)->separation;
@@ -585,6 +562,28 @@ void CollisionSolver::applyFirst(std::deque<Contact*>& stack) {
 	stack.erase(pick);
 
 	updateStack(stack);
+}
+
+bool CollisionSolver::canApplyAlt(std::deque<Contact*>& north_alt, std::deque<Contact*>& south_alt) const
+{
+	auto isArbEast = [](const Contact* c) {
+		return c->collider_n.x > 0.f;
+	};
+
+	auto isArbWest = [](const Contact* c) {
+		return c->collider_n.x < 0.f;
+	};
+
+	bool allNorthAltWest = std::all_of(north_alt.cbegin(), north_alt.cend(), isArbWest);
+	bool allSouthAltWest = std::all_of(south_alt.cbegin(), south_alt.cend(), isArbWest);
+
+	bool allNorthAltEast = std::all_of(north_alt.cbegin(), north_alt.cend(), isArbEast);
+	bool allSouthAltEast = std::all_of(south_alt.cbegin(), south_alt.cend(), isArbEast);
+
+	bool allWest = east.empty() && allNorthAltWest && allSouthAltWest;
+	bool allEast = west.empty() && allNorthAltEast && allSouthAltEast;
+
+	return (!north_alt.empty() || !south_alt.empty()) && (allWest || allEast);
 }
 
 void CollisionSolver::applyAltStack(std::deque<Contact*>& altList, std::deque<Contact*>& backupList) {

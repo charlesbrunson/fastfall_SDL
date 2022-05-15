@@ -26,13 +26,8 @@ public:
 	Arbiter& operator=(const Arbiter&);
 	Arbiter& operator=(Arbiter&&) noexcept;
 
-	//Arbiter(Arbiter&& arb) noexcept;
-	//Arbiter& operator= (Arbiter&& arb) noexcept;
-
-	//void update(Contact* newContact);
 	void update(secs deltaTime);
 
-	//void preStep(float inv_dt);
 	void setApplied();
 
 	inline const CollisionContinuous* getCollision() const noexcept { return &collision; };
@@ -53,7 +48,5 @@ public:
 	bool stale = false;
 
 };
-
-//bool ArbiterCompare(const Arbiter* a, const Arbiter* b);
 
 }
