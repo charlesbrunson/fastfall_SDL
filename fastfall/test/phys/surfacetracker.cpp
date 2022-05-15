@@ -386,7 +386,7 @@ TEST_F(surfacetracker, uphill)
 
 		int contacts = 0;
 		for (auto& col : colMan.get_collidables()) {
-			for (auto& arb : col.regionArbiters) {
+			for (auto& arb : col->region_arbiters) {
 
 				contacts += arb.getQuadArbiters().size();
 			}
@@ -420,7 +420,7 @@ TEST_F(surfacetracker, uphill_oneway)
 
 		int contacts = 0;
 		for (auto& col : colMan.get_collidables()) {
-			for (auto& arb : col.regionArbiters) {
+			for (auto& arb : col->region_arbiters) {
 
 				contacts += arb.getQuadArbiters().size();
 			}

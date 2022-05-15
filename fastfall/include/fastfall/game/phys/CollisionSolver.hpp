@@ -100,7 +100,7 @@ public:
 	// vector of AppliedArbiter in order of application
 	CollisionFrame frame;
 
-	size_t frame_count = 0;
+	//size_t frame_count = 0;
 
 	// add an arbiter associated with the collidable to the collision set
 	inline void pushContact(Contact* contact) { contacts.push_back(contact); };

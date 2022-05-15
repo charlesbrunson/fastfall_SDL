@@ -129,11 +129,11 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 	}
 
 	// draw collidables
-	for (const auto& collidable : colMan.get_collidables()) {
+	for (const auto& cArb : colMan.get_collidables()) {
 		SDL_SetRenderDrawColor(render, 0, 150, 0, 255);
 
-		Rectf prev = collidable.collidable.getPrevBox();
-		Rectf box = collidable.collidable.getBox();
+		Rectf prev = cArb->collidable.getPrevBox();
+		Rectf box = cArb->collidable.getBox();
 		//Rectf bb = math::rect_bound(prev, box);
 
 		//drawRectOutline(bb, 100, 100, 0, 255);
@@ -143,14 +143,14 @@ void TestPhysRenderer::draw(CollisionManager& colMan) {
 		{
 			SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
 			Vec2f p1 = off + math::rect_mid(box);
-			Vec2f p2 = off + p1 + collidable.collidable.get_vel() * (1.f / 60.f);
+			Vec2f p2 = off + p1 + cArb->collidable.get_vel() * (1.f / 60.f);
 			p1 *= scale;
 			p2 *= scale;
 			SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
 		}
 
 		// draw contacts
-		for (const auto& contact : collidable.collidable.get_contacts()) {
+		for (const auto& contact : cArb->collidable.get_contacts()) {
 			if (contact.hasContact) {
 
 				SDL_SetRenderDrawColor(render, 255, 255, 0, 255);

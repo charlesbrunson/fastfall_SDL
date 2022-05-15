@@ -27,32 +27,12 @@
 #include "fastfall/game/SceneManager.hpp"
 
 
-namespace ff::instance {
+namespace ff::instance 
+{
 	// object
 	const GameObjectManager* obj_get_man(GameContext context);
 
 	GameObject* obj_add(GameContext context, std::unique_ptr<GameObject>&& obj);
-
-	/*
-	template<class T, class ...Args>
-	requires std::is_base_of_v<GameObject, T>
-		&& std::is_constructible_v<T, ObjectConfig, Args...>
-	T* obj_make(GameContext context, Args&&...args) 
-	{
-		const auto* type = GameObjectLibrary::getType<T>();
-		assert(type);
-
-		ObjectConfig cfg{
-			.context = context,
-			.m_type = *type,
-			.m_level_data = nullptr
-		};
-
-		auto ptr = std::make_unique<T>(cfg, std::forward<Args>(args)...);
-		return (T*)obj_add(context, std::move(ptr));
-	}
-	*/
-
 	GameObject* obj_get_by_level_id(GameContext context, ObjLevelID levelID);
 	GameObject* obj_get_by_spawn_id(GameContext context, ObjSpawnID spawnID);
 
@@ -63,10 +43,12 @@ namespace ff::instance {
 
 	const ColliderRegion* phys_get_region(GameContext context, ColliderID collider_id) noexcept;
 	const ColliderRegion* phys_get_region(GameContext context, const PersistantContact& contact) noexcept;
+
 	const ColliderQuad* phys_get_quad(GameContext context, ColliderID collider_id, int quad_id) noexcept;
 	const ColliderQuad* phys_get_quad(GameContext context, const PersistantContact& contact) noexcept;
-	const std::vector<std::unique_ptr<ColliderRegion>>* phys_get_colliders(GameContext context);
-	const plf::colony<CollisionManager::CollidableData>* phys_get_collidables(GameContext context);
+
+	const CollisionManager::regions_vector* phys_get_colliders(GameContext context);
+	const CollisionManager::collidables_vector* phys_get_collidables(GameContext context);
 
 	Collidable* phys_create_collidable(GameContext context);
 	Collidable* phys_create_collidable(GameContext context, Vec2f init_pos, Vec2f init_size, Vec2f init_grav = Vec2f{});
@@ -86,8 +68,6 @@ namespace ff::instance {
 	const Level* lvl_get_active(GameContext context);
 	const std::map<const std::string*, std::unique_ptr<Level>>* lvl_get_all(GameContext context);
 
-
-
 	// camera
 	const GameCamera* cam_get_man(GameContext context);
 
@@ -103,8 +83,6 @@ namespace ff::instance {
 
 	bool cam_get_lock_enabled(GameContext context);
 	void cam_set_lock_enabled(GameContext context, bool enabled);
-
-
 
 	// trigger
 	const TriggerManager* trig_get_man(GameContext context);
@@ -132,6 +110,4 @@ namespace ff::instance {
 		SceneManager::Priority priority = SceneManager::Priority::Normal);
 
 	void scene_remove(GameContext context, Drawable& drawable);
-
-
 }

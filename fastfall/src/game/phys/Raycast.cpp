@@ -150,9 +150,7 @@ std::optional<RaycastHit> raycast(GameContext context, const Vec2f& origin, Card
 
 	Vec2f rayVec{ direction::to_vector<float>(direction) * distance };
 	Linef raycastLine{ origin, origin + rayVec };
-	Rectf raycastArea{ origin, Vec2f{} };
-
-	math::rect_extend(raycastArea, direction, distance);
+	Rectf raycastArea = math::rect_extend({origin, {}}, direction, distance);
 
 	std::vector<std::pair<Rectf, const ColliderQuad*>> buffer;
 
@@ -168,8 +166,9 @@ std::optional<RaycastHit> raycast(GameContext context, const Vec2f& origin, Card
 		result = std::nullopt;
 	}
 
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_RAYCAST))
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_RAYCAST)) {
 		debugDrawRaycast(result, raycastLine);
+	}
 
 	return result;
 }

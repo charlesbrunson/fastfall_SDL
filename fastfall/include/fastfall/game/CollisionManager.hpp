@@ -1,45 +1,27 @@
 #pragma once
 
-//#include "util/Updatable.hpp"
-
 #include "fastfall/game/phys/ColliderRegion.hpp"
-#include "fastfall/game/phys/Collidable.hpp"
-//#include "phys/CollisionMap.hpp"
-//#include "phys/Arbiter.hpp"
-
+#include "fastfall/game/phys/CollidableArbiter.hpp"
 #include "fastfall/game/phys/RegionArbiter.hpp"
 #include "fastfall/game/phys/collision/Contact.hpp"
 
-#include "fastfall/game/phys/CollisionSolver.hpp"
-//#include "phys/Raycast.hpp"
-
 #include "ext/plf_colony.h"
+#include "nlohmann/json_fwd.hpp"
 
 #include <vector>
 #include <list>
 #include <memory>
 
-#include "nlohmann/json_fwd.hpp"
-
 namespace ff {
 
 class CollisionManager {
 public:
-	struct CollidableData {
-		CollidableData(Collidable&& col) :
-			collidable(col)
-		{
-
-		}
-
-
-		Collidable collidable;
-		std::vector<RegionArbiter> regionArbiters;
-	};
+	using collidables_vector = std::vector<std::unique_ptr<CollidableArbiter>>;
+	using regions_vector = std::vector<std::unique_ptr<ColliderRegion>>;
 
 private:
-	plf::colony<CollidableData> collidables;
-	std::vector<std::unique_ptr<ColliderRegion>> regions;
+	collidables_vector collidables;
+	regions_vector regions;
 
 public:
 
@@ -53,15 +35,15 @@ public:
 	
 	template<ColliderType T, typename ... Args>
 	T* create_collider(Args&&... args) {
-		std::unique_ptr<ColliderRegion> collider = std::make_unique<T>(args...);
+		std::unique_ptr<ColliderRegion> collider = std::make_unique<T>(std::forward<Args>(args)...);
 		T* collider_ptr = static_cast<T*>(collider.get());
 		regions.push_back(std::move(collider));
 		return collider_ptr;
 	}
 	bool erase_collider(ColliderRegion* region);
 
-	inline const std::vector<std::unique_ptr<ColliderRegion>>& get_colliders() const { return regions; };
-	inline const plf::colony<CollidableData>& get_collidables() const { return collidables; };
+	inline const regions_vector& 		get_colliders() 	const { return regions; };
+	inline const collidables_vector& 	get_collidables() 	const { return collidables; };
 
 	// dump collision data from this frame into json, is reset at the end of the update
 	inline void dumpCollisionDataThisFrame(nlohmann::ordered_json* dump_ptr) { collision_dump = dump_ptr; };
@@ -71,13 +53,13 @@ public:
 
 private:
 
-	void broadPhase(secs deltaTime);
+	//void broadPhase(secs deltaTime);
 
-	void updateRegionArbiters(CollidableData& data, Rectf bounds);
+	//void updateRegionArbiters(CollidableData& data, Rectf bounds);
 
-	Rectf updatePushBound(Rectf push_bound, const cardinal_array<float>& boundDist, const Contact* contact);
+	//Rectf updatePushBound(Rectf push_bound, const cardinal_array<float>& boundDist, const Contact* contact);
 
-	void solve(CollidableData& collidableData);
+	//void solve(CollidableData& collidableData);
 
 	unsigned instanceID;
 	size_t frame_count = 0;

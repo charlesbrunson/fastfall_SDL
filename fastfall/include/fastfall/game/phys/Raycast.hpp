@@ -20,6 +20,8 @@ struct RaycastHit {
 	Vec2f impact;
 	const ColliderRegion* region;
 	const ColliderSurface* surface;
+
+	Linef get_line() const { return {origin, impact}; };
 };
 
 std::optional<RaycastHit> raycast(GameContext context, const Vec2f& origin, Cardinal direction, float dist = 100.f, float backoff = -1.f);

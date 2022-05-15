@@ -105,14 +105,14 @@ namespace ff::instance {
 	{
 		return phys_get_quad(context, contact.collider_id, contact.quad_id);
 	}
-	const std::vector<std::unique_ptr<ColliderRegion>>* phys_get_colliders(GameContext context)
+	const CollisionManager::regions_vector* phys_get_colliders(GameContext context)
 	{
 		if (auto* man = phys_get_man(context)) {
 			return &man->get_colliders();
 		}
 		return nullptr;
 	}
-	const plf::colony<CollisionManager::CollidableData>* phys_get_collidables(GameContext context)
+	const CollisionManager::collidables_vector* phys_get_collidables(GameContext context)
 	{
 		if (auto* man = phys_get_man(context)) {
 			return &man->get_collidables();

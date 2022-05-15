@@ -49,7 +49,7 @@ void collisionContent(GameContext context) {
 
 	auto& collidables = *instance::phys_get_collidables(context); //man->get_collidables();
 	for (auto& coldata : collidables) {
-		auto& col = coldata.collidable;
+		auto& col = coldata->collidable;
 
 		if (ImGui::TreeNode((void*)(&col), "Collidable %d", col.get_ID().value)) {
 
