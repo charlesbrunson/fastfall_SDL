@@ -222,14 +222,8 @@ std::optional<Contact> CollisionSolver::detectWedge(const Contact* north, const 
 			if (std::isnan(intersect.x) || std::isnan(intersect.y)) {
 				LOG_WARN("bad intersection");
 			}
-			else if (intersect.x != collidable->getPosition().x) {
-
-				//CompResult r;
-				//r.contactType = ContactType::WEDGE;
-
-				//r.discardFirst = false;
-				//r.discardSecond = false;
-
+			else if (intersect.x != collidable->getPosition().x) 
+			{
 				Vec2f pos = collidable->getPosition();
 
 				Vec2f diff = Vec2f(intersect.x, 0.f) - Vec2f(pos.x, 0.f);
@@ -259,14 +253,15 @@ void CollisionSolver::detectWedges() {
 		{
 			if (auto opt_contact = detectWedge(north_arb, south_arb))
 			{
-				created_contacts.push_back(*opt_contact);
 				auto dir = direction::from_vector(opt_contact->ortho_n);
 				if (dir && *dir == Cardinal::E)
 				{
+					created_contacts.push_back(*opt_contact);
 					east.push_back(&created_contacts.back());
 				}
 				else if (dir && *dir == Cardinal::W) 
 				{
+					created_contacts.push_back(*opt_contact);
 					west.push_back(&created_contacts.back());
 				}
 			}
@@ -732,7 +727,6 @@ CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact& basis, const 
 		opt1 = (dotp1 <= 0.f && dotp2 < 0.f) || (dotp1 < 0.f && dotp2 <= 0.f);
 	}
 
-
 	// prefer selecting verticals as the ghost edge
 	bool opt2 = (!math::is_vertical(basisLine) && math::is_vertical(candLine) && dotp1 <= 0.f && dotp2 <= 0.f); 
 
@@ -753,9 +747,6 @@ CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact& basis, const 
 // ----------------------------------------------------------------------------
 
 CollisionSolver::CompResult CollisionSolver::pickH(const Contact* east, const Contact* west) {
-
-	//const Contact* eContact = east->getContactPtr();
-	//const Contact* wContact = west->getContactPtr();
 
 	float eSep = east->separation;
 	float wSep = west->separation;
@@ -888,55 +879,6 @@ CollisionSolver::CompResult CollisionSolver::pickV(const Contact* north, const C
 			}
 			return r;
 		}
-		// wedge
-		/*
-		else {
-
-			Angle floorAng = math::angle(nContact->collider.surface);
-			Angle ceilAng  = math::angle(sContact->collider.surface);
-
-			Linef floorLine = nContact->collider.surface;
-			Linef ceilLine = math::shift(sContact->collider.surface, Vec2f{ 0.f, colBox.height });
-
-			Vec2f floorVel = nContact->velocity;
-			Vec2f ceilVel  = sContact->velocity;
-
-			Vec2f intersect = math::intersection(floorLine, ceilLine);
-
-			if (std::isnan(intersect.x) || std::isnan(intersect.y)) {
-				LOG_WARN("bad intersection");
-			}
-			else if (intersect.x != collidable->getPosition().x) {
-
-				ArbCompResult r;
-				//r.createdContact = true;
-				r.contactType = ContactType::WEDGE;
-
-				r.discardFirst = false;
-				r.discardSecond = false;
-
-				Vec2f pos = collidable->getPosition();
-
-				Vec2f diff = Vec2f(intersect.x, 0.f) - Vec2f(pos.x, 0.f);
-				float side = (nContact->collider_n.x + sContact->collider_n.x < 0.f ? -1.f : 1.f);
-
-				r.contact = Contact{};
-				r.contact->hasContact = true;
-				r.contact->separation = abs(diff.x);
-				r.contact->collider_n = Vec2f{ side, 0.f };
-				r.contact->ortho_n = r.contact->collider_n;
-				r.contact->position = Vec2f{ pos.x, math::rect_mid(colBox).y };
-
-				r.contact->velocity = intersect - math::intersection(
-					math::shift(floorLine, -floorVel), 
-					math::shift(ceilLine, -ceilVel)
-				);
-
-				return r;
-			}
-			//else do nothing
-		}
-		*/
 	}
 	if (any_has_contact && !north->hasContact && south->hasContact)
 	{

@@ -577,6 +577,7 @@ bool wallCanExtend(
 	{
 		// DONT extend if the floor/ceiling continues past the wall
 		// but only on the frame that the collision box Y center crosses the wall
+		// TODO: this actually isn't correct lmao
 
 		bool prev_above = false;
 		bool prev_below = false;
@@ -599,6 +600,7 @@ bool wallCanExtend(
 			Linef next = (dir == Cardinal::E ? north_ptr->getGhostNext() : south_ptr->getGhostPrev());
 
 			if (!math::is_vertical(next)
+				&& pMid.y < tMid.y
 				&& (next.p1.x < next.p2.x) == (line.p1.x < line.p2.x))
 			{
 				prev_above = true;
@@ -611,14 +613,17 @@ bool wallCanExtend(
 			Linef next = (dir == Cardinal::W ? north_ptr->getGhostNext() : south_ptr->getGhostPrev());
 
 			if (!math::is_vertical(next)
+				&& pMid.y > tMid.y
 				&& (next.p1.x < next.p2.x) == (line.p1.x < line.p2.x))
 			{
 				prev_below = true;
 			}
 		}
 
-		if (prev_above || prev_below)
+		if (prev_above || prev_below) {
 			extend = false;
+			LOG_INFO("WHOOPS");
+		}
 	}
 
 	return extend;
