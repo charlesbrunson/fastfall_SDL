@@ -127,22 +127,19 @@ void Player::manage_state(PlayerStateID n_id)
 void Player::update(secs deltaTime) {
 	manage_state(get_state().update(*this, deltaTime));
 
-	box->update(deltaTime);
+	//box->update(deltaTime);
+	hitbox->set_area(box->getBox());
 	sprite->update(deltaTime);
-	hitbox->update(box->getBox());
+	hitbox->update();
 	hurtbox->update();
 }
 
 Player::CmdResponse Player::do_command(ObjCmd cmd, const std::any& payload) 
 {
 	return Behavior{ cmd, payload }
-		.match<ObjCmd::NoOp>(
-			[]() { return true; })
-		.match<ObjCmd::GetPosition>(
-			[this]() { return box->getPosition(); })
-		.match<ObjCmd::Hurt>(
-			[this](float damage) { LOG_INFO("OUCH: {}", damage); })
-		;
+		.match<ObjCmd::NoOp>(		[]() { return true; })
+		.match<ObjCmd::GetPosition>([this]() { return box->getPosition(); })
+		.match<ObjCmd::Hurt>(		[this](float damage) { LOG_INFO("OUCH: {}", damage); });
 }
 
 void Player::predraw(float interp, bool updated) {

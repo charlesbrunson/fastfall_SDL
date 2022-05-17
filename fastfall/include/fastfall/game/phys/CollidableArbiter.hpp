@@ -21,8 +21,7 @@ public:
 		solve_collisions(dump_ptr);
 	};
 	void erase_region(const ColliderRegion* region);
-
-	size_t frame_count = 0;
+	
 private:
 
 	void gather_collisions(secs deltaTime, const std::vector<std::unique_ptr<ColliderRegion>>& regions, nlohmann::ordered_json* dump_ptr = nullptr);

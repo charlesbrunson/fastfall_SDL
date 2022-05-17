@@ -21,6 +21,16 @@ namespace ff {
 			const std::vector<std::unique_ptr<ColliderRegion>>& regions,
 			nlohmann::ordered_json* dump_ptr)
 	{
+		if (dump_ptr) {
+			(*dump_ptr)["collidable"] = {
+				{ "id",			collidable.get_ID().value },
+				{ "pos",		fmt::format("{}", collidable.getPosition()) },
+				{ "delta_pos",	fmt::format("{}", collidable.getPosition() - collidable.getPrevPosition()) },
+				{ "vel",		fmt::format("{}", collidable.get_vel()) },
+				{ "size",		fmt::format("{}", Vec2f{collidable.getBox().getSize()}) }
+			};
+		}
+
 		std::set<const Arbiter*> updatedBuffer;
 
 		auto is_updated = [&](const Arbiter& arbiter) {
@@ -60,6 +70,30 @@ namespace ff {
 			}
 
 		} while (body_bound != push_bound);
+
+		if (dump_ptr) 
+		{
+			(*dump_ptr)["broad_phase"]["init_bounds"] = {
+				{"pos",  fmt::format("{}", Vec2f{collidable.getBoundingBox().getPosition()}) },
+				{"size", fmt::format("{}", Vec2f{collidable.getBoundingBox().getSize()}) },
+			};
+
+			(*dump_ptr)["broad_phase"]["final_bounds"] = {
+				{"pos",  fmt::format("{}", Vec2f{body_bound.getPosition()}) },
+				{"size", fmt::format("{}", Vec2f{body_bound.getSize()}) },
+			};
+
+			size_t region_count = 0;
+			for (auto& rArb : region_arbiters) {
+				(*dump_ptr)["broad_phase"]["colliders"][region_count] = {
+					{ "id",				rArb.getRegion()->get_ID().value},
+					{ "vel",			fmt::format("{}", rArb.getRegion()->velocity)},
+					{ "delta_pos",		fmt::format("{}", rArb.getRegion()->getPosition() - rArb.getRegion()->getPrevPosition()) },
+					{ "arbiter_count",	rArb.getQuadArbiters().size()},
+				};
+				region_count++;
+			}
+		}
 	}
 
 	void CollidableArbiter::update_region_arbiters(Rectf bounds, const std::vector<std::unique_ptr<ColliderRegion>>& regions)
@@ -146,30 +180,8 @@ namespace ff {
 
 		nlohmann::ordered_json* json_dump = nullptr;
 		if (dump_ptr) {
-			const auto& col = collidable;
 
-			auto* entry = &(*dump_ptr)["collisions"][col.get_ID().value];
-
-			(*entry)["collidable"] = {
-				{ "id",		col.get_ID().value },
-				{ "pos",		fmt::format("{}", col.getPosition()) },
-				{ "delta_pos",	fmt::format("{}", col.getPosition() - col.getPrevPosition()) },
-				{ "vel",		fmt::format("{}", col.get_vel()) },
-				{ "size",		fmt::format("{}", Vec2f{col.getBox().getSize()}) }
-			};
-
-			size_t region_count = 0;
-			for (auto& rArb : region_arbiters) {
-				(*entry)["colliders"][region_count] = {
-					{ "id",				rArb.getRegion()->get_ID().value},
-					{ "vel",			fmt::format("{}", rArb.getRegion()->velocity)},
-					{ "delta_pos",		fmt::format("{}", rArb.getRegion()->getPosition() - rArb.getRegion()->getPrevPosition()) },
-					{ "arbiter_count",	rArb.getQuadArbiters().size()},
-				};
-				region_count++;
-			}
-
-			json_dump = &(*entry)["solver"];
+			json_dump = &(*dump_ptr)["solver"];
 		}
 		solver.solve(json_dump);
 

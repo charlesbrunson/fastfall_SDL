@@ -75,6 +75,7 @@ public:
 
 	bool is_activated() const { return activated; };
 	Rectf get_area() const { return area; };
+	void set_area(Rectf area_) { area = area_; };
 
 	void set_enable(bool t_enabled) { enabled = t_enabled; };
 	bool is_enabled() const { return enabled; };

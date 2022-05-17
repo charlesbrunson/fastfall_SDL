@@ -17,7 +17,7 @@ std::optional<TriggerPull> Trigger::triggerable_by(const Trigger& trigger, secs 
 	area.intersects(trigger.area, intersection);
 
 	bool result = false;
-	for (auto tag : trigger.self_flags) {
+	for (const auto& tag : trigger.self_flags) {
 		if (filter_flags.contains(tag)) {
 			result = true;
 			break;

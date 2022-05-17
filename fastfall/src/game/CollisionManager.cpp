@@ -30,17 +30,22 @@ void CollisionManager::update(secs deltaTime) {
 		};
 	}
 
-	if (deltaTime > 0.0) {
-		for (auto& colArb : collidables) {
-			colArb->gather_and_solve_collisions(deltaTime, regions, collision_dump);
+	if (deltaTime > 0.0) 
+	{
+		size_t ndx = 0;
+		for (auto& colArb : collidables) 
+		{
+			colArb->collidable.update(deltaTime);
+			colArb->gather_and_solve_collisions(deltaTime, regions, (collision_dump ? &(*collision_dump)["collisions"][ndx] : nullptr));
+			ndx++;
 		}
 	}
+
 	for (auto& colData : collidables) {
 		colData->collidable.debug_draw();
 	}
 	collision_dump = nullptr;
 	frame_count++;
-	frame_collision_count = 0u;
 };
 
 // --------------------------------------------------------------
