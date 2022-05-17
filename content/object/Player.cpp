@@ -61,30 +61,30 @@ void Player::init() {
 	
 
 	// trigger testing
-	/*
 	hurtbox->set_trigger_callback(
-		[this](const TriggerPull& pull) {
+		[this](const TriggerPull& pull) 
+		{
+			LOG_INFO("callback!");
 			if (auto owner = pull.trigger->get_owner();
-				owner 
-				&& owner->type().group_tags.contains("player")
+				owner && owner->type().group_tags.contains("player")
 				&& pull.state == Trigger::State::Entry)
 			{
 				if (auto rpayload = owner->command<ObjCmd::GetPosition>().payload())
 				{
 					LOG_INFO("position: {}", rpayload->to_string());
-
-					if (owner->command<ObjCmd::Hurt>(100.f).is_accepted()) {
+					if (owner->command<ObjCmd::Hurt>(100.f)) 
+					{
 						LOG_INFO("gottem");
 					}
 				}
 			}
 		});
-	*/
 
 	sprite->set_anim(plr::anim::idle);
 	sprite->set_pos(box->getPosition());
 
 	box->callbacks.onPostCollision = [this] {
+			hitbox->set_area(box->getBox());
 			manage_state(get_state().post_collision(*this));
 		};
 }
@@ -127,11 +127,7 @@ void Player::manage_state(PlayerStateID n_id)
 void Player::update(secs deltaTime) {
 	manage_state(get_state().update(*this, deltaTime));
 
-	//box->update(deltaTime);
-	hitbox->set_area(box->getBox());
 	sprite->update(deltaTime);
-	hitbox->update();
-	hurtbox->update();
 }
 
 Player::CmdResponse Player::do_command(ObjCmd cmd, const std::any& payload) 

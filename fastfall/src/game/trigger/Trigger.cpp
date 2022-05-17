@@ -82,10 +82,6 @@ std::optional<TriggerPull> Trigger::triggerable_by(const Trigger& trigger, secs 
 	
 }
 
-void Trigger::update(Rectf t_area) {
-	area = t_area;
-	activated = false;
-}
 void Trigger::update() {
 	activated = false;
 }

@@ -49,6 +49,8 @@ struct CommandResult {
 
 	const std::optional<T>& payload() const { return m_payload; }
 
+	operator bool() const { return is_accepted(); }	
+
 private:
 	const Response m_response_id;
 	const std::optional<T> m_payload;
@@ -65,6 +67,8 @@ struct CommandResult<void> {
 	bool is_accepted()  const { return m_response_id == Response::Accepted; }
 	bool is_rejected()  const { return m_response_id == Response::Rejected; }
 	bool is_unhandled() const { return m_response_id == Response::Unhandled; }
+
+	operator bool() const { return is_accepted(); }	
 
 private:
 	const Response m_response_id;

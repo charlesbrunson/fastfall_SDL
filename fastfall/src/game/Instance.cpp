@@ -95,11 +95,10 @@ void GameInstance::update(secs deltaTime)
 	if (activeLevel)
 	{
 		getActiveLevel()->update(deltaTime);
-		objMan.update(deltaTime);
 		triMan.update(deltaTime);
+		objMan.update(deltaTime);
 		colMan.update(deltaTime);
 		camera.update(deltaTime);
-		//LOG_INFO("{}", update_counter);
 		update_counter++;
 	}
 }

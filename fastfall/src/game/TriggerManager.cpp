@@ -13,7 +13,6 @@ void debugDrawTrigger(const Trigger& tr) {
 	varr[2].pos = math::rect_botleft(tr.get_area());
 	varr[3].pos = math::rect_botright(tr.get_area());
 
-
 	Color c = tr.is_enabled() ? Color::Yellow : Color::Black;
 	c.alpha(tr.is_activated() ? 200.f : 50.f);
 
@@ -37,18 +36,15 @@ Trigger* TriggerManager::create_trigger(
 	std::unordered_set<TriggerTag> self_flags, 
 	std::unordered_set<TriggerTag> filter_flags,
 	GameObject* owner,
-	Trigger::Overlap overlap
-) {
-
-
-	Trigger* trigger = &*triggers.emplace();
-	//Trigger* trigger = &triggers.emplace_back(Trigger{});
-	trigger->self_flags = self_flags;
-	trigger->filter_flags = filter_flags;
-	trigger->overlap = overlap;
-	trigger->set_owning_object(owner);
-	trigger->update(area);
-	return trigger;
+	Trigger::Overlap overlap) 
+{
+	Trigger& trigger = *triggers.emplace();
+	trigger.self_flags = self_flags;
+	trigger.filter_flags = filter_flags;
+	trigger.overlap = overlap;
+	trigger.set_owning_object(owner);
+	trigger.set_area(area);
+	return &trigger;
 }
 
 bool TriggerManager::erase_trigger(Trigger* trigger) {
@@ -64,6 +60,11 @@ bool TriggerManager::erase_trigger(Trigger* trigger) {
 }
 
 void TriggerManager::update(secs deltaTime) {
+
+	for (auto& trigger : triggers)
+	{
+		trigger.update();
+	}
 	
 	if (deltaTime > 0.f && triggers.size() > 1) {
 		for (auto it1 = triggers.begin(); it1 != (--triggers.end()); it1++) {
@@ -80,7 +81,6 @@ void TriggerManager::update(secs deltaTime) {
 			debugDrawTrigger(tr);
 		}
 	}
-
 }
 
 void TriggerManager::compareTriggers(Trigger& A, Trigger& B, secs deltaTime) {
