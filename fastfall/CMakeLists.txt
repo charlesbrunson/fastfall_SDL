@@ -180,7 +180,7 @@ target_compile_definitions(fastfall PUBLIC
 	IMGUI_IMPL_OPENGL_LOADER_GLEW
 )
 
-target_compile_definitions(fastfall PRIVATE
+target_compile_definitions(fastfall PUBLIC
 	DEBUG
 )
 

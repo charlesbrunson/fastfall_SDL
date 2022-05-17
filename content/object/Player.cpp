@@ -59,17 +59,15 @@ void Player::init() {
 
 	instance::cam_add_target(context(), cam_target);
 	
-
 	// trigger testing
 	hurtbox->set_trigger_callback(
 		[this](const TriggerPull& pull) 
 		{
-			LOG_INFO("callback!");
 			if (auto owner = pull.trigger->get_owner();
 				owner && owner->type().group_tags.contains("player")
 				&& pull.state == Trigger::State::Entry)
 			{
-				if (auto rpayload = owner->command<ObjCmd::GetPosition>().payload())
+				if (auto& rpayload = owner->command<ObjCmd::GetPosition>().payload())
 				{
 					LOG_INFO("position: {}", rpayload->to_string());
 					if (owner->command<ObjCmd::Hurt>(100.f)) 
