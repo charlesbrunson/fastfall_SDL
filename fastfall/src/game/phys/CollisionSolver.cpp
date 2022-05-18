@@ -22,7 +22,7 @@ nlohmann::ordered_json to_json(const Contact* contact)
 {
 	const auto* arb = contact->arbiter;
 	return {
-		{"arbiter",			fmt::format("{}", fmt::ptr(arb)) },
+		{"contact",			fmt::format("{}", fmt::ptr(contact)) },
 		{"hasContact",		contact->hasContact},
 		{"separation",		contact->separation},
 		{"ortho_n",			fmt::format("{}", contact->ortho_n)},
@@ -566,6 +566,30 @@ void CollisionSolver::applyFirst(std::deque<Contact*>& stack) {
 
 bool CollisionSolver::canApplyAlt(std::deque<Contact*>& north_alt, std::deque<Contact*>& south_alt) const
 {
+
+	/*
+	bool allWest = east.empty() 
+		&& std::all_of(north_alt.cbegin(), north_alt.cend(), [](const Arbiter* arb) {
+			float nX = arb->getContactPtr()->collider_n.x;
+			return (nX < 0.f) && (nX != 0.f);
+		}) 
+		&& std::all_of(south_alt.cbegin(), south_alt.cend(), [](const Arbiter* arb) {
+			float nX = arb->getContactPtr()->collider_n.x;
+			return (nX < 0.f) && (nX != 0.f);
+		});
+	bool allEast = west.empty() 
+		&& std::all_of(north_alt.cbegin(), north_alt.cend(), [](const Arbiter* arb) {
+			float nX = arb->getContactPtr()->collider_n.x;
+			return (nX > 0.f) && (nX != 0.f);
+		}) 
+		&& std::all_of(south_alt.cbegin(), south_alt.cend(), [](const Arbiter* arb) {
+			float nX = arb->getContactPtr()->collider_n.x;
+			return (nX > 0.f) && (nX != 0.f);
+		});
+
+	return (!north_alt.empty() || !south_alt.empty()) && (allWest || allEast);
+	*/
+
 	auto isArbEast = [](const Contact* c) {
 		return c->collider_n.x > 0.f;
 	};
@@ -583,7 +607,7 @@ bool CollisionSolver::canApplyAlt(std::deque<Contact*>& north_alt, std::deque<Co
 	bool allWest = east.empty() && allNorthAltWest && allSouthAltWest;
 	bool allEast = west.empty() && allNorthAltEast && allSouthAltEast;
 
-	return (!north_alt.empty() || !south_alt.empty()) && (allWest || allEast);
+	return (allWest || allEast);
 }
 
 void CollisionSolver::applyAltStack(std::deque<Contact*>& altList, std::deque<Contact*>& backupList) {

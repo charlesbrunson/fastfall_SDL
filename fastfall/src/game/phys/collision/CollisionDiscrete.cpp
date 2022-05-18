@@ -542,7 +542,8 @@ bool wallCanExtend(
 	const ColliderQuad& quad, 
 	Cardinal dir, 
 	Vec2f pMid, Vec2f cMid, 
-	Vec2f tMid, Vec2f tHalf)
+	Vec2f tMid, Vec2f tHalf,
+	bool collidePrevious)
 {
 	if (dir == Cardinal::N
 		|| dir == Cardinal::S)
@@ -572,7 +573,7 @@ bool wallCanExtend(
 			extend = false;
 		}
 	}
-	else if (extend)
+	else if (!collidePrevious && extend)
 	{
 		// DONT extend if the floor/ceiling continues past the wall
 		// but only on the frame that the collision box Y center crosses the wall
@@ -700,7 +701,7 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 	}
 
 	Vec2f pMid = math::rect_mid(cPrev);
-	bool extend = wallCanExtend(axis, cQuad, Cardinal::E, pMid, cMid, tMid, tHalf);
+	bool extend = wallCanExtend(axis, cQuad, Cardinal::E, pMid, cMid, tMid, tHalf, collidePrevious);
 	bool has_valley = wallHasValley(axis, axes, axis_count, Cardinal::E, valleys);
 
 	// if this is a oneway, invalidate it if the collider's previous position is not left of it
@@ -722,7 +723,7 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 	}
 
 	Vec2f pMid = math::rect_mid(cPrev);
-	bool extend = wallCanExtend(axis, cQuad, Cardinal::W, pMid, cMid, tMid, tHalf);
+	bool extend = wallCanExtend(axis, cQuad, Cardinal::W, pMid, cMid, tMid, tHalf, collidePrevious);
 	bool has_valley = wallHasValley(axis, axes, axis_count, Cardinal::W, valleys);
 
 	// if this is a oneway, invalidate it if the collider's previous position is not left of it

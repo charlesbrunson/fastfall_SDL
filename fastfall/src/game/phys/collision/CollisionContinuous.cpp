@@ -113,7 +113,7 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 			curr_min_valid_sep = std::min(cAxis->contact.separation, curr_min_valid_sep);
 		}
 
-		pIntersects = pAxis->is_intersecting() && !pAxis->applied;
+		pIntersects = pAxis->is_intersecting();
 		cIntersects = cAxis->is_intersecting();
 		alwaysColliding &= pIntersects && cIntersects;
 

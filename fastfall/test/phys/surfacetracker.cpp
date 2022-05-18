@@ -75,7 +75,7 @@ protected:
 		if (collider) {
 			collider->update(one_frame);
 		}
-		box->update(one_frame);
+		//box->update(one_frame);
 
 		colMan.dumpCollisionDataThisFrame(&data[colMan.getFrameCount()]);
 		colMan.update(one_frame);

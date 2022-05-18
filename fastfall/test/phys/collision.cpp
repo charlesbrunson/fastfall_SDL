@@ -62,8 +62,8 @@ protected:
 	{
 		if (collider) {
 			collider->update(one_frame);
-		}
-		box->update(one_frame);
+		} 
+		//box->update(one_frame);
 
 		colMan.dumpCollisionDataThisFrame(&data[colMan.getFrameCount()]);
 		colMan.update(one_frame);
@@ -479,6 +479,50 @@ TEST_F(collision, wedge_with_oneway_ceil) {
 
 		if (render.curr_frame >= 4) {
 			EXPECT_GE(box->getPosition().y, 40.f);
+		}
+	}
+}
+
+TEST_F(collision, into_steep_slope) {
+
+	initTileMap({
+		{"", 			"", 			""},
+		{"", 			"", 			""},
+		{"", 			"", 			"steep1"},
+		{"", 			"steep2", 		"solid"},
+		{"", 			"steep1", 		"solid"},
+		{"solid",		"solid", 		"solid"},
+		});
+
+
+	box->setSize({ 16, 32 });
+	box->teleport({ 8, 80 });
+	box->set_vel({ 200, 0 });
+	box->set_gravity({ 0, 50 });
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.frame_delay = 2;
+	render.draw(colMan);
+
+	while (render.curr_frame < 30) {
+		box->add_accel({ 500, 0 });
+		int fcount = colMan.getFrameCount();
+		update();
+		render.draw(colMan);
+
+		if (box->getPosition().x < 40) {
+
+			bool has_collision = box->get_state_flags().has_any(
+				collision_state_t::flags::Floor,
+				collision_state_t::flags::Wall_L,
+				collision_state_t::flags::Wall_R);
+
+			if (!has_collision)
+			{
+				fmt::print(stderr, "frame: {}\n", fcount);
+			}
+
+			EXPECT_TRUE(has_collision);
 		}
 	}
 }

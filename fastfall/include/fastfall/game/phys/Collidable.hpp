@@ -39,14 +39,12 @@ struct collision_state_t {
 	bool has_set(flags type) const { return flags & (1 << static_cast<unsigned>(type)); }
 
 	template<class ... Flags>
-	requires (std::same_as<Flags, flags> && ...)
-	bool has_any(Flags... flag) const noexcept {
+	bool has_any(Flags&&... flag) const noexcept {
 		return (has_set(flag) || ...);
 	};
 
 	template<class ... Flags>
-	requires (std::same_as<Flags, flags> && ...)
-	bool has_all(Flags... flag) const noexcept {
+	bool has_all(Flags&&... flag) const noexcept {
 		return (has_set(flag) && ...);
 	};
 
