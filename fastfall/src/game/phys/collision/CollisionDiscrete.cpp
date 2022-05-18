@@ -582,27 +582,32 @@ bool wallCanExtend(
 		bool prev_below = false;
 
 		// are we crossing the X-extent of this side this frame?
-		bool is_passing;
+		bool passing;
 		if (dir == Cardinal::E)
 		{
-			is_passing = pMid.x <= tMid.x + tHalf.x
+			passing = pMid.x <= tMid.x + tHalf.x
 					&& cMid.x > tMid.x + tHalf.x;
 		}
 		else
 		{
-			is_passing = pMid.x >= tMid.x - tHalf.x
+			passing = pMid.x >= tMid.x - tHalf.x
 					&& cMid.x < tMid.x - tHalf.x;
 		}
 
 		// if prev collision box is above the quad's center
 		// check if the north_ptr's ghost extends past the wall
-		if (is_passing && north_ptr)
+		if (passing && north_ptr)
 		{
 			Linef line = north_ptr->surface;
 			Linef next = (dir == Cardinal::E ? north_ptr->getGhostNext() : north_ptr->getGhostPrev());
 
+			bool still_passing = (dir == Cardinal::E 
+				? line.p2.x == tMid.x + tHalf.x 
+				: line.p1.x == tMid.x - tHalf.x);
+
 			if (!math::is_vertical(next)
 				&& pMid.y < tMid.y
+				&& still_passing
 				&& (next.p1.x < next.p2.x) == (line.p1.x < line.p2.x))
 			{
 				prev_above = true;
@@ -610,10 +615,14 @@ bool wallCanExtend(
 		}
 
 		// ditto for south_ptr
-		if (is_passing && south_ptr)
+		if (passing && south_ptr)
 		{
 			Linef line = south_ptr->surface;
 			Linef next = (dir == Cardinal::W ? south_ptr->getGhostNext() : south_ptr->getGhostPrev());
+
+			bool still_passing = (dir == Cardinal::E
+				? line.p1.x == tMid.x + tHalf.x
+				: line.p2.x == tMid.x - tHalf.x);
 
 			if (!math::is_vertical(next)
 				&& pMid.y > tMid.y
