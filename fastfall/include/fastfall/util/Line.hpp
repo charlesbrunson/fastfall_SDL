@@ -55,6 +55,7 @@ public:
 	Line<T> reverse() const {
 		return Line<T>(p2, p1);
 	}
+
 };
 
 typedef Line<int> Linei;

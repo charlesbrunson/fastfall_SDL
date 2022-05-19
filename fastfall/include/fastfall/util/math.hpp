@@ -253,6 +253,18 @@ constexpr Line<T> shift(const Line<T>& a, const Vec2<T>& offset) {
 	return b;
 }
 
+template<typename T>
+[[nodiscard]]
+constexpr Vec2<T> normal(const Line<T>& a) {
+	return math::vector(a).unit().lefthand();
+}
+
+template<typename T>
+[[nodiscard]]
+constexpr Vec2<T> tangent(const Line<T>& a) {
+	return math::vector(a).unit();
+}
+
 // Rect stuff
 
 template<typename T>

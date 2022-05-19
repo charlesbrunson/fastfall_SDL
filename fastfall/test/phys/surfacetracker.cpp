@@ -430,3 +430,31 @@ TEST_F(surfacetracker, uphill_oneway)
 		EXPECT_TRUE(ground->has_contact());
 	}
 }
+
+TEST_F(surfacetracker, peak_of_slope_to_slope)
+{
+	initTileMap({
+		{"",		"",			""},
+		{"",		"",			""},
+		{"",		"slope-h",	""},
+		{"solid",	"solid",	"solid"},
+		});
+
+	box->teleport({ 9, 32 });
+	box->set_gravity({ 0, 200 });
+	//ground->traverse_set_speed(300.f);
+	ground->traverse_add_accel(500.f);
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.draw(colMan);
+
+	while (render.curr_frame < 120 && box->getPosition().x < 48)
+	{
+		//ground->traverse_set_speed(300.f);
+		ground->traverse_add_accel(500.f);
+		update();
+		render.draw(colMan);
+
+		EXPECT_TRUE(ground->has_contact());
+	}
+}

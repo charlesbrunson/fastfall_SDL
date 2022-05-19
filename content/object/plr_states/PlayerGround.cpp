@@ -49,13 +49,13 @@ PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
 			plr.ground->traverse_add_decel(constants::ground_high_decel);
 		}
 
-		auto accel = [&plr, &move](int dir) 
+		auto accel = [&](int dir) 
 		{
 			plr.ground->traverse_add_accel(dir * constants::ground_accel);
 			plr.ground->settings.surface_friction = constants::moving;
 		};
 
-		auto brake = [&plr, &move](bool is_idle)
+		auto brake = [&](bool is_idle)
 		{
 
 			bool heavy_brake = false;
@@ -81,13 +81,13 @@ PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
 			}
 		};
 
-		auto run = [&plr, &move]() 
+		auto run = [&]() 
 		{
 			plr.ground->traverse_add_accel(move.wishx * constants::ground_accel);
 			plr.ground->settings.surface_friction = constants::moving;
 
 			if (plr.sprite->get_hflip() != (move.wishx < 0)) {
-				move.facing = !move.facing;
+				move.facing	   *= -1;
 				move.rel_movex *= -1;
 				move.rel_speed *= -1;
 				move.rel_wishx *= -1;

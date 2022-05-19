@@ -24,8 +24,8 @@ bool SurfaceTracker::can_make_contact_with(const Contact& contact) const noexcep
 	bool withinStickMax = true;
 	if (currentContact)
 	{
-		Angle next_ang = math::angle(currentContact->collider.surface);
-		Angle curr_ang = math::angle(contact.collider.surface);
+		Angle next_ang = math::angle(currentContact->collider_n.righthand());
+		Angle curr_ang = math::angle(contact.collider_n.righthand());
 		Angle diff = next_ang - curr_ang;
 
 		withinStickMax = abs(diff.degrees()) < abs(settings.stick_angle_max.degrees());
@@ -214,7 +214,7 @@ CollidableOffsets SurfaceTracker::do_max_speed(CollidableOffsets in, secs deltaT
 
 		float speed = *traverse_get_speed();
 
-		Vec2f acc_vec = math::projection(owner->get_acc(), math::vector(currentContact->collider.surface));
+		Vec2f acc_vec = math::projection(owner->get_acc(), currentContact->collider_n.righthand(), true);
 		float acc_mag = acc_vec.magnitude();
 		if (owner->get_acc().x < 0.f) {
 			acc_mag *= -1.f;
@@ -283,10 +283,21 @@ Vec2f SurfaceTracker::do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left,
 		next = goLeft(contact.collider);
 	}
 
+	else if (wish_pos.x > left && prev_pos.x <= left)
+	{
+		goingRight = true;
+		next = &contact.collider;
+	}
+	else if (wish_pos.x < right && prev_pos.x >= right)
+	{
+		goingLeft = true;
+		next = &contact.collider;
+	}
+
 	if (next) {
 
-		Angle next_ang = math::angle(next->surface);
-		Angle curr_ang = math::angle(contact.collider.surface);
+		Angle next_ang = math::angle(math::tangent(next->surface));
+		Angle curr_ang = math::angle(contact.collider_n.righthand());
 		Angle diff = next_ang - curr_ang;
 
 		if (next_ang.radians() != curr_ang.radians()
@@ -400,7 +411,7 @@ void SurfaceTracker::end_touch(PersistantContact& contact) {
 void SurfaceTracker::traverse_set_speed(float speed) {
 	if (has_contact()) 
 	{
-		Vec2f surf_unit = math::vector(currentContact->collider.surface).unit();
+		Vec2f surf_unit = currentContact->collider_n.righthand();
 
 		float surface_mag = 0.f;
 		if (settings.use_surf_vel) {
@@ -420,14 +431,14 @@ void SurfaceTracker::traverse_set_speed(float speed) {
 
 void SurfaceTracker::traverse_add_accel(float accel) {
 	if (has_contact()) {
-		Vec2f surf_unit = math::vector(currentContact->collider.surface).unit();
+		Vec2f surf_unit = currentContact->collider_n.righthand();
 		owner->add_accel(surf_unit * accel);
 	}
 }
 
 void SurfaceTracker::traverse_add_decel(float decel) {
 	if (has_contact()) {
-		Vec2f surf_unit = math::vector(currentContact->collider.surface).unit();
+		Vec2f surf_unit = currentContact->collider_n.righthand();
 		owner->add_decel(Vec2f{ abs(surf_unit.x), abs(surf_unit.y) } *decel);
 	}
 }
@@ -436,8 +447,8 @@ std::optional<float> SurfaceTracker::traverse_get_speed() {
 	std::optional<float> speed;
 	if (has_contact()) {
 		Vec2f surfVel = (settings.use_surf_vel ? currentContact->getSurfaceVel() : Vec2f{});
-		Vec2f surf = math::vector(currentContact->collider.surface);
-		Vec2f proj = math::projection(owner->get_vel(), surf) - surfVel;
+		Vec2f surf = currentContact->collider_n.righthand();
+		Vec2f proj = math::projection(owner->get_vel(), surf, true) - surfVel;
 
 		if (proj.x == 0.f) {
 			speed = 0.f;
