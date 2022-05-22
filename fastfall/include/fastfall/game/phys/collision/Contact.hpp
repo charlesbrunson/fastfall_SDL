@@ -32,21 +32,15 @@ std::string_view contactTypeToString(ContactType t);
 class ColliderRegion;
 class Arbiter;
 
-struct Contact {
+struct Contact 
+{
+	bool isResolvable() const noexcept;
 
-	inline bool isResolvable() const noexcept {
-		return ortho_n != Vec2f();
-	}
+	Vec2f getSurfaceVel() const;
 
-	inline bool isTransposable() const noexcept {
-		return std::abs(collider_n.x) > std::abs(collider_n.y)
-			&& hasImpactTime
-			&& !hasValley;
-	}
-
-	inline Vec2f getSurfaceVel() const {
-		return (material ? collider_n.righthand() * material->velocity : Vec2f{});
-	}
+	bool isTransposable() const noexcept;
+	inline bool isTranposed() const { return is_transposed; };
+	void transpose() noexcept;
 
 	float separation = 0.f;
 	bool hasContact = false;
@@ -80,6 +74,10 @@ struct Contact {
 
 	const SurfaceMaterial* material = nullptr;
 	Arbiter* arbiter = nullptr;
+
+
+	bool is_transposed = false;
+
 };
 
 struct PersistantContact : public Contact {

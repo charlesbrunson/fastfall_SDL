@@ -29,8 +29,8 @@ private:
 		ContactType contactType = ContactType::NO_SOLUTION;
 	};
 
-	std::deque<Contact*> north_alt;
-	std::deque<Contact*> south_alt;
+	std::vector<Contact*> north_alt;
+	std::vector<Contact*> south_alt;
 
 	std::deque<Contact*> north;
 	std::deque<Contact*> south;
@@ -48,29 +48,28 @@ private:
 	std::deque<Contact> created_contacts;
 
 	// arbiters that are determined invalid to moved here
-	std::vector<std::pair<Contact*, CompResult>> discard;
+	//std::vector<Contact*> discard;
 
 	CompResult compare(const Contact* lhs, const Contact* rhs);
 	CompResult pickV(const Contact* north, const Contact* south);
 	CompResult pickH(const Contact* east, const Contact* west);
 
-	// arbiter may be nullptr
-	void apply(const Contact& contact, ContactType type = ContactType::SINGLE);
-	void applyStack(std::deque<Contact*>& stack);
-	void applyFirst(std::deque<Contact*>& stack);
-	void applyAltStack(std::deque<Contact*>& altList, std::deque<Contact*>& backupList);
+	void pushToAStack(std::vector<Contact*> contact);
+	void pushToAStack(Contact* contact);
 
-	void updateContact(Contact* contact);
-	void updateStack(std::deque<Contact*>& stack);
+	// arbiter may be nullptr, returns true if any contact is applied
+	bool apply(const Contact& contact, ContactType type = ContactType::SINGLE);
+	bool applyStack(std::deque<Contact*>& stack);
+	bool applyFirst(std::deque<Contact*>& stack);
+	//bool applyAltStack(std::deque<Contact*>& altList);
 
-	void solveX();
-	void solveY();
+	// returns true if any contact is applied
+	bool solveX();
+	bool solveY();
 
-	bool canApplyAlt(std::deque<Contact*>& north_alt, std::deque<Contact*>& south_alt) const;
+	bool canApplyAlt() const;
 
 	nlohmann::ordered_json* json_dump = nullptr;
-
-	void initStacks();
 
 	void compareAll();
 
