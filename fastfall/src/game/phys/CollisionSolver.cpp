@@ -36,15 +36,10 @@ nlohmann::ordered_json to_json(const Contact* contact)
 }
 
 
-CollisionSolver::CollisionSolver(Collidable* _collidable) :
-	collidable(_collidable),
-	allCollisionCount({ 0u, 0u, 0u, 0u }),
-	initialCollisionCount({ 0u, 0u, 0u, 0u }),
-	appliedCollisionCount({ 0u, 0u, 0u, 0u }),
-	applyCounter(0u)
+CollisionSolver::CollisionSolver(Collidable* _collidable) 
+	: collidable(_collidable)
 {
 }
-
 
 void CollisionSolver::updateContact(Contact* contact)
 {
@@ -53,14 +48,15 @@ void CollisionSolver::updateContact(Contact* contact)
 	}
 }
 
-void CollisionSolver::updateStack(std::deque<Contact*>& stack) {
-	for (auto c : stack) {
-		updateContact(c);
+void CollisionSolver::updateStack(std::deque<Contact*>& stack) 
+{
+	for (auto* contact : stack) {
+		updateContact(contact);
 	}
 }
 
-void CollisionSolver::compareAll() {
-
+void CollisionSolver::compareAll() 
+{
 	if (json_dump)
 	{
 		size_t ndx = 0;
@@ -111,9 +107,8 @@ void CollisionSolver::compareAll() {
 	if (json_dump)
 	{
 		size_t ndx = 0;
-		for (auto c : contacts) {
-			//auto& contact = *arb->getContactPtr();
-
+		for (auto c : contacts) 
+		{
 			(*json_dump)["postcompare"][ndx] = to_json(c);
 			ndx++;
 		}
@@ -124,10 +119,8 @@ void CollisionSolver::compareAll() {
 
 void CollisionSolver::initStacks()
 {
-
-	for (auto* contact : contacts) {
-		//const Contact* contact = arb->getContactPtr();
-
+	for (auto* contact : contacts) 
+	{
 		auto dir = direction::from_vector(contact->ortho_n);
 		if (!dir.has_value()) {
 			if (json_dump) {
@@ -137,10 +130,6 @@ void CollisionSolver::initStacks()
 			discard.push_back(std::make_pair(contact, CompResult{}));
 			continue;
 		}
-
-		allCollisionCount[dir.value()]++;
-		if (contact->hasContact)
-			initialCollisionCount[dir.value()]++;
 
 		switch (dir.value()) {
 		case Cardinal::E:
@@ -159,72 +148,68 @@ void CollisionSolver::initStacks()
 	}
 }
 
+bool is_squeezing(const Contact* A, const Contact* B)
+{
+	float nSep = A->separation;
+	float sSep = B->separation;
+	float crush = nSep + sSep;
+	bool any_has_contact = A->hasContact || B->hasContact;
+
+	return crush >= 0.f 
+		&& any_has_contact 
+		&& A->ortho_n == -B->ortho_n;
+}
+
+bool is_crushing(const Contact* A, const Contact* B)
+{
+	Vec2f sum = A->collider_n + B->collider_n;
+	return abs(sum.x) < 1e-5 && abs(sum.y) < 1e-5;
+}
 
 std::optional<Contact> CollisionSolver::detectWedge(const Contact* north, const Contact* south)
 {
-
-	float nSep = north->separation;
-	float sSep = south->separation;
-	float crush = nSep + sSep;
-	bool any_has_contact = north->hasContact || south->hasContact;
-
-	Rectf colBox = collidable->getBox();
-
 	std::optional<Contact> contact;
 
-	if (crush >= 0.f && any_has_contact
-		&& north->ortho_n == -south->ortho_n)
+	if (is_squeezing(north, south)
+		&& !is_crushing(north, south))
 	{
+		Rectf colBox = collidable->getBox();
 
-		Vec2f sum = north->collider_n + south->collider_n;
+		Linef floorLine = north->collider.surface;
+		Linef ceilLine = math::shift(south->collider.surface, Vec2f{ 0.f, colBox.height });
 
-		if (abs(sum.x) < 1e-5
-			&& abs(sum.y) < 1e-5)
+		Vec2f intersect = math::intersection(floorLine, ceilLine);
+
+		if (std::isnan(intersect.x) || std::isnan(intersect.y)) 
 		{
+			LOG_WARN("bad intersection");
 		}
-		else {
-			Angle floorAng = math::angle(north->collider.surface);
-			Angle ceilAng = math::angle(south->collider.surface);
+		else if (intersect.x != collidable->getPosition().x) 
+		{
+			Vec2f pos = collidable->getPosition();
+			float side = (north->collider_n.x + south->collider_n.x < 0.f ? -1.f : 1.f);
 
-			Linef floorLine = north->collider.surface;
-			Linef ceilLine = math::shift(south->collider.surface, Vec2f{ 0.f, colBox.height });
-
-			Vec2f floorVel = north->velocity;
-			Vec2f ceilVel = south->velocity;
-
-			Vec2f intersect = math::intersection(floorLine, ceilLine);
-
-			if (std::isnan(intersect.x) || std::isnan(intersect.y)) {
-				LOG_WARN("bad intersection");
-			}
-			else if (intersect.x != collidable->getPosition().x) 
-			{
-				Vec2f pos = collidable->getPosition();
-
-				Vec2f diff = Vec2f(intersect.x, 0.f) - Vec2f(pos.x, 0.f);
-				float side = (north->collider_n.x + south->collider_n.x < 0.f ? -1.f : 1.f);
-
-				contact = Contact{};
-				contact->hasContact = true;
-				contact->separation = abs(diff.x);
-				contact->collider_n = Vec2f{ side, 0.f };
-				contact->ortho_n = contact->collider_n;
-				contact->position = Vec2f{ pos.x, math::rect_mid(colBox).y };
-
-				contact->velocity = intersect - math::intersection(
-					math::shift(floorLine, -floorVel),
-					math::shift(ceilLine, -ceilVel)
-				);
-			}
+			contact = Contact{
+				.separation = abs(intersect.x - pos.x),
+				.hasContact = true,
+				.position	= Vec2f{ pos.x, math::rect_mid(colBox).y },
+				.ortho_n	= Vec2f{ side, 0.f },
+				.collider_n = Vec2f{ side, 0.f },
+				.velocity	= Vec2f{
+					intersect - math::intersection(
+						math::shift(floorLine, -north->velocity),
+						math::shift(ceilLine, -south->velocity))
+				}
+			};
 		}
 	}
 	return contact;
 }
 
 void CollisionSolver::detectWedges() {
-	for (auto& north_arb : north)
+	for (const auto* north_arb : north)
 	{
-		for (auto& south_arb : south)
+		for (const auto* south_arb : south)
 		{
 			if (auto opt_contact = detectWedge(north_arb, south_arb))
 			{
@@ -244,12 +229,12 @@ void CollisionSolver::detectWedges() {
 	}
 }
 
-void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr) 
+std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_ptr)
 {
 	json_dump = dump_ptr;
 
 	if (contacts.empty())
-		return;
+		return {};
 
 	// do contact-to-contact comparisons 
 	// try to discard some redundant ones early
@@ -284,6 +269,8 @@ void CollisionSolver::solve(nlohmann::ordered_json* dump_ptr)
 
 	// solve Y axis
 	solveY();
+
+	return frame;
 }
 
 void CollisionSolver::solveX() {
@@ -643,12 +630,9 @@ void CollisionSolver::applyAltStack(std::deque<Contact*>& altList, std::deque<Co
 
 // ----------------------------------------------------------------------------
 
-void CollisionSolver::apply(const Contact& contact, ContactType type)  {
-
-
+void CollisionSolver::apply(const Contact& contact, ContactType type)  
+{
 	if (contact.hasContact) {
-		appliedCollisionCount[direction::from_vector(contact.ortho_n).value()]++;
-
 		if (json_dump) {
 			(*json_dump)["apply"][applyCounter] = to_json(&contact);
 			(*json_dump)["apply"][applyCounter]["type"] = type;
@@ -720,9 +704,8 @@ CollisionSolver::CompResult CollisionSolver::compare(const Contact* lhs, const C
 	return comp;
 }
 
-CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact& basis, const Contact& candidate) noexcept {
-
-
+CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact& basis, const Contact& candidate) noexcept 
+{
 	if (!basis.isResolvable())
 		return CollisionSolver::Ghost::NO_GHOST;
 
@@ -830,10 +813,8 @@ CollisionSolver::CompResult CollisionSolver::pickH(const Contact* east, const Co
 	return CompResult{};
 }
 
-CollisionSolver::CompResult CollisionSolver::pickV(const Contact* north, const Contact* south) {
-
-	//const Contact* nContact = north->getContactPtr();
-	//const Contact* sContact = south->getContactPtr();
+CollisionSolver::CompResult CollisionSolver::pickV(const Contact* north, const Contact* south) 
+{
 
 	float nSep = north->separation;
 	float sSep = south->separation;
@@ -873,35 +854,27 @@ CollisionSolver::CompResult CollisionSolver::pickV(const Contact* north, const C
 	}
 
 	// arbs are converging
-	if (crush >= 0.f && any_has_contact
-		&& north->ortho_n == -south->ortho_n) 
+	if (is_squeezing(north, south)
+		&& is_crushing(north, south))
 	{
+		// crush
+		CompResult r;
+		r.contactType = ContactType::CRUSH_VERTICAL;
 
-		Vec2f sum = north->collider_n + south->collider_n;
+		r.discardFirst = true;
+		r.discardSecond = true;
 
-		if (   abs(sum.x) < 1e-5
-			&& abs(sum.y) < 1e-5)
-		{
-
-			// crush
-			CompResult r;
-			r.contactType = ContactType::CRUSH_VERTICAL;
-
-			r.discardFirst = true;
-			r.discardSecond = true;
-
-			if (nSep > sSep) {
-				r.contact = *north;
-				r.contact->separation -= sSep;
-				r.contact->separation /= 2.f;
-			}
-			else {
-				r.contact = *south;
-				r.contact->separation -= nSep;
-				r.contact->separation /= 2.f;
-			}
-			return r;
+		if (nSep > sSep) {
+			r.contact = *north;
+			r.contact->separation -= sSep;
+			r.contact->separation /= 2.f;
 		}
+		else {
+			r.contact = *south;
+			r.contact->separation -= nSep;
+			r.contact->separation /= 2.f;
+		}
+		return r;
 	}
 	if (any_has_contact && !north->hasContact && south->hasContact)
 	{

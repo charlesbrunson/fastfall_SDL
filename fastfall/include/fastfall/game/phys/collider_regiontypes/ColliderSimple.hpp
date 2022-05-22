@@ -57,7 +57,7 @@ public:
 
 		return true;
 	}
-	void on_postcontact(int quad_id, const PersistantContact& contact) const override {
+	void on_postcontact(const PersistantContact& contact) const override {
 		if (callback_on_postcontact)
 			callback_on_postcontact(contact);
 	}

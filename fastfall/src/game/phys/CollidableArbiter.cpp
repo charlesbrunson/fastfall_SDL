@@ -165,15 +165,17 @@ namespace ff {
 	void CollidableArbiter::solve_collisions(nlohmann::ordered_json* dump_ptr) 
 	{
 		CollisionSolver solver{ &collidable };
-		//solver.frame_count = 0;
 
 		for (auto& rArb : region_arbiters) {
 
-			for (auto& qArb : rArb.getQuadArbiters()) {
+			for (auto& qArb : rArb.getQuadArbiters()) 
+			{
+				auto& arb = qArb.second;
+
 				// allow precontact callback to reject collision
-				if (rArb.getRegion()->on_precontact(qArb.second.collider->getID(), *qArb.second.getContactPtr(), qArb.second.getTouchDuration())) 
+				if (rArb.getRegion()->on_precontact(arb.collider->getID(), *arb.getContactPtr(), arb.getTouchDuration()))
 				{
-					solver.pushContact(qArb.second.getContactPtr());
+					solver.pushContact(arb.getContactPtr());
 				}
 			}
 		}
@@ -183,38 +185,37 @@ namespace ff {
 
 			json_dump = &(*dump_ptr)["solver"];
 		}
-		solver.solve(json_dump);
+		auto frame = solver.solve(json_dump);
 
 		// push collision data to collidable
 		std::vector<PersistantContact> c;
-		for (auto& applied : solver.frame) {
-			c.push_back(PersistantContact(applied.contact));
 
-			auto& contact = c.back();
-			auto* arbiter = applied.contact.arbiter;
+		std::transform(frame.cbegin(), frame.cend(), std::back_inserter(c), 
+			[](const AppliedContact& aContact) -> PersistantContact {
+				PersistantContact pContact{ aContact.contact };
+				pContact.type = aContact.type;
 
-			contact.type = applied.type;
-			contact.touchDuration = (arbiter ? arbiter->getTouchDuration() : 0.0);
-
-			if (arbiter)
-			{
-				auto* region = arbiter->region;
-
-				contact.collider_id = region->get_ID();
-				contact.region = region;
-
-				if (region)
+				if (auto* arbiter = aContact.contact.arbiter)
 				{
-					region->on_postcontact(contact.quad_id, contact);
-				}
-			}
+					pContact.touchDuration = arbiter->getTouchDuration();
+					pContact.region = arbiter->region;
 
-			if (arbiter && arbiter->collider)
-				contact.quad_id = arbiter->collider->getID();
-					
-		}
+
+					if (const auto* collider = arbiter->collider)
+					{
+						pContact.quad_id = arbiter->collider->getID();
+					}
+
+					if (const auto* region = pContact.region)
+					{
+						pContact.collider_id = region->get_ID();
+						region->on_postcontact(pContact);
+					}
+				}
+				return pContact;
+			});
+
 		collidable.set_frame(std::move(c));
-		//frame_collision_count++;
 	}
 
 }

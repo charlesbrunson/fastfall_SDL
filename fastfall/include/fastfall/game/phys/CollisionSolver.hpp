@@ -16,7 +16,7 @@ struct AppliedContact {
 	ContactType type = ContactType::NO_SOLUTION;
 };
 
-using CollisionFrame = std::vector<AppliedContact>;
+//using CollisionFrame = std::vector<AppliedContact>;
 
 // class for resolving a system of collisions on one collidable
 class CollisionSolver {
@@ -28,10 +28,6 @@ private:
 		std::optional<Contact> contact;
 		ContactType contactType = ContactType::NO_SOLUTION;
 	};
-
-	cardinal_array<unsigned> allCollisionCount;
-	cardinal_array<unsigned> initialCollisionCount;
-	cardinal_array<unsigned> appliedCollisionCount;
 
 	std::deque<Contact*> north_alt;
 	std::deque<Contact*> south_alt;
@@ -45,7 +41,7 @@ private:
 	Collidable* collidable = nullptr;
 
 	// whether solve() has been run yet
-	size_t applyCounter;
+	size_t applyCounter = 0;
 
 	// collision set of arbiters to solve
 	std::vector<Contact*> contacts;
@@ -82,8 +78,7 @@ private:
 
 	std::optional<Contact> detectWedge(const Contact* north, const Contact* south);
 
-	//void updateStack(std::deque<Contact*>& stack);
-
+	std::vector<AppliedContact> frame;
 public:
 	enum class Ghost {
 		NO_GHOST = 0,
@@ -91,25 +86,16 @@ public:
 		FULL_GHOST = 2
 	};
 
+	// constructors
 	CollisionSolver(Collidable* _collidable);
-	CollisionSolver(CollisionSolver&&) = default;
-	CollisionSolver(const CollisionSolver&) = default;
-	CollisionSolver& operator=(CollisionSolver&&) = default;
-	CollisionSolver& operator=(const CollisionSolver&) = default;
-
-	// vector of AppliedArbiter in order of application
-	CollisionFrame frame;
-
-	//size_t frame_count = 0;
 
 	// add an arbiter associated with the collidable to the collision set
 	inline void pushContact(Contact* contact) { contacts.push_back(contact); };
 
 	// attempts to resolve the combination of collisions
-	// arbiters will be cleared after solving
-	// resolution set will be populated
-	// should be reinitialized after each solve
-	void solve(nlohmann::ordered_json* dump_ptr = nullptr);
+	// pushed contacts will be cleared after solving
+	// returns vector of applied contact in order of application
+	std::vector<AppliedContact> solve(nlohmann::ordered_json* dump_ptr = nullptr);
 
 	static Ghost isGhostEdge(const Contact& basis, const Contact& candidate) noexcept;
 

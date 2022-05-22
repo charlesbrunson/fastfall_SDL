@@ -68,11 +68,11 @@ namespace ff {
 		return true;
 	}
 
-	void ColliderTileMap::on_postcontact(int quad_id, const PersistantContact& contact) const {
-		if (validPosition(quad_id) && callback_on_precontact) {
+	void ColliderTileMap::on_postcontact(const PersistantContact& contact) const {
+		if (validPosition(contact.quad_id) && callback_on_precontact) {
 			Vec2i position;
-			position.y = quad_id / (size_max.x);
-			position.x = quad_id - (position.y * (size_max.x - size_min.x));
+			position.y = contact.quad_id / (size_max.x);
+			position.x = contact.quad_id - (position.y * (size_max.x - size_min.x));
 			position += size_min;
 
 			callback_on_postcontact(position, contact);

@@ -74,8 +74,8 @@ public:
 
 	Collidable* attached = nullptr;
 
-	virtual bool on_precontact(int quad_id, const Contact& contact, secs duration) const = 0;
-	virtual void on_postcontact(int quad_id, const PersistantContact& contact) const = 0;
+	virtual bool on_precontact(int quad_id, const Contact& contact, secs duration) const { return true; };
+	virtual void on_postcontact(const PersistantContact& contact) const {};
 
 protected:
 	Rectf boundingBox;

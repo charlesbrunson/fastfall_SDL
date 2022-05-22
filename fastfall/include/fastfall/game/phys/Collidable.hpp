@@ -18,7 +18,6 @@
 
 namespace ff {
 
-
 struct collision_state_t {
 	enum class flags : unsigned {
 		None = 0,
@@ -55,7 +54,16 @@ private:
 };
 
 class Collidable {
-private:
+public:
+	enum class SlipState {
+		SlipHorizontal,
+		SlipVertical
+	};
+
+	struct slip_t {
+		SlipState state = SlipState::SlipHorizontal;
+		float leeway = 0.f;
+	};
 
 public:
 
@@ -129,21 +137,7 @@ public:
 
 	void set_frame(std::vector<PersistantContact>&& frame);
 
-	//inline bool is_crush_any() const noexcept { return hori_crush || vert_crush; };
-	//inline bool is_crush_hori() const noexcept { return hori_crush; };
-	//inline bool is_crush_vert() const noexcept { return vert_crush; };
-
 	inline CollidableID get_ID() const noexcept { return id; };
-
-	enum class SlipState {
-		SlipHorizontal,
-		SlipVertical
-	};
-
-	struct slip_t {
-		SlipState state = SlipState::SlipHorizontal;
-		float leeway 	= 0.f;
-	};
 
 	void setSlip(slip_t set) { slip = set; };
 
