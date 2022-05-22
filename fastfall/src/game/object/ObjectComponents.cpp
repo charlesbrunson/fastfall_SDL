@@ -2,13 +2,6 @@
 
 namespace ff {
 
-Collidable_ptr::Collidable_ptr(GameContext context)
-	: m_context(context)
-	, m_collidable(instance::phys_create_collidable(context))
-{
-
-}
-
 Collidable_ptr::Collidable_ptr(GameContext context, Vec2f init_pos, Vec2f init_size, Vec2f init_grav)
 	: m_context(context)
 	, m_collidable(instance::phys_create_collidable(context, init_pos, init_size, init_grav))

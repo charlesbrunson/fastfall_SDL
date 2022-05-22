@@ -120,13 +120,6 @@ namespace ff::instance {
 		return nullptr;
 	}
 
-	Collidable* phys_create_collidable(GameContext context)
-	{
-		if (auto* inst = getInstance(context)) {
-			return inst->getCollision().create_collidable();
-		}
-		return nullptr;
-	}
 	Collidable* phys_create_collidable(GameContext context, Vec2f init_pos, Vec2f init_size, Vec2f init_grav)
 	{
 		if (auto* inst = getInstance(context)) {

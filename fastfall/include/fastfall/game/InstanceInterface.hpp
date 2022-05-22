@@ -50,7 +50,6 @@ namespace ff::instance
 	const CollisionManager::regions_vector* phys_get_colliders(GameContext context);
 	const CollisionManager::collidables_vector* phys_get_collidables(GameContext context);
 
-	Collidable* phys_create_collidable(GameContext context);
 	Collidable* phys_create_collidable(GameContext context, Vec2f init_pos, Vec2f init_size, Vec2f init_grav = Vec2f{});
 	bool phys_erase_collidable(GameContext context, Collidable* collidable);
 

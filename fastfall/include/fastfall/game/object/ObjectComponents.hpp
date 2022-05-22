@@ -5,7 +5,6 @@
 namespace ff {
 
 struct Collidable_ptr {
-	Collidable_ptr(GameContext context);
 	Collidable_ptr(GameContext context, Vec2f init_pos, Vec2f init_size, Vec2f init_grav = Vec2f{});
 	~Collidable_ptr();
 

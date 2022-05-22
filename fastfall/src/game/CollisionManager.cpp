@@ -48,15 +48,13 @@ void CollisionManager::update(secs deltaTime) {
 	frame_count++;
 };
 
-// --------------------------------------------------------------
-
-Collidable* CollisionManager::create_collidable() {
-	collidables.push_back(std::make_unique<CollidableArbiter>());
-	return &collidables.back()->collidable;
-}
-Collidable* CollisionManager::create_collidable(Vec2f init_pos, Vec2f init_size, Vec2f init_grav) {
-	Collidable* col = create_collidable();
-	col->init(init_pos, init_size, init_grav);
+Collidable* CollisionManager::create_collidable(Vec2f init_pos, Vec2f init_size, Vec2f init_grav) 
+{
+	collidables.push_back(std::make_unique<CollidableArbiter>(CollidableArbiter{
+		.collidable = { init_pos, init_size, init_grav }, 
+		.region_arbiters = {} 
+		}));
+	Collidable* col = &collidables.back()->collidable;
 	return col;
 }
 

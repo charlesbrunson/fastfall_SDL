@@ -123,15 +123,6 @@ void debugDrawContact(const Contact& contact) {
 	}
 }
 
-Collidable::Collidable()
-{
-	// reserving zero as invalid
-	static unsigned collidableIDCounter = CollidableID::NO_ID + 1u;
-
-	id = CollidableID{ collidableIDCounter++ };
-	assert(id.value != CollidableID::NO_ID);
-}
-
 Collidable::Collidable(Vec2f position, Vec2f size, Vec2f gravity)
 {
 	// reserving zero as invalid
@@ -140,7 +131,17 @@ Collidable::Collidable(Vec2f position, Vec2f size, Vec2f gravity)
 	id = CollidableID{ collidableIDCounter++ };
 	assert(id.value != CollidableID::NO_ID);
 
-	init(position, size, gravity);
+	//init(position, size, gravity);
+	if (size.x > TILESIZE_F)
+		LOG_WARN("{} collidable width > {} not recommended, may break collision", size.x, TILESIZE_F);
+
+	Vec2f topleft = position - Vec2f(size.x / 2.f, size.y);
+
+	curRect = Rectf(topleft, size);
+	prevRect = curRect;
+	pos = Vec2f(curRect.getPosition()) + Vec2f(curRect.width / 2, curRect.height);
+	prevPos = pos;
+	gravity_acc = gravity;
 }
 
 Collidable::~Collidable() {
@@ -225,18 +226,6 @@ Collidable& Collidable::operator=(Collidable&& rhs) noexcept
 	return *this;
 }
 
-void Collidable::init(Vec2f position, Vec2f size, Vec2f gravity) {
-	if (size.x > TILESIZE_F)
-		LOG_WARN("{} collidable width > {} not recommended, may break collision", size.x, TILESIZE_F);
-
-	Vec2f topleft = position - Vec2f(size.x / 2.f, size.y);
-
-	curRect = Rectf(topleft, size);
-	prevRect = curRect;
-	pos = Vec2f(curRect.getPosition()) + Vec2f(curRect.width / 2, curRect.height);
-	prevPos = pos;
-	gravity_acc = gravity;
-}
 
 void Collidable::update(secs deltaTime) {
 
