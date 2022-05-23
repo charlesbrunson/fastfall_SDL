@@ -64,7 +64,7 @@ jobs:
       uses: ncipollo/release-action@v1.10.0
       with:
         name: fastfall_SDL
-        artifacts: "${{github.workspace}}/build-${{matrix.compiler}}-${{env.BUILD_TYPE}}/test_project"
+        artifacts: "${{github.workspace}}/build-${{matrix.compiler}}-${{env.BUILD_TYPE}}/test_project_*.zip"
         allowUpdates: true
         tag: release
         

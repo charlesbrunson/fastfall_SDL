@@ -193,10 +193,15 @@ if(EMSCRIPTEN)
 		FF_DATA_DIR=""
 	)
 else()
-	target_compile_definitions(fastfall PUBLIC
-		FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
-	)
-
+	if (${CMAKE_BUILD_TYPE} MATCHES "Release")
+		target_compile_definitions(fastfall PUBLIC
+			FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
+		)
+	else()
+		target_compile_definitions(fastfall PUBLIC
+			FF_DATA_DIR=""
+		)
+	endif()
 endif()
 
 add_subdirectory("test")

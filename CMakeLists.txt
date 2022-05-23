@@ -57,6 +57,25 @@ if(EMSCRIPTEN)
 		"SHELL:--preload-file ../data@/data" 
 		"SHELL:--preload-file ../gamecontrollerdb.txt@/gamecontrollerdb.txt"
 	)
+else()
+	add_custom_command(
+		TARGET test_project 
+		POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+        	${CMAKE_SOURCE_DIR}/data/ $<TARGET_FILE_DIR:test_project>/data/)
 
+	add_custom_command(
+		TARGET test_project 
+		POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy
+        	${CMAKE_SOURCE_DIR}/gamecontrollerdb.txt $<TARGET_FILE_DIR:test_project>)
+
+	add_custom_command(
+		TARGET test_project 
+		POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E tar "cfv" "test_project_${CMAKE_SYSTEM_NAME}-${CMAKE_CXX_COMPILER}-${CMAKE_SYSTEM_PROCESSOR}.zip" --format=zip
+			"$<TARGET_FILE_DIR:test_project>/test_project${CMAKE_EXECUTABLE_SUFFIX}"
+			"$<TARGET_FILE_DIR:test_project>/data"
+			"$<TARGET_FILE_DIR:test_project>/gamecontrollerdb.txt")
 endif()
 

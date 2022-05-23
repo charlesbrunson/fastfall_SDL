@@ -64,8 +64,8 @@ void updateStack(std::deque<Contact*>& stack) {
 
 bool CollisionSolver::applyThenUpdateStacks(std::deque<Contact*>& stack, std::deque<Contact*>& otherStack, bool which)
 {
-	bool applied = false;
-	if (applied = applyFirst(which ? stack : otherStack)) {
+	bool applied = applyFirst(which ? stack : otherStack);
+	if (applied) {
 		updateStack(stack);
 		updateStack(otherStack);
 	}
