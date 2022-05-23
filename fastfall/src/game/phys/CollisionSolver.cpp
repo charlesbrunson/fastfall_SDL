@@ -452,6 +452,8 @@ void CollisionSolver::detectWedges() {
 
 std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_ptr)
 {
+	frame.clear();
+
 	json_dump = dump_ptr;
 
 	if (contacts.empty())
@@ -480,6 +482,7 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 
 	// organize contacts into north/east/south/west
 	pushToAStack(contacts);
+	contacts.clear();
 
 	// detect any wedges
 	// a wedge is any pair of north/south contacts that would force the collision box east/west instead
@@ -488,7 +491,7 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 	// opportunistically determine if we can solve steeper slopes on the X axis instead of Y (looks nicer)
 	if (canApplyAlt()) 
 	{
-		auto transposeAndPush = [&](Contact* contact) -> void 
+		const auto transposeAndPush = [&](Contact* contact) -> void 
 		{
 			contact->transpose();
 			pushToAStack(contact);
@@ -525,9 +528,10 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 		updateStack(north);
 		updateStack(south);
 
-		std::sort(north.begin(), north.end(), ContactCompare);
-		std::sort(south.begin(), south.end(), ContactCompare);
 	}
+
+	std::sort(north.begin(), north.end(), ContactCompare);
+	std::sort(south.begin(), south.end(), ContactCompare);
 
 	if (json_dump) {
 		(*json_dump)["apply"] += {
@@ -566,12 +570,16 @@ bool CollisionSolver::solveAxis(std::deque<Contact*>& stackA, std::deque<Contact
 		auto r = picker(aC, bC, collidable);
 
 		if (r.contact) {
-			// pickH generated a new contact
+			// picker generated a new contact
 			if (apply(*r.contact, r.contactType))
 			{
 				any_applied = true;
-				if (r.contactType == ContactType::CRUSH_HORIZONTAL)
-					return true;
+				if (   r.contactType == ContactType::CRUSH_HORIZONTAL
+					|| r.contactType == ContactType::CRUSH_VERTICAL) 
+				{
+					// nothing more we can do on this axis
+					return true; 
+				}
 			}
 
 			if (!r.discardFirst)  updateContact(aC);
@@ -583,20 +591,21 @@ bool CollisionSolver::solveAxis(std::deque<Contact*>& stackA, std::deque<Contact
 
 		if (!r.discardFirst && !r.discardSecond)
 		{
-			// pick which to apply
+			// pick lowest separation to apply
 			any_applied |= applyThenUpdateStacks(stackA, stackB, aC->separation < bC->separation);
 		}
 		else
 		{
 			// at least one will discard
-			// uses shortcircuiting
 			any_applied |= canApplyElseDiscard(r.discardFirst,  stackA) && applyThenUpdateStacks(stackA, stackB);
 			any_applied |= canApplyElseDiscard(r.discardSecond, stackB) && applyThenUpdateStacks(stackB, stackA);
 		}
 	}
 
+	// just one is non-empty, just apply the whole stack
 	any_applied |= applyStack(stackA);
 	any_applied |= applyStack(stackB);
+
 	return any_applied;
 }
 
