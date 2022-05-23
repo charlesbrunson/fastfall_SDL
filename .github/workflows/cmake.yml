@@ -38,7 +38,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: |
-          ${{github.workspace}}/build/*
+          ${{github.workspace}}/build-${{matrix.compiler}}-${{env.BUILD_TYPE}}/*
         key: build-${{matrix.compiler}}-${{env.BUILD_TYPE}}
         
     - name: Configure CMake ${{ matrix.compiler }}
