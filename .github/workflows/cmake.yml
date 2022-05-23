@@ -63,4 +63,5 @@ jobs:
       with:
         name: fastfall_SDL_${{runner.os}}-${{runner.arch}}-${{matrix.compiler}}-${{env.BUILD_TYPE}}
         artifacts: "build-${{matrix.compiler}}-${{env.BUILD_TYPE}}/test_project.exe"
+        allowUpdates: true
         
