@@ -13,24 +13,13 @@
 namespace ff 
 {
 
-void updateContact(Contact* contact)
-{
-	if (contact->arbiter) {
-		contact->arbiter->update(0.0);
-	}
-}
-
-void updateStack(std::deque<Contact*>& stack) {
-	std::for_each(stack.begin(), stack.end(), updateContact);
-}
-
 NLOHMANN_JSON_SERIALIZE_ENUM(ContactType, {
 	{ContactType::NO_SOLUTION,		"no solution"},
 	{ContactType::SINGLE,			"single"},
 	{ContactType::WEDGE,			"wedge"},
 	{ContactType::CRUSH_HORIZONTAL,	"horizontal crush"},
 	{ContactType::CRUSH_VERTICAL,	"vertical crush"},
-})
+	})
 
 nlohmann::ordered_json to_json(const Contact* contact)
 {
@@ -45,10 +34,283 @@ nlohmann::ordered_json to_json(const Contact* contact)
 		{"impactTime",		contact->impactTime},
 		{"velocity",		fmt::format("{}", contact->velocity)},
 		{"is_transposed",	contact->is_transposed},
-		{"region",			arb && arb->region   ? arb->region->get_ID().value : 0u},
-		{"quad",			arb && arb->collider ? arb->collider->getID()      : 0u}
+		{"region",			arb && arb->region ? arb->region->get_ID().value : 0u},
+		{"quad",			arb && arb->collider ? arb->collider->getID() : 0u}
 	};
 }
+
+template<typename Container>
+requires std::same_as<typename Container::value_type, Contact*>
+nlohmann::ordered_json to_json(Container container)
+{
+	nlohmann::ordered_json json;
+	for (const Contact* c : container)
+	{
+		json += fmt::format("{}", fmt::ptr(c));
+	}
+	return json;
+}
+
+void updateContact(Contact* contact)
+{
+	if (contact->arbiter) {
+		contact->arbiter->update(0.0);
+	}
+}
+
+void updateStack(std::deque<Contact*>& stack) {
+	std::for_each(stack.begin(), stack.end(), updateContact);
+}
+
+bool CollisionSolver::applyThenUpdateStacks(std::deque<Contact*>& stack, std::deque<Contact*>& otherStack, bool which)
+{
+	bool applied = false;
+	if (applied = applyFirst(which ? stack : otherStack)) {
+		updateStack(stack);
+		updateStack(otherStack);
+	}
+	return applied;
+};
+
+bool CollisionSolver::canApplyElseDiscard(bool discard, std::deque<Contact*>& stack)
+{
+	if (discard)
+	{
+		if (json_dump) {
+			(*json_dump)["apply"] += {
+				{ "discard_nocontact", fmt::format("{}", fmt::ptr(stack.front())) }
+			};
+		}
+		stack.pop_front();
+	}
+	return !discard;
+};
+
+// ----------------------------------------------------------------------------
+
+bool is_squeezing(const Contact* A, const Contact* B)
+{
+	float sepA = A->separation;
+	float sepB = B->separation;
+	float crush = sepA + sepB;
+	bool any_has_contact = A->hasContact || B->hasContact;
+
+	return crush >= 0.f
+		&& any_has_contact
+		&& A->ortho_n == -B->ortho_n;
+}
+
+bool is_crushing(const Contact* A, const Contact* B)
+{
+	Vec2f sum = A->collider_n + B->collider_n;
+	return abs(sum.x) < 1e-5 && abs(sum.y) < 1e-5;
+}
+
+CollisionSolver::CompResult pickH(const Contact* east, const Contact* west, const Collidable* box)
+{
+
+	float eSep = east->separation;
+	float wSep = west->separation;
+
+	Rectf colBox = box->getBox();
+
+	float crush = eSep + wSep;
+
+	// diverging check
+	if ((eSep >= colBox.width) != (wSep >= colBox.width)) {
+		CollisionSolver::CompResult r;
+		r.discardFirst = (eSep >= colBox.width);
+		r.discardSecond = (wSep >= colBox.width);
+		return r;
+	}
+
+	// crush check
+	if (crush > 0.f) {
+		CollisionSolver::CompResult r;
+		r.contactType = ContactType::CRUSH_HORIZONTAL;
+
+		r.discardFirst = true;
+		r.discardSecond = true;
+
+		if (eSep > wSep) {
+			r.contact = *east;
+			r.contact->separation -= wSep;
+			r.contact->separation /= 2.f;
+		}
+		else {
+			r.contact = *west;
+			r.contact->separation -= eSep;
+			r.contact->separation /= 2.f;
+		}
+		return r;
+	}
+
+	// pick the one with contact
+	if (east->hasContact != west->hasContact)
+	{
+		CollisionSolver::CompResult r;
+		r.discardFirst = !east->hasContact;
+		r.discardSecond = !west->hasContact;
+		return r;
+	}
+
+	return {};
+}
+
+CollisionSolver::CompResult pickV(const Contact* north, const Contact* south, const Collidable* box)
+{
+
+	float nSep = north->separation;
+	float sSep = south->separation;
+
+	Rectf colBox = box->getBox();
+
+	float crush = nSep + sSep;
+
+	// diverging check
+	if (crush > 0.f) {
+		Vec2f nMid{ math::midpoint(north->collider.surface) };
+		Vec2f sMid{ math::midpoint(south->collider.surface) };
+
+		Vec2f nNormal = math::vector(north->collider.surface).lefthand().unit();
+		bool nFacingAway = math::dot(sMid - nMid, nNormal) < 0;
+
+		Vec2f sNormal = math::vector(south->collider.surface).lefthand().unit();
+		bool sFacingAway = math::dot(nMid - sMid, sNormal) < 0;
+
+		if ((nFacingAway && sFacingAway) || (crush > colBox.height)) {
+
+			CollisionSolver::CompResult r;
+			r.discardFirst = sSep < nSep;
+			r.discardSecond = !r.discardFirst;
+			return r;
+		}
+	}
+
+	// crush check
+	if (is_squeezing(north, south)
+		&& is_crushing(north, south))
+	{
+		// crush
+		CollisionSolver::CompResult r;
+		r.contactType = ContactType::CRUSH_VERTICAL;
+
+		r.discardFirst = true;
+		r.discardSecond = true;
+
+		if (nSep > sSep) {
+			r.contact = *north;
+			r.contact->separation -= sSep;
+			r.contact->separation /= 2.f;
+		}
+		else {
+			r.contact = *south;
+			r.contact->separation -= nSep;
+			r.contact->separation /= 2.f;
+		}
+		return r;
+	}
+	// pick the one with contact
+	if (north->hasContact != south->hasContact)
+	{
+		CollisionSolver::CompResult r;
+		r.discardFirst = !north->hasContact;
+		r.discardSecond = !south->hasContact;
+		return r;
+	}
+
+	return {};
+}
+
+// ----------------------------------------------------------------------------
+
+CollisionSolver::CompResult compare(const Contact* lhs, const Contact* rhs) {
+	CollisionSolver::CompResult comp;
+
+	if (lhs == rhs)
+		return comp;
+
+	const Contact& lhsContact = *lhs;
+	const Contact& rhsContact = *rhs;
+
+	comp.discardFirst = lhs->arbiter ? !lhs->arbiter->getCollision()->tileValid() : false;
+	comp.discardSecond = rhs->arbiter ? !rhs->arbiter->getCollision()->tileValid() : false;
+
+	// ghost check
+	if (!comp.discardFirst && !comp.discardSecond)
+	{
+		GhostEdge g1 = isGhostEdge(rhsContact, lhsContact);
+		GhostEdge g2 = isGhostEdge(lhsContact, rhsContact);
+
+		bool g1_isGhost = (g1 != GhostEdge::None);
+		bool g2_isGhost = (g2 != GhostEdge::None);
+
+		if (g2_isGhost || g1_isGhost) {
+			if (g2_isGhost && g1_isGhost) {
+				// pick one
+				if (g1 == g2) {
+					// double ghost, pick the one with least separation
+					g1_isGhost = !ContactCompare(lhs, rhs);
+				}
+				else {
+					g1_isGhost = g2 < g1;
+				}
+				g2_isGhost = !g1_isGhost;
+			}
+
+			comp.discardFirst = g1_isGhost;
+			comp.discardSecond = g2_isGhost;
+		}
+	}
+	return comp;
+}
+
+GhostEdge isGhostEdge(const Contact& basis, const Contact& candidate) noexcept
+{
+	if (!basis.isResolvable())
+		return GhostEdge::None;
+
+	bool isOneWay = (!basis.hasContact) && (basis.separation > 0.f) && (basis.impactTime == -1.0);
+
+	Linef basisLine = basis.collider.surface;
+	Linef candLine = candidate.collider.surface;
+
+	Vec2f basisNormal = math::vector(basis.collider.surface).lefthand().unit();
+
+	float dotp1 = math::dot(basisNormal, candLine.p1 - basisLine.p2);
+	float dotp2 = math::dot(basisNormal, candLine.p2 - basisLine.p1);
+
+	bool is_ghost = false;
+
+	// candidate is full *behind* basis surface
+	bool opt1;
+	if (candLine.p1 == basisLine.p2
+		|| candLine.p2 == basisLine.p1)
+	{
+		// surfaces share a point
+		opt1 = (dotp1 < 0.f && dotp2 < 0.f); // always false?
+	}
+	else {
+		opt1 = (dotp1 <= 0.f && dotp2 < 0.f) || (dotp1 < 0.f && dotp2 <= 0.f);
+	}
+
+	// prefer selecting verticals as the ghost edge
+	bool opt2 = (!math::is_vertical(basisLine) && math::is_vertical(candLine) && dotp1 <= 0.f && dotp2 <= 0.f);
+
+	// candidate is opposite of basis
+	bool opt3 = (basisLine == Linef(candLine.p2, candLine.p1));
+
+	bool candidateBehind = opt1 || opt2 || opt3;
+
+	if (!isOneWay && candidateBehind) {
+		return (opt1 ? GhostEdge::Full : GhostEdge::Partial);
+	}
+	else {
+		return GhostEdge::None;
+	}
+
+}
+
 
 CollisionSolver::CollisionSolver(Collidable* _collidable) 
 	: collidable(_collidable)
@@ -57,16 +319,6 @@ CollisionSolver::CollisionSolver(Collidable* _collidable)
 
 void CollisionSolver::compareAll() 
 {
-	if (json_dump)
-	{
-		size_t ndx = 0;
-		for (auto& c : contacts) {
-			(*json_dump)["precompare"][ndx] = to_json(c);
-			ndx++;
-		}
-
-		(*json_dump)["compare"];
-	}
 
 	size_t cmp_count = 0;
 	for (size_t i = 0; i < contacts.size() - 1; i++) {
@@ -102,17 +354,6 @@ void CollisionSolver::compareAll()
 		}
 	}
 
-	if (json_dump)
-	{
-		size_t ndx = 0;
-		for (auto c : contacts) 
-		{
-			(*json_dump)["postcompare"][ndx] = to_json(c);
-			ndx++;
-		}
-
-		(*json_dump)["apply"];
-	}
 }
 
 void CollisionSolver::pushToAStack(Contact* contact)
@@ -120,8 +361,9 @@ void CollisionSolver::pushToAStack(Contact* contact)
 	auto dir = direction::from_vector(contact->ortho_n);
 	if (!dir.has_value()) {
 		if (json_dump) {
-			(*json_dump)["apply"][applyCounter]["discard_nodir"] = fmt::format("{}", fmt::ptr(contact));
-			applyCounter++;
+			(*json_dump)["apply"] += {
+				{ "discard_nodir", fmt::format("{}", fmt::ptr(contact)) }
+			};
 		}
 	}
 	else {
@@ -150,23 +392,6 @@ void CollisionSolver::pushToAStack(std::vector<Contact*> contacts)
 	}
 }
 
-bool is_squeezing(const Contact* A, const Contact* B)
-{
-	float nSep = A->separation;
-	float sSep = B->separation;
-	float crush = nSep + sSep;
-	bool any_has_contact = A->hasContact || B->hasContact;
-
-	return crush >= 0.f 
-		&& any_has_contact 
-		&& A->ortho_n == -B->ortho_n;
-}
-
-bool is_crushing(const Contact* A, const Contact* B)
-{
-	Vec2f sum = A->collider_n + B->collider_n;
-	return abs(sum.x) < 1e-5 && abs(sum.y) < 1e-5;
-}
 
 std::optional<Contact> CollisionSolver::detectWedge(const Contact* north, const Contact* south)
 {
@@ -215,16 +440,10 @@ void CollisionSolver::detectWedges() {
 		{
 			if (auto opt_contact = detectWedge(north_arb, south_arb))
 			{
-				auto dir = direction::from_vector(opt_contact->ortho_n);
-				if (dir && *dir == Cardinal::E)
+				if (auto dir = direction::from_vector(opt_contact->ortho_n))
 				{
 					created_contacts.push_back(*opt_contact);
-					east.push_back(&created_contacts.back());
-				}
-				else if (dir && *dir == Cardinal::W) 
-				{
-					created_contacts.push_back(*opt_contact);
-					west.push_back(&created_contacts.back());
+					pushToAStack(&created_contacts.back());
 				}
 			}
 		}
@@ -238,9 +457,26 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 	if (contacts.empty())
 		return {};
 
+	if (json_dump)
+	{
+		for (auto& c : contacts) {
+			(*json_dump)["precompare"] += to_json(c);
+		}
+		(*json_dump)["compare"];
+	}
+
 	// do contact-to-contact comparisons 
 	// try to discard some redundant ones early
 	compareAll();
+
+	if (json_dump)
+	{
+		for (auto c : contacts)
+		{
+			(*json_dump)["postcompare"] += to_json(c);
+		}
+		(*json_dump)["apply"];
+	}
 
 	// organize contacts into north/east/south/west
 	pushToAStack(contacts);
@@ -269,61 +505,68 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 	north_alt.clear();
 	south_alt.clear();
 
-	// solve X axis
-	if (solveX()) 
-	{
-		// update north/south contacts for our new X-pos
-		updateStack(north);
-		updateStack(south);
-	}
-
-	// solve Y axis
-	solveY();
-
-	return frame;
-}
-
-bool CollisionSolver::solveX() {
-
 	std::sort(east.begin(), east.end(), ContactCompare);
 	std::sort(west.begin(), west.end(), ContactCompare);
 
 	if (json_dump) {
-		(*json_dump)["apply"][applyCounter]["x_stacks"];
-		size_t jndx = 0;
-		for (auto& e : east) {
-			(*json_dump)["apply"][applyCounter]["x_stacks"]["east"][jndx] = fmt::format("{}", fmt::ptr(e));
-			jndx++;
-		}
-		jndx = 0;
-		for (auto& w : west) {
-			(*json_dump)["apply"][applyCounter]["x_stacks"]["west"][jndx] = fmt::format("{}", fmt::ptr(w));
-			jndx++;
-		}
-		applyCounter++;
+		(*json_dump)["apply"] += {
+			{"x_stack", {
+					{"east", to_json(east) },
+					{"west", to_json(west) },
+				}
+			}
+		};
 	}
 
+	// solve X axis
+	if (solveAxis(east, west, pickH)) 
+	{
+		// update north/south contacts for our new X-pos
+		updateStack(north);
+		updateStack(south);
+
+		std::sort(north.begin(), north.end(), ContactCompare);
+		std::sort(south.begin(), south.end(), ContactCompare);
+	}
+
+	if (json_dump) {
+		(*json_dump)["apply"] += {
+			{"y_stack", {
+					{"north", to_json(north) },
+					{"south", to_json(south) },
+				}
+			}
+		};
+	}
+
+	// solve Y axis
+	solveAxis(north, south, pickV);
+
+	return frame;
+}
+
+bool CollisionSolver::solveAxis(std::deque<Contact*>& stackA, std::deque<Contact*>& stackB, PickerFn picker)
+{
 	bool any_applied = false;
 
-	auto updateStacks = [&]() {
-		updateStack(east);
-		updateStack(west);
-	};
-
-	while (!east.empty() && !west.empty()) {
-		auto eastArb = east.front();
-		auto westArb = west.front();
+	while (!stackA.empty() && !stackB.empty()) {
+		auto aC = stackA.front();
+		auto bC = stackB.front();
 
 		if (json_dump) {
-			(*json_dump)["apply"][applyCounter]["picking_from"] = {
-				{ "east", fmt::format("{}", fmt::ptr(eastArb)) },
-				{ "west", fmt::format("{}", fmt::ptr(westArb)) }
+			(*json_dump)["apply"] +=
+			{
+				{ "picking_from", {
+					fmt::format("{}", fmt::ptr(aC)),
+					fmt::format("{}", fmt::ptr(bC))
+				}}
 			};
 		}
 
-		auto r = pickH(eastArb, westArb);
+		auto r = picker(aC, bC, collidable);
 
 		if (r.contact) {
+			// pickH generated a new contact
 			if (apply(*r.contact, r.contactType))
 			{
 				any_applied = true;
@@ -331,222 +574,31 @@ bool CollisionSolver::solveX() {
 					return true;
 			}
 
-			if (!r.discardFirst)  updateContact(eastArb);
-			if (!r.discardSecond) updateContact(westArb);
+			if (!r.discardFirst)  updateContact(aC);
+			if (!r.discardSecond) updateContact(bC);
+
+			r.discardFirst = !aC->hasContact;
+			r.discardSecond = !bC->hasContact;
 		}
 
-		if (r.discardFirst && !r.discardSecond) {
-
-			if (json_dump) {
-				(*json_dump)["apply"][applyCounter]["discard_x"] = fmt::format("{}", fmt::ptr(east.front()));
-				applyCounter++;
-			}
-
-			east.pop_front();
-			if (applyFirst(west)) {
-				any_applied |= true;
-				updateStacks();
-			}
+		if (!r.discardFirst && !r.discardSecond)
+		{
+			// pick which to apply
+			any_applied |= applyThenUpdateStacks(stackA, stackB, aC->separation < bC->separation);
 		}
-		else if (r.discardSecond && !r.discardFirst) {
-
-			if (json_dump) {
-				(*json_dump)["apply"][applyCounter]["discard_x"] = fmt::format("{}", fmt::ptr(west.front()));
-				applyCounter++;
-			}
-
-			west.pop_front();
-			if (applyFirst(east)) {
-				any_applied |= true;
-				updateStacks();
-			}
-		}
-		else if (r.discardFirst && r.discardSecond) {
-
-			if (json_dump) {
-				(*json_dump)["apply"][applyCounter] = {
-					{ "discard_x", {
-							fmt::format("{}", fmt::ptr(north.front())),
-							fmt::format("{}", fmt::ptr(south.front()))
-						}
-					}
-				};
-			}
-
-			east.pop_front();
-			west.pop_front();
-		}
-		else {
-			// pick one
-			if (eastArb->separation < westArb->separation) {
-				if (applyFirst(east)) {
-					any_applied |= true;
-					updateStacks();
-				}
-			}
-			else {
-				if (applyFirst(west)) {
-					any_applied |= true;
-					updateStacks();
-				}
-			}
+		else
+		{
+			// at least one will discard
+			// uses shortcircuiting
+			any_applied |= canApplyElseDiscard(r.discardFirst,  stackA) && applyThenUpdateStacks(stackA, stackB);
+			any_applied |= canApplyElseDiscard(r.discardSecond, stackB) && applyThenUpdateStacks(stackB, stackA);
 		}
 	}
 
-	any_applied |= applyStack(east);
-	any_applied |= applyStack(west);
+	any_applied |= applyStack(stackA);
+	any_applied |= applyStack(stackB);
 	return any_applied;
 }
-
-bool CollisionSolver::solveY() {
-
-	std::sort(north.begin(), north.begin(), ContactCompare);
-	std::sort(south.begin(), south.begin(), ContactCompare);
-	
-	if (json_dump) {
-		(*json_dump)["apply"][applyCounter]["y_stacks"];
-		size_t jndx = 0;
-		for (auto& n : north) {
-			(*json_dump)["apply"][applyCounter]["y_stacks"]["north"][jndx] = fmt::format("{}", fmt::ptr(n));
-			jndx++;
-		}
-		jndx = 0;
-		for (auto& s : south) {
-			(*json_dump)["apply"][applyCounter]["y_stacks"]["south"][jndx] = fmt::format("{}", fmt::ptr(s));
-			jndx++;
-		}
-		applyCounter++;
-	}
-
-	bool any_applied = false;
-
-	auto updateStacks = [&]() {
-		updateStack(north);
-		updateStack(south);
-	};
-
-	while (!north.empty() && !south.empty()) {
-		auto northArb = north.front();
-		auto southArb = south.front();
-
-		if (json_dump) {
-			(*json_dump)["apply"][applyCounter]["picking_from"] = {
-				{ "north", fmt::format("{}", fmt::ptr(northArb)) },
-				{ "south", fmt::format("{}", fmt::ptr(southArb)) }
-			};
-		}
-
-		auto r = pickV(northArb, southArb);
-
-		if (r.contact) {
-			if (apply(*r.contact, r.contactType))
-			{
-				any_applied = true;
-				if (r.contactType == ContactType::CRUSH_VERTICAL)
-					return true;
-			}
-
-			if (!r.discardFirst)  updateContact(northArb);
-			if (!r.discardSecond) updateContact(southArb);
-
-			if (!northArb->hasContact
-				&& !southArb->hasContact) 
-			{
-				if (json_dump) {
-
-					(*json_dump)["apply"][applyCounter] = {
-						{ "discard_y_contact", {
-								fmt::format("{}", fmt::ptr(north.front())),
-								fmt::format("{}", fmt::ptr(south.front()))
-							}
-						}
-					};
-					applyCounter++;
-				}
-				north.pop_front();
-				south.pop_front();
-				continue;
-			}
-
-			if (!northArb->hasContact) {
-				if (json_dump) {
-					(*json_dump)["apply"][applyCounter]["discard_y_contact"] = fmt::format("{}", fmt::ptr(north.front()));
-					applyCounter++;
-				}
-				north.pop_front();
-				continue;
-			}
-			if (!southArb->hasContact) {
-				if (json_dump) {
-					(*json_dump)["apply"][applyCounter]["discard_y_contact"] = fmt::format("{}", fmt::ptr(south.front()));
-					applyCounter++;
-				}
-				south.pop_front();
-				continue;
-			}
-		}
-
-		if (r.discardFirst && !r.discardSecond) {
-
-			if (json_dump) {
-				(*json_dump)["apply"][applyCounter]["discard_y_nocontact"] = fmt::format("{}", fmt::ptr(north.front()));
-				applyCounter++;
-			}
-
-			north.pop_front();
-			if (applyFirst(south)) {
-				any_applied = true; 
-				updateStacks();
-			}
-		}
-		else if (r.discardSecond && !r.discardFirst) {
-			if (json_dump) {
-				(*json_dump)["apply"][applyCounter]["discard_y_nocontact"] = fmt::format("{}", fmt::ptr(south.front()));
-				applyCounter++;
-			}
-
-			south.pop_front();
-			if (applyFirst(north)) {
-				any_applied = true;
-				updateStacks();
-			}
-		}
-		else if (r.discardFirst && r.discardSecond) {
-
-			if (json_dump) {
-				(*json_dump)["apply"][applyCounter] = {
-					{ "discard_y_nocontact", {
-							fmt::format("{}", fmt::ptr(north.front())),
-							fmt::format("{}", fmt::ptr(south.front()))
-						}
-					}
-				};
-			}
-
-			north.pop_front();
-			south.pop_front();
-		}
-		else {
-			if (northArb->separation < southArb->separation) {
-				if (applyFirst(north)) {
-					any_applied = true;
-					updateStacks();
-				}
-			}
-			else {
-				if (applyFirst(south)) {
-					any_applied = true;
-					updateStacks();
-				}
-			}
-		}
-	}
-
-	any_applied |= applyStack(north);
-	any_applied |= applyStack(south);
-	return any_applied;
-}
-
 
 // ----------------------------------------------------------------------------
 
@@ -630,8 +682,8 @@ bool CollisionSolver::apply(const Contact& contact, ContactType type)
 	if (contact.hasContact) 
 	{
 		if (json_dump) {
-			(*json_dump)["apply"][applyCounter] = to_json(&contact);
-			(*json_dump)["apply"][applyCounter]["type"] = type;
+			(*json_dump)["apply"] += to_json(&contact);
+			(*json_dump)["apply"].back()["type"] = type;
 		}
 
 		collidable->applyContact(contact, type);
@@ -646,223 +698,17 @@ bool CollisionSolver::apply(const Contact& contact, ContactType type)
 		}
 
 		frame.push_back(applied);
-		applyCounter++;
 		
 	}
 	else {
 		if (json_dump) {
-			(*json_dump)["apply"][applyCounter]["discard_apply"] = fmt::format("{}", fmt::ptr(&contact));
-			applyCounter++;
+			(*json_dump)["apply"] += {
+				{ "discard_apply", fmt::format("{}", fmt::ptr(&contact)) }
+			};
 		}
 	}
 	return has_contact;
 }
 
-// ----------------------------------------------------------------------------
-
-
-CollisionSolver::CompResult CollisionSolver::compare(const Contact* lhs, const Contact* rhs) {
-	CompResult comp;
-
-	if (lhs == rhs)
-		return comp;
-
-	const Contact& lhsContact = *lhs;
-	const Contact& rhsContact = *rhs;
-
-	comp.discardFirst  = lhs->arbiter ? !lhs->arbiter->getCollision()->tileValid() : false;
-	comp.discardSecond = rhs->arbiter ? !rhs->arbiter->getCollision()->tileValid() : false;
-
-	// ghost check
-	if (!comp.discardFirst && !comp.discardSecond) 
-	{
-		Ghost g1 = isGhostEdge(rhsContact, lhsContact);
-		Ghost g2 = isGhostEdge(lhsContact, rhsContact);
-
-		bool g1_isGhost = (g1 != Ghost::NO_GHOST);
-		bool g2_isGhost = (g2 != Ghost::NO_GHOST);
-
-		if (g2_isGhost || g1_isGhost) {
-			if (g2_isGhost && g1_isGhost) {
-				// pick one
-				if (g1 == g2) {
-					// double ghost, pick the one with least separation
-					g1_isGhost = !ContactCompare(lhs, rhs);
-				}
-				else {
-					g1_isGhost = g2 < g1;
-				}
-				g2_isGhost = !g1_isGhost;
-			}
-
-			comp.discardFirst = g1_isGhost;
-			comp.discardSecond = g2_isGhost;
-		}
-	}	
-	return comp;
-}
-
-CollisionSolver::Ghost CollisionSolver::isGhostEdge(const Contact& basis, const Contact& candidate) noexcept 
-{
-	if (!basis.isResolvable())
-		return CollisionSolver::Ghost::NO_GHOST;
-
-	bool isOneWay = (!basis.hasContact) && (basis.separation > 0.f) && (basis.impactTime == -1.0);
-
-	Linef basisLine = basis.collider.surface;
-	Linef candLine = candidate.collider.surface;
-
-	Vec2f basisNormal = math::vector(basis.collider.surface).lefthand().unit();
-
-	float dotp1 = math::dot(basisNormal, candLine.p1 - basisLine.p2);
-	float dotp2 = math::dot(basisNormal, candLine.p2 - basisLine.p1);
-
-	bool is_ghost = false;
-
-	// candidate is full *behind* basis surface
-	bool opt1;
-	if (   candLine.p1 == basisLine.p2
-		|| candLine.p2 == basisLine.p1) 
-	{
-		// surfaces share a point
-		opt1 = (dotp1 < 0.f && dotp2 < 0.f); // always false?
-	}
-	else {
-		opt1 = (dotp1 <= 0.f && dotp2 < 0.f) || (dotp1 < 0.f && dotp2 <= 0.f);
-	}
-
-	// prefer selecting verticals as the ghost edge
-	bool opt2 = (!math::is_vertical(basisLine) && math::is_vertical(candLine) && dotp1 <= 0.f && dotp2 <= 0.f); 
-
-	// candidate is opposite of basis
-	bool opt3 = (basisLine == Linef(candLine.p2, candLine.p1)); 
-
-	bool candidateBehind = opt1 || opt2 || opt3;
-
-	if (!isOneWay && candidateBehind) {
-		return (opt1 ? CollisionSolver::Ghost::FULL_GHOST : CollisionSolver::Ghost::PARTIAL_GHOST);
-	}
-	else {
-		return CollisionSolver::Ghost::NO_GHOST;
-	}
-
-}
-
-// ----------------------------------------------------------------------------
-
-CollisionSolver::CompResult CollisionSolver::pickH(const Contact* east, const Contact* west) {
-
-	float eSep = east->separation;
-	float wSep = west->separation;
-
-	Rectf colBox = collidable->getBox();
-
-	float crush = eSep + wSep;
-
-	// diverging check
-	if ((eSep >= colBox.width) != (wSep >= colBox.width)) {
-		CompResult r;
-		r.discardFirst = (eSep >= colBox.width);
-		r.discardSecond = (wSep >= colBox.width);
-		return r;
-	}
-
-	// crush check
-	if (crush > 0.f) {
-		CompResult r;
-		r.contactType = ContactType::CRUSH_HORIZONTAL;
-
-		r.discardFirst = true;
-		r.discardSecond = true;
-
-		if (eSep > wSep) {
-			r.contact = *east;
-			r.contact->separation -= wSep;
-			r.contact->separation /= 2.f;
-		}
-		else {
-			r.contact = *west;
-			r.contact->separation -= eSep;
-			r.contact->separation /= 2.f;
-		}
-		return r;
-	}
-
-	// pick the one with contact
-	if (east->hasContact != west->hasContact)
-	{
-		CompResult r;
-		r.discardFirst = !east->hasContact;
-		r.discardSecond = !west->hasContact;
-		return r;
-	}
-
-	return CompResult{};
-}
-
-CollisionSolver::CompResult CollisionSolver::pickV(const Contact* north, const Contact* south) 
-{
-
-	float nSep = north->separation;
-	float sSep = south->separation;
-
-	Rectf colBox = collidable->getBox();
-
-	float crush = nSep + sSep;
-
-	// diverging check
-	if (crush > 0.f) {
-		Vec2f nMid{ math::midpoint(north->collider.surface) };
-		Vec2f sMid{ math::midpoint(south->collider.surface) };
-
-		Vec2f nNormal = math::vector(north->collider.surface).lefthand().unit();
-		bool nFacingAway = math::dot(sMid - nMid, nNormal) < 0;
-
-		Vec2f sNormal = math::vector(south->collider.surface).lefthand().unit();
-		bool sFacingAway = math::dot(nMid - sMid, sNormal) < 0;
-
-		if ((nFacingAway && sFacingAway) || (crush > colBox.height)) {
-
-			CompResult r;
-			r.discardFirst = sSep < nSep;
-			r.discardSecond = !r.discardFirst;
-			return r;
-		}
-	}
-
-	// crush check
-	if (is_squeezing(north, south)
-		&& is_crushing(north, south))
-	{
-		// crush
-		CompResult r;
-		r.contactType = ContactType::CRUSH_VERTICAL;
-
-		r.discardFirst = true;
-		r.discardSecond = true;
-
-		if (nSep > sSep) {
-			r.contact = *north;
-			r.contact->separation -= sSep;
-			r.contact->separation /= 2.f;
-		}
-		else {
-			r.contact = *south;
-			r.contact->separation -= nSep;
-			r.contact->separation /= 2.f;
-		}
-		return r;
-	}
-	// pick the one with contact
-	if (north->hasContact != south->hasContact)
-	{
-		CompResult r;
-		r.discardFirst = !north->hasContact;
-		r.discardSecond = !south->hasContact;
-		return r;
-	}
-
-	return CompResult{};
-}
 
 }

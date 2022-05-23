@@ -38,11 +38,11 @@ TEST(collisionsolver, ghost_edge) {
 			}
 		};
 
-		auto g1 = CollisionSolver::isGhostEdge(c1, c2);
-		auto g2 = CollisionSolver::isGhostEdge(c1, c2);
+		auto g1 = isGhostEdge(c1, c2);
+		auto g2 = isGhostEdge(c1, c2);
 
-		EXPECT_EQ(g1, CollisionSolver::Ghost::FULL_GHOST);
-		EXPECT_EQ(g2, CollisionSolver::Ghost::FULL_GHOST);
+		EXPECT_EQ(g1, GhostEdge::Full);
+		EXPECT_EQ(g2, GhostEdge::Full);
 	}
 
 	{
@@ -76,11 +76,11 @@ TEST(collisionsolver, ghost_edge) {
 			}
 		};
 
-		auto g1 = CollisionSolver::isGhostEdge(c1, c2);
-		auto g2 = CollisionSolver::isGhostEdge(c1, c2);
+		auto g1 = isGhostEdge(c1, c2);
+		auto g2 = isGhostEdge(c1, c2);
 
-		EXPECT_EQ(g1, CollisionSolver::Ghost::FULL_GHOST);
-		EXPECT_EQ(g2, CollisionSolver::Ghost::FULL_GHOST);
+		EXPECT_EQ(g1, GhostEdge::Full);
+		EXPECT_EQ(g2, GhostEdge::Full);
 	}
 }
 
