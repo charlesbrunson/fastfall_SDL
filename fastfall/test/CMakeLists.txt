@@ -14,6 +14,8 @@ macro(create_ff_test TESTNAME)
 
     add_executable(${TESTNAME} ${ARGN})
 	target_link_libraries(${TESTNAME} gtest gtest_main fastfall)
+	target_include_directories(${TESTNAME} PRIVATE "google_test/googletest/include")
+		
 		
 	gtest_discover_tests(${TESTNAME}
 		WORKING_DIRECTORY ${PROJECT_DIR}
