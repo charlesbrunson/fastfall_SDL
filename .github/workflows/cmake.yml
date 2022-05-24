@@ -38,14 +38,13 @@ jobs:
     steps:
     # checkout repo
     - uses: actions/checkout@v3
-
     
     - name: Print Env
       run: env 
 
     # linux only, get required packages
     - name: Install Linux Packages
-      if: ${{ matrix.os }} == ubuntu-22.04
+      if: runner.os == 'Linux'
       run: |
         sudo apt-get update -qq
         sudo apt-get install -y gcc-multilib python3 curl zip unzip
@@ -56,14 +55,14 @@ jobs:
 
     # emscripten only, get emscripten
     - name: Get Emscripten
-      if: ${{ matrix.compiler == 'emscripten' }} 
+      if: matrix.compiler == 'emscripten'
       shell: bash
       working-directory: ${{github.workspace}}
       run: git clone https://github.com/emscripten-core/emsdk.git
         
     # emscripten only, config emscripten
     - name: Configure Emscripten
-      if: ${{ matrix.compiler == 'emscripten' }} 
+      if: matrix.compiler == 'emscripten'
       shell: bash
       working-directory: ${{github.workspace}}/emsdk
       run: |
@@ -72,18 +71,21 @@ jobs:
           
     # desktop only, use specified compiler
     - name: Configure CMake (Desktop)
-      if: ${{ matrix.compiler != 'emscripten' }} 
+      if: matrix.compiler != 'emscripten'
       run: cmake -B ${{github.workspace}}/${{env.BUILD_NAME}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
       
     # emscripten only, use emscripten toolchain
     - name: Configure CMake (Web)
-      if: ${{ matrix.compiler == 'emscripten' }} 
+      if: matrix.compiler == 'emscripten'
       run: cmake -B ${{github.workspace}}/${{env.BUILD_NAME}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Wno-dev -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
 
     - name: Build
+      id: build-id
       run: cmake --build ${{env.BUILD_NAME}} --config ${{env.BUILD_TYPE}}
 
     - name: Test
+      id: test-id
+      if: steps.build-id.outcome == 'success'
       working-directory: ${{github.workspace}}/${{env.BUILD_NAME}}
       run: ctest -C ${{env.BUILD_TYPE}} --output-junit ${{env.TESTS_NAME}}
       
@@ -92,7 +94,7 @@ jobs:
       working-directory: ${{env.BUILD_NAME}}
 
     - name: Upload Test Results
-      if: always()
+      if: steps.test-id.outcome != 'skipped'
       uses: actions/upload-artifact@v2
       with:
         name: Test Results (${{matrix.os}} ${{ matrix.compiler }})
@@ -100,15 +102,16 @@ jobs:
 
     - name: Upload Release
       uses: actions/upload-artifact@v2
+      if: steps.test-id.outcome == 'success'
       with:
-        name: releases/${{env.BUILD_NAME}}
+        name: ${{env.BUILD_NAME}}
         path: ${{github.workspace}}/${{env.BUILD_NAME}}/test_project_*.zip
   
   release:
     runs-on: ubuntu-latest
     needs: build-and-test
     steps:
-    - name: Upload Release
+    - name: Download Release
       uses: actions/download-artifact@v3
       with:
         path: releases/
