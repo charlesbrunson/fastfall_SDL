@@ -153,8 +153,8 @@ if(EMSCRIPTEN)
 		-sBINARYEN_IGNORE_IMPLICIT_TRAPS=1 
 		-sFULL_ES3=1 
 		-sALLOW_MEMORY_GROWTH=1 
-		--emrun
 	)
+
 
 endif()
 

@@ -57,6 +57,10 @@ if(EMSCRIPTEN)
 		"SHELL:--preload-file ../data@/data" 
 		"SHELL:--preload-file ../gamecontrollerdb.txt@/gamecontrollerdb.txt"
 	)
+
+	target_link_options(test_project PRIVATE
+		--emrun
+	)
 else()
 	add_custom_command(
 		TARGET test_project 
