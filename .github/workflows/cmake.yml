@@ -18,7 +18,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04, windows-latest]
         compiler: [g++-11, clang++12, emscripten, MSVC]
-        exclue:
+        exclude:
         - os: ubuntu-22.04
           compiler: MSVC
         - os: windows-latest
