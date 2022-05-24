@@ -7,9 +7,9 @@ on:
         branches: [ master ]
     workflow_dispatch:
 
-env:
+#env:
     # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-    BUILD_TYPE: Release
+#    BUILD_TYPE: Release
   
 jobs:
   build-and-test:
@@ -26,8 +26,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-        BUILD_NAME: build-${{matrix.os}}-${{matrix.compiler}}-${{env.BUILD_TYPE}}
-        TESTS_NAME: ${{env.BUILD_NAME}}_tests.xml
+      BUILD_TYPE: Release
+      BUILD_NAME: build-${{matrix.os}}-${{matrix.compiler}}-${{env.BUILD_TYPE}}
+      TESTS_NAME: ${{env.BUILD_NAME}}_tests.xml
 
     steps:
     # checkout repo
@@ -49,8 +50,7 @@ jobs:
       if: ${{ matrix.compiler }} == emscripten
       shell: bash
       working-directory: ${{github.workspace}}
-      run: |
-          git clone https://github.com/emscripten-core/emsdk.git
+      run: git clone https://github.com/emscripten-core/emsdk.git
         
     # emscripten only, config emscripten
     - name: Configure Emscripten
@@ -112,6 +112,6 @@ jobs:
       uses: ncipollo/release-action@v1.10.0
       with:
         name: fastfall_SDL
-        artifacts: "releases/*"
+        artifacts: "releases/*.zip"
         allowUpdates: true
         tag: release
