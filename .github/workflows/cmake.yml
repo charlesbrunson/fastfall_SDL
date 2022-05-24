@@ -17,14 +17,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, windows-latest]
-        compiler: [g++-11, clang++12, emscripten, MSVC]
+        compiler: [g++-11, clang++-12, emscripten, MSVC]
         exclude:
         - os: ubuntu-22.04
           compiler: MSVC
         - os: windows-latest
           compiler: g++-11
         - os: windows-latest
-          compiler: clang++12
+          compiler: clang++-12
         - os: windows-latest
           compiler: emscripten
 
@@ -56,14 +56,14 @@ jobs:
 
     # emscripten only, get emscripten
     - name: Get Emscripten
-      if: ${{ matrix.compiler }} == emscripten
+      if: ${{ matrix.compiler == 'emscripten' }} 
       shell: bash
       working-directory: ${{github.workspace}}
       run: git clone https://github.com/emscripten-core/emsdk.git
         
     # emscripten only, config emscripten
     - name: Configure Emscripten
-      if: ${{ matrix.compiler }} == emscripten
+      if: ${{ matrix.compiler == 'emscripten' }} 
       shell: bash
       working-directory: ${{github.workspace}}/emsdk
       run: |
@@ -72,12 +72,12 @@ jobs:
           
     # desktop only, use specified compiler
     - name: Configure CMake (Desktop)
-      if: ${{ matrix.compiler }} != emscripten
+      if: ${{ matrix.compiler != 'emscripten' }} 
       run: cmake -B ${{github.workspace}}/${{env.BUILD_NAME}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
       
     # emscripten only, use emscripten toolchain
     - name: Configure CMake (Web)
-      if: ${{ matrix.compiler }} == emscripten
+      if: ${{ matrix.compiler == 'emscripten' }} 
       run: cmake -B ${{github.workspace}}/${{env.BUILD_NAME}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Wno-dev -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
 
     - name: Build
