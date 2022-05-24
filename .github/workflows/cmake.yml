@@ -29,20 +29,20 @@ jobs:
         sudo apt-get install -y gcc-multilib python3 curl zip unzip
         sudo apt-get install -y mesa-common-dev libglu1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libgl1-mesa-dev
           
-    - name: Cache External
-      uses: actions/cache@v3
-      with:
-        path: |
-          ${{github.workspace}}/fastfall/external/*/
-          ${{github.workspace}}/fastfall/test/google_test/
-        key: 1
-        
-    - name: Cache Build
-      uses: actions/cache@v3
-      with:
-        path: |
-          ${{github.workspace}}/build-${{matrix.compiler}}-${{env.BUILD_TYPE}}/
-        key: build-${{matrix.compiler}}-${{env.BUILD_TYPE}}
+    #- name: Cache External
+    #  uses: actions/cache@v3
+    #  with:
+    #    path: |
+    #      ${{github.workspace}}/fastfall/external/*/
+    #      ${{github.workspace}}/fastfall/test/google_test/
+    #    key: 1
+    #    
+    #- name: Cache Build
+    #  uses: actions/cache@v3
+    #  with:
+    #    path: |
+    #      ${{github.workspace}}/build-${{matrix.compiler}}-${{env.BUILD_TYPE}}/
+    #    key: build-${{matrix.compiler}}-${{env.BUILD_TYPE}}
         
     - name: Configure CMake ${{ matrix.compiler }}
       run: cmake -B ${{github.workspace}}/build-${{matrix.compiler}}-${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
