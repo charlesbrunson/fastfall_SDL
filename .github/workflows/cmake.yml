@@ -67,7 +67,7 @@ jobs:
       run: cmake -E make_directory build-windows-${{env.BUILD_TYPE}}
       
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}\build-windows-${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -B ${{github.workspace}}\build-windows-${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
       run: cmake --build build-windows-${{env.BUILD_TYPE}} --config ${{env.BUILD_TYPE}}

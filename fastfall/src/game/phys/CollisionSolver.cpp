@@ -3,15 +3,12 @@
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/log.hpp"
 
-//#include <ranges>
-
 #include "nlohmann/json.hpp"
-
-
-
 
 namespace ff 
 {
+
+// json helper utils
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ContactType, {
 	{ContactType::NO_SOLUTION,		"no solution"},
@@ -51,6 +48,8 @@ nlohmann::ordered_json to_json(Container container)
 	return json;
 }
 
+// solver utils
+
 void updateContact(Contact* contact)
 {
 	if (contact->arbiter) {
@@ -62,31 +61,10 @@ void updateStack(std::deque<Contact*>& stack) {
 	std::for_each(stack.begin(), stack.end(), updateContact);
 }
 
-bool CollisionSolver::applyThenUpdateStacks(std::deque<Contact*>& stack, std::deque<Contact*>& otherStack, bool which)
-{
-	bool applied = applyFirst(which ? stack : otherStack);
-	if (applied) {
-		updateStack(stack);
-		updateStack(otherStack);
-	}
-	return applied;
-};
-
-bool CollisionSolver::canApplyElseDiscard(bool discard, std::deque<Contact*>& stack)
-{
-	if (discard)
-	{
-		if (json_dump) {
-			(*json_dump)["apply"] += {
-				{ "discard_nocontact", fmt::format("{}", fmt::ptr(stack.front())) }
-			};
-		}
-		stack.pop_front();
-	}
-	return !discard;
-};
 
 // ----------------------------------------------------------------------------
+
+// utils for detecting crush/wedges
 
 bool is_squeezing(const Contact* A, const Contact* B)
 {
@@ -105,6 +83,8 @@ bool is_crushing(const Contact* A, const Contact* B)
 	Vec2f sum = A->collider_n + B->collider_n;
 	return abs(sum.x) < 1e-5 && abs(sum.y) < 1e-5;
 }
+
+// solve functions for x- and y-axis
 
 CollisionSolver::CompResult pickH(const Contact* east, const Contact* west, const Collidable* box)
 {
@@ -224,6 +204,71 @@ CollisionSolver::CompResult pickV(const Contact* north, const Contact* south, co
 
 // ----------------------------------------------------------------------------
 
+CollisionSolver::CollisionSolver(Collidable* _collidable)
+	: collidable(_collidable)
+{
+}
+
+bool CollisionSolver::applyThenUpdateStacks(std::deque<Contact*>& stack, std::deque<Contact*>& otherStack, bool which)
+{
+	bool applied = applyFirst(which ? stack : otherStack);
+	if (applied) {
+		updateStack(stack);
+		updateStack(otherStack);
+	}
+	return applied;
+};
+
+bool CollisionSolver::canApplyElseDiscard(bool discard, std::deque<Contact*>& stack)
+{
+	if (discard)
+	{
+		if (json_dump) {
+			(*json_dump)["apply"] += {
+				{ "discard_nocontact", fmt::format("{}", fmt::ptr(stack.front())) }
+			};
+		}
+		stack.pop_front();
+	}
+	return !discard;
+};
+
+void CollisionSolver::pushToAStack(Contact* contact)
+{
+	auto dir = direction::from_vector(contact->ortho_n);
+	if (!dir.has_value()) {
+		if (json_dump) {
+			(*json_dump)["apply"] += {
+				{ "discard_nodir", fmt::format("{}", fmt::ptr(contact)) }
+			};
+		}
+	}
+	else {
+		switch (dir.value()) {
+		case Cardinal::E:
+			east.push_back(contact);
+			break;
+		case Cardinal::W:
+			west.push_back(contact);
+			break;
+		case Cardinal::N:
+			(contact->isTransposable() ? north_alt.push_back(contact) : north.push_back(contact));
+			break;
+		case Cardinal::S:
+			(contact->isTransposable() ? south_alt.push_back(contact) : south.push_back(contact));
+			break;
+		}
+	}
+}
+
+void CollisionSolver::pushToAStack(std::vector<Contact*> contacts)
+{
+	for (auto* contact : contacts)
+	{
+		pushToAStack(contact);
+	}
+}
+
 CollisionSolver::CompResult compare(const Contact* lhs, const Contact* rhs) {
 	CollisionSolver::CompResult comp;
 
@@ -311,12 +356,6 @@ GhostEdge isGhostEdge(const Contact& basis, const Contact& candidate) noexcept
 
 }
 
-
-CollisionSolver::CollisionSolver(Collidable* _collidable) 
-	: collidable(_collidable)
-{
-}
-
 void CollisionSolver::compareAll() 
 {
 
@@ -355,43 +394,6 @@ void CollisionSolver::compareAll()
 	}
 
 }
-
-void CollisionSolver::pushToAStack(Contact* contact)
-{
-	auto dir = direction::from_vector(contact->ortho_n);
-	if (!dir.has_value()) {
-		if (json_dump) {
-			(*json_dump)["apply"] += {
-				{ "discard_nodir", fmt::format("{}", fmt::ptr(contact)) }
-			};
-		}
-	}
-	else {
-		switch (dir.value()) {
-		case Cardinal::E:
-			east.push_back(contact);
-			break;
-		case Cardinal::W:
-			west.push_back(contact);
-			break;
-		case Cardinal::N:
-			(contact->isTransposable() ? north_alt.push_back(contact) : north.push_back(contact));
-			break;
-		case Cardinal::S:
-			(contact->isTransposable() ? south_alt.push_back(contact) : south.push_back(contact));
-			break;
-		}
-	}
-}
-
-void CollisionSolver::pushToAStack(std::vector<Contact*> contacts)
-{
-	for (auto* contact : contacts)
-	{
-		pushToAStack(contact);
-	}
-}
-
 
 std::optional<Contact> CollisionSolver::detectWedge(const Contact* north, const Contact* south)
 {

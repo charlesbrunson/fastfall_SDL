@@ -52,44 +52,62 @@ target_link_libraries(test_project PRIVATE
 
 if(EMSCRIPTEN)
 	set(CMAKE_EXECUTABLE_SUFFIX .html)
+	
+	target_link_options(test_project PRIVATE
+		--emrun
+	)
 
+	# create test_project.data file
 	target_link_options(test_project PRIVATE 
 		"SHELL:--preload-file ../data@/data" 
 		"SHELL:--preload-file ../gamecontrollerdb.txt@/gamecontrollerdb.txt"
 	)
 
-	target_link_options(test_project PRIVATE
-		--emrun
-	)
-
+	# rename test_project.html to index.html
 	add_custom_command(
 		TARGET test_project 
 		POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E tar "cfv" "test_project_${CMAKE_SYSTEM_NAME}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_SYSTEM_PROCESSOR}.zip" --format=zip
-			"$<TARGET_FILE_DIR:test_project>/test_project${CMAKE_EXECUTABLE_SUFFIX}"
+		COMMAND ${CMAKE_COMMAND} -E rename 
+		"$<TARGET_FILE_DIR:test_project>/test_project${CMAKE_EXECUTABLE_SUFFIX}"
+		"$<TARGET_FILE_DIR:test_project>/index${CMAKE_EXECUTABLE_SUFFIX}")
+
+	# zip it
+	add_custom_command(
+		TARGET test_project 
+		POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E tar "cfv" "test_project_${CMAKE_SYSTEM_NAME}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_SYSTEM_PROCESSOR}.zip" 
+			--format=zip
+			"$<TARGET_FILE_DIR:test_project>/index${CMAKE_EXECUTABLE_SUFFIX}"
 			"$<TARGET_FILE_DIR:test_project>/test_project.js"
 			"$<TARGET_FILE_DIR:test_project>/test_project.wasm"
 			"$<TARGET_FILE_DIR:test_project>/test_project.data")
 
 else()
-	add_custom_command(
-		TARGET test_project 
-		POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy_directory
-        	${CMAKE_SOURCE_DIR}/data/ $<TARGET_FILE_DIR:test_project>/data/)
+	if (${CMAKE_BUILD_TYPE} MATCHES "Release")
 
-	add_custom_command(
-		TARGET test_project 
-		POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy
-        	${CMAKE_SOURCE_DIR}/gamecontrollerdb.txt $<TARGET_FILE_DIR:test_project>)
-
-	add_custom_command(
-		TARGET test_project 
-		POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E tar "cfv" "test_project_${CMAKE_SYSTEM_NAME}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_SYSTEM_PROCESSOR}.zip" --format=zip
-			"$<TARGET_FILE_DIR:test_project>/test_project${CMAKE_EXECUTABLE_SUFFIX}"
-			"$<TARGET_FILE_DIR:test_project>/data"
-			"$<TARGET_FILE_DIR:test_project>/gamecontrollerdb.txt")
+		# copy data directory to bin folder
+		add_custom_command(
+			TARGET test_project 
+			POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_directory
+        		${CMAKE_SOURCE_DIR}/data/ $<TARGET_FILE_DIR:test_project>/data/)
+			
+		# copy gamecontrollerdb.txt directory to bin folder
+		add_custom_command(
+			TARGET test_project 
+			POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy
+        		${CMAKE_SOURCE_DIR}/gamecontrollerdb.txt $<TARGET_FILE_DIR:test_project>)
+			
+		# zip it
+		add_custom_command(
+			TARGET test_project 
+			POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E tar "cfv" "test_project_${CMAKE_SYSTEM_NAME}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_SYSTEM_PROCESSOR}.zip" 
+				--format=zip
+				"$<TARGET_FILE_DIR:test_project>/test_project${CMAKE_EXECUTABLE_SUFFIX}"
+				"$<TARGET_FILE_DIR:test_project>/data"
+				"$<TARGET_FILE_DIR:test_project>/gamecontrollerdb.txt")
+	endif()
 endif()
 
