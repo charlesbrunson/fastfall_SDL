@@ -28,7 +28,7 @@ jobs:
     env:
       BUILD_TYPE: Release
       BUILD_NAME: build-${{matrix.os}}-${{matrix.compiler}}-Release
-      TESTS_NAME: ${{env.BUILD_NAME}}_tests.xml
+      TESTS_NAME: build-${{matrix.os}}-${{matrix.compiler}}-Release_tests.xml
 
     steps:
     # checkout repo
