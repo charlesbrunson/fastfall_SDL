@@ -27,12 +27,16 @@ jobs:
 
     env:
       BUILD_TYPE: Release
-      BUILD_NAME: build-${{matrix.os}}-${{matrix.compiler}}-${{env.BUILD_TYPE}}
+      BUILD_NAME: build-${{matrix.os}}-${{matrix.compiler}}-Release
       TESTS_NAME: ${{env.BUILD_NAME}}_tests.xml
 
     steps:
     # checkout repo
     - uses: actions/checkout@v3
+
+    
+    - name: Print Env
+      run: env 
 
     # linux only, get required packages
     - name: Install Linux Packages
