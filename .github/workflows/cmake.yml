@@ -1,149 +1,117 @@
-name: Build And Test
+name: Build, Test, Release All Environments
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    push:
+        branches: [ master ]
+    pull_request:
+        branches: [ master ]
+    workflow_dispatch:
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
+    # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+    BUILD_TYPE: Release
   
 jobs:
-  linux-desktop:
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: write
+  build-and-test:
     strategy:
       fail-fast: false
       matrix:
-        compiler: [g++-11, clang++-12]
+        os: [ubuntu-22.04, windows-latest]
+        include:
+        - os: ubuntu-22.04
+          compiler: [g++-11, clang++-12, emscripten]
+        - os: windows-latest
+          compiler: MSVC
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+        BUILD_NAME: build-${{matrix.os}}-${{matrix.compiler}}-${{env.BUILD_TYPE}}
+        TESTS_NAME: ${{env.BUILD_NAME}}_tests.xml
+
     steps:
+    # checkout repo
     - uses: actions/checkout@v3
-    - name: Install Packages
+
+    # linux only, get required packages
+    - name: Install Linux Packages
+      if: ${{ matrix.os }} == ubuntu-22.04
       run: |
         sudo apt-get update -qq
         sudo apt-get install -y gcc-multilib python3 curl zip unzip
         sudo apt-get install -y mesa-common-dev libglu1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libgl1-mesa-dev
-          
+
     - name: Create Build Directory
-      run: cmake -E make_directory build-windows-${{env.BUILD_TYPE}}
-        
-    - name: Configure CMake ${{ matrix.compiler }}
-      run: cmake -B ${{github.workspace}}/build-${{matrix.compiler}}-${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
+      run: cmake -E make_directory ${{env.BUILD_NAME}}
 
-    - name: Build
-      run: cmake --build build-${{matrix.compiler}}-${{env.BUILD_TYPE}} --config ${{env.BUILD_TYPE}}
-
-    - name: Test
-      working-directory: ${{github.workspace}}/build-${{matrix.compiler}}-${{env.BUILD_TYPE}}
-      run: ctest -C ${{env.BUILD_TYPE}} --output-junit test_results.xml
-      
-    - name: Upload Test Results
-      if: always()
-      uses: actions/upload-artifact@v2
-      with:
-        name: Test Results (Linux ${{ matrix.compiler }})
-        path: build-${{matrix.compiler}}-${{env.BUILD_TYPE}}/test_results.xml
-        
-    - name: Create Release
-      uses: ncipollo/release-action@v1.10.0
-      with:
-        name: fastfall_SDL
-        artifacts: "${{github.workspace}}/build-${{matrix.compiler}}-${{env.BUILD_TYPE}}/test_project_*.zip"
-        allowUpdates: true
-        tag: release
-        
-  windows-desktop:
-    runs-on: windows-latest
-    permissions:
-      contents: write
-    strategy:
-      fail-fast: false
-    steps:                  
-    - uses: actions/checkout@v2
-    - name: Create Build Directory
-      run: cmake -E make_directory build-windows-${{env.BUILD_TYPE}}
-      
-    - name: Configure CMake
-      run: cmake -B ${{github.workspace}}\build-windows-${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-
-    - name: Build
-      run: cmake --build build-windows-${{env.BUILD_TYPE}} --config ${{env.BUILD_TYPE}}
-
-    - name: Test
-      working-directory: ${{github.workspace}}\build-windows-${{env.BUILD_TYPE}}
-      run: ctest -C ${{env.BUILD_TYPE}} --output-junit test_results.xml
-      
-    - name: Upload Test Results
-      if: always()
-      uses: actions/upload-artifact@v2
-      with:
-        name: Test Results (Windows)
-        path: build-windows-${{env.BUILD_TYPE}}\test_results.xml
-        
-    - name: Create Release
-      uses: ncipollo/release-action@v1.10.0
-      with:
-        name: fastfall_SDL
-        artifacts: "${{github.workspace}}\\build-windows-${{env.BUILD_TYPE}}\\test_project_*.zip"
-        allowUpdates: true
-        tag: release
-
-  linux-web:
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-    strategy:
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install Packages
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y gcc-multilib python3 curl zip unzip
-          sudo apt-get install -y mesa-common-dev libglu1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libgl1-mesa-dev
-
-      - name: Create Build Directory
-        run: cmake -E make_directory build-web-${{env.BUILD_TYPE}}
-        
-      - name: Get Emscripten
-        shell: bash
-        working-directory: ${{github.workspace}}
-        run: |
+    # emscripten only, get emscripten
+    - name: Get Emscripten
+      if: ${{ matrix.compiler }} == emscripten
+      shell: bash
+      working-directory: ${{github.workspace}}
+      run: |
           git clone https://github.com/emscripten-core/emsdk.git
         
-      - name: Configure Emscripten
-        shell: bash
-
-        # Change the directory to be emsdk instead of the project root
-        working-directory: ${{github.workspace}}/emsdk
-        run: |
+    # emscripten only, config emscripten
+    - name: Configure Emscripten
+      if: ${{ matrix.compiler }} == emscripten
+      shell: bash
+      working-directory: ${{github.workspace}}/emsdk
+      run: |
           ./emsdk install latest
           ./emsdk activate latest
           
-      - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build-web-${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Wno-dev -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
- 
-      - name: Build
-        run: cmake --build build-web-${{env.BUILD_TYPE}} --config ${{env.BUILD_TYPE}}
+    # desktop only, use specified compiler
+    - name: Configure CMake (Desktop)
+      if: ${{ matrix.compiler }} != emscripten
+      run: cmake -B ${{github.workspace}}/${{env.BUILD_NAME}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
+      
+    # emscripten only, use emscripten toolchain
+    - name: Configure CMake (Web)
+      if: ${{ matrix.compiler }} == emscripten
+      run: cmake -B ${{github.workspace}}/${{env.BUILD_NAME}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Wno-dev -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
 
-      - name: Test
-        working-directory: ${{github.workspace}}/build-web-${{env.BUILD_TYPE}}
-        run: ctest -C ${{env.BUILD_TYPE}} --output-junit test_results.xml
+    - name: Build
+      run: cmake --build ${{env.BUILD_NAME}} --config ${{env.BUILD_TYPE}}
 
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: Test Results (Emscripten)
-          path: build-web-${{env.BUILD_TYPE}}/test_results.xml
+    - name: Test
+      working-directory: ${{github.workspace}}/${{env.BUILD_NAME}}
+      run: ctest -C ${{env.BUILD_TYPE}} --output-junit ${{env.TESTS_NAME}}
+      
+    - name: Display structure of build directory
+      run: ls -R
+      working-directory: ${{env.BUILD_NAME}}
 
-      - name: Create Release
-        uses: ncipollo/release-action@v1.10.0
-        with:
-          name: fastfall_SDL
-          artifacts: "${{github.workspace}}/build-web-${{env.BUILD_TYPE}}/test_project_*.zip"
-          allowUpdates: true
-          tag: release
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: Test Results (${{matrix.os}} ${{ matrix.compiler }})
+        path: ${{env.BUILD_NAME}}/${{env.TESTS_NAME}}
+
+    - name: Upload Release
+      uses: actions/upload-artifact@v2
+      with:
+        name: releases/${{env.BUILD_NAME}}
+        path: ${{github.workspace}}/${{env.BUILD_NAME}}/test_project_*.zip
+  
+  release:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+    - name: Upload Release
+      uses: actions/download-artifact@v3
+      with:
+        path: releases/
+        
+    - name: Display structure of downloaded files
+      run: ls -R
+      working-directory: releases/
+      
+    - name: Create Release
+      uses: ncipollo/release-action@v1.10.0
+      with:
+        name: fastfall_SDL
+        artifacts: "releases/*"
+        allowUpdates: true
+        tag: release

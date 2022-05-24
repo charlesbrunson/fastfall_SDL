@@ -50,12 +50,14 @@ target_link_libraries(test_project PRIVATE
 	fastfall
 )
 
+message(status ${CMAKE_CURRENT_SOURCE_DIR}/html/min-shell.html)
+
 if(EMSCRIPTEN)
 	set(CMAKE_EXECUTABLE_SUFFIX .html)
 	
 	target_link_options(test_project PRIVATE
 		--emrun
-		--shell-file html/min-shell.html 
+		--shell-file "${CMAKE_CURRENT_SOURCE_DIR}/html/min-shell.html"
 	)
 
 	# create test_project.data file
