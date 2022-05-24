@@ -89,8 +89,11 @@ jobs:
     #      ${{github.workspace}}/build-windows-${{env.BUILD_TYPE}}/
     #    key: build-windows-${{env.BUILD_TYPE}}
         
+    - name: where am i
+      run: dir
+    
     - name: Configure CMake
-      run: cmake -S . -B ${{github.workspace}}\build-windows-${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -S ${{github.workspace}} -B ${{github.workspace}}\build-windows-${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
       run: cmake --build build-windows-${{env.BUILD_TYPE}} --config ${{env.BUILD_TYPE}}
