@@ -4,11 +4,11 @@ on:
   push:
     branches: [ master ]
     tags:        
-    - '*'
+    - 'release'
   pull_request:
     branches: [ master ]
     tags:        
-    - '*'
+    - 'release'
   workflow_dispatch:
 
 #env:
