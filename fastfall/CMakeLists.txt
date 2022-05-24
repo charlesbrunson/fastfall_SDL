@@ -195,11 +195,11 @@ if(EMSCRIPTEN)
 else()
 	if (${CMAKE_BUILD_TYPE} MATCHES "Release")
 		target_compile_definitions(fastfall PUBLIC
-			FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
+			FF_DATA_DIR=""
 		)
 	else()
 		target_compile_definitions(fastfall PUBLIC
-			FF_DATA_DIR=""
+			FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
 		)
 	endif()
 endif()
