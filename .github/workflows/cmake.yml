@@ -1,19 +1,7 @@
 name: Build, Test, Release All Environments
 
 on:
-  push:
-    branches: [ master ]
-    tags:        
-    - 'release'
-  pull_request:
-    branches: [ master ]
-    tags:        
-    - 'release'
   workflow_dispatch:
-
-#env:
-    # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-#    BUILD_TYPE: Release
   
 jobs:
   build-and-test:
