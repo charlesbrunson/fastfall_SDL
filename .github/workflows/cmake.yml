@@ -1,11 +1,15 @@
 name: Build, Test, Release All Environments
 
 on:
-    push:
-        branches: [ master ]
-    pull_request:
-        branches: [ master ]
-    workflow_dispatch:
+  push:
+    branches: [ master ]
+    tags:        
+    - '*'
+  pull_request:
+    branches: [ master ]
+    tags:        
+    - '*'
+  workflow_dispatch:
 
 #env:
     # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -89,10 +93,6 @@ jobs:
       working-directory: ${{github.workspace}}/${{env.BUILD_NAME}}
       run: ctest -C ${{env.BUILD_TYPE}} --output-junit ${{env.TESTS_NAME}}
       
-    - name: Display structure of build directory
-      run: ls -R
-      working-directory: ${{env.BUILD_NAME}}
-
     - name: Upload Test Results
       if: steps.test-id.outcome != 'skipped'
       uses: actions/upload-artifact@v2
@@ -126,4 +126,5 @@ jobs:
         name: fastfall_SDL
         artifacts: "releases/build-*/*.zip"
         allowUpdates: true
+        removeArtifacts: true
         tag: release
