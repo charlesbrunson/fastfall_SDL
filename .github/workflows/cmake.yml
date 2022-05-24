@@ -17,15 +17,16 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, windows-latest]
-        include:
+        compiler: [g++-11, clang++12, emscripten, MSVC]
+        exclue:
         - os: ubuntu-22.04
-          compiler: g++-11
-        - os: ubuntu-22.04
-          compiler: clang++-12
-        - os: ubuntu-22.04
-          compiler: emscripten
-        - os: windows-latest
           compiler: MSVC
+        - os: windows-latest
+          compiler: g++-11
+        - os: windows-latest
+          compiler: clang++12
+        - os: windows-latest
+          compiler: emscripten
 
     runs-on: ${{ matrix.os }}
 
