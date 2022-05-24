@@ -124,6 +124,6 @@ jobs:
       uses: ncipollo/release-action@v1.10.0
       with:
         name: fastfall_SDL
-        artifacts: "releases/*.zip"
+        artifacts: "releases/build-*/*.zip"
         allowUpdates: true
         tag: release
