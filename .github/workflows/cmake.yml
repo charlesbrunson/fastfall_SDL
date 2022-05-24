@@ -27,20 +27,8 @@ jobs:
         sudo apt-get install -y gcc-multilib python3 curl zip unzip
         sudo apt-get install -y mesa-common-dev libglu1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libgl1-mesa-dev
           
-    #- name: Cache External
-    #  uses: actions/cache@v3
-    #  with:
-    #    path: |
-    #      ${{github.workspace}}/fastfall/external/*/
-    #      ${{github.workspace}}/fastfall/test/google_test/
-    #    key: 1
-    #    
-    #- name: Cache Build
-    #  uses: actions/cache@v3
-    #  with:
-    #    path: |
-    #      ${{github.workspace}}/build-${{matrix.compiler}}-${{env.BUILD_TYPE}}/
-    #    key: build-${{matrix.compiler}}-${{env.BUILD_TYPE}}
+    - name: Create Build Directory
+      run: cmake -E make_directory build-windows-${{env.BUILD_TYPE}}
         
     - name: Configure CMake ${{ matrix.compiler }}
       run: cmake -B ${{github.workspace}}/build-${{matrix.compiler}}-${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
@@ -73,23 +61,11 @@ jobs:
       contents: write
     strategy:
       fail-fast: false
-    steps:          
-    #- name: Cache External
-    #  uses: actions/cache@v3
-    #  with:
-    #    path: |
-    #      ${{github.workspace}}/fastfall/external/*/
-    #      ${{github.workspace}}/fastfall/test/google_test/
-    #    key: 1
-    #    
-    #- name: Cache Build
-    #  uses: actions/cache@v3
-    #  with:
-    #    path: |
-    #      ${{github.workspace}}/build-windows-${{env.BUILD_TYPE}}/
-    #    key: build-windows-${{env.BUILD_TYPE}}
-        
+    steps:                  
     - uses: actions/checkout@v2
+    - name: Create Build Directory
+      run: cmake -E make_directory build-windows-${{env.BUILD_TYPE}}
+      
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build-${{matrix.compiler}}-${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
@@ -114,3 +90,60 @@ jobs:
         artifacts: "${{github.workspace}}\build-windows-${{env.BUILD_TYPE}}\test_project_*.zip"
         allowUpdates: true
         tag: release
+
+  linux-web:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Packages
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gcc-multilib python3 curl zip unzip
+          sudo apt-get install -y mesa-common-dev libglu1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libgl1-mesa-dev
+
+      - name: Create Build Directory
+        run: cmake -E make_directory build-web-${{env.BUILD_TYPE}}
+        
+      - name: Get Emscripten
+        shell: bash
+        working-directory: ${{github.workspace}}
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git
+        
+      - name: Configure Emscripten
+        shell: bash
+
+        # Change the directory to be emsdk instead of the project root
+        working-directory: ${{github.workspace}}/emsdk
+        run: |
+          ./emsdk install latest
+          ./emsdk activate latest
+          
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build-web-${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Wno-dev -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+ 
+      - name: Build
+        run: cmake --build build-web-${{env.BUILD_TYPE}} --config ${{env.BUILD_TYPE}}
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build-web-${{env.BUILD_TYPE}}
+        run: ctest -C ${{env.BUILD_TYPE}} --output-junit test_results.xml
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Test Results (Emscripten)
+          path: build-web-${{env.BUILD_TYPE}}/test_results.xml
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1.10.0
+        with:
+          name: fastfall_SDL
+          artifacts: "${{github.workspace}}/build-web-${{env.BUILD_TYPE}}/test_project_*.zip"
+          allowUpdates: true
+          tag: release
