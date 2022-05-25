@@ -538,7 +538,7 @@ void Engine::handleEvents(bool* timeWasted)
     if (!settings.fullscreen
         && window->getSize() != canvas_size)
     {
-        resizeWindow(Vec2u(window->getSize()));
+        resizeWindow(Vec2u(canvas_size));
         *timeWasted = true;
     }
 #endif
