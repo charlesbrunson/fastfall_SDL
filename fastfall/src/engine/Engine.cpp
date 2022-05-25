@@ -533,11 +533,11 @@ void Engine::handleEvents(bool* timeWasted)
 
 #if defined(__EMSCRIPTEN__)
     // get canvas state
-    int width; int height
-    emscripten_get_canvas_element_size("#canvas", &width, &height);
+    glm::ivec2 canvas_size;
+    emscripten_get_canvas_element_size("#canvas", &canvas_size.w, &canvas_size.h);
 
     if (!settings.fullscreen
-        && window->getSize() != {width, height})
+        && window->getSize() != canvas_size)
     {
         resizeWindow(Vec2u(window->getSize()));
         *timeWasted = true;
