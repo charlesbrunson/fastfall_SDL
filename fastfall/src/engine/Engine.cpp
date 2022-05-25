@@ -29,6 +29,7 @@
 
 #if defined(__EMSCRIPTEN__)
 #include <emscripten.h>
+#include <emscripten/html5.h>
 #endif
 
 
@@ -528,6 +529,22 @@ void Engine::sleep() {
 
 void Engine::handleEvents(bool* timeWasted)
 {
+
+
+#if defined(__EMSCRIPTEN__)
+    // get canvas state
+    int width; int height
+    emscripten_get_canvas_element_size("#canvas", &width, &height);
+
+    if (!settings.fullscreen
+        && window->getSize() != {width, height})
+    {
+        resizeWindow(Vec2u(window->getSize()));
+        *timeWasted = true;
+    }
+#endif
+
+
 
     // no window to handle inputs from
     if (window == nullptr)
