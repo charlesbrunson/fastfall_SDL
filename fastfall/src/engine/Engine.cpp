@@ -35,8 +35,6 @@
 
 namespace ff {
 
-//std::optional<unsigned> getDisplayRefreshRate(const Window& win);
-
 std::unique_ptr<Engine> Engine::engineInstance;
 
 void Engine::init(std::unique_ptr<Window>&& window, EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings) {
@@ -69,11 +67,6 @@ Engine::Engine(
 
     ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Engine", "System")
 {
-
-#if defined(__EMSCRIPTEN__)
-    //clock.setSteady(false);
-#endif
-
     // use first runnable to determine if we need a window
     addRunnable(std::move(toRun));
     //windowless = runnables.back().getRTexture() != nullptr;
@@ -529,19 +522,6 @@ void Engine::sleep() {
 
 void Engine::handleEvents(bool* timeWasted)
 {
-
-#if defined(__EMSCRIPTEN__)
-    // get canvas state
-    glm::ivec2 canvas_size;
-    emscripten_get_canvas_element_size("#canvas", &canvas_size.x, &canvas_size.y);
-
-    if (!settings.fullscreen
-        && window->getSize() != canvas_size)
-    {
-        resizeWindow(Vec2u(canvas_size));
-        *timeWasted = true;
-    }
-#endif
 
     // no window to handle inputs from
     if (window == nullptr)

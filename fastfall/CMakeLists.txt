@@ -7,11 +7,13 @@ cmake_minimum_required (VERSION 3.16)
 add_subdirectory("external")
 
 # generate schema files with flatc
-if (MSVC)
+if ( WIN32 OR ${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
 	set(FLATC "${CMAKE_CURRENT_SOURCE_DIR}/tools/win/flatc.exe")
-elseif (UNIX)
+elseif ( UNIX )
 	set(FLATC "${CMAKE_CURRENT_SOURCE_DIR}/tools/unix/flatc")
 endif()
+
+set(FLATC "${CMAKE_CURRENT_SOURCE_DIR}/tools/win/flatc.exe")
 
 set(SCHEMA_DIR "include/fastfall/schema")
 file(GLOB FLATC_FBS "${SCHEMA_DIR}/*.fbs")

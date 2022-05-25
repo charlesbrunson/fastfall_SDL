@@ -50,20 +50,24 @@ target_link_libraries(test_project PRIVATE
 	fastfall
 )
 
-message(status ${CMAKE_CURRENT_SOURCE_DIR}/html/min-shell.html)
-
 if(EMSCRIPTEN)
 	set(CMAKE_EXECUTABLE_SUFFIX .html)
 	
 	target_link_options(test_project PRIVATE
 		--emrun
-		--shell-file "${CMAKE_CURRENT_SOURCE_DIR}/html/min-shell.html"
 	)
+	
+	if (${CMAKE_BUILD_TYPE} MATCHES "Release")
+		target_link_options(test_project PRIVATE
+			--shell-file "${CMAKE_CURRENT_SOURCE_DIR}/html/min-shell.html"
+		)
+	endif()
+
 
 	# create test_project.data file
 	target_link_options(test_project PRIVATE 
-		"SHELL:--preload-file ../data@/data" 
-		"SHELL:--preload-file ../gamecontrollerdb.txt@/gamecontrollerdb.txt"
+		"SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/data@/data" 
+		"SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/gamecontrollerdb.txt@/gamecontrollerdb.txt"
 	)
 
 	# rename test_project.html to index.html

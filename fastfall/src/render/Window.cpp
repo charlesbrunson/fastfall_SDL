@@ -15,7 +15,7 @@ Window::Window()
 		SDL_WINDOWPOS_UNDEFINED,
 		480,
 		360,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN
+		SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE
 	) }
 {
 	init();
@@ -31,7 +31,7 @@ Window::Window(const char* title, unsigned initWidth, unsigned initHeight)
 		SDL_WINDOWPOS_UNDEFINED,
 		initWidth,
 		initHeight,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN
+		SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE
 	) }
 {	
 	init();
@@ -48,7 +48,7 @@ Window::Window(std::string_view title, unsigned initWidth, unsigned initHeight)
 		SDL_WINDOWPOS_UNDEFINED,
 		initWidth,
 		initHeight,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN
+		SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE
 	)}
 {
 	init();
@@ -96,10 +96,14 @@ SDL_Window* Window::getSDL_Window() const
 }
 
 void Window::setWindowResizable(bool enable) {
+#if not defined(__EMSCRIPTEN__)
 	SDL_SetWindowResizable(m_window, enable ? SDL_TRUE : SDL_FALSE);
+#endif
 }
 void Window::setWindowBorderless(bool enable) {
+#if not defined(__EMSCRIPTEN__)
 	SDL_SetWindowBordered(m_window, !enable ? SDL_TRUE : SDL_FALSE);
+#endif
 }
 
 void Window::setWindowSize(const glm::uvec2& size) {
@@ -139,13 +143,21 @@ void Window::setWindowTitle(std::string_view title) {
 void Window::setWindowFullscreen(FullscreenType set) {
 	switch (set) {
 	case FullscreenType::FULLSCREEN:
+#if not defined(__EMSCRIPTEN__)
 		SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+#else
+		SDL_SetWindowFullscreen(m_window, SDL_bool::SDL_TRUE);
+#endif
 		break;
 	case FullscreenType::FULLSCREEN_DESKTOP:
+#if not defined(__EMSCRIPTEN__)
 		SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+#else
+		SDL_SetWindowFullscreen(m_window, SDL_bool::SDL_TRUE);
+#endif
 		break;
 	case FullscreenType::WINDOWED:
-		SDL_SetWindowFullscreen(m_window, 0);
+		SDL_SetWindowFullscreen(m_window, SDL_bool::SDL_FALSE);
 		break;
 	}
 }

@@ -20,8 +20,20 @@
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "inheritEnvironments": [ "msvc_x64_x64" ],
-      "variables": []
+      "inheritEnvironments": [ "msvc_x64_x64" ]
+    },
+    {
+      "environments": [],
+      "name": "x64-WASM-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "cmakeToolchain": "${env.EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+      "inheritEnvironments": [],
+      "intelliSenseMode": "windows-clang-x64"
     }
   ]
 }
