@@ -530,11 +530,10 @@ void Engine::sleep() {
 void Engine::handleEvents(bool* timeWasted)
 {
 
-
 #if defined(__EMSCRIPTEN__)
     // get canvas state
     glm::ivec2 canvas_size;
-    emscripten_get_canvas_element_size("#canvas", &canvas_size.w, &canvas_size.h);
+    emscripten_get_canvas_element_size("#canvas", &canvas_size.x, &canvas_size.y);
 
     if (!settings.fullscreen
         && window->getSize() != canvas_size)
@@ -543,8 +542,6 @@ void Engine::handleEvents(bool* timeWasted)
         *timeWasted = true;
     }
 #endif
-
-
 
     // no window to handle inputs from
     if (window == nullptr)
