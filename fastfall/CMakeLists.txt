@@ -135,7 +135,6 @@ if(EMSCRIPTEN)
 	endif()
 
 	target_compile_options(fastfall PUBLIC 
-		-O3 
 		-sUSE_ZLIB=1 
 		-sUSE_LIBPNG=1 
 		-sUSE_SDL=2 
@@ -144,7 +143,6 @@ if(EMSCRIPTEN)
 	)
 
 	target_link_options(fastfall PUBLIC 
-		-O3 
 		-sUSE_ZLIB=1 
 		-sUSE_LIBPNG=1 
 		-sUSE_SDL=2 
@@ -152,12 +150,19 @@ if(EMSCRIPTEN)
 		-sSDL2_IMAGE_FORMATS=["bmp","png"]	
 		-sWASM=1
 		-sWASM_BIGINT=1 
-		-sBINARYEN_IGNORE_IMPLICIT_TRAPS=1 
 		-sFULL_ES3=1 
 		-sALLOW_MEMORY_GROWTH=1 
 	)
 
-
+	if (${CMAKE_BUILD_TYPE} MATCHES "Release")
+		target_compile_options(fastfall PUBLIC 
+			-O3 
+		)
+		target_link_options(fastfall PUBLIC 
+			-O3 
+			-sBINARYEN_IGNORE_IMPLICIT_TRAPS=1 
+		)
+	endif()
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" AND EMSCRIPTEN)

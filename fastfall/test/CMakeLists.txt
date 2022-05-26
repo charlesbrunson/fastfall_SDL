@@ -40,6 +40,9 @@ create_ff_test(ff_test_phys
 
 	phys/TestPhysRenderer.cpp
 )
+create_ff_test(ff_test_engine
+	engine/statehandler.cpp
+)
 #target_compile_definitions(ff_test_phys PRIVATE GTEST_BREAK_ON_FAILURE=0)
 #target_compile_definitions(ff_test_phys PRIVATE GTEST_THROW_ON_FAILURE=0)
 

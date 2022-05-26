@@ -483,8 +483,8 @@ TEST_F(collision, wedge_with_oneway_ceil) {
 	}
 }
 
-TEST_F(collision, into_steep_slope) {
-
+TEST_F(collision, into_steep_slope) 
+{
 	initTileMap({
 		{"", 			"", 			""},
 		{"", 			"", 			""},
@@ -527,4 +527,39 @@ TEST_F(collision, into_steep_slope) {
 	}
 }
 
+TEST_F(collision, into_shallow_corner_w_oneway)
+{
+	initTileMap({
+		{"",	"",		"", 			"shallow1",		"shallow2"},
+		{"",	"",		"oneway", 		"shallow1-v", 	"shallow2-v"},
+		{"",	"",		"", 			"", 			""},
+		{"",	"",		"", 			"", 			""},
+	});
 
+	box->setSize({ 16, 32 });
+	box->teleport({ 52, 64 });
+	box->set_vel({ -1, -200 });
+	box->set_gravity({ 0, 0 });
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.frame_delay = 2;
+	render.draw(colMan);
+
+	while (render.curr_frame < 30) {
+
+		int fcount = colMan.getFrameCount();
+		update();
+		render.draw(colMan);
+
+		bool has_wall = box->get_state_flags().has_any(
+			collision_state_t::flags::Wall_L,
+			collision_state_t::flags::Wall_R);
+
+		if (has_wall)
+		{
+			fmt::print(stderr, "frame: {}\n", fcount);
+		}
+
+		EXPECT_FALSE(has_wall);
+	}
+}

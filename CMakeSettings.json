@@ -34,6 +34,19 @@
       "cmakeToolchain": "${env.EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
       "inheritEnvironments": [],
       "intelliSenseMode": "windows-clang-x64"
+    },
+    {
+      "environments": [],
+      "name": "x64-WASM-Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "cmakeToolchain": "${env.EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+      "inheritEnvironments": [],
+      "intelliSenseMode": "windows-clang-x64"
     }
   ]
 }

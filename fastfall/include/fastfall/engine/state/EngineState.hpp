@@ -71,11 +71,8 @@ public:
 
 	virtual void updateImGUI() {};
 
-	// what instance ID this state is associated with, if any (zero)
-	// TODO
 	inline InstanceID getInstanceID() { return instanceID; };
 
-	// used by rendered to update view
 	inline Vec2f getViewPos() const noexcept { return viewPos; };
 	inline float getViewZoom() const noexcept { return viewZoom; };
 
@@ -87,16 +84,6 @@ public:
 
 	inline const EngineStateAction& getEngineAction() noexcept { return eAct; };
 
-	/*
-	template<
-		typename T,
-		typename... Ts,
-		typename = typename std::enable_if<
-		std::is_base_of<EngineState, std::decay_t<T>>::value &&
-		!std::is_same<EngineState, std::decay_t<T>>::value
-		>::type
-	>
-	*/
 	template<typename T, typename... Ts>
 		requires std::is_base_of_v<EngineState, std::decay_t<T>>
 			&& (!std::is_same_v<EngineState, std::decay_t<T>>)

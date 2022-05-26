@@ -84,6 +84,20 @@ bool is_crushing(const Contact* A, const Contact* B)
 	return abs(sum.x) < 1e-5 && abs(sum.y) < 1e-5;
 }
 
+bool is_diverging_V(Linef A, Linef B)
+{
+	Vec2f nMid{ math::midpoint(A) };
+	Vec2f sMid{ math::midpoint(B) };
+
+	Vec2f nNormal = math::vector(A).lefthand().unit();
+	bool nFacingAway = math::dot(sMid - nMid, nNormal) < 0;
+
+	Vec2f sNormal = math::vector(B).lefthand().unit();
+	bool sFacingAway = math::dot(nMid - sMid, sNormal) < 0;
+
+	return nFacingAway && sFacingAway;
+}
+
 // solve functions for x- and y-axis
 
 CollisionSolver::CompResult pickH(const Contact* east, const Contact* west, const Collidable* box)
@@ -148,23 +162,13 @@ CollisionSolver::CompResult pickV(const Contact* north, const Contact* south, co
 	float crush = nSep + sSep;
 
 	// diverging check
-	if (crush > 0.f) {
-		Vec2f nMid{ math::midpoint(north->collider.surface) };
-		Vec2f sMid{ math::midpoint(south->collider.surface) };
-
-		Vec2f nNormal = math::vector(north->collider.surface).lefthand().unit();
-		bool nFacingAway = math::dot(sMid - nMid, nNormal) < 0;
-
-		Vec2f sNormal = math::vector(south->collider.surface).lefthand().unit();
-		bool sFacingAway = math::dot(nMid - sMid, sNormal) < 0;
-
-		if ((nFacingAway && sFacingAway) || (crush > colBox.height)) {
-
-			CollisionSolver::CompResult r;
-			r.discardFirst = sSep < nSep;
-			r.discardSecond = !r.discardFirst;
-			return r;
-		}
+	if (crush > colBox.height
+		|| is_diverging_V(north->collider.surface, south->collider.surface))
+	{
+		CollisionSolver::CompResult r;
+		r.discardFirst = sSep < nSep;
+		r.discardSecond = !r.discardFirst;
+		return r;
 	}
 
 	// crush check
@@ -324,7 +328,7 @@ GhostEdge isGhostEdge(const Contact& basis, const Contact& candidate) noexcept
 
 	float dotp1 = math::dot(basisNormal, candLine.p1 - basisLine.p2);
 	float dotp2 = math::dot(basisNormal, candLine.p2 - basisLine.p1);
-
+	 
 	bool is_ghost = false;
 
 	// candidate is full *behind* basis surface
@@ -400,7 +404,8 @@ std::optional<Contact> CollisionSolver::detectWedge(const Contact* north, const 
 	std::optional<Contact> contact;
 
 	if (is_squeezing(north, south)
-		&& !is_crushing(north, south))
+		&& !is_crushing(north, south)
+		&& !is_diverging_V(north->collider.surface, south->collider.surface))
 	{
 		Rectf colBox = collidable->getBox();
 
@@ -430,6 +435,15 @@ std::optional<Contact> CollisionSolver::detectWedge(const Contact* north, const 
 						math::shift(ceilLine, -south->velocity))
 				}
 			};
+
+			if (json_dump)
+			{
+				(*json_dump)["wedges"] += {
+					{"north", fmt::format("{}", fmt::ptr(north)) },
+					{"south", fmt::format("{}", fmt::ptr(south)) },
+					{"created_contact", to_json(&*contact)}
+				};
+			}
 		}
 	}
 	return contact;
@@ -479,7 +493,6 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 		{
 			(*json_dump)["postcompare"] += to_json(c);
 		}
-		(*json_dump)["apply"];
 	}
 
 	// organize contacts into north/east/south/west
@@ -489,6 +502,9 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 	// detect any wedges
 	// a wedge is any pair of north/south contacts that would force the collision box east/west instead
 	detectWedges();
+
+	if (json_dump)
+		(*json_dump)["apply"];
 
 	// opportunistically determine if we can solve steeper slopes on the X axis instead of Y (looks nicer)
 	if (canApplyAlt()) 
