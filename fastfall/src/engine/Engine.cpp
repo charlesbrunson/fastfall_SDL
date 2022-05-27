@@ -32,7 +32,7 @@
 #include <emscripten/html5.h>
 #endif
 
-namespace profile {
+namespace profiler {
 
     struct Duration
     {
@@ -154,19 +154,15 @@ Engine::Engine(
     settings(engineSettings),
     clock(), // set default FPS
 
-    //deltaTime(0.0),
-    //elapsedTime(0.0),
     windowZoom(1),
 
     ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Engine", "System")
 {
     // use first runnable to determine if we need a window
     addRunnable(std::move(toRun));
-    //windowless = runnables.back().getRTexture() != nullptr;
 
     stepUpdate = false;
     pauseUpdate = false;
-    //maxDeltaTime = secs{ 1.0 / 30.0 };
 
     initRenderTarget(false);
 
@@ -255,26 +251,26 @@ bool Engine::run_singleThread()
 
     while (isRunning() && !runnables.empty()) 
     {
-        profile::curr_duration = {};
-        profile::frame_timer.reset();
+        profiler::curr_duration = {};
+        profiler::frame_timer.reset();
 
         updateTimer();
 
         Input::update(tick.elapsed);
 
         updateRunnables();
-        profile::curr_duration.update_time = profile::frame_timer.elapsed();
+        profiler::curr_duration.update_time = profiler::frame_timer.elapsed();
 
         predrawRunnables();
-        profile::curr_duration.predraw_time = profile::frame_timer.elapsed();
+        profiler::curr_duration.predraw_time = profiler::frame_timer.elapsed();
 
         updateView();
 
         drawRunnables();
-        profile::curr_duration.draw_time = profile::frame_timer.elapsed();
+        profiler::curr_duration.draw_time = profiler::frame_timer.elapsed();
 
         updateImGui();
-        profile::curr_duration.imgui_time = profile::frame_timer.elapsed();
+        profiler::curr_duration.imgui_time = profiler::frame_timer.elapsed();
 
         updateStateHandler();
 
@@ -283,14 +279,14 @@ bool Engine::run_singleThread()
         ff::glDeleteStale();
 
         display();
-        profile::curr_duration.display_time = profile::frame_timer.elapsed();
+        profiler::curr_duration.display_time = profiler::frame_timer.elapsed();
 
         sleep();
-        profile::curr_duration.sleep_time = profile::frame_timer.elapsed();
-        profile::curr_duration.total_time = profile::curr_duration.sleep_time;
-        profile::curr_duration.curr_uptime = upTime;
-        profile::curr_duration.curr_frame = clock.getTickCount();
-        profile::duration_buffer.add_time(profile::curr_duration);
+        profiler::curr_duration.sleep_time = profiler::frame_timer.elapsed();
+        profiler::curr_duration.total_time = profiler::curr_duration.sleep_time;
+        profiler::curr_duration.curr_uptime = upTime;
+        profiler::curr_duration.curr_frame = clock.getTickCount();
+        profiler::duration_buffer.add_time(profiler::curr_duration);
     }
 
     // clean up
@@ -301,9 +297,6 @@ bool Engine::run_singleThread()
     running = false;
 
     ff::glDeleteStale();
-
-    // destroy window
-    //window.reset();
 
     return true;
 }
@@ -368,9 +361,6 @@ bool Engine::run_doubleThread()
 
     ff::glDeleteStale();
 
-    // destroy window
-    //window.reset();
-
     return true;
 }
 
@@ -413,8 +403,6 @@ bool Engine::run_emscripten() {
 	clock.reset();
 
 	emscripten_set_main_loop_arg(Engine::emscripten_loop, (void*)this, 0, false);
-    //window->setVsyncEnabled(settings.vsyncEnabled);
-
 #endif
     return true;
 
@@ -732,7 +720,6 @@ void Engine::initRenderTarget(bool fullscreen)
 
     Vec2u displaySize(mode.w, mode.h);
 
-    //std::string title = fmt::format("game v{}.{}.{}", VERSION[0], VERSION[1], VERSION[2]);
     window->setWindowTitle("");
 
     if (settings.fullscreen) {
@@ -866,7 +853,6 @@ void Engine::resizeWindow(
     };
     Recti windowSize(0, 0, window->getSize().x, window->getSize().y);
 
-
     (*margins.get())[0].pos = glm::fvec2((float)windowSize.left, (float)windowSize.top);
     (*margins.get())[1].pos = glm::fvec2((float)viewport.left,   (float)viewport.top);
     (*margins.get())[2].pos = glm::fvec2((float)windowSize.left, (float)windowSize.top + windowSize.height);
@@ -877,7 +863,6 @@ void Engine::resizeWindow(
     (*margins.get())[7].pos = glm::fvec2((float)viewport.left + viewport.width, (float)viewport.top);
     (*margins.get())[8].pos = glm::fvec2((float)windowSize.left, (float)windowSize.top);
     (*margins.get())[9].pos = glm::fvec2((float)viewport.left, (float)viewport.top);
-    //margins->glTransfer();
 
     marginView = View{ { 0.f, 0.f }, window->getSize() };
     marginView.setCenter(glm::fvec2{ window->getSize() } / 2.f);
@@ -927,112 +912,14 @@ void Engine::ImGui_getContent() {
     ImGui::Separator();
     ImGui::Text("Events  = %4d", event_count);
 
-    // FRAME DATA GRAPH
-
-    /*
-    static constexpr int arrsize = 101;
-    static constexpr int last = arrsize - 1;
-
-    static float active_x [arrsize] = { 0.f };
-    static float active_y [arrsize] = { 0.f };
-    static float sleep_x  [arrsize] = { 0.f };
-    static float sleep_y  [arrsize] = { 0.f };
-    static float display_x[arrsize] = { 0.f };
-    static float display_y[arrsize] = { 0.f };
-
-    static bool initX = false;
-
-    static int roller = 0;
-
-    if (!initX) {
-        for (int x = 0; x <= last; x++) {
-            active_x [x] = static_cast<float>(x);
-            sleep_x  [x] = static_cast<float>(x);
-            display_x[x] = static_cast<float>(x);
-        }
-        initX = true;
-    }
-
-    float denom =  1000.0 / (clock.getAvgFPS() > 0 ? clock.getAvgFPS() : 60);
-
-    float tick_x[2] = { 0.0, (arrsize - 1) };
-    float tick_y[2] = { denom, denom };
-
-    memmove(&active_y[0], &active_y[1], sizeof(float) * last);
-    memmove(&sleep_y[0], &sleep_y[1], sizeof(float) * last);
-    memmove(&display_y[0], &display_y[1], sizeof(float) * last);
-    
-    float acc = 0.f;
-    active_y [last] = acc;
-    display_y[last] = acc;
-    sleep_y  [last] = acc;
-
-    roller++;
-    if (roller == last) {
-        roller %= last;
-    }
-
-
-    if (ImGui::CollapsingHeader("Framerate Graph", ImGuiTreeNodeFlags_DefaultOpen)) 
-    {
-        ImPlot::SetNextPlotLimits(0.0, (arrsize - 1), 0.0, denom * 2.f, ImGuiCond_Always);
-        if (ImPlot::BeginPlot("##FPS", NULL, "tick time (ms)", ImVec2(-1, 200), ImPlotFlags_None, ImPlotAxisFlags_None, 0)) 
-        {
-            ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1.f);
-
-            ImPlot::PlotShaded("sleep", sleep_x, sleep_y, arrsize);
-            ImPlot::PlotShaded("display", display_x, display_y, arrsize);
-            ImPlot::PlotShaded("active", active_x, active_y, arrsize);
-
-            ImPlot::PopStyleVar();
-
-            if (clock.getTargetFPS() != 0) {
-                ImPlot::PlotLine("target tick", tick_x, tick_y, 2);
-            }
-            else {
-                ImPlot::PlotLine("avg tick", tick_x, tick_y, 2);
-            }
-
-            ImPlot::EndPlot();
-        }
-    }
-    */
-
-    // END FRAME DATA GRAPH
-
-    //ImGui::Text("| FPS:%4d |", clock.getAvgFPS());
-    //ImGui::SameLine();
-    //ImGui::Text("Speed:%3.0f%% | ", 100.0 * (elapsedTime > maxDeltaTime ? maxDeltaTime / elapsedTime : 1.f));
-    //ImGui::SameLine();
-    //ImGui::Text("Tick#:%6d | ", clock.data().tickTotal);
-    //ImGui::SameLine();
-    //ImGui::Text("Tick Miss:%2d | ", clock.data().tickMissPerSec);
-   // ImGui::SameLine();
-   // static float tickMS = 0.f;
-    //if (roller == 0) {
-        //tickMS = clock.data().activeTime.count() * 1000.f;
-    //}
-    //ImGui::Text("Tick MS:%2.1f | ", tickMS);
-    //ImGui::SameLine();
-    //ImGui::Text("Delta Time MS:%2.1f | ", deltaTime * 1000.0);
-
-   // ImGui::SameLine();
-
-    //ImGui::Text("Active MS:%2.1f | ", active_y[100]);
-
-
-
     if (ImGui::CollapsingHeader("Framerate Graph", ImGuiTreeNodeFlags_DefaultOpen))
     {
-
-        //ImPlot::SetNextPlotLimits(xmin, xmax, ymin, 2.0 / ymax, ImGuiCond_Always);
         if (ImPlot::BeginPlot("##FPS", "engine uptime", "tick time (sec)", ImVec2(-1, 200), ImPlotFlags_None, ImPlotAxisFlags_None, 0))
         {
-            const auto& buff = profile::duration_buffer;
-            float interp = tick.interp_value * tick.elapsed;
+            const auto& buff = profiler::duration_buffer;
 
-            double xmin = -interp + buff.back().curr_uptime - 1.0;
-            double xmax = -interp + buff.back().curr_uptime;
+            double xmin = buff.back().curr_uptime - 1.0;
+            double xmax = buff.back().curr_uptime;
             double ymin = 0.0;
             double ymax = (clock.getTargetFPS() == FixedEngineClock::FPS_UNLIMITED ? clock.getAvgFPS() : clock.getTargetFPS());
 
@@ -1041,7 +928,7 @@ void Engine::ImGui_getContent() {
             ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1.f);
 
             const auto plot = [&](std::string_view name, const secs* start) {
-                ImPlot::PlotShaded(name.data(), &buff[0].curr_uptime, start, buff.size(), 0.0, 0, sizeof(profile::Duration));
+                ImPlot::PlotShaded(name.data(), &buff[0].curr_uptime, start, buff.size(), 0.0, 0, sizeof(profiler::Duration));
             };
 
             plot("sleep", &buff[0].sleep_time);
