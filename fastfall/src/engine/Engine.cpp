@@ -32,6 +32,87 @@
 #include <emscripten/html5.h>
 #endif
 
+struct Duration
+{
+    secs duration;
+    size_t frame;
+    secs time;
+};
+
+struct DurationBuffer
+{
+public:
+    void add_time(const ff::Engine* engine, secs duration)
+    {
+        buffer.push_back(Duration{
+                .duration = duration,
+                .frame = engine->getClock().getTickCount(),
+                .time = engine->getUpTime(),
+            });
+
+        update_past();
+        cycle_durations();
+    }
+
+    auto begin() const { return onesec_past; };
+    auto end() const { return buffer.cend(); }
+
+    auto size() const { return static_cast<size_t>( end() - begin() ); }
+
+    const Duration& operator[] (size_t ndx) const { return begin()[ndx]; }
+
+private:
+    constexpr static secs TIMES_MAX_DURATION = 2.0;
+
+    std::vector<Duration> buffer;
+    std::vector<Duration>::const_iterator onesec_past;
+
+    void cycle_durations()
+    {
+        if (!buffer.empty()
+            && buffer.front().time + TIMES_MAX_DURATION <= buffer.back().time)
+        {
+            buffer = std::vector<Duration>{ onesec_past, end() };
+            onesec_past = buffer.begin();
+        }
+    }
+
+    void update_past()
+    {
+        onesec_past = std::upper_bound(buffer.begin(), buffer.end(), buffer.back().time - 1.0, 
+            [](secs a, const Duration& b) {
+                return a < b.time;
+            });
+    }
+};
+
+DurationBuffer update_buffer;
+DurationBuffer predraw_buffer;
+DurationBuffer display_buffer;
+DurationBuffer sleep_buffer;
+
+struct Timer
+{
+    std::chrono::steady_clock clock;
+    std::chrono::time_point<std::chrono::steady_clock> start_time;
+
+    Timer()
+    {
+        start_time = clock.now();
+    }
+
+    secs elapsed() const { 
+        return std::chrono::duration<secs>{ clock.now() - start_time }.count();
+    }
+
+    secs reset() {
+        secs time = elapsed();
+        start_time = clock.now();
+        return time;
+    }
+};
+
+
 
 namespace ff {
 
@@ -62,7 +143,7 @@ Engine::Engine(
     clock(), // set default FPS
 
     //deltaTime(0.0),
-    elapsedTime(0.0),
+    //elapsedTime(0.0),
     windowZoom(1),
 
     ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Engine", "System")
@@ -165,7 +246,7 @@ bool Engine::run_singleThread()
 
         updateTimer();
 
-        Input::update(elapsedTime);
+        Input::update(tick.elapsed);
 
         updateRunnables();
 
@@ -221,7 +302,7 @@ bool Engine::run_doubleThread()
     while (isRunning() && !runnables.empty()) {
         updateTimer();
 
-        Input::update(elapsedTime);
+        Input::update(tick.elapsed);
 
         bar.arrive_and_wait();
 
@@ -279,8 +360,10 @@ void Engine::runUpdate(std::barrier<>* bar) {
         bar->arrive_and_wait();
 
         // update/draw
-	
+
+
         updateRunnables();
+
 
         bar->arrive_and_wait();
 
@@ -325,7 +408,7 @@ void Engine::emscripten_loop(void* engine_ptr) {
 
 	engine->updateTimer();
 
-	Input::update(engine->elapsedTime);
+	Input::update(engine->tick.elapsed);
 
     engine->updateRunnables();
 
@@ -360,27 +443,14 @@ void Engine::close() {
 
 void Engine::updateTimer() {
 
-    auto [delta, update_count, interp] = clock.tick();
-
-    elapsedTime = delta;
-    update_counter = update_count;
-    interpolation = interp;
-
-
-
-    //LOG_INFO("elapsed={:.5f}ms update={} interp={}", elapsedTime * 1000.0, update_counter, interpolation)
+    tick = clock.tick();
 
     if (window) {
         bool resetTimers = false;
         handleEvents(&resetTimers);
         if (resetTimers) {
-			auto [delta, update_count, interp] = clock.tick();
-
-			elapsedTime = delta;
-			update_counter = update_count;
-			interpolation = interp;
+			tick = clock.tick();
         }
-
     }
 
     if (ResourceWatcher::is_watch_running()) {
@@ -390,6 +460,7 @@ void Engine::updateTimer() {
     }
 
     log::set_tick(clock.getTickCount());
+    upTime += tick.elapsed;
     
 }
 
@@ -423,28 +494,33 @@ void Engine::updateView() {
 }
 
 void Engine::updateRunnables() {
-    hasUpdated = update_counter > 0;
-    while (update_counter > 0) {
+    Timer timer;
+
+    hasUpdated = tick.update_count > 0;
+    while (tick.update_count > 0) {
 
         auto tickDuration = clock.upsDuration();
 
         if (pauseUpdate && !stepUpdate) {
             tickDuration = 0.0;
-			update_counter = 1;
+            tick.update_count = 1;
         }
         stepUpdate = false;
 
         for (auto& run : runnables) {
             run.getStateHandle().getActiveState()->update(tickDuration);
         }
-        update_counter--;
+        tick.update_count--;
     }
+
+    update_buffer.add_time(this, timer.elapsed());
 }
 void Engine::predrawRunnables() {
+    Timer timer;
 
     static bool latch_interp = false;
 
-    float interp = interpolation;
+    float interp = tick.interp_value;
 
     if (pauseUpdate && hasUpdated) {
         pauseInterpolation = true;
@@ -468,6 +544,8 @@ void Engine::predrawRunnables() {
     else {
         debug_draw::clear();
     }
+
+    predraw_buffer.add_time(this, timer.elapsed());
 }
 
 void Engine::drawRunnables() {
@@ -504,18 +582,29 @@ void Engine::cleanRunnables() {
 }
 
 void Engine::sleep() {
+
+
+    Timer timer1;
+
     if (window) {
-        displayStart = std::chrono::steady_clock::now();
+        //displayStart = std::chrono::steady_clock::now();
+        Timer display_timer;
         window->display();
-        displayTime = std::chrono::steady_clock::now() - displayStart;
+
+        //displayTime = std::chrono::steady_clock::now() - displayStart;
     }
 
+    display_buffer.add_time(this, timer1.elapsed());
 
     //clock.sleepUntilTick(!window || settings.vsyncEnabled);
+
+    Timer timer2;
 
 #if not defined(__EMSCRIPTEN__)
     clock.sleep();
 #endif
+
+    sleep_buffer.add_time(this, timer2.elapsed());
 }
 
 // -------------------------------------------
@@ -644,12 +733,10 @@ void Engine::initRenderTarget(bool fullscreen)
 
     if (settings.fullscreen) {
         // go borderless fullscreen
-
         window->setWindowSize(displaySize);
         window->setWindowFullscreen(Window::FullscreenType::FULLSCREEN_DESKTOP);
     }
     else {
-
         window->setWindowSize(initWinSize);
         window->setWindowCentered();
         window->setWindowResizable();
@@ -838,6 +925,7 @@ void Engine::ImGui_getContent() {
 
     // FRAME DATA GRAPH
 
+    /*
     static constexpr int arrsize = 101;
     static constexpr int last = arrsize - 1;
 
@@ -861,7 +949,6 @@ void Engine::ImGui_getContent() {
         initX = true;
     }
 
-    //double denom = (clock.getTargetFPS() != 0 ? clock.getTickDuration() * 2000.f : 2.0);
     float denom =  1000.0 / (clock.getAvgFPS() > 0 ? clock.getAvgFPS() : 60);
 
     float tick_x[2] = { 0.0, (arrsize - 1) };
@@ -872,11 +959,8 @@ void Engine::ImGui_getContent() {
     memmove(&display_y[0], &display_y[1], sizeof(float) * last);
     
     float acc = 0.f;
-    //acc += clock.data().activeTime.count() * 1000.0 - (displayTime.count() * 1000.0);
     active_y [last] = acc;
-    //acc += displayTime.count() * 1000.0;
     display_y[last] = acc;
-    //acc += clock.data().sleepTime.count() * 1000.0;
     sleep_y  [last] = acc;
 
     roller++;
@@ -885,11 +969,11 @@ void Engine::ImGui_getContent() {
     }
 
 
-    if (ImGui::CollapsingHeader("Framerate Graph", ImGuiTreeNodeFlags_DefaultOpen)) {
-
-        
+    if (ImGui::CollapsingHeader("Framerate Graph", ImGuiTreeNodeFlags_DefaultOpen)) 
+    {
         ImPlot::SetNextPlotLimits(0.0, (arrsize - 1), 0.0, denom * 2.f, ImGuiCond_Always);
-        if (ImPlot::BeginPlot("##FPS", NULL, "tick time (ms)", ImVec2(-1, 200), ImPlotFlags_None, ImPlotAxisFlags_None, 0)) {
+        if (ImPlot::BeginPlot("##FPS", NULL, "tick time (ms)", ImVec2(-1, 200), ImPlotFlags_None, ImPlotAxisFlags_None, 0)) 
+        {
             ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1.f);
 
             ImPlot::PlotShaded("sleep", sleep_x, sleep_y, arrsize);
@@ -907,31 +991,67 @@ void Engine::ImGui_getContent() {
 
             ImPlot::EndPlot();
         }
-        
-
     }
+    */
 
     // END FRAME DATA GRAPH
 
-    ImGui::Text("| FPS:%4d |", clock.getAvgFPS());
-    ImGui::SameLine();
+    //ImGui::Text("| FPS:%4d |", clock.getAvgFPS());
+    //ImGui::SameLine();
     //ImGui::Text("Speed:%3.0f%% | ", 100.0 * (elapsedTime > maxDeltaTime ? maxDeltaTime / elapsedTime : 1.f));
-    ImGui::SameLine();
+    //ImGui::SameLine();
     //ImGui::Text("Tick#:%6d | ", clock.data().tickTotal);
-    ImGui::SameLine();
+    //ImGui::SameLine();
     //ImGui::Text("Tick Miss:%2d | ", clock.data().tickMissPerSec);
    // ImGui::SameLine();
-    static float tickMS = 0.f;
-    if (roller == 0) {
+   // static float tickMS = 0.f;
+    //if (roller == 0) {
         //tickMS = clock.data().activeTime.count() * 1000.f;
-    }
-    ImGui::Text("Tick MS:%2.1f | ", tickMS);
-    ImGui::SameLine();
+    //}
+    //ImGui::Text("Tick MS:%2.1f | ", tickMS);
+    //ImGui::SameLine();
     //ImGui::Text("Delta Time MS:%2.1f | ", deltaTime * 1000.0);
 
-    ImGui::SameLine();
+   // ImGui::SameLine();
 
-    ImGui::Text("Active MS:%2.1f | ", active_y[100]);
+    //ImGui::Text("Active MS:%2.1f | ", active_y[100]);
+
+
+
+    if (ImGui::CollapsingHeader("Framerate Graph", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+
+        //ImPlot::SetNextPlotLimits(xmin, xmax, ymin, 2.0 / ymax, ImGuiCond_Always);
+        if (ImPlot::BeginPlot("##FPS", "engine uptime", "tick time (sec)", ImVec2(-1, 200), ImPlotFlags_None, ImPlotAxisFlags_None, 0))
+        {
+            float interp = tick.interp_value * tick.elapsed;
+
+            double xmin = interp + upTime - 1.0;
+            double xmax = interp + upTime;
+            double ymin = 0.0;
+            double ymax = (clock.getTargetFPS() == FixedEngineClock::FPS_UNLIMITED ? clock.getAvgFPS() : clock.getTargetFPS());
+
+            ImPlot::SetupAxesLimits(xmin, xmax, ymin, 1.1 / ymax, ImPlotCond_Always);
+
+            ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1.f);
+
+            ImPlot::PlotLine("active",  &update_buffer[0].time,  &update_buffer[0].duration,  update_buffer.size(),  0, sizeof(Duration));
+            ImPlot::PlotLine("predraw", &predraw_buffer[0].time, &predraw_buffer[0].duration, predraw_buffer.size(), 0, sizeof(Duration));
+            ImPlot::PlotLine("display", &display_buffer[0].time, &display_buffer[0].duration, display_buffer.size(), 0, sizeof(Duration));
+            ImPlot::PlotLine("sleep",   &sleep_buffer[0].time,   &sleep_buffer[0].duration,   sleep_buffer.size(),   0, sizeof(Duration));
+
+            ImPlot::TagY(1.0 / ymax, ImVec4{1.f, 0.f, 0.f, 1.f}, "%3d", (int)ymax);
+
+            ImPlot::PopStyleVar();
+
+            ImPlot::EndPlot();
+        }
+    }
+
+
+    ImGui::Text("| FPS:%4d |", clock.getAvgFPS());
+    ImGui::SameLine();
+    ImGui::Text("Tick#:%6d | ", clock.getTickCount());
 
     ImGui::Separator();
 
@@ -946,23 +1066,23 @@ void Engine::ImGui_getContent() {
         freezeStepOnce();
     }
 
-    if (ImGui::Checkbox("Vsync Enabled", &settings.vsyncEnabled)) {
 #if not defined(__EMSCRIPTEN__)
+    if (ImGui::Checkbox("Vsync Enabled", &settings.vsyncEnabled)) {
         window->setVsyncEnabled(settings.vsyncEnabled);
-#endif
-
     }
+#endif
 
     int fps = clock.getTargetFPS();
     constexpr std::string_view show_inf = "UNLIMITED";
     constexpr std::string_view show_fps = "%d";
 
-    if (ImGui::DragInt("FPS", &fps, 5, 0, 500, (fps == 0 ? show_inf : show_fps).data())) {
 #if not defined(__EMSCRIPTEN__)
+    if (ImGui::DragInt("FPS", &fps, 5, 0, 500, (fps == 0 ? show_inf : show_fps).data())) {
         settings.refreshRate = fps;
         clock.setTargetFPS(fps);
-#endif
     }
+#endif
+
     int ups = clock.getTargetUPS();
     if (ImGui::DragInt("UPS", &ups, 5, 10, 500, "%d")) {
         clock.setTargetUPS(ups);

@@ -110,6 +110,9 @@ public:
 
 	const Window* getWindow() const noexcept { return window.get(); }
 
+	const FixedEngineClock& getClock() const { return clock; }
+	secs getUpTime() const { return upTime; }
+
 private:
 	bool run_doubleThread();
 	bool run_singleThread();
@@ -162,18 +165,23 @@ private:
 	// framerate & time management
 	//EngineClock clock;
 	FixedEngineClock clock;
-	unsigned update_counter = 0;
-	secs elapsedTime;
-	float interpolation;
+	FixedEngineClock::Tick tick;
 	bool hasUpdated = false;
+
+	//unsigned update_counter = 0;
+	//secs elapsedTime;
+	//float interpolation;
+	//bool hasUpdated = false;
 	//secs maxDeltaTime;
 	//secs deltaTime;
+
+	secs upTime = 0.0;
 
 	// event handling
 	unsigned event_count = 0u;
 
-	std::chrono::time_point<std::chrono::steady_clock> displayStart;
-	std::chrono::duration<float> displayTime;
+	//std::chrono::time_point<std::chrono::steady_clock> displayStart;
+	//std::chrono::duration<float> displayTime;
 
 	bool pauseUpdate, stepUpdate;
 	bool pauseInterpolation;

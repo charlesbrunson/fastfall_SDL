@@ -69,7 +69,7 @@ void ImGuiFrame::displaySidePanel(std::set<ImGuiContent*>& contents, Recti area,
 				ImGui::GetMainViewport()->Pos.y + area.getPosition().y), 
 		ImGuiCond_Always);
 	ImGui::SetNextWindowBgAlpha(0.2f);
-	ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
+	//ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
 
 	if (ImGui::Begin(panelName, NULL,
 		ImGuiWindowFlags_NoTitleBar |
@@ -126,17 +126,16 @@ void ImGuiFrame::displayLog(Recti area, const char* panelName) {
 				ImGui::GetMainViewport()->Pos.y + area.getPosition().y),
 		ImGuiCond_Always);
 	ImGui::SetNextWindowBgAlpha(0.2f);
-	ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
+	//ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
 	if (ImGui::Begin(panelName, NULL,
-		ImGuiWindowFlags_NoTitleBar |
-		ImGuiWindowFlags_MenuBar |
-		ImGuiWindowFlags_NoCollapse |
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoScrollbar |
-		ImGuiWindowFlags_NoBringToFrontOnFocus |
-		ImGuiWindowFlags_NoDocking
-		| 0
+		ImGuiWindowFlags_NoTitleBar 
+		| ImGuiWindowFlags_MenuBar 
+		| ImGuiWindowFlags_NoCollapse 
+		| ImGuiWindowFlags_NoMove 
+		| ImGuiWindowFlags_NoResize 
+		| ImGuiWindowFlags_NoScrollbar 
+		| ImGuiWindowFlags_NoBringToFrontOnFocus 
+		//| ImGuiWindowFlags_NoDocking
 	)) {
 
 		static bool ScrollToBottom = true;

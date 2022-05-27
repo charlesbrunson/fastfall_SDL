@@ -39,12 +39,12 @@ ff::EngineSettings getSettings() {
 #else
 	settings.refreshRate = 0;
 	settings.vsyncEnabled = true;
-	//settings.runstyle = ff::EngineRunStyle::SingleThread;
-	settings.runstyle = ff::EngineRunStyle::DoubleThread;
+	settings.runstyle = ff::EngineRunStyle::SingleThread;
+	//settings.runstyle = ff::EngineRunStyle::DoubleThread;
 #endif
 
 #if defined(DEBUG)
-	settings.showDebug = false;
+	settings.showDebug = true;
 #else
 	settings.showDebug = false;
 #endif
@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
 	Engine::init(
 		std::move(window),
 		EngineRunnable(std::make_unique<TestState>()),
-		Vec2u{ GAME_W, GAME_H } * 4,
+		Vec2u{ GAME_W * 7, GAME_H * 5 },
 		getSettings()
 	);
 
