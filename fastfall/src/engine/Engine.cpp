@@ -32,86 +32,98 @@
 #include <emscripten/html5.h>
 #endif
 
-struct Duration
-{
-    secs duration;
-    size_t frame;
-    secs time;
-};
+namespace profile {
 
-struct DurationBuffer
-{
-public:
-    void add_time(const ff::Engine* engine, secs duration)
+    struct Duration
     {
-        buffer.push_back(Duration{
-                .duration = duration,
-                .frame = engine->getClock().getTickCount(),
-                .time = engine->getUpTime(),
-            });
+        size_t  curr_frame;
+        secs    curr_uptime;
 
-        update_past();
-        cycle_durations();
-    }
+        secs    update_time;
+        secs    predraw_time;
+        secs    draw_time;
+        secs    imgui_time;
+        secs    display_time;
+        secs    sleep_time;
+        secs    total_time;
+    };
 
-    auto begin() const { return onesec_past; };
-    auto end() const { return buffer.cend(); }
-
-    auto size() const { return static_cast<size_t>( end() - begin() ); }
-
-    const Duration& operator[] (size_t ndx) const { return begin()[ndx]; }
-
-private:
-    constexpr static secs TIMES_MAX_DURATION = 2.0;
-
-    std::vector<Duration> buffer;
-    std::vector<Duration>::const_iterator onesec_past;
-
-    void cycle_durations()
+    struct DurationBuffer
     {
-        if (!buffer.empty()
-            && buffer.front().time + TIMES_MAX_DURATION <= buffer.back().time)
+    public:
+        void add_time(Duration d)
         {
-            buffer = std::vector<Duration>{ onesec_past, end() };
-            onesec_past = buffer.begin();
+            buffer.push_back(d);
+            update_past();
+            cycle_durations();
         }
-    }
 
-    void update_past()
+        auto begin() const { return onesec_past; };
+        auto end() const { return buffer.cend(); }
+        auto& back() const { return buffer.back(); };
+        auto size() const { return static_cast<size_t>(end() - begin()); }
+
+        const Duration& operator[] (size_t ndx) const { return begin()[ndx]; }
+
+    private:
+        constexpr static secs TIMES_MAX_DURATION = 2.0;
+
+        std::vector<Duration> buffer;
+        std::vector<Duration>::iterator onesec_past;
+
+        void cycle_durations()
+        {
+            if (!buffer.empty()
+                && buffer.front().curr_uptime + TIMES_MAX_DURATION <= buffer.back().curr_uptime)
+            {
+                // rotate [onesec_past, back] to the front, erase the rest
+                // this way no reallocation occurs
+                buffer.erase(
+                    std::rotate(buffer.begin(), onesec_past, buffer.end()), 
+                    buffer.end()
+                );
+
+                // reset onesec_past
+                onesec_past = buffer.begin();
+            }
+        }
+
+        void update_past()
+        {
+            onesec_past = std::lower_bound(buffer.begin(), buffer.end(), buffer.back().curr_uptime - 1.0,
+                [](const Duration& b, secs a) {
+                    return b.curr_uptime < a;
+                });
+        }
+    };
+
+
+    struct Timer
     {
-        onesec_past = std::upper_bound(buffer.begin(), buffer.end(), buffer.back().time - 1.0, 
-            [](secs a, const Duration& b) {
-                return a < b.time;
-            });
-    }
-};
+        std::chrono::steady_clock clock;
+        std::chrono::time_point<std::chrono::steady_clock> start_time;
 
-DurationBuffer update_buffer;
-DurationBuffer predraw_buffer;
-DurationBuffer display_buffer;
-DurationBuffer sleep_buffer;
+        Timer()
+        {
+            start_time = clock.now();
+        }
 
-struct Timer
-{
-    std::chrono::steady_clock clock;
-    std::chrono::time_point<std::chrono::steady_clock> start_time;
+        secs elapsed() const {
+            return std::chrono::duration<secs>{ clock.now() - start_time }.count();
+        }
 
-    Timer()
-    {
-        start_time = clock.now();
-    }
+        secs reset() {
+            secs time = elapsed();
+            start_time = clock.now();
+            return time;
+        }
+    };
 
-    secs elapsed() const { 
-        return std::chrono::duration<secs>{ clock.now() - start_time }.count();
-    }
+    DurationBuffer duration_buffer;
+    Duration curr_duration;
+    Timer frame_timer;
 
-    secs reset() {
-        secs time = elapsed();
-        start_time = clock.now();
-        return time;
-    }
-};
-
+}
 
 
 namespace ff {
@@ -241,22 +253,28 @@ bool Engine::run_singleThread()
 
     running = true;
 
-    while (isRunning() && !runnables.empty()) {
-
+    while (isRunning() && !runnables.empty()) 
+    {
+        profile::curr_duration = {};
+        profile::frame_timer.reset();
 
         updateTimer();
 
         Input::update(tick.elapsed);
 
         updateRunnables();
+        profile::curr_duration.update_time = profile::frame_timer.elapsed();
 
         predrawRunnables();
+        profile::curr_duration.predraw_time = profile::frame_timer.elapsed();
 
         updateView();
 
         drawRunnables();
+        profile::curr_duration.draw_time = profile::frame_timer.elapsed();
 
         updateImGui();
+        profile::curr_duration.imgui_time = profile::frame_timer.elapsed();
 
         updateStateHandler();
 
@@ -264,7 +282,15 @@ bool Engine::run_singleThread()
 
         ff::glDeleteStale();
 
+        display();
+        profile::curr_duration.display_time = profile::frame_timer.elapsed();
+
         sleep();
+        profile::curr_duration.sleep_time = profile::frame_timer.elapsed();
+        profile::curr_duration.total_time = profile::curr_duration.sleep_time;
+        profile::curr_duration.curr_uptime = upTime;
+        profile::curr_duration.curr_frame = clock.getTickCount();
+        profile::duration_buffer.add_time(profile::curr_duration);
     }
 
     // clean up
@@ -322,8 +348,6 @@ bool Engine::run_doubleThread()
 
         updateImGui();
 
-        //bar.arrive_and_wait();
-
 		// clean
 
         ff::glDeleteStale();
@@ -361,9 +385,7 @@ void Engine::runUpdate(std::barrier<>* bar) {
 
         // update/draw
 
-
         updateRunnables();
-
 
         bar->arrive_and_wait();
 
@@ -372,8 +394,6 @@ void Engine::runUpdate(std::barrier<>* bar) {
         predrawRunnables();
 
         updateStateHandler();
-
-        //bar->arrive_and_wait();
 
 		// cleanup
 
@@ -493,9 +513,8 @@ void Engine::updateView() {
     }
 }
 
-void Engine::updateRunnables() {
-    Timer timer;
-
+void Engine::updateRunnables() 
+{
     hasUpdated = tick.update_count > 0;
     while (tick.update_count > 0) {
 
@@ -512,14 +531,10 @@ void Engine::updateRunnables() {
         }
         tick.update_count--;
     }
-
-    update_buffer.add_time(this, timer.elapsed());
 }
-void Engine::predrawRunnables() {
-    Timer timer;
-
+void Engine::predrawRunnables() 
+{
     static bool latch_interp = false;
-
     float interp = tick.interp_value;
 
     if (pauseUpdate && hasUpdated) {
@@ -544,8 +559,6 @@ void Engine::predrawRunnables() {
     else {
         debug_draw::clear();
     }
-
-    predraw_buffer.add_time(this, timer.elapsed());
 }
 
 void Engine::drawRunnables() {
@@ -581,30 +594,21 @@ void Engine::cleanRunnables() {
     }
 }
 
-void Engine::sleep() {
 
-
-    Timer timer1;
-
+void Engine::display()
+{
     if (window) {
-        //displayStart = std::chrono::steady_clock::now();
-        Timer display_timer;
         window->display();
-
-        //displayTime = std::chrono::steady_clock::now() - displayStart;
     }
+}
 
-    display_buffer.add_time(this, timer1.elapsed());
+void Engine::sleep() 
+{
 
-    //clock.sleepUntilTick(!window || settings.vsyncEnabled);
-
-    Timer timer2;
 
 #if not defined(__EMSCRIPTEN__)
     clock.sleep();
 #endif
-
-    sleep_buffer.add_time(this, timer2.elapsed());
 }
 
 // -------------------------------------------
@@ -1024,21 +1028,29 @@ void Engine::ImGui_getContent() {
         //ImPlot::SetNextPlotLimits(xmin, xmax, ymin, 2.0 / ymax, ImGuiCond_Always);
         if (ImPlot::BeginPlot("##FPS", "engine uptime", "tick time (sec)", ImVec2(-1, 200), ImPlotFlags_None, ImPlotAxisFlags_None, 0))
         {
+            const auto& buff = profile::duration_buffer;
             float interp = tick.interp_value * tick.elapsed;
 
-            double xmin = interp + upTime - 1.0;
-            double xmax = interp + upTime;
+            double xmin = -interp + buff.back().curr_uptime - 1.0;
+            double xmax = -interp + buff.back().curr_uptime;
             double ymin = 0.0;
             double ymax = (clock.getTargetFPS() == FixedEngineClock::FPS_UNLIMITED ? clock.getAvgFPS() : clock.getTargetFPS());
 
-            ImPlot::SetupAxesLimits(xmin, xmax, ymin, 1.1 / ymax, ImPlotCond_Always);
+            ImPlot::SetupAxesLimits(xmin, xmax, ymin, 1.5 / ymax, ImPlotCond_Always);
 
             ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1.f);
 
-            ImPlot::PlotLine("active",  &update_buffer[0].time,  &update_buffer[0].duration,  update_buffer.size(),  0, sizeof(Duration));
-            ImPlot::PlotLine("predraw", &predraw_buffer[0].time, &predraw_buffer[0].duration, predraw_buffer.size(), 0, sizeof(Duration));
-            ImPlot::PlotLine("display", &display_buffer[0].time, &display_buffer[0].duration, display_buffer.size(), 0, sizeof(Duration));
-            ImPlot::PlotLine("sleep",   &sleep_buffer[0].time,   &sleep_buffer[0].duration,   sleep_buffer.size(),   0, sizeof(Duration));
+            const auto plot = [&](std::string_view name, const secs* start) {
+                ImPlot::PlotShaded(name.data(), &buff[0].curr_uptime, start, buff.size(), 0.0, 0, sizeof(profile::Duration));
+            };
+
+            plot("sleep", &buff[0].sleep_time);
+            plot("display", &buff[0].display_time);
+            plot("imgui", &buff[0].imgui_time);
+            plot("draw", &buff[0].draw_time);
+            plot("predraw", &buff[0].predraw_time);
+            plot("update", &buff[0].update_time);
+            
 
             ImPlot::TagY(1.0 / ymax, ImVec4{1.f, 0.f, 0.f, 1.f}, "%3d", (int)ymax);
 
