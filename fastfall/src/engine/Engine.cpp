@@ -53,9 +53,11 @@ namespace profiler {
     public:
         void add_time(Duration d)
         {
+#if DEBUG
             buffer.push_back(d);
             update_past();
             cycle_durations();
+#endif
         }
 
         auto begin() const { return onesec_past; };
@@ -65,8 +67,8 @@ namespace profiler {
 
         const Duration& operator[] (size_t ndx) const { return begin()[ndx]; }
 
+        constexpr static secs CYCLE_DURATION = 3.0;
     private:
-        constexpr static secs TIMES_MAX_DURATION = 2.0;
 
         std::vector<Duration> buffer;
         std::vector<Duration>::iterator onesec_past;
@@ -74,7 +76,7 @@ namespace profiler {
         void cycle_durations()
         {
             if (!buffer.empty()
-                && buffer.front().curr_uptime + TIMES_MAX_DURATION <= buffer.back().curr_uptime)
+                && buffer.front().curr_uptime + CYCLE_DURATION * 2.0 <= buffer.back().curr_uptime)
             {
                 // rotate [onesec_past, back] to the front, erase the rest
                 // this way no reallocation occurs
@@ -90,7 +92,7 @@ namespace profiler {
 
         void update_past()
         {
-            onesec_past = std::lower_bound(buffer.begin(), buffer.end(), buffer.back().curr_uptime - 1.0,
+            onesec_past = std::lower_bound(buffer.begin(), buffer.end(), buffer.back().curr_uptime - CYCLE_DURATION,
                 [](const Duration& b, secs a) {
                     return b.curr_uptime < a;
                 });
@@ -319,9 +321,11 @@ bool Engine::run_doubleThread()
     std::thread stateWorker(&Engine::runUpdate, this, &bar);
 
     while (isRunning() && !runnables.empty()) {
+        profiler::curr_duration = {};
+        profiler::frame_timer.reset();
+
         updateTimer();
 
-        Input::update(tick.elapsed);
 
         bar.arrive_and_wait();
 
@@ -330,6 +334,7 @@ bool Engine::run_doubleThread()
         if (!first_frame) {
             updateView();
             drawRunnables();
+            profiler::curr_duration.draw_time = profiler::frame_timer.elapsed();
         }
         else {
             first_frame = false;
@@ -340,12 +345,21 @@ bool Engine::run_doubleThread()
 		// predraw
 
         updateImGui();
+        profiler::curr_duration.imgui_time = profiler::frame_timer.elapsed();
 
 		// clean
 
         ff::glDeleteStale();
 
+        display();
+        profiler::curr_duration.display_time = profiler::frame_timer.elapsed();
+
         sleep();
+        profiler::curr_duration.sleep_time = profiler::frame_timer.elapsed();
+        profiler::curr_duration.total_time = profiler::curr_duration.sleep_time;
+        profiler::curr_duration.curr_uptime = upTime;
+        profiler::curr_duration.curr_frame = clock.getTickCount();
+        profiler::duration_buffer.add_time(profiler::curr_duration);
     }
 
     // clean up
@@ -373,15 +387,18 @@ void Engine::runUpdate(std::barrier<>* bar) {
 
         bar->arrive_and_wait();
 
+
         // update/draw
 
         updateRunnables();
+        profiler::curr_duration.update_time = profiler::frame_timer.elapsed();
 
         bar->arrive_and_wait();
 
 		// predraw
 
         predrawRunnables();
+        profiler::curr_duration.predraw_time = profiler::frame_timer.elapsed();
 
         updateStateHandler();
 
@@ -414,19 +431,26 @@ void Engine::emscripten_loop(void* engine_ptr) {
 	if(!engine->isRunning() || engine->runnables.empty())
 		return;
 
+    profiler::curr_duration = {};
+    profiler::frame_timer.reset();
+
 	engine->updateTimer();
 
 	Input::update(engine->tick.elapsed);
 
     engine->updateRunnables();
+    profiler::curr_duration.update_time = profiler::frame_timer.elapsed();
 
 	engine->predrawRunnables();
+    profiler::curr_duration.predraw_time = profiler::frame_timer.elapsed();
 
 	engine->updateView();
 
 	engine->drawRunnables();
+    profiler::curr_duration.draw_time = profiler::frame_timer.elapsed();
 
 	engine->updateImGui();
+    profiler::curr_duration.imgui_time = profiler::frame_timer.elapsed();
 
 	engine->updateStateHandler();
 
@@ -434,7 +458,15 @@ void Engine::emscripten_loop(void* engine_ptr) {
 
 	ff::glDeleteStale();
 
+    engine->display();
+    profiler::curr_duration.display_time = profiler::frame_timer.elapsed();
+
 	engine->sleep();
+    profiler::curr_duration.sleep_time = profiler::frame_timer.elapsed();
+    profiler::curr_duration.total_time = profiler::curr_duration.sleep_time;
+    profiler::curr_duration.curr_uptime = engine->upTime;
+    profiler::curr_duration.curr_frame = engine->clock.getTickCount();
+    profiler::duration_buffer.add_time(profiler::curr_duration);
 }
 
 // -------------------------------------------
@@ -513,6 +545,11 @@ void Engine::updateRunnables()
             tick.update_count = 1;
         }
         stepUpdate = false;
+
+        if (tickDuration > 0.0)
+        {
+            Input::update(tickDuration);
+        }
 
         for (auto& run : runnables) {
             run.getStateHandle().getActiveState()->update(tickDuration);
@@ -918,7 +955,7 @@ void Engine::ImGui_getContent() {
         {
             const auto& buff = profiler::duration_buffer;
 
-            double xmin = buff.back().curr_uptime - 1.0;
+            double xmin = buff.back().curr_uptime - profiler::DurationBuffer::CYCLE_DURATION;
             double xmax = buff.back().curr_uptime;
             double ymin = 0.0;
             double ymax = (clock.getTargetFPS() == FixedEngineClock::FPS_UNLIMITED ? clock.getAvgFPS() : clock.getTargetFPS());
