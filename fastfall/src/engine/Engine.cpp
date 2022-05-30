@@ -130,7 +130,6 @@ namespace profiler {
     DurationBuffer duration_buffer;
     Duration curr_duration;
     Timer frame_timer;
-
 }
 
 
@@ -154,25 +153,16 @@ Engine::Engine(
     std::unique_ptr<Window>&& initWindow,
     EngineRunnable&& toRun,
     const Vec2u& initWindowSize,
-    EngineSettings engineSettings) :
-
-    window{std::move(initWindow)},
-
-    initWinSize(initWindowSize),
-    settings(engineSettings),
-    clock(), // set default FPS
-
-    windowZoom(1),
-
-    ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Engine", "System")
+    EngineSettings engineSettings
+) 
+    : window{std::move(initWindow)}
+    , initWinSize(initWindowSize)
+    , settings(engineSettings)
+    , ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Engine", "System")
 {
     // use first runnable to determine if we need a window
     addRunnable(std::move(toRun));
-
-    stepUpdate = false;
-    pauseUpdate = false;
-
-    initRenderTarget(false);
+    initRenderTarget(settings.fullscreen);
 
     initialized = true;
     if (runnables.empty() || (window && !window->valid())) {
@@ -191,7 +181,6 @@ void Engine::drawRunnable(EngineRunnable& run) {
         run.getRTexture() ?
         static_cast<RenderTarget*>(run.getRTexture()) :
         static_cast<RenderTarget*>(window.get());
-
 
     auto activeState = run.getStateHandle().getActiveState();
     target->clear(activeState->getClearColor());

@@ -11,11 +11,34 @@ class InputState {
 public:
 	InputState(InputType t);
 
+	void update(secs deltaTime);
+
 	void reset();
 	void activate();
 	void deactivate();
 
-	InputType type;
+	bool is_pressed(secs bufferWindow) const;
+	bool is_held() const;
+	void confirm_press();
+
+	bool is_enabled()		const { return enabled; };
+	bool is_active()		const { return active; };
+	bool is_confirmed()		const { return confirmed; };
+	bool is_confirmable()	const { return active && !confirmed; };
+
+	int num_activators()	const { return activeCounter; };
+
+	secs get_last_pressed() const { return lastPressed; }
+
+	const InputType type;
+
+	// for axis inputs
+	short axis_prev_pos = 0;
+
+	// for mouse inputs
+	Vec2i mouse_press_pos;
+	Vec2i mouse_release_pos;
+private:
 
 	int activeCounter = 0; // num of inputs activating this
 
@@ -24,14 +47,10 @@ public:
 	bool confirmed = false;
 	bool firstFrame = false;
 
-	short axisPrevPos = 0;
 
 	secs lastPressed = 0.0;
 	secs lastHoldDuration = 0.0;
 
-	// for mouse inputs
-	Vec2i lastPressPosition;
-	Vec2i lastReleasePosition;
 
 };
 

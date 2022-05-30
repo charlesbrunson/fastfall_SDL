@@ -22,9 +22,6 @@ public:
 	void update(secs deltaTime) override;
 	void predraw(float interp, bool updated) override;
 
-
-	//void updateImGUI();
-
 	inline void setEngineAction(const ff::EngineStateAction& act) noexcept { eAct = act; };
 
 private:

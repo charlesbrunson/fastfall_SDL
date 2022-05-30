@@ -75,22 +75,20 @@ private:
 	Engine(std::unique_ptr<Window>&& initWindow, EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings);
 
 public:
-
 	~Engine() = default;
 
-	//static inline Engine& get() { assert(engineInstance != nullptr); return *engineInstance; };
-
 	static void init(std::unique_ptr<Window>&& window, EngineRunnable&& toRun, const Vec2u& initWindowSize = Vec2u(0, 0), EngineSettings engineSettings = EngineSettings{});
-
 	static void shutdown();
 
-	static bool is_init() {
-		return engineInstance && engineInstance->isInit();
-	}
+	static bool is_init() { return engineInstance && engineInstance->isInit(); }
+	static bool start_running() { return is_init() && engineInstance->run(); }
 
-	static bool start_running() {
-		return is_init() && engineInstance->run();
-	}
+	static int getWindowScale() noexcept { return engineInstance->windowZoom; }
+	static const Window* getWindow() noexcept { return engineInstance->window.get(); }
+	static const FixedEngineClock* getClock() { return &engineInstance->clock; }
+	static secs getUpTime() { return engineInstance->upTime; }
+
+private:
 
 	void addRunnable(EngineRunnable&& toRun);
 
@@ -104,20 +102,7 @@ public:
 	void unfreeze();
 	bool isFrozen() const noexcept;
 
-	static int getWindowScale() noexcept { return engineInstance->windowZoom; }
-	static const Window* getWindow() noexcept { return engineInstance->window.get(); }
-	static const FixedEngineClock* getClock() { return &engineInstance->clock; }
-	static secs getUpTime() { return engineInstance->upTime; }
-
-//	int getWindowScale() const noexcept { return windowZoom; }
-
-//	const Window* getWindow() const noexcept { return window.get(); }
-
-//	const FixedEngineClock& getClock() const { return clock; }
-
-//	secs getUpTime() const { return upTime; }
-
-private:
+	// run strategies
 	bool run_doubleThread();
 	bool run_singleThread();
 	bool run_emscripten();
@@ -154,7 +139,7 @@ private:
 	Vec2i lastWindowedPos;
 	Vec2u initWinSize;
 	Vec2u lastWindowedSize;
-	int windowZoom;
+	int windowZoom = 1;
 
 	bool wantFullscreen = false;
 	bool hasFocus = true;
@@ -173,8 +158,9 @@ private:
 	// event handling
 	unsigned event_count = 0u;
 
-	bool pauseUpdate, stepUpdate;
-	bool pauseInterpolation;
+	bool pauseUpdate = false;
+	bool stepUpdate = false;
+	bool pauseInterpolation = false;
 
 	std::vector<EngineRunnable> runnables;
 

@@ -23,11 +23,6 @@ namespace Input {
 		void ImGui_getContent();
 	};
 
-	struct InputHold {
-		bool isReleased = false;
-		secs holdDuration = 0.0;
-	};
-
 	void setAxisDeadzone(float deadzone = 0.1f);
 	float getAxisDeadzone();
 
@@ -47,8 +42,6 @@ namespace Input {
 	void confirmPress(InputType input);
 
 	Vec2i getMouseWindowPosition();
-
-	//bool mousePositionUpdated();
 	Vec2f getMouseWorldPosition();
 	void setMouseWorldPosition(Vec2f pos);
 

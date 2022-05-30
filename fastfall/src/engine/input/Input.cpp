@@ -20,11 +20,10 @@ namespace Input {
 
     namespace {
 
-        short _deadzone = (short)(0.2f * ((float)SHRT_MAX));
+        short _deadzone = (short)(0.2 * SHRT_MAX);
 
         Vec2i mouseWindowPosition;
         Vec2f mouseWorldPosition;
-        //bool updateMouse = false;
         bool mouseInView = false;
 
         InputMethod activeInputMethod = InputMethod::KEYBOARD;
@@ -53,7 +52,6 @@ namespace Input {
             InputMapValue(InputType t)
                 : type(t)
             {
-
             }
 
             InputType type = InputType::NONE;
@@ -135,8 +133,6 @@ namespace Input {
 
     } // anonymous namespace
 
-    bool debugEvents = true;
-
     //////////////////////////////////////////////////////////////////////////////////////////
     void setAxisDeadzone(float deadzone) {
         _deadzone = deadzone;
@@ -154,12 +150,8 @@ namespace Input {
         return mouseWorldPosition;
     }
     void setMouseWorldPosition(Vec2f pos) {
-        //updateMouse = false;
         mouseWorldPosition = pos;
     }
-    //bool mousePositionUpdated() {
-    //    return updateMouse;
-    //}
 
     void setMouseInView(bool in_view) {
         mouseInView = in_view;
@@ -258,12 +250,12 @@ namespace Input {
 
                         if (r.first && r.second) {
                             bool inrangeCur = inRange(r.second->positiveSide, e.caxis.value);
-                            bool inrangePrev = inRange(r.second->positiveSide, r.first->axisPrevPos);
+                            bool inrangePrev = inRange(r.second->positiveSide, r.first->axis_prev_pos);
 
                             if (inrangeCur != inrangePrev) {
                                 inrangeCur ? r.first->activate() : r.first->deactivate();
                             }
-                            r.first->axisPrevPos = e.caxis.value;
+                            r.first->axis_prev_pos = e.caxis.value;
                         }
                     };
 
@@ -283,7 +275,7 @@ namespace Input {
 
                     if (!mouse.active) {
                         ptr->activate();
-                        ptr->lastPressPosition = Vec2i(e.button.x, e.button.y);
+                        ptr->mouse_press_pos = { e.button.x, e.button.y };
                     }
                     mouse.active = true;
                 }
@@ -292,7 +284,7 @@ namespace Input {
                 if (auto ptr = getMouseInput(e.button.button)) {
                     auto& mouse = mouseMap.at(e.button.button);
                     ptr->deactivate();
-                    ptr->lastReleasePosition = Vec2i(e.button.x, e.button.y);
+                    ptr->mouse_release_pos = { e.button.x, e.button.y };
                     mouse.active = false;
                 }
                 break;
@@ -312,18 +304,9 @@ namespace Input {
             processEvents();
 
             for (InputState& in : inputs) {
-                if (in.active) {
-
-                    if (in.firstFrame) {
-                        in.firstFrame = false;
-                    }
-                    else {
-                        in.lastPressed += deltaTime;
-                    }
-                }
+                in.update(deltaTime);
             }
         }
-        //updateJoystick();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -368,17 +351,15 @@ namespace Input {
     //////////////////////////////////////////////////////////////////////////////////////////
     bool isPressed(InputType input, secs bufferWindow) {
         unsigned ndx = static_cast<unsigned>(input);
-        return inputs[ndx].active &&
-            !inputs[ndx].confirmed &&
-            inputs[ndx].lastPressed <= bufferWindow;
+        return inputs[ndx].is_pressed(bufferWindow);
     }
     bool isHeld(InputType input) {
         unsigned ndx = static_cast<unsigned>(input);
-        return inputs[ndx].active;
+        return inputs[ndx].is_held();
     }
     void confirmPress(InputType input) {
         unsigned ndx = static_cast<unsigned>(input);
-        inputs[ndx].confirmed = true;
+        inputs[ndx].confirm_press();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -444,10 +425,10 @@ namespace Input {
         int i = 0;
         for (auto& in : inputs) {
             ImGui::Text("%s", inputNames[i]); ImGui::NextColumn();
-            ImGui::Text("%d", in.active); ImGui::NextColumn();
-            ImGui::Text("%d", in.activeCounter); ImGui::NextColumn();
+            ImGui::Text("%d", in.is_active()); ImGui::NextColumn();
+            ImGui::Text("%d", in.num_activators()); ImGui::NextColumn();
 
-            if (in.active && !in.confirmed) {
+            if (in.is_confirmable()) {
                 static char confirmbuf[32];
                 sprintf(confirmbuf, "Confirm##%d", i);
                 if (ImGui::SmallButton(confirmbuf)) {
@@ -456,8 +437,8 @@ namespace Input {
             }
             ImGui::NextColumn();
 
-            ImGui::Text("%d", in.enabled); ImGui::NextColumn();
-            ImGui::Text("%.2f", in.lastPressed); ImGui::NextColumn();
+            ImGui::Text("%d", in.is_enabled()); ImGui::NextColumn();
+            ImGui::Text("%.2f", in.get_last_pressed()); ImGui::NextColumn();
             i++;
         };
         ImGui::Columns(1);
