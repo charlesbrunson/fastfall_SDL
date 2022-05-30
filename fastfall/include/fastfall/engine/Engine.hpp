@@ -5,11 +5,7 @@
 #include "state/EngineStateHandler.hpp"
 #include "EngineRunnable.hpp"
 
-//#include "resource/Resources.hpp"
-
 #include "imgui/ImGuiContent.hpp"
-
-//#include "input/Input.hpp"
 
 #include "fastfall/game/InstanceObserver.hpp"
 
@@ -25,18 +21,12 @@
 #include <functional>
 #include <chrono>
 
-//#include <SFML/Graphics.hpp>
-
 #include <mutex>
 #include <barrier>
 
-
-//using namespace std::chrono;
-
 namespace ff {
 
-//constexpr int VERSION[3] = { PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH };
-constexpr int VERSION[3] = { 0, 0, 1 };
+constexpr int VERSION[3] = { 0, 0, 2 };
 
 enum class EngineRunStyle {
 	SingleThread,
@@ -88,30 +78,44 @@ public:
 
 	~Engine() = default;
 
-	static inline Engine& get() { assert(engineInstance != nullptr); return *engineInstance; };
+	//static inline Engine& get() { assert(engineInstance != nullptr); return *engineInstance; };
 
 	static void init(std::unique_ptr<Window>&& window, EngineRunnable&& toRun, const Vec2u& initWindowSize = Vec2u(0, 0), EngineSettings engineSettings = EngineSettings{});
 
 	static void shutdown();
 
+	static bool is_init() {
+		return engineInstance && engineInstance->isInit();
+	}
+
+	static bool start_running() {
+		return is_init() && engineInstance->run();
+	}
+
 	void addRunnable(EngineRunnable&& toRun);
 
 	bool run();
 
-	inline bool isRunning() const noexcept { return running; };
-	inline bool isInit() const noexcept { return initialized; }
+	bool isRunning() const noexcept { return running; };
+	bool isInit() const noexcept { return initialized; }
 
 	void freeze();
 	void freezeStepOnce();
 	void unfreeze();
 	bool isFrozen() const noexcept;
 
-	inline int getWindowScale() const noexcept { return windowZoom; }
+	static int getWindowScale() noexcept { return engineInstance->windowZoom; }
+	static const Window* getWindow() noexcept { return engineInstance->window.get(); }
+	static const FixedEngineClock* getClock() { return &engineInstance->clock; }
+	static secs getUpTime() { return engineInstance->upTime; }
 
-	const Window* getWindow() const noexcept { return window.get(); }
+//	int getWindowScale() const noexcept { return windowZoom; }
 
-	const FixedEngineClock& getClock() const { return clock; }
-	secs getUpTime() const { return upTime; }
+//	const Window* getWindow() const noexcept { return window.get(); }
+
+//	const FixedEngineClock& getClock() const { return clock; }
+
+//	secs getUpTime() const { return upTime; }
 
 private:
 	bool run_doubleThread();
@@ -121,6 +125,7 @@ private:
 
 	void prerun_init();
 
+	// engine loop
 	void updateTimer();
 	void updateStateHandler();
 	void updateView();
@@ -132,15 +137,11 @@ private:
 	void display();
 	void sleep();
 
-	//bool showImGui = false;
-
 	EngineSettings settings;
 
 	bool initialized = false;
 
 	// thread-sync helper
-	// class Barrier;
-
 	bool running = false;
 
 	float gamespeed = 1.f;
@@ -149,7 +150,6 @@ private:
 	unsigned int avgUPS = 0;
 
 	// display management
-	//bool windowless;
 	std::unique_ptr<Window> window;
 	Vec2i lastWindowedPos;
 	Vec2u initWinSize;
@@ -164,25 +164,14 @@ private:
 	View marginView;
 
 	// framerate & time management
-	//EngineClock clock;
 	FixedEngineClock clock;
 	FixedEngineClock::Tick tick;
 	bool hasUpdated = false;
-
-	//unsigned update_counter = 0;
-	//secs elapsedTime;
-	//float interpolation;
-	//bool hasUpdated = false;
-	//secs maxDeltaTime;
-	//secs deltaTime;
 
 	secs upTime = 0.0;
 
 	// event handling
 	unsigned event_count = 0u;
-
-	//std::chrono::time_point<std::chrono::steady_clock> displayStart;
-	//std::chrono::duration<float> displayTime;
 
 	bool pauseUpdate, stepUpdate;
 	bool pauseInterpolation;

@@ -99,23 +99,19 @@ int main(int argc, char* argv[])
 		getSettings()
 	);
 
-	if (Engine::get().isInit()) {
-		Engine::get().run();
-	}
-	else {
+	if (!Engine::start_running()) {
 		LOG_ERR_("Could not initialize engine");
-		return EXIT_FAILURE;
 	}
 
 #if not defined(__EMSCRIPTEN__)
 	ResourceWatcher::stop_watch_thread();
-	ResourceWatcher::join_watch_thread();
 
 	Resources::unloadAll();
 	Engine::shutdown();
 	ImGuiFrame::getInstance().clear();
 
 	FFquit();
+	ResourceWatcher::join_watch_thread();
 #endif
 
 	return EXIT_SUCCESS;
