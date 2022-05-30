@@ -8,7 +8,6 @@ Controls
 	
 	Jump	- Upward instant movement
 	Dash 	- Lateral instant movement
-	//Boost	- Accelerating movement
 	Punch	- Hurt things
 
 Resources
@@ -26,7 +25,7 @@ States
 		Jump {jump}
 			Jumping off the ground and into the air
 		Dash {dash}
-			Instantly redirects velocity left or right
+			Instantly accelerates left or right
 		Boost {dash(hold)}
 			Accelerates left or right, retains momentum at higher speeds, more effective going downhill
 		
@@ -38,10 +37,12 @@ States
 		Boost {dash(hold)}
 			Accelerates left or right
 		Dash {dash AND HAS air charge}
-			Instantly moves left or right, zeroes y-velocity, consumes air charge
+			Instantly accelerates left or right, zeroes y-velocity, consumes air charge
 		Jump {jump AND HAS air charge}
 			Jumping further into the air, consumes air charge
-		Down Boost {down AND dash}
+		Down Dash {down AND dash AND vel.y >= 0}
+			Instantly accelerates down
+		Down Boost {down AND dash(hold)}
 			Accelerates downwards, for bombing a slope
 			
 	Wall

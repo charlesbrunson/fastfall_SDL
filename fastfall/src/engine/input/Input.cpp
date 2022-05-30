@@ -96,28 +96,32 @@ namespace Input {
         InputState* getKeyInput(SDL_Keycode key) {
             auto t = keyMap.find(key);
             if (t != keyMap.end()) {
-                return &inputs[t->second.type];
+                unsigned ndx = static_cast<unsigned>(t->second.type);
+                return &inputs[ndx];
             }
             return nullptr;
         }
         InputState* getMouseInput(MouseButton button) {
             auto t = mouseMap.find(button);
             if (t != mouseMap.end()) {
-                return &inputs[t->second.type];
+                unsigned ndx = static_cast<unsigned>(t->second.type);
+                return &inputs[ndx];
             }
             return nullptr;
         }
         InputState* getJoyInput(Button button) {
             auto t = joystickMap.find(GamepadInput::makeButton(button));
             if (t != joystickMap.end()) {
-                return &inputs[t->second.type];
+                unsigned ndx = static_cast<unsigned>(t->second.type);
+                return &inputs[ndx];
             }
             return nullptr;
         }
         std::pair<InputState*, const GamepadInput*> getAxisInput(JoystickAxis axis, bool side) {
             auto t = joystickMap.find(GamepadInput::makeAxis(axis, side));
             if (t != joystickMap.end()) {
-                return std::make_pair(&inputs[t->second.type], &t->first);
+                unsigned ndx = static_cast<unsigned>(t->second.type);
+                return std::make_pair(&inputs[ndx], &t->first);
             }
             return std::make_pair(nullptr, nullptr);
         }
@@ -348,7 +352,8 @@ namespace Input {
                 it++;
             }
         }
-        inputs[input].reset();
+        unsigned ndx = static_cast<unsigned>(input);
+        inputs[ndx].reset();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -362,16 +367,18 @@ namespace Input {
 
     //////////////////////////////////////////////////////////////////////////////////////////
     bool isPressed(InputType input, secs bufferWindow) {
-
-        return inputs[input].active &&
-            !inputs[input].confirmed &&
-            inputs[input].lastPressed <= bufferWindow;
+        unsigned ndx = static_cast<unsigned>(input);
+        return inputs[ndx].active &&
+            !inputs[ndx].confirmed &&
+            inputs[ndx].lastPressed <= bufferWindow;
     }
     bool isHeld(InputType input) {
-        return inputs[input].active;
+        unsigned ndx = static_cast<unsigned>(input);
+        return inputs[ndx].active;
     }
     void confirmPress(InputType input) {
-        inputs[input].confirmed = true;
+        unsigned ndx = static_cast<unsigned>(input);
+        inputs[ndx].confirmed = true;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -464,7 +471,8 @@ namespace Input {
             }
 
             ImGui::Separator();
-            for (unsigned int i = 0; i < InputType::COUNT; i++) {
+            for (unsigned int i = 0; i < INPUT_COUNT; i++) {
+                InputType in = static_cast<InputType>(i);
 
                 ImGui::Columns(3);
                 ImGui::Text("%s", inputNames[i]);
@@ -501,12 +509,12 @@ namespace Input {
                 joys.clear();
 
                 for (auto& it : keyMap) {
-                    if (it.second.type == i) {
+                    if (it.second.type == in) {
                         keys.push_back(&it.first);
                     }
                 }
                 for (auto& it : joystickMap) {
-                    if (it.second.type == i) {
+                    if (it.second.type == in) {
                         joys.push_back(&it.first);
                     }
                 }
@@ -514,7 +522,6 @@ namespace Input {
                     ImGui::NextColumn();
                     if (i < keys.size()) {
                         ImGui::Text("%s", SDL_GetKeyName(*keys.at(i)));
-                        //ImGui::Text(keyToString.at(*keys.at(i)).c_str());
                     }
                     ImGui::NextColumn();
                     if (i < joys.size()) {
@@ -556,7 +563,6 @@ namespace Input {
                     }
                     else {
                         if (i == 0u) {
-                            //ImGui::Text("");
 							ImGui::NewLine();
                         }
                         else {
@@ -584,125 +590,113 @@ namespace Input {
                 "PovY"
             };
             
-            // TODO
 
-            
+            if (controller && controller->isConnected()) {
 
-            //int joycount = SDL_NumJoysticks();
+                SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller->getHandle());
 
-            //for (int i = 0; i < joycount; i++) {
-
-
-                //SDL_Joystick* joy = activeJoystick;
-
-                if (controller && controller->isConnected()) {
-
-                    SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller->getHandle());
-
-                    int buttonCount = SDL_JoystickNumButtons(joystick);
-                    SDL_JoystickID id = SDL_JoystickInstanceID(joystick);
+                int buttonCount = SDL_JoystickNumButtons(joystick);
+                SDL_JoystickID id = SDL_JoystickInstanceID(joystick);
                                         
+                static char controllerbuf[32];
+                sprintf(controllerbuf, "Controller %1d", i);
+
+                if (ImGui::TreeNode(controllerbuf)) {
+
+                    ImGui::Text("Controller Information");
+
                     static char controllerbuf[32];
-                    sprintf(controllerbuf, "Controller %1d", i);
+                    sprintf(controllerbuf, "%d", i);
+                    ImGui::Columns(2, controllerbuf);
+                    ImGui::SetColumnWidth(0, 120.f);
+                    ImGui::Separator();
+                    ImGui::Text("Controller Name"); ImGui::NextColumn();
+                    ImGui::Text("%s", SDL_JoystickNameForIndex(i)); ImGui::NextColumn();
+                    ImGui::Text("Vendor ID"); ImGui::NextColumn();
+                    ImGui::Text("0x%04x", SDL_JoystickGetVendor(joystick)); ImGui::NextColumn();
+                    ImGui::Text("Product ID"); ImGui::NextColumn();
+                    ImGui::Text("0x%04x", SDL_JoystickGetProduct(joystick)); ImGui::NextColumn();
+                    ImGui::Text("Product Version"); ImGui::NextColumn();
+                    ImGui::Text("0x%04x", SDL_JoystickGetProductVersion(joystick)); ImGui::NextColumn();
+                    ImGui::Columns(1);
+                    ImGui::Separator();
 
-                    if (ImGui::TreeNode(controllerbuf)) {
+                    ImGui::Spacing();
 
-                        ImGui::Text("Controller Information");
+                    static char buttonbuf[32];
+                    sprintf(buttonbuf, "%d", i);
+                    ImGui::Text("Button Count: %d", buttonCount);
+                    ImGui::Columns(2, buttonbuf);
+                    ImGui::Separator();
+                    for (int j = 0; j < buttonCount; j++) {
 
-                        static char controllerbuf[32];
-                        sprintf(controllerbuf, "%d", i);
-                        ImGui::Columns(2, controllerbuf);
-                        ImGui::SetColumnWidth(0, 120.f);
-                        ImGui::Separator();
-                        ImGui::Text("Controller Name"); ImGui::NextColumn();
-                        ImGui::Text("%s", SDL_JoystickNameForIndex(i)); ImGui::NextColumn();
-                        ImGui::Text("Vendor ID"); ImGui::NextColumn();
-                        ImGui::Text("0x%04x", SDL_JoystickGetVendor(joystick)); ImGui::NextColumn();
-                        ImGui::Text("Product ID"); ImGui::NextColumn();
-                        ImGui::Text("0x%04x", SDL_JoystickGetProduct(joystick)); ImGui::NextColumn();
-                        ImGui::Text("Product Version"); ImGui::NextColumn();
-                        ImGui::Text("0x%04x", SDL_JoystickGetProductVersion(joystick)); ImGui::NextColumn();
-                        ImGui::Columns(1);
-                        ImGui::Separator();
-
-                        ImGui::Spacing();
-
-                        static char buttonbuf[32];
-                        sprintf(buttonbuf, "%d", i);
-                        ImGui::Text("Button Count: %d", buttonCount);
-                        ImGui::Columns(2, buttonbuf);
-                        ImGui::Separator();
-                        for (int j = 0; j < buttonCount; j++) {
-
-                            ImGui::Text("Button %2d", j);
-                            ImGui::NextColumn();
-                            ImGui::Text("%s", SDL_JoystickGetButton(joystick, j) != 0 ? "PRESSED" : "");
-                            ImGui::NextColumn();
-                        }
-                        ImGui::Columns(1);
-                        ImGui::Separator();
-
-                        ImGui::Spacing();
-                        
-                        int axiscount = SDL_JoystickNumAxes(joystick);
-                        ImGui::Text("Axis Count: %d", axiscount);
-                        for (int j = 0; j < axiscount; j++) {
-
-                            static char axisbuf[32];
-                            float position = 100.f * (float)SDL_JoystickGetAxis(joystick, j) / (float)(SHRT_MAX);
-                            sprintf(axisbuf, "%d", (int)(position));
-
-                            ImGui::Text("%4s: ", axisNames[j]);
-                            ImGui::SameLine();
-                            ImGui::ProgressBar((position + 100.f) / 200.f, ImVec2(0.f, 0.f), axisbuf);
-
-                        }
-
-                        ImGui::Spacing();
-                        ImGui::Separator();
-                        ImGui::Spacing();
-
-                        int hatcount = SDL_JoystickNumHats(joystick);
-                        for (int j = 0; j < hatcount; j++) {
-                            static const char* hatbuf;
-                            uint8_t hatpos = SDL_JoystickGetHat(joystick, j);
-                            switch (hatpos) {
-                                case SDL_HAT_CENTERED: 
-                                    hatbuf = "SDL_HAT_CENTERED";
-                                    break;
-                                case SDL_HAT_UP:
-                                    hatbuf = "SDL_HAT_UP";
-                                    break;
-                                case SDL_HAT_RIGHT:
-                                    hatbuf = "SDL_HAT_RIGHT";
-                                    break;
-                                case SDL_HAT_DOWN:
-                                    hatbuf = "SDL_HAT_DOWN";
-                                    break;
-                                case SDL_HAT_LEFT:
-                                    hatbuf = "SDL_HAT_LEFT";
-                                    break;
-                                case SDL_HAT_RIGHTUP:
-                                    hatbuf = "SDL_HAT_RIGHTUP";
-                                    break;
-                                case SDL_HAT_RIGHTDOWN:
-                                    hatbuf = "SDL_HAT_RIGHTDOWN";
-                                    break;
-                                case SDL_HAT_LEFTUP:
-                                    hatbuf = "SDL_HAT_LEFTUP";
-                                    break;
-                                case SDL_HAT_LEFTDOWN:
-                                    hatbuf = "SDL_HAT_LEFTDOWN";
-                                    break;
-                            }
-                            ImGui::Text("Hat %2d: %s", j, hatbuf);
-                        }
-
-                        ImGui::TreePop();
+                        ImGui::Text("Button %2d", j);
+                        ImGui::NextColumn();
+                        ImGui::Text("%s", SDL_JoystickGetButton(joystick, j) != 0 ? "PRESSED" : "");
+                        ImGui::NextColumn();
                     }
-                }
+                    ImGui::Columns(1);
+                    ImGui::Separator();
 
-            //}      
+                    ImGui::Spacing();
+                        
+                    int axiscount = SDL_JoystickNumAxes(joystick);
+                    ImGui::Text("Axis Count: %d", axiscount);
+                    for (int j = 0; j < axiscount; j++) {
+
+                        static char axisbuf[32];
+                        float position = 100.f * (float)SDL_JoystickGetAxis(joystick, j) / (float)(SHRT_MAX);
+                        sprintf(axisbuf, "%d", (int)(position));
+
+                        ImGui::Text("%4s: ", axisNames[j]);
+                        ImGui::SameLine();
+                        ImGui::ProgressBar((position + 100.f) / 200.f, ImVec2(0.f, 0.f), axisbuf);
+
+                    }
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    int hatcount = SDL_JoystickNumHats(joystick);
+                    for (int j = 0; j < hatcount; j++) {
+                        static std::string_view hatstr;
+                        uint8_t hatpos = SDL_JoystickGetHat(joystick, j);
+                        switch (hatpos) {
+                            case SDL_HAT_CENTERED: 
+                                hatstr = "SDL_HAT_CENTERED";
+                                break;
+                            case SDL_HAT_UP:
+                                hatstr = "SDL_HAT_UP";
+                                break;
+                            case SDL_HAT_RIGHT:
+                                hatstr = "SDL_HAT_RIGHT";
+                                break;
+                            case SDL_HAT_DOWN:
+                                hatstr = "SDL_HAT_DOWN";
+                                break;
+                            case SDL_HAT_LEFT:
+                                hatstr = "SDL_HAT_LEFT";
+                                break;
+                            case SDL_HAT_RIGHTUP:
+                                hatstr = "SDL_HAT_RIGHTUP";
+                                break;
+                            case SDL_HAT_RIGHTDOWN:
+                                hatstr = "SDL_HAT_RIGHTDOWN";
+                                break;
+                            case SDL_HAT_LEFTUP:
+                                hatstr = "SDL_HAT_LEFTUP";
+                                break;
+                            case SDL_HAT_LEFTDOWN:
+                                hatstr = "SDL_HAT_LEFTDOWN";
+                                break;
+                        }
+                        ImGui::Text("Hat %2d: %s", j, hatstr.data());
+                    }
+
+                    ImGui::TreePop();
+                }
+            } 
         }
     }
 

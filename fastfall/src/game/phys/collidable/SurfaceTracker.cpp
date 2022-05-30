@@ -46,7 +46,9 @@ void SurfaceTracker::process_contacts(std::vector<PersistantContact>& contacts) 
 
 	for (auto rit = contacts.rbegin(); rit != contacts.rend(); rit++) {
 		auto& contact = *rit;
-		if (contact.isSlip)
+
+		// we are moving away from the contact
+		if (contact.isSlip && math::dot(owner->get_vel(), contact.collider_n) > 0)
 			continue;
 
 		if (!found && can_make_contact_with(contact))

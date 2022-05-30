@@ -48,26 +48,32 @@ namespace profiler {
         secs    total_time;
     };
 
+    bool enable = false;
+
     struct DurationBuffer
     {
     public:
         void add_time(Duration d)
         {
 #if DEBUG
-            buffer.push_back(d);
-            update_past();
-            cycle_durations();
+            if (enable) {
+                buffer.push_back(d);
+                update_past();
+                cycle_durations();
+            }
 #endif
         }
 
         auto begin() const { return onesec_past; };
         auto end() const { return buffer.cend(); }
         auto& back() const { return buffer.back(); };
-        auto size() const { return static_cast<size_t>(end() - begin()); }
+        auto size() const { return buffer.empty() ? 0 : static_cast<size_t>(end() - begin()); }
+        bool empty() const { return size() == 0; }
 
         const Duration& operator[] (size_t ndx) const { return begin()[ndx]; }
 
         constexpr static secs CYCLE_DURATION = 3.0;
+
     private:
 
         std::vector<Duration> buffer;
@@ -949,42 +955,61 @@ void Engine::ImGui_getContent() {
     ImGui::Separator();
     ImGui::Text("Events  = %4d", event_count);
 
+    profiler::enable = false;
     if (ImGui::CollapsingHeader("Framerate Graph", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        if (ImPlot::BeginPlot("##FPS", "engine uptime", "tick time (sec)", ImVec2(-1, 200), ImPlotFlags_None, ImPlotAxisFlags_None, 0))
+        const auto& buff = profiler::duration_buffer;
+        if (ImPlot::BeginPlot("##FPS", NULL, NULL, ImVec2(-1, 150), ImPlotFlags_CanvasOnly, ImPlotAxisFlags_None, 0))
         {
-            const auto& buff = profiler::duration_buffer;
+            profiler::enable = true;
 
-            double xmin = buff.back().curr_uptime - profiler::DurationBuffer::CYCLE_DURATION;
-            double xmax = buff.back().curr_uptime;
-            double ymin = 0.0;
-            double ymax = (clock.getTargetFPS() == FixedEngineClock::FPS_UNLIMITED ? clock.getAvgFPS() : clock.getTargetFPS());
+            static double xmin = -1.0;
+            static double xmax = 0.0;
+
+            if (!buff.empty() && profiler::enable) {
+                xmin = buff.back().curr_uptime - profiler::DurationBuffer::CYCLE_DURATION;
+                xmax = buff.back().curr_uptime;
+            }
+
+            static double ymin = 0.0;
+            static double ymax = 60.0;
+
+            if (!buff.empty() && profiler::enable) {
+                ymin = 0.0;
+                ymax = (clock.getTargetFPS() == FixedEngineClock::FPS_UNLIMITED ? clock.getAvgFPS() : clock.getTargetFPS());
+            }
 
             ImPlot::SetupAxesLimits(xmin, xmax, ymin, 1.5 / ymax, ImPlotCond_Always);
 
+            static ImPlotFormatter format = [](double value, char* buff, int size, void* userdata)
+            {
+                snprintf(buff, size, "%.2fms", value * 1000.0);
+            };
+
+            ImPlot::SetupAxisFormat(ImAxis_Y1, format);
             ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1.f);
 
             const auto plot = [&](std::string_view name, const secs* start) {
                 ImPlot::PlotShaded(name.data(), &buff[0].curr_uptime, start, buff.size(), 0.0, 0, sizeof(profiler::Duration));
             };
 
-            plot("sleep", &buff[0].sleep_time);
-            plot("display", &buff[0].display_time);
-            plot("imgui", &buff[0].imgui_time);
-            plot("draw", &buff[0].draw_time);
-            plot("predraw", &buff[0].predraw_time);
-            plot("update", &buff[0].update_time);
-            
-
-            ImPlot::TagY(1.0 / ymax, ImVec4{1.f, 0.f, 0.f, 1.f}, "%3d", (int)ymax);
+            if (!buff.empty()) {
+                plot("sleep", &buff[0].sleep_time);
+                plot("display", &buff[0].display_time);
+                plot("imgui", &buff[0].imgui_time);
+                plot("draw", &buff[0].draw_time);
+                plot("predraw", &buff[0].predraw_time);
+                plot("update", &buff[0].update_time);
+            }
 
             ImPlot::PopStyleVar();
-
             ImPlot::EndPlot();
         }
     }
 
 
+    //ImGui::Checkbox("Enable profiler", &profiler::enable);
+    //ImGui::SameLine();
     ImGui::Text("| FPS:%4d |", clock.getAvgFPS());
     ImGui::SameLine();
     ImGui::Text("Tick#:%6d | ", clock.getTickCount());
