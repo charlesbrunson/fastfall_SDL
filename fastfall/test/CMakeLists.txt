@@ -20,8 +20,6 @@ macro(create_ff_test TESTNAME)
 	gtest_discover_tests(${TESTNAME}
 		WORKING_DIRECTORY ${PROJECT_DIR}
         PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}"
-		#EXTRA_ARGS --gtest_break_on_failure=0
-		#EXTRA_ARGS --gtest_throw_on_failure=0
 	)
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
 endmacro()
@@ -44,8 +42,6 @@ create_ff_test(ff_test_engine
 	engine/statehandler.cpp
 	engine/input.cpp
 )
-#target_compile_definitions(ff_test_phys PRIVATE GTEST_BREAK_ON_FAILURE=0)
-#target_compile_definitions(ff_test_phys PRIVATE GTEST_THROW_ON_FAILURE=0)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/phys_render_out)
 

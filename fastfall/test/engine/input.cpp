@@ -27,8 +27,6 @@ TEST(input, input_state)
 	EXPECT_FALSE(state.is_confirmable());
 	EXPECT_FALSE(state.is_pressed(0.0));
 	EXPECT_TRUE(state.is_confirmed());
-	
-
 }
 
 TEST(input, input_state_buffer)
