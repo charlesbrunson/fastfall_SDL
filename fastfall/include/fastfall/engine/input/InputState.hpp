@@ -21,10 +21,10 @@ public:
 	bool is_held() const;
 	void confirm_press();
 
-	bool is_enabled()		const { return enabled; };
+	//bool is_enabled()		const { return enabled; };
 	bool is_active()		const { return active; };
 	bool is_confirmed()		const { return confirmed; };
-	bool is_confirmable()	const { return active && !confirmed; };
+	bool is_confirmable()	const { return /* active && */ !confirmed; };
 
 	int num_activators()	const { return activeCounter; };
 
@@ -42,16 +42,13 @@ private:
 
 	int activeCounter = 0; // num of inputs activating this
 
-	bool enabled = true;
+	//bool enabled = true;
 	bool active = false;
-	bool confirmed = false;
+	bool confirmed = true;
 	bool firstFrame = false;
 
-
-	secs lastPressed = 0.0;
+	secs lastPressed = DBL_MAX;
 	secs lastHoldDuration = 0.0;
-
-
 };
 
 }

@@ -413,13 +413,13 @@ namespace Input {
             "Mouse2"
         };
 
-        ImGui::Columns(6, "inputs");
+        ImGui::Columns(5, "inputs");
         ImGui::Separator();
         ImGui::Text("Input"); ImGui::NextColumn();
         ImGui::Text("Active"); ImGui::NextColumn();
         ImGui::Text("Counter"); ImGui::NextColumn();
         ImGui::Text("Confirmed"); ImGui::NextColumn();
-        ImGui::Text("Enabled"); ImGui::NextColumn();
+        //ImGui::Text("Enabled"); ImGui::NextColumn();
         ImGui::Text("Duration"); ImGui::NextColumn();
         ImGui::Separator();
         int i = 0;
@@ -437,7 +437,7 @@ namespace Input {
             }
             ImGui::NextColumn();
 
-            ImGui::Text("%d", in.is_enabled()); ImGui::NextColumn();
+            //ImGui::Text("%d", in.is_enabled()); ImGui::NextColumn();
             ImGui::Text("%.2f", in.get_last_pressed()); ImGui::NextColumn();
             i++;
         };
