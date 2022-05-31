@@ -10,7 +10,7 @@ InputState::InputState(InputType t) :
 void InputState::update(secs deltaTime)
 {
 	if (active) {
-		if (firstFrame && lastPressed > 0.0 && lastPressed != DBL_MAX) {
+		if (firstFrame && lastPressed > 0.0) {
 			firstFrame = false;
 		}
 	}
@@ -31,6 +31,7 @@ void InputState::reset() {
 	lastHoldDuration = lastPressed;
 	lastPressed = DBL_MAX;
 }
+
 void InputState::activate() {
 	if (activeCounter == 0) {
 		active = true;
@@ -40,6 +41,7 @@ void InputState::activate() {
 	}
 	activeCounter++;
 }
+
 void InputState::deactivate() {
 	activeCounter--;
 	if (activeCounter <= 0) {
@@ -50,7 +52,6 @@ void InputState::deactivate() {
 	}
 }
 
-
 bool InputState::is_pressed(secs bufferWindow) const {
 	return is_confirmable()
 		&& ((lastPressed <= bufferWindow) || (firstFrame && bufferWindow == 0.0));
@@ -59,6 +60,7 @@ bool InputState::is_pressed(secs bufferWindow) const {
 bool InputState::is_held() const {
 	return active;
 }
+
 void InputState::confirm_press() {
 	confirmed = true;
 }
