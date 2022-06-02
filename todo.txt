@@ -1,0 +1,14 @@
+
+Soon:
+Expand autotiling options
+Reimplement Level serialization
+Particle system
+
+Later:
+In-game level editor
+Diagonal raycasts
+Finish player mechanics
+
+Eventually:
+lua scripting support
+actually make a game lmao

@@ -166,23 +166,26 @@ void ImGuiFrame::displayLog(Recti area, const char* panelName) {
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
 
 		log::level verbosity = log::get_verbosity();
-		for (auto& entry : log::get_entries()) {
+		for (auto& entry : log::get_entries()) 
+		{
 			if (entry.lvl < verbosity)
 				continue;
-
 
 			if (logHighlight[static_cast<unsigned int>(entry.lvl)].hex() != 0xFFFFFFFF) {
 
 				Color col = logHighlight[static_cast<unsigned int>(entry.lvl)];
 
-				static float inv_255 = 1.f / 255.f;
+				static constexpr float inv_255 = 1.f / 255.f;
 				ImGui::TextColored(
-					ImVec4(col.r * inv_255,
+					ImVec4{
+						col.r * inv_255,
 						col.g * inv_255,
 						col.b * inv_255,
-						col.a * inv_255),
-					"%s", entry.message.c_str());
-
+						col.a * inv_255
+					}, 
+					"%s", 
+					entry.message.c_str()
+				);
 			}
 			else {
 				ImGui::Text("%s", entry.message.c_str());

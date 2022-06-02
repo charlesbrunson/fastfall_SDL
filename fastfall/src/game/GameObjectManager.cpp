@@ -40,10 +40,8 @@ GameObjectManager& GameObjectManager::operator=(GameObjectManager&& obj) noexcep
 	return *this;
 }
 
-void GameObjectManager::update(secs deltaTime) {
-	//if (deltaTime <= 0.0)
-	//	return;
-
+void GameObjectManager::update(secs deltaTime) 
+{
 	for (auto& obj : objects) {
 		obj->update(deltaTime);
 	}

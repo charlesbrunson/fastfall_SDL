@@ -948,7 +948,9 @@ void Engine::ImGui_getContent() {
     if (ImGui::CollapsingHeader("Framerate Graph", ImGuiTreeNodeFlags_DefaultOpen))
     {
         const auto& buff = profiler::duration_buffer;
-        if (ImPlot::BeginPlot("##FPS", NULL, NULL, ImVec2(-1, 150), ImPlotFlags_CanvasOnly, ImPlotAxisFlags_None, 0))
+        if (ImPlot::BeginPlot("##FPS", NULL, NULL, ImVec2(-1, 150), 
+            ImPlotFlags_NoTitle | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMouseText,
+            ImPlotAxisFlags_None, 0))
         {
             profiler::enable = true;
 
@@ -983,12 +985,12 @@ void Engine::ImGui_getContent() {
             };
 
             if (!buff.empty()) {
-                plot("sleep", &buff[0].sleep_time);
+                plot("sleep",   &buff[0].sleep_time);
                 plot("display", &buff[0].display_time);
-                plot("imgui", &buff[0].imgui_time);
-                plot("draw", &buff[0].draw_time);
+                plot("imgui",   &buff[0].imgui_time);
+                plot("draw",    &buff[0].draw_time);
                 plot("predraw", &buff[0].predraw_time);
-                plot("update", &buff[0].update_time);
+                plot("update",  &buff[0].update_time);
             }
 
             ImPlot::PopStyleVar();
@@ -996,9 +998,6 @@ void Engine::ImGui_getContent() {
         }
     }
 
-
-    //ImGui::Checkbox("Enable profiler", &profiler::enable);
-    //ImGui::SameLine();
     ImGui::Text("| FPS:%4d |", clock.getAvgFPS());
     ImGui::SameLine();
     ImGui::Text("Tick#:%6d | ", clock.getTickCount());
@@ -1056,22 +1055,6 @@ void Engine::unfreeze() {
 bool Engine::isFrozen() const noexcept {
     return pauseUpdate;
 };
-
-
-/*
-std::optional<unsigned> getDisplayRefreshRate(const Window& win) 
-{
-    SDL_DisplayMode mode;
-    int displayIndex = SDL_GetWindowDisplayIndex(win.getSDL_Window());
-
-    if ((SDL_GetDesktopDisplayMode(displayIndex, &mode) != 0) || (mode.refresh_rate == 0))
-    {
-        return std::nullopt;
-    } 
-    return mode.refresh_rate;
-}
-*/
-
 
 DebugDrawImgui::DebugDrawImgui() :
     ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Debug", "System")
