@@ -8,7 +8,7 @@
 #include <set>
 
 #include "fastfall/game/phys/CollisionSolver.hpp"
-#include "fastfall/game/Instance.hpp"
+//#include "fastfall/game/World.hpp"
 
 #include "nlohmann/json.hpp"
 

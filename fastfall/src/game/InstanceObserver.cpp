@@ -1,6 +1,6 @@
 #include "fastfall/game/InstanceObserver.hpp"
 
-#include "fastfall/game/Instance.hpp"
+#include "fastfall/game/World.hpp"
 
 #include <array>
 
@@ -480,7 +480,7 @@ InstanceObserver::InstanceObserver() :
 }
 
 void InstanceObserver::ImGui_getContent() {
-	std::map<InstanceID, GameInstance>& instances = AllInstances();
+	std::map<InstanceID, World>& instances = AllInstances();
 
 	if (instances.empty()) {
 		ImGui::Text("No Instances!");

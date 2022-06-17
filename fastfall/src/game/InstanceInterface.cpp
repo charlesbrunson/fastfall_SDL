@@ -3,7 +3,7 @@
 namespace ff::instance {
 
 	namespace {
-		GameInstance* getInstance(GameContext context)
+		World* getInstance(GameContext context)
 		{
 			if (auto* inst = Instance(context.getID())) {
 				return inst;

@@ -33,7 +33,6 @@ private:
 	struct TileDynamic {
 		uint8_t logic_id = TILEDATA_NONE;
 	};
-
 	grid_vector<TileDynamic> tiles_dyn;
 
 	struct dyn_t {
@@ -52,10 +51,8 @@ private:
 			ColliderTileMap* tilemap_ptr = nullptr;
 		} collision;
 
-		std::vector<ChunkVertexArray> chunks;
-		//std::vector<const TilesetAsset*> tilesets;
-
 		std::vector<std::unique_ptr<TileLogic>> tile_logic;
+		std::vector<ChunkVertexArray> chunks;
 	} dyn;
 
 	GameContext m_context;
@@ -137,13 +134,10 @@ public:
 
 protected:
 
-	//void populateLogic();
-
 	bool handlePreContact(Vec2i pos, const Contact& contact, secs duration);
 	void handlePostContact(Vec2i pos, const PersistantContact& contact);
 
 	void updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic = true);
-
 
 	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 };

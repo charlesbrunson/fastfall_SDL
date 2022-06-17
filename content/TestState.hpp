@@ -8,7 +8,7 @@
 #include "fastfall/engine/imgui/ImGuiContent.hpp"
 
 #include "fastfall/resource/Resources.hpp"
-#include "fastfall/game/Instance.hpp"
+#include "fastfall/game/World.hpp"
 
 #include "fastfall/game/level/LevelEditor.hpp"
 
@@ -27,7 +27,7 @@ public:
 private:
 	void draw(ff::RenderTarget& target, ff::RenderState states = ff::RenderState()) const override;
 
-	ff::GameInstance* instance;
+	ff::World* instance;
 
 	bool painting = false;
 	ff::Vec2i last_paint;

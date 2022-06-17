@@ -7,7 +7,7 @@
 #include "BasicPlatform.hpp"
 */
 
-#include "fastfall/game/Instance.hpp"
+//#include "fastfall/game/World.hpp"
 #include "fastfall/game/GameObjectManager.hpp"
 
 #include "fastfall/game/InstanceInterface.hpp"

@@ -6,7 +6,7 @@
 #include <string>
 #include <map>
 
-#include "fastfall/game/Instance.hpp"
+#include "fastfall/game/World.hpp"
 
 // object
 #include "fastfall/game/GameObjectManager.hpp"

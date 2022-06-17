@@ -1,4 +1,4 @@
-#include "fastfall/game/Instance.hpp"
+#include "fastfall/game/World.hpp"
 #include "fastfall/resource/Resources.hpp"
 
 #include "fastfall/render/DebugDraw.hpp"
@@ -6,24 +6,24 @@
 
 namespace ff {
 
-GameInstance::GameInstance(InstanceID instance) :
-	instanceID(instance),
-	activeLevel(nullptr),
-	objMan(instance),
-	colMan(instance),
-	triMan(instance),
-	sceneMan(instance)
+World::World(InstanceID instance) 
+	: instanceID(instance)
+	, activeLevel(nullptr)
+	, objMan(instance)
+	, colMan(instance)
+	, triMan(instance)
+	, sceneMan(instance)
 {
 
 }
 
 
-GameInstance::~GameInstance() {
+World::~World() {
 	clear();
 	debug_draw::clear();
 }
 
-void GameInstance::clear() {
+void World::clear() {
 	objMan.clear();
 	sceneMan.clear();
 	camera.removeAllTargets();
@@ -36,7 +36,7 @@ void GameInstance::clear() {
 	colMan.resetFrameCount();
 }
 
-void GameInstance::reset() 
+void World::reset()
 {
 	objMan.clear();
 	sceneMan.clear();
@@ -65,7 +65,7 @@ void GameInstance::reset()
 }
 
 
-bool GameInstance::addLevel(const LevelAsset& levelRef) {
+bool World::addLevel(const LevelAsset& levelRef) {
 
 	GameContext context{ getInstanceID() };
 	auto r = currentLevels.emplace(std::make_pair(&levelRef.getAssetName(), std::make_unique<Level>(context, levelRef)));
@@ -78,7 +78,7 @@ bool GameInstance::addLevel(const LevelAsset& levelRef) {
 	return r.second;
 }
 
-void GameInstance::populateSceneFromLevel(Level& lvl)
+void World::populateSceneFromLevel(Level& lvl)
 {
 	sceneMan.clearType(SceneType::Level);
 	auto& tile_layers = lvl.get_layers().get_tile_layers();
@@ -90,7 +90,7 @@ void GameInstance::populateSceneFromLevel(Level& lvl)
 	sceneMan.set_size(lvl.size());
 }
 
-void GameInstance::update(secs deltaTime)
+void World::update(secs deltaTime)
 {
 	if (activeLevel)
 	{
@@ -103,7 +103,7 @@ void GameInstance::update(secs deltaTime)
 	}
 }
 
-void GameInstance::predraw(float interp, bool updated)
+void World::predraw(float interp, bool updated)
 {
 	if (want_reset)
 		reset();
@@ -116,18 +116,18 @@ void GameInstance::predraw(float interp, bool updated)
 	}
 }
 
-void GameInstance::draw(RenderTarget& target, RenderState state) const
+void World::draw(RenderTarget& target, RenderState state) const
 {
 	target.draw(sceneMan, state);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-std::map<InstanceID, GameInstance> instances;
+std::map<InstanceID, World> instances;
 unsigned int instanceCounter = 1u;
 
 
-GameInstance* Instance(InstanceID id) {
+World* Instance(InstanceID id) {
 	auto r = instances.find(id);
 	if (r != instances.end()) {
 		return &r->second;
@@ -135,7 +135,7 @@ GameInstance* Instance(InstanceID id) {
 	return nullptr;
 }
 
-GameInstance* CreateInstance() {
+World* CreateInstance() {
 	InstanceID id{ instanceCounter };
 
 	auto [iter, emplaced] = instances.emplace(id, id);
@@ -156,7 +156,7 @@ void DestroyInstance(InstanceID id) {
 	instances.erase(id);
 }
 
-std::map<InstanceID, GameInstance>& AllInstances() {
+std::map<InstanceID, World>& AllInstances() {
 	return instances;
 }
 

@@ -18,18 +18,18 @@
 
 namespace ff {
 
-class GameInstance : public Drawable {
+class World : public Drawable {
 public:
 
 	//static constexpr unsigned int NO_INSTANCE = 0u;
 
-	GameInstance(InstanceID instance);
+	World(InstanceID instance);
 
 	// currently unsupported lmao
-	GameInstance(const GameInstance&) = delete;
-	GameInstance& operator=(const GameInstance&) = delete;
+	World(const World&) = delete;
+	World& operator=(const World&) = delete;
 
-	~GameInstance();
+	~World();
 
 	void clear();
 	void reset();
@@ -60,13 +60,8 @@ public:
 private:
 	void draw(RenderTarget& target, RenderState state = RenderState()) const override;
 
-	InstanceID instanceID;
-
-	//unsigned int activelevel;
-
 	GameCamera camera;
 
-	// pointer to level name (from level asset), Level
 	const std::string* activeLevel = nullptr;
 	std::map<const std::string*, std::unique_ptr<Level>> currentLevels;
 
@@ -77,12 +72,15 @@ private:
 
 	size_t update_counter = 0;
 
+	World* ActiveWorld = nullptr;
+
+	InstanceID instanceID;
+
 };
 
-
-GameInstance* Instance(InstanceID id);
-GameInstance* CreateInstance();
+World* Instance(InstanceID id);
+World* CreateInstance();
 void DestroyInstance(InstanceID id);
-std::map<InstanceID, GameInstance>& AllInstances();
+std::map<InstanceID, World>& AllInstances();
 
 }

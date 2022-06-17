@@ -15,7 +15,7 @@ private:
 	GameContext();
 	GameContext(InstanceID instanceID);
 
-	friend class GameInstance;
+	friend class World;
 	friend class InstanceObserver;
 
 	InstanceID id;

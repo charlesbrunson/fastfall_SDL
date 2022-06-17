@@ -1,7 +1,7 @@
 
 #include "TestState.hpp"
 
-#include "fastfall/game/Instance.hpp"
+#include "fastfall/game/World.hpp"
 #include "fastfall/render/ShapeRectangle.hpp"
 #include "fastfall/render/ShapeCircle.hpp"
 #include "fastfall/render/ShapeLine.hpp"
@@ -35,7 +35,6 @@ TestState::TestState()
 
 	auto font = ff::Resources::get<ff::FontAsset>("LionelMicroNbp-gA25.ttf");
 	tile_text.setText(*font, 8, {});
-	//tile_text.setVertSpacing(1.f);
 }
 
 TestState::~TestState() {
@@ -45,8 +44,8 @@ TestState::~TestState() {
 void TestState::update(secs deltaTime) {
 
 	instance->update(deltaTime);
-	//return;
-	// --------------
+	return;
+
 
 	currKeys = SDL_GetKeyboardState(&key_count);
 
