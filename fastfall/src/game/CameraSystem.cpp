@@ -24,7 +24,6 @@ CameraTarget::~CameraTarget() {
 CameraSystem::CameraSystem(Vec2f initPos) :
 	currentPosition(initPos)
 {
-
 };
 
 void CameraSystem::update(secs deltaTime) {

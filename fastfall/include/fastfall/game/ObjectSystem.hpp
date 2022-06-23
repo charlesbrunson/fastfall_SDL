@@ -14,7 +14,7 @@ namespace ff {
 
 class ObjectSystem {
 public:
-	ObjectSystem(unsigned instance);
+	ObjectSystem();
 
 	ObjectSystem(const ObjectSystem& obj);
 	ObjectSystem(ObjectSystem&& obj) noexcept;
@@ -36,10 +36,10 @@ public:
 	inline std::vector<std::unique_ptr<GameObject>>& getObjects() { return objects; };
 	inline const std::vector<std::unique_ptr<GameObject>>& getObjects() const { return objects; };
 
-	inline unsigned getInstanceID() { return instanceID; };
+	//inline unsigned getInstanceID() { return instanceID; };
 
 private:
-	unsigned instanceID;
+	//unsigned instanceID;
 
 	std::vector<std::unique_ptr<GameObject>> objects;
 	std::vector<std::unique_ptr<GameObject>> created_objects;

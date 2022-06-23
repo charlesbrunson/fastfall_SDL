@@ -21,8 +21,7 @@ void debugDrawTrigger(const Trigger& tr) {
 	}
 }
 
-TriggerSystem::TriggerSystem(unsigned instance)
-	: instanceID(instance)
+TriggerSystem::TriggerSystem()
 {
 
 }

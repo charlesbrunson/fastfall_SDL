@@ -4,27 +4,23 @@
 
 namespace ff {
 
-ObjectSystem::ObjectSystem(unsigned instance) :
-	instanceID(instance)
+ObjectSystem::ObjectSystem()
 {
 
 }
 
-ObjectSystem::ObjectSystem(const ObjectSystem& obj) :
-	instanceID(obj.instanceID)
+ObjectSystem::ObjectSystem(const ObjectSystem& obj)
 {
 	for (auto& objptr : obj.objects) {
 		addObject(objptr->clone());
 	}
 }
-ObjectSystem::ObjectSystem(ObjectSystem&& obj) noexcept :
-	instanceID(obj.instanceID)
+ObjectSystem::ObjectSystem(ObjectSystem&& obj) noexcept
 {
 	std::swap(objects, obj.objects);
 }
 
 ObjectSystem& ObjectSystem::operator=(const ObjectSystem& obj) {
-	instanceID = obj.instanceID;
 
 	clear();
 	for (auto& objptr : obj.objects) {
@@ -35,7 +31,6 @@ ObjectSystem& ObjectSystem::operator=(const ObjectSystem& obj) {
 }
 
 ObjectSystem& ObjectSystem::operator=(ObjectSystem&& obj) noexcept {
-	instanceID = obj.instanceID;
 	std::swap(objects, obj.objects);
 	return *this;
 }

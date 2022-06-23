@@ -60,8 +60,11 @@ public:
 private:
 	void draw(RenderTarget& target, RenderState state = RenderState()) const override;
 
-
 	const std::string* activeLevel = nullptr;
+	size_t update_counter = 0;
+
+	InstanceID instanceID;
+
 	std::map<const std::string*, std::unique_ptr<Level>> currentLevels;
 
 	ObjectSystem	objects;
@@ -69,12 +72,6 @@ private:
 	TriggerSystem	triggers;
 	CameraSystem	camera;
 	SceneSystem		scene;
-
-	size_t update_counter = 0;
-
-	World* ActiveWorld = nullptr;
-
-	InstanceID instanceID;
 
 };
 

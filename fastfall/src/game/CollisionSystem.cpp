@@ -14,8 +14,7 @@
 
 namespace ff {
 
-CollisionSystem::CollisionSystem(unsigned instance) :
-	instanceID(instance)
+CollisionSystem::CollisionSystem()
 {
 
 }

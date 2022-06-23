@@ -6,8 +6,7 @@
 namespace ff {
 
 
-SceneSystem::SceneSystem(unsigned instance)
-	: instanceID(instance)
+SceneSystem::SceneSystem()
 {
 
 }

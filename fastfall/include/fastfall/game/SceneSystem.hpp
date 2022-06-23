@@ -30,7 +30,7 @@ public:
 	};
 
 
-	SceneSystem(unsigned instance);
+	SceneSystem();
 
 	void add(SceneType scene_type, Drawable& drawable, Layer layer = 0, Priority priority = Priority::Normal);
 
@@ -70,7 +70,7 @@ private:
 	bool enableScissor(const RenderTarget& target, Vec2f viewPos) const;
 	void disableScissor() const;
 
-	unsigned instanceID;
+	//unsigned instanceID;
 };
 
 }

@@ -25,7 +25,7 @@ private:
 
 public:
 
-	CollisionSystem(unsigned instance);
+	CollisionSystem();
 
 	void update(secs deltaTime);
 	
@@ -52,7 +52,6 @@ public:
 
 private:
 
-	unsigned instanceID;
 	size_t frame_count = 0;
 	size_t frame_collision_count = 0;
 	

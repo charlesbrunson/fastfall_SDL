@@ -10,9 +10,7 @@ namespace ff {
 
 class TriggerSystem {
 public:
-	//using Trigger_sptr = std::unique_ptr<Trigger>;
-
-	TriggerSystem(unsigned instance);
+	TriggerSystem();
 
 	Trigger* create_trigger();
 	Trigger* create_trigger(
@@ -34,7 +32,7 @@ private:
 
 	plf::colony<Trigger> triggers;
 
-	unsigned instanceID;
+	//unsigned instanceID;
 
 };
 

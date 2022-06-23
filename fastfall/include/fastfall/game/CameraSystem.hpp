@@ -49,7 +49,8 @@ private:
 class CameraSystem {
 public:
 
-	CameraSystem(Vec2f initPos = Vec2f(0, 0));
+	CameraSystem() = default;
+	CameraSystem(Vec2f initPos);
 
 	void update(secs deltaTime);
 
@@ -70,7 +71,6 @@ public:
 	Vec2f currentPosition;
 
 private:
-
 	CameraTarget* active_target = nullptr;
 	std::vector<CameraTarget*> targets;
 };

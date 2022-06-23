@@ -8,13 +8,7 @@ namespace ff {
 
 World::World(InstanceID instance) 
 	: instanceID(instance)
-	, activeLevel(nullptr)
-	, objects(instance)
-	, collisions(instance)
-	, triggers(instance)
-	, scene(instance)
 {
-
 }
 
 
