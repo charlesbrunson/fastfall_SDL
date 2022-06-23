@@ -2,11 +2,7 @@
 #include "fastfall/game/Level.hpp"
 #include <assert.h>
 
-//#include "level/LevelObserver.hpp"
 #include "imgui.h"
-
-//#include "fastfall/game/Instance.hpp"
-#include "fastfall/game/GameObjectManager.hpp"
 
 namespace ff {
 

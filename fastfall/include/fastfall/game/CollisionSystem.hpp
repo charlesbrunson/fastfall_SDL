@@ -14,7 +14,7 @@
 
 namespace ff {
 
-class CollisionManager {
+class CollisionSystem {
 public:
 	using collidables_vector = std::vector<std::unique_ptr<CollidableArbiter>>;
 	using regions_vector = std::vector<std::unique_ptr<ColliderRegion>>;
@@ -25,7 +25,7 @@ private:
 
 public:
 
-	CollisionManager(unsigned instance);
+	CollisionSystem(unsigned instance);
 
 	void update(secs deltaTime);
 	
@@ -51,14 +51,6 @@ public:
 	inline size_t getFrameCount() const { return frame_count; };
 
 private:
-
-	//void broadPhase(secs deltaTime);
-
-	//void updateRegionArbiters(CollidableData& data, Rectf bounds);
-
-	//Rectf updatePushBound(Rectf push_bound, const cardinal_array<float>& boundDist, const Contact* contact);
-
-	//void solve(CollidableData& collidableData);
 
 	unsigned instanceID;
 	size_t frame_count = 0;

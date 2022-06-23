@@ -7,10 +7,11 @@
 
 #include "fastfall/render/RenderTarget.hpp"
 
-#include "fastfall/game/GameCamera.hpp"
 #include "fastfall/render/DebugDraw.hpp"
 #include "fastfall/render/ShapeRectangle.hpp"
-#include "fastfall/game/CollisionManager.hpp"
+
+#include "fastfall/game/CameraSystem.hpp"
+#include "fastfall/game/CollisionSystem.hpp"
 
 #include "fastfall/game/InstanceInterface.hpp"
 

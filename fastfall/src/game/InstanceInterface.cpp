@@ -17,7 +17,7 @@ namespace ff::instance {
 
 
 	// object
-	const GameObjectManager* obj_get_man(GameContext context)
+	const ObjectSystem* obj_get_man(GameContext context)
 	{
 		if (auto* inst = getInstance(context)) {
 			return &inst->getObject();
@@ -71,7 +71,7 @@ namespace ff::instance {
 
 	// collision
 
-	const CollisionManager* phys_get_man(GameContext context)
+	const CollisionSystem* phys_get_man(GameContext context)
 	{
 		if (auto* inst = getInstance(context)) {
 			return &inst->getCollision();
@@ -105,14 +105,14 @@ namespace ff::instance {
 	{
 		return phys_get_quad(context, contact.collider_id, contact.quad_id);
 	}
-	const CollisionManager::regions_vector* phys_get_colliders(GameContext context)
+	const CollisionSystem::regions_vector* phys_get_colliders(GameContext context)
 	{
 		if (auto* man = phys_get_man(context)) {
 			return &man->get_colliders();
 		}
 		return nullptr;
 	}
-	const CollisionManager::collidables_vector* phys_get_collidables(GameContext context)
+	const CollisionSystem::collidables_vector* phys_get_collidables(GameContext context)
 	{
 		if (auto* man = phys_get_man(context)) {
 			return &man->get_collidables();
@@ -160,7 +160,7 @@ namespace ff::instance {
 	}
 
 	// camera
-	const GameCamera* cam_get_man(GameContext context) {
+	const CameraSystem* cam_get_man(GameContext context) {
 		if (auto* inst = getInstance(context)) {
 			return &inst->getCamera();
 		}
@@ -218,7 +218,7 @@ namespace ff::instance {
 	}
 
 	// trigger
-	const TriggerManager* trig_get_man(GameContext context) {
+	const TriggerSystem* trig_get_man(GameContext context) {
 		if (auto* inst = getInstance(context)) {
 			return &inst->getTrigger();
 		}
@@ -254,7 +254,7 @@ namespace ff::instance {
 	}
 
 	// scene
-	const SceneManager* scene_get_man(GameContext context) {
+	const SceneSystem* scene_get_man(GameContext context) {
 		if (auto* inst = getInstance(context)) {
 			return &inst->getScene();
 		}
@@ -265,8 +265,8 @@ namespace ff::instance {
 		GameContext context,
 		SceneType scene_type,
 		Drawable& drawable,
-		SceneManager::Layer layer,
-		SceneManager::Priority priority) 
+		SceneSystem::Layer layer,
+		SceneSystem::Priority priority)
 	{
 		if (auto* inst = getInstance(context)) {
 			inst->getScene().add(scene_type, drawable, layer, priority);

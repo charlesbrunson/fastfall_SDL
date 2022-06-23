@@ -1,4 +1,4 @@
-#include "fastfall/game/TriggerManager.hpp"
+#include "fastfall/game/TriggerSystem.hpp"
 #include "fastfall/render/DebugDraw.hpp"
 
 
@@ -21,17 +21,17 @@ void debugDrawTrigger(const Trigger& tr) {
 	}
 }
 
-TriggerManager::TriggerManager(unsigned instance) 
+TriggerSystem::TriggerSystem(unsigned instance)
 	: instanceID(instance)
 {
 
 }
 
-Trigger* TriggerManager::create_trigger() {
+Trigger* TriggerSystem::create_trigger() {
 	return &*triggers.emplace();
 }
 
-Trigger* TriggerManager::create_trigger(
+Trigger* TriggerSystem::create_trigger(
 	Rectf area, 
 	std::unordered_set<TriggerTag> self_flags, 
 	std::unordered_set<TriggerTag> filter_flags,
@@ -47,7 +47,7 @@ Trigger* TriggerManager::create_trigger(
 	return &trigger;
 }
 
-bool TriggerManager::erase_trigger(Trigger* trigger) {
+bool TriggerSystem::erase_trigger(Trigger* trigger) {
 
 	auto it = std::find_if(triggers.begin(), triggers.end(), [trigger](const Trigger& m_trigger) {
 			return trigger == &m_trigger;
@@ -59,7 +59,7 @@ bool TriggerManager::erase_trigger(Trigger* trigger) {
 	return false;
 }
 
-void TriggerManager::update(secs deltaTime) {
+void TriggerSystem::update(secs deltaTime) {
 
 	for (auto& trigger : triggers)
 	{
@@ -83,7 +83,7 @@ void TriggerManager::update(secs deltaTime) {
 	}
 }
 
-void TriggerManager::compareTriggers(Trigger& A, Trigger& B, secs deltaTime) {
+void TriggerSystem::compareTriggers(Trigger& A, Trigger& B, secs deltaTime) {
 
 	if (auto pull = A.triggerable_by(B, deltaTime)) {
 		A.trigger(pull.value());

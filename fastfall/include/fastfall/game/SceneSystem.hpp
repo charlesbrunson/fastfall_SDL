@@ -13,7 +13,7 @@ enum class SceneType {
 	Level
 };
 
-class SceneManager : public Drawable {
+class SceneSystem : public Drawable {
 public:
 	// 0 is the default layer, 
 	// >0 is towards top (foreground)
@@ -30,7 +30,7 @@ public:
 	};
 
 
-	SceneManager(unsigned instance);
+	SceneSystem(unsigned instance);
 
 	void add(SceneType scene_type, Drawable& drawable, Layer layer = 0, Priority priority = Priority::Normal);
 

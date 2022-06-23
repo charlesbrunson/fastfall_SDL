@@ -5,7 +5,7 @@
 
 #include "fastfall/render/DebugDraw.hpp"
 
-#include "fastfall/game/CollisionManager.hpp"
+#include "fastfall/game/CollisionSystem.hpp"
 
 #include "fastfall/game/InstanceInterface.hpp"
 

@@ -1,29 +1,29 @@
-#include "fastfall/game/GameObjectManager.hpp"
+#include "fastfall/game/ObjectSystem.hpp"
 
 #include <assert.h>
 
 namespace ff {
 
-GameObjectManager::GameObjectManager(unsigned instance) :
+ObjectSystem::ObjectSystem(unsigned instance) :
 	instanceID(instance)
 {
 
 }
 
-GameObjectManager::GameObjectManager(const GameObjectManager& obj) :
+ObjectSystem::ObjectSystem(const ObjectSystem& obj) :
 	instanceID(obj.instanceID)
 {
 	for (auto& objptr : obj.objects) {
 		addObject(objptr->clone());
 	}
 }
-GameObjectManager::GameObjectManager(GameObjectManager&& obj) noexcept :
+ObjectSystem::ObjectSystem(ObjectSystem&& obj) noexcept :
 	instanceID(obj.instanceID)
 {
 	std::swap(objects, obj.objects);
 }
 
-GameObjectManager& GameObjectManager::operator=(const GameObjectManager& obj) {
+ObjectSystem& ObjectSystem::operator=(const ObjectSystem& obj) {
 	instanceID = obj.instanceID;
 
 	clear();
@@ -34,13 +34,13 @@ GameObjectManager& GameObjectManager::operator=(const GameObjectManager& obj) {
 	return *this;
 }
 
-GameObjectManager& GameObjectManager::operator=(GameObjectManager&& obj) noexcept {
+ObjectSystem& ObjectSystem::operator=(ObjectSystem&& obj) noexcept {
 	instanceID = obj.instanceID;
 	std::swap(objects, obj.objects);
 	return *this;
 }
 
-void GameObjectManager::update(secs deltaTime) 
+void ObjectSystem::update(secs deltaTime)
 {
 	for (auto& obj : objects) {
 		obj->update(deltaTime);
@@ -56,7 +56,7 @@ void GameObjectManager::update(secs deltaTime)
 	}
 	created_objects.clear();
 }
-void GameObjectManager::predraw(float interp, bool updated) {
+void ObjectSystem::predraw(float interp, bool updated) {
 
 	auto it = std::remove_if(
 		std::begin(objects),
@@ -72,12 +72,12 @@ void GameObjectManager::predraw(float interp, bool updated) {
 	}
 }
 
-void GameObjectManager::clear() {
+void ObjectSystem::clear() {
 	objects.clear();
 	spawnCounter = 1;
 }
 
-void GameObjectManager::addObject(std::unique_ptr<GameObject>&& obj) {
+void ObjectSystem::addObject(std::unique_ptr<GameObject>&& obj) {
 	assert(obj);
 	created_objects.push_back(std::move(obj));
 }

@@ -364,8 +364,9 @@ void levelContent(GameContext context) {
 	}
 }
 
-void objectContent(GameContext context) {
-	const GameObjectManager* man = instance::obj_get_man(context); //&Instance(instance)->getObject();
+void objectContent(GameContext context) 
+{
+	const ObjectSystem* man = instance::obj_get_man(context); //&Instance(instance)->getObject();
 
 	ImGui::Text("Object Count: %3lu", man->getObjects().size());
 
@@ -398,11 +399,9 @@ void objectContent(GameContext context) {
 	ImGui::Columns(1);
 
 }
-void cameraContent(GameContext context) {
-	//GameCamera* man = &Instance(instance)->getCamera();
-
-	//GameCamera* man = &context.camera().get();
-	const GameCamera* man = instance::cam_get_man(context);
+void cameraContent(GameContext context) 
+{
+	const CameraSystem* man = instance::cam_get_man(context);
 
 	Vec2f center = instance::cam_get_pos(context);
 

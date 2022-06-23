@@ -1,4 +1,4 @@
-#include "fastfall/game/GameCamera.hpp"
+#include "fastfall/game/CameraSystem.hpp"
 
 #include "fastfall/render/DebugDraw.hpp"
 
@@ -21,13 +21,13 @@ CameraTarget::~CameraTarget() {
 	}
 }
 
-GameCamera::GameCamera(Vec2f initPos) :
+CameraSystem::CameraSystem(Vec2f initPos) :
 	currentPosition(initPos)
 {
 
 };
 
-void GameCamera::update(secs deltaTime) {
+void CameraSystem::update(secs deltaTime) {
 
 	if (deltaTime > 0.0) {
 
@@ -128,7 +128,7 @@ void GameCamera::update(secs deltaTime) {
 }
 
 
-void GameCamera::addTarget(CameraTarget& target) {
+void CameraSystem::addTarget(CameraTarget& target) {
 	auto iter_pair = std::equal_range(
 		targets.begin(), targets.end(), &target,
 		[](const CameraTarget* lhs, const CameraTarget* rhs) {
@@ -150,7 +150,7 @@ void GameCamera::addTarget(CameraTarget& target) {
 
 	target.has_camera = true;
 }
-bool GameCamera::removeTarget(CameraTarget& target) {
+bool CameraSystem::removeTarget(CameraTarget& target) {
 
 	auto iter = std::find(targets.begin(), targets.end(), &target);
 	bool has_target = iter != targets.end();
@@ -165,7 +165,7 @@ bool GameCamera::removeTarget(CameraTarget& target) {
 }
 
 
-void GameCamera::removeAllTargets() {
+void CameraSystem::removeAllTargets() {
 	for (auto target : targets) {
 		target->has_camera = false;
 	}
@@ -173,12 +173,12 @@ void GameCamera::removeAllTargets() {
 	active_target = nullptr;
 }
 
-const std::vector<CameraTarget*>& GameCamera::getTargets() const {
+const std::vector<CameraTarget*>& CameraSystem::getTargets() const {
 	return targets;
 }
 
 
-Vec2f GameCamera::getPosition(float interpolation) {
+Vec2f CameraSystem::getPosition(float interpolation) {
 	return math::lerp(prevPosition, currentPosition, interpolation);
 }
 

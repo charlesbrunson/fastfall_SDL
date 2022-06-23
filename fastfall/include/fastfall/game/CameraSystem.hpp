@@ -38,7 +38,7 @@ public:
 	}
 
 private:
-	friend class GameCamera;
+	friend class CameraSystem;
 
 	bool has_camera = false;
 	CamTargetState m_state = CamTargetState::Active;
@@ -46,10 +46,10 @@ private:
 	GameContext m_context;
 };
 
-class GameCamera {
+class CameraSystem {
 public:
 
-	GameCamera(Vec2f initPos = Vec2f(0, 0));
+	CameraSystem(Vec2f initPos = Vec2f(0, 0));
 
 	void update(secs deltaTime);
 

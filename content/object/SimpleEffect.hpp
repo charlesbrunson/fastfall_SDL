@@ -13,7 +13,7 @@ public:
 
 	SimpleEffect(ff::GameContext context, ff::AnimID anim, ff::Vec2f position, bool hflip)
 		: ff::GameObject(context)
-		, sprite(context, ff::AnimatedSprite{}, ff::SceneType::Object, 0, ff::SceneManager::Priority::High)
+		, sprite(context, ff::AnimatedSprite{}, ff::SceneType::Object, 0, ff::SceneSystem::Priority::High)
 	{
 		sprite->set_pos(position);
 		sprite->set_pos(position);

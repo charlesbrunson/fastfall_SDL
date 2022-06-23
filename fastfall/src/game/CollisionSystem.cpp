@@ -1,4 +1,4 @@
-#include "fastfall/game/CollisionManager.hpp"
+#include "fastfall/game/CollisionSystem.hpp"
 
 #include "fastfall/engine/config.hpp"
 #include "fastfall/util/log.hpp"
@@ -14,13 +14,13 @@
 
 namespace ff {
 
-CollisionManager::CollisionManager(unsigned instance) :
+CollisionSystem::CollisionSystem(unsigned instance) :
 	instanceID(instance)
 {
 
 }
 
-void CollisionManager::update(secs deltaTime) {
+void CollisionSystem::update(secs deltaTime) {
 
 	if (collision_dump)
 	{
@@ -48,7 +48,7 @@ void CollisionManager::update(secs deltaTime) {
 	frame_count++;
 };
 
-Collidable* CollisionManager::create_collidable(Vec2f init_pos, Vec2f init_size, Vec2f init_grav) 
+Collidable* CollisionSystem::create_collidable(Vec2f init_pos, Vec2f init_size, Vec2f init_grav)
 {
 	collidables.push_back(std::make_unique<CollidableArbiter>(CollidableArbiter{
 		.collidable = { init_pos, init_size, init_grav }, 
@@ -58,7 +58,7 @@ Collidable* CollisionManager::create_collidable(Vec2f init_pos, Vec2f init_size,
 	return col;
 }
 
-bool CollisionManager::erase_collidable(Collidable* collidable) {
+bool CollisionSystem::erase_collidable(Collidable* collidable) {
 
 	auto it = std::find_if(collidables.begin(), collidables.end(), 
 		[&collidable](const auto& cArb) {
@@ -72,7 +72,7 @@ bool CollisionManager::erase_collidable(Collidable* collidable) {
 	return false;
 }
 
-bool CollisionManager::erase_collider(ColliderRegion* region) {
+bool CollisionSystem::erase_collider(ColliderRegion* region) {
 
 	for (auto& colArb : collidables) {
 		colArb->erase_region(region);

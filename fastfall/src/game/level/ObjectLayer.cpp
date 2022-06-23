@@ -1,5 +1,7 @@
 #include "fastfall/game/level/ObjectLayer.hpp"
 
+#include "fastfall/game/ObjectSystem.hpp"
+
 namespace ff {
 
 ObjectLayer::ObjectLayer()

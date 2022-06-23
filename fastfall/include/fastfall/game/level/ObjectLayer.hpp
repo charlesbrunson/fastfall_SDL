@@ -1,11 +1,7 @@
 #pragma once
 
-//#include "game/phys/collider_regiontypes/ColliderTileMap.hpp"
 #include "fastfall/resource/asset/LevelAssetTypes.hpp"
-
-//#include "util/Updatable.hpp"
-
-#include "fastfall/game/GameObjectManager.hpp"
+#include "fastfall/game/GameContext.hpp"
 
 namespace ff {
 
@@ -40,7 +36,6 @@ private:
 	std::vector<ObjectLevelData> object_refs;
 
 	unsigned lastID = 1;
-
 };
 
 }

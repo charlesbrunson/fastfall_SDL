@@ -1,4 +1,4 @@
-#include "fastfall/game/SceneManager.hpp"
+#include "fastfall/game/SceneSystem.hpp"
 #include "fastfall/engine/config.hpp"
 
 #include "fastfall/util/log.hpp"
@@ -6,13 +6,13 @@
 namespace ff {
 
 
-SceneManager::SceneManager(unsigned instance)
+SceneSystem::SceneSystem(unsigned instance)
 	: instanceID(instance)
 {
 
 }
 
-void SceneManager::add(SceneType scene_type, Drawable& drawable, Layer layer, Priority priority) {
+void SceneSystem::add(SceneType scene_type, Drawable& drawable, Layer layer, Priority priority) {
 	auto layer_iter = std::upper_bound(
 		layers.begin(), layers.end(),
 		layer,
@@ -40,7 +40,7 @@ void SceneManager::add(SceneType scene_type, Drawable& drawable, Layer layer, Pr
 		);
 }
 
-void SceneManager::remove(Drawable& drawable) {
+void SceneSystem::remove(Drawable& drawable) {
 	for (auto it1 = layers.begin(); it1 != layers.end(); it1++) {
 		for (auto it2 = it1->drawables.cbegin(); it2 != it1->drawables.cend(); it2++) {
 			if (it2->drawable == &drawable) {
@@ -54,11 +54,11 @@ void SceneManager::remove(Drawable& drawable) {
 	}
 }
 
-void SceneManager::clear() {
+void SceneSystem::clear() {
 	layers.clear();
 }
 
-void SceneManager::clearType(SceneType scene_type) {
+void SceneSystem::clearType(SceneType scene_type) {
 	std::vector<SceneLayer> copy = layers;
 	layers.clear();
 
@@ -80,15 +80,15 @@ void SceneManager::clearType(SceneType scene_type) {
 	}
 }
 
-void SceneManager::set_cam_pos(Vec2f center) {
+void SceneSystem::set_cam_pos(Vec2f center) {
 	cam_pos = center;
 }
 
-void SceneManager::set_bg_color(Color color) {
+void SceneSystem::set_bg_color(Color color) {
 	background.setColor(color);
 }
 
-void SceneManager::set_size(Vec2u size) {
+void SceneSystem::set_size(Vec2u size) {
 	scene_size = Vec2f{ size } *TILESIZE_F;
 
 	// pixel buffer prevent visual artifacts at the edges of the level
@@ -96,7 +96,7 @@ void SceneManager::set_size(Vec2u size) {
 	background.setSize(scene_size + Vec2f{2.f, 2.f});
 }
 
-void SceneManager::draw(ff::RenderTarget& target, ff::RenderState state) const {
+void SceneSystem::draw(ff::RenderTarget& target, ff::RenderState state) const {
 
 	bool scissor_enabled = enableScissor(target, cam_pos);
 
@@ -127,7 +127,7 @@ void SceneManager::draw(ff::RenderTarget& target, ff::RenderState state) const {
 }
 
 
-bool SceneManager::enableScissor(const RenderTarget& target, Vec2f viewPos) const {
+bool SceneSystem::enableScissor(const RenderTarget& target, Vec2f viewPos) const {
 
 	glm::fvec4 scissor;
 	View view = target.getView();
@@ -167,7 +167,7 @@ bool SceneManager::enableScissor(const RenderTarget& target, Vec2f viewPos) cons
 	return scissor[2] > 0.f && scissor[3] > 0.f;
 }
 
-void SceneManager::disableScissor() const {
+void SceneSystem::disableScissor() const {
 	glDisable(GL_SCISSOR_TEST);
 }
 

@@ -6,11 +6,11 @@
 #include "fastfall/game/InstanceID.hpp"
 
 #include "fastfall/game/Level.hpp"
-#include "fastfall/game/GameObjectManager.hpp"
-#include "fastfall/game/CollisionManager.hpp"
-#include "fastfall/game/TriggerManager.hpp"
-#include "fastfall/game/GameCamera.hpp"
-#include "fastfall/game/SceneManager.hpp"
+#include "fastfall/game/ObjectSystem.hpp"
+#include "fastfall/game/CollisionSystem.hpp"
+#include "fastfall/game/TriggerSystem.hpp"
+#include "fastfall/game/CameraSystem.hpp"
+#include "fastfall/game/SceneSystem.hpp"
 
 #include "fastfall/render/RenderTarget.hpp"
 
@@ -37,11 +37,11 @@ public:
 	inline Level* getActiveLevel() { return currentLevels.at(activeLevel).get(); };
 	inline std::map<const std::string*, std::unique_ptr<Level>>& getAllLevels() noexcept { return currentLevels; };
 
-	inline GameObjectManager& getObject() noexcept { return objMan; };
-	inline CollisionManager& getCollision() noexcept { return colMan; };
-	inline TriggerManager& getTrigger() noexcept { return triMan; };
-	inline GameCamera& getCamera() noexcept { return camera; };
-	inline SceneManager& getScene() noexcept { return sceneMan; };
+	inline ObjectSystem& getObject()		noexcept { return objects;		};
+	inline CollisionSystem& getCollision()	noexcept { return collisions;	};
+	inline TriggerSystem& getTrigger()		noexcept { return triggers;		};
+	inline CameraSystem& getCamera()		noexcept { return camera;		};
+	inline SceneSystem& getScene()			noexcept { return scene;		};
 
 	bool addLevel(const LevelAsset& levelRef);
 
@@ -60,15 +60,15 @@ public:
 private:
 	void draw(RenderTarget& target, RenderState state = RenderState()) const override;
 
-	GameCamera camera;
 
 	const std::string* activeLevel = nullptr;
 	std::map<const std::string*, std::unique_ptr<Level>> currentLevels;
 
-	GameObjectManager objMan;
-	CollisionManager colMan;
-	TriggerManager triMan;
-	SceneManager sceneMan;
+	ObjectSystem	objects;
+	CollisionSystem collisions;
+	TriggerSystem	triggers;
+	CameraSystem	camera;
+	SceneSystem		scene;
 
 	size_t update_counter = 0;
 

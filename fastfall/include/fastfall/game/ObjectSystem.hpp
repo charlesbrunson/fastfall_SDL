@@ -12,15 +12,15 @@
 
 namespace ff {
 
-class GameObjectManager {
+class ObjectSystem {
 public:
-	GameObjectManager(unsigned instance);
+	ObjectSystem(unsigned instance);
 
-	GameObjectManager(const GameObjectManager& obj);
-	GameObjectManager(GameObjectManager&& obj) noexcept;
+	ObjectSystem(const ObjectSystem& obj);
+	ObjectSystem(ObjectSystem&& obj) noexcept;
 
-	GameObjectManager& operator=(const GameObjectManager& obj);
-	GameObjectManager& operator=(GameObjectManager&& obj) noexcept;
+	ObjectSystem& operator=(const ObjectSystem& obj);
+	ObjectSystem& operator=(ObjectSystem&& obj) noexcept;
 
 	void update(secs deltaTime);
 	void predraw(float interp, bool updated);

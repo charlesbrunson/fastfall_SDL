@@ -76,8 +76,8 @@ struct Scene_ptr {
 		GameContext context, 
 		T t_drawable, 
 		SceneType type,
-		SceneManager::Layer layer = 0, 
-		SceneManager::Priority priority = SceneManager::Priority::Normal
+		SceneSystem::Layer layer = 0, 
+		SceneSystem::Priority priority = SceneSystem::Priority::Normal
 	)
 		: m_context(context)
 		, drawable(t_drawable)

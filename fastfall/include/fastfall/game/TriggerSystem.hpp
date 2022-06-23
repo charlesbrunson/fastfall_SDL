@@ -8,11 +8,11 @@
 
 namespace ff {
 
-class TriggerManager {
+class TriggerSystem {
 public:
 	//using Trigger_sptr = std::unique_ptr<Trigger>;
 
-	TriggerManager(unsigned instance);
+	TriggerSystem(unsigned instance);
 
 	Trigger* create_trigger();
 	Trigger* create_trigger(

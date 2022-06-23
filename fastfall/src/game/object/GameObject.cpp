@@ -2,13 +2,7 @@
 
 #include "fastfall/util/log.hpp"
 
-/*
-#include "Player.hpp"
-#include "BasicPlatform.hpp"
-*/
-
-//#include "fastfall/game/World.hpp"
-#include "fastfall/game/GameObjectManager.hpp"
+#include "fastfall/game/ObjectSystem.hpp"
 
 #include "fastfall/game/InstanceInterface.hpp"
 

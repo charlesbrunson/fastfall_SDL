@@ -9,10 +9,10 @@ namespace ff {
 World::World(InstanceID instance) 
 	: instanceID(instance)
 	, activeLevel(nullptr)
-	, objMan(instance)
-	, colMan(instance)
-	, triMan(instance)
-	, sceneMan(instance)
+	, objects(instance)
+	, collisions(instance)
+	, triggers(instance)
+	, scene(instance)
 {
 
 }
@@ -24,8 +24,8 @@ World::~World() {
 }
 
 void World::clear() {
-	objMan.clear();
-	sceneMan.clear();
+	objects.clear();
+	scene.clear();
 	camera.removeAllTargets();
 	activeLevel = nullptr;
 	currentLevels.clear();
@@ -33,13 +33,13 @@ void World::clear() {
 	debug_draw::clear();
 
 	update_counter = 0;
-	colMan.resetFrameCount();
+	collisions.resetFrameCount();
 }
 
 void World::reset()
 {
-	objMan.clear();
-	sceneMan.clear();
+	objects.clear();
+	scene.clear();
 	debug_draw::clear();
 	camera.removeAllTargets();
 	for (auto& lvl : currentLevels) {
@@ -61,7 +61,7 @@ void World::reset()
 	want_reset = false;
 
 	update_counter = 0;
-	colMan.resetFrameCount();
+	collisions.resetFrameCount();
 }
 
 
@@ -80,14 +80,14 @@ bool World::addLevel(const LevelAsset& levelRef) {
 
 void World::populateSceneFromLevel(Level& lvl)
 {
-	sceneMan.clearType(SceneType::Level);
+	scene.clearType(SceneType::Level);
 	auto& tile_layers = lvl.get_layers().get_tile_layers();
 	for (auto& layer : tile_layers)
 	{
-		sceneMan.add(SceneType::Level, layer.tilelayer, layer.position);
+		scene.add(SceneType::Level, layer.tilelayer, layer.position);
 	}
-	sceneMan.set_bg_color(lvl.getBGColor());
-	sceneMan.set_size(lvl.size());
+	scene.set_bg_color(lvl.getBGColor());
+	scene.set_size(lvl.size());
 }
 
 void World::update(secs deltaTime)
@@ -95,9 +95,9 @@ void World::update(secs deltaTime)
 	if (activeLevel)
 	{
 		getActiveLevel()->update(deltaTime);
-		triMan.update(deltaTime);
-		objMan.update(deltaTime);
-		colMan.update(deltaTime);
+		triggers.update(deltaTime);
+		objects.update(deltaTime);
+		collisions.update(deltaTime);
 		camera.update(deltaTime);
 		update_counter++;
 	}
@@ -110,15 +110,15 @@ void World::predraw(float interp, bool updated)
 
 	if (activeLevel)
 	{
-		objMan.predraw(interp, updated);
+		objects.predraw(interp, updated);
 		getActiveLevel()->predraw(interp, updated);
-		sceneMan.set_cam_pos(getCamera().getPosition(interp));
+		scene.set_cam_pos(getCamera().getPosition(interp));
 	}
 }
 
 void World::draw(RenderTarget& target, RenderState state) const
 {
-	target.draw(sceneMan, state);
+	target.draw(scene, state);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
