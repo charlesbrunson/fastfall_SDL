@@ -167,16 +167,36 @@ namespace ff::instance {
 		return nullptr;
 	}
 
+	/*
 	void cam_add_target(GameContext context, CameraTarget& target) {
 		if (auto* inst = getInstance(context)) {
 			inst->getCamera().addTarget(target);
 		}
 	}
-	void cam_remove_target(GameContext context, CameraTarget& target) {
+	*/
+	void cam_erase_target(GameContext context, camtarget_id target) {
 		if (auto* inst = getInstance(context)) {
-			inst->getCamera().removeTarget(target);
+			inst->getCamera().erase(target);
 		}
 	}
+
+
+	bool cam_exists(GameContext context, camtarget_id target)
+	{
+		if (auto* inst = getInstance(context)) {
+			return inst->getCamera().get(target);
+		}
+		return false;
+	}
+
+	CameraTarget* cam_get(GameContext context, camtarget_id target)
+	{
+		if (auto* inst = getInstance(context)) {
+			return inst->getCamera().get(target);
+		}
+		return nullptr;
+	}
+
 	Vec2f cam_get_interpolated_pos(GameContext context, float interp) {
 		if (auto* man = cam_get_man(context)) {
 			return math::lerp(man->prevPosition, man->currentPosition, interp);
@@ -227,7 +247,7 @@ namespace ff::instance {
 
 	trigger_id trig_create_trigger(GameContext context) {
 		if (auto* inst = getInstance(context)) {
-			return inst->getTrigger().create_trigger();
+			return inst->getTrigger().create();
 		}
 		return {};
 	}
@@ -240,7 +260,7 @@ namespace ff::instance {
 		Trigger::Overlap overlap) 
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getTrigger().create_trigger(
+			return inst->getTrigger().create(
 				area, self_flags, filter_flags, owner, overlap
 			);
 		}
@@ -248,7 +268,7 @@ namespace ff::instance {
 	}
 	bool trig_erase_trigger(GameContext context, trigger_id trigger) {
 		if (auto* inst = getInstance(context)) {
-			return inst->getTrigger().erase_trigger(trigger);
+			return inst->getTrigger().erase(trigger);
 		}
 		return false;
 	}

@@ -20,7 +20,7 @@ World::~World() {
 void World::clear() {
 	objects.clear();
 	scene.clear();
-	camera.removeAllTargets();
+	//camera.clear();
 	activeLevel = nullptr;
 	currentLevels.clear();
 
@@ -35,7 +35,7 @@ void World::reset()
 	objects.clear();
 	scene.clear();
 	debug_draw::clear();
-	camera.removeAllTargets();
+	//camera.removeAllTargets();
 	for (auto& lvl : currentLevels) {
 		if (!lvl.second->name().empty()) {
 			auto* asset = Resources::get<LevelAsset>(lvl.second->name());

@@ -2,8 +2,8 @@
 
 using namespace ff;
 
-SimpleCamTarget::SimpleCamTarget(GameContext context, CamTargetPriority priority, std::function<ff::Vec2f()>&& callback)
-	: CameraTarget(context, priority)
+SimpleCamTarget::SimpleCamTarget(CamTargetPriority priority, std::function<ff::Vec2f()>&& callback)
+	: CameraTarget(priority)
 	, pos_callback(callback)
 {
 }

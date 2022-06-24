@@ -426,6 +426,7 @@ void cameraContent(GameContext context)
 	ImGui::Separator();
 	for (unsigned i = 0; i < targets.size(); i++) {
 		auto& target = targets[i];
+		auto* target_ptr = man->get(target);
 
 		/*
 		if (target.type == GameCamera::TargetType::MOVING) {
@@ -443,13 +444,13 @@ void cameraContent(GameContext context)
 
 
 		ImGui::Text("Target Active: %s", 
-			(target->get_state() == CamTargetState::Active ? "Active" : "Inactive")
+			(target_ptr->get_state() == CamTargetState::Active ? "Active" : "Inactive")
 		);
-		Vec2f pos = target->get_target_pos();
+		Vec2f pos = target_ptr->get_target_pos();
 		ImGui::Text("Target Position: (%3.2f, %3.2f)", pos.x, pos.y);
 
 		const char* priority_str;
-		switch (target->get_priority()) {
+		switch (target_ptr->get_priority()) {
 		case CamTargetPriority::Low:	priority_str = "Low";	 break;
 		case CamTargetPriority::Medium: priority_str = "Medium"; break;
 		case CamTargetPriority::High:	priority_str = "High";	 break;

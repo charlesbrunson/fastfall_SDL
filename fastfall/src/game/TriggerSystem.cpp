@@ -26,11 +26,11 @@ TriggerSystem::TriggerSystem()
 
 }
 
-trigger_id TriggerSystem::create_trigger() {
+trigger_id TriggerSystem::create() {
 	return { triggers.emplace().first };
 }
 
-trigger_id TriggerSystem::create_trigger(
+trigger_id TriggerSystem::create(
 	Rectf area, 
 	std::unordered_set<TriggerTag> self_flags, 
 	std::unordered_set<TriggerTag> filter_flags,
@@ -46,7 +46,7 @@ trigger_id TriggerSystem::create_trigger(
 	return { key };
 }
 
-bool TriggerSystem::erase_trigger(trigger_id trigger) 
+bool TriggerSystem::erase(trigger_id trigger) 
 {
 	return triggers.erase(trigger.value);
 }

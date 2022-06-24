@@ -9,16 +9,17 @@
 namespace ff {
 
 
-CameraTarget::CameraTarget(GameContext context, CamTargetPriority priority)
-	: m_context(context)
-	, m_priority(priority)
+CameraTarget::CameraTarget(CamTargetPriority priority)
+	: m_priority(priority)
 {
 }
 
 CameraTarget::~CameraTarget() {
+	/*
 	if (has_camera) {
-		instance::cam_remove_target(m_context, *this);
+		instance::cam_erase_target(m_context, *this);
 	}
+	*/
 }
 
 CameraSystem::CameraSystem(Vec2f initPos) :
@@ -33,25 +34,26 @@ void CameraSystem::update(secs deltaTime) {
 		prevPosition = currentPosition;
 		deltaPosition = Vec2f{};
 
-		for (auto target : targets) {
-			target->update(deltaTime);
+		for (auto& target : ordered_targets) {
+			get(target)->update(deltaTime);
 		}
 
-		if (active_target && active_target != targets.back()) {
-			active_target->m_state = CamTargetState::Inactive;
-			targets.back()->m_state = CamTargetState::Active;
-			active_target = targets.back();
+		if (active_target && *active_target != ordered_targets.back()) {
+
+			get(*active_target)->m_state = CamTargetState::Inactive;
+			get(ordered_targets.back())->m_state = CamTargetState::Active;
+			active_target = ordered_targets.back();
 		}
-		else if (!active_target && targets.size() > 0) {
-			targets.back()->m_state = CamTargetState::Active;
-			active_target = targets.back();
+		else if (!active_target && ordered_targets.size() > 0) {
+			get(ordered_targets.back())->m_state = CamTargetState::Active;
+			active_target = ordered_targets.back();
 		}
-		else if (targets.empty()) {
-			active_target = nullptr;
+		else if (ordered_targets.empty()) {
+			active_target = {};
 		}
 
 		if (active_target && !lockPosition) {
-			auto pos = active_target->get_target_pos();
+			auto pos = get(*active_target)->get_target_pos();
 			deltaPosition = pos - currentPosition;
 			currentPosition = pos;
 		}
@@ -100,15 +102,15 @@ void CameraSystem::update(secs deltaTime) {
 
 		}
 
-		for (auto target : targets) {
-			Vec2f pos = target->get_target_pos();
-			if (!debug_draw::repeat((void*)target, pos)) {
+		for (auto target : ordered_targets) {
+			Vec2f pos = get(target)->get_target_pos();
+			if (!debug_draw::repeat((void*)get(target), pos)) {
 				//LOG_INFO("{}", (void*)target);
 
 				debug_draw::set_offset(pos);
 
 				auto& target_crosshair = createDebugDrawable<VertexArray, debug_draw::Type::CAMERA_TARGET>(
-					(const void*)target, Primitive::LINES, 4);
+					(const void*)get(target), Primitive::LINES, 4);
 
 				for (int i = 0; i < target_crosshair.size(); i++) {
 					target_crosshair[i].color = Color::White;
@@ -126,7 +128,43 @@ void CameraSystem::update(secs deltaTime) {
 
 }
 
+bool CameraSystem::erase(camtarget_id target)
+{
+	bool ret = target_slots.erase(target.value);
+	if (ret) {
+		std::erase(ordered_targets, target);
+	}
+	return ret;
+}
 
+void CameraSystem::add_to_ordered(camtarget_id id)
+{
+	auto iter_pair = std::equal_range(
+		ordered_targets.begin(), ordered_targets.end(), id,
+		[this](camtarget_id lhs, camtarget_id rhs) {
+			const CameraTarget* lhs_ptr = get(lhs);
+			const CameraTarget* rhs_ptr = get(rhs);
+			return lhs_ptr->get_priority() < rhs_ptr->get_priority();
+		});
+
+	bool first_target = ordered_targets.empty();
+
+	ordered_targets.insert(iter_pair.second, id);
+
+	if (first_target) {
+		auto* target = get(ordered_targets.back());
+		target->m_state = CamTargetState::Active;
+		active_target = ordered_targets.back();
+
+		currentPosition = target->get_target_pos();
+		prevPosition = currentPosition;
+		deltaPosition = Vec2f{};
+	}
+
+	get(id)->has_camera = true;
+}
+
+/*
 void CameraSystem::addTarget(CameraTarget& target) {
 	auto iter_pair = std::equal_range(
 		targets.begin(), targets.end(), &target,
@@ -171,9 +209,10 @@ void CameraSystem::removeAllTargets() {
 	targets.clear();
 	active_target = nullptr;
 }
+*/
 
-const std::vector<CameraTarget*>& CameraSystem::getTargets() const {
-	return targets;
+const std::vector<camtarget_id>& CameraSystem::getTargets() const {
+	return ordered_targets;
 }
 
 

@@ -13,8 +13,11 @@ public:
         uint32_t generation;
 
         size_t raw() const {
-            return *std::launder(reinterpret_cast<size_t*>(this));
+            return *std::launder(reinterpret_cast<const size_t*>(this));
         }
+
+        bool operator==(const key& other) const { return raw() == other.raw(); };
+        bool operator!=(const key& other) const { return raw() != other.raw(); };
     };
 
     struct slot
@@ -147,6 +150,16 @@ public:
     }
 
     T& at(key key)
+    {
+        auto& slot = m_slots.at(key.index);
+        if (slot.value && slot.generation == key.generation)
+        {
+            return *slot.value;
+        }
+        throw std::exception{};
+    }
+
+    const T& at(key key) const
     {
         auto& slot = m_slots.at(key.index);
         if (slot.value && slot.generation == key.generation)

@@ -51,8 +51,20 @@ namespace ff::instance
 	// camera
 	const CameraSystem* cam_get_man(GameContext context);
 
-	void cam_add_target(GameContext context, CameraTarget& target);
-	void cam_remove_target(GameContext context, CameraTarget& target);
+	template<class T, class ... Args>
+	camtarget_id cam_create_target(GameContext context, Args&&... args)
+	{
+		if (context.valid())
+			return Instance(context.getID())->getCamera().create<T>(std::forward<Args>(args)...);
+		else {
+			return {};
+		}
+	}
+
+	void cam_erase_target(GameContext context, camtarget_id target);
+
+	bool cam_exists(GameContext context, camtarget_id target);
+	CameraTarget* cam_get(GameContext context, camtarget_id target);
 
 	Vec2f cam_get_interpolated_pos(GameContext context, float interp);
 	Vec2f cam_get_pos(GameContext context);

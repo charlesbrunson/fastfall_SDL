@@ -4,7 +4,7 @@
 
 class SimpleCamTarget : public ff::CameraTarget {
 public:
-	SimpleCamTarget(ff::GameContext context, ff::CamTargetPriority priority, std::function<ff::Vec2f()>&& callback);
+	SimpleCamTarget(ff::CamTargetPriority priority, std::function<ff::Vec2f()>&& callback);
 
 	void update(secs delta) override;
 	ff::Vec2f get_target_pos() const override;

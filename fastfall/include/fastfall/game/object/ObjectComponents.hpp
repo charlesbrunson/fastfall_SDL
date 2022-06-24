@@ -43,6 +43,31 @@ private:
 	const GameContext m_context;
 };
 
+template<class T>
+struct CamTarget_ptr {
+
+	template<typename ... Args>
+	CamTarget_ptr(GameContext context, Args&&... args)
+		: m_context(context)
+		, m_target(instance::cam_create_target<T>(context, std::forward<Args>(args)...))
+	{
+	}
+	~CamTarget_ptr() {
+		instance::cam_erase_target(m_context, m_target);
+	}
+
+	T* operator->() { return instance::cam_get(m_context, m_target); }
+	const T* operator->() const { return instance::cam_get(m_context, m_target); }
+	T& get() { return *instance::cam_get(m_context, m_target); };
+	const T& get() const { return *instance::cam_get(m_context, m_target); };
+	GameContext context() { return m_context; };
+
+private:
+	camtarget_id m_target;
+	const GameContext m_context;
+};
+
+
 
 struct Trigger_ptr {
 	Trigger_ptr(GameContext context);

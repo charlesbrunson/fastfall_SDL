@@ -73,7 +73,8 @@ namespace plr {
 		ff::SurfaceTracker* ground;
 		ff::Trigger_ptr hurtbox;
 		ff::Trigger_ptr hitbox;
-		SimpleCamTarget cam_target;
+		ff::CamTarget_ptr<SimpleCamTarget> cam_target;
+		//SimpleCamTarget cam_target;
 	};
 
 	struct move_t {
