@@ -225,13 +225,13 @@ namespace ff::instance {
 		return nullptr;
 	}
 
-	Trigger* trig_create_trigger(GameContext context) {
+	trigger_id trig_create_trigger(GameContext context) {
 		if (auto* inst = getInstance(context)) {
 			return inst->getTrigger().create_trigger();
 		}
-		return nullptr;
+		return {};
 	}
-	Trigger* trig_create_trigger(
+	trigger_id trig_create_trigger(
 		GameContext context,
 		Rectf area,
 		std::unordered_set<TriggerTag> self_flags,
@@ -244,13 +244,29 @@ namespace ff::instance {
 				area, self_flags, filter_flags, owner, overlap
 			);
 		}
-		return nullptr;
+		return {};
 	}
-	bool trig_erase_trigger(GameContext context, Trigger* trigger) {
+	bool trig_erase_trigger(GameContext context, trigger_id trigger) {
 		if (auto* inst = getInstance(context)) {
 			return inst->getTrigger().erase_trigger(trigger);
 		}
 		return false;
+	}
+
+	bool trig_exists(GameContext context, trigger_id trigger)
+	{
+		if (auto* inst = getInstance(context)) {
+			return inst->getTrigger().get(trigger);
+		}
+		return false;
+	}
+
+	Trigger* trig_get(GameContext context, trigger_id trigger)
+	{
+		if (auto* inst = getInstance(context)) {
+			return inst->getTrigger().get(trigger);
+		}
+		return nullptr;
 	}
 
 	// scene

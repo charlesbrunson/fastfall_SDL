@@ -67,8 +67,8 @@ namespace ff::instance
 	// trigger
 	const TriggerSystem* trig_get_man(GameContext context);
 
-	Trigger* trig_create_trigger(GameContext context);
-	Trigger* trig_create_trigger(
+	trigger_id trig_create_trigger(GameContext context);
+	trigger_id trig_create_trigger(
 		GameContext context,
 		Rectf area,
 		std::unordered_set<TriggerTag> self_flags = {},
@@ -76,8 +76,10 @@ namespace ff::instance
 		GameObject* owner = nullptr,
 		Trigger::Overlap overlap = Trigger::Overlap::Partial
 	);
-	bool trig_erase_trigger(GameContext context, Trigger* trigger);
+	bool trig_erase_trigger(GameContext context, trigger_id trigger);
 
+	bool trig_exists(GameContext context, trigger_id trigger);
+	Trigger* trig_get(GameContext context, trigger_id trigger);
 
 	// scene
 	const SceneSystem* scene_get_man(GameContext context);

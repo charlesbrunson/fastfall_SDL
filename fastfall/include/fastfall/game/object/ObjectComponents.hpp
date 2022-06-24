@@ -56,14 +56,14 @@ struct Trigger_ptr {
 	);
 	~Trigger_ptr();
 
-	Trigger* operator->() { return m_trigger; }
-	const Trigger* operator->() const { return m_trigger; }
-	Trigger& get() { return *m_trigger; };
-	const Trigger& get() const { return *m_trigger; };
+	Trigger* operator->() { return instance::trig_get(m_context, m_trigger); }
+	const Trigger* operator->() const { return instance::trig_get(m_context, m_trigger); }
+	Trigger& get() { return *instance::trig_get(m_context, m_trigger); };
+	const Trigger& get() const { return *instance::trig_get(m_context, m_trigger); };
 	GameContext context() { return m_context; };
 
 private:
-	Trigger* m_trigger;
+	trigger_id m_trigger;
 	const GameContext m_context;
 };
 

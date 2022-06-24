@@ -16,6 +16,8 @@
 
 #include "fastfall/game/level/TileID.hpp"
 
+#include "fastfall/util/slot_vector.hpp"
+
 #ifdef WIN32
 #include <Windows.h>
 
@@ -55,6 +57,10 @@ ff::EngineSettings getSettings() {
 
 int main(int argc, char* argv[])
 {
+	slot_vector<int> hello;
+
+
+
 	srand(time(NULL));
 	{
 		log::scope scope;

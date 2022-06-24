@@ -26,58 +26,55 @@ TriggerSystem::TriggerSystem()
 
 }
 
-Trigger* TriggerSystem::create_trigger() {
-	return &*triggers.emplace();
+trigger_id TriggerSystem::create_trigger() {
+	return { triggers.emplace().first };
 }
 
-Trigger* TriggerSystem::create_trigger(
+trigger_id TriggerSystem::create_trigger(
 	Rectf area, 
 	std::unordered_set<TriggerTag> self_flags, 
 	std::unordered_set<TriggerTag> filter_flags,
 	GameObject* owner,
 	Trigger::Overlap overlap) 
 {
-	Trigger& trigger = *triggers.emplace();
-	trigger.self_flags = self_flags;
-	trigger.filter_flags = filter_flags;
-	trigger.overlap = overlap;
-	trigger.set_owning_object(owner);
-	trigger.set_area(area);
-	return &trigger;
+	auto [key, trigger] = triggers.emplace();
+	trigger->self_flags = self_flags;
+	trigger->filter_flags = filter_flags;
+	trigger->overlap = overlap;
+	trigger->set_owning_object(owner);
+	trigger->set_area(area);
+	return { key };
 }
 
-bool TriggerSystem::erase_trigger(Trigger* trigger) {
-
-	auto it = std::find_if(triggers.begin(), triggers.end(), [trigger](const Trigger& m_trigger) {
-			return trigger == &m_trigger;
-		});
-
-	if (it != triggers.end()) {
-		triggers.erase(it);
-	}
-	return false;
+bool TriggerSystem::erase_trigger(trigger_id trigger) 
+{
+	return triggers.erase(trigger.value);
 }
 
 void TriggerSystem::update(secs deltaTime) {
 
 	for (auto& trigger : triggers)
 	{
-		trigger.update();
+		if (trigger) trigger->update();
 	}
 	
 	if (deltaTime > 0.f && triggers.size() > 1) {
 		for (auto it1 = triggers.begin(); it1 != (--triggers.end()); it1++) {
 			auto it2 = it1; it2++;
 			for (; it2 != triggers.end(); it2++) {
-				compareTriggers(*it1, *it2, deltaTime);
-				compareTriggers(*it2, *it1, deltaTime);
+
+				if (*it1 && *it2) {
+					compareTriggers(it1->get(), it2->get(), deltaTime);
+					compareTriggers(it2->get(), it1->get(), deltaTime);
+				}
+
 			}
 		}
 	}
 
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::TRIGGER_AREA)) {
 		for (auto& tr : triggers) {
-			debugDrawTrigger(tr);
+			if (tr)	debugDrawTrigger(*tr);
 		}
 	}
 }
