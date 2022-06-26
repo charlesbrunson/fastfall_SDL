@@ -39,7 +39,21 @@ TileLayer::TileLayer(const TileLayer& tile)
 	, tiles_dyn(tile.tiles_dyn)
 {
 
-	dyn.chunks = tile.dyn.chunks;
+	for (auto k : dyn.chunks)
+	{
+		instance::scene_erase(m_context, k);
+	}
+	dyn.chunks.clear();
+
+	for (auto& ch : tile.dyn.chunks)
+	{
+		ChunkVertexArray* ptr = (ChunkVertexArray*)instance::scene_get(m_context, ch);
+		dyn.chunks.push_back(instance::scene_create<ChunkVertexArray>(
+			m_context,
+			scene_config{ 0, scene_type::Level },
+			*ptr));
+	}
+
 	dyn.parallax = tile.dyn.parallax;
 	dyn.scroll = tile.dyn.scroll;
 
@@ -68,7 +82,21 @@ TileLayer& TileLayer::operator=(const TileLayer& tile) {
 	layer_data = tile.layer_data;
 	tiles_dyn = tile.tiles_dyn;
 
-	dyn.chunks = tile.dyn.chunks;
+	for (auto k : dyn.chunks)
+	{
+		instance::scene_erase(m_context, k);
+	}
+	dyn.chunks.clear();
+
+	for (auto& ch : tile.dyn.chunks)
+	{
+		ChunkVertexArray* ptr = (ChunkVertexArray*)instance::scene_get(m_context, ch);
+		dyn.chunks.push_back(instance::scene_create<ChunkVertexArray>(
+			m_context, 
+			scene_config{ 0, scene_type::Level }, 
+			*ptr));
+	}
+
 	dyn.parallax = tile.dyn.parallax;
 	dyn.scroll = tile.dyn.scroll;
 
@@ -152,6 +180,21 @@ TileLayer::~TileLayer() {
 	}
 }
 
+
+ChunkVertexArray* TileLayer::get_chunk(scene_id id)
+{
+	return (ChunkVertexArray*)instance::scene_get(m_context, id);
+}
+
+
+void TileLayer::set_layer(scene_layer lyr) {
+	layer = lyr;
+	for (auto chunk_id : dyn.chunks)
+	{
+		instance::scene_set_config(m_context, chunk_id, { layer, scene_type::Level });
+	}
+}
+
 void TileLayer::initFromAsset(const TileLayerData& layerData) {
 	clear();
 
@@ -160,9 +203,22 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 	// init chunks
 	for (auto& [tileset, _] : layer_data.getTilesets())
 	{
+
+		dyn.chunks.push_back(instance::scene_create<ChunkVertexArray>(
+			m_context,
+			scene_config{ layer, scene_type::Level },
+			getSize(), kChunkSize));
+
+		ChunkVertexArray* ptr = (ChunkVertexArray*)instance::scene_get(m_context, dyn.chunks.back());
+
+		ptr->setTexture(tileset->getTexture());
+		ptr->use_visible_rect = true;
+
+		/*
 		dyn.chunks.push_back(ChunkVertexArray(getSize(), kChunkSize));
 		dyn.chunks.back().setTexture(tileset->getTexture());
 		dyn.chunks.back().use_visible_rect = true;
+		*/
 	}
 
 	// init tiles
@@ -183,7 +239,7 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 			continue;
 
 		auto& chunk = dyn.chunks.at(tile.tileset_ndx);
-		chunk.setTile(tile.pos, opt_tile->id);
+		get_chunk(chunk)->setTile(tile.pos, opt_tile->id);
 
 		if (auto [logic, args] = tileset->getTileLogic(tile.tile_id); !logic.empty())
 		{
@@ -216,7 +272,7 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 	set_scroll(layerData.hasScrolling(), layerData.getScrollRate());
 
 	for (auto& chunk : dyn.chunks) {
-		chunk.predraw(1.f, true);
+		get_chunk(chunk)->predraw(1.f, true);
 	}
 
 }
@@ -340,12 +396,12 @@ bool TileLayer::set_parallax(bool enabled, Vec2u parallax_size)
 	else {
 		// reset offset on each chunk
 		for (auto& chunk : dyn.chunks) {
-			chunk.offset = Vec2f{};
+			get_chunk(chunk)->offset = Vec2f{};
 		}
 	}
 
 	for (auto& chunk : dyn.chunks) {
-		chunk.set_size(getSize());
+		get_chunk(chunk)->set_size(getSize());
 	}
 	return true;
 }
@@ -360,7 +416,7 @@ bool TileLayer::set_scroll(bool enabled, Vec2f rate)
 	{
 		dyn.scroll.offset = Vec2f{};
 		for (auto& chunk : dyn.chunks) {
-			chunk.scroll = Vec2f{};
+			get_chunk(chunk)->scroll = Vec2f{};
 		}
 	}
 
@@ -432,7 +488,7 @@ void TileLayer::predraw(float interp, bool updated) {
 	visible.left = cam_pos.x - (visible.width / 2.f);
 	visible.top = cam_pos.y - (visible.height / 2.f);
 	for (auto& chunk : dyn.chunks) {
-		chunk.visibility = visible;
+		get_chunk(chunk)->visibility = visible;
 	}
 
 	// parallax update
@@ -444,14 +500,14 @@ void TileLayer::predraw(float interp, bool updated) {
 		} - dyn.parallax.init_offset;
 
 		for (auto& chunk : dyn.chunks) {
-			chunk.offset = dyn.parallax.offset;
+			get_chunk(chunk)->offset = dyn.parallax.offset;
 		}
 	}
 
 	// scroll update
 	if (hasScrolling()) {
 		for (auto& chunk : dyn.chunks) {
-			chunk.scroll = math::lerp(dyn.scroll.prev_offset, dyn.scroll.offset, interp);
+			get_chunk(chunk)->scroll = math::lerp(dyn.scroll.prev_offset, dyn.scroll.offset, interp);
 		}
 	}
 
@@ -478,7 +534,7 @@ void TileLayer::predraw(float interp, bool updated) {
 
 	if (!hidden) {
 		for (auto& chunk : dyn.chunks) {
-			chunk.predraw(interp, updated);
+			get_chunk(chunk)->predraw(interp, updated);
 		}
 	}
 
@@ -511,7 +567,7 @@ void TileLayer::removeTile(const Vec2u& position) {
 
 	if (tile_data[position].tileset_ndx != TILEDATA_NONE) {
 		uint8_t t_ndx = tile_data[position].tileset_ndx;
-		dyn.chunks.at(t_ndx).blank(position);
+		get_chunk(dyn.chunks.at(t_ndx))->blank(position);
 	}
 	if (tiles_dyn[position].logic_id != TILEDATA_NONE) {
 		dyn.tile_logic.at(tiles_dyn[position].logic_id)->removeTile(position);
@@ -543,7 +599,7 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 {
 	uint8_t tileset_ndx = prev_tileset_ndx;
 	if (tileset_ndx != TILEDATA_NONE) {
-		dyn.chunks.at(tileset_ndx).blank(at);
+		get_chunk(dyn.chunks.at(tileset_ndx))->blank(at);
 	}
 
 	uint8_t logic_ndx = tiles_dyn[at].logic_id;
@@ -567,13 +623,19 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 
 	if (tile.tileset_ndx == dyn.chunks.size())
 	{
-		dyn.chunks.push_back(ChunkVertexArray(getSize(), kChunkSize));
-		dyn.chunks.back().setTexture(next_tileset->getTexture());
-		dyn.chunks.back().setTile(at, tile.tile_id);
-		dyn.chunks.back().use_visible_rect = true;
+		dyn.chunks.push_back(instance::scene_create<ChunkVertexArray>(
+			m_context,
+			scene_config{ layer, scene_type::Level },
+			getSize(), kChunkSize));
+
+		auto i = dyn.chunks.back();
+
+		get_chunk(i)->setTexture(next_tileset->getTexture());
+		get_chunk(i)->setTile(at, tile.tile_id);
+		get_chunk(i)->use_visible_rect = true;
 	}
 	else {
-		dyn.chunks.at(tile.tileset_ndx).setTile(at, tile.tile_id);
+		get_chunk(dyn.chunks.at(tile.tileset_ndx))->setTile(at, tile.tile_id);
 	}
 
 	if (hasCollision() && next_tile) {
@@ -746,6 +808,7 @@ std::optional<Vec2i> TileLayer::getTileFromWorldPos(Vec2f position) const {
 
 }
 
+/*
 void TileLayer::draw(RenderTarget& target, RenderState states) const {
 	states.transform = Transform::combine(states.transform, Transform(offset));
 
@@ -757,5 +820,6 @@ void TileLayer::draw(RenderTarget& target, RenderState states) const {
 		}
 	}
 }
+*/
 
 }

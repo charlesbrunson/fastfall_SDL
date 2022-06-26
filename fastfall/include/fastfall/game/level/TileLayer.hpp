@@ -10,6 +10,7 @@
 
 #include "fastfall/game/phys/collider_regiontypes/ColliderTileMap.hpp"
 //#include "fastfall/render/TileVertexArray.hpp"
+#include "fastfall/game/SceneSystem.hpp"
 #include "fastfall/render/ChunkVertexArray.hpp"
 
 #include "fastfall/game/GameContext.hpp"
@@ -22,7 +23,7 @@
 
 namespace ff {
 
-class TileLayer : public Drawable {
+class TileLayer {
 private:
 	static constexpr int	TILEDATA_NONE	= UINT8_MAX;
 	static constexpr Vec2u	kChunkSize		= Vec2u{ GAME_TILE_W / 2u, GAME_TILE_H / 2u };
@@ -52,7 +53,8 @@ private:
 		} collision;
 
 		std::vector<std::unique_ptr<TileLogic>> tile_logic;
-		std::vector<ChunkVertexArray> chunks;
+		//std::vector<ChunkVertexArray> chunks;
+		std::vector<scene_id> chunks;
 	} dyn;
 
 	GameContext m_context;
@@ -132,14 +134,20 @@ public:
 	// set visibility
 	bool hidden = false;
 
+	void set_layer(scene_layer lyr);
+	scene_layer get_layer() const { return layer; }
+
 protected:
+
+	scene_layer layer;
+	ChunkVertexArray* get_chunk(scene_id id);
 
 	bool handlePreContact(Vec2i pos, const Contact& contact, secs duration);
 	void handlePostContact(Vec2i pos, const PersistantContact& contact);
 
 	void updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic = true);
 
-	void draw(RenderTarget& target, RenderState states = RenderState()) const override;
+	//void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 };
 
 }

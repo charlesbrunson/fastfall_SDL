@@ -54,7 +54,9 @@ void RenderTarget::setView(const View& view) {
 }
 
 void RenderTarget::draw(const Drawable& drawable, const RenderState& state) {
-	drawable.draw(*this, state);
+	if (drawable.visible) {
+		drawable.draw(*this, state);
+	}
 }
 
 void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {

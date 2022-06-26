@@ -13,7 +13,6 @@ ChunkVertexArray::ChunkVertexArray(Vec2u t_size, Vec2u t_max_chunk_size)
 
 }
 
-
 void ChunkVertexArray::setTexture(const Texture& texture) noexcept {
 	m_tex = texture;
 	for (auto& chunk : m_chunks) {

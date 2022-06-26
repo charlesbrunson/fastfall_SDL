@@ -5,7 +5,7 @@
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/game/GameContext.hpp"
 
-#include "fastfall/util/slot_vector.hpp"
+#include "fastfall/util/slot_map.hpp"
 
 #include <array>
 #include <optional>
@@ -50,8 +50,7 @@ private:
 };
 
 struct camtarget_id {
-	slot_vector<std::unique_ptr<CameraTarget>>::key value;
-
+	slot_key value;
 	bool operator==(const camtarget_id& other) const { return value == other.value; };
 	bool operator!=(const camtarget_id& other) const { return value != other.value; };
 };
@@ -64,25 +63,11 @@ public:
 
 	void update(secs deltaTime);
 
-	//void addTarget(CameraTarget& target);
-	//bool removeTarget(CameraTarget& target);
-
-	//void removeAllTargets();
-
-
 	template<class T, class... Args>
 	camtarget_id create(Args&&... args) 
 	{
-		/*
-		auto id = camtarget_id{ 
-			target_slots.emplace(
-				std::move(std::make_unique<T>(std::forward<Args>(args)...))
-			).first 
-		};
-		*/
-
 		auto id = camtarget_id{
-			target_slots.emplace().first
+			target_slots.emplace_back()
 		};
 
 		target_slots.at(id.value) = std::make_unique<T>(std::forward<Args>(args)...);
@@ -122,7 +107,7 @@ private:
 
 	std::optional<camtarget_id> active_target;
 
-	slot_vector<std::unique_ptr<CameraTarget>> target_slots;
+	slot_map<std::unique_ptr<CameraTarget>> target_slots;
 	std::vector<camtarget_id> ordered_targets;
 };
 

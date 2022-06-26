@@ -297,6 +297,47 @@ namespace ff::instance {
 		return nullptr;
 	}
 
+	bool scene_erase(GameContext context, scene_id scene)
+	{
+		if (auto* inst = getInstance(context)) {
+			return inst->getScene().erase(scene);
+		}
+		return false;
+	}
+
+	bool scene_exists(GameContext context, scene_id scene)
+	{
+		if (auto* inst = getInstance(context)) {
+			return inst->getScene().get(scene);
+		}
+		return false;
+	}
+
+	Drawable* scene_get(GameContext context, scene_id scene)
+	{
+		if (auto* inst = getInstance(context)) {
+			return inst->getScene().get(scene);
+		}
+		return nullptr;
+	}
+
+	scene_config scene_get_config(GameContext context, scene_id scene) 
+	{
+		if (auto* inst = getInstance(context)) {
+			return inst->getScene().get_config(scene);
+		}
+		return {};
+	}
+
+	void scene_set_config(GameContext context, scene_id scene, scene_config cfg) 
+	{
+		if (auto* inst = getInstance(context)) {
+			inst->getScene().set_config(scene, cfg);
+		}
+	}
+
+
+	/*
 	void scene_add(
 		GameContext context,
 		SceneType scene_type,
@@ -315,4 +356,5 @@ namespace ff::instance {
 			inst->getScene().remove(drawable);
 		}
 	}
+	*/
 }

@@ -11,6 +11,8 @@ class Drawable {
 public:
 	virtual ~Drawable() = default;
 
+	bool visible = true;
+
 private:
 	friend class RenderTarget;
 

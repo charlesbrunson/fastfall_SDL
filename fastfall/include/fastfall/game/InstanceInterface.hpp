@@ -96,6 +96,27 @@ namespace ff::instance
 	// scene
 	const SceneSystem* scene_get_man(GameContext context);
 
+
+	template<class T, class ... Args>
+		requires std::derived_from<T, Drawable>
+	scene_id scene_create(GameContext context, scene_config cfg, Args&&... args)
+	{
+		if (context.valid())
+			return Instance(context.getID())->getScene().create<T>(cfg, std::forward<Args>(args)...);
+		else {
+			return {};
+		}
+	}
+
+	bool scene_erase(GameContext context, scene_id scene);
+
+	bool scene_exists(GameContext context, scene_id scene);
+	Drawable* scene_get(GameContext context, scene_id scene);
+
+	scene_config scene_get_config(GameContext context, scene_id scene);
+	void scene_set_config(GameContext context, scene_id scene, scene_config cfg);
+
+	/*
 	void scene_add(
 		GameContext context, 
 		SceneType scene_type, 
@@ -104,4 +125,5 @@ namespace ff::instance
 		SceneSystem::Priority priority = SceneSystem::Priority::Normal);
 
 	void scene_remove(GameContext context, Drawable& drawable);
+	*/
 }

@@ -130,7 +130,7 @@ void CameraSystem::update(secs deltaTime) {
 
 bool CameraSystem::erase(camtarget_id target)
 {
-	bool ret = target_slots.erase(target.value);
+	bool ret = target_slots.erase(target.value) != target_slots.end();
 	if (ret) {
 		std::erase(ordered_targets, target);
 	}

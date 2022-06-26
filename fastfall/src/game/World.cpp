@@ -19,7 +19,7 @@ World::~World() {
 
 void World::clear() {
 	objects.clear();
-	scene.clear();
+	//scene.clear();
 	//camera.clear();
 	activeLevel = nullptr;
 	currentLevels.clear();
@@ -33,7 +33,7 @@ void World::clear() {
 void World::reset()
 {
 	objects.clear();
-	scene.clear();
+	//scene.clear();
 	debug_draw::clear();
 	//camera.removeAllTargets();
 	for (auto& lvl : currentLevels) {
@@ -74,12 +74,14 @@ bool World::addLevel(const LevelAsset& levelRef) {
 
 void World::populateSceneFromLevel(Level& lvl)
 {
-	scene.clearType(SceneType::Level);
+	//scene.clearType(SceneType::Level);
 	auto& tile_layers = lvl.get_layers().get_tile_layers();
+
 	for (auto& layer : tile_layers)
 	{
-		scene.add(SceneType::Level, layer.tilelayer, layer.position);
+		//scene.add(SceneType::Level, layer.tilelayer, layer.position);
 	}
+
 	scene.set_bg_color(lvl.getBGColor());
 	scene.set_size(lvl.size());
 }

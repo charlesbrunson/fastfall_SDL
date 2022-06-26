@@ -3,7 +3,7 @@
 //#include "ext/plf_colony.h"
 
 #include "fastfall/game/trigger/Trigger.hpp"
-#include "fastfall/util/slot_vector.hpp"
+#include "fastfall/util/slot_map.hpp"
 
 #include <set>
 
@@ -11,7 +11,9 @@
 namespace ff {
 
 struct trigger_id {
-	slot_vector<Trigger>::key value;
+	slot_key value;
+	bool operator==(const trigger_id& other) const { return value == other.value; };
+	bool operator!=(const trigger_id& other) const { return value != other.value; };
 };
 
 class TriggerSystem {
@@ -30,7 +32,7 @@ public:
 
 	void update(secs deltaTime);
 
-	const slot_vector<Trigger>& get_triggers() { return triggers; };
+	const slot_map<Trigger>& get_triggers() { return triggers; };
 
 	Trigger* get(trigger_id trigger) {
 		return triggers.exists(trigger.value) ? &triggers.at(trigger.value) : nullptr;
@@ -44,7 +46,7 @@ private:
 
 	void compareTriggers(Trigger& A, Trigger& B, secs deltaTime);
 
-	slot_vector<Trigger> triggers;
+	slot_map<Trigger> triggers;
 };
 
 }

@@ -53,7 +53,14 @@ void Level::init(const LevelAsset& levelData)
 		else {
 			layers.push_fg_front(TileLayer{ context, layerRef.tilelayer });
 		}
+		//layers.get_tile_layer_at(layerRef.position)->tilelayer.set_layer(layerRef.position);
 	}
+
+	for (auto& layer : layers.get_tile_layers())
+	{
+		layer.tilelayer.set_layer(layer.position);
+	}
+
 	layers.get_obj_layer().initFromAsset(
 		context,
 		levelData.getLayerRefs().get_obj_layer()
@@ -75,6 +82,7 @@ void Level::resize(Vec2u n_size)
 		};
 
 		TileLayer n_layer{ context, layer.getID(), n_size };
+		n_layer.set_layer(layer.get_layer());
 		n_layer.set_collision(layer.hasCollision(), layer.getCollisionBorders());
 		n_layer.set_scroll(layer.hasScrolling(), layer.getScrollRate());
 		n_layer.set_parallax(layer.hasParallax(), parallax_size);

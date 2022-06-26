@@ -5,79 +5,75 @@
 
 namespace ff {
 
+void SceneSystem::add_config(scene_id id, scene_config cfg) {
 
-SceneSystem::SceneSystem()
-{
+	struct Comp
+	{
+		bool operator() (const scene_drawable& s, scene_layer i) const { return s.config.layer_id < i; }
+		bool operator() (scene_layer i, const scene_drawable& s) const { return i < s.config.layer_id; }
+	};
 
-}
+	auto [beg, end] = std::equal_range(layers.begin(), layers.end(), cfg.layer_id, Comp{});
 
-void SceneSystem::add(SceneType scene_type, Drawable& drawable, Layer layer, Priority priority) {
-	auto layer_iter = std::upper_bound(
-		layers.begin(), layers.end(),
-		layer,
-		[](Layer layer, const SceneLayer& sceneLayer) {
-			return layer <= sceneLayer.layer_id;
+	auto it = std::upper_bound(beg, end, cfg.priority, [](scene_priority p, const scene_drawable& d) {
+		return p < d.config.priority;
 		});
 
-	if (layer_iter == layers.end() || layer_iter->layer_id != layer) {
-		layer_iter = layers.insert(layer_iter, SceneLayer{});
-		layer_iter->layer_id = layer;
-	}
-
-	layer_iter->drawables.push_back(
-		SceneDrawable{
-			.drawable = &drawable,
-			.type = scene_type,
-			.priority = priority
-		}
-	);
-
-	std::stable_sort(layer_iter->drawables.begin(), layer_iter->drawables.end(),
-			[](const SceneDrawable& lhs, const SceneDrawable& rhs) {
-				return lhs.priority != rhs.priority ? lhs.priority < rhs.priority : lhs.type != SceneType::Object && rhs.type == SceneType::Object;
-			}
-		);
+	layers.insert(it, { id, cfg });
 }
 
-void SceneSystem::remove(Drawable& drawable) {
-	for (auto it1 = layers.begin(); it1 != layers.end(); it1++) {
-		for (auto it2 = it1->drawables.cbegin(); it2 != it1->drawables.cend(); it2++) {
-			if (it2->drawable == &drawable) {
-				it1->drawables.erase(it2);
-				if (it1->drawables.empty()) {
-					layers.erase(it1);
-				}
-				return;
-			}
-		}
+bool SceneSystem::erase(scene_id target) {
+	bool e = drawables.exists(target.value);
+	if (e) {
+		drawables.erase(target.value);
+		layers.erase(std::find_if(layers.begin(), layers.end(), [&](const scene_drawable& d) { return d.drawable == target; }));
+	}
+	return e;
+}
+
+
+scene_config SceneSystem::get_config(scene_id target) const {
+
+	auto it = std::find_if(layers.begin(), layers.end(), [&](const scene_drawable& scn) {
+		return scn.drawable == target;
+		});
+
+	if (it != layers.end())
+	{
+		return it->config;
+	}
+	return {};
+}
+
+void SceneSystem::set_config(scene_id target, scene_config cfg) {
+	auto it = std::find_if(layers.begin(), layers.end(), [&](const scene_drawable& scn) {
+		return scn.drawable == target;
+		});
+
+	if (it != layers.end())
+	{
+		layers.erase(it);
+		add_config(target, cfg);
 	}
 }
 
+/*
 void SceneSystem::clear() {
 	layers.clear();
 }
 
-void SceneSystem::clearType(SceneType scene_type) {
-	std::vector<SceneLayer> copy = layers;
-	layers.clear();
-
-
-	for (auto it1 = copy.begin(); it1 != copy.end(); it1++) {
-		SceneLayer* nLayer = nullptr;
-		
-		for (auto it2 = it1->drawables.cbegin(); it2 != it1->drawables.cend(); it2++) {
-
-			if (it2->type != scene_type) {
-				if (!nLayer) {
-					layers.push_back(SceneLayer{});
-					nLayer = &layers.back();
-					nLayer->layer_id = it1->layer_id;
-				}
-				nLayer->drawables.push_back(*it2);
-			}
+void SceneSystem::clearType(scene_type type) 
+{
+	std::erase_if(layers, [&](const scene_drawable& d) {
+		if (d.config.type == type)
+		{
+			drawables.erase(d.drawable.value);
+			return true;
 		}
-	}
+		return false;
+	});
 }
+*/
 
 void SceneSystem::set_cam_pos(Vec2f center) {
 	cam_pos = center;
@@ -105,19 +101,18 @@ void SceneSystem::draw(ff::RenderTarget& target, ff::RenderState state) const {
 	for (auto& layer : layers) {
 		//LOG_INFO("{}", layer.layer_id);
 
-		if (scissor_enabled && layer.layer_id >= 0) {
+		
+		if (scissor_enabled && layer.config.layer_id >= 0) {
 			scissor_enabled = false;
 			disableScissor();
 		}
-		else if (!scissor_enabled && layer.layer_id < 0)
+		else if (!scissor_enabled && layer.config.layer_id < 0)
 		{
 			continue;
 		}
+		
 
-		for (auto& scene_drawable : layer.drawables) {
-			target.draw(*scene_drawable.drawable, state);
-		}
-
+		target.draw(*get(layer.drawable), state);
 	}
 
 	if (scissor_enabled) {

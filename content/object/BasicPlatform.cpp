@@ -21,7 +21,7 @@ const ObjectType BasicPlatform::Type{
 
 BasicPlatform::BasicPlatform(ff::GameContext context, ff::ObjectLevelData& data)
 	: ff::GameObject(context, data)
-	, shape{ context, ff::ShapeRectangle{ ff::Rectf{}, platformColor}, ff::SceneType::Object, 1 }
+	, shape{ context, scene_config{ 1, ff::scene_type::Object }, ff::Rectf{}, platformColor }
 	, collider(context, ff::Rectf{ Vec2f{}, Vec2f{ data.size } })
 {
 

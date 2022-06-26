@@ -56,10 +56,12 @@ struct CamTarget_ptr {
 		instance::cam_erase_target(m_context, m_target);
 	}
 
+	T& operator* () { return get(); };
+	const T& operator* () const { return get(); };
 	T* operator->() { return instance::cam_get(m_context, m_target); }
 	const T* operator->() const { return instance::cam_get(m_context, m_target); }
-	T& get() { return *instance::cam_get(m_context, m_target); };
-	const T& get() const { return *instance::cam_get(m_context, m_target); };
+	T& get() { return *(T*)instance::cam_get(m_context, m_target); };
+	const T& get() const { return *(T*)instance::cam_get(m_context, m_target); };
 	GameContext context() { return m_context; };
 
 private:
@@ -93,36 +95,33 @@ private:
 };
 
 template<class T>
-requires std::is_base_of_v<Drawable, T>
+requires std::derived_from<T, Drawable>
 struct Scene_ptr {
-
-	template<typename ... Args>
+	template<class... Args>
 	Scene_ptr(
 		GameContext context, 
-		T t_drawable, 
-		SceneType type,
-		SceneSystem::Layer layer = 0, 
-		SceneSystem::Priority priority = SceneSystem::Priority::Normal
+		scene_config cfg,
+		Args&&... args
 	)
 		: m_context(context)
-		, drawable(t_drawable)
+		, m_scene(instance::scene_create<T>(context, cfg, std::forward<Args>(args)...))
 	{
-		instance::scene_add(context, type, drawable, layer, priority);
+		//instance::scene_add(context, type, drawable, layer, priority);
 	}
 	~Scene_ptr() {
-		instance::scene_remove(m_context, drawable);
+		instance::scene_erase(m_context, m_scene);
 	}
 
-	T& operator* () { return drawable; };
-	const T& operator* () const { return drawable; };
-	T* operator->() { return &drawable; }
-	const T* operator->() const { return &drawable; }
-	T& get() { return drawable; };
-	const T& get() const { return drawable; };
+	T& operator* () { return get(); };
+	const T& operator* () const { return get(); };
+	T* operator->() { return &get(); }
+	const T* operator->() const { return &get(); }
+	T& get() { return *(T*)instance::scene_get(m_context, m_scene); };
+	const T& get() const { return *(T*)instance::scene_get(m_context, m_scene); };
 	GameContext context() { return m_context; };
 
 private:
-	T drawable;
+	scene_id m_scene;
 	const GameContext m_context;
 
 };

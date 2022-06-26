@@ -27,7 +27,7 @@ TriggerSystem::TriggerSystem()
 }
 
 trigger_id TriggerSystem::create() {
-	return { triggers.emplace().first };
+	return { triggers.emplace_back() };
 }
 
 trigger_id TriggerSystem::create(
@@ -37,25 +37,26 @@ trigger_id TriggerSystem::create(
 	GameObject* owner,
 	Trigger::Overlap overlap) 
 {
-	auto [key, trigger] = triggers.emplace();
-	trigger->self_flags = self_flags;
-	trigger->filter_flags = filter_flags;
-	trigger->overlap = overlap;
-	trigger->set_owning_object(owner);
-	trigger->set_area(area);
+	auto key = triggers.emplace_back();
+	auto& trigger = triggers.at(key);
+	trigger.self_flags = self_flags;
+	trigger.filter_flags = filter_flags;
+	trigger.overlap = overlap;
+	trigger.set_owning_object(owner);
+	trigger.set_area(area);
 	return { key };
 }
 
 bool TriggerSystem::erase(trigger_id trigger) 
 {
-	return triggers.erase(trigger.value);
+	return triggers.erase(trigger.value) != triggers.end();
 }
 
 void TriggerSystem::update(secs deltaTime) {
 
 	for (auto& trigger : triggers)
 	{
-		if (trigger) trigger->update();
+		trigger.update();
 	}
 	
 	if (deltaTime > 0.f && triggers.size() > 1) {
@@ -63,10 +64,9 @@ void TriggerSystem::update(secs deltaTime) {
 			auto it2 = it1; it2++;
 			for (; it2 != triggers.end(); it2++) {
 
-				if (*it1 && *it2) {
-					compareTriggers(it1->get(), it2->get(), deltaTime);
-					compareTriggers(it2->get(), it1->get(), deltaTime);
-				}
+				compareTriggers(*it1, *it2, deltaTime);
+				compareTriggers(*it2, *it1, deltaTime);
+				
 
 			}
 		}
@@ -74,7 +74,7 @@ void TriggerSystem::update(secs deltaTime) {
 
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::TRIGGER_AREA)) {
 		for (auto& tr : triggers) {
-			if (tr)	debugDrawTrigger(*tr);
+			debugDrawTrigger(tr);
 		}
 	}
 }

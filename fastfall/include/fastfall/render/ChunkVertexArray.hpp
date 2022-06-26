@@ -15,6 +15,11 @@ public:
 
 	ChunkVertexArray(Vec2u t_size, Vec2u t_max_chunk_size);
 
+	ChunkVertexArray(const ChunkVertexArray&) = default;
+	ChunkVertexArray& operator=(const ChunkVertexArray&) = default;
+	ChunkVertexArray(ChunkVertexArray&&) noexcept = default;
+	ChunkVertexArray& operator=(ChunkVertexArray&&) noexcept = default;
+
 	void setTexture(const Texture& texture) noexcept;
 	const TextureRef& getTexture() const noexcept;
 
