@@ -178,6 +178,11 @@ TileLayer::~TileLayer() {
 		instance::phys_erase_collider(m_context, dyn.collision.tilemap_ptr);
 		dyn.collision.tilemap_ptr = nullptr;
 	}
+
+	for (auto chunk_id : dyn.chunks)
+	{
+		instance::scene_erase(m_context, chunk_id);
+	}
 }
 
 
