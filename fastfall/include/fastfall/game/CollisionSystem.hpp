@@ -11,6 +11,7 @@
 #include <vector>
 #include <list>
 #include <memory>
+#include "fastfall/util/slot_map.hpp"
 
 namespace ff {
 
@@ -22,6 +23,10 @@ public:
 private:
 	collidables_vector collidables;
 	regions_vector regions;
+
+	//slot_map<Collidable> collidables;
+	//slot_map<std::unique_ptr<ColliderRegion>> colliders;
+	//std::vector<CollidableArbiter> arbiters;
 
 public:
 

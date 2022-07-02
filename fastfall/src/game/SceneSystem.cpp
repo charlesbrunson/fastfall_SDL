@@ -97,11 +97,7 @@ void SceneSystem::draw(ff::RenderTarget& target, ff::RenderState state) const {
 
 	target.draw(background, state);
 
-	//LOG_INFO("-----------");
-	for (auto& layer : layers) {
-		//LOG_INFO("{}", layer.layer_id);
-
-		
+	for (auto& layer : layers) {		
 		if (scissor_enabled && layer.config.layer_id >= 0) {
 			scissor_enabled = false;
 			disableScissor();
@@ -110,7 +106,6 @@ void SceneSystem::draw(ff::RenderTarget& target, ff::RenderState state) const {
 		{
 			continue;
 		}
-		
 
 		target.draw(*get(layer.drawable), state);
 	}
