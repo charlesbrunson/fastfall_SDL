@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fastfall/util/slot_map.hpp"
+#include "fastfall/util/copyable_uniq_ptr.hpp"
 #include "fastfall/game/ID.hpp"
 
 #include <vector>
@@ -9,12 +10,14 @@
 
 namespace ff {
 
+
+
 template<class T, bool Polymorphic = false>
 class ComponentList
 {
 private:
 	using base_type = T;
-	using value_type = std::conditional_t<Polymorphic, std::unique_ptr<T>, T>;
+	using value_type = std::conditional_t<Polymorphic, copyable_unique_ptr<T>, T>;
 
 	slot_map<value_type> components;
 
@@ -23,18 +26,28 @@ public:
 	// non-polymorphic
 	template<class... Args, class = std::enable_if_t<!Polymorphic>>
 	ID<T> create(Args&&... args) {
-		return { components.emplace_back(std::forward<Args>(args)...) };
+		auto id = components.emplace_back(std::forward<Args>(args)...);
+		on_create({ id });
+		return { id };
 	}
 
 	template<class = std::enable_if_t<!Polymorphic>>
-	T& get(ID<T> id) {
+	T& at(ID<T> id) {
+		return components.at(id.value);
+	}
+
+	template<class = std::enable_if_t<!Polymorphic>>
+	const T& at(ID<T> id) const {
 		return components.at(id.value);
 	}
 
 	template<class = std::enable_if_t<!Polymorphic>>
 	bool erase(ID<T> id) {
 		bool removed = exists(id);
-		components.erase(id.value);
+		if (removed) {
+			components.erase(id.value);
+			on_erase(id);
+		}
 		return removed;
 	}
 
@@ -47,18 +60,28 @@ public:
 	// polymorphic
 	template<std::derived_from<T> Type, class... Args, class = std::enable_if_t<Polymorphic>>
 	ID<Type> create(Args&&... args) {
-		return { components.emplace_back(std::make_unique<Type>(std::forward<Args>(args)...)) };
+		auto id = components.emplace_back(std::make_unique<Type>(std::forward<Args>(args)...));
+		on_create({ id });
+		return { id };
 	}
 
 	template<std::derived_from<T> Type, class = std::enable_if_t<Polymorphic>>
-	Type& get(ID<Type> id) {
-		return components.at(id.value);
+	Type& at(ID<Type> id) {
+		return *reinterpret_cast<Type*>(components.at(id.value).get());
+	}
+
+	template<std::derived_from<T> Type, class = std::enable_if_t<Polymorphic>>
+	const Type& at(ID<Type> id) const {
+		return *reinterpret_cast<const Type*>(components.at(id.value).get());
 	}
 
 	template<std::derived_from<T> Type>
 	bool erase(ID<Type> id) {
 		bool removed = exists(id);
-		components.erase(id.value);
+		if (removed) {
+			components.erase(id.value);
+			on_erase({ id.value });
+		}
 		return removed;
 	}
 
@@ -76,8 +99,8 @@ public:
 	inline auto end() const { return components.end(); }
 	inline auto cend() const { return components.cend(); }
 
-	std::function<void()> on_create;
-	std::function<void()> on_erase;
+	std::function<void(ID<T>)> on_create;
+	std::function<void(ID<T>)> on_erase;
 };
 
 

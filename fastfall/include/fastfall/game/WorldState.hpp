@@ -45,19 +45,19 @@ public:
 	{
 		if (component.type_hash == typeid(T).hash_code()) {
 			if constexpr (std::derived_from<T, CameraTarget>) {
-				return camtargets.get(ID<CameraTarget>(component.value));
+				return camtargets.at(ID<CameraTarget>(component.value));
 			}
 			else if constexpr (std::derived_from<T, Collidable>) {
-				return collidables.get(ID<Collidable>(component.value));
+				return collidables.at(ID<Collidable>(component.value));
 			}
 			else if constexpr (std::derived_from<T, ColliderRegion>) {
-				return colliders.get(ID<ColliderRegion>(component.value));
+				return colliders.at(ID<ColliderRegion>(component.value));
 			}
 			else if constexpr (std::derived_from<T, Drawable>) {
-				return drawables.get(ID<Drawable>(component.value));
+				return drawables.at(ID<Drawable>(component.value));
 			}
 			else if constexpr (std::derived_from<T, Trigger>) {
-				return triggers.get(ID<Trigger>(component.value));
+				return triggers.at(ID<Trigger>(component.value));
 			}
 		}
 		return nullptr;

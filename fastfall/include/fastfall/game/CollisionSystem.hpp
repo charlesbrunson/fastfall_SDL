@@ -46,6 +46,7 @@ public:
 	}
 	bool erase_collider(ColliderRegion* region);
 
+
 	inline const regions_vector& 		get_colliders() 	const { return regions; };
 	inline const collidables_vector& 	get_collidables() 	const { return collidables; };
 

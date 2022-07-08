@@ -35,7 +35,6 @@ public:
 
 	virtual const ColliderQuad* get_quad(int quad_id) const noexcept = 0;
 
-
 	inline Vec2f getPrevPosition() const noexcept { return prevPosition; };
 	inline Vec2f getPosition() const noexcept { return position; };
 

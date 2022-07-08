@@ -174,25 +174,25 @@ namespace ff::instance {
 		}
 	}
 	*/
-	void cam_erase_target(GameContext context, camtarget_id target) {
+	void cam_erase_target(GameContext context, ID<CameraTarget> target) {
 		if (auto* inst = getInstance(context)) {
-			inst->getCamera().erase(target);
+			inst->getCamera().targets.erase(target);
 		}
 	}
 
 
-	bool cam_exists(GameContext context, camtarget_id target)
+	bool cam_exists(GameContext context, ID<CameraTarget> target)
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getCamera().get(target);
+			return inst->getCamera().targets.exists(target);
 		}
 		return false;
 	}
 
-	CameraTarget* cam_get(GameContext context, camtarget_id target)
+	CameraTarget* cam_get(GameContext context, ID<CameraTarget> target)
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getCamera().get(target);
+			return cam_exists(context, target) ? &inst->getCamera().targets.at(target) : nullptr;
 		}
 		return nullptr;
 	}

@@ -28,6 +28,18 @@ struct ID {
 	operator GenericID() {
 		return { typeid(T).hash_code(), value};
 	}
+
+	template<class Base>
+		requires std::derived_from<T, Base>
+	operator ID<Base>() {
+		return { value };
+	}
 };
+
+template<class Base, class Derived>
+requires std::derived_from<Derived, Base>
+ID<Derived> id_cast(ID<Base> id) {
+	return { id.value };
+}
 
 }

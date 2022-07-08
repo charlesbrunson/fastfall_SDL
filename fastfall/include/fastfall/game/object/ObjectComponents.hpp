@@ -65,7 +65,7 @@ struct CamTarget_ptr {
 	GameContext context() { return m_context; };
 
 private:
-	camtarget_id m_target;
+	ID<CameraTarget> m_target;
 	const GameContext m_context;
 };
 

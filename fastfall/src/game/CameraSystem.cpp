@@ -22,10 +22,62 @@ CameraTarget::~CameraTarget() {
 	*/
 }
 
+CameraSystem::CameraSystem()
+{
+	set_component_callbacks();
+};
+
 CameraSystem::CameraSystem(Vec2f initPos) :
 	currentPosition(initPos)
 {
+	set_component_callbacks();
 };
+
+CameraSystem::CameraSystem(const CameraSystem& other)
+{
+	zoomFactor = other.zoomFactor;
+	lockPosition = other.lockPosition;
+
+	deltaPosition = other.deltaPosition;
+	prevPosition = other.prevPosition;
+	currentPosition = other.currentPosition;
+
+	targets = other.targets;
+	active_target = other.active_target;
+	ordered_targets = other.ordered_targets;
+
+	set_component_callbacks();
+}
+
+CameraSystem& CameraSystem::operator=(const CameraSystem& other)
+{
+	zoomFactor = other.zoomFactor;
+	lockPosition = other.lockPosition;
+
+	deltaPosition = other.deltaPosition;
+	prevPosition = other.prevPosition;
+	currentPosition = other.currentPosition;
+
+	targets = other.targets;
+	active_target = other.active_target;
+	ordered_targets = other.ordered_targets;
+
+	set_component_callbacks();
+	return *this;
+}
+
+void CameraSystem::set_component_callbacks()
+{
+	targets.on_create = [this](ID<CameraTarget> id) 
+	{
+		add_to_ordered(id);
+	};
+
+	targets.on_erase = [this](ID<CameraTarget> id) 
+	{
+		std::erase(ordered_targets, id);
+	};
+}
 
 void CameraSystem::update(secs deltaTime) {
 
@@ -35,17 +87,17 @@ void CameraSystem::update(secs deltaTime) {
 		deltaPosition = Vec2f{};
 
 		for (auto& target : ordered_targets) {
-			get(target)->update(deltaTime);
+			targets.at(target).update(deltaTime);
 		}
 
 		if (active_target && *active_target != ordered_targets.back()) {
 
-			get(*active_target)->m_state = CamTargetState::Inactive;
-			get(ordered_targets.back())->m_state = CamTargetState::Active;
+			get_active_target()->m_state = CamTargetState::Inactive;
+			targets.at(ordered_targets.back()).m_state = CamTargetState::Active;
 			active_target = ordered_targets.back();
 		}
 		else if (!active_target && ordered_targets.size() > 0) {
-			get(ordered_targets.back())->m_state = CamTargetState::Active;
+			targets.at(ordered_targets.back()).m_state = CamTargetState::Active;
 			active_target = ordered_targets.back();
 		}
 		else if (ordered_targets.empty()) {
@@ -53,7 +105,7 @@ void CameraSystem::update(secs deltaTime) {
 		}
 
 		if (active_target && !lockPosition) {
-			auto pos = get(*active_target)->get_target_pos();
+			auto pos = get_active_target()->get_target_pos();
 			deltaPosition = pos - currentPosition;
 			currentPosition = pos;
 		}
@@ -102,15 +154,19 @@ void CameraSystem::update(secs deltaTime) {
 
 		}
 
-		for (auto target : ordered_targets) {
-			Vec2f pos = get(target)->get_target_pos();
-			if (!debug_draw::repeat((void*)get(target), pos)) {
+		for (auto& target_id : ordered_targets) 
+		{
+
+			auto& camtarget = targets.at(target_id);
+			Vec2f pos = camtarget.get_target_pos();
+
+			if (!debug_draw::repeat((void*)&camtarget, pos)) {
 				//LOG_INFO("{}", (void*)target);
 
 				debug_draw::set_offset(pos);
 
 				auto& target_crosshair = createDebugDrawable<VertexArray, debug_draw::Type::CAMERA_TARGET>(
-					(const void*)get(target), Primitive::LINES, 4);
+					(const void*)&camtarget, Primitive::LINES, 4);
 
 				for (int i = 0; i < target_crosshair.size(); i++) {
 					target_crosshair[i].color = Color::White;
@@ -128,24 +184,14 @@ void CameraSystem::update(secs deltaTime) {
 
 }
 
-bool CameraSystem::erase(camtarget_id target)
-{
-	bool ret = target_slots.exists(target.value);
-	if (ret) {
-		target_slots.erase(target.value);
-		std::erase(ordered_targets, target);
-	}
-	return ret;
-}
-
-void CameraSystem::add_to_ordered(camtarget_id id)
+void CameraSystem::add_to_ordered(ID<CameraTarget> id)
 {
 	auto iter_pair = std::equal_range(
 		ordered_targets.begin(), ordered_targets.end(), id,
-		[this](camtarget_id lhs, camtarget_id rhs) {
-			const CameraTarget* lhs_ptr = get(lhs);
-			const CameraTarget* rhs_ptr = get(rhs);
-			return lhs_ptr->get_priority() < rhs_ptr->get_priority();
+		[this](ID<CameraTarget> lhs, ID<CameraTarget> rhs) {
+			const CameraTarget& lhs_ptr = targets.at(lhs);
+			const CameraTarget& rhs_ptr = targets.at(rhs);
+			return lhs_ptr.get_priority() < rhs_ptr.get_priority();
 		});
 
 	bool first_target = ordered_targets.empty();
@@ -153,69 +199,17 @@ void CameraSystem::add_to_ordered(camtarget_id id)
 	ordered_targets.insert(iter_pair.second, id);
 
 	if (first_target) {
-		auto* target = get(ordered_targets.back());
-		target->m_state = CamTargetState::Active;
+		auto& target = targets.at(ordered_targets.back());
+		target.m_state = CamTargetState::Active;
 		active_target = ordered_targets.back();
-
-		currentPosition = target->get_target_pos();
-		prevPosition = currentPosition;
-		deltaPosition = Vec2f{};
-	}
-
-	get(id)->has_camera = true;
-}
-
-/*
-void CameraSystem::addTarget(CameraTarget& target) {
-	auto iter_pair = std::equal_range(
-		targets.begin(), targets.end(), &target,
-		[](const CameraTarget* lhs, const CameraTarget* rhs) {
-			return lhs->get_priority() < rhs->get_priority();
-		});
-
-	bool first_target = targets.empty();
-
-	targets.insert(iter_pair.second, &target);
-
-	if (first_target) {
-		targets.back()->m_state = CamTargetState::Active;
-		active_target = targets.back();
 
 		currentPosition = target.get_target_pos();
 		prevPosition = currentPosition;
 		deltaPosition = Vec2f{};
 	}
 
-	target.has_camera = true;
+	targets.at(id).has_camera = true;
 }
-bool CameraSystem::removeTarget(CameraTarget& target) {
-
-	auto iter = std::find(targets.begin(), targets.end(), &target);
-	bool has_target = iter != targets.end();
-	if (has_target) {
-		if (active_target == &target) {
-			active_target = nullptr;
-		}
-		targets.erase(iter);
-		target.has_camera = false;
-	}
-	return has_target;
-}
-
-
-void CameraSystem::removeAllTargets() {
-	for (auto target : targets) {
-		target->has_camera = false;
-	}
-	targets.clear();
-	active_target = nullptr;
-}
-*/
-
-const std::vector<camtarget_id>& CameraSystem::getTargets() const {
-	return ordered_targets;
-}
-
 
 Vec2f CameraSystem::getPosition(float interpolation) {
 	return math::lerp(prevPosition, currentPosition, interpolation);

@@ -6,6 +6,7 @@
 #include "fastfall/game/camera/CameraTarget.hpp"
 
 #include "fastfall/util/slot_map.hpp"
+#include "fastfall/game/ComponentList.hpp"
 
 #include <array>
 #include <optional>
@@ -13,49 +14,25 @@
 namespace ff {
 
 
+/*
 struct camtarget_id {
 	slot_key value;
 	bool operator==(const camtarget_id& other) const { return value == other.value; };
 	bool operator!=(const camtarget_id& other) const { return value != other.value; };
 };
+*/
 
 class CameraSystem {
 public:
 
-	CameraSystem() = default;
+	CameraSystem();
 	CameraSystem(Vec2f initPos);
+
+	CameraSystem(const CameraSystem&);
+	CameraSystem& operator=(const CameraSystem&);
 
 	void update(secs deltaTime);
 
-	template<class T, class... Args>
-	camtarget_id create(Args&&... args) 
-	{
-		auto id = camtarget_id{
-			target_slots.emplace_back()
-		};
-
-		target_slots.at(id.value) = std::make_unique<T>(std::forward<Args>(args)...);
-
-		add_to_ordered(id);
-		return id;
-	}
-
-	bool erase(camtarget_id target);
-
-
-	CameraTarget* get(camtarget_id target) {
-		return target_slots.exists(target.value) ? target_slots.at(target.value).get() : nullptr;
-	}
-
-	const CameraTarget* get(camtarget_id target) const {
-		return target_slots.exists(target.value) ? target_slots.at(target.value).get() : nullptr;
-	}
-
-	bool exists(camtarget_id target) const {
-		return target_slots.exists(target.value);
-	}
-
-	const std::vector<camtarget_id>& getTargets() const;
 
 	Vec2f getPosition(float interpolation);
 
@@ -66,13 +43,18 @@ public:
 	Vec2f prevPosition;
 	Vec2f currentPosition;
 
+	ComponentList<CameraTarget, true> targets;
+
+	CameraTarget* get_active_target() { return active_target ? &targets.at(*active_target) : nullptr; }
+	const CameraTarget* get_active_target() const { return active_target ? &targets.at(*active_target) : nullptr; }
+
 private:
-	void add_to_ordered(camtarget_id id);
 
-	std::optional<camtarget_id> active_target;
+	void set_component_callbacks();
+	void add_to_ordered(ID<CameraTarget> id);
 
-	slot_map<std::unique_ptr<CameraTarget>> target_slots;
-	std::vector<camtarget_id> ordered_targets;
+	std::optional<ID<CameraTarget>> active_target;
+	std::vector<ID<CameraTarget>> ordered_targets;
 };
 
 
