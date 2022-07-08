@@ -5,6 +5,7 @@
 
 #include "fastfall/game/InstanceID.hpp"
 
+#include "fastfall/game/WorldState.hpp"
 #include "fastfall/game/Level.hpp"
 #include "fastfall/game/ObjectSystem.hpp"
 #include "fastfall/game/CollisionSystem.hpp"

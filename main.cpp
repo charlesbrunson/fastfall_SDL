@@ -16,6 +16,8 @@
 
 #include "fastfall/game/level/TileID.hpp"
 
+#include "fastfall/game/ComponentList.hpp"
+
 #ifdef WIN32
 #include <Windows.h>
 
@@ -65,7 +67,10 @@ int main(int argc, char* argv[])
 	}
 	log::set_verbosity(log::level::INFO);
 
+
 	using namespace ff;
+
+	ComponentList<int> t;
 
 	game_InitTypes();
 
