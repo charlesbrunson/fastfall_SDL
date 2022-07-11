@@ -4,42 +4,36 @@
 
 namespace ff {
 
-
-struct GenericID {
-	size_t type_hash;
-	slot_key value;
-
-	bool operator==(const GenericID& other) const { return type_hash == other.type_hash && value == other.value; };
-	bool operator!=(const GenericID& other) const { return type_hash != other.type_hash || value != other.value; };
-	bool operator<(const GenericID& other)  const { 
-		return (type_hash == other.type_hash)
-			? value.sparse_index < other.value.sparse_index
-			: type_hash < other.type_hash;
-	};
-};
+struct notype {};
 
 template<class T>
 struct ID {
-	slot_key value;
-	bool operator==(const ID<T>& other) const { return value == other.value; };
-	bool operator!=(const ID<T>& other) const { return value != other.value; };
-	bool operator<(const ID<T>& other)  const { return value.sparse_index < other.value.sparse_index; };
+	size_t type_hash; // contains the base type of the component, equals the type_hash of the slot_map
+	slot_key value;   // key to the component in the slot_map
 
-	operator GenericID() {
-		return { typeid(T).hash_code(), value};
-	}
+	template<class U>
+	bool operator==(const ID<U>& other) const { return type_hash == other.type_hash && value == other.value; };
 
-	template<class Base>
-		requires std::derived_from<T, Base>
-	operator ID<Base>() {
-		return { value };
+	template<class U>
+	bool operator!=(const ID<U>& other) const { return type_hash != other.type_hash || value != other.value; };
+
+	template<class U>
+	bool operator<(const ID<U>& other)  const 
+	{ 
+		if (type_hash == other.type_hash) {
+			return value.sparse_index < other.value.sparse_index;
+		}
+		else {
+			return type_hash < other.type_hash;
+		}
+	};
+
+	operator ID<notype>() {
+		return { type_hash, value };
 	}
 };
 
-template<class Base, class Derived>
-requires std::derived_from<Derived, Base>
-ID<Derived> id_cast(ID<Base> id) {
-	return { id.value };
-}
+using GenericID = ID<notype>;
+
 
 }

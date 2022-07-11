@@ -70,8 +70,6 @@ int main(int argc, char* argv[])
 
 	using namespace ff;
 
-	ComponentList<int> t;
-
 	game_InitTypes();
 
 	FFinit();
@@ -100,7 +98,7 @@ int main(int argc, char* argv[])
 	Engine::init(
 		std::move(window),
 		EngineRunnable(std::make_unique<TestState>()),
-		Vec2u{ GAME_W * 7, GAME_H * 5 },
+		Vec2u{ GAME_W * 5, GAME_H * 4 },
 		getSettings()
 	);
 
