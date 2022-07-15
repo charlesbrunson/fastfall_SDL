@@ -9,7 +9,7 @@ namespace ff {
 
 class CollidableArbiter {
 public:
-	Collidable collidable;
+	ID<Collidable> collidable;
 	std::vector<RegionArbiter> region_arbiters;
 
 	inline void gather_and_solve_collisions(

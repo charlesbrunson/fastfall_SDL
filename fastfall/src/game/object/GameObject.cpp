@@ -1,5 +1,7 @@
 #include "fastfall/game/object/GameObject.hpp"
 
+/*
+
 #include "fastfall/util/log.hpp"
 
 #include "fastfall/game/ObjectSystem.hpp"
@@ -189,3 +191,5 @@ GameObject::GameObject(GameContext cfg, ObjectLevelData& data)
 }
 
 }
+
+*/

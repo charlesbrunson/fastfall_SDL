@@ -13,7 +13,7 @@
 #include <memory>
 
 // TODO
-#include "fastfall/game/InstanceID.hpp"
+//#include "fastfall/game/InstanceID.hpp"
 
 //#include <SFML/Graphics.hpp>
 //#include <SFML/System.hpp>
@@ -71,7 +71,7 @@ public:
 
 	virtual void updateImGUI() {};
 
-	inline InstanceID getInstanceID() { return instanceID; };
+	//inline InstanceID getInstanceID() { return instanceID; };
 
 	inline Vec2f getViewPos() const noexcept { return viewPos; };
 	inline float getViewZoom() const noexcept { return viewZoom; };
@@ -99,7 +99,7 @@ public:
 protected:
 
 	// TODO
-	InstanceID instanceID;
+	//InstanceID instanceID;
 
 	Color clearColor;
 

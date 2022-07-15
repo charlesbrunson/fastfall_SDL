@@ -48,23 +48,13 @@ private:
 		Cardinal oppositeCard;
 	};
 
-	/*
-	constexpr static SideAssociated sides[] = {
-		// tile offset,   original side,   adjacent side
-		{Vec2i(0, -1), Cardinal::NORTH, Cardinal::SOUTH},
-		{Vec2i(1,  0), Cardinal::EAST,  Cardinal::WEST},
-		{Vec2i(0,  1), Cardinal::SOUTH, Cardinal::NORTH},
-		{Vec2i(-1, 0), Cardinal::WEST,  Cardinal::EAST},
-	};
-	*/
-
 	struct Ghosts {
-		const ColliderSurface* next = nullptr;
-		const ColliderSurface* prev = nullptr;
+		std::optional<ColliderSurfaceID> next;
+		std::optional<ColliderSurfaceID> prev;
 		Vec2f g0;
 		Vec2f g3;
-		bool g0virtual = true;
-		bool g3virtual = true;
+		//bool g0virtual = true;
+		//bool g3virtual = true;
 	};
 
 public:
@@ -72,7 +62,7 @@ public:
 
 	void update(secs deltaTime) override;
 
-	const ColliderQuad* get_quad(int quad_id) const noexcept override;
+	const ColliderQuad* get_quad(QuadID quad_id) const noexcept override;
 	const ColliderQuad* get_quad(const Vec2i& at) const noexcept;
 
 	void setBorders(const Vec2u& size, const unsigned cardinalBits);
@@ -91,7 +81,7 @@ public:
 
 	void getQuads(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& buffer) const override;
 
-	bool on_precontact(int quad_id, const Contact& contact, secs duration) const override;
+	bool on_precontact(QuadID quad_id, const Contact& contact, secs duration) const override;
 	void on_postcontact(const PersistantContact& contact) const override;
 
 	void set_on_precontact(std::function<bool(Vec2i, const Contact&, secs)> func) {
@@ -112,6 +102,7 @@ private:
 	bool applySetTile(const Edit& change);
 
 	bool validPosition(const Vec2i& at) const noexcept;
+	bool validPosition(QuadID at) const noexcept;
 	bool validPosition(size_t ndx) const noexcept;
 	size_t getTileIndex(const Vec2i& at) const noexcept;
 

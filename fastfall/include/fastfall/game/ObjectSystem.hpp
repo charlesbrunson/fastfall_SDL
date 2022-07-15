@@ -1,5 +1,7 @@
 #pragma once
 
+/*
+
 #include "fastfall/game/object/GameObject.hpp"
 
 #include "fastfall/render/Drawable.hpp"
@@ -48,3 +50,5 @@ private:
 };
 
 }
+
+*/

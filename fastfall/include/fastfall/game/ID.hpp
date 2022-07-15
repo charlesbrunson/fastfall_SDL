@@ -31,9 +31,18 @@ struct ID {
 	operator ID<notype>() {
 		return { type_hash, value };
 	}
+
+	size_t raw() const { return *reinterpret_cast<const size_t*>(this); }
 };
 
 using GenericID = ID<notype>;
 
+template<class T>
+std::optional<ID<T>> id_cast(GenericID gen)
+{
+	return gen.type_hash == typeid(T).hash_code() 
+		? std::make_optional<ID<T>>(gen.type_hash, gen.value) 
+		: std::nullopt;
+}
 
 }

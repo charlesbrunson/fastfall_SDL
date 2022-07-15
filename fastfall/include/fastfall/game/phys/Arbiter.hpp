@@ -1,10 +1,8 @@
 #pragma once
 
 #include "Collidable.hpp"
-
 #include "collision/Contact.hpp"
-
-#include "collision/CollisionContinuous.hpp"
+#include "fastfall/game/phys/collision/CollisionContinuous.hpp"
 
 namespace ff {
 
@@ -30,7 +28,7 @@ public:
 
 	void setApplied();
 
-	inline const CollisionContinuous* getCollision() const noexcept { return &collision; };
+	inline const CollisionContinuous& getCollision() const noexcept { return collision; };
 
 	inline Contact getContact() const noexcept { return collision.getContact(); };
 	inline Contact* getContactPtr() noexcept { return collision.getContactPtr(); };
@@ -39,9 +37,13 @@ public:
 	inline secs getTouchDuration() const noexcept { return touchTimer; };
 	inline size_t getRecalcCount() const noexcept { return recalcCounter; };
 
-	Collidable* collidable;
-	const ColliderQuad* collider;
-	const ColliderRegion* region;
+	//Collidable* collidable;
+	//const ColliderQuad* collider;
+	//const ColliderRegion* region;
+
+	ID<Collidable> collidable;
+	ID<ColliderRegion> collider;
+	QuadID quad;
 
 	Rectf quad_bounds;
 

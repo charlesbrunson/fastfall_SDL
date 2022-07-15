@@ -24,7 +24,7 @@ struct ColliderTile {
 
 	};
 
-	ColliderQuad toQuad(int id = -1) const;
+	ColliderQuad toQuad(QuadID id = {}) const;
 
 	Vec2i position;
 	TileShape shape;

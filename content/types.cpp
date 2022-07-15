@@ -5,9 +5,9 @@
 
 #include "tilelogic/AnimLogic.hpp"
 
-#include "object/Player.hpp"
-#include "object/BasicPlatform.hpp"
-#include "object/SimpleEffect.hpp"
+//#include "object/Player.hpp"
+//#include "object/BasicPlatform.hpp"
+//#include "object/SimpleEffect.hpp"
 
 
 using namespace ff;
@@ -50,7 +50,7 @@ void game_InitTypes() {
 
 	// objects
 
-	ObjectFactory::register_object<Player>();
-	ObjectFactory::register_object<BasicPlatform>();
-	ObjectFactory::register_object<SimpleEffect>();
+	//ObjectFactory::register_object<Player>();
+	//ObjectFactory::register_object<BasicPlatform>();
+	//ObjectFactory::register_object<SimpleEffect>();
 }

@@ -3,6 +3,7 @@
 #include "fastfall/game/phys/ColliderRegion.hpp"
 
 #include "fastfall/game/phys/Arbiter.hpp"
+#include "fastfall/game/ID.hpp"
 
 #include <map>
 
@@ -10,33 +11,15 @@ namespace ff {
 
 class RegionArbiter {
 public:
-	RegionArbiter(ColliderRegion* collider, Collidable* collidable) :
-		collider_(collider),
-		collidable_(collidable)
-	{
-
-	}
-
-	inline std::map<const ColliderQuad*, Arbiter>& getQuadArbiters() { return quadArbiters; };
-	inline const std::map<const ColliderQuad*, Arbiter>& getQuadArbiters() const { return quadArbiters; };
-
 	void updateRegion(Rectf bounds);
-	//void updateArbiters(secs deltaTime);
-
-	ColliderRegion* getRegion() const { return collider_; };
 
 	bool operator< (const RegionArbiter& rhs) {
-		return collider_ < rhs.collider_;
+		return collider_id < rhs.collider_id;
 	}
 
-private:
-	ColliderRegion* collider_;
-	Collidable* collidable_;
-
-	//std::vector<std::pair<Rectf, const ColliderQuad*>> prevQuads;
-	std::vector<std::pair<Rectf, const ColliderQuad*>> currQuads;
-	std::map<const ColliderQuad*, Arbiter> quadArbiters;
-
+	ID<ColliderRegion> collider_id;
+	std::vector<std::pair<Rectf, QuadID>> currQuads;
+	std::map<QuadID, Arbiter> quadArbiters;
 };
 
 }

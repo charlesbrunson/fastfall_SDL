@@ -1,5 +1,7 @@
 #include "fastfall/game/ObjectSystem.hpp"
 
+/*
+
 #include <assert.h>
 
 namespace ff {
@@ -78,3 +80,5 @@ void ObjectSystem::addObject(std::unique_ptr<GameObject>&& obj) {
 }
 
 }
+
+*/

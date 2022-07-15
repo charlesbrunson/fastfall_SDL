@@ -1,6 +1,6 @@
 #include "fastfall/game/level/ObjectLayer.hpp"
 
-#include "fastfall/game/ObjectSystem.hpp"
+//#include "fastfall/game/ObjectSystem.hpp"
 
 namespace ff {
 
@@ -9,9 +9,9 @@ ObjectLayer::ObjectLayer()
 {
 
 }
-ObjectLayer::ObjectLayer(GameContext context, const ObjectLayerData& layerData)
+ObjectLayer::ObjectLayer(const ObjectLayerData& layerData)
 {
-	initFromAsset(context, layerData);
+	initFromAsset(layerData);
 }
 
 ObjectLayer::ObjectLayer(const ObjectLayer& obj)
@@ -36,7 +36,7 @@ ObjectLayer& ObjectLayer::operator=(ObjectLayer&& obj) noexcept
 	return *this;
 }
 
-void ObjectLayer::initFromAsset(GameContext context, const ObjectLayerData& layerData)
+void ObjectLayer::initFromAsset(const ObjectLayerData& layerData)
 {
 	layerID = layerData.getID();
 	object_refs = layerData.objects;
@@ -92,10 +92,11 @@ bool ObjectLayer::removeObjectDataByID(ObjLevelID id) {
 	return false;
 }
 
-void ObjectLayer::createObjectsFromData(GameContext context) {
+void ObjectLayer::createObjectsFromData() {
 	for (auto& objRef : object_refs) {
 		if (objRef.typehash != 0) {
-			ObjectFactory::createFromData(context, objRef);
+			// TODO
+			//ObjectFactory::createFromData(context, objRef);
 		}
 	}
 }

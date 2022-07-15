@@ -14,12 +14,12 @@ LevelEditor::LevelEditor(Level& lvl, bool show_imgui)
 
 }
 
-LevelEditor::LevelEditor(GameContext context, bool show_imgui, std::string name, Vec2u tile_size)
+LevelEditor::LevelEditor(bool show_imgui, std::string name, Vec2u tile_size)
 {
 	assert(tile_size.x >= LevelEditor::MIN_LEVEL_SIZE.x);
 	assert(tile_size.y >= LevelEditor::MIN_LEVEL_SIZE.y);
 
-	created_level = std::make_unique<Level>(context);
+	created_level = std::make_unique<Level>();
 	level = created_level.get();
 
 	assert(level);
@@ -42,7 +42,7 @@ bool LevelEditor::create_layer(int layer_pos)
 	{
 		level->get_layers().insert(
 			layer_pos,
-			TileLayer{ level->getContext(), 0, level->size() }
+			TileLayer{ 0, level->size() }
 		);
 	}
 	return false;
@@ -329,7 +329,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		);
 		if (not_in_lvl)
 		{
-			lvl_layers.push_fg_front(TileLayer{ level->getContext(), layer_ref.tilelayer });
+			lvl_layers.push_fg_front(TileLayer{ layer_ref.tilelayer });
 			nLayers.insert(layer_ref.tilelayer.getID());
 		}
 	}

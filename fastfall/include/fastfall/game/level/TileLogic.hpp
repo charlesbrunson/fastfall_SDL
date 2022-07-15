@@ -2,7 +2,7 @@
 
 #include "fastfall/engine/time/time.hpp"
 
-#include "fastfall/game/GameContext.hpp"
+//#include "fastfall/game/GameContext.hpp"
 #include "fastfall/resource/asset/TilesetAsset.hpp"
 
 #include <queue>
@@ -12,6 +12,7 @@
 
 #include "fastfall/game/level/Tile.hpp"
 #include "fastfall/game/phys/collision/Contact.hpp"
+#include "fastfall/game/WorldState.hpp"
 
 namespace ff {
 
@@ -33,7 +34,7 @@ class TileLogic;
 
 class TileLogicType {
 public:
-	using FactoryFunction = std::function<std::unique_ptr<TileLogic>(GameContext)>;
+	using FactoryFunction = std::function<std::unique_ptr<TileLogic>(WorldState&)>;
 
 	TileLogicType(std::string_view type, FactoryFunction builder);
 
@@ -63,8 +64,8 @@ protected:
 
 public:
 
-	TileLogic(GameContext context, std::string name) 
-		: m_context(context), m_name(name)
+	TileLogic(WorldState& st, std::string name)
+		: m_name(name)
 	{
 
 	}
@@ -105,15 +106,13 @@ public:
 	static void addType(const std::string& typeName) {
 		TileLogicType type{
 			typeName,
-			[](GameContext context) -> std::unique_ptr<TileLogic> {
-				return std::make_unique<T>(context);
+			[](WorldState& st) -> std::unique_ptr<TileLogic> {
+				return std::make_unique<T>(st);
 			}
 		};
 		getMap().insert(std::make_pair(type.typeName, type));
 	}
-	static std::unique_ptr<TileLogic> create(GameContext context, std::string_view typeName);
-
-	virtual std::unique_ptr<TileLogic> clone(GameContext n_context) = 0;
+	static std::unique_ptr<TileLogic> create(WorldState& st, std::string_view typeName);
 
 private:
 	using Map = std::map<std::string, TileLogicType, std::less<>>;
@@ -126,7 +125,7 @@ private:
 
 	std::string m_name;
 	std::queue<TileLogicCommand> commands;
-	GameContext m_context;
+	//GameContext m_context;
 };
 
 

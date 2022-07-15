@@ -1,7 +1,7 @@
 #pragma once
 
 #include "fastfall/resource/asset/LevelAssetTypes.hpp"
-#include "fastfall/game/GameContext.hpp"
+//#include "fastfall/game/GameContext.hpp"
 
 namespace ff {
 
@@ -9,7 +9,7 @@ class ObjectLayer {
 public:
 
 	ObjectLayer();
-	ObjectLayer(GameContext context, const ObjectLayerData& layerData);
+	ObjectLayer(const ObjectLayerData& layerData);
 
 	ObjectLayer(const ObjectLayer& obj);
 	ObjectLayer(ObjectLayer&& obj) noexcept;
@@ -17,11 +17,11 @@ public:
 	ObjectLayer& operator=(const ObjectLayer& obj);
 	ObjectLayer& operator=(ObjectLayer&& obj) noexcept;
 
-	void initFromAsset(GameContext context, const ObjectLayerData& layerData);
+	void initFromAsset(const ObjectLayerData& layerData);
 
 	void clear();
 
-	void createObjectsFromData(GameContext context);
+	void createObjectsFromData();
 
 	inline unsigned int getID() const { return layerID; };
 	inline const std::vector<ObjectLevelData>& getObjectData() { return object_refs; };

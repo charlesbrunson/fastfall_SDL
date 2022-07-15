@@ -132,13 +132,13 @@ ColliderQuad::ColliderQuad(const Rectf& shape) noexcept {
 		math::rect_botleft(shape)
 	};
 
-	QuadSurface* prev = nullptr;
+	std::optional<ColliderSurfaceID> prev = {};
 	for (auto dir : direction::cardinals)
 	{
 		surfaces[dir].hasSurface = true;
 
-		surfaces[dir].collider.g0virtual = false;
-		surfaces[dir].collider.g3virtual = false;
+		surfaces[dir].collider.prev = {};
+		surfaces[dir].collider.next = {};
 
 		auto [ord1, ord2] = direction::split(dir);
 
@@ -148,10 +148,10 @@ ColliderQuad::ColliderQuad(const Rectf& shape) noexcept {
 		surfaces[dir].collider.ghostp3		= points[direction::opposite(ord1)];
 
 		if (prev) {
-			surfaces[dir].collider.prev = &prev->collider;
-			prev->collider.next = &surfaces[dir].collider;
+			surfaces[dir].collider.prev = prev->collider.id;
+			prev->collider.next = surfaces[dir].collider.id;
 		}
-		prev = &surfaces[dir];
+		prev = surfaces[dir].collider.id;
 	}
 	if (prev) {
 		surfaces[Cardinal::N].collider.prev = &prev->collider;

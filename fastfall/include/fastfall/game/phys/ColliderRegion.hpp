@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <math.h>
 
-#include "fastfall/game/phys/Identity.hpp"
+//#include "fastfall/game/phys/Identity.hpp"
 
 namespace ff {
 
@@ -22,18 +22,33 @@ public:
 		velocity(0.f, 0.f),
 		prevPosition(initialPosition)
 	{
-		static unsigned colliderIDCounter = ColliderID::NO_ID + 1u;
+		//static unsigned colliderIDCounter = ColliderID::NO_ID + 1u;
 
-		id = ColliderID{ colliderIDCounter++ };
-		assert(id.value != ColliderID::NO_ID);
+		//id = ColliderID{ colliderIDCounter++ };
+		//assert(id.value != ColliderID::NO_ID);
 	}
+
 	virtual ~ColliderRegion() {};
 
 	virtual void getQuads(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& buffer) const = 0;
 
 	virtual void update(secs deltaTime) = 0;
 
-	virtual const ColliderQuad* get_quad(int quad_id) const noexcept = 0;
+
+	virtual const ColliderQuad* get_quad(QuadID quad_id) const noexcept = 0;
+
+	const ColliderSurface* get_surface(ColliderSurfaceID id) const {
+		if (auto quad = get_quad(id.quad))
+		{
+			return quad->getSurface(id.dir);
+		}
+		return nullptr;
+	}
+
+	const ColliderSurface* get_surface(std::optional<ColliderSurfaceID> id_opt) const {
+		return id_opt ? get_surface(*id_opt) : nullptr;
+	}
+
 
 	inline Vec2f getPrevPosition() const noexcept { return prevPosition; };
 	inline Vec2f getPosition() const noexcept { return position; };
@@ -65,31 +80,25 @@ public:
 		return math::rect_bound(prevB, currB);
 	}
 	
-
-	inline ColliderID get_ID() const noexcept { return id; };
-
 	Vec2f velocity;
 	Vec2f delta_velocity;
 
-	Collidable* attached = nullptr;
+	//Collidable* attached = nullptr;
 
-	virtual bool on_precontact(int quad_id, const Contact& contact, secs duration) const { return true; };
+	virtual bool on_precontact(QuadID quad_id, const Contact& contact, secs duration) const { return true; };
 	virtual void on_postcontact(const PersistantContact& contact) const {};
 
 protected:
 	Rectf boundingBox;
 	Rectf prevBoundingBox;
 
-	ColliderID id;
-
 private:
-
 	Vec2f prevPosition;
 	Vec2f position;
 
 };
 
 template<typename T>
-concept ColliderType = std::is_base_of_v<ColliderRegion, T>;
+concept ColliderType = std::derived_from<T, ColliderRegion>;
 
 }

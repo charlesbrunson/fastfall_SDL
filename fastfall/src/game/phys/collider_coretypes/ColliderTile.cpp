@@ -52,7 +52,7 @@ constexpr std::array surfacePrototypes = {
 
 
 
-ColliderQuad ColliderTile::toQuad(int id) const {
+ColliderQuad ColliderTile::toQuad(QuadID id) const {
 
 	//ColliderQuad q{ surfacePrototypes.at(shape.type) };
 
@@ -131,7 +131,7 @@ ColliderQuad ColliderTile::toQuad(int id) const {
 		q.oneWayDir = !shape.flip_h ? Cardinal::E : Cardinal::W;
 	}
 
-	q.setID(id);
+	q.quad_id = id;
 
 	// material
 	q.material = mat;

@@ -22,8 +22,8 @@ class Level  {
 public:
 	using Layers = LevelLayerContainer<TileLayer, ObjectLayer>;
 
-	Level(GameContext context);
-	Level(GameContext context, const LevelAsset& levelData);
+	Level();
+	Level(const LevelAsset& levelData);
 
 	void init(const LevelAsset& levelData);
 
@@ -35,8 +35,8 @@ public:
 	inline const Vec2u& size() const { return levelSize; };
 	inline const std::string& name() const { return levelName; };
 
-	GameContext getContext() { return context; }
-	inline InstanceID getInstanceID() { return context.getID(); };
+	//GameContext getContext() { return context; }
+	//inline InstanceID getInstanceID() { return context.getID(); };
 
 	void resize(Vec2u n_size);
 	void set_name(std::string name) { levelName = name; };
@@ -48,7 +48,7 @@ public:
 	bool hasEditorHooked = false;
 
 private:
-	GameContext context;
+	//GameContext context;
 
 	std::string levelName;
 	Color bgColor;

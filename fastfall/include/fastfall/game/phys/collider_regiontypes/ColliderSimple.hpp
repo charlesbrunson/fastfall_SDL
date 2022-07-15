@@ -20,14 +20,14 @@ public:
 		boundingBox = shape;
 		prevBoundingBox = shape;
 
-		quad.setID(0u);
+		quad.quad_id = { 0u };
 
 	}
 
 	void update(secs deltaTime) override {
 		debugDrawQuad(quad, getPosition(), this);
 	}
-	const ColliderQuad* get_quad(int quad_id) const noexcept override {
+	const ColliderQuad* get_quad(QuadID quad_id) const noexcept override {
 		return quad_id == 0u ? &quad : nullptr;
 	}
 
@@ -51,7 +51,7 @@ public:
 		callback_on_postcontact = func;
 	}
 
-	bool on_precontact(int quad_id, const Contact& contact, secs duration) const override {
+	bool on_precontact(QuadID quad_id, const Contact& contact, secs duration) const override {
 		if (callback_on_precontact)
 			return callback_on_precontact(contact, duration);
 
