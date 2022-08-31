@@ -16,10 +16,7 @@ struct copyable_unique_ptr {
 		requires std::derived_from<Type, Base> && !std::same_as<Type, Base>
 	copyable_unique_ptr(Type* in_ptr)
 	{
-		clone = [](const std::unique_ptr<Base>& ptr) {
-			const Type* under_ptr = static_cast<const Type*>(ptr.get());
-			return std::make_unique<Type>(*under_ptr);
-		};
+		clone = make_copy_fn<Type>();
 		ptr = in_ptr;
 	}
 
@@ -27,10 +24,7 @@ struct copyable_unique_ptr {
 		requires std::derived_from<Type, Base> && !std::same_as<Type, Base>
 	copyable_unique_ptr(std::unique_ptr<Type>&& in_ptr)
 	{
-		clone = [](const std::unique_ptr<Base>& ptr) -> std::unique_ptr<Base> {
-			const Type* under_ptr = static_cast<const Type*>(ptr.get());
-			return std::make_unique<Type>(*under_ptr);
-		};
+		clone = make_copy_fn<Type>();
 		ptr = std::move(in_ptr);
 	}
 	
@@ -101,6 +95,16 @@ private:
 
 	std::unique_ptr<Base> ptr = nullptr;
 	clone_fn* clone = nullptr;
+
+	template<std::copy_constructible Type>
+		requires std::derived_from<Type, Base> && !std::same_as<Type, Base>
+	static auto make_copy_fn()
+	{
+		return [](const std::unique_ptr<Base>& ptr) -> std::unique_ptr<Base> {
+			const Type* under_ptr = static_cast<const Type*>(ptr.get());
+			return std::make_unique<Type>(*under_ptr);
+		};
+	}
 };
 
 template<std::copy_constructible Type, class... Args>
