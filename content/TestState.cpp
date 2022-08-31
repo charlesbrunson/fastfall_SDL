@@ -44,8 +44,7 @@ TestState::~TestState() {
 void TestState::update(secs deltaTime) {
 
 	instance->update(deltaTime);
-	return;
-
+	//return;
 
 	currKeys = SDL_GetKeyboardState(&key_count);
 

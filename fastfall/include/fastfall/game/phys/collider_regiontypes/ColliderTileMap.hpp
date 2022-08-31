@@ -16,20 +16,21 @@ namespace ff {
 class ColliderTileMap : public ColliderRegion {
 private:
 	struct Edit {
-		Edit(Vec2i pos, 
+		Edit(
+			Vec2i pos, 
 			bool remove, 
 			TileShape shape = TileShape(),
 			const TileMaterial* mat = nullptr,
 			Cardinal _matFacing = Cardinal::N
-		) :
-			position(pos),
-			removal(remove),
-			toShape(shape),
-			material(mat),
-			matFacing(_matFacing)
+		)	
+			: position(pos)
+			, removal(remove)
+			, toShape(shape)
+			, material(mat)
+			, matFacing(_matFacing)
 		{
-
 		}
+
 		Vec2i position;
 		bool removal;
 		TileShape toShape;
@@ -47,16 +48,6 @@ private:
 		Cardinal toCard;
 		Cardinal oppositeCard;
 	};
-
-	/*
-	constexpr static SideAssociated sides[] = {
-		// tile offset,   original side,   adjacent side
-		{Vec2i(0, -1), Cardinal::NORTH, Cardinal::SOUTH},
-		{Vec2i(1,  0), Cardinal::EAST,  Cardinal::WEST},
-		{Vec2i(0,  1), Cardinal::SOUTH, Cardinal::NORTH},
-		{Vec2i(-1, 0), Cardinal::WEST,  Cardinal::EAST},
-	};
-	*/
 
 	struct Ghosts {
 		const ColliderSurface* next = nullptr;
