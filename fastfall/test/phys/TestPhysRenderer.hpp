@@ -4,7 +4,7 @@
 #include <SDL.h>
 #include <fmt/format.h>
 
-#include "fastfall/game/Instance.hpp"
+#include "fastfall/game/World.hpp"
 
 #define FF_TESTPHYSRENDERER_ENABLED 1
 
@@ -21,7 +21,7 @@ public:
 
 	unsigned frame_delay = 2;
 
-	void draw(ff::CollisionManager& colMan);
+	void draw(ff::CollisionSystem& colMan);
 
 private:
 	static constexpr float scale = 2;

@@ -4,6 +4,12 @@
 
 namespace ff {
 
+struct ColliderSurfaceID
+{
+	int quad_id = -1;
+	Cardinal dir = Cardinal::N;
+};
+
 class ColliderSurface {
 public:
 	Linef surface;
@@ -13,8 +19,14 @@ public:
 	bool g0virtual = true;
 	bool g3virtual = true;
 
-	const ColliderSurface* prev = nullptr;
-	const ColliderSurface* next = nullptr;
+	ColliderSurfaceID id = {};
+
+	std::optional<ColliderSurfaceID> prev_id = std::nullopt;
+	std::optional<ColliderSurfaceID> next_id = std::nullopt;
+
+
+	//const ColliderSurface* prev = nullptr;
+	//const ColliderSurface* next = nullptr;
 
 	Linef getGhostPrev() const {
 		return { ghostp0, surface.p1 };
@@ -34,8 +46,8 @@ public:
 		r.g0virtual = g3virtual;
 		r.g3virtual = g0virtual;
 
-		r.prev = next;
-		r.next = prev;
+		r.prev_id = next_id;
+		r.next_id = prev_id;
 
 		return r;
 	}

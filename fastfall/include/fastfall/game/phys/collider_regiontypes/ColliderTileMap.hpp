@@ -66,6 +66,7 @@ public:
 	const ColliderQuad* get_quad(int quad_id) const noexcept override;
 	const ColliderQuad* get_quad(const Vec2i& at) const noexcept;
 
+
 	void setBorders(const Vec2u& size, const unsigned cardinalBits);
 
 	inline void setTile(const Vec2i& at, const TileShape& toShape, const TileMaterial* mat = nullptr, Cardinal matFacing = Cardinal::N)

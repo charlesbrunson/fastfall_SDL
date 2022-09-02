@@ -41,7 +41,7 @@ TestPhysRenderer::~TestPhysRenderer()
 #endif
 }
 
-void TestPhysRenderer::draw(CollisionManager& colMan) {
+void TestPhysRenderer::draw(CollisionSystem& colMan) {
 
 #if FF_TESTPHYSRENDERER_ENABLED
 

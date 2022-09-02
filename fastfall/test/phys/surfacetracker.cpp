@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "fastfall/game/Instance.hpp"
+#include "fastfall/game/World.hpp"
 #include "fastfall/game/object/ObjectComponents.hpp"
 #include "fastfall/game/phys/collider_regiontypes/ColliderTileMap.hpp"
 #include "fastfall/game/phys/Collidable.hpp"
@@ -17,7 +17,7 @@ using namespace ff;
 class surfacetracker : public ::testing::Test {
 
 protected:
-	CollisionManager colMan;
+	CollisionSystem colMan;
 
 	Collidable* box = nullptr;
 	SurfaceTracker* ground;
@@ -29,10 +29,7 @@ protected:
 
 	nlohmann::ordered_json data;
 
-	surfacetracker()
-		: colMan{0u}
-	{
-	}
+	surfacetracker() = default;
 
 	virtual ~surfacetracker() {
 		std::string test_log_name = fmt::format("phys_render_out/{}__{}.log",

@@ -105,22 +105,21 @@ bool debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset, const void* s
 
 // -------------------------------------------
 
+
 ColliderQuad::ColliderQuad() noexcept :
 	surfaces{}
 {
-
 }
+
 
 ColliderQuad::ColliderQuad(const cardinal_array<QuadSurface>& surfaces) noexcept :
 	surfaces{ surfaces }
 {
-
 }
 
 ColliderQuad::ColliderQuad(cardinal_array<QuadSurface>&& surfaces) noexcept :
 	surfaces{ surfaces }
 {
-
 }
 
 ColliderQuad::ColliderQuad(const Rectf& shape) noexcept {
@@ -148,14 +147,14 @@ ColliderQuad::ColliderQuad(const Rectf& shape) noexcept {
 		surfaces[dir].collider.ghostp3		= points[direction::opposite(ord1)];
 
 		if (prev) {
-			surfaces[dir].collider.prev = &prev->collider;
-			prev->collider.next = &surfaces[dir].collider;
+			surfaces[dir].collider.prev_id = prev->collider.id;
+			prev->collider.next_id = surfaces[dir].collider.id;
 		}
 		prev = &surfaces[dir];
 	}
 	if (prev) {
-		surfaces[Cardinal::N].collider.prev = &prev->collider;
-		prev->collider.next = &surfaces[Cardinal::N].collider;
+		surfaces[Cardinal::N].collider.prev_id = prev->collider.id;
+		prev->collider.next_id = surfaces[Cardinal::N].collider.id;
 	}
 }
 
