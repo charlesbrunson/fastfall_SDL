@@ -1,0 +1,43 @@
+fastfall engine feature list
+
+based on SDL + opengl
+compiles to windows, linux, probably mac (haven't tried) and web (via emscripten)
+
+core:
+	math utilities
+	custom containers
+	custom smart pointers
+
+engine
+	engine loop fixed updates and lerped rendering between updates
+		fixed update allow deterministic gameplay
+		lerped rendered allows unlimited framerate without effecting determinism
+	input handling with buffering and input mapping
+	state engine with extensible states
+	configurable update rate and draw rate, supports vertical sync
+	
+render
+	wraps opengl implementation
+	basic shape rendering
+	textures and render textures
+	window/render target handler
+	text + fonts
+	textures
+	animated sprites and tilemaps
+	
+resource
+	deserialization of assets (levels, animations, textures, fonts)
+	serialization of assets (currently broken lmao)
+	automatic hot-reload of levels, textures, animations, fonts if newer file detected
+	levels made with Tiled
+	
+game
+	pseudo-implementation of ECS
+	systems:
+		Camera 		- multiple camera targets and camera behavior
+		Collision - custom-made collision system for platforming, supports slopes and moving platforms/tilemaps
+		Level 		- level tilemaps, scrolling, parallax, custom logic for certain types of tiles (such as animations or treadmills)
+		Object 		- updating gameobjects with custom behavior (i.e. the player) 
+		Scene 		- draws the game state
+		Trigger 	- handles trigger rects with extensible activation behavior
+

@@ -20,13 +20,8 @@ public:
 	bool g3virtual = true;
 
 	ColliderSurfaceID id = {};
-
 	std::optional<ColliderSurfaceID> prev_id = std::nullopt;
 	std::optional<ColliderSurfaceID> next_id = std::nullopt;
-
-
-	//const ColliderSurface* prev = nullptr;
-	//const ColliderSurface* next = nullptr;
 
 	Linef getGhostPrev() const {
 		return { ghostp0, surface.p1 };
