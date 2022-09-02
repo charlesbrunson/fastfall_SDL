@@ -1,5 +1,5 @@
 
-#include "fastfall/game/Instance.hpp"
+//#include "fastfall/game/Instance.hpp"
 #include "fastfall/game/object/ObjectComponents.hpp"
 #include "fastfall/game/phys/collider_regiontypes/ColliderTileMap.hpp"
 #include "fastfall/game/phys/Collidable.hpp"
@@ -16,7 +16,7 @@ using namespace ff;
 class collision : public ::testing::Test {
 
 protected:
-	CollisionManager colMan;
+	CollisionSystem colMan;
 	Collidable* box = nullptr;
 	ColliderTileMap* collider = nullptr;
 	std::fstream log;
@@ -25,11 +25,7 @@ protected:
 
 	nlohmann::ordered_json data;
 
-	collision()
-		: colMan{ 0u }
-	{
-
-	}
+	collision() = default;
 
 	virtual ~collision() 
 	{

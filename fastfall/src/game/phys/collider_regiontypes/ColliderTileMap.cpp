@@ -463,8 +463,8 @@ namespace ff {
 				surf.ghostp3 = ghosts.g3;
 				surf.g0virtual = ghosts.g0virtual;
 				surf.g3virtual = ghosts.g3virtual;
-				surf.next = ghosts.next;
-				surf.prev = ghosts.prev;
+				surf.next_id = ghosts.next ? std::make_optional(ghosts.next->id) : std::nullopt;
+				surf.prev_id = ghosts.prev ? std::make_optional(ghosts.prev->id) : std::nullopt;
 				quad->setSurface(dir, surf);
 			}
 		}

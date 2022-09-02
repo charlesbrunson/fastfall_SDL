@@ -241,31 +241,35 @@ Vec2f SurfaceTracker::do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left,
 		regionOffset = region->getPosition();
 	}
 
-	static auto goLeft = [](const ColliderSurface& surface) -> const ColliderSurface* {
-		if (surface.surface.p1.x < surface.surface.p2.x) {
-			if (auto* r = surface.prev) {
-				return r->surface.p1.x < r->surface.p2.x ? r : nullptr;
+	static auto goLeft = [](const ColliderRegion* region, const ColliderSurface& surface) -> const ColliderSurface* {
+
+		if (region) {
+			if (surface.surface.p1.x < surface.surface.p2.x && surface.prev_id) {
+				if (auto* r = region->get_surface_collider(*surface.prev_id)) {
+					return r->surface.p1.x < r->surface.p2.x ? r : nullptr;
+				}
 			}
-		}
-		else if (surface.surface.p1.x > surface.surface.p2.x) {
-			if (auto* r = surface.next) {
-				return r->surface.p1.x > r->surface.p2.x ? r : nullptr;
+			else if (surface.surface.p1.x > surface.surface.p2.x && surface.next_id) {
+				if (auto* r = region->get_surface_collider(*surface.next_id)) {
+					return r->surface.p1.x > r->surface.p2.x ? r : nullptr;
+				}
 			}
 		}
 		return nullptr;
 	};
-	static auto goRight = [](const ColliderSurface& surface) -> const ColliderSurface* {
-
+	static auto goRight = [](const ColliderRegion* region, const ColliderSurface& surface) -> const ColliderSurface* {
 
 		// TODO Wall support?
-		if (surface.surface.p1.x < surface.surface.p2.x) {
-			if (auto* r = surface.next) {
-				return r->surface.p1.x < r->surface.p2.x ? r : nullptr;
+		if (region) {
+			if (surface.surface.p1.x < surface.surface.p2.x && surface.next_id) {
+				if (auto* r = region->get_surface_collider(*surface.next_id)) {
+					return r->surface.p1.x < r->surface.p2.x ? r : nullptr;
+				}
 			}
-		}
-		else if (surface.surface.p1.x > surface.surface.p2.x) {
-			if (auto* r = surface.prev) {
-				return r->surface.p1.x > r->surface.p2.x ? r : nullptr;
+			else if (surface.surface.p1.x > surface.surface.p2.x && surface.prev_id) {
+				if (auto* r = region->get_surface_collider(*surface.prev_id)) {
+					return r->surface.p1.x > r->surface.p2.x ? r : nullptr;
+				}
 			}
 		}
 		return nullptr;
@@ -278,11 +282,11 @@ Vec2f SurfaceTracker::do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left,
 
 	if (wish_pos.x > right && prev_pos.x <= right) {
 		goingRight = true;
-		next = goRight(contact.collider);
+		next = goRight(contact.region, contact.collider);
 	}
 	else if (wish_pos.x < left && prev_pos.x >= left) {
 		goingLeft = true;
-		next = goLeft(contact.collider);
+		next = goLeft(contact.region, contact.collider);
 	}
 
 	else if (wish_pos.x > left && prev_pos.x <= left)

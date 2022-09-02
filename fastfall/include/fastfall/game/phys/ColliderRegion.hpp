@@ -35,6 +35,26 @@ public:
 
 	virtual const ColliderQuad* get_quad(int quad_id) const noexcept = 0;
 
+	const ColliderSurface* get_surface_collider(ColliderSurfaceID id) const noexcept
+	{
+		if (auto* q = get_quad(id.quad_id); 
+			q && q->surfaces[id.dir].hasSurface)
+		{
+			return &q->surfaces[id.dir].collider;
+		}
+		return nullptr;
+	}
+
+	const SurfaceMaterial* get_surface_material(ColliderSurfaceID id) const noexcept
+	{
+		if (auto* q = get_quad(id.quad_id); 
+			q && q->surfaces[id.dir].hasSurface)
+		{
+			return &q->surfaces[id.dir].material;
+		}
+		return nullptr;
+	}
+
 	inline Vec2f getPrevPosition() const noexcept { return prevPosition; };
 	inline Vec2f getPosition() const noexcept { return position; };
 

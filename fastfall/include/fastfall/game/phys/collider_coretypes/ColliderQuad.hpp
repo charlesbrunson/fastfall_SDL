@@ -80,6 +80,11 @@ public:
 	inline void setID(int id) {
 		assert(id >= 0);
 		quad_id = id;
+
+		for (auto& surf : surfaces)
+		{
+			surf.collider.id.quad_id = quad_id;
+		}
 	};
 
 	friend inline bool operator==(const ColliderQuad& lhs, const ColliderQuad& rhs) {
