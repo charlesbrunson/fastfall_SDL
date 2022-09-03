@@ -132,7 +132,7 @@ std::optional<RaycastHit> raycastRegion(ColliderRegion* region, const Rectf& ray
 
 	std::vector<std::pair<Rectf, const ColliderQuad*>> buffer;
 
-	region->getQuads(raycastArea, buffer);
+	region->get_quads_in_rect(raycastArea, buffer);
 
 	std::optional<RaycastHit> result{};
 

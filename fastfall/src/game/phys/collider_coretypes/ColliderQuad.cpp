@@ -109,20 +109,27 @@ bool debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset, const void* s
 ColliderQuad::ColliderQuad() noexcept :
 	surfaces{}
 {
+	for (auto dir : direction::cardinals) {
+		surfaces[dir].collider.id.dir = dir;
+	}
 }
 
 
-ColliderQuad::ColliderQuad(const cardinal_array<QuadSurface>& surfaces) noexcept :
-	surfaces{ surfaces }
+ColliderQuad::ColliderQuad(const cardinal_array<QuadSurface>& other_surfaces) noexcept :
+	surfaces{ other_surfaces }
 {
 }
 
-ColliderQuad::ColliderQuad(cardinal_array<QuadSurface>&& surfaces) noexcept :
-	surfaces{ surfaces }
+ColliderQuad::ColliderQuad(cardinal_array<QuadSurface>&& other_surfaces) noexcept :
+	surfaces{ other_surfaces }
 {
 }
 
-ColliderQuad::ColliderQuad(const Rectf& shape) noexcept {
+ColliderQuad::ColliderQuad(const Rectf& shape) noexcept 
+{
+	for (auto dir : direction::cardinals) {
+		surfaces[dir].collider.id.dir = dir;
+	}
 
 	ordinal_array<Vec2f> points = {
 		math::rect_topleft(shape),

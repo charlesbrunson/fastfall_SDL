@@ -8,7 +8,7 @@ namespace ff {
 void RegionArbiter::updateRegion(Rectf bounds) {
 
 	currQuads.clear();
-	collider_->getQuads(bounds, currQuads);
+	collider_->get_quads_in_rect(bounds, currQuads);
 
 	// check for stale (out of bounds) quads to remove
 	for (auto& [_, arb] : quadArbiters) {

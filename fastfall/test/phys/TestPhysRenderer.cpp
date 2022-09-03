@@ -81,7 +81,7 @@ void TestPhysRenderer::draw(CollisionSystem& colMan) {
 	for (const auto& collider : colMan.get_colliders())
 	{
 		std::vector<std::pair<Rectf, const ColliderQuad*>> quads;
-		collider->getQuads(render_area, quads);
+		collider->get_quads_in_rect(render_area, quads);
 
 		Vec2f offset = collider->getPosition();
 

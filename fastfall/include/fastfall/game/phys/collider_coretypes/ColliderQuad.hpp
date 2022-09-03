@@ -18,27 +18,23 @@ public:
 			hasSurface(false),
 			collider(ColliderSurface{})
 		{
-
 		}
+
 		constexpr QuadSurface(ColliderSurface colliderSurface, bool surfaceExists = true) noexcept :
 			hasSurface(surfaceExists),
 			collider(colliderSurface)
 		{
-
 		}
+
 		friend inline bool operator==(const QuadSurface& lhs, const QuadSurface& rhs) {
 			return lhs.hasSurface == rhs.hasSurface
 				&& lhs.collider.surface == rhs.collider.surface;
 		}
 
-
-
 		bool hasSurface = false;
 		ColliderSurface collider;
 		SurfaceMaterial material;
 	};
-	//typedef std::array<QuadSurface, 4> SurfaceArray;
-
 
 	ColliderQuad() noexcept;
 	ColliderQuad(const cardinal_array<QuadSurface>& surfaces) noexcept;
@@ -51,15 +47,13 @@ public:
 	const ColliderSurface* getSurface(Cardinal side) const noexcept;
 	ColliderSurface* getSurface(Cardinal side) noexcept;
 	void setSurface(Cardinal side, const ColliderSurface& surface) noexcept;
-
 	void removeSurface(Cardinal side);
 
 	inline void clearSurfaces() noexcept {
-
-		for (auto dir : direction::cardinals)
-		{
-			surfaces[dir].hasSurface = false;
-		}
+		surfaces[Cardinal::N].hasSurface = false;
+		surfaces[Cardinal::E].hasSurface = false;
+		surfaces[Cardinal::S].hasSurface = false;
+		surfaces[Cardinal::W].hasSurface = false;
 	}
 
 	inline bool hasAnySurface() const noexcept {
@@ -81,8 +75,7 @@ public:
 		assert(id >= 0);
 		quad_id = id;
 
-		for (auto& surf : surfaces)
-		{
+		for (auto& surf : surfaces)	{
 			surf.collider.id.quad_id = quad_id;
 		}
 	};
@@ -104,7 +97,6 @@ public:
 
 protected:
 	int quad_id = -1;
-
 };
 
 bool debugDrawQuad(ColliderQuad& quad, Vec2f offset = Vec2f{}, const void* sign = nullptr, bool always_redraw = false);
