@@ -118,6 +118,32 @@ TEST_F(surfacetracker, stick_slope_down)
 	}
 }
 
+TEST_F(surfacetracker, broken_slope)
+{
+	initTileMap({
+		{"",		"",			"",			"",			"slope"},
+		{"",		"",			"",			"slope",	""},
+		{"",		"",			"slope",	"",			""},
+		{"",		"slope",	"",			"",			""},
+		{"slope",	"",			"",			"",			""},
+	});
+
+	box->teleport({ 72, 8 });
+	box->set_vel({ 0.f, 0.f });
+	box->set_gravity({ 0, 400 });
+
+	TestPhysRenderer render(collider->getBoundingBox());
+	render.draw(colMan);
+
+	while (render.curr_frame < 600 && box->getPosition().x > 0)
+	{
+		ground->traverse_set_speed(-50.f);
+		update();
+		render.draw(colMan);
+		EXPECT_TRUE(ground->has_contact());
+	}
+}
+
 TEST_F(surfacetracker, stick_on_touch)
 {
 	// Goal:   Surface tracker should stick to slopes on the very frame we collide.

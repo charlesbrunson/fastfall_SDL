@@ -18,11 +18,8 @@ CollisionContinuous::CollisionContinuous(const Collidable* collidable, const Col
 	evalContact(0.0);
 }
 
-void CollisionContinuous::update(secs deltaTime) {
-
-	//Vec2f prevPosition = region->getPrevPosition();
-	//regionPosition = region->getPosition();
-
+void CollisionContinuous::update(secs deltaTime) 
+{
 	if (deltaTime > 0.0) {
 
 		// check if conditions are similar enough we can reuse the
@@ -40,7 +37,6 @@ void CollisionContinuous::update(secs deltaTime) {
 		}
 
 		currCollision.reset(cTile, region, false);
-		//resolveType = 
 		evalContact(deltaTime);
 	}
 	else {

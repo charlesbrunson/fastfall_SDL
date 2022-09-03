@@ -374,7 +374,7 @@ namespace ff {
 		return nullptr;
 	}
 
-	void ColliderTileMap::getQuads(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& buffer) const {
+	void ColliderTileMap::get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& out_buffer) const {
 
 		Rectf bbox = math::shift(area, -getPosition());
 
@@ -410,7 +410,7 @@ namespace ff {
 			for (; pos.x < tsi_bbox.left + tsi_bbox.width; pos.x++) {
 				if (auto* tile = get_quad(pos)) {
 					Rectf tile_bounds{ Vec2f{ pos } * TILESIZE_F, { TILESIZE_F, TILESIZE_F }};
-					buffer.push_back(std::make_pair(tile_bounds, tile));
+					out_buffer.push_back(std::make_pair(tile_bounds, tile));
 				}
 			}
 		}

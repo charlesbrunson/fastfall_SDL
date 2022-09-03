@@ -29,7 +29,7 @@ public:
 	}
 	virtual ~ColliderRegion() {};
 
-	virtual void getQuads(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& buffer) const = 0;
+	virtual void get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& out_buffer) const = 0;
 
 	virtual void update(secs deltaTime) = 0;
 

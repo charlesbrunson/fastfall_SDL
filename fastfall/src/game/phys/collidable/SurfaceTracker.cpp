@@ -326,8 +326,6 @@ Vec2f SurfaceTracker::do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left,
 			nVel.x = cosf(gAng.radians()) * vel_mag;
 			nVel.y = sinf(gAng.radians()) * vel_mag;
 
-			//nVel = math::projection(owner->get_vel(), math::vector(next->surface));
-
 			owner->set_vel(nVel);
 
 			if (theta.degrees() < 0.f && abs(diff.degrees()) < abs(settings.stick_angle_max.degrees())) {
@@ -348,9 +346,6 @@ Vec2f SurfaceTracker::do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left,
 
 CollidableOffsets SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos, std::optional<PersistantContact> contact_override) const {
 
-	//return CollidableOffsets{};
-
-	
 	std::optional<PersistantContact> local_contact;
 
 	if (contact_override) {
@@ -366,7 +361,6 @@ CollidableOffsets SurfaceTracker::postmove_update(Vec2f wish_pos, Vec2f prev_pos
 
 	Vec2f position = wish_pos;
 
-	//if (local_has_contact && deltaTime > 0.0) {
 	if (local_has_contact) {
 
 		const auto& contact = local_contact.value();
