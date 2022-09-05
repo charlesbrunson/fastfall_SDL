@@ -1,5 +1,5 @@
 
-#include "fastfall/game/Level.hpp"
+#include "fastfall/game/level/Level.hpp"
 #include <assert.h>
 
 #include "imgui.h"
@@ -53,7 +53,6 @@ void Level::init(const LevelAsset& levelData)
 		else {
 			layers.push_fg_front(TileLayer{ context, layerRef.tilelayer });
 		}
-		//layers.get_tile_layer_at(layerRef.position)->tilelayer.set_layer(layerRef.position);
 	}
 
 	for (auto& layer : layers.get_tile_layers())

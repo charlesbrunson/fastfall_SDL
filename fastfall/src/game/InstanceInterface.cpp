@@ -20,7 +20,7 @@ namespace ff::instance {
 	const ObjectSystem* obj_get_man(GameContext context)
 	{
 		if (auto* inst = getInstance(context)) {
-			return &inst->getObject();
+			return &inst->objects;
 		}
 		return nullptr;
 	}
@@ -29,7 +29,7 @@ namespace ff::instance {
 	{
 		if (auto* inst = getInstance(context)) {
 			GameObject* ptr = obj.get();
-			inst->getObject().addObject(std::move(obj));
+			inst->objects.addObject(std::move(obj));
 			return ptr;
 		}
 		return nullptr;
@@ -38,7 +38,7 @@ namespace ff::instance {
 	GameObject* obj_get_by_level_id(GameContext context, ObjLevelID levelID)
 	{
 		if (auto* inst = getInstance(context)) {
-			auto& objects = inst->getObject().getObjects();
+			auto& objects = inst->objects.getObjects();
 			for (auto& obj_ptr : objects) {
 				if (obj_ptr 
 					&& obj_ptr->level_data()
@@ -52,7 +52,7 @@ namespace ff::instance {
 	GameObject* obj_get_by_spawn_id(GameContext context, unsigned spawnID) 
 	{
 		if (auto* inst = getInstance(context)) {
-			auto& objects = inst->getObject().getObjects();
+			auto& objects = inst->objects.getObjects();
 			for (auto& obj_ptr : objects) {
 				if (obj_ptr && obj_ptr->spawn_id() == spawnID) {
 					return obj_ptr.get();
@@ -64,7 +64,7 @@ namespace ff::instance {
 
 	ObjSpawnID obj_reserve_spawn_id(GameContext context) {
 		if (auto* inst = getInstance(context)) {
-			return inst->getObject().getNextSpawnId();
+			return inst->objects.getNextSpawnId();
 		}
 		return ObjSpawnID{};
 	}
@@ -74,7 +74,7 @@ namespace ff::instance {
 	const CollisionSystem* phys_get_man(GameContext context)
 	{
 		if (auto* inst = getInstance(context)) {
-			return &inst->getCollision();
+			return &inst->collisions;
 		}
 		return nullptr;
 	}
@@ -123,14 +123,14 @@ namespace ff::instance {
 	Collidable* phys_create_collidable(GameContext context, Vec2f init_pos, Vec2f init_size, Vec2f init_grav)
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getCollision().create_collidable(init_pos, init_size, init_grav);
+			return inst->collisions.create_collidable(init_pos, init_size, init_grav);
 		}
 		return nullptr;
 	}
 	bool phys_erase_collidable(GameContext context, Collidable* collidable)
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getCollision().erase_collidable(collidable);
+			return inst->collisions.erase_collidable(collidable);
 		}
 		return false;
 	}
@@ -138,7 +138,7 @@ namespace ff::instance {
 	bool phys_erase_collider(GameContext context, ColliderRegion* region)
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getCollision().erase_collider(region);
+			return inst->collisions.erase_collider(region);
 		}
 		return false;
 	}
@@ -147,14 +147,14 @@ namespace ff::instance {
 	const Level* lvl_get_active(GameContext context)
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getActiveLevel();
+			return inst->levels.getActiveLevel();
 		}
 		return nullptr;
 	}
 	const std::map<const std::string*, std::unique_ptr<Level>>* lvl_get_all(GameContext context)
 	{
 		if (auto* inst = getInstance(context)) {
-			return &inst->getAllLevels();
+			return &inst->levels.getAllLevels();
 		}
 		return nullptr;
 	}
@@ -162,29 +162,21 @@ namespace ff::instance {
 	// camera
 	const CameraSystem* cam_get_man(GameContext context) {
 		if (auto* inst = getInstance(context)) {
-			return &inst->getCamera();
+			return &inst->camera;
 		}
 		return nullptr;
 	}
 
-	/*
-	void cam_add_target(GameContext context, CameraTarget& target) {
-		if (auto* inst = getInstance(context)) {
-			inst->getCamera().addTarget(target);
-		}
-	}
-	*/
 	void cam_erase_target(GameContext context, ID<CameraTarget> target) {
 		if (auto* inst = getInstance(context)) {
-			inst->getCamera().targets.erase(target);
+			inst->camera.targets.erase(target);
 		}
 	}
-
 
 	bool cam_exists(GameContext context, ID<CameraTarget> target)
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getCamera().targets.exists(target);
+			return inst->camera.targets.exists(target);
 		}
 		return false;
 	}
@@ -192,7 +184,7 @@ namespace ff::instance {
 	CameraTarget* cam_get(GameContext context, ID<CameraTarget> target)
 	{
 		if (auto* inst = getInstance(context)) {
-			return cam_exists(context, target) ? &inst->getCamera().targets.at(target) : nullptr;
+			return cam_exists(context, target) ? &inst->camera.targets.at(target) : nullptr;
 		}
 		return nullptr;
 	}
@@ -211,7 +203,7 @@ namespace ff::instance {
 	}
 	void cam_set_pos(GameContext context, Vec2f pos) {
 		if (auto* inst = getInstance(context)) {
-			inst->getCamera().currentPosition = pos;
+			inst->camera.currentPosition = pos;
 		}
 	}
 	float cam_get_zoom(GameContext context) {
@@ -222,7 +214,7 @@ namespace ff::instance {
 	}
 	void cam_set_zoom(GameContext context, float zoom) {
 		if (auto* inst = getInstance(context)) {
-			inst->getCamera().zoomFactor = zoom;
+			inst->camera.zoomFactor = zoom;
 		}
 	}
 	bool cam_get_lock_enabled(GameContext context) {
@@ -233,21 +225,21 @@ namespace ff::instance {
 	}
 	void cam_set_lock_enabled(GameContext context, bool enabled) {
 		if (auto* inst = getInstance(context)) {
-			inst->getCamera().lockPosition = enabled;
+			inst->camera.lockPosition = enabled;
 		}
 	}
 
 	// trigger
 	const TriggerSystem* trig_get_man(GameContext context) {
 		if (auto* inst = getInstance(context)) {
-			return &inst->getTrigger();
+			return &inst->triggers;
 		}
 		return nullptr;
 	}
 
 	trigger_id trig_create_trigger(GameContext context) {
 		if (auto* inst = getInstance(context)) {
-			return inst->getTrigger().create();
+			return inst->triggers.create();
 		}
 		return {};
 	}
@@ -260,7 +252,7 @@ namespace ff::instance {
 		Trigger::Overlap overlap) 
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getTrigger().create(
+			return inst->triggers.create(
 				area, self_flags, filter_flags, owner, overlap
 			);
 		}
@@ -268,7 +260,7 @@ namespace ff::instance {
 	}
 	bool trig_erase_trigger(GameContext context, trigger_id trigger) {
 		if (auto* inst = getInstance(context)) {
-			return inst->getTrigger().erase(trigger);
+			return inst->triggers.erase(trigger);
 		}
 		return false;
 	}
@@ -276,7 +268,7 @@ namespace ff::instance {
 	bool trig_exists(GameContext context, trigger_id trigger)
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getTrigger().get(trigger);
+			return inst->triggers.get(trigger);
 		}
 		return false;
 	}
@@ -284,7 +276,7 @@ namespace ff::instance {
 	Trigger* trig_get(GameContext context, trigger_id trigger)
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getTrigger().get(trigger);
+			return inst->triggers.get(trigger);
 		}
 		return nullptr;
 	}
@@ -292,7 +284,7 @@ namespace ff::instance {
 	// scene
 	const SceneSystem* scene_get_man(GameContext context) {
 		if (auto* inst = getInstance(context)) {
-			return &inst->getScene();
+			return &inst->scene;
 		}
 		return nullptr;
 	}
@@ -300,7 +292,7 @@ namespace ff::instance {
 	bool scene_erase(GameContext context, scene_id scene)
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getScene().erase(scene);
+			return inst->scene.erase(scene);
 		}
 		return false;
 	}
@@ -308,7 +300,7 @@ namespace ff::instance {
 	bool scene_exists(GameContext context, scene_id scene)
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getScene().get(scene);
+			return inst->scene.get(scene);
 		}
 		return false;
 	}
@@ -316,7 +308,7 @@ namespace ff::instance {
 	Drawable* scene_get(GameContext context, scene_id scene)
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getScene().get(scene);
+			return inst->scene.get(scene);
 		}
 		return nullptr;
 	}
@@ -324,7 +316,7 @@ namespace ff::instance {
 	scene_config scene_get_config(GameContext context, scene_id scene) 
 	{
 		if (auto* inst = getInstance(context)) {
-			return inst->getScene().get_config(scene);
+			return inst->scene.get_config(scene);
 		}
 		return {};
 	}
@@ -332,29 +324,8 @@ namespace ff::instance {
 	void scene_set_config(GameContext context, scene_id scene, scene_config cfg) 
 	{
 		if (auto* inst = getInstance(context)) {
-			inst->getScene().set_config(scene, cfg);
+			inst->scene.set_config(scene, cfg);
 		}
 	}
 
-
-	/*
-	void scene_add(
-		GameContext context,
-		SceneType scene_type,
-		Drawable& drawable,
-		SceneSystem::Layer layer,
-		SceneSystem::Priority priority)
-	{
-		if (auto* inst = getInstance(context)) {
-			inst->getScene().add(scene_type, drawable, layer, priority);
-		}
-	}
-
-	void scene_remove(GameContext context, Drawable& drawable) {
-
-		if (auto* inst = getInstance(context)) {
-			inst->getScene().remove(drawable);
-		}
-	}
-	*/
 }

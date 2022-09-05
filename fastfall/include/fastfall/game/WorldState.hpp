@@ -8,6 +8,7 @@
 #include "fastfall/game/trigger/Trigger.hpp"
 
 
+/*
 namespace ff {
 
 struct Entity {
@@ -19,11 +20,11 @@ class WorldState
 {
 public:
 	// components
-	ComponentList<CameraTarget,	  true>		camtargets;
-	ComponentList<Collidable,	  false>	collidables;
-	ComponentList<ColliderRegion, true>		colliders;
-	ComponentList<Drawable,		  true>		drawables;
-	ComponentList<Trigger,	      false>	triggers;
+	PolyComponentList<CameraTarget>		camtargets;
+	ComponentList<Collidable>			collidables;
+	PolyComponentList<ColliderRegion>	colliders;
+	PolyComponentList<Drawable>			drawables;
+	ComponentList<Trigger>				triggers;
 
 	// entity registry
 	ID<Entity> make_entity() const;
@@ -73,6 +74,5 @@ private:
 	slot_map<Entity> entities;
 };
 
-
-
 }
+*/

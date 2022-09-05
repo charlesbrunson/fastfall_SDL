@@ -200,14 +200,14 @@ bool LevelAsset::reloadFromFile() {
 	if (loaded) {
 		for (auto& [id, inst] : AllInstances())
 		{
-			Level* active = inst.getActiveLevel();
-			for (auto& [name, lvl_uptr] : inst.getAllLevels())
+			Level* active = inst.levels.getActiveLevel();
+			for (auto& [name, lvl_uptr] : inst.levels.getAllLevels())
 			{
 				if (lvl_uptr.get() == active) {
 					LevelEditor edit(*lvl_uptr.get(), false);
 					LOG_INFO("Applying reloaded level asset to active level");
 					edit.applyLevelAsset(this);
-					inst.populateSceneFromLevel(*lvl_uptr);
+					//inst.populateSceneFromLevel(*lvl_uptr);
 				}
 				else {
 					LOG_INFO("Reinit inactive level with reloaded level asset");

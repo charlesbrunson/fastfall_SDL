@@ -1,6 +1,6 @@
 #pragma once
 
-#include "fastfall/game/Level.hpp"
+#include "fastfall/game/level/Level.hpp"
 #include "fastfall/resource/asset/TilesetAsset.hpp"
 
 #include <string_view>

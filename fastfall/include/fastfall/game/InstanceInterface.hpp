@@ -37,7 +37,7 @@ namespace ff::instance
 	template<ColliderType T, typename ... Args>
 	T* phys_create_collider(GameContext context, Args&&... args) {
 		if (context.valid())
-			return Instance(context.getID())->getCollision().create_collider<T>(args...);
+			return Instance(context.getID())->collisions.create_collider<T>(args...);
 		else {
 			return nullptr;
 		}
@@ -55,7 +55,7 @@ namespace ff::instance
 	ID<CameraTarget> cam_create_target(GameContext context, Args&&... args)
 	{
 		if (context.valid())
-			return Instance(context.getID())->getCamera().targets.create<T>(std::forward<Args>(args)...);
+			return Instance(context.getID())->camera.targets.create<T>(std::forward<Args>(args)...);
 		else {
 			return {};
 		}
@@ -102,7 +102,7 @@ namespace ff::instance
 	scene_id scene_create(GameContext context, scene_config cfg, Args&&... args)
 	{
 		if (context.valid())
-			return Instance(context.getID())->getScene().create<T>(cfg, std::forward<Args>(args)...);
+			return Instance(context.getID())->scene.create<T>(cfg, std::forward<Args>(args)...);
 		else {
 			return {};
 		}
@@ -116,14 +116,4 @@ namespace ff::instance
 	scene_config scene_get_config(GameContext context, scene_id scene);
 	void scene_set_config(GameContext context, scene_id scene, scene_config cfg);
 
-	/*
-	void scene_add(
-		GameContext context, 
-		SceneType scene_type, 
-		Drawable& drawable, 
-		SceneSystem::Layer layer = 0,
-		SceneSystem::Priority priority = SceneSystem::Priority::Normal);
-
-	void scene_remove(GameContext context, Drawable& drawable);
-	*/
 }
