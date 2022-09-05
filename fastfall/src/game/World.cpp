@@ -19,10 +19,7 @@ World::~World() {
 
 void World::clear() {
 	objects.clear();
-	//scene.clear();
-	//camera.clear();
-	activeLevel = nullptr;
-	currentLevels.clear();
+	levels.clear();
 
 	debug_draw::clear();
 
@@ -33,24 +30,12 @@ void World::clear() {
 void World::reset()
 {
 	objects.clear();
-	//scene.clear();
 	debug_draw::clear();
-	//camera.removeAllTargets();
-	for (auto& lvl : currentLevels) {
-		if (!lvl.second->name().empty()) {
-			auto* asset = Resources::get<LevelAsset>(lvl.second->name());
-			if (asset) {
-				lvl.second->init(*asset);
-			}
-		}
-	}
+	levels.reloadLevels();
 
-	Level* lvl = getActiveLevel();
-	assert(lvl);
-
-	if (lvl) {
-		populateSceneFromLevel(*lvl);
-		lvl->get_layers().get_obj_layer().createObjectsFromData(GameContext{ instanceID });
+	if (auto* active = levels.getActiveLevel()) {
+		//populateSceneFromLevel(*active);
+		active->get_layers().get_obj_layer().createObjectsFromData(GameContext{ instanceID });
 	}
 	want_reset = false;
 
@@ -58,22 +43,10 @@ void World::reset()
 	collisions.resetFrameCount();
 }
 
-
-bool World::addLevel(const LevelAsset& levelRef) {
-
-	GameContext context{ getInstanceID() };
-	auto r = currentLevels.emplace(std::make_pair(&levelRef.getAssetName(), std::make_unique<Level>(context, levelRef)));
-
-	if (r.second && !activeLevel) {
-		activeLevel = r.first->first;
-		populateSceneFromLevel(*r.first->second);
-		r.first->second->get_layers().get_obj_layer().createObjectsFromData(context);
-	}
-	return r.second;
-}
-
+/*
 void World::populateSceneFromLevel(Level& lvl)
 {
+	
 	//scene.clearType(SceneType::Level);
 	auto& tile_layers = lvl.get_layers().get_tile_layers();
 
@@ -81,16 +54,16 @@ void World::populateSceneFromLevel(Level& lvl)
 	{
 		//scene.add(SceneType::Level, layer.tilelayer, layer.position);
 	}
+	
 
-	scene.set_bg_color(lvl.getBGColor());
-	scene.set_size(lvl.size());
 }
+*/
 
 void World::update(secs deltaTime)
 {
-	if (activeLevel)
+	if (auto* active = levels.getActiveLevel())
 	{
-		getActiveLevel()->update(deltaTime);
+		active->update(deltaTime);
 		triggers.update(deltaTime);
 		objects.update(deltaTime);
 		collisions.update(deltaTime);
@@ -104,11 +77,18 @@ void World::predraw(float interp, bool updated)
 	if (want_reset)
 		reset();
 
-	if (activeLevel)
+	if (auto* active = levels.getActiveLevel())
 	{
+		scene.set_bg_color(active->getBGColor());
+		scene.set_size(active->size());
 		objects.predraw(interp, updated);
-		getActiveLevel()->predraw(interp, updated);
-		scene.set_cam_pos(getCamera().getPosition(interp));
+		active->predraw(interp, updated);
+		scene.set_cam_pos(camera.getPosition(interp));
+	}
+	else
+	{
+		scene.set_bg_color(ff::Color::Transparent);
+		//scene.set_size(active->size());
 	}
 }
 

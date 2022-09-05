@@ -23,11 +23,12 @@ TestState::TestState()
 
 	if (ff::LevelAsset* lvlptr = ff::Resources::get<ff::LevelAsset>("map_test.tmx"))
 	{
-		instance->addLevel(*lvlptr);
+		instance->levels.addLevel(instance->getContext(),  *lvlptr);
 	}
-	Level* lvl = instance->getActiveLevel();
+	Level* lvl = instance->levels.getActiveLevel();
 	assert(lvl);
 
+	//instance->populateSceneFromLevel(*lvl);
 	edit = std::make_unique<LevelEditor>( *lvl, false );
 	edit->select_layer(-1);
 	edit->select_tileset("tech_fg.tsx");
@@ -158,7 +159,7 @@ void TestState::update(secs deltaTime) {
 
 		if (Input::getMouseInView() && (Input::isHeld(InputType::MOUSE1) || Input::isHeld(InputType::MOUSE2)))
 		{
-			Level* lvl = instance->getActiveLevel();
+			Level* lvl = instance->levels.getActiveLevel();
 
 			if (Rectf{ Vec2f{}, Vec2f{lvl->size()} * TILESIZE_F }.contains(mpos)
 				&& (!painting || (last_paint != tpos)))
@@ -166,8 +167,6 @@ void TestState::update(secs deltaTime) {
 				Input::isHeld(InputType::MOUSE1)
 					? edit->paint_tile(Vec2u{ tpos })
 					: edit->erase_tile(Vec2u{ tpos });
-
-
 
 			}
 
@@ -220,8 +219,8 @@ void TestState::predraw(float interp, bool updated) {
 
 	instance->predraw(interp, updated);
 
-	viewPos = instance->getCamera().getPosition(interp);
-	viewZoom = instance->getCamera().zoomFactor;
+	viewPos = instance->camera.getPosition(interp);
+	viewZoom = instance->camera.zoomFactor;
 
 	//return;
 	// --------------

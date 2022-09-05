@@ -24,10 +24,6 @@ private:
 	collidables_vector collidables;
 	regions_vector regions;
 
-	//slot_map<Collidable> collidables;
-	//slot_map<std::unique_ptr<ColliderRegion>> colliders;
-	//std::vector<CollidableArbiter> arbiters;
-
 public:
 
 	CollisionSystem();

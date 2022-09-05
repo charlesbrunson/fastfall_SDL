@@ -13,15 +13,6 @@
 
 namespace ff {
 
-
-/*
-struct camtarget_id {
-	slot_key value;
-	bool operator==(const camtarget_id& other) const { return value == other.value; };
-	bool operator!=(const camtarget_id& other) const { return value != other.value; };
-};
-*/
-
 class CameraSystem {
 public:
 
@@ -43,7 +34,7 @@ public:
 	Vec2f prevPosition;
 	Vec2f currentPosition;
 
-	ComponentList<CameraTarget, true> targets;
+	PolyComponentList<CameraTarget> targets;
 
 	CameraTarget* get_active_target() { return active_target ? &targets.at(*active_target) : nullptr; }
 	const CameraTarget* get_active_target() const { return active_target ? &targets.at(*active_target) : nullptr; }
@@ -56,8 +47,5 @@ private:
 	std::optional<ID<CameraTarget>> active_target;
 	std::vector<ID<CameraTarget>> ordered_targets;
 };
-
-
-
 
 }

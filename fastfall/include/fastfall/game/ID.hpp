@@ -2,6 +2,7 @@
 
 #include "fastfall/util/slot_map.hpp"
 
+
 namespace ff {
 
 
@@ -43,3 +44,4 @@ ID<Derived> id_cast(ID<Base> id) {
 }
 
 }
+

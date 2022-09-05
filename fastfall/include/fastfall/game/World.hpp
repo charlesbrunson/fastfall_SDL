@@ -1,17 +1,16 @@
 #pragma once
 
 
-#include "fastfall/resource/asset/LevelAsset.hpp"
 
 #include "fastfall/game/InstanceID.hpp"
 
 #include "fastfall/game/WorldState.hpp"
-#include "fastfall/game/Level.hpp"
 #include "fastfall/game/ObjectSystem.hpp"
 #include "fastfall/game/CollisionSystem.hpp"
 #include "fastfall/game/TriggerSystem.hpp"
 #include "fastfall/game/CameraSystem.hpp"
 #include "fastfall/game/SceneSystem.hpp"
+#include "fastfall/game/LevelSystem.hpp"
 
 #include "fastfall/render/RenderTarget.hpp"
 
@@ -35,45 +34,27 @@ public:
 	void clear();
 	void reset();
 
-	inline Level* getActiveLevel() { return currentLevels.at(activeLevel).get(); };
-	inline std::map<const std::string*, std::unique_ptr<Level>>& getAllLevels() noexcept { return currentLevels; };
-
-	inline ObjectSystem& getObject()		noexcept { return objects;		};
-	inline CollisionSystem& getCollision()	noexcept { return collisions;	};
-	inline TriggerSystem& getTrigger()		noexcept { return triggers;		};
-	inline CameraSystem& getCamera()		noexcept { return camera;		};
-	inline SceneSystem& getScene()			noexcept { return scene;		};
-
-	bool addLevel(const LevelAsset& levelRef);
-
-	inline InstanceID getInstanceID() const noexcept { return instanceID; };
-
-	inline GameContext getContext() const noexcept { return GameContext{ instanceID }; };
-
-	void populateSceneFromLevel(Level& lvl);
-	
-	void update(secs deltaTime);
-	void predraw(float interp, bool updated);
-
-
-	bool want_reset = false;
-
-private:
-	void draw(RenderTarget& target, RenderState state = RenderState()) const override;
-
-	const std::string* activeLevel = nullptr;
-	size_t update_counter = 0;
-
-	InstanceID instanceID;
-
-	std::map<const std::string*, std::unique_ptr<Level>> currentLevels;
-
+	LevelSystem		levels;
 	ObjectSystem	objects;
 	CollisionSystem collisions;
 	TriggerSystem	triggers;
 	CameraSystem	camera;
 	SceneSystem		scene;
 
+	inline InstanceID getInstanceID() const noexcept { return instanceID; };
+	inline GameContext getContext() const noexcept { return GameContext{ instanceID }; };
+		
+	void update(secs deltaTime);
+	void predraw(float interp, bool updated);
+
+	bool want_reset = false;
+
+private:
+	void draw(RenderTarget& target, RenderState state = RenderState()) const override;
+
+	size_t update_counter = 0;
+
+	InstanceID instanceID;
 };
 
 World* Instance(InstanceID id);
