@@ -1,14 +1,13 @@
 #pragma once
 
-#include "fastfall/game/ComponentList.hpp"
+/*
+#include "fastfall/util/id_map.hpp"
 
 #include "fastfall/game/camera/CameraTarget.hpp"
 #include "fastfall/game/phys/Collidable.hpp"
-#include "fastfall/render/Drawable.hpp"
 #include "fastfall/game/trigger/Trigger.hpp"
+#include "fastfall/render/Drawable.hpp"
 
-
-/*
 namespace ff {
 
 struct Entity {
