@@ -10,14 +10,6 @@
 #include "content/types.hpp"
 #include "content/TestState.hpp"
 
-#include "fastfall/render/freetype.hpp"
-#include "fastfall/render/Font.hpp"
-#include "fastfall/render/Text.hpp"
-
-#include "fastfall/game/level/TileID.hpp"
-
-#include "fastfall/game/ComponentList.hpp"
-
 #ifdef WIN32
 #include <Windows.h>
 
@@ -70,7 +62,7 @@ int main(int argc, char* argv[])
 
 	using namespace ff;
 
-	ComponentList<int> t;
+	id_map<int> t;
 
 	game_InitTypes();
 

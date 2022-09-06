@@ -5,8 +5,7 @@
 #include "fastfall/game/GameContext.hpp"
 #include "fastfall/game/camera/CameraTarget.hpp"
 
-#include "fastfall/util/slot_map.hpp"
-#include "fastfall/game/ComponentList.hpp"
+#include "fastfall/util/id_map.hpp"
 
 #include <array>
 #include <optional>
@@ -34,7 +33,7 @@ public:
 	Vec2f prevPosition;
 	Vec2f currentPosition;
 
-	PolyComponentList<CameraTarget> targets;
+	poly_id_map<CameraTarget> targets;
 
 	CameraTarget* get_active_target() { return active_target ? &targets.at(*active_target) : nullptr; }
 	const CameraTarget* get_active_target() const { return active_target ? &targets.at(*active_target) : nullptr; }

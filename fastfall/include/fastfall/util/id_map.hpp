@@ -2,7 +2,7 @@
 
 #include "fastfall/util/slot_map.hpp"
 #include "fastfall/util/copyable_uniq_ptr.hpp"
-#include "fastfall/game/ID.hpp"
+#include "fastfall/util/id.hpp"
 
 #include <vector>
 #include <memory>
@@ -14,7 +14,7 @@ namespace ff {
 
 
 template<class T>
-class ComponentList
+class id_map
 {
 private:
 	using base_type = T;
@@ -65,7 +65,7 @@ public:
 };
 
 template<class T>
-class PolyComponentList
+class poly_id_map
 {
 private:
 	using base_type = T;
