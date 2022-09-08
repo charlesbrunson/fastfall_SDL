@@ -275,7 +275,7 @@ namespace Input {
 
                     if (!mouse.active) {
                         ptr->activate();
-                        ptr->mouse_press_pos = { e.button.x, e.button.y };
+                        ptr->mouse_press_pos = Vec2i{ e.button.x, e.button.y };
                     }
                     mouse.active = true;
                 }
@@ -284,7 +284,7 @@ namespace Input {
                 if (auto ptr = getMouseInput(e.button.button)) {
                     auto& mouse = mouseMap.at(e.button.button);
                     ptr->deactivate();
-                    ptr->mouse_release_pos = { e.button.x, e.button.y };
+                    ptr->mouse_release_pos = Vec2i{ e.button.x, e.button.y };
                     mouse.active = false;
                 }
                 break;

@@ -2,10 +2,12 @@
 
 #include "fastfall/util/slot_map.hpp"
 
+#include <concepts>
 
 namespace ff {
 
 
+	/*
 struct GenericID {
 	size_t type_hash;
 	slot_key value;
@@ -18,6 +20,7 @@ struct GenericID {
 			: type_hash < other.type_hash;
 	};
 };
+*/
 
 template<class T>
 struct ID {
@@ -26,9 +29,9 @@ struct ID {
 	bool operator!=(const ID<T>& other) const { return value != other.value; };
 	bool operator<(const ID<T>& other)  const { return value.sparse_index < other.value.sparse_index; };
 
-	operator GenericID() {
-		return { typeid(T).hash_code(), value};
-	}
+	//operator GenericID() {
+	//	return { typeid(T).hash_code(), value};
+	//}
 
 	template<class Base>
 		requires std::derived_from<T, Base>

@@ -13,7 +13,7 @@ elseif ( UNIX )
 	set(FLATC "${CMAKE_CURRENT_SOURCE_DIR}/tools/unix/flatc")
 endif()
 
-set(FLATC "${CMAKE_CURRENT_SOURCE_DIR}/tools/win/flatc.exe")
+#set(FLATC "${CMAKE_CURRENT_SOURCE_DIR}/tools/win/flatc.exe")
 
 set(SCHEMA_DIR "include/fastfall/schema")
 file(GLOB FLATC_FBS "${SCHEMA_DIR}/*.fbs")
