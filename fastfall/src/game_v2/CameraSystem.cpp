@@ -1,106 +1,53 @@
-#include "fastfall/game/CameraSystem.hpp"
+#include "fastfall/game_v2/CameraSystem.hpp"
 
 #include "fastfall/render/DebugDraw.hpp"
 
 #include "fastfall/engine/config.hpp"
 
-#include "fastfall/game/InstanceInterface.hpp"
-#include "fastfall/game_v2/CameraSystem.hpp"
-
+#include "fastfall/game_v2/World.hpp"
 
 namespace ff {
-
 
 CameraTarget::CameraTarget(CamTargetPriority priority)
 	: m_priority(priority)
 {
 }
 
-CameraTarget::~CameraTarget() {
-	/*
-	if (has_camera) {
-		instance::cam_erase_target(m_context, *this);
-	}
-	*/
-}
+// ----------------------------
 
-CameraSystem::CameraSystem()
+CameraSystem::CameraSystem(Vec2f initPos)
+    : currentPosition(initPos)
 {
-	set_component_callbacks();
-}
-
-
-CameraSystem::CameraSystem(Vec2f initPos) :
-	currentPosition(initPos)
-{
-	set_component_callbacks();
 };
 
-CameraSystem::CameraSystem(const CameraSystem& other)
-{
-	zoomFactor = other.zoomFactor;
-	lockPosition = other.lockPosition;
+void CameraSystem::notify_created(ID<CameraTarget> id) {
+    add_to_ordered(id);
+};
 
-	deltaPosition = other.deltaPosition;
-	prevPosition = other.prevPosition;
-	currentPosition = other.currentPosition;
-
-	targets = other.targets;
-	active_target = other.active_target;
-	ordered_targets = other.ordered_targets;
-
-	set_component_callbacks();
-}
-
-CameraSystem& CameraSystem::operator=(const CameraSystem& other)
-{
-	zoomFactor = other.zoomFactor;
-	lockPosition = other.lockPosition;
-
-	deltaPosition = other.deltaPosition;
-	prevPosition = other.prevPosition;
-	currentPosition = other.currentPosition;
-
-	targets = other.targets;
-	active_target = other.active_target;
-	ordered_targets = other.ordered_targets;
-
-	set_component_callbacks();
-	return *this;
-}
-
-void CameraSystem::set_component_callbacks()
-{
-	targets.on_create = [this](ID<CameraTarget> id) 
-	{
-		add_to_ordered(id);
-	};
-
-	targets.on_erase = [this](ID<CameraTarget> id) 
-	{
-		std::erase(ordered_targets, id);
-	};
-}
+void CameraSystem::notify_erased(ID<CameraTarget> id) {
+    std::erase(ordered_targets, id);
+};
 
 void CameraSystem::update(secs deltaTime) {
-
 	if (deltaTime > 0.0) {
-
 		prevPosition = currentPosition;
 		deltaPosition = Vec2f{};
 
-		for (auto& target : ordered_targets) {
-			targets.at(target).update(deltaTime);
+		for (auto t : ordered_targets) {
+            world->at(t).update(deltaTime);
 		}
 
 		if (active_target && *active_target != ordered_targets.back()) {
+            auto& active = world->at(*active_target);
+            auto& last = world->at(ordered_targets.back());
 
-			get_active_target()->m_state = CamTargetState::Inactive;
-			targets.at(ordered_targets.back()).m_state = CamTargetState::Active;
+			active.m_state = CamTargetState::Inactive;
+			last.m_state = CamTargetState::Active;
 			active_target = ordered_targets.back();
 		}
 		else if (!active_target && ordered_targets.size() > 0) {
-			targets.at(ordered_targets.back()).m_state = CamTargetState::Active;
+            auto& last = world->at(ordered_targets.back());
+			last.m_state = CamTargetState::Active;
 			active_target = ordered_targets.back();
 		}
 		else if (ordered_targets.empty()) {
@@ -108,7 +55,8 @@ void CameraSystem::update(secs deltaTime) {
 		}
 
 		if (active_target && !lockPosition) {
-			auto pos = get_active_target()->get_target_pos();
+            auto& active = world->at(*active_target);
+			auto pos = active.get_target_pos();
 			deltaPosition = pos - currentPosition;
 			currentPosition = pos;
 		}
@@ -160,7 +108,7 @@ void CameraSystem::update(secs deltaTime) {
 		for (auto& target_id : ordered_targets) 
 		{
 
-			auto& camtarget = targets.at(target_id);
+			auto& camtarget = world->at(target_id);
 			Vec2f pos = camtarget.get_target_pos();
 
 			if (!debug_draw::repeat((void*)&camtarget, pos)) {
@@ -192,8 +140,8 @@ void CameraSystem::add_to_ordered(ID<CameraTarget> id)
 	auto iter_pair = std::equal_range(
 		ordered_targets.begin(), ordered_targets.end(), id,
 		[this](ID<CameraTarget> lhs, ID<CameraTarget> rhs) {
-			const CameraTarget& lhs_ptr = targets.at(lhs);
-			const CameraTarget& rhs_ptr = targets.at(rhs);
+			const CameraTarget& lhs_ptr = world->at(lhs);
+			const CameraTarget& rhs_ptr = world->at(rhs);
 			return lhs_ptr.get_priority() < rhs_ptr.get_priority();
 		});
 
@@ -202,7 +150,7 @@ void CameraSystem::add_to_ordered(ID<CameraTarget> id)
 	ordered_targets.insert(iter_pair.second, id);
 
 	if (first_target) {
-		auto& target = targets.at(ordered_targets.back());
+		auto& target = world->at(ordered_targets.back());
 		target.m_state = CamTargetState::Active;
 		active_target = ordered_targets.back();
 
@@ -210,8 +158,7 @@ void CameraSystem::add_to_ordered(ID<CameraTarget> id)
 		prevPosition = currentPosition;
 		deltaPosition = Vec2f{};
 	}
-
-	targets.at(id).has_camera = true;
+    world->at(id).has_camera = true;
 }
 
 Vec2f CameraSystem::getPosition(float interpolation) {

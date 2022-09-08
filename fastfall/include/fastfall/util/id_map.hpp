@@ -26,7 +26,6 @@ public:
 	template<class... Args>
 	ID<T> create(Args&&... args) {
 		auto id = components.emplace_back(std::forward<Args>(args)...);
-		on_create({ id });
 		return { id };
 	}
 
@@ -38,11 +37,18 @@ public:
 		return components.at(id.value);
 	}
 
+    T* get(ID<T> id) {
+        return exists(id) ? &at(id) : nullptr;
+    }
+
+    const T* get(ID<T> id) const {
+        return exists(id) ? &at(id) : nullptr;
+    }
+
 	bool erase(ID<T> id) {
 		bool removed = exists(id);
 		if (removed) {
 			components.erase(id.value);
-			on_erase(id);
 		}
 		return removed;
 	}
@@ -60,8 +66,13 @@ public:
 	inline auto end() const { return components.end(); }
 	inline auto cend() const { return components.cend(); }
 
-	std::function<void(ID<T>)> on_create;
-	std::function<void(ID<T>)> on_erase;
+    ID<T> id_of(const T& value) const {
+       return { components.key_of(value) };
+    }
+
+    ID<T> id_of(typename slot_map<value_type>::const_iterator iter) const {
+        return { components.key_of(iter) };
+    }
 };
 
 template<class T>
@@ -79,7 +90,6 @@ public:
 	template<std::derived_from<T> Type, class... Args>
 	ID<Type> create(Args&&... args) {
 		auto id = components.emplace_back(std::make_unique<Type>(std::forward<Args>(args)...));
-		on_create({ id });
 		return { id };
 	}
 
@@ -93,12 +103,21 @@ public:
 		return *reinterpret_cast<const Type*>(components.at(id.value).get());
 	}
 
+    template<std::derived_from<T> Type>
+    Type* get(ID<Type> id) {
+        return exists(id) ? &at(id) : nullptr;
+    }
+
+    template<std::derived_from<T> Type>
+    const Type* get(ID<Type> id) const {
+        return exists(id) ? &at(id) : nullptr;
+    }
+
 	template<std::derived_from<T> Type>
 	bool erase(ID<Type> id) {
 		bool removed = exists(id);
 		if (removed) {
 			components.erase(id.value);
-			on_erase({ id.value });
 		}
 		return removed;
 	}
@@ -117,8 +136,9 @@ public:
 	inline auto end() const { return components.end(); }
 	inline auto cend() const { return components.cend(); }
 
-	std::function<void(ID<T>)> on_create;
-	std::function<void(ID<T>)> on_erase;
+    ID<T> id_of(typename slot_map<value_type>::const_iterator iter) const {
+        return { components.key_of(iter) };
+    }
 };
 
 

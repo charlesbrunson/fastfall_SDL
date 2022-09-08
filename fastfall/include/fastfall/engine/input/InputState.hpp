@@ -5,6 +5,8 @@
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/util/Vec2.hpp"
 
+#include <cfloat>
+
 namespace ff {
 
 class InputState {
