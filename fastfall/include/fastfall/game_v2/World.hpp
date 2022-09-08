@@ -3,6 +3,7 @@
 #include "fastfall/util/id.hpp"
 #include "fastfall/util/id_map.hpp"
 
+#include "fastfall/game_v2/CollisionSystem.hpp"
 #include "fastfall/game_v2/CameraSystem.hpp"
 #include "fastfall/game_v2/TriggerSystem.hpp"
 #include "fastfall/game_v2/SceneSystem.hpp"
@@ -19,16 +20,12 @@ private:
     auto span(auto& components) { return std::span{components.begin(), components.end()}; };
 
     auto create(auto& components, auto&&... args) {
-        auto id = components.create(std::forward<decltype(args)>(args)...);
-        system.notify_created(id);
-        return id;
+        return components.create(std::forward<decltype(args)>(args)...);
     }
 
     template<class T>
     auto poly_create(auto& components, auto&&... args) {
-        auto id = components.template create<T>(std::forward<decltype(args)>(args)...);
-        system.notify_created(id);
-        return id;
+        return components.template create<T>(std::forward<decltype(args)>(args)...);
     }
 
     auto notify_created_all(auto id, auto&... systems) {
@@ -57,15 +54,15 @@ public:
 	// erase entity
 
 	// get component
-	//Collidable* 	get(ID<Collidable> id);
-	//ColliderRegion* get(ID<ColliderRegion> id);
+    Collidable&     operator[](ID<Collidable> id)   { return _collidables.at(id); }
+    ColliderRegion& operator[](ID<ColliderRegion> id) { return _colliders.at(id); }
 	Trigger&        operator[](ID<Trigger> id)      { return _triggers.at(id); }
 	CameraTarget&   operator[](ID<CameraTarget> id) { return _camera_targets.at(id); }
 	Drawable&       operator[](ID<Drawable> id)     { return _drawables.at(id); }
     SceneObject&    operator[](ID<SceneObject> id)  { return _scene_objects.at(id); }
 
-    //Collidable* 	get(ID<Collidable> id);
-    //ColliderRegion* get(ID<ColliderRegion> id);
+    Collidable&     at(ID<Collidable> id)   { return _collidables.at(id); }
+    ColliderRegion& at(ID<ColliderRegion> id) { return _colliders.at(id); }
     Trigger&        at(ID<Trigger> id)      { return _triggers.at(id); }
     CameraTarget&   at(ID<CameraTarget> id) { return _camera_targets.at(id); }
     Drawable&       at(ID<Drawable> id)     { return _drawables.at(id); }
@@ -73,16 +70,27 @@ public:
 
     //Collidable* 	get(ID<Collidable> id);
     //ColliderRegion* get(ID<ColliderRegion> id);
+    Collidable*     get(ID<Collidable> id)  { return _collidables.get(id); }
+    ColliderRegion* get(ID<ColliderRegion> id) { return _colliders.get(id); }
     Trigger*        get(ID<Trigger> id)     { return _triggers.get(id); }
     CameraTarget*   get(ID<CameraTarget> id){ return _camera_targets.get(id); }
     Drawable*       get(ID<Drawable> id)    { return _drawables.get(id); }
     SceneObject*    get(ID<SceneObject> id) { return _scene_objects.get(id); }
 
 	// create component
-	//ID<Collidable> 		create_collidable();
+    template<class... Args>
+	ID<Collidable> create_collidable(Args&&... args) {
+        return notify_created_all(
+                create(_collidables, std::forward<Args>(args)...),
+                _collision_system);
+    }
 
-	//template<std::derived_from<ColliderRegion> T>
-	//ID<T> 				create_collider();
+    template<class T, class... Args> requires std::derived_from<T, ColliderRegion>
+	ID<T> create_collider(Args&&... args) {
+        return notify_created_all(
+                poly_create<T>(_colliders, std::forward<Args>(args)...),
+                _collision_system);
+    }
 
     template<class... Args>
 	ID<Trigger> create_trigger(Args&&... args) {
@@ -112,14 +120,16 @@ public:
     }
 
 	// erase component
-	//bool erase_collidable(ID<Collidable> id);
-	//bool erase_collider(ID<ColliderRegion> id);
+	bool erase_collidable(ID<Collidable> id)        { return erase(id, _collidables, _collision_system); }
+	bool erase_collider(ID<ColliderRegion> id)      { return erase(id, _colliders, _collision_system); }
 	bool erase_trigger(ID<Trigger> id)              { return erase(id, _triggers, _trigger_system); }
 	bool erase_camera_target(ID<CameraTarget> id)   { return erase(id, _camera_targets, _camera_system); }
 	bool erase_drawable(ID<Drawable> id)            { return erase(id, _drawables); }
     bool erase_scene_object(ID<SceneObject> id)     { return erase(id, _scene_objects, _scene_system); }
 
     // span components
+    inline auto all_collidables()       { return span(_collidables); }
+    inline auto all_colliders()         { return span(_colliders); }
     inline auto all_triggers()          { return span(_triggers); }
     inline auto all_camera_targets()    { return span(_camera_targets); }
     inline auto all_drawables()         { return span(_drawables); }
@@ -128,7 +138,7 @@ public:
 	// get system
 	//LevelSystem& 		levels() 	{ return _level_system; }
 	//ObjectSystem& 		objects() 	{ return _object_system; }
-	//CollisionSystem& 	collision() { return _collision_system; }
+	inline CollisionSystem& collision() { return _collision_system; }
 	inline TriggerSystem&   trigger()   { return _trigger_system; }
 	inline CameraSystem&    camera()    { return _camera_system; }
 	inline SceneSystem&     scene()     { return _scene_system; }
@@ -139,8 +149,8 @@ private:
 	//id_map<Level> 			_levels;
 
 	// components
-	//id_map<Collidable> 			_collidables;
-	//poly_id_map<ColliderRegion> _colliders;
+	id_map<Collidable> 			_collidables;
+	poly_id_map<ColliderRegion> _colliders;
 	id_map<Trigger> 			_triggers;
 	poly_id_map<CameraTarget> 	_camera_targets;
 	poly_id_map<Drawable> 		_drawables;
@@ -149,7 +159,7 @@ private:
 	// systems
 	//LevelSystem		_level_system;
 	//ObjectSystem	_object_system;
-	//CollisionSystem _collision_system;
+	CollisionSystem _collision_system;
 	TriggerSystem	_trigger_system;
 	CameraSystem	_camera_system;
 	SceneSystem		_scene_system;
