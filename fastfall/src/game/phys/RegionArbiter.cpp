@@ -1,8 +1,5 @@
 #include "fastfall/game/phys/RegionArbiter.hpp"
 
-#include "fastfall/util/log.hpp"
-#include "fastfall/render/DebugDraw.hpp"
-
 namespace ff {
 
 void RegionArbiter::updateRegion(Rectf bounds) {
