@@ -227,7 +227,7 @@ namespace ff {
 				return pContact;
 			});
 
-		collidable.set_frame(std::move(c));
+		collidable.set_frame(&colliders, std::move(c));
 	}
 
 }

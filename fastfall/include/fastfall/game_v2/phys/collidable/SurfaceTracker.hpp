@@ -29,10 +29,13 @@ class SurfaceTracker {
 public:
 	SurfaceTracker(ID<Collidable> t_owner, Angle ang_min, Angle ang_max, bool inclusive = true);
 
-	CollidableOffsets premove_update(secs deltaTime);
-	CollidableOffsets postmove_update(Vec2f wish_pos, Vec2f prev_pos, std::optional<PersistantContact> contact_override = {}) const;
+	CollidableOffsets premove_update(poly_id_map<ColliderRegion>* colliders, secs deltaTime);
+	CollidableOffsets postmove_update(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos) const;
 
-	void process_contacts(Collidable* owner, std::vector<PersistantContact>& contacts);
+	void process_contacts(
+            poly_id_map<ColliderRegion>* colliders,
+            std::vector<PersistantContact>& contacts);
+
 	bool has_contact() const noexcept;
 
 	// applies velocity/acceleration accounting for gravity (for movement consistency)
@@ -42,9 +45,10 @@ public:
 	void traverse_add_accel(float accel);
 	void traverse_add_decel(float decel);
 
+    void force_end_contact();
+
 	inline ID<Collidable> get_collidable_id() { return owner_id; };
     inline void set_collidable_ptr(Collidable* ptr) { owner = ptr;}
-    inline void set_colliders_ptr(poly_id_map<ColliderRegion>* ptr) { colliders = ptr;}
 
 	bool can_make_contact_with(const Contact& contact) const noexcept;
 
@@ -96,6 +100,8 @@ public:
 		};
 	} angle_range;
 
+    Vec2f calc_friction(Vec2f prevVel);
+
 private:
 	// the best suited contact for this recorder
 	// from the current contact frame
@@ -103,18 +109,15 @@ private:
 	std::optional<PersistantContact> currentContact = std::nullopt;
 	std::optional<PersistantContact> wallContact = std::nullopt;
 
-	bool do_slope_wall_stop(bool had_wall) noexcept;
-	CollidableOffsets do_move_with_platform(CollidableOffsets in) noexcept;
-	CollidableOffsets do_max_speed(CollidableOffsets in, secs deltaTime) noexcept;
+	bool do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, bool had_wall) noexcept;
+	CollidableOffsets do_move_with_platform(poly_id_map<ColliderRegion>* colliders, CollidableOffsets in) noexcept;
+	CollidableOffsets do_max_speed(, CollidableOffsets in, secs deltaTime) noexcept;
 
 	// returns position offset
-	Vec2f do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left, float right, const PersistantContact& contact) const noexcept;
-
-	Vec2f calc_friction(Vec2f prevVel);
+	Vec2f do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos, float left, float right) const noexcept;
 
     ID<Collidable> owner_id;
     Collidable* owner;
-    poly_id_map<ColliderRegion>* colliders;
 };
 
 }

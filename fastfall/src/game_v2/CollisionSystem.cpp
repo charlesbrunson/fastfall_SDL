@@ -54,7 +54,7 @@ void CollisionSystem::notify_created(ID<SurfaceTracker> id)
 {
     auto& tracker = world->at(id);
     auto& collidable = world->at(tracker.get_collidable_id());
-    collidable.trackers.push_back(id);
+    collidable.tracker_ids.emplace_back(std::pair<ID<SurfaceTracker>, SurfaceTracker*>{ id, &tracker });
 }
 
 void CollisionSystem::notify_erased(ID<Collidable> id)
@@ -74,7 +74,7 @@ void CollisionSystem::notify_erased(ID<SurfaceTracker> id)
 {
     auto& tracker = world->at(id);
     auto& collidable = world->at(tracker.get_collidable_id());
-    std::erase(collidable.trackers, id);
+    std::erase_if(collidable.tracker_ids, [id](const auto& pair) { return pair.first == id; });
 }
 
 }

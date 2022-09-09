@@ -48,11 +48,6 @@ private:
 	unsigned flags = 0u;
 };
 
-struct CollidableUpdate {
-    poly_id_map<ColliderRegion>* colliders;
-    id_map<SurfaceTracker>* trackers;
-};
-
 class Collidable {
 public:
 	enum class SlipState {
@@ -68,7 +63,7 @@ public:
 public:
 	Collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
 
-	void update(CollidableUpdate ctx, secs deltaTime);
+	void update(poly_id_map<ColliderRegion>* colliders, secs deltaTime);
 
 	Rectf getBoundingBox();
 
@@ -107,17 +102,6 @@ public:
 
 	void debug_draw() const;
 
-	// -----------------------------------------
-
-	//inline std::vector<std::unique_ptr<SurfaceTracker>>& get_trackers() noexcept { return trackers; };
-	//inline const std::vector<std::unique_ptr<SurfaceTracker>>& get_trackers() const noexcept { return trackers; };
-
-	//SurfaceTracker& create_tracker(Angle ang_min, Angle ang_max, bool inclusive = true);
-	//SurfaceTracker& create_tracker(Angle ang_min, Angle ang_max, SurfaceTracker::Settings settings, bool inclusive = true);
-	//bool remove_tracker(SurfaceTracker& tracker);
-
-	// -----------------------------------------
-
 	const PersistantContact* get_contact(Angle angle) const noexcept;
 	const PersistantContact* get_contact(Cardinal dir) const noexcept;
 
@@ -126,7 +110,7 @@ public:
 
 	inline const std::vector<PersistantContact>& get_contacts() const noexcept { return currContacts; };
 
-	void set_frame(std::vector<PersistantContact>&& frame);
+	void set_frame(poly_id_map<ColliderRegion>* colliders, std::vector<PersistantContact>&& frame);
 
 	//inline CollidableID get_ID() const noexcept { return id; };
 
@@ -144,15 +128,13 @@ public:
 
 	const collision_state_t& get_state_flags() const { return col_state; }
 
-    std::vector<ID<SurfaceTracker>> tracker_ids;
+    std::vector<std::pair<ID<SurfaceTracker>, SurfaceTracker*>> tracker_ids;
 
 private:
 
 	collision_state_t col_state;
 
 	slip_t slip;
-
-	void process_current_frame();
 
 	Vec2f pos;
 	Vec2f prevPos;
