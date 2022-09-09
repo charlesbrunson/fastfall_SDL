@@ -48,6 +48,11 @@ private:
 	unsigned flags = 0u;
 };
 
+struct CollidableUpdate {
+    poly_id_map<ColliderRegion>* colliders;
+    id_map<SurfaceTracker>* trackers;
+};
+
 class Collidable {
 public:
 	enum class SlipState {
@@ -61,18 +66,9 @@ public:
 	};
 
 public:
-
-	Collidable();
 	Collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
-	~Collidable();
 
-	Collidable(const Collidable& rhs);
-	Collidable(Collidable&& rhs) noexcept;
-
-	Collidable& operator=(const Collidable& rhs);
-	Collidable& operator=(Collidable&& rhs) noexcept;
-
-	void update(secs deltaTime);
+	void update(CollidableUpdate ctx, secs deltaTime);
 
 	Rectf getBoundingBox();
 
@@ -122,8 +118,8 @@ public:
 
 	// -----------------------------------------
 
-	PersistantContact get_contact(Angle angle) const noexcept;
-	PersistantContact get_contact(Cardinal dir) const noexcept;
+	const PersistantContact* get_contact(Angle angle) const noexcept;
+	const PersistantContact* get_contact(Cardinal dir) const noexcept;
 
 	bool has_contact(Angle angle) const noexcept;
 	bool has_contact(Cardinal dir) const noexcept;
@@ -147,6 +143,8 @@ public:
 	} callbacks;
 
 	const collision_state_t& get_state_flags() const { return col_state; }
+
+    std::vector<ID<SurfaceTracker>> tracker_ids;
 
 private:
 
@@ -173,7 +171,6 @@ private:
 	Vec2f decel_accum;
 
 	std::vector<PersistantContact> currContacts;
-	//std::vector<std::unique_ptr<SurfaceTracker>> trackers;
 };
 
 }
