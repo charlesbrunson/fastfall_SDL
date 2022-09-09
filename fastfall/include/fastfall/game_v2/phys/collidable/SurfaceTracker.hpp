@@ -4,6 +4,8 @@
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/game_v2/phys/collision/Contact.hpp"
 
+#include "fastfall/util/id_map.hpp"
+
 #include <optional>
 #include <functional>
 
@@ -25,12 +27,12 @@ struct CollidableOffsets {
 // track contact duration for surfaces between the given angle ranges
 class SurfaceTracker {
 public:
-	SurfaceTracker(Angle ang_min, Angle ang_max, bool inclusive = true);
+	SurfaceTracker(ID<Collidable> t_owner, Angle ang_min, Angle ang_max, bool inclusive = true);
 
 	CollidableOffsets premove_update(secs deltaTime);
 	CollidableOffsets postmove_update(Vec2f wish_pos, Vec2f prev_pos, std::optional<PersistantContact> contact_override = {}) const;
 
-	void process_contacts(std::vector<PersistantContact>& contacts);
+	void process_contacts(Collidable* owner, std::vector<PersistantContact>& contacts);
 	bool has_contact() const noexcept;
 
 	// applies velocity/acceleration accounting for gravity (for movement consistency)
@@ -40,7 +42,9 @@ public:
 	void traverse_add_accel(float accel);
 	void traverse_add_decel(float decel);
 
-	inline ID<Collidable> get_collidable() { return owner; };
+	inline ID<Collidable> get_collidable_id() { return owner_id; };
+    inline void set_collidable_ptr(Collidable* ptr) { owner = ptr;}
+    inline void set_colliders_ptr(poly_id_map<ColliderRegion>* ptr) { colliders = ptr;}
 
 	bool can_make_contact_with(const Contact& contact) const noexcept;
 
@@ -93,8 +97,6 @@ public:
 	} angle_range;
 
 private:
-	friend class Collidable;
-
 	// the best suited contact for this recorder
 	// from the current contact frame
 	// based on angle and contact duration
@@ -110,7 +112,9 @@ private:
 
 	Vec2f calc_friction(Vec2f prevVel);
 
-    ID<Collidable> owner;
+    ID<Collidable> owner_id;
+    Collidable* owner;
+    poly_id_map<ColliderRegion>* colliders;
 };
 
 }

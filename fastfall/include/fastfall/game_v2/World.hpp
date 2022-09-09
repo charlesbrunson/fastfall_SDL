@@ -38,12 +38,13 @@ private:
     }
 
     bool erase(auto id, auto& components, auto&... systems) {
-        bool erased = components.erase(id);
-        if (erased) {
+        bool exists = components.exists(id);
+        if (exists) {
             (systems.notify_erased(id), ...);
         }
-        return erased;
+        return components.erase(id);
     }
+
 public:
     // manage state
     // void update(secs deltaTime)
@@ -59,6 +60,7 @@ public:
 
 	// get component
     Collidable&     operator[](ID<Collidable> id)   { return _collidables.at(id); }
+    SurfaceTracker& operator[](ID<SurfaceTracker> id) { return _trackers.at(id); }
     ColliderRegion& operator[](ID<ColliderRegion> id) { return _colliders.at(id); }
 	Trigger&        operator[](ID<Trigger> id)      { return _triggers.at(id); }
 	CameraTarget&   operator[](ID<CameraTarget> id) { return _camera_targets.at(id); }
@@ -66,6 +68,7 @@ public:
     SceneObject&    operator[](ID<SceneObject> id)  { return _scene_objects.at(id); }
 
     Collidable&     at(ID<Collidable> id)   { return _collidables.at(id); }
+    SurfaceTracker& at(ID<SurfaceTracker> id) { return _trackers.at(id); }
     ColliderRegion& at(ID<ColliderRegion> id) { return _colliders.at(id); }
     Trigger&        at(ID<Trigger> id)      { return _triggers.at(id); }
     CameraTarget&   at(ID<CameraTarget> id) { return _camera_targets.at(id); }
@@ -75,6 +78,7 @@ public:
     //Collidable* 	get(ID<Collidable> id);
     //ColliderRegion* get(ID<ColliderRegion> id);
     Collidable*     get(ID<Collidable> id)  { return _collidables.get(id); }
+    SurfaceTracker* get(ID<SurfaceTracker> id) { return _trackers.get(id); }
     ColliderRegion* get(ID<ColliderRegion> id) { return _colliders.get(id); }
     Trigger*        get(ID<Trigger> id)     { return _triggers.get(id); }
     CameraTarget*   get(ID<CameraTarget> id){ return _camera_targets.get(id); }
@@ -86,6 +90,13 @@ public:
 	ID<Collidable> create_collidable(Args&&... args) {
         return notify_created_all(
                 create(_collidables, std::forward<Args>(args)...),
+                _collision_system);
+    }
+
+    template<class... Args>
+    ID<SurfaceTracker> create_tracker(ID<Collidable> collidable, Args&&... args) {
+        return notify_created_all(
+                create(_collidables, collidable, std::forward<Args>(args)...),
                 _collision_system);
     }
 
@@ -124,20 +135,22 @@ public:
     }
 
 	// erase component
-	bool erase_collidable(ID<Collidable> id)        { return erase(id, _collidables, _collision_system); }
-	bool erase_collider(ID<ColliderRegion> id)      { return erase(id, _colliders, _collision_system); }
-	bool erase_trigger(ID<Trigger> id)              { return erase(id, _triggers, _trigger_system); }
-	bool erase_camera_target(ID<CameraTarget> id)   { return erase(id, _camera_targets, _camera_system); }
-	bool erase_drawable(ID<Drawable> id)            { return erase(id, _drawables); }
-    bool erase_scene_object(ID<SceneObject> id)     { return erase(id, _scene_objects, _scene_system); }
+	bool erase(ID<Collidable> id)        { return erase(id, _collidables, _collision_system); }
+    bool erase(ID<SurfaceTracker> id)       { return erase(id, _trackers, _collision_system); }
+	bool erase(ID<ColliderRegion> id)      { return erase(id, _colliders, _collision_system); }
+	bool erase(ID<Trigger> id)              { return erase(id, _triggers, _trigger_system); }
+	bool erase(ID<CameraTarget> id)   { return erase(id, _camera_targets, _camera_system); }
+	bool erase(ID<Drawable> id)            { return erase(id, _drawables); }
+    bool erase(ID<SceneObject> id)     { return erase(id, _scene_objects, _scene_system); }
 
     // span components
-    inline auto& all_collidables()       { return _collidables; }
-    inline auto& all_colliders()         { return _colliders; }
-    inline auto& all_triggers()          { return _triggers; }
-    inline auto& all_camera_targets()    { return _camera_targets; }
-    inline auto& all_drawables()         { return _drawables; }
-    inline auto& all_scene_objects()     { return _scene_objects; }
+    inline auto& all_collidables() { return _collidables; }
+    inline auto& all_trackers() { return _trackers; }
+    inline auto& all_colliders() { return _colliders; }
+    inline auto& all_triggers() { return _triggers; }
+    inline auto& all_camera_targets() { return _camera_targets; }
+    inline auto& all_drawables() { return _drawables; }
+    inline auto& all_scene_objects() { return _scene_objects; }
 
 	// get system
 	//LevelSystem& 		levels() 	{ return _level_system; }
@@ -154,6 +167,7 @@ private:
 
 	// components
 	id_map<Collidable> 			_collidables;
+    id_map<SurfaceTracker> 		_trackers;
 	poly_id_map<ColliderRegion> _colliders;
 	id_map<Trigger> 			_triggers;
 	poly_id_map<CameraTarget> 	_camera_targets;

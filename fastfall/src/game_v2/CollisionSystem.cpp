@@ -50,6 +50,13 @@ void CollisionSystem::notify_created(ID<ColliderRegion> id)
 {
 }
 
+void CollisionSystem::notify_created(ID<SurfaceTracker> id)
+{
+    auto& tracker = world->at(id);
+    auto& collidable = world->at(tracker.get_collidable_id());
+    collidable.trackers.push_back(id);
+}
+
 void CollisionSystem::notify_erased(ID<Collidable> id)
 {
     arbiters.erase(id);
@@ -61,6 +68,13 @@ void CollisionSystem::notify_erased(ID<ColliderRegion> id)
     {
         arb.erase_region(id);
     }
+}
+
+void CollisionSystem::notify_erased(ID<SurfaceTracker> id)
+{
+    auto& tracker = world->at(id);
+    auto& collidable = world->at(tracker.get_collidable_id());
+    std::erase(collidable.trackers, id);
 }
 
 }

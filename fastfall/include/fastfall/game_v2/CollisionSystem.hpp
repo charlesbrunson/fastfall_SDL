@@ -24,9 +24,11 @@ public:
 
     void notify_created(ID<Collidable> id);
     void notify_created(ID<ColliderRegion> id);
+    void notify_created(ID<SurfaceTracker> id);
 
     void notify_erased(ID<Collidable> id);
     void notify_erased(ID<ColliderRegion> id);
+    void notify_erased(ID<SurfaceTracker> id);
 
 	// dump collision data from this frame into json, is reset at the end of the update
 	inline void dumpCollisionDataThisFrame(nlohmann::ordered_json* dump_ptr) { collision_dump = dump_ptr; };
