@@ -11,11 +11,12 @@
 
 namespace ff {
 
-class Arbiter;
+//class Arbiter;
 
 class CollisionDiscrete {
 public:
-	CollisionDiscrete(ID<Collidable> collidable, ColliderQuad collisionTile, ID<ColliderRegion> colliderRegion, /* Arbiter* arbiter, */ bool collidePreviousFrame = false);
+
+    CollisionDiscrete(ID<Collidable> collidable_id, ID<ColliderRegion> collider_id, QuadID quad_id);
 
 	inline void setPrevious() { collidePrevious = true; };
 	inline Contact getContact() const noexcept { return contact; };
@@ -38,33 +39,19 @@ public:
 
 	void reset(ColliderQuad collisionTile, ID<ColliderRegion> colliderRegion, bool collidePreviousFrame);
 
-	inline bool tileValid() const noexcept {
-		return quad.hasAnySurface();
-	};
-
-	//const ColliderRegion* region;
-	//const ColliderQuad* cTile;
-	//const Collidable* cAble;
     ID<ColliderRegion> region;
     ID<Collidable> collidable;
-    ColliderQuad quad;
+    QuadID quad;
 
 	int getChosenAxis() const { return chosen_axis; };
-
-	//void setArbiter(Arbiter* arb) {
-	//	arbiter = arb;
-	//	contact.arbiter = arb;
-	//	for (int i = 0; i < axis_count; i++) {
-	//		axes[i].contact.arbiter = arb;
-	//	}
-	//}
-	//inline Arbiter* getArbiter() { return arbiter; }
 
 protected:
 
 	static constexpr float VALLEY_FLATTEN_THRESH = 0.25f;
 
-	void initCollidableData() {
+	void initCollidableData();
+    /*
+    {
 		if (!collidePrevious) {
 			cBox  = cAble->getBox();
 			cPrev = cAble->getPrevBox();
@@ -76,6 +63,7 @@ protected:
 		cMid = math::rect_mid(cBox);
 		cHalf = cBox.getSize() / 2.f;
 	}
+    */
 
 	void createAxes() noexcept;
 	void evalContact() noexcept;

@@ -53,6 +53,8 @@ public:
 	void add_duration(secs time, size_t ticks = 1);
 	void reset_duration();
 
+
+
 	void update();
 
 	Overlap overlap = Overlap::Partial;

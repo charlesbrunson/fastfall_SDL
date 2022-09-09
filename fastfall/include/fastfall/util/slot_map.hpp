@@ -23,7 +23,7 @@ namespace ff {
 		}
 
 		constexpr size_t raw() const {
-			return { (size_t)generation << 32 | (size_t)sparse_index };
+			return *((size_t*)this);
 		}
 	};
 
@@ -62,11 +62,11 @@ namespace ff {
 		static constexpr float sparse_density = 0.875f;
 
 	public:
-		using iterator = dense_vector::iterator;
-		using const_iterator = dense_vector::const_iterator;
+		using iterator               = typename dense_vector::iterator;
+		using const_iterator         = typename dense_vector::const_iterator;
 
-		using reverse_iterator = dense_vector::reverse_iterator;
-		using const_reverse_iterator = dense_vector::const_reverse_iterator;
+		using reverse_iterator       = typename dense_vector::reverse_iterator;
+		using const_reverse_iterator = typename dense_vector::const_reverse_iterator;
 
 	public:
 		// constructors

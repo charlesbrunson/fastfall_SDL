@@ -4,6 +4,7 @@
 #include "fastfall/util/copyable_uniq_ptr.hpp"
 #include "fastfall/util/id.hpp"
 
+#include <span>
 #include <vector>
 #include <memory>
 #include <concepts>
@@ -23,6 +24,8 @@ private:
 	slot_map<value_type> components;
 
 public:
+    using span = std::span<value_type>;
+
 	template<class... Args>
 	ID<T> create(Args&&... args) {
 		auto id = components.emplace_back(std::forward<Args>(args)...);
@@ -66,12 +69,12 @@ public:
 	inline auto end() const { return components.end(); }
 	inline auto cend() const { return components.cend(); }
 
-    ID<T> id_of(const T& value) const {
-       return { components.key_of(value) };
+    ID<T> id_of(const value_type& value) const {
+       return { *components.key_of(value) };
     }
 
     ID<T> id_of(typename slot_map<value_type>::const_iterator iter) const {
-        return { components.key_of(iter) };
+        return { *components.key_of(iter) };
     }
 };
 
@@ -85,6 +88,7 @@ private:
 	slot_map<value_type> components;
 
 public:
+    using span = std::span<value_type>;
 
 	// polymorphic
 	template<std::derived_from<T> Type, class... Args>
@@ -136,6 +140,9 @@ public:
 	inline auto end() const { return components.end(); }
 	inline auto cend() const { return components.cend(); }
 
+    ID<T> id_of(const value_type& value) const {
+        return { *components.key_of(value) };
+    }
     ID<T> id_of(typename slot_map<value_type>::const_iterator iter) const {
         return { components.key_of(iter) };
     }

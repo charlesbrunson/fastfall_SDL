@@ -5,7 +5,7 @@
 #include "fastfall/engine/config.hpp"
 
 #include "fastfall/game/InstanceInterface.hpp"
-#include "fastfall/game_v2/CameraSystem.hpp"
+#include "fastfall/game/CameraSystem.hpp"
 
 
 namespace ff {

@@ -52,7 +52,7 @@ private:
     ID<Collidable> collidable;
 
 	// collision set of arbiters to solve
-	std::vector<Contact*> contacts;
+	std::vector<Contact> contacts;
 	std::deque<Contact> created_contacts;
 
 	// json ptr that the solver will optionally output state to
@@ -98,7 +98,7 @@ public:
 	CollisionSolver(Collidable* _collidable);
 
 	// add an arbiter associated with the collidable to the collision set
-	inline void pushContact(Contact* contact) { contacts.push_back(contact); };
+	inline void pushContact(Contact contact) { contacts.push_back(contact); };
 
 	// attempts to resolve the combination of collisions
 	// pushed contacts will be cleared after solving

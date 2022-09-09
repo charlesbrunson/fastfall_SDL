@@ -1,11 +1,11 @@
 #pragma once
 
 #include "fastfall/render/Drawable.hpp"
-#include "fastfall/game_v2/scene/SceneObject.hpp"
 #include "fastfall/render/ShapeRectangle.hpp"
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/slot_map.hpp"
 #include "fastfall/util/id.hpp"
+#include "fastfall/game_v2/scene/SceneObject.hpp"
 
 // manager of drawable for the instance
 
