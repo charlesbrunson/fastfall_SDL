@@ -134,40 +134,26 @@ Collidable::Collidable(Vec2f position, Vec2f size, Vec2f gravity)
 	gravity_acc = gravity;
 }
 
-void Collidable::update(CollidableUpdate ctx, secs deltaTime) {
+void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) {
 
 	Vec2f prev_pos = pos;
 	Vec2f next_pos = pos;
 
-	if (deltaTime > 0.0) {
-
+	if (deltaTime > 0.0)
+    {
 		vel -= friction;
 		acc = accel_accum;
 
-		for (auto& tracker_id : tracker_ids) {
-
-            auto& tracker = ctx.trackers->at(tracker_id);
-			CollidableOffsets offsets = tracker.premove_update(deltaTime);
-
+        Vec2f surfaceVel;
+		for (auto& [id, tracker] : tracker_ids) {
+			CollidableOffsets offsets = tracker->premove_update(colliders, deltaTime);
 			next_pos += offsets.position;
 			vel += offsets.velocity;
 			acc += offsets.acceleration;
 
-			if (tracker.has_contact()) {
-				tracker.contact_time += deltaTime;
-				tracker.air_time = 0.0;
-			}
-			else {
-				tracker.air_time += deltaTime;
-			}
-		}
-
-		Vec2f surfaceVel;
-		for (auto& tracker_id : tracker_ids) {
-            auto& tracker = ctx.trackers->at(tracker_id);
-			if (tracker.has_contact()) {
-				surfaceVel += tracker.get_contact()->getSurfaceVel();
-			}
+            if (tracker->has_contact()) {
+                surfaceVel += tracker->get_contact()->getSurfaceVel();
+            }
 		}
 
 		vel += acc * deltaTime;
@@ -177,9 +163,8 @@ void Collidable::update(CollidableUpdate ctx, secs deltaTime) {
 		next_pos += vel * deltaTime;
 
 		// perform post move before applying gravity
-		for (auto& tracker_id : tracker_ids) {
-            auto& tracker = ctx.trackers->at(tracker_id);
-			CollidableOffsets offsets = tracker.postmove_update(next_pos, prev_pos);
+		for (auto& [id, tracker] : tracker_ids) {
+			CollidableOffsets offsets = tracker->postmove_update(colliders, next_pos, prev_pos);
 			next_pos += offsets.position;
 			vel += offsets.velocity;
 			acc += offsets.acceleration;
@@ -248,13 +233,8 @@ void Collidable::teleport(Vec2f position) noexcept {
 	pos = Vec2f(curRect.getPosition()) + Vec2f(curRect.width / 2, curRect.height);
 	prevPos = pos;
 
-    // TODO
-	for (auto& tracker : trackers) {
-		if (tracker->currentContact.has_value()) {
-			tracker->end_touch(tracker->currentContact.value());
-			tracker->currentContact = std::nullopt;
-			tracker->contact_time = 0.0;
-		}
+	for (auto& [id, tracker] : tracker_ids) {
+        tracker->force_end_contact();
 	}
 }
 
@@ -282,8 +262,7 @@ void Collidable::applyContact(const Contact& contact, ContactType type)
 	}
 
 	if (contact.hasImpactTime) {
-        // TODO
-		for (auto& tracker : trackers) {
+		for (auto& [id, tracker] : tracker_ids) {
 			tracker->firstCollisionWith(contact);
 		}
 	}
@@ -292,10 +271,9 @@ void Collidable::applyContact(const Contact& contact, ContactType type)
 // will return nullptr if no contact in the given range, or no record for that range
 const PersistantContact* Collidable::get_contact(Angle angle) const noexcept {
 
-    // TODO
-	for (const auto& tracker : trackers) {
+	for (auto& [id, tracker] : tracker_ids) {
 		if (tracker->angle_range.within_range(angle)) {
-			return tracker->currentContact.has_value() ? &tracker->currentContact.value() : nullptr;
+			return tracker->get_contact().has_value() ? &tracker->get_contact().value() : nullptr;
 		}
 	}
 
@@ -314,11 +292,53 @@ bool Collidable::has_contact(Cardinal dir) const noexcept {
 	return has_contact(direction::to_angle(dir));
 }
 
-void Collidable::set_frame(std::vector<PersistantContact>&& frame) {
-
+void Collidable::set_frame(
+        poly_id_map<ColliderRegion>* colliders,
+        std::vector<PersistantContact>&& frame)
+{
 	currContacts = std::move(frame);
 
-	process_current_frame();
+    // process contacts
+    col_state.reset();
+    for (auto& contact : currContacts) {
+        switch(contact.type)
+        {
+            case ContactType::CRUSH_HORIZONTAL:
+                col_state.set_flag(collision_state_t::flags::Crush_H);
+                break;
+            case ContactType::CRUSH_VERTICAL:
+                col_state.set_flag(collision_state_t::flags::Crush_V);
+                break;
+            case ContactType::WEDGE:
+                col_state.set_flag(collision_state_t::flags::Wedge);
+                break;
+            case ContactType::SINGLE:
+                if (auto optd = direction::from_vector(contact.ortho_n))
+                {
+                    switch(optd.value())
+                    {
+                        case Cardinal::N: col_state.set_flag(collision_state_t::flags::Floor); 	break;
+                        case Cardinal::S: col_state.set_flag(collision_state_t::flags::Ceiling); break;
+                        case Cardinal::E: col_state.set_flag(collision_state_t::flags::Wall_L); 	break;
+                        case Cardinal::W: col_state.set_flag(collision_state_t::flags::Wall_R); 	break;
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    friction = Vec2f{};
+    for (auto& [id, tracker] : tracker_ids) {
+        tracker->process_contacts(colliders, currContacts);
+        friction += tracker->calc_friction(precollision_vel);
+    }
+
+    //Vec2f prev = vel;
+
+    if (callbacks.onPostCollision)
+        callbacks.onPostCollision();
 
 }
 
@@ -333,52 +353,5 @@ void Collidable::debug_draw() const
 		}
 	}
 }
-
-
-void Collidable::process_current_frame() 
-{
-	col_state.reset();
-	for (auto& contact : currContacts) {
-		switch(contact.type)
-		{
-		case ContactType::CRUSH_HORIZONTAL: 
-			col_state.set_flag(collision_state_t::flags::Crush_H);
-			break;
-		case ContactType::CRUSH_VERTICAL: 
-			col_state.set_flag(collision_state_t::flags::Crush_V);
-			break;
-		case ContactType::WEDGE: 
-			col_state.set_flag(collision_state_t::flags::Wedge);
-			break;
-		case ContactType::SINGLE: 
-			if (auto optd = direction::from_vector(contact.ortho_n)) 
-			{
-				switch(optd.value()) 
-				{
-				case Cardinal::N: col_state.set_flag(collision_state_t::flags::Floor); 	break;
-				case Cardinal::S: col_state.set_flag(collision_state_t::flags::Ceiling); break;
-				case Cardinal::E: col_state.set_flag(collision_state_t::flags::Wall_L); 	break;
-				case Cardinal::W: col_state.set_flag(collision_state_t::flags::Wall_R); 	break;
-				}
-			}
-			break;
-		default: 
-			break;
-		}
-	}
-
-	friction = Vec2f{};
-    // TODO
-	for (auto& tracker : trackers) {
-		tracker->process_contacts(currContacts);
-		friction += tracker->calc_friction(precollision_vel);
-	}
-
-	//Vec2f prev = vel;
-
-	if (callbacks.onPostCollision)
-		callbacks.onPostCollision();
-}
-
 
 }

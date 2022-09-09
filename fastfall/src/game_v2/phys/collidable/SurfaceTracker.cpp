@@ -33,13 +33,12 @@ bool SurfaceTracker::can_make_contact_with(const Contact& contact) const noexcep
 	return angle_range.within_range(angle) && withinStickMax;
 }
 
-void SurfaceTracker::process_contacts(Collidable* owner, std::vector<PersistantContact>& contacts) {
-
+void SurfaceTracker::process_contacts(
+        poly_id_map<ColliderRegion>* colliders,
+        std::vector<PersistantContact>& contacts)
+{
 	bool found = false;
 	bool had_contact = currentContact.has_value();
-
-	//wallYadj = 0.f;
-
 	bool had_wall = wallContact.has_value();
 
 	wallContact = std::nullopt;
@@ -78,7 +77,7 @@ void SurfaceTracker::process_contacts(Collidable* owner, std::vector<PersistantC
 
 	if (!found) {
 		if (had_contact) {
-			if (!do_slope_wall_stop(had_wall)) {
+			if (!do_slope_wall_stop(colliders, had_wall)) {
 				end_touch(currentContact.value());
 				currentContact = std::nullopt;
 			}
@@ -130,23 +129,31 @@ Vec2f SurfaceTracker::calc_friction(Vec2f prevVel) {
 	return friction;
 }
 
-CollidableOffsets SurfaceTracker::premove_update(secs deltaTime) {
+CollidableOffsets SurfaceTracker::premove_update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) {
 
 	CollidableOffsets out;
 
 	if (deltaTime > 0.0 
 		&& has_contact()) 
 	{
-		out = do_move_with_platform(out);
+		out = do_move_with_platform(colliders, out);
 		out = do_max_speed(out, deltaTime);
 	}
+
+    if (has_contact()) {
+        contact_time += deltaTime;
+        air_time = 0.0;
+    }
+    else {
+        air_time += deltaTime;
+    }
 
 	return out;
 }
 
 // ----------------------------
 
-bool SurfaceTracker::do_slope_wall_stop(bool had_wall) noexcept {
+bool SurfaceTracker::do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, bool had_wall) noexcept {
 
 	bool can_stop = settings.slope_wall_stop
 		//&& !had_wall
@@ -160,10 +167,10 @@ bool SurfaceTracker::do_slope_wall_stop(bool had_wall) noexcept {
 		// correct velocity and position so we're still grounded
 		owner->set_vel(Vec2f{});
 
-		const auto* region = colliders->get(currentContact->region);
+		const ColliderRegion* region = colliders->get(currentContact->region);
 
 		if (settings.move_with_platforms && region
-			&& region->getPosition() != region->getPrevPosition()) 
+			&& region->hasMoved())
 		{
 			owner->set_vel(owner->get_vel() + math::projection(region->delta_velocity, currentContact->collider_n, true));
 		}
@@ -185,12 +192,12 @@ bool SurfaceTracker::do_slope_wall_stop(bool had_wall) noexcept {
 
 }
 
-CollidableOffsets SurfaceTracker::do_move_with_platform(CollidableOffsets in) noexcept {
+CollidableOffsets SurfaceTracker::do_move_with_platform(poly_id_map<ColliderRegion>* colliders, CollidableOffsets in) noexcept {
 
 	if (currentContact && settings.move_with_platforms) 
 	{
 		PersistantContact& contact = currentContact.value();
-		if (const auto* region = colliders->get(currentContact->region);
+		if (const ColliderRegion* region = colliders->get(currentContact->region);
 			region && region->hasMoved()) 
 		{
 			in.position += math::projection(region->getDeltaPosition(), contact.collider_n.lefthand(), true);
@@ -232,12 +239,12 @@ CollidableOffsets SurfaceTracker::do_max_speed(CollidableOffsets in, secs deltaT
 
 // ----------------------------
 
-Vec2f SurfaceTracker::do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left, float right, const PersistantContact& contact) const noexcept {
+Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos, float left, float right) const noexcept {
 
 	// TODO: REFACTOR FOR ALL SURFACE DIRECTIONS
 
 	Vec2f regionOffset;
-    const auto* region = colliders->get(contact.region);
+    const ColliderRegion* region = colliders->get(currentContact->region);
 	if (region) {
 		regionOffset = region->getPosition();
 	}
@@ -283,28 +290,28 @@ Vec2f SurfaceTracker::do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left,
 
 	if (wish_pos.x > right && prev_pos.x <= right) {
 		goingRight = true;
-		next = goRight(region, contact.collider);
+		next = goRight(region, currentContact->collider);
 	}
 	else if (wish_pos.x < left && prev_pos.x >= left) {
 		goingLeft = true;
-		next = goLeft(region, contact.collider);
+		next = goLeft(region, currentContact->collider);
 	}
 
 	else if (wish_pos.x > left && prev_pos.x <= left)
 	{
 		goingRight = true;
-		next = &contact.collider;
+		next = &currentContact->collider;
 	}
 	else if (wish_pos.x < right && prev_pos.x >= right)
 	{
 		goingLeft = true;
-		next = &contact.collider;
+		next = &currentContact->collider;
 	}
 
 	if (next) {
 
 		Angle next_ang = math::angle(math::tangent(next->surface));
-		Angle curr_ang = math::angle(contact.collider_n.righthand());
+		Angle curr_ang = math::angle(currentContact->collider_n.righthand());
 		Angle diff = next_ang - curr_ang;
 
 		if (next_ang.radians() != curr_ang.radians()
@@ -346,37 +353,21 @@ Vec2f SurfaceTracker::do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left,
 }
 
 CollidableOffsets SurfaceTracker::postmove_update(
+        poly_id_map<ColliderRegion>* colliders,
         Vec2f wish_pos,
-        Vec2f prev_pos,
-        std::optional<PersistantContact> contact_override
+        Vec2f prev_pos
     ) const
 {
-
-	std::optional<PersistantContact> local_contact;
-
-	if (contact_override) {
-		local_contact = *contact_override;
-	}
-	else if (currentContact) {
-		local_contact = *currentContact;
-	}
-	bool local_has_contact = local_contact && local_contact->hasContact;
-
-
 	CollidableOffsets out;
-
 	Vec2f position = wish_pos;
 
-	if (local_has_contact) {
+	if (has_contact()) {
 
-		const auto& contact = local_contact.value();
-
-		float left = std::min(contact.collider.surface.p1.x, contact.collider.surface.p2.x);
-		float right = std::max(contact.collider.surface.p1.x, contact.collider.surface.p2.x);
+		float left = std::min(currentContact->collider.surface.p1.x, currentContact->collider.surface.p2.x);
+		float right = std::max(currentContact->collider.surface.p1.x, currentContact->collider.surface.p2.x);
 
 		if (settings.slope_sticking && left < right) {
-
-			position += do_slope_stick(wish_pos, prev_pos, left, right, contact);
+			position += do_slope_stick(colliders, wish_pos, prev_pos, left, right);
 		}
 	}
 	out.position = position - wish_pos;
@@ -426,10 +417,9 @@ void SurfaceTracker::traverse_set_speed(float speed) {
 		}
 
 		Vec2f surfNV;
-		if (const auto* region = colliders->get(currentContact->region);
-			region && settings.move_with_platforms) 
+		if (settings.move_with_platforms && currentContact->velocity != Vec2f{})
 		{
-			surfNV = math::projection(region->velocity, currentContact->collider_n, true);
+            surfNV = math::projection(currentContact->velocity, currentContact->collider_n, true);
 		}
 		owner->set_vel(surf_unit * (speed + surface_mag) + surfNV);
 	}
@@ -486,6 +476,14 @@ void SurfaceTracker::firstCollisionWith(const Contact& contact)
 		owner->set_vel(vmag * math::projection(owner->get_vel(), math::vector(contact.stickLine)).unit());
 
 	}
+}
+
+void SurfaceTracker::force_end_contact() {
+    if (currentContact.has_value()) {
+        end_touch(currentContact.value());
+        currentContact = std::nullopt;
+        contact_time = 0.0;
+    }
 }
 
 }
