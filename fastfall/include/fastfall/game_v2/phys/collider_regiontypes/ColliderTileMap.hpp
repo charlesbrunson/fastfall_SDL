@@ -104,8 +104,8 @@ private:
 	bool applySetTile(const Edit& change);
 
 	bool validPosition(const Vec2i& at) const noexcept;
-	bool validPosition(size_t ndx) const noexcept;
-	size_t getTileIndex(const Vec2i& at) const noexcept;
+	bool validPosition(QuadID ndx) const noexcept;
+	QuadID getTileID(const Vec2i& at) const noexcept;
 
 	std::pair<ColliderQuad*, const ColliderTile*> get_tile(const Vec2i& at);
 
