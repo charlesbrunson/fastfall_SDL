@@ -5,24 +5,24 @@
 
 namespace ff {
 
-CollisionContinuous::CollisionContinuous(ID<Collidable> collidable_id, ID<ColliderRegion> colliderRegion, QuadID colliderQuad)
-    : collidable(collidable_id)
-    , collider(colliderRegion)
-    , quad(colliderQuad)
-	, prevCollision(collidable, collisionTile, colliderRegion, arbiter, true)
-	, currCollision(collidable, collisionTile, colliderRegion, arbiter, false)
+CollisionContinuous::CollisionContinuous(CollisionID t_id)
+    : id(t_id)
+	, prevCollision(t_id, CollisionDiscrete::Type::PrevFrame)
+	, currCollision(t_id, CollisionDiscrete::Type::CurrFrame)
 {
 	//evalContact(0.0);
 }
 
-void CollisionContinuous::update(secs deltaTime) 
+void CollisionContinuous::update(CollisionContext ctx, secs deltaTime)
 {
+
+    auto& curr_quad = *ctx.collider->get_quad(id.quad);
 	if (deltaTime > 0.0) {
 
 		// check if conditions are similar enough we can reuse the
 		// collision data from last frame
-		if (region->getPrevPosition() == region->getPosition()
-			&& prevTile == *cTile)
+		if (ctx.collider->getPrevPosition() == ctx.collider->getPosition()
+			&& prev_quad == curr_quad)
 		{
 			prevCollision = std::move(currCollision);
 			prevCollision.setPrevious();
@@ -30,20 +30,20 @@ void CollisionContinuous::update(secs deltaTime)
 		}
 		// else redo the collision from last frame
 		else {
-			prevCollision.reset(cTile, region, true);
+			prevCollision.reset(ctx, prev_quad, CollisionDiscrete::Type::PrevFrame);
 		}
 
-		currCollision.reset(cTile, region, false);
-		evalContact(deltaTime);
+		currCollision.reset(ctx, curr_quad, CollisionDiscrete::Type::CurrFrame);
+		evalContact(ctx, deltaTime);
 	}
 	else {
 		currCollision.updateContact();
-		evalContact(deltaTime);
+		evalContact(ctx, deltaTime);
 	}
-	prevTile = *cTile;
+	prev_quad = curr_quad;
 }
 
-void CollisionContinuous::evalContact(secs deltaTime) {
+void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
 	auto getRoot = [](float y0, float y1) {
 		return -1.f * (y0 / (y1 - y0));
 	};
@@ -147,7 +147,7 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 	{
 		// no collision at all
 
-		contact = *currCollision.getContactPtr();
+		contact = currCollision.getContact();
 		lastAxisCollided = -1;
 	}
 	else if (hasTouchAxis && hasIntersect) 
@@ -181,7 +181,7 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 			// require current collision has contact
 			if (isDeparting && opposite_intersecting)
 			{
-				contact.hasContact &= currCollision.getContactPtr()->hasContact;
+				contact.hasContact &= currCollision.getContact().hasContact;
 			}
 		}
 		
@@ -205,30 +205,30 @@ void CollisionContinuous::evalContact(secs deltaTime) {
 		else {
 			// otherwise resort use current discrete contact
 
-			contact = *currCollision.getContactPtr();
+			contact = currCollision.getContact();
 			lastAxisCollided = currCollision.getChosenAxis();
 		}
 	}
 
 	if (deltaTime > 0.0) {
-		velocity = region->velocity;
+		velocity = ctx.collider->velocity;
 	}
 
 	contact.velocity = velocity;
-	contact.arbiter = arbiter;
+    // TODO
+	//contact.arbiter = arbiter;
 	evaluated = true;
 
-
-	slipUpdate();
+	slipUpdate(ctx);
 }
 
 
-void CollisionContinuous::slipUpdate() {
+void CollisionContinuous::slipUpdate(CollisionContext ctx) {
 
 	// vertical slip
-	if (cAble->hasSlipV()) 
+	if (ctx.collidable->hasSlipV())
 	{
-		auto slip = getVerticalSlipContact(cAble->getSlip().leeway);
+		auto slip = getVerticalSlipContact(ctx.collidable->getSlip().leeway);
 		if (slip) {
 			contact = slip.value();
 		}

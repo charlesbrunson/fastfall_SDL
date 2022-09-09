@@ -3,6 +3,7 @@
 #include "fastfall/game_v2/phys/Collidable.hpp"
 #include "fastfall/game_v2/phys/collision/Contact.hpp"
 #include "fastfall/game_v2/phys/collision/CollisionContinuous.hpp"
+#include "fastfall/game_v2/phys/collision/CollisionContext.hpp"
 
 namespace ff {
 
@@ -15,10 +16,13 @@ private:
 
 	size_t recalcCounter = 0;
 
-public:
-	Arbiter(ID<Collidable> collidable, ID<ColliderRegion> collider, QuadID quad);
+    void accumTime(secs deltaTime);
 
-	void update(secs deltaTime);
+public:
+	Arbiter(CollisionID t_id);
+
+    void reset(CollisionContext ctx, secs deltaTime);
+	void update(CollisionContext ctx, secs deltaTime);
 
 	void setApplied();
 
@@ -30,9 +34,7 @@ public:
 	inline secs getTouchDuration() const noexcept { return touchTimer; };
 	inline size_t getRecalcCount() const noexcept { return recalcCounter; };
 
-    ID<Collidable> collidable_id;
-    ID<ColliderRegion> collider_id;
-    QuadID quad_id;
+    CollisionID id;
 
 	Rectf quad_bounds;
 

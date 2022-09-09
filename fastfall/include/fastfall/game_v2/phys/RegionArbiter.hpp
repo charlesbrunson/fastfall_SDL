@@ -22,7 +22,7 @@ public:
 	inline auto& getQuadArbiters() { return quadArbiters; };
 	inline const auto& getQuadArbiters() const { return quadArbiters; };
 
-	void updateRegion(ColliderRegion& region, Rectf bounds);
+	void updateRegion(CollisionContext ctx, Rectf bounds);
 
     ID<Collidable> get_collidable_id() const { return collidable_id; }
     ID<ColliderRegion> get_collider_id() const { return collider_id; }

@@ -40,7 +40,7 @@ private:
             poly_id_map<ColliderRegion>& colliders,
             nlohmann::ordered_json* dump_ptr = nullptr);
 
-	void update_region_arbiters(Rectf bounds, poly_id_map<ColliderRegion>& colliders);
+	void update_region_arbiters(Collidable& collidable, poly_id_map<ColliderRegion>& colliders, Rectf bounds);
 	Rectf push_bounds_for_contact(Rectf push_bound, const cardinal_array<float>& boundDist, Contact contact);
 };
 

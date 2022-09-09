@@ -7,20 +7,24 @@
 
 namespace ff {
 
-Arbiter::Arbiter(ID<Collidable> collidable, ID<ColliderRegion> collider, QuadID quad)
-    : collision(collidable, collider, quad)
+Arbiter::Arbiter(CollisionID t_id)
+    : collision(t_id)
+    , id(t_id)
 {
-    collidable_id = collidable;
-    collider_id = collider;
-    quad_id = quad;
 }
 
 void Arbiter::setApplied() {
 	collision.setAxisApplied(collision.getContact().ortho_n);
 }
 
-void Arbiter::update(secs deltaTime) {
+void Arbiter::reset(CollisionContext ctx, secs deltaTime) {
+    recalcCounter = 0;
+    collision.update(ctx, deltaTime);
+    accumTime(deltaTime);
+}
 
+void Arbiter::update(CollisionContext ctx, secs deltaTime)
+{
 	if (deltaTime > 0.0) {
 		recalcCounter = 0;
 	}
@@ -28,17 +32,20 @@ void Arbiter::update(secs deltaTime) {
 		recalcCounter++;
 	}
 
-	collision.update(deltaTime);
+	collision.update(ctx, deltaTime);
+    accumTime(deltaTime);
+}
 
-	if (deltaTime > 0.0) {
-		aliveTimer += deltaTime;
-		if (collision.getContact().hasContact) {
-			touchTimer += deltaTime;
-		}
-		else {
-			touchTimer = 0.0;
-		}
-	}
+void Arbiter::accumTime(secs deltaTime) {
+    if (deltaTime > 0.0) {
+        aliveTimer += deltaTime;
+        if (collision.getContact().hasContact) {
+            touchTimer += deltaTime;
+        }
+        else {
+            touchTimer = 0.0;
+        }
+    }
 }
 
 }
