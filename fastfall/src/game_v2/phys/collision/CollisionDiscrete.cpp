@@ -13,20 +13,24 @@ inline float getYforX(const Linef& onLine, float X) {
 	return (scale * v.y) + onLine.p1.y;
 };
 
-CollisionDiscrete::CollisionDiscrete(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion, Arbiter* arbiter, bool collidePreviousFrame) :
+CollisionDiscrete::CollisionDiscrete(CollisionID t_id, Type collidePrev)
+/*
 	cAble(collidable),
 	cTile(collisionTile),
 	cQuad(*collisionTile),
 	collidePrevious(collidePreviousFrame),
 	region(colliderRegion)
+*/
+    : id(t_id)
+    , collision_time(collidePrev)
 {
 	//axes.reserve(8u);
 	//reset(collisionTile, colliderRegion, collidePreviousFrame);
 }
 
-void CollisionDiscrete::reset(const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion, bool collidePreviousFrame) {
-	collidePrevious = collidePreviousFrame;
-	cQuad = *collisionTile;
+void CollisionDiscrete::reset(CollisionContext ctx, ColliderQuad quad, Type collidePrev) {
+	collision_time = collidePrev;
+	cQuad = quad;
 
 	valleys = { false, false, false, false };
 
@@ -35,7 +39,7 @@ void CollisionDiscrete::reset(const ColliderQuad* collisionTile, const ColliderR
 	Vec2f topLeft(FLT_MAX, FLT_MAX);
 	Vec2f botRight(-FLT_MAX, -FLT_MAX);
 
-	cQuad.translate(collidePrevious ? colliderRegion->getPrevPosition() : colliderRegion->getPosition());
+	cQuad.translate(collision_time == Type::PrevFrame ? ctx.collider->getPrevPosition() : ctx.collider->getPosition());
 
 	for (auto& surface : cQuad.surfaces) {
 		topLeft.x  = std::min(surface.collider.surface.p1.x, topLeft.x);
@@ -453,7 +457,8 @@ void CollisionDiscrete::evalContact() noexcept {
 	}
 
 	contact.hasContact = hasContact;
-	contact.arbiter = arbiter;
+    // TODO
+	//contact.arbiter = arbiter;
 }
 
 CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexcept {
@@ -466,7 +471,7 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
 	}
 
 	// if this is a oneway, invalidate it if the collider's previous position is not above it
-	if (!collidePrevious && cQuad.isOneWay(Cardinal::N)) 
+	if (collision_time == Type::CurrFrame && cQuad.isOneWay(Cardinal::N))
 	{
 		Vec2f cpMid = math::rect_mid(cPrev);
 		Vec2f cpSize = cPrev.getSize() * 0.5f;
@@ -506,7 +511,7 @@ CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcep
 	}
 
 	// if this is a oneway, invalidate it if the collider's previous position is not below it
-	if (!collidePrevious && cQuad.isOneWay(Cardinal::S)) 
+	if (collision_time == Type::CurrFrame && cQuad.isOneWay(Cardinal::S))
 	{
 		Vec2f cpMid = math::rect_mid(cPrev);
 		Vec2f cpSize = cPrev.getSize() * 0.5f;
@@ -710,11 +715,11 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 	}
 
 	Vec2f pMid = math::rect_mid(cPrev);
-	bool extend = wallCanExtend(axis, cQuad, Cardinal::E, pMid, cMid, tMid, tHalf, collidePrevious);
+	bool extend = wallCanExtend(axis, cQuad, Cardinal::E, pMid, cMid, tMid, tHalf, collision_time == Type::PrevFrame);
 	bool has_valley = wallHasValley(axis, axes, axis_count, Cardinal::E, valleys);
 
 	// if this is a oneway, invalidate it if the collider's previous position is not left of it
-	if (!collidePrevious && cQuad.isOneWay(Cardinal::E)) {
+	if (collision_time == Type::CurrFrame && cQuad.isOneWay(Cardinal::E)) {
 		axis.axisValid = math::rect_topleft(cPrev).x >= tPos.x + tArea.width;
 	}
 
@@ -732,11 +737,11 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 	}
 
 	Vec2f pMid = math::rect_mid(cPrev);
-	bool extend = wallCanExtend(axis, cQuad, Cardinal::W, pMid, cMid, tMid, tHalf, collidePrevious);
+	bool extend = wallCanExtend(axis, cQuad, Cardinal::W, pMid, cMid, tMid, tHalf, collision_time == Type::PrevFrame);
 	bool has_valley = wallHasValley(axis, axes, axis_count, Cardinal::W, valleys);
 
 	// if this is a oneway, invalidate it if the collider's previous position is not left of it
-	if (!collidePrevious && cQuad.isOneWay(Cardinal::W)) {
+	if (collision_time == Type::CurrFrame && cQuad.isOneWay(Cardinal::W)) {
 		axis.axisValid = math::rect_topright(cPrev).x <= tArea.left;
 	}
 

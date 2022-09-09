@@ -3,6 +3,8 @@
 #include "fastfall/game_v2/phys/collider_coretypes/ColliderQuad.hpp"
 #include "fastfall/game_v2/phys/Collidable.hpp"
 #include "fastfall/game_v2/phys/ColliderRegion.hpp"
+#include "fastfall/game_v2/phys/collision/CollisionID.hpp"
+#include "fastfall/game_v2/phys/collision/CollisionContext.hpp"
 
 #include "CollisionAxis.hpp"
 
@@ -16,10 +18,15 @@ namespace ff {
 class CollisionDiscrete {
 public:
 
-    CollisionDiscrete(ID<Collidable> collidable_id, ID<ColliderRegion> collider_id, QuadID quad_id);
+    enum class Type {
+        PrevFrame,
+        CurrFrame
+    };
 
-	inline void setPrevious() { collidePrevious = true; };
-	inline Contact getContact() const noexcept { return contact; };
+    CollisionDiscrete(CollisionID t_id, Type collidePrev);
+
+	inline void setPrevious() { collision_time = Type::PrevFrame; };
+	inline const Contact& getContact() const noexcept { return contact; };
 
 	void updateContact() noexcept;
 
@@ -37,11 +44,9 @@ public:
 
 	inline unsigned getAxisCount() { return axis_count; };
 
-	void reset(ColliderQuad collisionTile, ID<ColliderRegion> colliderRegion, bool collidePreviousFrame);
+	void reset(CollisionContext ctx, ColliderQuad quad, Type collidePrev);
 
-    ID<ColliderRegion> region;
-    ID<Collidable> collidable;
-    QuadID quad;
+    CollisionID id;
 
 	int getChosenAxis() const { return chosen_axis; };
 
@@ -79,7 +84,7 @@ protected:
 	Contact contact;
 	int chosen_axis = -1;
 
-	bool collidePrevious;
+	Type collision_time;
 
 	// some derived info
 	Vec2f tPos;

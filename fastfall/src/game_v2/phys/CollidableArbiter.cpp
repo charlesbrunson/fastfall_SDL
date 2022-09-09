@@ -58,15 +58,21 @@ namespace ff {
 				body_rect.left - body_bound.left											// WEST
 			};
 
-			update_region_arbiters(body_bound, colliders);
+			update_region_arbiters(collidable, colliders, body_bound);
 
 			// try to push out collidable bounds
 			for (auto& regionArb : region_arbiters) {
+
+                CollisionContext ctx{
+                    .collider = colliders.get(regionArb.get_collider_id()),
+                    .collidable = &collidable
+                };
+
 				for (auto& [quad, arbiter] : regionArb.getQuadArbiters()) {
 
 					// if this arbiter hasn't pushed before, update it
 					if (!updatedBuffer.contains(&arbiter)) {
-						arbiter.update(deltaTime);
+						arbiter.update(ctx, deltaTime);
 						updatedBuffer.insert(&arbiter);
 					}
 
@@ -103,7 +109,7 @@ namespace ff {
 		}
 	}
 
-	void CollidableArbiter::update_region_arbiters(Rectf bounds, poly_id_map<ColliderRegion>& colliders)
+	void CollidableArbiter::update_region_arbiters(Collidable& collidable, poly_id_map<ColliderRegion>& colliders, Rectf bounds)
 	{
 		for (auto& region : colliders) {
 
@@ -126,7 +132,7 @@ namespace ff {
 					// just entered this region
 					arbiter = region_arbiters.emplace(arbiter, RegionArbiter{ collider_id, collidable_id });
 				}
-				arbiter->updateRegion(*region.get(), bounds);
+				arbiter->updateRegion({ region.get(), &collidable }, bounds);
 			}
 			else if (exists) {
 				// just left this region
@@ -182,7 +188,7 @@ namespace ff {
 			{
                 // allow precontact callback to reject collision
 				auto& arb = qArb.second;
-				if (collider.on_precontact(arb.quad.getID(), arb.getContact(), arb.getTouchDuration()))
+				if (collider.on_precontact(arb.id.quad, arb.getContact(), arb.getTouchDuration()))
 				{
 					solver.pushContact(arb.getContact());
 				}

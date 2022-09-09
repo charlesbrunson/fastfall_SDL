@@ -4,6 +4,7 @@
 #include <optional>
 
 #include "fastfall/game_v2/phys/collision/CollisionDiscrete.hpp"
+#include "fastfall/game_v2/phys/collision/CollisionContext.hpp"
 
 namespace ff {
 
@@ -12,31 +13,27 @@ private:
 	CollisionDiscrete currCollision;
 	CollisionDiscrete prevCollision;
 
-    ID<Collidable> collidable;
-    ID<ColliderRegion> collider;
-    QuadID quad;
+    ColliderQuad prev_quad;
 
 	Contact contact;
 	bool evaluated = false;
 	int lastAxisCollided = -1;
 	Vec2f velocity;
 
-	void evalContact(secs deltaTime);
-	void slipUpdate();
+	void evalContact(CollisionContext ctx, secs deltaTime);
+	void slipUpdate(CollisionContext ctx);
 	std::optional<Contact> getVerticalSlipContact(float leeway);
 
 public:
-    CollisionContinuous(ID<Collidable> collidable, ID<ColliderRegion> colliderRegion, QuadID colliderQuad);
+    CollisionContinuous(CollisionID t_id);
 
-	void update(secs deltaTime);
+	void update(CollisionContext ctx, secs deltaTime);
 
 	inline void updateContact() noexcept { currCollision.updateContact(); };
 
-	inline Contact getContact() const noexcept { return contact; }
+	inline const Contact& getContact() const noexcept { return contact; }
 
-    ID<Collidable> collidable_id() const { return collidable; }
-    ID<ColliderRegion> collider_id() const { return collider; }
-    QuadID quad_id() const { return quad; }
+    CollisionID id;
 
 	//inline bool tileValid() const noexcept { return cTile.hasAnySurface(); };
 	inline void setAxisApplied(Vec2f ortho_normal) noexcept { currCollision.setAxisApplied(ortho_normal); }
