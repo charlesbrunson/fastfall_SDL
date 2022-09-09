@@ -20,12 +20,16 @@ private:
     auto span(auto& components) { return std::span{components.begin(), components.end()}; };
 
     auto create(auto& components, auto&&... args) {
-        return components.create(std::forward<decltype(args)>(args)...);
+        auto id = components.create(std::forward<decltype(args)>(args)...);
+        components.at(id).set_id(id);
+        return id;
     }
 
     template<class T>
     auto poly_create(auto& components, auto&&... args) {
-        return components.template create<T>(std::forward<decltype(args)>(args)...);
+        auto id = components.template create<T>(std::forward<decltype(args)>(args)...);
+        components.at(id).set_id(id);
+        return id;
     }
 
     auto notify_created_all(auto id, auto&... systems) {
@@ -128,12 +132,12 @@ public:
     bool erase_scene_object(ID<SceneObject> id)     { return erase(id, _scene_objects, _scene_system); }
 
     // span components
-    inline auto all_collidables()       { return span(_collidables); }
-    inline auto all_colliders()         { return span(_colliders); }
-    inline auto all_triggers()          { return span(_triggers); }
-    inline auto all_camera_targets()    { return span(_camera_targets); }
-    inline auto all_drawables()         { return span(_drawables); }
-    inline auto all_scene_objects()     { return span(_scene_objects); }
+    inline auto& all_collidables()       { return _collidables; }
+    inline auto& all_colliders()         { return _colliders; }
+    inline auto& all_triggers()          { return _triggers; }
+    inline auto& all_camera_targets()    { return _camera_targets; }
+    inline auto& all_drawables()         { return _drawables; }
+    inline auto& all_scene_objects()     { return _scene_objects; }
 
 	// get system
 	//LevelSystem& 		levels() 	{ return _level_system; }
@@ -157,7 +161,7 @@ private:
     id_map<SceneObject>         _scene_objects;
 
 	// systems
-	//LevelSystem		_level_system;
+	//LevelSystem	_level_system;
 	//ObjectSystem	_object_system;
 	CollisionSystem _collision_system;
 	TriggerSystem	_trigger_system;

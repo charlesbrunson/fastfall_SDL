@@ -12,10 +12,9 @@ private:
 	CollisionDiscrete currCollision;
 	CollisionDiscrete prevCollision;
 
-	ColliderQuad prevTile;
-    ColliderQuad cTile;
     ID<Collidable> collidable;
-    ID<ColliderRegion> region;
+    ID<ColliderRegion> collider;
+    QuadID quad;
 
 	Contact contact;
 	bool evaluated = false;
@@ -27,8 +26,7 @@ private:
 	std::optional<Contact> getVerticalSlipContact(float leeway);
 
 public:
-	//CollisionContinuous(const Collidable* collidable, const ColliderQuad* collisionTile, const ColliderRegion* colliderRegion, Arbiter* arbiter);
-    CollisionContinuous(ID<Collidable> collidable, ColliderQuad collisionTile, ID<ColliderRegion> colliderRegion /*, Arbiter* arbiter*/);
+    CollisionContinuous(ID<Collidable> collidable, ID<ColliderRegion> colliderRegion, QuadID colliderQuad);
 
 	void update(secs deltaTime);
 
@@ -36,7 +34,11 @@ public:
 
 	inline Contact getContact() const noexcept { return contact; }
 
-	inline bool tileValid() const noexcept { return cTile.hasAnySurface(); };
+    ID<Collidable> collidable_id() const { return collidable; }
+    ID<ColliderRegion> collider_id() const { return collider; }
+    QuadID quad_id() const { return quad; }
+
+	//inline bool tileValid() const noexcept { return cTile.hasAnySurface(); };
 	inline void setAxisApplied(Vec2f ortho_normal) noexcept { currCollision.setAxisApplied(ortho_normal); }
 };
 

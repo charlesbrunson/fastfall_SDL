@@ -9,7 +9,7 @@
 
 namespace ff {
 
-class ColliderRegion /*: public sf::Drawable*/ {
+class ColliderRegion {
 public:
 
 	ColliderRegion(Vec2i initialPosition = Vec2i(0, 0)) :
@@ -22,7 +22,7 @@ public:
 	}
 	virtual ~ColliderRegion() {};
 
-	virtual void get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& out_buffer) const = 0;
+	virtual void get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, QuadID>>& out_buffer) const = 0;
 
 	virtual void update(secs deltaTime) = 0;
 

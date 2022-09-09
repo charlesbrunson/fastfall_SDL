@@ -18,6 +18,10 @@ struct ID {
 	operator ID<Base>() {
 		return { value };
 	}
+
+    size_t raw() const {
+        return value.raw();
+    }
 };
 
 template<class Base, class Derived>

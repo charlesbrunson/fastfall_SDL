@@ -16,13 +16,7 @@ private:
 	size_t recalcCounter = 0;
 
 public:
-	Arbiter(ID<Collidable> col_dable, ColliderQuad col_der, ID<ColliderRegion> col_region);
-	
-	Arbiter(const Arbiter&);
-	Arbiter(Arbiter&&) noexcept;
-
-	Arbiter& operator=(const Arbiter&);
-	Arbiter& operator=(Arbiter&&) noexcept;
+	Arbiter(ID<Collidable> collidable, ID<ColliderRegion> collider, QuadID quad);
 
 	void update(secs deltaTime);
 
@@ -36,9 +30,9 @@ public:
 	inline secs getTouchDuration() const noexcept { return touchTimer; };
 	inline size_t getRecalcCount() const noexcept { return recalcCounter; };
 
-    ID<Collidable> collidable;
-    ID<ColliderRegion> region;
-    ColliderQuad collider;
+    ID<Collidable> collidable_id;
+    ID<ColliderRegion> collider_id;
+    QuadID quad_id;
 
 	Rectf quad_bounds;
 
