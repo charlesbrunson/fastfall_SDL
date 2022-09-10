@@ -7,6 +7,7 @@ World::World() {
     _trigger_system.set_world(this);
     _camera_system.set_world(this);
     _scene_system.set_world(this);
+    _object_system.set_world(this);
 }
 
 

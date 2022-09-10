@@ -7,6 +7,7 @@
 #include "fastfall/game_v2/CameraSystem.hpp"
 #include "fastfall/game_v2/TriggerSystem.hpp"
 #include "fastfall/game_v2/SceneSystem.hpp"
+#include "fastfall/game_v2/ObjectSystem.hpp"
 
 #include <optional>
 #include <concepts>
@@ -19,14 +20,14 @@ class World
 private:
     auto span(auto& components) { return std::span{components.begin(), components.end()}; };
 
-    auto create(auto& components, auto&&... args) {
-        auto id = components.create(std::forward<decltype(args)>(args)...);
+    auto create(auto& container, auto&&... args) {
+        auto id = container.create(std::forward<decltype(args)>(args)...);
         return id;
     }
 
     template<class T>
-    auto poly_create(auto& components, auto&&... args) {
-        auto id = components.template create<T>(std::forward<decltype(args)>(args)...);
+    auto poly_create(auto& container, auto&&... args) {
+        auto id = container.template create<T>(std::forward<decltype(args)>(args)...);
         return id;
     }
 
@@ -115,6 +116,14 @@ public:
                 _scene_system);
     }
 
+    template<class T, class... Args> requires std::derived_from<T, Drawable>
+    ID<T> create_object(Args&&... args) {
+        std::unique_ptr<T> obj = ObjectFactory::create<T>(this, std::forward<Args>(args)...);
+        return notify_created_all(
+                poly_create<T>(std::move(obj)),
+                _object_system);
+    }
+
 	// erase component
     template<class T>
     bool erase(ID<T> id) { return erase(id, container<T>()); }
@@ -130,7 +139,7 @@ public:
 
 	// get system
 	//LevelSystem& 		levels() 	{ return _level_system; }
-	//ObjectSystem& 		objects() 	{ return _object_system; }
+	ObjectSystem& 		    objects() 	{ return _object_system; }
 	inline CollisionSystem& collision() { return _collision_system; }
 	inline TriggerSystem&   trigger()   { return _trigger_system; }
 	inline CameraSystem&    camera()    { return _camera_system; }
@@ -138,7 +147,7 @@ public:
 
 private:
 	// entities
-	//poly_id_map<GameObject> _objects;
+	poly_id_map<GameObject> _objects;
 	//id_map<Level> 			_levels;
 
     template<class T>
@@ -164,6 +173,9 @@ private:
         else if constexpr (std::same_as<T, SceneObject>) {
             return _scene_objects;
         }
+        else if constexpr (std::derived_from<T, GameObject>) {
+            return _objects;
+        }
         else { throw std::exception{}; }
     }
 
@@ -178,7 +190,7 @@ private:
 
 	// systems
 	//LevelSystem	_level_system;
-	//ObjectSystem	_object_system;
+	ObjectSystem	_object_system;
 	CollisionSystem _collision_system;
 	TriggerSystem	_trigger_system;
 	CameraSystem	_camera_system;

@@ -61,6 +61,8 @@ public:
 		return components.exists(id.value);
 	}
 
+    size_t size() const { return components.size(); }
+
 	inline auto begin() { return components.begin(); }
 	inline auto begin() const { return components.begin(); }
 	inline auto cbegin() const { return components.begin(); }
@@ -131,6 +133,8 @@ public:
 	{
 		return components.exists(id.value);
 	}
+
+    size_t size() const { return components.size(); }
 
 	inline auto begin() { return components.begin(); }
 	inline auto begin() const { return components.begin(); }
