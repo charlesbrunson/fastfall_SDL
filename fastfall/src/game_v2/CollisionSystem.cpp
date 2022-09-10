@@ -42,6 +42,17 @@ void CollisionSystem::update(secs deltaTime) {
 	frame_count++;
 };
 
+void CollisionSystem::set_world(World* w) {
+    world = w;
+    // update all collidable & surface tracker pointers
+    for (auto& collidable : w->all_collidables()) {
+        for (auto& [id, tracker] : collidable.tracker_ids) {
+            tracker = world->get(pair.first);
+            tracker->set_collidable_ptr(&collidable);
+        }
+    }
+}
+
 void CollisionSystem::notify_created(ID<Collidable> id)
 {
     arbiters[id] = CollidableArbiter{.collidable_id = id};
