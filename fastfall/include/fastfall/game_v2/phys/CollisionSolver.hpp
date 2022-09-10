@@ -16,7 +16,7 @@ enum class GhostEdge {
 	Full
 };
 
-GhostEdge isGhostEdge(const Contact& basis, const Contact& candidate) noexcept;
+GhostEdge isGhostEdge(const ContinuousContact& basis, const ContinuousContact& candidate) noexcept;
 
 class CollisionSolver {
 public:
@@ -26,54 +26,54 @@ public:
 		bool discardFirst = false;
 		bool discardSecond = false;
 
-		std::optional<Contact> contact;
+        ContactType type = ContactType::NO_SOLUTION;
+		std::optional<ContinuousContact> contact;
 	};
 
 private:
 	// stacks that the contact get organized into
-	std::deque<Contact*> north;
-	std::deque<Contact*> south;
-	std::deque<Contact*> east;
-	std::deque<Contact*> west;
+	std::deque<ContinuousContact*> north;
+	std::deque<ContinuousContact*> south;
+	std::deque<ContinuousContact*> east;
+	std::deque<ContinuousContact*> west;
 
 	// additional stacks for transposable north/south contacts
-	std::vector<Contact*> north_alt;
-	std::vector<Contact*> south_alt;
+	std::vector<ContinuousContact*> north_alt;
+	std::vector<ContinuousContact*> south_alt;
 
 	// the collidable we're solving for
-	//Collidable* collidable = nullptr;
     ID<Collidable> collidable;
 
 	// collision set of arbiters to solve
-	std::vector<Contact> contacts;
-	std::deque<Contact> created_contacts;
+	std::vector<ContinuousContact> contacts;
+	std::deque<ContinuousContact> created_contacts;
 
 	// json ptr that the solver will optionally output state to
 	// may be nullptr
 	nlohmann::ordered_json* json_dump = nullptr;
 
 	// vector of contacts that have been applied, in order of application
-	std::vector<Contact> frame;
+	std::vector<AppliedContact> frame;
 
 	// pushes contact to appropriate north/south/east/west stack
-	void pushToAStack(std::vector<Contact*> contact);
-	void pushToAStack(Contact* contact);
+	void pushToAStack(std::vector<ContinuousContact*> contact);
+	void pushToAStack(ContinuousContact* contact);
 
 	// arbiter may be nullptr
 	// returns true if any contact is applied
-	bool apply(const Contact& contact, ContactType type = ContactType::SINGLE);
+	bool apply(const ContinuousContact& contact, ContactType type = ContactType::SINGLE);
 
 	// returns true if any contact is applied
-	bool applyStack(std::deque<Contact*>& stack);
-	bool applyFirst(std::deque<Contact*>& stack);
-	bool applyThenUpdateStacks(std::deque<Contact*>& stack, std::deque<Contact*>& otherStack, bool which = true);
+	bool applyStack(std::deque<ContinuousContact*>& stack);
+	bool applyFirst(std::deque<ContinuousContact*>& stack);
+	bool applyThenUpdateStacks(std::deque<ContinuousContact*>& stack, std::deque<ContinuousContact*>& otherStack, bool which = true);
 
 	// pops front of stack if discard is true, returns !discard
-	bool canApplyElseDiscard(bool discard, std::deque<Contact*>& stack);
+	bool canApplyElseDiscard(bool discard, std::deque<ContinuousContact*>& stack);
 
 	// returns true if any contact is applied
-	using PickerFn = CompResult(*)(const Contact*, const Contact*, const Collidable*);
-	bool solveAxis(std::deque<Contact*>& stackA, std::deque<Contact*>& stackB, PickerFn picker);
+	using PickerFn = CompResult(*)(const ContinuousContact*, const ContinuousContact*, const Collidable*);
+	bool solveAxis(std::deque<ContinuousContact*>& stackA, std::deque<ContinuousContact*>& stackB, PickerFn picker);
 
 	// determine if internal state will allow steep contacts to be transposed
 	bool canApplyAlt() const;
@@ -85,18 +85,18 @@ private:
 	void detectWedges();
 
 	// compare two contacts to see if they form a wedge
-	std::optional<Contact> detectWedge(const Contact* north, const Contact* south);
+	std::optional<ContinuousContact> detectWedge(const ContinuousContact* north, const ContinuousContact* south);
 
 public:
 	CollisionSolver(Collidable* _collidable);
 
 	// add an arbiter associated with the collidable to the collision set
-	inline void pushContact(Contact contact) { contacts.push_back(contact); };
+	inline void pushContact(ContinuousContact contact) { contacts.push_back(contact); };
 
 	// attempts to resolve the combination of collisions
 	// pushed contacts will be cleared after solving
 	// returns vector of applied contact in order of application
-	std::vector<Contact> solve(nlohmann::ordered_json* dump_ptr = nullptr);
+	std::vector<AppliedContact> solve(nlohmann::ordered_json* dump_ptr = nullptr);
 
 };
 

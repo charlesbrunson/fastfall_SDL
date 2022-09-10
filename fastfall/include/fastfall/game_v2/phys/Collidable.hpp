@@ -98,19 +98,19 @@ public:
 	inline Vec2f get_friction()   const noexcept { return friction; };
 	inline Vec2f get_acc() const noexcept { return acc; };
 
-	void applyContact(const Contact& contact, ContactType type);
+	void applyContact(const AppliedContact& contact, ContactType type);
 
 	void debug_draw() const;
 
-	const Contact* get_contact(Angle angle) const noexcept;
-	const Contact* get_contact(Cardinal dir) const noexcept;
+	const AppliedContact* get_contact(Angle angle) const noexcept;
+	const AppliedContact* get_contact(Cardinal dir) const noexcept;
 
 	bool has_contact(Angle angle) const noexcept;
 	bool has_contact(Cardinal dir) const noexcept;
 
-	inline const std::vector<Contact>& get_contacts() const noexcept { return currContacts; };
+	inline const std::vector<AppliedContact>& get_contacts() const noexcept { return currContacts; };
 
-	void set_frame(poly_id_map<ColliderRegion>* colliders, std::vector<Contact>&& frame);
+	void set_frame(poly_id_map<ColliderRegion>* colliders, std::vector<AppliedContact>&& frame);
 
 	//inline CollidableID get_ID() const noexcept { return id; };
 
@@ -152,7 +152,7 @@ private:
 	Vec2f accel_accum;
 	Vec2f decel_accum;
 
-	std::vector<Contact> currContacts;
+	std::vector<AppliedContact> currContacts;
 };
 
 }

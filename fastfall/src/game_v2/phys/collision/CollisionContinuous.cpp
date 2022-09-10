@@ -25,7 +25,7 @@ void CollisionContinuous::update(CollisionContext ctx, secs deltaTime)
 		{
 			prevCollision = std::move(currCollision);
 			prevCollision.setPrevious();
-			prevCollision.updateContact();
+			prevCollision.updateContact(ctx);
 		}
 		// else redo the collision from last frame
 		else {
@@ -36,7 +36,7 @@ void CollisionContinuous::update(CollisionContext ctx, secs deltaTime)
 		evalContact(ctx, deltaTime);
 	}
 	else {
-		currCollision.updateContact();
+		currCollision.updateContact(ctx);
 		evalContact(ctx, deltaTime);
 	}
 	prev_quad = curr_quad;
@@ -47,7 +47,7 @@ void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
 		return -1.f * (y0 / (y1 - y0));
 	};
 
-	contact = Contact{};
+	contact = {};
 
 	unsigned pCount = prevCollision.getAxisCount();
 	unsigned cCount = currCollision.getAxisCount();
@@ -145,7 +145,6 @@ void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
 	if (noCollision) 
 	{
 		// no collision at all
-
 		contact = currCollision.getContact();
 		lastAxisCollided = -1;
 	}
@@ -237,7 +236,7 @@ void CollisionContinuous::slipUpdate(CollisionContext ctx) {
 	// TODO
 }
 
-std::optional<Contact> CollisionContinuous::getVerticalSlipContact(float leeway) {
+std::optional<ContinuousContact> CollisionContinuous::getVerticalSlipContact(float leeway) {
 	// contact must be evaluated first
 	if (!evaluated)
 		throw "contact must be evaluated first";
@@ -292,14 +291,14 @@ std::optional<Contact> CollisionContinuous::getVerticalSlipContact(float leeway)
 	}
 
 	if (canNorth && !canSouth) {
-		Contact c = nAxis->contact;
+		ContinuousContact c = nAxis->contact;
 		c.isSlip = true;
 		c.hasImpactTime = contact.hasImpactTime;
 		c.impactTime = contact.impactTime;
 		return c;
 	}
 	else if (!canNorth && canSouth) {
-		Contact c = sAxis->contact;
+		ContinuousContact c = sAxis->contact;
 		c.isSlip = true;
 		c.hasImpactTime = contact.hasImpactTime;
 		c.impactTime = contact.impactTime;
