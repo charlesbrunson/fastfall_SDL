@@ -6,7 +6,7 @@
 #include "fastfall/game_v2/phys/collision/CollisionID.hpp"
 #include "fastfall/game_v2/phys/collision/CollisionContext.hpp"
 
-#include "CollisionAxis.hpp"
+#include "fastfall/game_v2/phys/collision/CollisionAxis.hpp"
 
 #include <assert.h>
 #include <array>
@@ -26,9 +26,9 @@ public:
     CollisionDiscrete(CollisionID t_id, Type collidePrev);
 
 	inline void setPrevious() { collision_time = Type::PrevFrame; };
-	inline const Contact& getContact() const noexcept { return contact; };
+	inline const DiscreteContact& getContact() const noexcept { return contact; };
 
-	void updateContact() noexcept;
+	void updateContact(CollisionContext ctx) noexcept;
 
 	void setAxisApplied(Vec2f ortho_normal) noexcept {
 		for (auto& axis : axes) {
@@ -54,21 +54,7 @@ protected:
 
 	static constexpr float VALLEY_FLATTEN_THRESH = 0.25f;
 
-	void initCollidableData();
-    /*
-    {
-		if (!collidePrevious) {
-			cBox  = cAble->getBox();
-			cPrev = cAble->getPrevBox();
-		}
-		else {
-			cBox  = cAble->getPrevBox();
-			cPrev = cAble->getPrevBox();
-		}
-		cMid = math::rect_mid(cBox);
-		cHalf = cBox.getSize() / 2.f;
-	}
-    */
+	void initCollidableData(CollisionContext ctx);
 
 	void createAxes() noexcept;
 	void evalContact() noexcept;
@@ -81,7 +67,7 @@ protected:
 
 	ColliderQuad cQuad;
 
-	Contact contact;
+	DiscreteContact contact;
 	int chosen_axis = -1;
 
 	Type collision_time;

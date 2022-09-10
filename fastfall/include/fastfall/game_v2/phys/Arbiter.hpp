@@ -28,7 +28,7 @@ public:
 
 	inline const CollisionContinuous* getCollision() const noexcept { return &collision; };
 
-	inline Contact getContact() const noexcept { return collision.getContact(); };
+	inline ContinuousContact getContact() const noexcept { return collision.getContact(); };
 
 	inline secs getAliveDuration() const noexcept { return aliveTimer; };
 	inline secs getTouchDuration() const noexcept { return touchTimer; };
