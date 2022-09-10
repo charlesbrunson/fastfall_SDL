@@ -20,7 +20,7 @@ class CollisionSystem {
 public:
 	void update(secs deltaTime);
 
-    inline void set_world(World* w) { world = w; }
+    void set_world(World* w);
 
     void notify_created(ID<Collidable> id);
     void notify_created(ID<ColliderRegion> id);

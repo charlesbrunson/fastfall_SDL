@@ -44,6 +44,9 @@ private:
     }
 
 public:
+    World();
+
+
     // manage state
     // void update(secs deltaTime)
 
@@ -61,7 +64,7 @@ public:
     T& at(ID<T> id) { return (T&)container<T>().at(id); }
 
     template<class T>
-    T& get(ID<T> id) { return (T*)container<T>().get(id); }
+    T* get(ID<T> id) { return (T*)container<T>().get(id); }
 
 	// create component
     template<class... Args>
