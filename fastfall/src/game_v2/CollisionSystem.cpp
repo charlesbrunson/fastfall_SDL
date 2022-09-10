@@ -20,22 +20,25 @@ void CollisionSystem::update(secs deltaTime) {
 		};
 	}
 
+    auto& collidables = world->all<Collidable>();
+    auto& colliders = world->all<ColliderRegion>();
+
 	if (deltaTime > 0.0) 
 	{
 		size_t ndx = 0;
-        for (auto& col : world->all_collidables()) {
-            col.update(&world->all_colliders(), deltaTime);
+        for (auto& col : collidables) {
+            col.update(&colliders, deltaTime);
         }
 
 		for (auto& [id, arb] : arbiters)
 		{
             auto* dump_ptr = (collision_dump ? &(*collision_dump)["collisions"][ndx] : nullptr);
-			arb.gather_and_solve_collisions(world->at(id), world->all_colliders(), deltaTime, dump_ptr);
+			arb.gather_and_solve_collisions(world->at(id), colliders, deltaTime, dump_ptr);
 			ndx++;
 		}
 	}
 
-	for (auto& collidable : world->all_collidables()) {
+	for (auto& collidable : collidables) {
 		collidable.debug_draw();
 	}
 	collision_dump = nullptr;
@@ -45,9 +48,9 @@ void CollisionSystem::update(secs deltaTime) {
 void CollisionSystem::set_world(World* w) {
     world = w;
     // update all collidable & surface tracker pointers
-    for (auto& collidable : w->all_collidables()) {
+    for (auto& collidable : w->all<Collidable>()) {
         for (auto& [id, tracker] : collidable.tracker_ids) {
-            tracker = world->get(pair.first);
+            tracker = world->get(id);
             tracker->set_collidable_ptr(&collidable);
         }
     }

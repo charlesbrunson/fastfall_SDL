@@ -51,8 +51,8 @@ public:
 	std::optional<TriggerPull> triggerable_by(const Trigger& trigger, secs delta_time);
 	void trigger(const TriggerPull& confirm);
 
-	void add_duration(secs time, size_t ticks = 1);
-	void reset_duration();
+	//void add_duration(secs time, size_t ticks = 1);
+	//void reset_duration();
 
 	void update();
 

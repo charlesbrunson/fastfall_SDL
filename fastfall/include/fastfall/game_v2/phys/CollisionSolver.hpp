@@ -10,12 +10,6 @@
 
 namespace ff {
 
-// struct with the arbiter and contact information prior to application
-struct AppliedContact {
-	Contact contact;
-	ContactType type = ContactType::NO_SOLUTION;
-};
-
 enum class GhostEdge {
 	None,
 	Partial,
@@ -33,7 +27,6 @@ public:
 		bool discardSecond = false;
 
 		std::optional<Contact> contact;
-		ContactType contactType = ContactType::NO_SOLUTION;
 	};
 
 private:
@@ -60,7 +53,7 @@ private:
 	nlohmann::ordered_json* json_dump = nullptr;
 
 	// vector of contacts that have been applied, in order of application
-	std::vector<AppliedContact> frame;
+	std::vector<Contact> frame;
 
 	// pushes contact to appropriate north/south/east/west stack
 	void pushToAStack(std::vector<Contact*> contact);
@@ -103,7 +96,7 @@ public:
 	// attempts to resolve the combination of collisions
 	// pushed contacts will be cleared after solving
 	// returns vector of applied contact in order of application
-	std::vector<AppliedContact> solve(nlohmann::ordered_json* dump_ptr = nullptr);
+	std::vector<Contact> solve(nlohmann::ordered_json* dump_ptr = nullptr);
 
 };
 

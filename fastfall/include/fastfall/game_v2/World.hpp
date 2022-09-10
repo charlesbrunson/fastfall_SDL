@@ -68,32 +68,17 @@ public:
     T* get(ID<T> id) { return (T*)container<T>().get(id); }
 
 	// create component
-    template<class... Args>
-	ID<Collidable> create_collidable(Args&&... args) {
-        return notify_created_all(
-                create(_collidables, std::forward<Args>(args)...),
-                _collision_system);
-    }
-
-    template<class... Args>
-    ID<SurfaceTracker> create_tracker(ID<Collidable> collidable, Angle ang_min, Angle ang_max, bool inclusive = true) {
-        return notify_created_all(
-                create(_trackers, collidable, ang_min, ang_max, inclusive),
-                _collision_system);
-    }
+	ID<Collidable> create_collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
+    ID<SurfaceTracker> create_tracker(ID<Collidable> collidable, Angle ang_min, Angle ang_max, bool inclusive = true);
+    ID<Trigger> create_trigger();
+    ID<SceneObject> create_scene_object(ID<Drawable> id);
+    ID<SceneObject> create_scene_object(SceneObject obj);
 
     template<class T, class... Args> requires std::derived_from<T, ColliderRegion>
 	ID<T> create_collider(Args&&... args) {
         return notify_created_all(
                 poly_create<T>(_colliders, std::forward<Args>(args)...),
                 _collision_system);
-    }
-
-    template<class... Args>
-	ID<Trigger> create_trigger(Args&&... args) {
-        return notify_created_all(
-                create(_triggers, std::forward<Args>(args)...),
-                _trigger_system);
     }
 
 	template<class T, class... Args> requires std::derived_from<T, CameraTarget>
@@ -109,13 +94,6 @@ public:
                 poly_create<T>(_drawables, std::forward<Args>(args)...));
     }
 
-    template<class... Args>
-    ID<SceneObject> create_scene_object(Args&&... args) {
-        return notify_created_all(
-                create(_scene_objects, std::forward<Args>(args)...),
-                _scene_system);
-    }
-
     template<class T, class... Args> requires std::derived_from<T, Drawable>
     ID<T> create_object(Args&&... args) {
         std::unique_ptr<T> obj = ObjectFactory::create<T>(this, std::forward<Args>(args)...);
@@ -129,17 +107,12 @@ public:
     bool erase(ID<T> id) { return erase(id, container<T>()); }
 
     // span components
-    inline auto& all_collidables() { return _collidables; }
-    inline auto& all_trackers() { return _trackers; }
-    inline auto& all_colliders() { return _colliders; }
-    inline auto& all_triggers() { return _triggers; }
-    inline auto& all_camera_targets() { return _camera_targets; }
-    inline auto& all_drawables() { return _drawables; }
-    inline auto& all_scene_objects() { return _scene_objects; }
+    template<class T>
+    inline auto& all() { return container<T>(); }
 
 	// get system
 	//LevelSystem& 		levels() 	{ return _level_system; }
-	ObjectSystem& 		    objects() 	{ return _object_system; }
+	inline ObjectSystem&    objects() 	{ return _object_system; }
 	inline CollisionSystem& collision() { return _collision_system; }
 	inline TriggerSystem&   trigger()   { return _trigger_system; }
 	inline CameraSystem&    camera()    { return _camera_system; }
@@ -162,7 +135,7 @@ private:
             return _colliders;
         }
         else if constexpr (std::same_as<T, Trigger>) {
-            return _colliders;
+            return _triggers;
         }
         else if constexpr (std::derived_from<T, CameraTarget>) {
             return _camera_targets;

@@ -15,7 +15,6 @@ CollisionContinuous::CollisionContinuous(CollisionID t_id)
 
 void CollisionContinuous::update(CollisionContext ctx, secs deltaTime)
 {
-
     auto& curr_quad = *ctx.collider->get_quad(id.quad);
 	if (deltaTime > 0.0) {
 
