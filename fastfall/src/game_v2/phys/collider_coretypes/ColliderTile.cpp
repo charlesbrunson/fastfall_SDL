@@ -52,7 +52,7 @@ constexpr std::array surfacePrototypes = {
 
 
 
-ColliderQuad ColliderTile::toQuad(int id) const {
+ColliderQuad ColliderTile::toQuad(QuadID id) const {
 
 	//ColliderQuad q{ surfacePrototypes.at(shape.type) };
 

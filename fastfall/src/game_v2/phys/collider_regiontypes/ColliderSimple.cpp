@@ -19,7 +19,7 @@ namespace ff {
 		return quad_id.value == 0u ? &quad : nullptr;
 	}
 
-	void ColliderSimple::get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& out_buffer) const {
+	void ColliderSimple::get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, QuadID>>& out_buffer) const {
 
 		Rectf bbox = math::shift(area, -getPosition());
 
@@ -28,7 +28,7 @@ namespace ff {
 		bbox = math::rect_extend(bbox, (deltap.y < 0.f ? Cardinal::N : Cardinal::S), abs(deltap.y));
 
 		if (boundingBox.touches(bbox)) {
-			out_buffer.push_back(std::make_pair(boundingBox, &quad));
+			out_buffer.push_back(std::make_pair(boundingBox, quad.getID()));
 		}
 	}
 

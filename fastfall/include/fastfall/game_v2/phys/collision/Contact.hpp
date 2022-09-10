@@ -5,6 +5,7 @@
 #include "fastfall/util/id.hpp"
 #include "fastfall/game_v2/phys/collider_coretypes/ColliderSurface.hpp"
 #include "fastfall/game_v2/tile/Tile.hpp"
+#include "CollisionID.hpp"
 
 #include <string>
 
@@ -28,10 +29,7 @@ enum class ContactType : unsigned char {
 };
 std::string_view contactTypeToString(ContactType t);
 
-class ColliderRegion;
-class Arbiter;
-
-struct Contact 
+struct Contact
 {
 	bool isResolvable() const noexcept;
 
@@ -42,20 +40,17 @@ struct Contact
 	void transpose() noexcept;
 
 	float separation = 0.f;
-	bool hasContact = false;
+
+    ColliderSurface collider;
 
 	Vec2f position;
 	Vec2f ortho_n;
 	Vec2f collider_n;
-	ColliderSurface collider;
-
-	bool hasValley = false;
 
 	// the velocity of the surface in contact
 	// relative to worldspace
 	Vec2f velocity;
 		
-	
 	// offset to stick to the surface after the contact
 	// multiply with ortho_normal
 	float stickOffset = 0.f;
@@ -65,29 +60,18 @@ struct Contact
 	// represented as a fraction of the tick deltatime [0, 1.0]
 	// used by continuous collision
 	float impactTime = -1.0;
-	bool  hasImpactTime = false;
+    bool  hasImpactTime = false;
 
+	bool isSlip = false;
+    bool is_transposed = false;
+    bool hasValley = false;
+    bool hasContact = false;
 
-	bool  isSlip = false;
+    const SurfaceMaterial* material = nullptr;
+    std::optional<CollisionID> id;
 
-
-	const SurfaceMaterial* material = nullptr;
-
-	bool is_transposed = false;
-};
-
-struct PersistantContact : public Contact {
-	PersistantContact(Contact c) :
-		Contact{ c }
-	{
-
-	}
-
-	secs touchDuration = 0.0;
-	ContactType type = ContactType::NO_SOLUTION;
-
-    ID<ColliderRegion> region;
-	QuadID quad_id;
+    secs touchDuration = 0.0;
+    ContactType type = ContactType::NO_SOLUTION;
 };
 
 bool ContactCompare(const Contact* lhs, const Contact* rhs);

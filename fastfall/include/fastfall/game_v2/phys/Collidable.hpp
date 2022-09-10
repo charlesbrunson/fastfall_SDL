@@ -102,15 +102,15 @@ public:
 
 	void debug_draw() const;
 
-	const PersistantContact* get_contact(Angle angle) const noexcept;
-	const PersistantContact* get_contact(Cardinal dir) const noexcept;
+	const Contact* get_contact(Angle angle) const noexcept;
+	const Contact* get_contact(Cardinal dir) const noexcept;
 
 	bool has_contact(Angle angle) const noexcept;
 	bool has_contact(Cardinal dir) const noexcept;
 
-	inline const std::vector<PersistantContact>& get_contacts() const noexcept { return currContacts; };
+	inline const std::vector<Contact>& get_contacts() const noexcept { return currContacts; };
 
-	void set_frame(poly_id_map<ColliderRegion>* colliders, std::vector<PersistantContact>&& frame);
+	void set_frame(poly_id_map<ColliderRegion>* colliders, std::vector<Contact>&& frame);
 
 	//inline CollidableID get_ID() const noexcept { return id; };
 
@@ -152,7 +152,7 @@ private:
 	Vec2f accel_accum;
 	Vec2f decel_accum;
 
-	std::vector<PersistantContact> currContacts;
+	std::vector<Contact> currContacts;
 };
 
 }

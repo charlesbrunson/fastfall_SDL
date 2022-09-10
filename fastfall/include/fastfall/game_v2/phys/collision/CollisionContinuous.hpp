@@ -20,6 +20,7 @@ private:
 	int lastAxisCollided = -1;
 	Vec2f velocity;
 
+
 	void evalContact(CollisionContext ctx, secs deltaTime);
 	void slipUpdate(CollisionContext ctx);
 	std::optional<Contact> getVerticalSlipContact(float leeway);
@@ -32,6 +33,8 @@ public:
 	inline void updateContact() noexcept { currCollision.updateContact(); };
 
 	inline const Contact& getContact() const noexcept { return contact; }
+
+    void set_touch_duration(secs duration) const { contact.touchDuration = duration; }
 
     CollisionID id;
 

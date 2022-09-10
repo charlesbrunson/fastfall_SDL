@@ -17,7 +17,7 @@ public:
 	void update(secs deltaTime) override;
 	const ColliderQuad* get_quad(QuadID quad_id) const noexcept override;
 
-	void get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& out_buffer) const override;
+	void get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, QuadID>>& out_buffer) const override;
 
 	void set_on_precontact(std::function<bool(const Contact&, secs)> func);
 	void set_on_postcontact(std::function<void(const PersistantContact&)> func);

@@ -205,25 +205,9 @@ namespace ff {
 		std::vector<PersistantContact> c;
 
 		std::transform(frame.cbegin(), frame.cend(), std::back_inserter(c), 
-			[](const AppliedContact& aContact) -> PersistantContact {
+			[this, colliders](const AppliedContact& aContact) -> PersistantContact {
 				PersistantContact pContact{ aContact.contact };
 				pContact.type = aContact.type;
-
-
-                // TODO get arbiter
-                Arbiter* arb = world->collision().get_arbiter(collidable_id);
-				if (arb)
-				{
-					pContact.touchDuration = arbiter->getTouchDuration();
-					pContact.region = arbiter->region;
-                    pContact.quad_id = arbiter->quad;
-
-					if (const auto* region = world->get(pContact.region))
-					{
-						pContact.region = region->id();
-						region->on_postcontact(pContact);
-					}
-				}
 				return pContact;
 			});
 
