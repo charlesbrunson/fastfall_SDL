@@ -21,14 +21,12 @@ private:
 
     auto create(auto& components, auto&&... args) {
         auto id = components.create(std::forward<decltype(args)>(args)...);
-        components.at(id).set_id(id);
         return id;
     }
 
     template<class T>
     auto poly_create(auto& components, auto&&... args) {
         auto id = components.template create<T>(std::forward<decltype(args)>(args)...);
-        components.at(id).set_id(id);
         return id;
     }
 
@@ -59,31 +57,11 @@ public:
 	// erase entity
 
 	// get component
-    Collidable&     operator[](ID<Collidable> id)   { return _collidables.at(id); }
-    SurfaceTracker& operator[](ID<SurfaceTracker> id) { return _trackers.at(id); }
-    ColliderRegion& operator[](ID<ColliderRegion> id) { return _colliders.at(id); }
-	Trigger&        operator[](ID<Trigger> id)      { return _triggers.at(id); }
-	CameraTarget&   operator[](ID<CameraTarget> id) { return _camera_targets.at(id); }
-	Drawable&       operator[](ID<Drawable> id)     { return _drawables.at(id); }
-    SceneObject&    operator[](ID<SceneObject> id)  { return _scene_objects.at(id); }
+    template<class T>
+    T& at(ID<T> id) { return (T&)container<T>().at(id); }
 
-    Collidable&     at(ID<Collidable> id)   { return _collidables.at(id); }
-    SurfaceTracker& at(ID<SurfaceTracker> id) { return _trackers.at(id); }
-    ColliderRegion& at(ID<ColliderRegion> id) { return _colliders.at(id); }
-    Trigger&        at(ID<Trigger> id)      { return _triggers.at(id); }
-    CameraTarget&   at(ID<CameraTarget> id) { return _camera_targets.at(id); }
-    Drawable&       at(ID<Drawable> id)     { return _drawables.at(id); }
-    SceneObject&    at(ID<SceneObject> id)  { return _scene_objects.at(id); }
-
-    //Collidable* 	get(ID<Collidable> id);
-    //ColliderRegion* get(ID<ColliderRegion> id);
-    Collidable*     get(ID<Collidable> id)  { return _collidables.get(id); }
-    SurfaceTracker* get(ID<SurfaceTracker> id) { return _trackers.get(id); }
-    ColliderRegion* get(ID<ColliderRegion> id) { return _colliders.get(id); }
-    Trigger*        get(ID<Trigger> id)     { return _triggers.get(id); }
-    CameraTarget*   get(ID<CameraTarget> id){ return _camera_targets.get(id); }
-    Drawable*       get(ID<Drawable> id)    { return _drawables.get(id); }
-    SceneObject*    get(ID<SceneObject> id) { return _scene_objects.get(id); }
+    template<class T>
+    T& get(ID<T> id) { return (T*)container<T>().get(id); }
 
 	// create component
     template<class... Args>
@@ -94,9 +72,9 @@ public:
     }
 
     template<class... Args>
-    ID<SurfaceTracker> create_tracker(ID<Collidable> collidable, Args&&... args) {
+    ID<SurfaceTracker> create_tracker(ID<Collidable> collidable, Angle ang_min, Angle ang_max, bool inclusive = true) {
         return notify_created_all(
-                create(_collidables, collidable, std::forward<Args>(args)...),
+                create(_trackers, collidable, ang_min, ang_max, inclusive),
                 _collision_system);
     }
 
@@ -135,13 +113,8 @@ public:
     }
 
 	// erase component
-	bool erase(ID<Collidable> id)        { return erase(id, _collidables, _collision_system); }
-    bool erase(ID<SurfaceTracker> id)       { return erase(id, _trackers, _collision_system); }
-	bool erase(ID<ColliderRegion> id)      { return erase(id, _colliders, _collision_system); }
-	bool erase(ID<Trigger> id)              { return erase(id, _triggers, _trigger_system); }
-	bool erase(ID<CameraTarget> id)   { return erase(id, _camera_targets, _camera_system); }
-	bool erase(ID<Drawable> id)            { return erase(id, _drawables); }
-    bool erase(ID<SceneObject> id)     { return erase(id, _scene_objects, _scene_system); }
+    template<class T>
+    bool erase(ID<T> id) { return erase(id, container<T>()); }
 
     // span components
     inline auto& all_collidables() { return _collidables; }
@@ -164,6 +137,32 @@ private:
 	// entities
 	//poly_id_map<GameObject> _objects;
 	//id_map<Level> 			_levels;
+
+    template<class T>
+    constexpr auto& container() {
+        if constexpr (std::same_as<T, Collidable>) {
+            return _collidables;
+        }
+        else if constexpr (std::same_as<T, SurfaceTracker>) {
+            return _trackers;
+        }
+        else if constexpr (std::derived_from<T, ColliderRegion>) {
+            return _colliders;
+        }
+        else if constexpr (std::same_as<T, Trigger>) {
+            return _colliders;
+        }
+        else if constexpr (std::derived_from<T, CameraTarget>) {
+            return _camera_targets;
+        }
+        else if constexpr (std::derived_from<T, Drawable>) {
+            return _drawables;
+        }
+        else if constexpr (std::same_as<T, SceneObject>) {
+            return _scene_objects;
+        }
+        else { throw std::exception{}; }
+    }
 
 	// components
 	id_map<Collidable> 			_collidables;

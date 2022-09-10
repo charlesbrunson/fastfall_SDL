@@ -214,17 +214,10 @@ CollidableOffsets SurfaceTracker::do_max_speed(CollidableOffsets in, secs deltaT
 		&& settings.slope_sticking 
 		&& settings.max_speed > 0.f) 
 	{
-
-		float surface_mag = 0.f;
-		if (settings.use_surf_vel) {
-			Vec2f surfaceVel = currentContact->getSurfaceVel();
-			surface_mag = surfaceVel.x > 0 ? surfaceVel.magnitude() : -surfaceVel.magnitude();
-		}
-
 		float speed = *traverse_get_speed();
-
 		Vec2f acc_vec = math::projection(owner->get_acc(), currentContact->collider_n.righthand(), true);
 		float acc_mag = acc_vec.magnitude();
+
 		if (owner->get_acc().x < 0.f) {
 			acc_mag *= -1.f;
 		}
