@@ -24,8 +24,9 @@ void CollisionSystem::update(secs deltaTime) {
 	{
 		size_t ndx = 0;
         for (auto& col : world->all_collidables()) {
-            col.update(deltaTime);
+            col.update(&world->all_colliders(), deltaTime);
         }
+
 		for (auto& [id, arb] : arbiters)
 		{
             auto* dump_ptr = (collision_dump ? &(*collision_dump)["collisions"][ndx] : nullptr);

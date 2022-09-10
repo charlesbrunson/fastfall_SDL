@@ -111,7 +111,7 @@ private:
 
 	bool do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, bool had_wall) noexcept;
 	CollidableOffsets do_move_with_platform(poly_id_map<ColliderRegion>* colliders, CollidableOffsets in) noexcept;
-	CollidableOffsets do_max_speed(, CollidableOffsets in, secs deltaTime) noexcept;
+	CollidableOffsets do_max_speed(CollidableOffsets in, secs deltaTime) noexcept;
 
 	// returns position offset
 	Vec2f do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos, float left, float right) const noexcept;
