@@ -27,8 +27,89 @@ enum class ContactType : unsigned char {
 	CRUSH_HORIZONTAL,
 	CRUSH_VERTICAL
 };
+
 std::string_view contactTypeToString(ContactType t);
 
+struct DiscreteContact {
+    ColliderSurface collider;
+
+    Vec2f ortho_n;
+    Vec2f collider_n;
+
+    float separation = 0.f;
+    Vec2f position;
+
+    // offset to stick to the surface after the contact
+    // multiply with ortho_normal
+    float stickOffset = 0.f;
+    Linef stickLine;
+
+    bool hasContact = false;
+    bool hasValley = false;
+
+    const SurfaceMaterial* material = nullptr;
+    std::optional<CollisionID> id;
+
+    bool is_resolvable() const noexcept {
+        return ortho_n != Vec2f();
+    }
+
+    Vec2f surface_vel() const {
+        return (material ? collider_n.righthand() * material->velocity : Vec2f{});
+    }
+};
+
+struct ContinuousContact : public DiscreteContact {
+    bool is_transposable() const noexcept {
+        return !p_is_transposed
+               && math::is_vertical(ortho_n)
+               && std::abs(collider_n.x) > std::abs(collider_n.y)
+               && hasImpactTime
+               && !hasValley;
+    }
+
+    void transpose() noexcept {
+        if (!p_is_transposed)
+        {
+            Vec2f alt_ortho_normal = (collider_n.x < 0.f ? Vec2f(-1.f, 0.f) : Vec2f(1.f, 0.f));
+            float alt_separation = abs((collider_n.y * separation) / collider_n.x);
+
+            ortho_n = alt_ortho_normal;
+            separation = alt_separation;
+            p_is_transposed = true;
+        }
+    }
+
+    bool is_transposed() const noexcept {
+        return p_is_transposed;
+    }
+
+    // moment that the object started intersecting the collider,
+    // represented as a fraction of the tick deltatime [0, 1.0]
+    // used by continuous collision
+    float impactTime = -1.0;
+    bool  hasImpactTime = false;
+
+
+    // the velocity of the surface in contact
+    // relative to worldspace
+    Vec2f velocity;
+
+    secs touchDuration = 0.0;
+
+    bool operator< (const ContinuousContact& other) const;
+
+private:
+    bool p_is_transposed = false;
+
+};
+
+struct AppliedContact : public ContinuousContact {
+    ContactType type = ContactType::NO_SOLUTION;
+};
+
+
+/*
 struct Contact
 {
 	bool isResolvable() const noexcept;
@@ -36,7 +117,6 @@ struct Contact
 	Vec2f getSurfaceVel() const;
 
 	bool isTransposable() const noexcept;
-	inline bool isTranposed() const { return is_transposed; };
 	void transpose() noexcept;
 
 	float separation = 0.f;
@@ -73,6 +153,7 @@ struct Contact
     secs touchDuration = 0.0;
     ContactType type = ContactType::NO_SOLUTION;
 };
+*/
 
 bool ContactCompare(const Contact* lhs, const Contact* rhs);
 

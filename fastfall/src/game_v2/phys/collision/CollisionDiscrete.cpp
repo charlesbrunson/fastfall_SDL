@@ -14,18 +14,9 @@ inline float getYforX(const Linef& onLine, float X) {
 };
 
 CollisionDiscrete::CollisionDiscrete(CollisionID t_id, Type collidePrev)
-/*
-	cAble(collidable),
-	cTile(collisionTile),
-	cQuad(*collisionTile),
-	collidePrevious(collidePreviousFrame),
-	region(colliderRegion)
-*/
     : id(t_id)
     , collision_time(collidePrev)
 {
-	//axes.reserve(8u);
-	//reset(collisionTile, colliderRegion, collidePreviousFrame);
 }
 
 void CollisionDiscrete::reset(CollisionContext ctx, ColliderQuad quad, Type collidePrev) {
@@ -34,7 +25,7 @@ void CollisionDiscrete::reset(CollisionContext ctx, ColliderQuad quad, Type coll
 
 	valleys = { false, false, false, false };
 
-	contact = Contact{};
+	contact = {};
 
 	Vec2f topLeft(FLT_MAX, FLT_MAX);
 	Vec2f botRight(-FLT_MAX, -FLT_MAX);
@@ -83,10 +74,8 @@ void CollisionDiscrete::reset(CollisionContext ctx, ColliderQuad quad, Type coll
 	tMid = math::rect_mid(tArea);
 	tHalf = tArea.getSize() / 2.f;
 
-	initCollidableData();
-
 	createAxes();
-	updateContact();
+	updateContact(ctx);
 	evalContact();
 }
 
@@ -250,10 +239,10 @@ void CollisionDiscrete::createAxes() noexcept
 	}
 }
 
-void CollisionDiscrete::updateContact() noexcept {
+void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
 
 	// assume collidable has changed position/size
-	initCollidableData();
+	initCollidableData(ctx);
 
 	// calculate separation, position, collider_normal
 	for (unsigned i = 0; i < axis_count; i++)
@@ -443,7 +432,7 @@ void CollisionDiscrete::evalContact() noexcept {
 		LOG_ERR_("bestPick = FLT_MAX");
 
 	if (!bestPick || bestPick->contact.separation == FLT_MAX) {
-		contact = Contact{};
+		contact = {};
 		hasContact = false;
 	}
 
@@ -747,6 +736,18 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 
 	axis.separationOffset = (extend ? cHalf.x : 0.f) + (has_valley ? VALLEY_FLATTEN_THRESH : 0.f);
 	return axis;
+}
+
+void CollisionDiscrete::initCollidableData(CollisionContext ctx) {
+    if (collision_time == Type::CurrFrame) {
+        cBox  = ctx.collidable->getBox();
+    }
+    else {
+        cBox  = ctx.collidable->getPrevBox();
+    }
+    cPrev = ctx.collidable->getPrevBox();
+    cMid = math::rect_mid(cBox);
+    cHalf = cBox.getSize() / 2.f;
 }
 
 }

@@ -15,7 +15,7 @@ private:
 
     ColliderQuad prev_quad;
 
-	Contact contact;
+	ContinuousContact contact;
 	bool evaluated = false;
 	int lastAxisCollided = -1;
 	Vec2f velocity;
@@ -23,18 +23,16 @@ private:
 
 	void evalContact(CollisionContext ctx, secs deltaTime);
 	void slipUpdate(CollisionContext ctx);
-	std::optional<Contact> getVerticalSlipContact(float leeway);
+	std::optional<ContinuousContact> getVerticalSlipContact(float leeway);
 
 public:
     CollisionContinuous(CollisionID t_id);
 
 	void update(CollisionContext ctx, secs deltaTime);
 
-	inline void updateContact() noexcept { currCollision.updateContact(); };
+	inline void updateContact(CollisionContext ctx) noexcept { currCollision.updateContact(ctx); };
 
-	inline const Contact& getContact() const noexcept { return contact; }
-
-    void set_touch_duration(secs duration) const { contact.touchDuration = duration; }
+	inline const ContinuousContact& getContact() const noexcept { return contact; }
 
     CollisionID id;
 

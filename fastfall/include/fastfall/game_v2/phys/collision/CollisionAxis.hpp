@@ -31,7 +31,7 @@ public:
 	}
 
 	// the contact on this axis
-	Contact contact;
+	DiscreteContact contact;
 
 	// the index of this surface in the original quad
 	uint8_t quadIndex = 255u;
@@ -47,7 +47,6 @@ public:
 
 	// cached calcuations for contact updating
 	float separationOffset = 0.f;
-
 
 	// this axis can be used for resolving a collision
 	inline bool is_collider_valid() const noexcept {
