@@ -12,20 +12,20 @@
 namespace ff {
 
 enum class ContactType : unsigned char {
-	NO_SOLUTION,
+    NO_SOLUTION,
 
-	// typical case
-	// from a single arbiter
-	SINGLE,
+    // typical case
+    // from a single arbiter
+    SINGLE,
 
-	// wedge solution
-	// derived from two arbiters
-	WEDGE,
+    // wedge solution
+    // derived from two arbiters
+    WEDGE,
 
-	// crush solution
-	// derived from two arbiters
-	CRUSH_HORIZONTAL,
-	CRUSH_VERTICAL
+    // crush solution
+    // derived from two arbiters
+    CRUSH_HORIZONTAL,
+    CRUSH_VERTICAL
 };
 
 std::string_view contactTypeToString(ContactType t);
@@ -47,7 +47,7 @@ struct DiscreteContact {
     bool hasContact = false;
     bool hasValley = false;
 
-    const SurfaceMaterial* material = nullptr;
+    const SurfaceMaterial *material = nullptr;
     std::optional<CollisionID> id;
 
     bool is_resolvable() const noexcept {
@@ -60,36 +60,19 @@ struct DiscreteContact {
 };
 
 struct ContinuousContact : public DiscreteContact {
-    bool is_transposable() const noexcept {
-        return !p_is_transposed
-               && math::is_vertical(ortho_n)
-               && std::abs(collider_n.x) > std::abs(collider_n.y)
-               && hasImpactTime
-               && !hasValley;
-    }
 
-    void transpose() noexcept {
-        if (!p_is_transposed)
-        {
-            Vec2f alt_ortho_normal = (collider_n.x < 0.f ? Vec2f(-1.f, 0.f) : Vec2f(1.f, 0.f));
-            float alt_separation = abs((collider_n.y * separation) / collider_n.x);
-
-            ortho_n = alt_ortho_normal;
-            separation = alt_separation;
-            p_is_transposed = true;
-        }
-    }
-
-    bool is_transposed() const noexcept {
-        return p_is_transposed;
-    }
+    ContinuousContact() = default;
+    ContinuousContact(const DiscreteContact& other)
+            : DiscreteContact(other)
+    {}
 
     // moment that the object started intersecting the collider,
     // represented as a fraction of the tick deltatime [0, 1.0]
     // used by continuous collision
     float impactTime = -1.0;
-    bool  hasImpactTime = false;
+    bool hasImpactTime = false;
 
+    bool isSlip = false;
 
     // the velocity of the surface in contact
     // relative to worldspace
@@ -97,64 +80,36 @@ struct ContinuousContact : public DiscreteContact {
 
     secs touchDuration = 0.0;
 
-    bool operator< (const ContinuousContact& other) const;
+    bool is_transposed = false;
 
-private:
-    bool p_is_transposed = false;
+    bool transposable() const noexcept {
+        return !is_transposed
+               && math::is_vertical(ortho_n)
+               && std::abs(collider_n.x) > std::abs(collider_n.y)
+               && hasImpactTime
+               && !hasValley;
+    }
 
+    void transpose() noexcept {
+        if (!is_transposed) {
+            Vec2f alt_ortho_normal = (collider_n.x < 0.f ? Vec2f(-1.f, 0.f) : Vec2f(1.f, 0.f));
+            float alt_separation = abs((collider_n.y * separation) / collider_n.x);
+            ortho_n = alt_ortho_normal;
+            separation = alt_separation;
+            is_transposed = true;
+        }
+    }
+
+    bool operator<(const ContinuousContact &other) const;
 };
 
 struct AppliedContact : public ContinuousContact {
+    AppliedContact() = default;
+    AppliedContact(const ContinuousContact& other)
+        : ContinuousContact(other)
+    {}
+
     ContactType type = ContactType::NO_SOLUTION;
 };
-
-
-/*
-struct Contact
-{
-	bool isResolvable() const noexcept;
-
-	Vec2f getSurfaceVel() const;
-
-	bool isTransposable() const noexcept;
-	void transpose() noexcept;
-
-	float separation = 0.f;
-
-    ColliderSurface collider;
-
-	Vec2f position;
-	Vec2f ortho_n;
-	Vec2f collider_n;
-
-	// the velocity of the surface in contact
-	// relative to worldspace
-	Vec2f velocity;
-		
-	// offset to stick to the surface after the contact
-	// multiply with ortho_normal
-	float stickOffset = 0.f;
-	Linef stickLine;
-
-	// moment that the object started intersecting the collider,
-	// represented as a fraction of the tick deltatime [0, 1.0]
-	// used by continuous collision
-	float impactTime = -1.0;
-    bool  hasImpactTime = false;
-
-	bool isSlip = false;
-    bool is_transposed = false;
-    bool hasValley = false;
-    bool hasContact = false;
-
-    const SurfaceMaterial* material = nullptr;
-    std::optional<CollisionID> id;
-
-    secs touchDuration = 0.0;
-    ContactType type = ContactType::NO_SOLUTION;
-};
-*/
-
-bool ContactCompare(const Contact* lhs, const Contact* rhs);
 
 }

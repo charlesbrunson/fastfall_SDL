@@ -20,7 +20,6 @@ private:
 	int lastAxisCollided = -1;
 	Vec2f velocity;
 
-
 	void evalContact(CollisionContext ctx, secs deltaTime);
 	void slipUpdate(CollisionContext ctx);
 	std::optional<ContinuousContact> getVerticalSlipContact(float leeway);
@@ -32,11 +31,12 @@ public:
 
 	inline void updateContact(CollisionContext ctx) noexcept { currCollision.updateContact(ctx); };
 
+    inline void set_touch_duration(secs time) noexcept { contact.touchDuration = time; }
+
 	inline const ContinuousContact& getContact() const noexcept { return contact; }
 
     CollisionID id;
 
-	//inline bool tileValid() const noexcept { return cTile.hasAnySurface(); };
 	inline void setAxisApplied(Vec2f ortho_normal) noexcept { currCollision.setAxisApplied(ortho_normal); }
 };
 

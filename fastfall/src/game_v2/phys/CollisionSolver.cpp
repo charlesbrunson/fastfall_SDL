@@ -18,7 +18,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ContactType, {
 	{ContactType::CRUSH_VERTICAL,	"vertical crush"},
 	})
 
-nlohmann::ordered_json to_json(const Contact* contact)
+nlohmann::ordered_json to_json(const ContinuousContact* contact)
 {
 	//const auto* arb = contact->arbiter;
     auto id = contact->id;
@@ -39,11 +39,11 @@ nlohmann::ordered_json to_json(const Contact* contact)
 }
 
 template<typename Container>
-requires std::same_as<typename Container::value_type, Contact*>
+requires std::same_as<typename Container::value_type, ContinuousContact*>
 nlohmann::ordered_json to_json(Container container)
 {
 	nlohmann::ordered_json json;
-	for (const Contact* c : container)
+	for (const ContinuousContact* c : container)
 	{
 		json += fmt::format("{}", fmt::ptr(c));
 	}
@@ -52,14 +52,14 @@ nlohmann::ordered_json to_json(Container container)
 
 // solver utils
 
-void updateContact(Contact* contact)
+void updateContact(ContinuousContact* contact)
 {
 	if (contact->arbiter) {
 		contact->arbiter->update(0.0);
 	}
 }
 
-void updateStack(std::deque<Contact*>& stack) {
+void updateStack(std::deque<ContinuousContact*>& stack) {
 	std::for_each(stack.begin(), stack.end(), updateContact);
 }
 
@@ -68,7 +68,7 @@ void updateStack(std::deque<Contact*>& stack) {
 
 // utils for detecting crush/wedges
 
-bool is_squeezing(const Contact* A, const Contact* B)
+bool is_squeezing(const ContinuousContact* A, const ContinuousContact* B)
 {
 	float sepA = A->separation;
 	float sepB = B->separation;
@@ -80,7 +80,7 @@ bool is_squeezing(const Contact* A, const Contact* B)
 		&& A->ortho_n == -B->ortho_n;
 }
 
-bool is_crushing(const Contact* A, const Contact* B)
+bool is_crushing(const ContinuousContact* A, const ContinuousContact* B)
 {
 	Vec2f sum = A->collider_n + B->collider_n;
 	return abs(sum.x) < 1e-5 && abs(sum.y) < 1e-5;
@@ -102,7 +102,7 @@ bool is_diverging_V(Linef A, Linef B)
 
 // solve functions for x- and y-axis
 
-CollisionSolver::CompResult pickH(const Contact* east, const Contact* west, const Collidable* box)
+CollisionSolver::CompResult pickH(const ContinuousContact* east, const ContinuousContact* west, const Collidable* box)
 {
 
 	float eSep = east->separation;
@@ -123,7 +123,7 @@ CollisionSolver::CompResult pickH(const Contact* east, const Contact* west, cons
 	// crush check
 	if (crush > 0.f) {
 		CollisionSolver::CompResult r;
-		r.contact->type = ContactType::CRUSH_HORIZONTAL;
+		r.type = ContactType::CRUSH_HORIZONTAL;
 
 		r.discardFirst = true;
 		r.discardSecond = true;
@@ -153,7 +153,7 @@ CollisionSolver::CompResult pickH(const Contact* east, const Contact* west, cons
 	return {};
 }
 
-CollisionSolver::CompResult pickV(const Contact* north, const Contact* south, const Collidable* box)
+CollisionSolver::CompResult pickV(const ContinuousContact* north, const ContinuousContact* south, const Collidable* box)
 {
 
 	float nSep = north->separation;
@@ -179,8 +179,7 @@ CollisionSolver::CompResult pickV(const Contact* north, const Contact* south, co
 	{
 		// crush
 		CollisionSolver::CompResult r;
-		r.contactType = ContactType::CRUSH_VERTICAL;
-
+		r.type = ContactType::CRUSH_VERTICAL;
 		r.discardFirst = true;
 		r.discardSecond = true;
 
@@ -215,7 +214,7 @@ CollisionSolver::CollisionSolver(Collidable* _collidable)
 {
 }
 
-bool CollisionSolver::applyThenUpdateStacks(std::deque<Contact*>& stack, std::deque<Contact*>& otherStack, bool which)
+bool CollisionSolver::applyThenUpdateStacks(std::deque<ContinuousContact*>& stack, std::deque<ContinuousContact*>& otherStack, bool which)
 {
 	bool applied = applyFirst(which ? stack : otherStack);
 	if (applied) {
@@ -225,7 +224,7 @@ bool CollisionSolver::applyThenUpdateStacks(std::deque<Contact*>& stack, std::de
 	return applied;
 };
 
-bool CollisionSolver::canApplyElseDiscard(bool discard, std::deque<Contact*>& stack)
+bool CollisionSolver::canApplyElseDiscard(bool discard, std::deque<ContinuousContact*>& stack)
 {
 	if (discard)
 	{
@@ -239,7 +238,7 @@ bool CollisionSolver::canApplyElseDiscard(bool discard, std::deque<Contact*>& st
 	return !discard;
 };
 
-void CollisionSolver::pushToAStack(Contact* contact)
+void CollisionSolver::pushToAStack(ContinuousContact* contact)
 {
 	auto dir = direction::from_vector(contact->ortho_n);
 	if (!dir.has_value()) {
@@ -258,16 +257,16 @@ void CollisionSolver::pushToAStack(Contact* contact)
 			west.push_back(contact);
 			break;
 		case Cardinal::N:
-			(contact->isTransposable() ? north_alt.push_back(contact) : north.push_back(contact));
+			(contact->transposable() ? north_alt.push_back(contact) : north.push_back(contact));
 			break;
 		case Cardinal::S:
-			(contact->isTransposable() ? south_alt.push_back(contact) : south.push_back(contact));
+			(contact->transposable() ? south_alt.push_back(contact) : south.push_back(contact));
 			break;
 		}
 	}
 }
 
-void CollisionSolver::pushToAStack(std::vector<Contact*> contacts)
+void CollisionSolver::pushToAStack(std::vector<ContinuousContact*> contacts)
 {
 	for (auto* contact : contacts)
 	{
@@ -275,14 +274,14 @@ void CollisionSolver::pushToAStack(std::vector<Contact*> contacts)
 	}
 }
 
-CollisionSolver::CompResult compare(const Contact* lhs, const Contact* rhs) {
+CollisionSolver::CompResult compare(const ContinuousContact* lhs, const ContinuousContact* rhs) {
 	CollisionSolver::CompResult comp;
 
 	if (lhs == rhs)
 		return comp;
 
-	const Contact& lhsContact = *lhs;
-	const Contact& rhsContact = *rhs;
+	const ContinuousContact& lhsContact = *lhs;
+	const ContinuousContact& rhsContact = *rhs;
 
 	comp.discardFirst = lhs->arbiter ? !lhs->arbiter->getCollision()->tileValid() : false;
 	comp.discardSecond = rhs->arbiter ? !rhs->arbiter->getCollision()->tileValid() : false;
@@ -301,7 +300,7 @@ CollisionSolver::CompResult compare(const Contact* lhs, const Contact* rhs) {
 				// pick one
 				if (g1 == g2) {
 					// double ghost, pick the one with least separation
-					g1_isGhost = !ContactCompare(lhs, rhs);
+					g1_isGhost = lhs >= rhs;
 				}
 				else {
 					g1_isGhost = g2 < g1;
@@ -316,7 +315,7 @@ CollisionSolver::CompResult compare(const Contact* lhs, const Contact* rhs) {
 	return comp;
 }
 
-GhostEdge isGhostEdge(const Contact& basis, const Contact& candidate) noexcept
+GhostEdge isGhostEdge(const ContinuousContact& basis, const ContinuousContact& candidate) noexcept
 {
 	if (!basis.isResolvable())
 		return GhostEdge::None;
@@ -401,9 +400,9 @@ void CollisionSolver::compareAll()
 
 }
 
-std::optional<Contact> CollisionSolver::detectWedge(const Contact* north, const Contact* south)
+std::optional<ContinuousContact> CollisionSolver::detectWedge(const ContinuousContact* north, const ContinuousContact* south)
 {
-	std::optional<Contact> contact;
+	std::optional<ContinuousContact> contact;
 
 	if (is_squeezing(north, south)
 		&& !is_crushing(north, south)
@@ -425,7 +424,7 @@ std::optional<Contact> CollisionSolver::detectWedge(const Contact* north, const 
 			Vec2f pos = collidable->getPosition();
 			float side = (north->collider_n.x + south->collider_n.x < 0.f ? -1.f : 1.f);
 
-			contact = Contact{
+			contact = ContinuousContact{
 				.separation = abs(intersect.x - pos.x),
 				.hasContact = true,
 				.position	= Vec2f{ pos.x, math::rect_mid(colBox).y },
@@ -528,8 +527,8 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 	north_alt.clear();
 	south_alt.clear();
 
-	std::sort(east.begin(), east.end(), ContactCompare);
-	std::sort(west.begin(), west.end(), ContactCompare);
+	std::sort(east.begin(), east.end());
+	std::sort(west.begin(), west.end());
 
 	if (json_dump) {
 		(*json_dump)["apply"] += {
@@ -550,8 +549,8 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 
 	}
 
-	std::sort(north.begin(), north.end(), ContactCompare);
-	std::sort(south.begin(), south.end(), ContactCompare);
+	std::sort(north.begin(), north.end());
+	std::sort(south.begin(), south.end());
 
 	if (json_dump) {
 		(*json_dump)["apply"] += {
@@ -569,7 +568,7 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 	return frame;
 }
 
-bool CollisionSolver::solveAxis(std::deque<Contact*>& stackA, std::deque<Contact*>& stackB, PickerFn picker)
+bool CollisionSolver::solveAxis(std::deque<ContinuousContact*>& stackA, std::deque<ContinuousContact*>& stackB, PickerFn picker)
 {
 	bool any_applied = false;
 
@@ -631,7 +630,7 @@ bool CollisionSolver::solveAxis(std::deque<Contact*>& stackA, std::deque<Contact
 
 // ----------------------------------------------------------------------------
 
-bool CollisionSolver::applyStack(std::deque<Contact*>& stack) {
+bool CollisionSolver::applyStack(std::deque<ContinuousContact*>& stack) {
 	bool any_applied = false;
 	while (!stack.empty()) {
 		if (applyFirst(stack))
@@ -643,12 +642,12 @@ bool CollisionSolver::applyStack(std::deque<Contact*>& stack) {
 	return any_applied;
 }
 
-bool CollisionSolver::applyFirst(std::deque<Contact*>& stack) {
+bool CollisionSolver::applyFirst(std::deque<ContinuousContact*>& stack) {
 	if (stack.empty())
 		return false;
 
 	// if there are multiple arbiters with the same sep, prefer the one closest to the collidable's center
-	std::deque<Contact*>::iterator pick = stack.begin();
+	std::deque<ContinuousContact*>::iterator pick = stack.begin();
 	if (stack.size() > 1) 
 	{
 		float sep = (*pick)->separation;
@@ -659,8 +658,8 @@ bool CollisionSolver::applyFirst(std::deque<Contact*>& stack) {
 				break;
 			}
 			else {
-				const Contact* c1 = *pick;
-				const Contact* c2 = *it;
+				const ContinuousContact* c1 = *pick;
+				const ContinuousContact* c2 = *it;
 				Vec2f mid = math::rect_mid(collidable->getBox());
 
 				if (math::is_horizontal((*pick)->ortho_n)) {
@@ -705,7 +704,7 @@ bool CollisionSolver::canApplyAlt() const
 
 // ----------------------------------------------------------------------------
 
-bool CollisionSolver::apply(const Contact& contact, ContactType type)  
+bool CollisionSolver::apply(const ContinuousContact& contact, ContactType type)
 {
 	bool has_contact = contact.hasContact;
 	if (contact.hasContact) 
@@ -717,8 +716,7 @@ bool CollisionSolver::apply(const Contact& contact, ContactType type)
 
 		collidable->applyContact(contact, type);
 
-		AppliedContact applied;
-		applied.contact = contact;
+		AppliedContact applied{contact};
 		applied.type = type;
 
 		if (contact.arbiter != nullptr) {
