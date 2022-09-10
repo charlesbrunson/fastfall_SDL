@@ -44,7 +44,8 @@ private:
 public:
 	using TriggerFn = std::function<void(const TriggerPull&)>;
 
-	void set_owning_object(ID<GameObject> id); // can take nullptr
+    void set_id(ID<Trigger> t_id) { m_id = t_id; }
+	void set_owning_object(std::optional<ID<GameObject>> id) { owner = id; }
 	void set_trigger_callback(TriggerFn&& trigger_fn);
 
 	std::optional<TriggerPull> triggerable_by(const Trigger& trigger, secs delta_time);
@@ -52,8 +53,6 @@ public:
 
 	void add_duration(secs time, size_t ticks = 1);
 	void reset_duration();
-
-
 
 	void update();
 
@@ -76,7 +75,8 @@ private:
 	bool activated = false;
 
 	Rectf area;
-    ID<GameObject> owner;
+    std::optional<ID<GameObject>> owner;
+    ID<Trigger> m_id;
 	TriggerFn on_trigger;
 };
 
