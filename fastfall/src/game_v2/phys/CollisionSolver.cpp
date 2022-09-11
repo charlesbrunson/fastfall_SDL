@@ -1,5 +1,7 @@
 #include "fastfall/game_v2/phys/CollisionSolver.hpp"
 
+#include "fastfall/game_v2/phys/CollidableArbiter.hpp"
+
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/log.hpp"
 
@@ -266,9 +268,9 @@ void CollisionSolver::pushToAStack(ContinuousContact* contact)
 	}
 }
 
-void CollisionSolver::pushToAStack(std::vector<ContinuousContact*> contacts)
+void CollisionSolver::pushToAStack(std::vector<ContinuousContact*>& t_contacts)
 {
-	for (auto* contact : contacts)
+	for (auto* contact : t_contacts)
 	{
 		pushToAStack(contact);
 	}
@@ -317,7 +319,7 @@ CollisionSolver::CompResult compare(const ContinuousContact* lhs, const Continuo
 
 GhostEdge isGhostEdge(const ContinuousContact& basis, const ContinuousContact& candidate) noexcept
 {
-	if (!basis.isResolvable())
+	if (!basis.is_resolvable())
 		return GhostEdge::None;
 
 	bool isOneWay = (!basis.hasContact) && (basis.separation > 0.f) && (basis.impactTime == -1.0);
@@ -368,13 +370,13 @@ void CollisionSolver::compareAll()
 	for (size_t i = 0; i < contacts.size() - 1; i++) {
 		for (size_t j = i + 1; j < contacts.size(); ) {
 
-			CompResult result = compare(contacts.at(i), contacts.at(j));
+			CompResult result = compare(&contacts.at(i), &contacts.at(j));
 
 			if (json_dump)
 			{
 				(*json_dump)["compare"][cmp_count] = {
-					{"first",  fmt::format("{}", fmt::ptr(contacts.at(i))) },
-					{"second", fmt::format("{}", fmt::ptr(contacts.at(j))) },
+					{"first",  fmt::format("{}", fmt::ptr(&contacts.at(i))) },
+					{"second", fmt::format("{}", fmt::ptr(&contacts.at(j))) },
 					{"result", {
 							{"first",  (result.discardFirst ? "discard" : "keep")},
 							{"second", (result.discardSecond ? "discard" : "keep")}
@@ -424,18 +426,17 @@ std::optional<ContinuousContact> CollisionSolver::detectWedge(const ContinuousCo
 			Vec2f pos = collidable->getPosition();
 			float side = (north->collider_n.x + south->collider_n.x < 0.f ? -1.f : 1.f);
 
-			contact = ContinuousContact{
-				.separation = abs(intersect.x - pos.x),
-				.hasContact = true,
-				.position	= Vec2f{ pos.x, math::rect_mid(colBox).y },
-				.ortho_n	= Vec2f{ side, 0.f },
-				.collider_n = Vec2f{ side, 0.f },
-				.velocity	= Vec2f{
-					intersect - math::intersection(
-						math::shift(floorLine, -north->velocity),
-						math::shift(ceilLine, -south->velocity))
-				}
-			};
+			contact = ContinuousContact{};
+            contact->separation = abs(intersect.x - pos.x),
+            contact->hasContact = true,
+            contact->position	= Vec2f{ pos.x, math::rect_mid(colBox).y },
+            contact->ortho_n	= Vec2f{ side, 0.f },
+            contact->collider_n = Vec2f{ side, 0.f },
+            contact->velocity	= Vec2f{
+                intersect - math::intersection(
+                    math::shift(floorLine, -north->velocity),
+                    math::shift(ceilLine, -south->velocity))
+            };
 
 			if (json_dump)
 			{
@@ -478,8 +479,8 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 
 	if (json_dump)
 	{
-		for (auto& c : contacts) {
-			(*json_dump)["precompare"] += to_json(c);
+		for (auto& contact : contacts) {
+			(*json_dump)["precompare"] += to_json(&contact);
 		}
 		(*json_dump)["compare"];
 	}
@@ -490,9 +491,9 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 
 	if (json_dump)
 	{
-		for (auto c : contacts)
+		for (auto& contact : contacts)
 		{
-			(*json_dump)["postcompare"] += to_json(c);
+			(*json_dump)["postcompare"] += to_json(&contact);
 		}
 	}
 
@@ -510,7 +511,7 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 	// opportunistically determine if we can solve steeper slopes on the X axis instead of Y (looks nicer)
 	if (canApplyAlt()) 
 	{
-		const auto transposeAndPush = [&](Contact* contact) -> void 
+		const auto transposeAndPush = [&](ContinuousContact* contact) -> void
 		{
 			contact->transpose();
 			pushToAStack(contact);
@@ -590,11 +591,11 @@ bool CollisionSolver::solveAxis(std::deque<ContinuousContact*>& stackA, std::deq
 
 		if (r.contact) {
 			// picker generated a new contact
-			if (apply(*r.contact, r.contactType))
+			if (apply(*r.contact, r.type))
 			{
 				any_applied = true;
-				if (   r.contactType == ContactType::CRUSH_HORIZONTAL
-					|| r.contactType == ContactType::CRUSH_VERTICAL) 
+				if (   r.type == ContactType::CRUSH_HORIZONTAL
+					|| r.type == ContactType::CRUSH_VERTICAL)
 				{
 					// nothing more we can do on this axis
 					return true; 
@@ -725,7 +726,6 @@ bool CollisionSolver::apply(const ContinuousContact& contact, ContactType type)
 		}
 
 		frame.push_back(applied);
-		
 	}
 	else {
 		if (json_dump) {

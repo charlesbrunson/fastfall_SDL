@@ -12,6 +12,13 @@ struct CollisionID {
     ID<Collidable> collidable;
     ID<ColliderRegion> collider;
     QuadID quad;
+
+    bool operator< (const CollisionID& other) const
+    {
+        return collidable < other.collidable
+            || (collidable == other.collidable && collider < other.collider)
+            || (collidable == other.collidable && collider == other.collider && quad < other.quad);
+    }
 };
 
 }
