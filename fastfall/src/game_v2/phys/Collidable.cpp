@@ -58,7 +58,7 @@ void drawDrawCollidable(const Collidable& c) {
 	
 }
 
-void debugDrawContact(const Contact& contact) {
+void debugDrawContact(const AppliedContact& contact) {
 
 	if (contact.position == Vec2f() ||
 		!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_CONTACT))
@@ -238,7 +238,7 @@ void Collidable::teleport(Vec2f position) noexcept {
 	}
 }
 
-void Collidable::applyContact(const Contact& contact, ContactType type)
+void Collidable::applyContact(const AppliedContact& contact, ContactType type)
 {
 	Vec2f offset = contact.ortho_n * (contact.separation);
 
@@ -269,7 +269,7 @@ void Collidable::applyContact(const Contact& contact, ContactType type)
 }
 
 // will return nullptr if no contact in the given range, or no record for that range
-const PersistantContact* Collidable::get_contact(Angle angle) const noexcept {
+const AppliedContact* Collidable::get_contact(Angle angle) const noexcept {
 
 	for (auto& [id, tracker] : tracker_ids) {
 		if (tracker->angle_range.within_range(angle)) {
@@ -280,7 +280,7 @@ const PersistantContact* Collidable::get_contact(Angle angle) const noexcept {
 	return nullptr;
 }
 
-const PersistantContact* Collidable::get_contact(Cardinal dir) const noexcept {
+const AppliedContact* Collidable::get_contact(Cardinal dir) const noexcept {
 	return get_contact(direction::to_angle(dir));
 }
 
@@ -294,7 +294,7 @@ bool Collidable::has_contact(Cardinal dir) const noexcept {
 
 void Collidable::set_frame(
         poly_id_map<ColliderRegion>* colliders,
-        std::vector<PersistantContact>&& frame)
+        std::vector<AppliedContact>&& frame)
 {
 	currContacts = std::move(frame);
 

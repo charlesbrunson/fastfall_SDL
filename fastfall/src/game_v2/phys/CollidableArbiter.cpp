@@ -13,24 +13,6 @@ namespace ff {
         region_arbiters.erase(id);
 	}
 
-    Arbiter* CollidableArbiter::get_quad_arbiter(CollisionID id) {
-        Arbiter* arb = nullptr;
-        if (id.collidable == collidable_id)
-        {
-            if (auto riter = region_arbiters.find(id.collider);
-                riter != region_arbiters.end())
-            {
-                auto& qarb = riter->second.getQuadArbiters();
-                if (auto qiter = qarb.find(id.quad);
-                    qiter != qarb.end())
-                {
-                    arb = &qiter->second;
-                }
-            }
-        }
-        return arb;
-    }
-
 	void CollidableArbiter::gather_collisions(
             Collidable& collidable,
             poly_id_map<ColliderRegion>& colliders,
@@ -181,7 +163,7 @@ namespace ff {
             poly_id_map<ColliderRegion>& colliders,
             nlohmann::ordered_json* dump_ptr)
 	{
-		CollisionSolver solver{ &collidable };
+		CollisionSolver solver{ &colliders, &collidable };
 
 		for (auto& [rid, rarb] : region_arbiters) {
 
@@ -191,7 +173,7 @@ namespace ff {
                 // allow precontact callback to reject collision
 				if (collider.on_precontact(qarb.id.quad, qarb.getContact(), qarb.getTouchDuration()))
 				{
-					solver.pushContact(qarb.getContact());
+					solver.pushContact(&qarb);
 				}
 			}
 		}
@@ -200,22 +182,6 @@ namespace ff {
 		if (dump_ptr) {
 			json_dump = &(*dump_ptr)["solver"];
 		}
-
-        /*
-		auto frame = solver.solve(json_dump);
-
-		// push collision data to collidable
-		std::vector<AppliedContact> c;
-
-		std::transform(frame.cbegin(), frame.cend(), std::back_inserter(c), 
-			[this, colliders](const AppliedContact& aContact) -> AppliedContact {
-				PersistantContact pContact{ aContact.contact };
-				pContact.type = aContact.type;
-				return pContact;
-			});
-
-		collidable.set_frame(&colliders, std::move(c));
-        */
 
         collidable.set_frame(&colliders, solver.solve(json_dump));
 	}

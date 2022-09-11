@@ -11,6 +11,8 @@
 
 namespace ff {
 
+class Arbiter;
+
 enum class ContactType : unsigned char {
     NO_SOLUTION,
 
@@ -73,6 +75,8 @@ struct ContinuousContact : public DiscreteContact {
     bool hasImpactTime = false;
 
     bool isSlip = false;
+
+    bool quad_valid = false;
 
     // the velocity of the surface in contact
     // relative to worldspace
