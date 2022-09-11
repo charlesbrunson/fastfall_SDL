@@ -10,6 +10,8 @@
 
 namespace ff {
 
+class CollidableArbiter;
+
 enum class GhostEdge {
 	None,
 	Partial,
@@ -42,7 +44,7 @@ private:
 	std::vector<ContinuousContact*> south_alt;
 
 	// the collidable we're solving for
-    ID<Collidable> collidable;
+    Collidable* collidable;
 
 	// collision set of arbiters to solve
 	std::vector<ContinuousContact> contacts;
@@ -56,7 +58,7 @@ private:
 	std::vector<AppliedContact> frame;
 
 	// pushes contact to appropriate north/south/east/west stack
-	void pushToAStack(std::vector<ContinuousContact*> contact);
+	void pushToAStack(std::vector<ContinuousContact*>& t_contact);
 	void pushToAStack(ContinuousContact* contact);
 
 	// arbiter may be nullptr
@@ -91,7 +93,9 @@ public:
 	CollisionSolver(Collidable* _collidable);
 
 	// add an arbiter associated with the collidable to the collision set
-	inline void pushContact(ContinuousContact contact) { contacts.push_back(contact); };
+	inline void pushContact(ContinuousContact contact, Arbiter* arb) {
+        contacts.push_back(contact);
+    };
 
 	// attempts to resolve the combination of collisions
 	// pushed contacts will be cleared after solving

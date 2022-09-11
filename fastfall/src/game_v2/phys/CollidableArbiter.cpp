@@ -10,15 +10,26 @@
 namespace ff {
 	void CollidableArbiter::erase_region(ID<ColliderRegion> id)
 	{
-		region_arbiters.erase(
-			std::remove_if(region_arbiters.begin(), region_arbiters.end(),
-				[id](const RegionArbiter& arb) -> bool {
-					return arb.get_collider_id() == id;
-				}
-			),
-			region_arbiters.end()
-		);
+        region_arbiters.erase(id);
 	}
+
+    Arbiter* CollidableArbiter::get_quad_arbiter(CollisionID id) {
+        Arbiter* arb = nullptr;
+        if (id.collidable == collidable_id)
+        {
+            if (auto riter = region_arbiters.find(id.collider);
+                riter != region_arbiters.end())
+            {
+                auto& qarb = riter->second.getQuadArbiters();
+                if (auto qiter = qarb.find(id.quad);
+                    qiter != qarb.end())
+                {
+                    arb = &qiter->second;
+                }
+            }
+        }
+        return arb;
+    }
 
 	void CollidableArbiter::gather_collisions(
             Collidable& collidable,
@@ -61,14 +72,14 @@ namespace ff {
 			update_region_arbiters(collidable, colliders, body_bound);
 
 			// try to push out collidable bounds
-			for (auto& regionArb : region_arbiters) {
+			for (auto& [rid, rarb] : region_arbiters) {
 
                 CollisionContext ctx{
-                    .collider = colliders.get(regionArb.get_collider_id()),
+                    .collider = colliders.get(rid),
                     .collidable = &collidable
                 };
 
-				for (auto& [quad, arbiter] : regionArb.getQuadArbiters()) {
+				for (auto& [quad, arbiter] : rarb.getQuadArbiters()) {
 
 					// if this arbiter hasn't pushed before, update it
 					if (!updatedBuffer.contains(&arbiter)) {
@@ -96,13 +107,13 @@ namespace ff {
 			};
 
 			size_t region_count = 0;
-			for (auto& rArb : region_arbiters) {
-                ColliderRegion* region = colliders.get(rArb.get_collider_id());
+			for (auto& [rid, rarb] : region_arbiters) {
+                ColliderRegion* region = colliders.get(rid);
 				(*dump_ptr)["broad_phase"]["colliders"][region_count] = {
-					{ "id",				rArb.get_collider_id().raw()},
+					{ "id",				rid.raw()},
 					{ "vel",			fmt::format("{}", region->velocity)},
 					{ "delta_pos",		fmt::format("{}", region->getPosition() - region->getPrevPosition()) },
-					{ "arbiter_count",	rArb.getQuadArbiters().size()},
+					{ "arbiter_count",	rarb.getQuadArbiters().size()},
 				};
 				region_count++;
 			}
@@ -114,35 +125,26 @@ namespace ff {
 		for (auto& region : colliders) {
 
             auto collider_id = colliders.id_of(region);
-
-			auto arbiter = std::lower_bound(
-				region_arbiters.begin(),
-				region_arbiters.end(),
-				collider_id,
-				[](const RegionArbiter& arb, ID<ColliderRegion> region_id) {
-					return arb.get_collider_id() < region_id;
-				}
-			);
-
-			bool exists = arbiter != region_arbiters.end() && arbiter->get_collider_id() == collider_id;
+            auto rarb_iter = region_arbiters.find(collider_id);
+            bool exists = rarb_iter != region_arbiters.end();
 
 			// check if collidable is in this region
 			if (region->getSweptBoundingBox().intersects(bounds)) {
 				if (!exists) {
 					// just entered this region
-					arbiter = region_arbiters.emplace(arbiter, RegionArbiter{ collider_id, collidable_id });
+					rarb_iter = region_arbiters.emplace(collider_id, RegionArbiter{ collider_id, collidable_id }).first;
 				}
-				arbiter->updateRegion({ region.get(), &collidable }, bounds);
+				rarb_iter->second.updateRegion({ region.get(), &collidable }, bounds);
 			}
 			else if (exists) {
 				// just left this region
-				region_arbiters.erase(arbiter);
+				region_arbiters.erase(collider_id);
 			}
 			
 		}
 	}
 
-	Rectf CollidableArbiter::push_bounds_for_contact(Rectf init_push_bound, const cardinal_array<float>& boundDist, Contact contact)
+	Rectf CollidableArbiter::push_bounds_for_contact(Rectf init_push_bound, const cardinal_array<float>& boundDist, const ContinuousContact& contact)
 	{
 		if (!contact.hasContact || !direction::from_vector(contact.ortho_n).has_value())
 			return init_push_bound;
@@ -155,7 +157,7 @@ namespace ff {
 			push = math::rect_extend(push, dir, diff);
 		}
 
-		if (math::is_vertical(contact.ortho_n) && contact.isTransposable())
+		if (math::is_vertical(contact.ortho_n) && contact.transposable())
 		{
 			Vec2f alt_ortho_normal = Vec2f{ (contact.collider_n.x < 0.f ? -1.f : 1.f), 0.f };
 			auto alt_dir = direction::from_vector(alt_ortho_normal);
@@ -181,16 +183,15 @@ namespace ff {
 	{
 		CollisionSolver solver{ &collidable };
 
-		for (auto& rArb : region_arbiters) {
+		for (auto& [rid, rarb] : region_arbiters) {
 
-            auto& collider = colliders.at(rArb.get_collider_id());
-			for (auto& qArb : rArb.getQuadArbiters())
+            auto& collider = colliders.at(rid);
+			for (auto& [qid, qarb] : rarb.getQuadArbiters())
 			{
                 // allow precontact callback to reject collision
-				auto& arb = qArb.second;
-				if (collider.on_precontact(arb.id.quad, arb.getContact(), arb.getTouchDuration()))
+				if (collider.on_precontact(qarb.id.quad, qarb.getContact(), qarb.getTouchDuration()))
 				{
-					solver.pushContact(arb.getContact());
+					solver.pushContact(qarb.getContact());
 				}
 			}
 		}
@@ -199,19 +200,24 @@ namespace ff {
 		if (dump_ptr) {
 			json_dump = &(*dump_ptr)["solver"];
 		}
+
+        /*
 		auto frame = solver.solve(json_dump);
 
 		// push collision data to collidable
-		std::vector<PersistantContact> c;
+		std::vector<AppliedContact> c;
 
 		std::transform(frame.cbegin(), frame.cend(), std::back_inserter(c), 
-			[this, colliders](const AppliedContact& aContact) -> PersistantContact {
+			[this, colliders](const AppliedContact& aContact) -> AppliedContact {
 				PersistantContact pContact{ aContact.contact };
 				pContact.type = aContact.type;
 				return pContact;
 			});
 
 		collidable.set_frame(&colliders, std::move(c));
+        */
+
+        collidable.set_frame(&colliders, solver.solve(json_dump));
 	}
 
 }
