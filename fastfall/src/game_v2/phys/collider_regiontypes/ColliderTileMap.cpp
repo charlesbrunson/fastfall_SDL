@@ -55,27 +55,17 @@ namespace ff {
 	}
 
 
-	bool ColliderTileMap::on_precontact(QuadID quad_id, const Contact& contact, secs duration) const {
-
+	bool ColliderTileMap::on_precontact(const ContinuousContact& contact, secs duration) const {
+        auto quad_id = contact.id->quad;
 		if (validPosition(quad_id) && callback_on_precontact) {
-			Vec2i position;
-			position.y = quad_id.value / (size_max.x);
-			position.x = quad_id.value - (position.y * (size_max.x - size_min.x));
-			position += size_min;
-
-			return callback_on_precontact(position, contact, duration);
+			return callback_on_precontact(contact, duration);
 		}
 		return true;
 	}
 
-	void ColliderTileMap::on_postcontact(const PersistantContact& contact) const {
-		if (validPosition(contact.quad_id) && callback_on_precontact) {
-			Vec2i position;
-			position.y = contact.quad_id.value / (size_max.x);
-			position.x = contact.quad_id.value - (position.y * (size_max.x - size_min.x));
-			position += size_min;
-
-			callback_on_postcontact(position, contact);
+	void ColliderTileMap::on_postcontact(const AppliedContact& contact) const {
+		if (validPosition(contact.id->quad) && callback_on_precontact) {
+			callback_on_postcontact(contact);
 		}
 	}
 
@@ -374,7 +364,7 @@ namespace ff {
 		return nullptr;
 	}
 
-	void ColliderTileMap::get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& out_buffer) const {
+	void ColliderTileMap::get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, QuadID>>& out_buffer) const {
 
 		Rectf bbox = math::shift(area, -getPosition());
 
@@ -410,7 +400,7 @@ namespace ff {
 			for (; pos.x < tsi_bbox.left + tsi_bbox.width; pos.x++) {
 				if (auto* tile = get_quad(pos)) {
 					Rectf tile_bounds{ Vec2f{ pos } * TILESIZE_F, { TILESIZE_F, TILESIZE_F }};
-					out_buffer.push_back(std::make_pair(tile_bounds, tile));
+					out_buffer.push_back(std::make_pair(tile_bounds, tile->getID()));
 				}
 			}
 		}

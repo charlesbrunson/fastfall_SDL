@@ -152,7 +152,7 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
 			acc += offsets.acceleration;
 
             if (tracker->has_contact()) {
-                surfaceVel += tracker->get_contact()->getSurfaceVel();
+                surfaceVel += tracker->get_contact()->surface_vel();
             }
 		}
 

@@ -34,7 +34,7 @@ public:
 
 	void process_contacts(
             poly_id_map<ColliderRegion>* colliders,
-            std::vector<PersistantContact>& contacts);
+            std::vector<AppliedContact>& contacts);
 
 	bool has_contact() const noexcept;
 
@@ -50,14 +50,14 @@ public:
 	inline ID<Collidable> get_collidable_id() { return owner_id; };
     inline void set_collidable_ptr(Collidable* ptr) { owner = ptr;}
 
-	bool can_make_contact_with(const Contact& contact) const noexcept;
+	bool can_make_contact_with(const AppliedContact& contact) const noexcept;
 
-	const std::optional<PersistantContact>& get_contact() { return currentContact; };
+	const std::optional<AppliedContact>& get_contact() { return currentContact; };
 
-	void start_touch(PersistantContact& contact);
-	void end_touch(PersistantContact& contact);
+	void start_touch(AppliedContact& contact);
+	void end_touch(AppliedContact& contact);
 
-	void firstCollisionWith(const Contact& contact);
+	void firstCollisionWith(const AppliedContact& contact);
 
 	// time in contact
 	// this will propogate across different surfaces
@@ -66,8 +66,8 @@ public:
 	secs air_time = 0.0;
 
 	struct callbacks_t {
-		std::function<void(PersistantContact&)> on_start_touch;
-		std::function<void(PersistantContact&)> on_end_touch;
+		std::function<void(AppliedContact&)> on_start_touch;
+		std::function<void(AppliedContact&)> on_end_touch;
 		std::function<void(const ColliderSurface&)> on_stick;
 	} callbacks;
 
@@ -106,8 +106,8 @@ private:
 	// the best suited contact for this recorder
 	// from the current contact frame
 	// based on angle and contact duration
-	std::optional<PersistantContact> currentContact = std::nullopt;
-	std::optional<PersistantContact> wallContact = std::nullopt;
+	std::optional<AppliedContact> currentContact = std::nullopt;
+	std::optional<AppliedContact> wallContact = std::nullopt;
 
 	bool do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, bool had_wall) noexcept;
 	CollidableOffsets do_move_with_platform(poly_id_map<ColliderRegion>* colliders, CollidableOffsets in) noexcept;

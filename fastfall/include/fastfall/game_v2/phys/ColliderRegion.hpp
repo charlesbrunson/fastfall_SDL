@@ -83,8 +83,8 @@ public:
 
 	//Collidable* attached = nullptr;
 
-	virtual bool on_precontact(QuadID quad_id, const Contact& contact, secs duration) const { return true; };
-	virtual void on_postcontact(const PersistantContact& contact) const {};
+	virtual bool on_precontact(const ContinuousContact& contact, secs duration) const { return true; };
+	virtual void on_postcontact(const AppliedContact& contact) const {};
 
 protected:
 	Rectf boundingBox;

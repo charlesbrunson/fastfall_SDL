@@ -32,20 +32,20 @@ namespace ff {
 		}
 	}
 
-	void ColliderSimple::set_on_precontact(std::function<bool(const Contact&, secs)> func) {
+	void ColliderSimple::set_on_precontact(std::function<bool(const ContinuousContact&, secs)> func) {
 		callback_on_precontact = func;
 	}
-	void ColliderSimple::set_on_postcontact(std::function<void(const PersistantContact&)> func) {
+	void ColliderSimple::set_on_postcontact(std::function<void(const AppliedContact&)> func) {
 		callback_on_postcontact = func;
 	}
 
-	bool ColliderSimple::on_precontact(QuadID quad_id, const Contact& contact, secs duration) const {
+	bool ColliderSimple::on_precontact(const ContinuousContact& contact, secs duration) const {
 		if (callback_on_precontact)
 			return callback_on_precontact(contact, duration);
 
 		return true;
 	}
-	void ColliderSimple::on_postcontact(const PersistantContact& contact) const {
+	void ColliderSimple::on_postcontact(const AppliedContact& contact) const {
 		if (callback_on_postcontact)
 			callback_on_postcontact(contact);
 	}
