@@ -45,6 +45,8 @@ private:
 
 	// the collidable we're solving for
     Collidable* collidable;
+    poly_id_map<ColliderRegion>* colliders;
+    std::map<CollisionID, Arbiter*> arbiters;
 
 	// collision set of arbiters to solve
 	std::vector<ContinuousContact> contacts;
@@ -89,12 +91,15 @@ private:
 	// compare two contacts to see if they form a wedge
 	std::optional<ContinuousContact> detectWedge(const ContinuousContact* north, const ContinuousContact* south);
 
+    void updateContact(ContinuousContact* contact);
+    void updateStack(std::deque<ContinuousContact*>& stack);
 public:
-	CollisionSolver(Collidable* _collidable);
+	CollisionSolver(poly_id_map<ColliderRegion>* _colliders, Collidable* _collidable);
 
 	// add an arbiter associated with the collidable to the collision set
-	inline void pushContact(ContinuousContact contact, Arbiter* arb) {
-        contacts.push_back(contact);
+	inline void pushContact(Arbiter* arb) {
+        contacts.push_back(arb->getContact());
+        arbiters.emplace(arb->id, arb);
     };
 
 	// attempts to resolve the combination of collisions

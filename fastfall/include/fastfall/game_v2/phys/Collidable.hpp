@@ -112,8 +112,6 @@ public:
 
 	void set_frame(poly_id_map<ColliderRegion>* colliders, std::vector<AppliedContact>&& frame);
 
-	//inline CollidableID get_ID() const noexcept { return id; };
-
 	void setSlip(slip_t set) { slip = set; };
 
 	bool hasSlip() const noexcept { return slip.leeway != 0.f; };

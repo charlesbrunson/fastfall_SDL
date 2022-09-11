@@ -54,15 +54,19 @@ nlohmann::ordered_json to_json(Container container)
 
 // solver utils
 
-void updateContact(ContinuousContact* contact)
+void CollisionSolver::updateContact(ContinuousContact* contact)
 {
-	if (contact->arbiter) {
-		contact->arbiter->update(0.0);
+    auto arb = contact->id ? arbiters.find(*contact->id) : arbiters.end();
+	if (arb != arbiters.end()) {
+        arb->second->update({
+                .collider = colliders->get(contact->id->collider),
+                .collidable = collidable
+        }, 0.0);
 	}
 }
 
-void updateStack(std::deque<ContinuousContact*>& stack) {
-	std::for_each(stack.begin(), stack.end(), updateContact);
+void CollisionSolver::updateStack(std::deque<ContinuousContact*>& stack) {
+	std::for_each(stack.begin(), stack.end(), std::bind(&CollisionSolver::updateContact, this, std::placeholders::_1));
 }
 
 
@@ -211,8 +215,9 @@ CollisionSolver::CompResult pickV(const ContinuousContact* north, const Continuo
 
 // ----------------------------------------------------------------------------
 
-CollisionSolver::CollisionSolver(Collidable* _collidable)
+CollisionSolver::CollisionSolver(poly_id_map<ColliderRegion>* _colliders, Collidable* _collidable)
 	: collidable(_collidable)
+    , colliders(_colliders)
 {
 }
 
@@ -285,8 +290,8 @@ CollisionSolver::CompResult compare(const ContinuousContact* lhs, const Continuo
 	const ContinuousContact& lhsContact = *lhs;
 	const ContinuousContact& rhsContact = *rhs;
 
-	comp.discardFirst = lhs->arbiter ? !lhs->arbiter->getCollision()->tileValid() : false;
-	comp.discardSecond = rhs->arbiter ? !rhs->arbiter->getCollision()->tileValid() : false;
+	comp.discardFirst = lhs->quad_valid;
+	comp.discardSecond = rhs->quad_valid;
 
 	// ghost check
 	if (!comp.discardFirst && !comp.discardSecond)
@@ -498,8 +503,11 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 	}
 
 	// organize contacts into north/east/south/west
-	pushToAStack(contacts);
-	contacts.clear();
+    for (auto& contact : contacts)
+    {
+        pushToAStack(&contact);
+    }
+	//contacts.clear();
 
 	// detect any wedges
 	// a wedge is any pair of north/south contacts that would force the collision box east/west instead
@@ -720,9 +728,14 @@ bool CollisionSolver::apply(const ContinuousContact& contact, ContactType type)
 		AppliedContact applied{contact};
 		applied.type = type;
 
-		if (contact.arbiter != nullptr) {
-			contact.arbiter->setApplied();
-			contact.arbiter->update(0.0);
+
+        auto arb = contact.id ? arbiters.find(*contact.id) : arbiters.end();
+		if (arb != arbiters.end()) {
+			arb->second->setApplied();
+			arb->second->update({
+                .collider = colliders->get(contact.id->collider),
+                .collidable = collidable
+            }, 0.0);
 		}
 
 		frame.push_back(applied);
