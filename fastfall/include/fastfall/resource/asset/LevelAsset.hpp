@@ -6,7 +6,7 @@
 #include "fastfall/util/math.hpp"
 //#include "phys/CollisionMap.hpp"
 
-#include "fastfall/game/level/LevelLayerContainer.hpp"
+#include "fastfall/game_v2/level/LevelLayerContainer.hpp"
 #include "fastfall/resource/asset/LevelAssetTypes.hpp"
 #include "fastfall/resource/asset/TileLayerData.hpp"
 #include "fastfall/render/Color.hpp"

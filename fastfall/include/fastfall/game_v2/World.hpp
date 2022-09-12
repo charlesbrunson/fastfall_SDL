@@ -3,6 +3,7 @@
 #include "fastfall/util/id.hpp"
 #include "fastfall/util/id_map.hpp"
 
+#include "fastfall/game_v2/level/Level.hpp"
 #include "fastfall/game_v2/CollisionSystem.hpp"
 #include "fastfall/game_v2/CameraSystem.hpp"
 #include "fastfall/game_v2/TriggerSystem.hpp"
@@ -111,7 +112,7 @@ public:
     inline auto& all() { return container<T>(); }
 
 	// get system
-	//LevelSystem& 		levels() 	{ return _level_system; }
+	//inline LevelSystem& 	levels() 	{ return _level_system; }
 	inline ObjectSystem&    objects() 	{ return _object_system; }
 	inline CollisionSystem& collision() { return _collision_system; }
 	inline TriggerSystem&   trigger()   { return _trigger_system; }
@@ -121,7 +122,7 @@ public:
 private:
 	// entities
 	poly_id_map<GameObject> _objects;
-	//id_map<Level> 			_levels;
+	id_map<Level> 			_levels;
 
     template<class T>
     constexpr auto& container() {

@@ -22,7 +22,6 @@ void Arbiter::reset(CollisionContext ctx, secs deltaTime) {
     collision.update(ctx, deltaTime);
     accumTime(deltaTime);
     collision.set_touch_duration(touchTimer);
-    collision.set_arbiter(this);
 }
 
 void Arbiter::update(CollisionContext ctx, secs deltaTime)
@@ -37,7 +36,6 @@ void Arbiter::update(CollisionContext ctx, secs deltaTime)
 	collision.update(ctx, deltaTime);
     accumTime(deltaTime);
     collision.set_touch_duration(touchTimer);
-    collision.set_arbiter(this);
 }
 
 void Arbiter::accumTime(secs deltaTime) {

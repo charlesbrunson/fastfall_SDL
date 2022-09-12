@@ -167,7 +167,7 @@ public:
 		return std::move(std::unique_ptr<GameObject>{});
 	}
 
-	static std::unique_ptr<GameObject>&& createFromData(World* world, ObjectLevelData& data);
+	static std::unique_ptr<GameObject> createFromData(World* world, ObjectLevelData& data);
 
 	static const ObjectType* getType(size_t hash);
 

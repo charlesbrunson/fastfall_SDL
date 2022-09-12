@@ -32,7 +32,6 @@ public:
 	inline void updateContact(CollisionContext ctx) noexcept { currCollision.updateContact(ctx); };
 
     inline void set_touch_duration(secs time) noexcept { contact.touchDuration = time; }
-    inline void set_arbiter(Arbiter* arb) noexcept { contact.arbiter = arb; }
 
 	inline const ContinuousContact& getContact() const noexcept { return contact; }
 
