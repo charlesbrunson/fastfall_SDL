@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fastfall/util/id.hpp"
+#include "fastfall/util/copyable_uniq_ptr.hpp"
 
 namespace ff {
 
@@ -26,7 +27,7 @@ enum class scene_priority {
 };
 
 struct SceneObject {
-    ID<Drawable>    drawable_id;
+    copyable_unique_ptr<Drawable> drawable;
     scene_layer		layer_id    = 0;
     scene_type		type        = scene_type::Object;
     scene_priority	priority    = scene_priority::Normal;
