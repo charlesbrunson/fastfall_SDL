@@ -128,19 +128,19 @@ std::map<size_t, ObjectFactory::ObjectFactoryImpl>& ObjectFactory::getFactories(
 	return factories;
 }
 
-std::unique_ptr<GameObject>&& ObjectFactory::createFromData(World* world, ObjectLevelData& data) {
-	if (auto it = getFactories().find(data.typehash); it != getFactories().end()) {
-
+std::unique_ptr<GameObject> ObjectFactory::createFromData(World* world, ObjectLevelData& data) {
+	if (auto it = getFactories().find(data.typehash); it != getFactories().end())
+    {
 		std::unique_ptr<GameObject> obj = it->second.createfn(world, data);
-
 		if (obj) {
-			return std::move(obj);
+			return obj;
 		}
 		else {
 			LOG_ERR_("Failed to create object: {}:{}", it->second.object_type->type.name, data.level_id.id);
 		}
 	}
-	else {
+	else
+    {
 		LOG_ERR_("could not match object type {}", data.typehash);
 		LOG_ERR_("known types are:");
 		log::scope scope;

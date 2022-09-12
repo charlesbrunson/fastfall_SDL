@@ -3,7 +3,7 @@
 #include "rapidxml.hpp"
 
 
-#include "fastfall/game/level/Tile.hpp"
+#include "fastfall/game_v2/tile/Tile.hpp"
 #include "fastfall/resource/asset/TextureAsset.hpp"
 
 #include "fastfall/util/math.hpp"

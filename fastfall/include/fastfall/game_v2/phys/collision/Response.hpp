@@ -14,7 +14,7 @@ namespace phys_resp {
 		FLATTEN
 	};
 
-	Vec2f get(const Collidable& body, const Contact& contact, phys_resp::type response_type = phys_resp::type::STANDARD);
+	Vec2f get(const Collidable& body, const AppliedContact& contact, phys_resp::type response_type = phys_resp::type::STANDARD);
 
 }
 

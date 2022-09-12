@@ -5,6 +5,7 @@
 #include <cassert>
 #include <utility>
 #include <optional>
+#include <limits>
 
 namespace ff {
 

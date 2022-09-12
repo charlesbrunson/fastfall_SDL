@@ -36,8 +36,6 @@ public:
 	inline void resetFrameCount() { frame_count = 0; };
 	inline size_t getFrameCount() const { return frame_count; };
 
-    Arbiter* get_arbiter(Contact contact);
-
 private:
     std::unordered_map<ID<Collidable>, CollidableArbiter> arbiters;
 
