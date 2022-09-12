@@ -58,9 +58,9 @@ void SceneSystem::draw(ff::RenderTarget& target, ff::RenderState state) const {
 
 	for (auto scene_id : scene_order) {
         auto& scene_object = world->at(scene_id);
-        auto* drawable = world->get(scene_object.drawable_id);
+        auto& drawable = *scene_object.drawable.get();
 
-        if (!scene_object.render_enable || !drawable)
+        if (!scene_object.render_enable)
             continue;
 
 		if (scissor_enabled && scene_object.layer_id >= 0) {
@@ -72,7 +72,7 @@ void SceneSystem::draw(ff::RenderTarget& target, ff::RenderState state) const {
 			continue;
 		}
 
-		target.draw(*drawable, state);
+		target.draw(drawable, state);
 	}
 
 	if (scissor_enabled) {

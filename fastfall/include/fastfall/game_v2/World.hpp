@@ -72,7 +72,7 @@ public:
 	ID<Collidable> create_collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
     ID<SurfaceTracker> create_tracker(ID<Collidable> collidable, Angle ang_min, Angle ang_max, bool inclusive = true);
     ID<Trigger> create_trigger();
-    ID<SceneObject> create_scene_object(ID<Drawable> id);
+    //ID<SceneObject> create_scene_object(ID<Drawable> id);
     ID<SceneObject> create_scene_object(SceneObject obj);
 
     template<class T, class... Args> requires std::derived_from<T, ColliderRegion>
@@ -89,11 +89,11 @@ public:
                 _camera_system) ;
     }
 
-    template<class T, class... Args> requires std::derived_from<T, Drawable>
-	ID<T> create_drawable(Args&&... args) {
-        return notify_created_all(
-                poly_create<T>(_drawables, std::forward<Args>(args)...));
-    }
+    //template<class T, class... Args> requires std::derived_from<T, Drawable>
+	//ID<T> create_drawable(Args&&... args) {
+    //    return notify_created_all(
+    //            poly_create<T>(_drawables, std::forward<Args>(args)...));
+    //}
 
     template<class T, class... Args> requires std::derived_from<T, Drawable>
     ID<T> create_object(Args&&... args) {
@@ -141,14 +141,17 @@ private:
         else if constexpr (std::derived_from<T, CameraTarget>) {
             return _camera_targets;
         }
-        else if constexpr (std::derived_from<T, Drawable>) {
-            return _drawables;
-        }
+        //else if constexpr (std::derived_from<T, Drawable>) {
+        //    return _drawables;
+        //}
         else if constexpr (std::same_as<T, SceneObject>) {
             return _scene_objects;
         }
         else if constexpr (std::derived_from<T, GameObject>) {
             return _objects;
+        }
+        else if constexpr (std::same_as<T, Level>) {
+            return _levels;
         }
         else { throw std::exception{}; }
     }
@@ -159,7 +162,7 @@ private:
 	poly_id_map<ColliderRegion> _colliders;
 	id_map<Trigger> 			_triggers;
 	poly_id_map<CameraTarget> 	_camera_targets;
-	poly_id_map<Drawable> 		_drawables;
+	//poly_id_map<Drawable> 		_drawables;
     id_map<SceneObject>         _scene_objects;
 
 	// systems
