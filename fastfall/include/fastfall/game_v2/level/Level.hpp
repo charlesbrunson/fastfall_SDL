@@ -36,6 +36,7 @@ public:
 	inline const std::string& name() const { return levelName; };
 
     void set_world(World* w) { world = w; }
+    World* get_world() const { return world; }
 
 	void resize(Vec2u n_size);
 	void set_name(std::string name) { levelName = name; };
