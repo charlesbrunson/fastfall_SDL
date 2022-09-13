@@ -22,14 +22,12 @@ private:
     auto span(auto& components) { return std::span{components.begin(), components.end()}; };
 
     auto create(auto& container, auto&&... args) {
-        auto id = container.create(std::forward<decltype(args)>(args)...);
-        return id;
+        return container.create(std::forward<decltype(args)>(args)...);
     }
 
     template<class T>
     auto poly_create(auto& container, auto&&... args) {
-        auto id = container.template create<T>(std::forward<decltype(args)>(args)...);
-        return id;
+        return container.template create<T>(std::forward<decltype(args)>(args)...);
     }
 
     auto notify_created_all(auto id, auto&... systems) {
@@ -67,6 +65,20 @@ public:
 
     template<class T>
     T* get(ID<T> id) { return (T*)container<T>().get(id); }
+
+    template<class T>
+    ID<T> clone(ID<T> id) {
+        auto* cont = container<T>();
+        T* value = (T*)cont->get(id);
+        using cont_type = decltype(container<T>());
+        using cont_value_type = typename decltype(container<T>())::value_type;
+        if constexpr (std::same_as<cont_type, poly_id_map<cont_value_type>) {
+            return cont->template create<T>(*value);
+        }
+        else {
+            return cont->create(*value);
+        }
+    }
 
 	// create component
 	ID<Collidable> create_collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
@@ -141,9 +153,6 @@ private:
         else if constexpr (std::derived_from<T, CameraTarget>) {
             return _camera_targets;
         }
-        //else if constexpr (std::derived_from<T, Drawable>) {
-        //    return _drawables;
-        //}
         else if constexpr (std::same_as<T, SceneObject>) {
             return _scene_objects;
         }

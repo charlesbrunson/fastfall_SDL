@@ -42,7 +42,8 @@ private:
 		} scroll;
 
 		struct collision_dyn_t {
-			ColliderTileMap* tilemap_ptr = nullptr;
+			//ColliderTileMap* tilemap_ptr = nullptr;
+            std::optional<ID<ColliderTileMap>> tilemap_collider;
 		} collision;
 
 		std::vector<copyable_unique_ptr<TileLogic>> tile_logic;
@@ -57,11 +58,11 @@ public:
 	TileLayer(World* w, unsigned id, Vec2u levelsize);
 	TileLayer(World* w, const TileLayerData& layerData);
 
-	TileLayer(const TileLayer& tile);
-	TileLayer& operator=(const TileLayer& tile);
+	//TileLayer(const TileLayer& tile);
+	//TileLayer& operator=(const TileLayer& tile);
 
-	TileLayer(TileLayer&& tile) noexcept;
-	TileLayer& operator=(TileLayer&& tile) noexcept;
+	//TileLayer(TileLayer&& tile) noexcept;
+	//TileLayer& operator=(TileLayer&& tile) noexcept;
 
 	~TileLayer();
 

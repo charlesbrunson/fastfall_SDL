@@ -32,6 +32,7 @@ TileLayer::TileLayer(World* w, const TileLayerData& layerData)
 	initFromAsset(layerData);
 }
 
+/*
 TileLayer::TileLayer(const TileLayer& tile)
 	: world(tile.world)
 	, layer_data(tile.layer_data)
@@ -175,26 +176,22 @@ TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
 	return *this;
 }
 
+*/
 
 TileLayer::~TileLayer() {
-    // TODO
-	//if (m_context.valid() && dyn.collision.tilemap_ptr) {
-	//	instance::phys_erase_collider(m_context, dyn.collision.tilemap_ptr);
-	//	dyn.collision.tilemap_ptr = nullptr;
-	//}
-
 	for (auto chunk_id : dyn.chunks)
 	{
-        // TODO
-		//instance::scene_erase(m_context, chunk_id);
+        world->erase(chunk_id);
 	}
+    if (hasCollision()) {
+        world->erase(*dyn.collision.tilemap_collider);
+    }
 }
 
 
 ChunkVertexArray* TileLayer::get_chunk(ID<SceneObject> id)
 {
-    return (ChunkVertexArray*)world->get(world->at(id).drawable_id);
-	//return (ChunkVertexArray*)instance::scene_get(m_context, id);
+    return (ChunkVertexArray*)world->at(id).drawable.get();
 }
 
 
@@ -202,8 +199,9 @@ void TileLayer::set_layer(scene_layer lyr) {
 	layer = lyr;
 	for (auto chunk_id : dyn.chunks)
 	{
-        // TODO
-		//instance::scene_set_config(m_context, chunk_id, { layer, scene_type::Level });
+        auto& scene_obj = world->at(chunk_id);
+        scene_obj.layer_id = layer;
+        scene_obj.resort_flag = true;
 	}
 }
 
@@ -215,22 +213,17 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 	// init chunks
 	for (auto& [tileset, _] : layer_data.getTilesets())
 	{
-
-		dyn.chunks.push_back(instance::scene_create<ChunkVertexArray>(
-			m_context,
-			scene_config{ layer, scene_type::Level },
-			getSize(), kChunkSize));
-
-		ChunkVertexArray* ptr = (ChunkVertexArray*)instance::scene_get(m_context, dyn.chunks.back());
-
-		ptr->setTexture(tileset->getTexture());
-		ptr->use_visible_rect = true;
-
-		/*
-		dyn.chunks.push_back(ChunkVertexArray(getSize(), kChunkSize));
-		dyn.chunks.back().setTexture(tileset->getTexture());
-		dyn.chunks.back().use_visible_rect = true;
-		*/
+        auto chunk_id = world->create_scene_object({
+            .drawable = std::make_unique<ChunkVertexArray>(
+                getSize(),
+                kChunkSize
+            ),
+            .layer_id = layer,
+            .type = scene_type::Level
+        });
+        auto* cvr = get_chunk(chunk_id);
+        cvr->setTexture(tileset->getTexture());
+        cvr->use_visible_rect = true;
 	}
 
 	// init tiles
@@ -257,7 +250,7 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 		{
 			uint8_t logic_ndx = 0;
 			auto logic_it = std::find_if(dyn.tile_logic.begin(), dyn.tile_logic.end(),
-				[l = logic, &logic_ndx](const std::unique_ptr<TileLogic>& ptr) {
+				[l = logic, &logic_ndx](const copyable_unique_ptr<TileLogic>& ptr) {
 					logic_ndx++;
 					return ptr->getName() == l;
 				});
@@ -272,7 +265,7 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 			else
 			{
 				dyn_tile.logic_id = dyn.tile_logic.size();
-				dyn.tile_logic.push_back(TileLogic::create(m_context, logic));
+				dyn.tile_logic.push_back(TileLogic::create(world, logic));
 				dyn.tile_logic.back()->addTile(tile.pos, *opt_tile, args);
 			}
 		}
@@ -291,12 +284,11 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 
 void TileLayer::update(secs deltaTime) {
 	if (hasCollision()) {
-
-		dyn.collision.tilemap_ptr->setPosition(dyn.collision.tilemap_ptr->getPosition());
-		dyn.collision.tilemap_ptr->delta_velocity = Vec2f{};
-		dyn.collision.tilemap_ptr->velocity = Vec2f{};
-
-		dyn.collision.tilemap_ptr->update(deltaTime);
+        auto* collider = world->get(*dyn.collision.tilemap_collider);
+		collider->setPosition(collider->getPosition());
+		collider->delta_velocity = Vec2f{};
+		collider->velocity = Vec2f{};
+		collider->update(deltaTime);
 	}
 	if (hasScrolling()) {
 		dyn.scroll.prev_offset = dyn.scroll.offset;
@@ -336,10 +328,11 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 
 	if (enabled)
 	{
-		if (m_context.valid() && !dyn.collision.tilemap_ptr) {
+		if (!dyn.collision.tilemap_collider) {
 
-			dyn.collision.tilemap_ptr = instance::phys_create_collider<ColliderTileMap>(m_context, Vec2i{ getLevelSize() }, true);
+            dyn.collision.tilemap_collider = world->create_collider<ColliderTileMap>(Vec2i{ getLevelSize() }, true);
 			layer_data.setCollision(true, border);
+            auto* collider = world->get(*dyn.collision.tilemap_collider);
 
 			for (const auto& tile_data : layer_data.getTileData())
 			{
@@ -349,7 +342,7 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 					auto tile = tileset->getTile(tile_data.tile_id);
 
 					if (tile) {
-						dyn.collision.tilemap_ptr->setTile(
+						collider->setTile(
 							Vec2i{ tile_data.pos },
 							tile->shape,
 							&tileset->getMaterial(tile_data.tile_id),
@@ -359,25 +352,25 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 				}
 			}
 
-			dyn.collision.tilemap_ptr->setBorders(getLevelSize(), layer_data.getCollisionBorders());
-			dyn.collision.tilemap_ptr->applyChanges();
+			collider->setBorders(getLevelSize(), layer_data.getCollisionBorders());
+			collider->applyChanges();
 
-			dyn.collision.tilemap_ptr->set_on_precontact(
+			collider->set_on_precontact(
 				std::bind(&TileLayer::handlePreContact, this,
-					std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
-			);
-			dyn.collision.tilemap_ptr->set_on_postcontact(
-				std::bind(&TileLayer::handlePostContact, this,
 					std::placeholders::_1, std::placeholders::_2)
+			);
+			collider->set_on_postcontact(
+				std::bind(&TileLayer::handlePostContact, this,
+					std::placeholders::_1)
 			);
 		}
 	}
 	else if (!enabled)
 	{
-		if (m_context.valid() && dyn.collision.tilemap_ptr) {
-			instance::phys_erase_collider(m_context, dyn.collision.tilemap_ptr);
+		if (dyn.collision.tilemap_collider) {
+            world->erase(*dyn.collision.tilemap_collider);
 		}
-		dyn.collision.tilemap_ptr = nullptr;
+        dyn.collision.tilemap_collider.reset();
 		layer_data.setCollision(false);
 	}
 	return true;
@@ -436,7 +429,7 @@ bool TileLayer::set_scroll(bool enabled, Vec2f rate)
 	return true;
 }
 
-bool TileLayer::handlePreContact(Vec2i pos, const Contact& contact, secs duration) {
+bool TileLayer::handlePreContact(const ContinuousContact& contact, secs duration) {
 	if (pos.x < 0 || pos.x >= getLevelSize().x
 		|| pos.y < 0 || pos.y >= getLevelSize().y)
 		return true;
@@ -449,7 +442,7 @@ bool TileLayer::handlePreContact(Vec2i pos, const Contact& contact, secs duratio
 	return r;
 }
 
-void TileLayer::handlePostContact(Vec2i pos, const PersistantContact& contact) {
+void TileLayer::handlePostContact(const AppliedContact& contact) {
 	if (pos.x < 0 || pos.x >= getLevelSize().x
 		|| pos.y < 0 || pos.y >= getLevelSize().y)
 		return;
@@ -486,15 +479,17 @@ void TileLayer::predraw(float interp, bool updated) {
 			}
 		}
 
-		if (changed && hasCollision())
-			dyn.collision.tilemap_ptr->applyChanges();
+		if (changed && hasCollision()) {
+            auto *collider = world->get(*dyn.collision.tilemap_collider);
+            collider->applyChanges();
+        }
 	}
 
 
 
 	Rectf visible;
-	Vec2f cam_pos = instance::cam_get_interpolated_pos(m_context, interp);
-	float cam_zoom = instance::cam_get_zoom(m_context);
+	Vec2f cam_pos = world->camera().getPosition(interp); //instance::cam_get_interpolated_pos(m_context, interp);
+	float cam_zoom = world->camera().zoomFactor; //instance::cam_get_zoom(m_context);
 	visible.width = GAME_W_F * cam_zoom;
 	visible.height = GAME_H_F * cam_zoom;
 	visible.left = cam_pos.x - (visible.width / 2.f);
@@ -585,7 +580,8 @@ void TileLayer::removeTile(const Vec2u& position) {
 		dyn.tile_logic.at(tiles_dyn[position].logic_id)->removeTile(position);
 	}
 	if (hasCollision()) {
-		dyn.collision.tilemap_ptr->removeTile(Vec2i(position));
+        auto *collider = world->get(*dyn.collision.tilemap_collider);
+		collider->removeTile(Vec2i(position));
 	}
 
 	uint8_t tileset_ndx = tile_data[position].tileset_ndx;
@@ -626,7 +622,8 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 	{
 		if (hasCollision())
 		{
-			dyn.collision.tilemap_ptr->removeTile(Vec2i(at));
+            auto *collider = world->get(*dyn.collision.tilemap_collider);
+			collider->removeTile(Vec2i(at));
 		}
 		return;
 	}
@@ -635,23 +632,29 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 
 	if (tile.tileset_ndx == dyn.chunks.size())
 	{
-		dyn.chunks.push_back(instance::scene_create<ChunkVertexArray>(
-			m_context,
-			scene_config{ layer, scene_type::Level },
-			getSize(), kChunkSize));
+        auto chunk_id = world->create_scene_object({
+            .drawable = std::make_unique<ChunkVertexArray>(
+                   getSize(),
+                   kChunkSize
+            ),
+            .layer_id = layer,
+            .type = scene_type::Level
+        });
 
-		auto i = dyn.chunks.back();
+        auto* cvr = get_chunk(chunk_id);
+        cvr->setTexture(next_tileset->getTexture());
+        cvr->setTile(at, tile.tile_id);
+        cvr->use_visible_rect = true;
 
-		get_chunk(i)->setTexture(next_tileset->getTexture());
-		get_chunk(i)->setTile(at, tile.tile_id);
-		get_chunk(i)->use_visible_rect = true;
+        dyn.chunks.push_back(chunk_id);
 	}
 	else {
 		get_chunk(dyn.chunks.at(tile.tileset_ndx))->setTile(at, tile.tile_id);
 	}
 
 	if (hasCollision() && next_tile) {
-		dyn.collision.tilemap_ptr->setTile(
+        auto* collider = world->get(*dyn.collision.tilemap_collider);
+		collider->setTile(
 			Vec2i(at),
 			next_tile->shape,
 			&next_tileset->getMaterial(tile.tile_id),
@@ -665,7 +668,7 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 
 			unsigned dist = 0;
 			auto it = std::find_if(dyn.tile_logic.begin(), dyn.tile_logic.end(),
-				[logic_var, &dist](const std::unique_ptr<TileLogic>& log) {
+				[logic_var, &dist](const copyable_unique_ptr<TileLogic>& log) {
 					dist++;
 					return logic_var == log->getName();
 				});
@@ -674,7 +677,7 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 			if (it == dyn.tile_logic.end()) {
 				if (dyn.tile_logic.size() < UINT8_MAX - 1) {
 
-					auto logic_ptr = TileLogic::create(m_context, logic);
+					auto logic_ptr = TileLogic::create(world, logic);
 					if (logic_ptr) {
 						dyn.tile_logic.push_back(std::move(logic_ptr));
 						dyn.tile_logic.back()->addTile(at, *next_tile, args.data());
