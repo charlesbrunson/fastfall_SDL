@@ -84,7 +84,6 @@ public:
 	ID<Collidable> create_collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
     ID<SurfaceTracker> create_tracker(ID<Collidable> collidable, Angle ang_min, Angle ang_max, bool inclusive = true);
     ID<Trigger> create_trigger();
-    //ID<SceneObject> create_scene_object(ID<Drawable> id);
     ID<SceneObject> create_scene_object(SceneObject obj);
 
     template<class T, class... Args> requires std::derived_from<T, ColliderRegion>
@@ -100,12 +99,6 @@ public:
                 poly_create<T>(_camera_targets, std::forward<Args>(args)...),
                 _camera_system) ;
     }
-
-    //template<class T, class... Args> requires std::derived_from<T, Drawable>
-	//ID<T> create_drawable(Args&&... args) {
-    //    return notify_created_all(
-    //            poly_create<T>(_drawables, std::forward<Args>(args)...));
-    //}
 
     template<class T, class... Args> requires std::derived_from<T, Drawable>
     ID<T> create_object(Args&&... args) {
