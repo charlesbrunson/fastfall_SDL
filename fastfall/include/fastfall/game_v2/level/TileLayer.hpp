@@ -8,6 +8,7 @@
 #include "fastfall/game_v2/level/TileLogic.hpp"
 #include "fastfall/game_v2/scene/SceneObject.hpp"
 #include "fastfall/game_v2/tile/Tile.hpp"
+#include "fastfall/game_v2/id_ptr.hpp"
 
 #include "fastfall/render/Drawable.hpp"
 #include "fastfall/render/ChunkVertexArray.hpp"
@@ -42,8 +43,7 @@ private:
 		} scroll;
 
 		struct collision_dyn_t {
-			//ColliderTileMap* tilemap_ptr = nullptr;
-            std::optional<ID<ColliderTileMap>> tilemap_collider;
+            uniq_id_ptr<ColliderTileMap> collider;
 		} collision;
 
 		std::vector<copyable_unique_ptr<TileLogic>> tile_logic;

@@ -3,93 +3,84 @@
 #include "fastfall/util/id.hpp"
 #include "fastfall/game_v2/World.hpp"
 
+#include <optional>
+
 namespace ff {
 
 template<class T>
-class id_ptr {
+class uniq_id_ptr {
+private:
+    struct data_t {
+        World* world;
+        ID<T> id;
+    };
+    std::optional<data_t> data = std::nullopt;
+
 public:
-    id_ptr() = default;
-    id_ptr(World* w, std::optional<ID<T>> t_id = std::nullopt)
-        : m_world(w)
-        , m_id(t_id)
+    uniq_id_ptr() = default;
+    uniq_id_ptr(World& w, ID<T> id)
+        : data{data_t{&w, id}}
     {
     }
 
-    id_ptr(const id_ptr<T>& other) {
-        m_world = other.m_world;
-        if (other.m_id) {
-            m_id = m_world->clone(other.m_id);
-        }
+    uniq_id_ptr(const uniq_id_ptr<T>&) = delete;
+    uniq_id_ptr<T>& operator=(const uniq_id_ptr<T>&) = delete;
+
+    uniq_id_ptr(uniq_id_ptr<T>&& other) {
+        swap(other);
     }
 
-    id_ptr(id_ptr<T>&& other) {
+    uniq_id_ptr<T>& operator=(uniq_id_ptr<T>&& other) {
         swap(other);
         other.reset();
         return *this;
     }
 
-    id_ptr<T>& operator=(const id_ptr<T>& other) {
-        m_world = other.m_world;
-        if (other.m_id) {
-            m_id = m_world->clone(other.m_id);
-        }
+    ~uniq_id_ptr() {
+        reset();
     }
 
-    id_ptr<T>& operator=(id_ptr<T>&& other) {
-        swap(other);
-        other.reset();
-        return *this;
-    }
+    std::optional<ID<T>> id() const { return data ? data->id : std::nullopt; }
 
-    ~id_ptr() {
-        if (m_world && m_id) {
-            m_world->erase(*m_id);
-        }
-    }
+    void set_world(World& w) { if (data) { data->world = &w; } }
 
-    void set_world(World* w) { m_world = w; }
-    World* world() const { return m_world; }
-
-    std::optional<ID<T>> id() const { return m_id; }
+    [[nodiscard]]
+    World* get_world() const { return data ? data->world : nullptr; }
 
     T* get() const {
-        return m_world->get(*m_id);
+        return data ? data->world->get(data->id) : nullptr;
     }
 
-    ID<T> release() {
-        auto _id = m_id;
-        m_id.reset();
-        return _id;
+    std::optional<ID<T>> release() {
+        return data ? data->id : std::nullopt;
     }
 
-    void reset(std::optional<ID<T>> n_id = std::nullopt) {
-        auto _id = m_id;
-        if (_id && _id.value() != n_id) {
-            m_world->erase(*_id);
+    void reset() {
+        if (data) {
+            data->world->erase(data->id);
         }
-        _id = n_id;
     }
 
-    void swap(id_ptr<T>& other) noexcept {
-        std::swap(m_world, other.m_world);
-        std::swap(m_id, other.m_id);
+    void reset(World& w, ID<T> id) {
+        reset();
+        data = data_t{ &w, id };
+    }
+
+    void swap(uniq_id_ptr<T>& other) noexcept {
+        std::swap(data, other.data);
     }
 
     explicit operator bool() const noexcept {
-        return m_world && m_id && m_world->get(*m_id);
+        return data.has_value();
     }
 
     T& operator*() const {
-        return m_world->at(*m_id);
+        return *get();
     }
 
     T* operator->() const {
-        return m_world->get(*m_id);
+        return get();
     }
-
-private:
-    std::optional<ID<T>> m_id;
-    World* m_world = nullptr;
 };
 
 }
