@@ -184,7 +184,8 @@ TileLayer::~TileLayer() {
         world->erase(chunk_id);
 	}
     if (hasCollision()) {
-        world->erase(*dyn.collision.tilemap_collider);
+        dyn.collision.collider.reset();
+        //world->erase(*dyn.collision.tilemap_collider);
     }
 }
 
@@ -284,11 +285,12 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 
 void TileLayer::update(secs deltaTime) {
 	if (hasCollision()) {
-        auto* collider = world->get(*dyn.collision.tilemap_collider);
-		collider->setPosition(collider->getPosition());
-		collider->delta_velocity = Vec2f{};
-		collider->velocity = Vec2f{};
-		collider->update(deltaTime);
+        //auto* collider = world->get(*dyn.collision.tilemap_collider);
+        auto& collider = *dyn.collision.collider;
+		collider.setPosition(collider.getPosition());
+		collider.delta_velocity = Vec2f{};
+		collider.velocity = Vec2f{};
+		collider.update(deltaTime);
 	}
 	if (hasScrolling()) {
 		dyn.scroll.prev_offset = dyn.scroll.offset;
@@ -328,11 +330,11 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 
 	if (enabled)
 	{
-		if (!dyn.collision.tilemap_collider) {
+		if (!dyn.collision.collider) {
 
-            dyn.collision.tilemap_collider = world->create_collider<ColliderTileMap>(Vec2i{ getLevelSize() }, true);
+            dyn.collision.collider = uniq_id_ptr<ColliderTileMap>{ *world, world->create_collider<ColliderTileMap>(Vec2i{ getLevelSize() }, true) };
 			layer_data.setCollision(true, border);
-            auto* collider = world->get(*dyn.collision.tilemap_collider);
+            auto& collider = *dyn.collision.collider;
 
 			for (const auto& tile_data : layer_data.getTileData())
 			{
@@ -342,7 +344,7 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 					auto tile = tileset->getTile(tile_data.tile_id);
 
 					if (tile) {
-						collider->setTile(
+						collider.setTile(
 							Vec2i{ tile_data.pos },
 							tile->shape,
 							&tileset->getMaterial(tile_data.tile_id),
@@ -352,14 +354,14 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 				}
 			}
 
-			collider->setBorders(getLevelSize(), layer_data.getCollisionBorders());
-			collider->applyChanges();
+			collider.setBorders(getLevelSize(), layer_data.getCollisionBorders());
+			collider.applyChanges();
 
-			collider->set_on_precontact(
+			collider.set_on_precontact(
 				std::bind(&TileLayer::handlePreContact, this,
 					std::placeholders::_1, std::placeholders::_2)
 			);
-			collider->set_on_postcontact(
+			collider.set_on_postcontact(
 				std::bind(&TileLayer::handlePostContact, this,
 					std::placeholders::_1)
 			);
@@ -367,10 +369,7 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 	}
 	else if (!enabled)
 	{
-		if (dyn.collision.tilemap_collider) {
-            world->erase(*dyn.collision.tilemap_collider);
-		}
-        dyn.collision.tilemap_collider.reset();
+        dyn.collision.collider.reset();
 		layer_data.setCollision(false);
 	}
 	return true;
@@ -480,8 +479,7 @@ void TileLayer::predraw(float interp, bool updated) {
 		}
 
 		if (changed && hasCollision()) {
-            auto *collider = world->get(*dyn.collision.tilemap_collider);
-            collider->applyChanges();
+            dyn.collision.collider->applyChanges();
         }
 	}
 
@@ -580,8 +578,7 @@ void TileLayer::removeTile(const Vec2u& position) {
 		dyn.tile_logic.at(tiles_dyn[position].logic_id)->removeTile(position);
 	}
 	if (hasCollision()) {
-        auto *collider = world->get(*dyn.collision.tilemap_collider);
-		collider->removeTile(Vec2i(position));
+		dyn.collision.collider->removeTile(Vec2i(position));
 	}
 
 	uint8_t tileset_ndx = tile_data[position].tileset_ndx;
@@ -622,8 +619,7 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 	{
 		if (hasCollision())
 		{
-            auto *collider = world->get(*dyn.collision.tilemap_collider);
-			collider->removeTile(Vec2i(at));
+			dyn.collision.collider->removeTile(Vec2i(at));
 		}
 		return;
 	}
@@ -653,8 +649,7 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 	}
 
 	if (hasCollision() && next_tile) {
-        auto* collider = world->get(*dyn.collision.tilemap_collider);
-		collider->setTile(
+		dyn.collision.collider->setTile(
 			Vec2i(at),
 			next_tile->shape,
 			&next_tileset->getMaterial(tile.tile_id),
