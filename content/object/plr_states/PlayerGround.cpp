@@ -32,7 +32,7 @@ PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
 	if (plr.ground->has_contact()) {
 
 		plr.box->setSlip({});
-		const PersistantContact& contact = plr.ground->get_contact().value();
+		const AppliedContact& contact = plr.ground->get_contact().value();
 		plr.ground->settings.slope_sticking = true;
 
 		move_t move{ plr };

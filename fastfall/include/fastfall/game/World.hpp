@@ -9,6 +9,7 @@
 #include "fastfall/game/TriggerSystem.hpp"
 #include "fastfall/game/SceneSystem.hpp"
 #include "fastfall/game/ObjectSystem.hpp"
+#include "fastfall/game/LevelSystem.hpp"
 
 #include <optional>
 #include <concepts>
@@ -46,18 +47,15 @@ private:
 public:
     World();
 
+    // TODO
+    World(const World& other) = delete;
+    World& operator=(const World& other) = delete;
+    World(World&& other) noexcept = delete;
+    World& operator=(World&& other) noexcept = delete;
 
     // manage state
-    // void update(secs deltaTime)
-
-	// get entity
-	//GameObject* get(ID<GameObject> id);	
-	//Level* 		get(ID<Level> id);	
-	//Level* 		get_active_level();	
-
-	// create entity
-	
-	// erase entity
+    void update(secs deltaTime);
+    void predraw(float interp, bool updated);
 
 	// get component
     template<class T>
@@ -65,20 +63,6 @@ public:
 
     template<class T>
     T* get(ID<T> id) { return (T*)container<T>().get(id); }
-
-    template<class T>
-    ID<T> clone(ID<T> id) {
-        auto* cont = container<T>();
-        T* value = (T*)cont->get(id);
-        using cont_type = decltype(container<T>());
-        using cont_value_type = typename decltype(container<T>())::value_type;
-        if constexpr (std::same_as<cont_type, poly_id_map<cont_value_type>>) {
-            return cont->template create<T>(*value);
-        }
-        else {
-            return cont->create(*value);
-        }
-    }
 
 	// create component
 	ID<Collidable> create_collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
@@ -108,6 +92,18 @@ public:
                 _object_system);
     }
 
+    ID<Level> create_level(const LevelAsset& lvl_asset) {
+        return notify_created_all(
+                create(_levels, this, lvl_asset),
+                _level_system) ;
+    }
+
+    ID<Level> create_level() {
+        return notify_created_all(
+                create(_levels, this),
+                _level_system) ;
+    }
+
 	// erase component
     template<class T>
     bool erase(ID<T> id) { return erase(id, container<T>()); }
@@ -123,6 +119,7 @@ public:
 	inline TriggerSystem&   trigger()   { return _trigger_system; }
 	inline CameraSystem&    camera()    { return _camera_system; }
 	inline SceneSystem&     scene()     { return _scene_system; }
+    inline LevelSystem&     levels()    { return _level_system; }
 
 private:
 	// entities
@@ -164,16 +161,17 @@ private:
 	poly_id_map<ColliderRegion> _colliders;
 	id_map<Trigger> 			_triggers;
 	poly_id_map<CameraTarget> 	_camera_targets;
-	//poly_id_map<Drawable> 		_drawables;
     id_map<SceneObject>         _scene_objects;
 
 	// systems
-	//LevelSystem	_level_system;
+	LevelSystem	    _level_system;
 	ObjectSystem	_object_system;
 	CollisionSystem _collision_system;
 	TriggerSystem	_trigger_system;
 	CameraSystem	_camera_system;
 	SceneSystem		_scene_system;
+
+    size_t update_counter = 0;
 };
 
 }

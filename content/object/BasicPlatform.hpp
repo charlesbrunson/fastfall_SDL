@@ -16,8 +16,6 @@ public:
 
 	BasicPlatform(ff::GameContext context, ff::ObjectLevelData& data);
 
-	std::unique_ptr<ff::GameObject> clone() const override;
-
 	void update(secs deltaTime) override;
 
 	void predraw(float interp, bool updated) override;

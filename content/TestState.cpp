@@ -17,16 +17,15 @@ TestState::TestState()
 	stateID = ff::EngineStateID::TEST_STATE;
 	clearColor = ff::Color{ 0x141013FF };
 
-	instance = ff::CreateInstance();
-	instanceID = instance->getInstanceID();
-	assert(instance);
+    world = std::make_unique<ff::World>();
 
-	if (ff::LevelAsset* lvlptr = ff::Resources::get<ff::LevelAsset>("map_test.tmx"))
+	if (auto* lvlptr = ff::Resources::get<ff::LevelAsset>("map_test.tmx"))
 	{
-		instance->levels.addLevel(instance->getContext(),  *lvlptr);
+        auto lvl_id = world->create_level(*lvlptr);
+        world->levels().set_active(lvl_id);
 	}
-	Level* lvl = instance->levels.getActiveLevel();
-	assert(lvl);
+    Level* lvl = world->levels().get_active();
+    assert(lvl);
 
 	//instance->populateSceneFromLevel(*lvl);
 	edit = std::make_unique<LevelEditor>( *lvl, false );
@@ -38,14 +37,10 @@ TestState::TestState()
 	tile_text.setText(*font, 8, {});
 }
 
-TestState::~TestState() {
-	ff::DestroyInstance(instance->getInstanceID());
-}
 
 void TestState::update(secs deltaTime) {
 
-	instance->update(deltaTime);
-	//return;
+    world->update(deltaTime);
 
 	currKeys = SDL_GetKeyboardState(&key_count);
 
@@ -159,8 +154,7 @@ void TestState::update(secs deltaTime) {
 
 		if (Input::getMouseInView() && (Input::isHeld(InputType::MOUSE1) || Input::isHeld(InputType::MOUSE2)))
 		{
-			Level* lvl = instance->levels.getActiveLevel();
-
+            Level* lvl = world->levels().get_active();
 			if (Rectf{ Vec2f{}, Vec2f{lvl->size()} * TILESIZE_F }.contains(mpos)
 				&& (!painting || (last_paint != tpos)))
 			{
@@ -217,16 +211,12 @@ void TestState::update(secs deltaTime) {
 
 void TestState::predraw(float interp, bool updated) {
 
-	instance->predraw(interp, updated);
+    world->predraw(interp, updated);
 
-	viewPos = instance->camera.getPosition(interp);
-	viewZoom = instance->camera.zoomFactor;
-
-	//return;
-	// --------------
+	viewPos = world->camera().getPosition(interp);
+	viewZoom = world->camera().zoomFactor;
 
 	tile_text.predraw();
-
 
 	if (edit) 
 	{
@@ -280,10 +270,7 @@ void TestState::predraw(float interp, bool updated) {
 
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const 
 {
-	target.draw(*instance, state);
-
-	//return;
-	// --------------
+    target.draw(world->scene(), state);
 
 	if (edit && edit->get_tile_layer()) {
 		target.draw(tile_ghost, state);
