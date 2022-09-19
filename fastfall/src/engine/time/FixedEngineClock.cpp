@@ -12,7 +12,6 @@ FixedEngineClock::FixedEngineClock(unsigned ups, unsigned fps) noexcept
 
 void FixedEngineClock::setFPS(unsigned fps) noexcept
 {
-	// TODO
 	target_fps = fps;
 	reset();
 }

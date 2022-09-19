@@ -1,21 +1,20 @@
 #pragma once
 
-#include "fastfall/resource/asset/TilesetAsset.hpp"
 #include "fastfall/engine/time/time.hpp"
-#include "fastfall/util/copyable_uniq_ptr.hpp"
 
-#include "fastfall/game_v2/tile/Tile.hpp"
-#include "fastfall/game_v2/phys/collision/Contact.hpp"
+#include "../GameContext.hpp"
+#include "fastfall/resource/asset/TilesetAsset.hpp"
 
 #include <queue>
 #include <string_view>
 #include <functional>
 #include <concepts>
 
+#include "Tile.hpp"
+#include "../phys/collision/Contact.hpp"
+
 namespace ff {
 
-class TileLogic;
-class World;
 
 struct TileLogicCommand {
 	enum class Type {
@@ -30,9 +29,11 @@ struct TileLogicCommand {
 	bool updateLogic = true;
 };
 
+class TileLogic;
+
 class TileLogicType {
 public:
-	using FactoryFunction = std::function<copyable_unique_ptr<TileLogic>&&(World*)>;
+	using FactoryFunction = std::function<std::unique_ptr<TileLogic>(GameContext)>;
 
 	TileLogicType(std::string_view type, FactoryFunction builder);
 
@@ -62,9 +63,8 @@ protected:
 
 public:
 
-	TileLogic(World* w, std::string name)
-		: world(w)
-        , m_name(name)
+	TileLogic(GameContext context, std::string name) 
+		: m_context(context), m_name(name)
 	{
 
 	}
@@ -75,11 +75,11 @@ public:
 
 	virtual void update(secs deltaTime) = 0;
 
-	virtual bool on_precontact(const ContinuousContact& contact, secs duration) const {
+	virtual bool on_precontact(Vec2i tilePos, const Contact& contact, secs duration) const {
 		return true;
 	};
 
-	virtual void on_postcontact(const AppliedContact& contact) const {};
+	virtual void on_postcontact(Vec2i tilePos, const PersistantContact& contact) const {};
 
 
 	inline std::string_view getName() const {
@@ -99,19 +99,21 @@ public:
 		commands = std::queue<TileLogicCommand>{};
 	}
 
+
+
 	template<typename T, typename = std::enable_if<std::is_base_of<TileLogic, T>::value>>
 	static void addType(const std::string& typeName) {
 		TileLogicType type{
 			typeName,
-			[](World* w) -> copyable_unique_ptr<TileLogic>&& {
-				return std::make_unique<T>(w);
+			[](GameContext context) -> std::unique_ptr<TileLogic> {
+				return std::make_unique<T>(context);
 			}
 		};
 		getMap().insert(std::make_pair(type.typeName, type));
 	}
-	static copyable_unique_ptr<TileLogic>&& create(World* world, std::string_view typeName);
+	static std::unique_ptr<TileLogic> create(GameContext context, std::string_view typeName);
 
-    void set_world(World* w) { world = w; }
+	virtual std::unique_ptr<TileLogic> clone(GameContext n_context) = 0;
 
 private:
 	using Map = std::map<std::string, TileLogicType, std::less<>>;
@@ -124,7 +126,7 @@ private:
 
 	std::string m_name;
 	std::queue<TileLogicCommand> commands;
-    World* world;
+	GameContext m_context;
 };
 
 

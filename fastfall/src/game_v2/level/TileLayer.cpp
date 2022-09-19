@@ -429,6 +429,9 @@ bool TileLayer::set_scroll(bool enabled, Vec2f rate)
 }
 
 bool TileLayer::handlePreContact(const ContinuousContact& contact, secs duration) {
+
+    auto pos = dyn.collision.collider->to_pos(contact.id->quad);
+
 	if (pos.x < 0 || pos.x >= getLevelSize().x
 		|| pos.y < 0 || pos.y >= getLevelSize().y)
 		return true;
@@ -436,19 +439,20 @@ bool TileLayer::handlePreContact(const ContinuousContact& contact, secs duration
 	//unsigned ndx = pos.y * getLevelSize().x + pos.x;
 	bool r = true;
 	if (tiles_dyn[pos].logic_id != TILEDATA_NONE) {
-		r = dyn.tile_logic.at(tiles_dyn[pos].logic_id)->on_precontact(pos, contact, duration);
+		r = dyn.tile_logic.at(tiles_dyn[pos].logic_id)->on_precontact(contact, duration);
 	}
 	return r;
 }
 
 void TileLayer::handlePostContact(const AppliedContact& contact) {
+    auto pos = dyn.collision.collider->to_pos(contact.id->quad);
 	if (pos.x < 0 || pos.x >= getLevelSize().x
 		|| pos.y < 0 || pos.y >= getLevelSize().y)
 		return;
 
 	//unsigned ndx = pos.y * getLevelSize().x + pos.x;
 	if (tiles_dyn[pos].logic_id != TILEDATA_NONE) {
-		dyn.tile_logic.at(tiles_dyn[pos].logic_id)->on_postcontact(pos, contact);
+		dyn.tile_logic.at(tiles_dyn[pos].logic_id)->on_postcontact(contact);
 	}
 }
 

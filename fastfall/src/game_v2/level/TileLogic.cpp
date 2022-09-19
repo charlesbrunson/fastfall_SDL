@@ -1,4 +1,4 @@
-#include "fastfall/game/level/TileLogic.hpp"
+#include "fastfall/game_v2/level/TileLogic.hpp"
 
 #include "fastfall/util/log.hpp"
 
@@ -10,12 +10,12 @@ TileLogicType::TileLogicType(std::string_view type, FactoryFunction builder) :
 
 }
 
-std::unique_ptr<TileLogic> TileLogic::create(GameContext context, std::string_view typeName) {
+copyable_unique_ptr<TileLogic>&& TileLogic::create(World* world, std::string_view typeName) {
 	auto iter = getMap().find(typeName);
 	if (iter != getMap().end()) {
-		return iter->second.fn_create(context);
+		return iter->second.fn_create(world);
 	}
-	return nullptr;
+	return {};
 }
 
 }

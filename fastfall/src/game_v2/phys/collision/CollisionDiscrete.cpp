@@ -446,8 +446,6 @@ void CollisionDiscrete::evalContact() noexcept {
 	}
 
 	contact.hasContact = hasContact;
-    // TODO
-	//contact.arbiter = arbiter;
 }
 
 CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexcept {
