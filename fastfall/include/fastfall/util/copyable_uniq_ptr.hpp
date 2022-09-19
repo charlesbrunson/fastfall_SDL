@@ -87,7 +87,7 @@ struct copyable_unique_ptr {
 	}
 
 	operator bool() {
-		return ptr;
+		return ptr != nullptr;
 	}
 
 private:

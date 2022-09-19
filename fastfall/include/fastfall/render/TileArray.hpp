@@ -7,7 +7,7 @@
 #include "fastfall/render/Transformable.hpp"
 #include "fastfall/render.hpp"
 
-#include "fastfall/game_v2/tile/TileID.hpp"
+#include "fastfall/game/tile/TileID.hpp"
 
 namespace ff {
 
