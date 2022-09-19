@@ -1,7 +1,7 @@
 
 #include "fastfall/game/object/GameObject.hpp"
 #include "fastfall/game/level/TileLogic.hpp"
-#include "fastfall/game/level/Tile.hpp"
+#include "fastfall/game/tile/Tile.hpp"
 
 #include "tilelogic/AnimLogic.hpp"
 
