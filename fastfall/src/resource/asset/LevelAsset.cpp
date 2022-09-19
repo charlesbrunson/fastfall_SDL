@@ -13,8 +13,8 @@
 #include "fastfall/engine/config.hpp"
 
 //#include "fastfall/game/Instance.hpp"
-#include "fastfall/game/InstanceInterface.hpp"
-#include "fastfall/game/level/LevelEditor.hpp"
+//#include "fastfall/game/InstanceInterface.hpp"
+//#include "fastfall/game/level/LevelEditor.hpp"
 
 #include <sstream>
 #include <algorithm>
@@ -197,6 +197,8 @@ bool LevelAsset::reloadFromFile() {
 		LOG_ERR_("failed to reload level asset: {}", err.what());
 	}
 
+    // TODO
+    /*
 	if (loaded) {
 		for (auto& [id, inst] : AllInstances())
 		{
@@ -216,6 +218,7 @@ bool LevelAsset::reloadFromFile() {
 			}
 		}
 	}
+    */
 
 	return loaded;
 }

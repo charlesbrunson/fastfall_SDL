@@ -7,8 +7,6 @@
 
 #include "imgui/ImGuiContent.hpp"
 
-#include "fastfall/game/InstanceObserver.hpp"
-
 #include "fastfall/util/Vec2.hpp"
 
 #include "fastfall/render/VertexArray.hpp"
@@ -70,7 +68,7 @@ private:
 	DebugDrawImgui debugdrawImgui;
 
 	Input::InputObserver input;
-	InstanceObserver instanceObs;
+	//InstanceObserver instanceObs;
 
 	Engine(std::unique_ptr<Window>&& initWindow, EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings);
 

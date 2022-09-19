@@ -1,7 +1,7 @@
 #pragma once
 
-#include "fastfall/game_v2/phys/ColliderRegion.hpp"
-#include "fastfall/game_v2/phys/collider_coretypes/ColliderTile.hpp"
+#include "../ColliderRegion.hpp"
+#include "../collider_coretypes/ColliderTile.hpp"
 #include "fastfall/resource/asset/TilesetAsset.hpp"
 
 #include "fastfall/util/log.hpp"
@@ -63,10 +63,9 @@ public:
 
 	void update(secs deltaTime) override;
 
-	const ColliderQuad* get_quad(QuadID quad_id) const noexcept override;
+	const ColliderQuad* get_quad(int quad_id) const noexcept override;
 	const ColliderQuad* get_quad(const Vec2i& at) const noexcept;
 
-    Vec2i to_pos(QuadID quad_id) const noexcept;
 
 	void setBorders(const Vec2u& size, const unsigned cardinalBits);
 
@@ -82,15 +81,15 @@ public:
 	void applyChanges();
 
 
-	void get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, QuadID>>& out_buffer) const override;
+	void get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, const ColliderQuad*>>& out_buffer) const override;
 
-	bool on_precontact(const ContinuousContact& contact, secs duration) const override;
-	void on_postcontact(const AppliedContact& contact) const override;
+	bool on_precontact(int quad_id, const Contact& contact, secs duration) const override;
+	void on_postcontact(const PersistantContact& contact) const override;
 
-	void set_on_precontact(std::function<bool(const ContinuousContact&, secs)> func) {
+	void set_on_precontact(std::function<bool(Vec2i, const Contact&, secs)> func) {
 		callback_on_precontact = func;
 	}
-	void set_on_postcontact(std::function<void(const AppliedContact&)> func) {
+	void set_on_postcontact(std::function<void(Vec2i, const PersistantContact&)> func) {
 		callback_on_postcontact = func;
 	}
 
@@ -105,8 +104,8 @@ private:
 	bool applySetTile(const Edit& change);
 
 	bool validPosition(const Vec2i& at) const noexcept;
-	bool validPosition(QuadID ndx) const noexcept;
-	QuadID getTileID(const Vec2i& at) const noexcept;
+	bool validPosition(size_t ndx) const noexcept;
+	size_t getTileIndex(const Vec2i& at) const noexcept;
 
 	std::pair<ColliderQuad*, const ColliderTile*> get_tile(const Vec2i& at);
 
@@ -146,8 +145,8 @@ private:
 	bool hasBorder;
 	size_t validCollisionSize = 0;
 
-	std::function<bool(const ContinuousContact&, secs)> callback_on_precontact;
-	std::function<void(const AppliedContact&)> callback_on_postcontact;
+	std::function<bool(Vec2i, const Contact&, secs)> callback_on_precontact;
+	std::function<void(Vec2i, const PersistantContact&)> callback_on_postcontact;
 
 	grid_vector<ColliderQuad>	tileCollisionMap;
 	grid_vector<TileTable>		tileShapeMap;

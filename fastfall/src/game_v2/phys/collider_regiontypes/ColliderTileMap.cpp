@@ -54,6 +54,13 @@ namespace ff {
 		return tileShapeMap[quad_id.value].hasTile ? &tileCollisionMap[quad_id.value] : nullptr;
 	}
 
+    Vec2i ColliderTileMap::to_pos(QuadID quad_id) const noexcept {
+        Vec2i position;
+        position.y = quad_id.value / (size_max.x);
+        position.x = quad_id.value - (position.y * (size_max.x - size_min.x));
+        position += size_min;
+        return position;
+    }
 
 	bool ColliderTileMap::on_precontact(const ContinuousContact& contact, secs duration) const {
         auto quad_id = contact.id->quad;

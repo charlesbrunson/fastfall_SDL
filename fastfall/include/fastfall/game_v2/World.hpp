@@ -72,7 +72,7 @@ public:
         T* value = (T*)cont->get(id);
         using cont_type = decltype(container<T>());
         using cont_value_type = typename decltype(container<T>())::value_type;
-        if constexpr (std::same_as<cont_type, poly_id_map<cont_value_type>) {
+        if constexpr (std::same_as<cont_type, poly_id_map<cont_value_type>>) {
             return cont->template create<T>(*value);
         }
         else {

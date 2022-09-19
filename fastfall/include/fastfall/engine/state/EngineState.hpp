@@ -1,26 +1,12 @@
 #pragma once
 
 #include "fastfall/util/math.hpp"
-
 #include "fastfall/render/Drawable.hpp"
-
 #include "fastfall/engine/time/time.hpp"
-
-//#include "util/Updatable.hpp"
 
 #include <assert.h>
 #include <type_traits>
 #include <memory>
-
-// TODO
-#include "fastfall/game/InstanceID.hpp"
-
-//#include <SFML/Graphics.hpp>
-//#include <SFML/System.hpp>
-
-
-// just for putting ImGui tags on widget labels
-#define APP_IGID(X) (appendImGuiID(X).c_str())
 
 namespace ff {
 
@@ -71,8 +57,6 @@ public:
 
 	virtual void updateImGUI() {};
 
-	inline InstanceID getInstanceID() { return instanceID; };
-
 	inline Vec2f getViewPos() const noexcept { return viewPos; };
 	inline float getViewZoom() const noexcept { return viewZoom; };
 
@@ -97,9 +81,6 @@ public:
 	}
 
 protected:
-
-	// TODO
-	InstanceID instanceID;
 
 	Color clearColor;
 

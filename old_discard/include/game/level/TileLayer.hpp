@@ -1,23 +1,27 @@
 #pragma once
 
+//#include "util/Updatable.hpp"
+
+#include "fastfall/render/Drawable.hpp"
+
 #include "fastfall/resource/asset/LevelAsset.hpp"
 #include "fastfall/resource/asset/TilesetAsset.hpp"
 #include "fastfall/resource/asset/TileLayerData.hpp"
 
-#include "fastfall/game_v2/phys/collider_regiontypes/ColliderTileMap.hpp"
-#include "fastfall/game_v2/level/TileLogic.hpp"
-#include "fastfall/game_v2/scene/SceneObject.hpp"
-#include "fastfall/game_v2/tile/Tile.hpp"
-#include "fastfall/game_v2/id_ptr.hpp"
-
-#include "fastfall/render/Drawable.hpp"
+#include "../phys/collider_regiontypes/ColliderTileMap.hpp"
+//#include "fastfall/render/TileVertexArray.hpp"
+#include "../SceneSystem.hpp"
 #include "fastfall/render/ChunkVertexArray.hpp"
 
+#include "../GameContext.hpp"
+
+#include "TileLogic.hpp"
+#include "Tile.hpp"
+
+//#include <SFML/Graphics.hpp>
 #include <memory>
 
 namespace ff {
-
-class World;
 
 class TileLayer {
 private:
@@ -45,20 +49,27 @@ private:
 		} scroll;
 
 		struct collision_dyn_t {
-            uniq_id_ptr<ColliderTileMap> collider;
+			ColliderTileMap* tilemap_ptr = nullptr;
 		} collision;
 
-		std::vector<copyable_unique_ptr<TileLogic>> tile_logic;
-		std::vector<ID<SceneObject>> chunks;
+		std::vector<std::unique_ptr<TileLogic>> tile_logic;
+		//std::vector<ChunkVertexArray> chunks;
+		std::vector<scene_id> chunks;
 	} dyn;
 
+	GameContext m_context;
 	Vec2f offset;
 
-    World* world;
-
 public:
-	TileLayer(World* w, unsigned id, Vec2u levelsize);
-	TileLayer(World* w, const TileLayerData& layerData);
+
+	TileLayer(GameContext context, unsigned id, Vec2u levelsize);
+	TileLayer(GameContext context, const TileLayerData& layerData);
+
+	TileLayer(const TileLayer& tile);
+	TileLayer& operator=(const TileLayer& tile);
+
+	TileLayer(TileLayer&& tile) noexcept;
+	TileLayer& operator=(TileLayer&& tile) noexcept;
 
 	~TileLayer();
 
@@ -69,13 +80,6 @@ public:
 	void setTile(const Vec2u& position, TileID tile_id, const TilesetAsset& tileset, bool useLogic = true);
 	void removeTile(const Vec2u& position);
 	void clear();
-
-    void set_world(World* w) {
-        world = w;
-        if (dyn.collision.collider) {
-            dyn.collision.collider.set_world(*w);
-        }
-    }
 
 	void shallow_copy(const TileLayer& src, Rectu src_area, Vec2u dst);
 
@@ -136,12 +140,14 @@ public:
 protected:
 
 	scene_layer layer;
-	ChunkVertexArray* get_chunk(ID<SceneObject> id);
+	ChunkVertexArray* get_chunk(scene_id id);
 
-	bool handlePreContact(const ContinuousContact& contact, secs duration);
-	void handlePostContact(const AppliedContact& contact);
+	bool handlePreContact(Vec2i pos, const Contact& contact, secs duration);
+	void handlePostContact(Vec2i pos, const PersistantContact& contact);
 
 	void updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic = true);
+
+	//void draw(RenderTarget& target, RenderState states = RenderState()) const override;
 };
 
 }

@@ -23,8 +23,8 @@ public:
     {
     }
 
-    uniq_id_ptr(const uniq_id_ptr<T>&) = delete;
-    uniq_id_ptr<T>& operator=(const uniq_id_ptr<T>&) = delete;
+    uniq_id_ptr(const uniq_id_ptr<T>&) = default;
+    uniq_id_ptr<T>& operator=(const uniq_id_ptr<T>&) = default;
 
     uniq_id_ptr(uniq_id_ptr<T>&& other) {
         swap(other);

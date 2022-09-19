@@ -1,29 +1,29 @@
 #pragma once
 
+//#include "util/Updatable.hpp"
 #include "fastfall/engine/time/time.hpp"
+#include "LevelLayerContainer.hpp"
 
 #include "fastfall/resource/asset/LevelAsset.hpp"
 
 #include "fastfall/render/Drawable.hpp"
 
-#include "fastfall/game_v2/level/LevelLayerContainer.hpp"
-#include "fastfall/game_v2/level/TileLayer.hpp"
-#include "fastfall/game_v2/level/ObjectLayer.hpp"
+#include "TileLayer.hpp"
+#include "ObjectLayer.hpp"
 
 #include <list>
 #include <concepts>
 
 namespace ff {
 
-class World;
 class LevelEditor;
 
 class Level  {
 public:
 	using Layers = LevelLayerContainer<TileLayer, ObjectLayer>;
 
-	Level(World* w);
-	Level(World* w, const LevelAsset& levelData);
+	Level(GameContext context);
+	Level(GameContext context, const LevelAsset& levelData);
 
 	void init(const LevelAsset& levelData);
 
@@ -35,15 +35,8 @@ public:
 	inline const Vec2u& size() const { return levelSize; };
 	inline const std::string& name() const { return levelName; };
 
-    void set_world(World* w) {
-        world = w;
-        for (auto& layer : layers.get_tile_layers())
-        {
-            layer.tilelayer.set_world(w);
-        }
-    }
-
-    World* get_world() const { return world; }
+	GameContext getContext() { return context; }
+	inline InstanceID getInstanceID() { return context.getID(); };
 
 	void resize(Vec2u n_size);
 	void set_name(std::string name) { levelName = name; };
@@ -55,13 +48,14 @@ public:
 	bool hasEditorHooked = false;
 
 private:
+	GameContext context;
+
 	std::string levelName;
 	Color bgColor;
 	Vec2u levelSize;
 
 	Layers layers;
 
-    World* world;
 	const LevelAsset* asset = nullptr;
 };
 

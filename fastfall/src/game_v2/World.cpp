@@ -28,12 +28,6 @@ ID<Trigger> World::create_trigger() {
             _trigger_system);
 }
 
-ID<SceneObject> World::create_scene_object(ID<Drawable> id) {
-    return notify_created_all(
-            create(_scene_objects, SceneObject{.drawable_id = id}),
-            _scene_system);
-}
-
 ID<SceneObject> World::create_scene_object(SceneObject obj) {
     return notify_created_all(
             create(_scene_objects, obj),
