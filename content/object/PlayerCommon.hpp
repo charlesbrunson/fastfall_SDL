@@ -66,15 +66,12 @@ namespace plr {
 
 		members(ff::GameContext context, ff::GameObject& plr, ff::Vec2f position);
 
-		const ff::GameContext plr_context;
-
 		ff::Scene_ptr<ff::AnimatedSprite> sprite;
 		ff::Collidable_ptr box;
 		ff::SurfaceTracker* ground;
 		ff::Trigger_ptr hurtbox;
 		ff::Trigger_ptr hitbox;
 		ff::CamTarget_ptr<SimpleCamTarget> cam_target;
-		//SimpleCamTarget cam_target;
 	};
 
 	struct move_t {

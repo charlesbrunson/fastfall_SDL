@@ -8,14 +8,11 @@ using namespace ff;
 
 class AnimLogic : public TileLogic {
 public:
-	AnimLogic(GameContext context) : TileLogic(context, "anim") {}
+	AnimLogic(World* world) : TileLogic(world, "anim") {}
 
 	void addTile(Vec2u tilePos, Tile tile, std::string_view arg) override;
 	void removeTile(Vec2u tilePos) override;
 	void update(secs deltaTime) override;
-
-
-	std::unique_ptr<TileLogic> clone(GameContext n_context) override;
 
 private:
 	struct TileTimer {

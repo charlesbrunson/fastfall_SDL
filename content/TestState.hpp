@@ -17,7 +17,6 @@
 class TestState : public ff::EngineState {
 public:
 	TestState();
-	~TestState();
 
 	void update(secs deltaTime) override;
 	void predraw(float interp, bool updated) override;
@@ -27,7 +26,7 @@ public:
 private:
 	void draw(ff::RenderTarget& target, ff::RenderState states = ff::RenderState()) const override;
 
-	ff::World* instance;
+    std::unique_ptr<ff::World> world;
 
 	bool painting = false;
 	ff::Vec2i last_paint;

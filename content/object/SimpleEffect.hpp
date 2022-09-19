@@ -21,11 +21,6 @@ public:
 		m_remove = !sprite->set_anim(anim);
 	};
 
-	std::unique_ptr<ff::GameObject> clone() const override
-	{
-		return nullptr;		
-	};
-
 	void update(secs deltaTime) override {
 		sprite->update(deltaTime);
 		if (sprite->is_complete()) {

@@ -34,5 +34,35 @@ ID<SceneObject> World::create_scene_object(SceneObject obj) {
             _scene_system);
 }
 
+void World::update(secs deltaTime) {
+    if (Level* active = _level_system.get_active())
+    {
+        active->update(deltaTime);
+        _trigger_system.update(deltaTime);
+        _object_system.update(deltaTime);
+        _collision_system.update(deltaTime);
+        _camera_system.update(deltaTime);
+        update_counter++;
+    }
+}
+
+void World::predraw(float interp, bool updated) {
+    // TODO
+    //if (want_reset)
+    //    reset();
+
+    if (Level* active = _level_system.get_active())
+    {
+        _scene_system.set_bg_color(active->getBGColor());
+        _scene_system.set_size(active->size());
+        _object_system.predraw(interp, updated);
+        active->predraw(interp, updated);
+        _scene_system.set_cam_pos(_camera_system.getPosition(interp));
+    }
+    else
+    {
+        _scene_system.set_bg_color(ff::Color::Transparent);
+    }
+}
 
 }

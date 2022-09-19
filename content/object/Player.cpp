@@ -87,17 +87,7 @@ void Player::init() {
 		};
 }
 
-std::unique_ptr<GameObject> Player::clone() const 
-{
-	std::unique_ptr<Player> object = std::make_unique<Player>(m_context, box->getPosition(), sprite->get_hflip());
-
-	// TODO
-
-	return object;
-}
-
-
-void Player::manage_state(PlayerStateID n_id) 
+void Player::manage_state(PlayerStateID n_id)
 {
 	auto state_transition = [this]<std::derived_from<PlayerState> T>( T&& next_state ) 
 	{

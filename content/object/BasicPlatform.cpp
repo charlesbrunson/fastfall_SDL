@@ -65,15 +65,6 @@ BasicPlatform::BasicPlatform(ff::GameContext context, ff::ObjectLevelData& data)
 
 }
 
-
-std::unique_ptr<ff::GameObject> BasicPlatform::clone() const {
-	std::unique_ptr<BasicPlatform> object = std::make_unique<BasicPlatform>(m_context, *m_data);
-
-	//TODO copy current state data
-
-	return object;
-}
-
 void BasicPlatform::update(secs deltaTime) {
 
 	if (deltaTime > 0)

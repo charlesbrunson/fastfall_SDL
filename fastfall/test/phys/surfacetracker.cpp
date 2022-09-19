@@ -1,7 +1,6 @@
 #include "gtest/gtest.h"
 
 #include "fastfall/game/World.hpp"
-#include "fastfall/game/object/ObjectComponents.hpp"
 #include "fastfall/game/phys/collider_regiontypes/ColliderTileMap.hpp"
 #include "fastfall/game/phys/Collidable.hpp"
 #include "fastfall/game/phys/collidable/SurfaceTracker.hpp"

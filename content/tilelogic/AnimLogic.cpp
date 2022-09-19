@@ -83,11 +83,3 @@ void AnimLogic::update(secs deltaTime) {
 }
 
 
-std::unique_ptr<TileLogic> AnimLogic::clone(GameContext n_context) {
-	std::unique_ptr<TileLogic> ptr = std::make_unique<AnimLogic>(n_context);
-	*(AnimLogic*)ptr.get() = *this;
-	return ptr;
-}
-
-
-
