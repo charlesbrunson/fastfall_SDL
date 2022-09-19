@@ -21,8 +21,8 @@ public:
 	void predraw(float interp, bool updated);
 
     inline void set_world(World* w) { world = w; }
-    void notify_created(ID<GameObject> id);
-    void notify_erased(ID<GameObject> id);
+    void notify_created(ID<GameObject> id) {}
+    void notify_erased(ID<GameObject> id) {}
 
 private:
     World* world;

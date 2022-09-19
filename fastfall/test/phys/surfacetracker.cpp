@@ -16,7 +16,8 @@ using namespace ff;
 class surfacetracker : public ::testing::Test {
 
 protected:
-	CollisionSystem colMan;
+    World world;
+	CollisionSystem* colMan;
 
 	Collidable* box = nullptr;
 	SurfaceTracker* ground;
@@ -28,7 +29,9 @@ protected:
 
 	nlohmann::ordered_json data;
 
-	surfacetracker() = default;
+	surfacetracker() {
+        colMan = &world.collision();
+    }
 
 	virtual ~surfacetracker() {
 		std::string test_log_name = fmt::format("phys_render_out/{}__{}.log",
@@ -50,16 +53,19 @@ protected:
 		Vec2f pos  = { 0, 0 };
 		Vec2f size = { 16, 32 };
 		Vec2f grav = { 0, 0 };
-		box = colMan.create_collidable(pos, size, grav);
 
-		ground = &box->create_tracker(
-			Angle::Degree(-135),
-			Angle::Degree(-45),
-			SurfaceTracker::Settings{
+        auto box_id = world.create_collidable(pos, size, grav);
+		box = world.get(box_id);
+
+        auto tracker_id = world.create_tracker(box_id,
+                Angle::Degree(-135),
+                Angle::Degree(-45)
+            );
+
+        world.at(tracker_id).settings = {
 				.slope_sticking = true,
 				.stick_angle_max = Angle::Degree(90)
-			});
-
+			};
 	}
 
 	void TearDown() override 
@@ -73,13 +79,15 @@ protected:
 		}
 		//box->update(one_frame);
 
-		colMan.dumpCollisionDataThisFrame(&data[colMan.getFrameCount()]);
-		colMan.update(one_frame);
+		colMan->dumpCollisionDataThisFrame(&data[colMan->getFrameCount()]);
+		colMan->update(one_frame);
 	}
 
 	void initTileMap(grid_vector<std::string_view> tiles) 
 	{
-		collider = colMan.create_collider<ColliderTileMap>(Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() });
+		collider = world.get(
+                world.create_collider<ColliderTileMap>(Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() })
+                );
 		for (auto it = tiles.begin(); it != tiles.end(); it++) {
 			if (!it->empty()) {
 				collider->setTile({ (int)it.column(), (int)it.row() }, TileShape::from_string(*it));
@@ -106,13 +114,13 @@ TEST_F(surfacetracker, stick_slope_down)
 	box->set_vel({ 100.f, 0.f });
 	box->set_gravity({ 0, 400 });
 
-	TestPhysRenderer render(collider->getBoundingBox());
-	render.draw(colMan);
+	TestPhysRenderer render(world, collider->getBoundingBox());
+	render.draw();
 
 	while (render.curr_frame < 60 && box->getPosition().x < 80)
 	{
 		update();
-		render.draw(colMan);
+		render.draw();
 		EXPECT_TRUE(ground->has_contact());
 	}
 }
@@ -131,14 +139,14 @@ TEST_F(surfacetracker, broken_slope)
 	box->set_vel({ 0.f, 0.f });
 	box->set_gravity({ 0, 400 });
 
-	TestPhysRenderer render(collider->getBoundingBox());
-	render.draw(colMan);
+	TestPhysRenderer render(world, collider->getBoundingBox());
+	render.draw();
 
 	while (render.curr_frame < 600 && box->getPosition().x > 0)
 	{
 		ground->traverse_set_speed(-50.f);
 		update();
-		render.draw(colMan);
+		render.draw();
 		EXPECT_TRUE(ground->has_contact());
 	}
 }
@@ -160,13 +168,13 @@ TEST_F(surfacetracker, stick_on_touch)
 	box->set_vel(Vec2f{ 6.f, 6.f } / one_frame);
 	box->set_gravity({ 0, 400 });
 
-	TestPhysRenderer render({0, 0, 80, 80});
-	render.draw(colMan);
+	TestPhysRenderer render(world, {0, 0, 80, 80});
+	render.draw();
 
 	while (render.curr_frame < 60 && box->getPosition().x < 80)
 	{
 		update();
-		render.draw(colMan);
+		render.draw();
 		EXPECT_TRUE(ground->has_contact());
 	}
 }
@@ -192,15 +200,15 @@ TEST_F(surfacetracker, friction_slide_to_stop)
 	ground->settings.surface_friction.kinetic = 0.6f;
 	ground->settings.surface_friction.stationary = 0.9f;
 
-	TestPhysRenderer render(collider->getBoundingBox());
-	render.draw(colMan);
+	TestPhysRenderer render(world, collider->getBoundingBox());
+	render.draw();
 
 	bool contact = false;
 
 	while (render.curr_frame < 120 && (!contact || box->get_vel().x != 0.f))
 	{
 		update();
-		render.draw(colMan);
+		render.draw();
 
 		if (!contact)
 		{
@@ -234,8 +242,8 @@ TEST_F(surfacetracker, move_platform_lateral)
 	ground->settings.surface_friction.kinetic = 0.6f;
 	ground->settings.surface_friction.stationary = 0.9f;
 
-	TestPhysRenderer render(collider->getBoundingBox());
-	render.draw(colMan);
+	TestPhysRenderer render(world, collider->getBoundingBox());
+	render.draw();
 
 	Vec2f dir{ 1.f, 0.f };
 
@@ -255,7 +263,7 @@ TEST_F(surfacetracker, move_platform_lateral)
 		collider->velocity = nVel;
 
 		update();
-		render.draw(colMan);
+		render.draw();
 
 		if (!contact)
 		{
@@ -304,8 +312,8 @@ TEST_F(surfacetracker, move_platform_vertical)
 	ground->settings.surface_friction.kinetic = 0.6f;
 	ground->settings.surface_friction.stationary = 0.9f;
 
-	TestPhysRenderer render(collider->getBoundingBox());
-	render.draw(colMan);
+	TestPhysRenderer render(world, collider->getBoundingBox());
+	render.draw();
 
 	Vec2f dir{ 0.f, 2.f };
 
@@ -328,7 +336,7 @@ TEST_F(surfacetracker, move_platform_vertical)
 		collider->velocity = nVel;
 
 		update();
-		render.draw(colMan);
+		render.draw();
 
 		if (!contact)
 		{
@@ -366,14 +374,14 @@ TEST_F(surfacetracker, higrav_launch_off_hill)
 	box->set_gravity({ 0, 2000 });
 	ground->traverse_set_speed(220.f);
 
-	TestPhysRenderer render(collider->getBoundingBox());
-	render.draw(colMan);
+	TestPhysRenderer render(world, collider->getBoundingBox());
+	render.draw();
 		
 	while (render.curr_frame < 120 && box->getPosition().x < 80)
 	{
 		ground->traverse_set_speed(220.f); // this should not stick to the reverse side of the hill
 		update();
-		render.draw(colMan);
+		render.draw();
 
 		if (box->getPosition().x <= 48)
 		{
@@ -398,8 +406,8 @@ TEST_F(surfacetracker, uphill)
 	box->set_gravity({ 0, 500 });
 	ground->traverse_set_speed(50.f);
 
-	TestPhysRenderer render(collider->getBoundingBox());
-	render.draw(colMan);
+	TestPhysRenderer render(world, collider->getBoundingBox());
+	render.draw();
 
 	while (render.curr_frame < 120 && box->getPosition().x < 48)
 	{
@@ -407,13 +415,14 @@ TEST_F(surfacetracker, uphill)
 		update();
 
 		int contacts = 0;
-		for (auto& col : colMan.get_collidables()) {
-			for (auto& arb : col->region_arbiters) {
-
-				contacts += arb.getQuadArbiters().size();
+		for (auto& col : world.all<Collidable>()) {
+            auto cid = world.all<Collidable>().id_of(col);
+            const auto& arbiters = colMan->get_arbiter(cid);
+			for (const auto& [rid, rarb] : arbiters.region_arbiters) {
+				contacts += rarb.getQuadArbiters().size();
 			}
 		}
-		render.draw(colMan);
+		render.draw();
 
 		EXPECT_TRUE(ground->has_contact());
 	}
@@ -432,8 +441,8 @@ TEST_F(surfacetracker, uphill_oneway)
 	box->set_gravity({ 0, 500 });
 	ground->traverse_set_speed(50.f);
 
-	TestPhysRenderer render(collider->getBoundingBox());
-	render.draw(colMan);
+	TestPhysRenderer render(world, collider->getBoundingBox());
+	render.draw();
 
 	while (render.curr_frame < 120 && box->getPosition().x < 48)
 	{
@@ -441,13 +450,14 @@ TEST_F(surfacetracker, uphill_oneway)
 		update();
 
 		int contacts = 0;
-		for (auto& col : colMan.get_collidables()) {
-			for (auto& arb : col->region_arbiters) {
-
-				contacts += arb.getQuadArbiters().size();
-			}
-		}
-		render.draw(colMan);
+        for (auto& col : world.all<Collidable>()) {
+            auto cid = world.all<Collidable>().id_of(col);
+            const auto& arbiters = colMan->get_arbiter(cid);
+            for (const auto& [rid, rarb] : arbiters.region_arbiters) {
+                contacts += rarb.getQuadArbiters().size();
+            }
+        }
+		render.draw();
 
 		EXPECT_TRUE(ground->has_contact());
 	}
@@ -467,15 +477,15 @@ TEST_F(surfacetracker, peak_of_slope_to_slope)
 	//ground->traverse_set_speed(300.f);
 	ground->traverse_add_accel(500.f);
 
-	TestPhysRenderer render(collider->getBoundingBox());
-	render.draw(colMan);
+	TestPhysRenderer render(world, collider->getBoundingBox());
+	render.draw();
 
 	while (render.curr_frame < 120 && box->getPosition().x < 48)
 	{
 		//ground->traverse_set_speed(300.f);
 		ground->traverse_add_accel(500.f);
 		update();
-		render.draw(colMan);
+		render.draw();
 
 		EXPECT_TRUE(ground->has_contact());
 	}

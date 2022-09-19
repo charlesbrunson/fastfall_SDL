@@ -10,7 +10,7 @@
 
 class TestPhysRenderer {
 public:
-	TestPhysRenderer(ff::Rectf area);
+	TestPhysRenderer(ff::World& w, ff::Rectf area);
 	~TestPhysRenderer();
 
 	TestPhysRenderer(const TestPhysRenderer&) = delete;
@@ -21,10 +21,13 @@ public:
 
 	unsigned frame_delay = 2;
 
-	void draw(ff::CollisionSystem& colMan);
+	void draw();
+
+    ff::World* world;
 
 private:
 	static constexpr float scale = 2;
+
 
 #if FF_TESTPHYSRENDERER_ENABLED
 	SDL_Surface* surface = nullptr;

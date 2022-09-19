@@ -1,8 +1,7 @@
 
-//#include "fastfall/game/Instance.hpp"
-#include "fastfall/game/object/ObjectComponents.hpp"
 #include "fastfall/game/phys/collider_regiontypes/ColliderTileMap.hpp"
 #include "fastfall/game/phys/Collidable.hpp"
+#include "fastfall/game/World.hpp"
 
 #include "TestPhysRenderer.hpp"
 #include "gtest/gtest.h"
@@ -16,7 +15,8 @@ using namespace ff;
 class collision : public ::testing::Test {
 
 protected:
-	CollisionSystem colMan;
+	CollisionSystem* colMan;
+    World world;
 	Collidable* box = nullptr;
 	ColliderTileMap* collider = nullptr;
 	std::fstream log;
@@ -25,7 +25,9 @@ protected:
 
 	nlohmann::ordered_json data;
 
-	collision() = default;
+	collision() {
+        colMan = &world.collision();
+    };
 
 	virtual ~collision() 
 	{
@@ -47,7 +49,7 @@ protected:
 		Vec2f pos = { 0, 0 };
 		Vec2f size = { 16, 32 };
 		Vec2f grav = { 0, 0 };
-		box = colMan.create_collidable(pos, size, grav);
+		box = world.get(world.create_collidable(pos, size, grav));
 	}
 
 	void TearDown() override
@@ -61,14 +63,14 @@ protected:
 		} 
 		//box->update(one_frame);
 
-		colMan.dumpCollisionDataThisFrame(&data[colMan.getFrameCount()]);
-		colMan.update(one_frame);
+		colMan->dumpCollisionDataThisFrame(&data[colMan->getFrameCount()]);
+		colMan->update(one_frame);
 
 	}
 
 	void initTileMap(grid_vector<std::string_view> tiles)
 	{
-		collider = colMan.create_collider<ColliderTileMap>(Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() });
+		collider = world.get(world.create_collider<ColliderTileMap>(Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() }));
 		for (auto it = tiles.begin(); it != tiles.end(); it++) {
 			if (!it->empty()) {
 				collider->setTile({ (int)it.column(), (int)it.row() }, TileShape::from_string(*it));
@@ -103,9 +105,9 @@ TEST_F(collision, wall_to_ceil_clip)
 	box->set_vel(Vec2f{ -800.f, 0.f });
 	box->set_gravity(Vec2f{ 0.f, 500.f });
 
-	TestPhysRenderer render({ 0, 0, 80, 80 });
+	TestPhysRenderer render(world, { 0, 0, 80, 80 });
 	render.frame_delay = 2;
-	render.draw(colMan);
+	render.draw();
 
 	bool hitwall = false;
 
@@ -113,7 +115,7 @@ TEST_F(collision, wall_to_ceil_clip)
 
 		box->set_vel(Vec2f{ -800.f, 0.f });
 		update();
-		render.draw(colMan);
+		render.draw();
 
 		hitwall = box->getPosition().x <= 40.f;
 
@@ -140,12 +142,12 @@ TEST_F(collision, ghostcheck_slopedceil_to_wall)
 	box->teleport(Vec2f{ 20, 48 });
 	box->set_vel(Vec2f{ 0.f, -8.f  } / one_frame);
 
-	TestPhysRenderer render({ 0, 0, 80, 80 });
+	TestPhysRenderer render(world, { 0, 0, 80, 80 });
 	render.frame_delay = 20;
-	render.draw(colMan);
+	render.draw();
 
 	update();
-	render.draw(colMan);
+	render.draw();
 
 	EXPECT_EQ(box->get_contacts().size(), 1);
 
@@ -158,7 +160,7 @@ TEST_F(collision, ghostcheck_slopedceil_to_wall)
 
 	while (render.curr_frame < 8) {
 		update();
-		render.draw(colMan);
+		render.draw();
 	}
 
 }
@@ -180,13 +182,13 @@ TEST_F(collision, half_pipe)
 	box->set_vel(Vec2f{ 400.f, 0.f  });
 	box->set_gravity(Vec2f{ 0.f, 500.f  });
 
-	TestPhysRenderer render(collider->getBoundingBox());
+	TestPhysRenderer render(world, collider->getBoundingBox());
 	render.frame_delay = 2;
-	render.draw(colMan);
+	render.draw();
 
 	while (render.curr_frame < 120) {
 		update();
-		render.draw(colMan);
+		render.draw();
 	}
 	ASSERT_LT(box->getPosition().x, 0.f);
 
@@ -206,13 +208,13 @@ TEST_F(collision, slip_v)
 	box->set_gravity(Vec2f{ 0.f, 0.f  });
 	box->setSlip({Collidable::SlipState::SlipVertical, 5.f});
 
-	TestPhysRenderer render(collider->getBoundingBox());
+	TestPhysRenderer render(world, collider->getBoundingBox());
 	render.frame_delay = 20;
-	render.draw(colMan);
+	render.draw();
 
 	while (render.curr_frame < 8) {
 		update();
-		render.draw(colMan);
+		render.draw();
 	}
 	ASSERT_LT(box->getPosition().x, 0.f);
 
@@ -220,7 +222,7 @@ TEST_F(collision, slip_v)
 
 	while (render.curr_frame < 16) {
 		update();
-		render.draw(colMan);
+		render.draw();
 	}
 	ASSERT_EQ(box->getPosition().x, 24.f);
 
@@ -240,12 +242,12 @@ TEST_F(collision, floor_to_steep)
 	box->set_vel(Vec2f{ 50.f, 0.f });
 	box->set_gravity(Vec2f{ 0.f, 500.f });
 
-	TestPhysRenderer render(collider->getBoundingBox());
+	TestPhysRenderer render(world, collider->getBoundingBox());
 	render.frame_delay = 20;
-	render.draw(colMan);
+	render.draw();
 
 	update();
-	render.draw(colMan);
+	render.draw();
 
 	ASSERT_EQ(box->getPosition().y, 32.f);
 }
@@ -265,15 +267,15 @@ TEST_F(collision, tunneling_static)
 	box->set_vel(Vec2f{ 5000.f, 0.f }); // very fast
 
 
-	TestPhysRenderer render(collider->getBoundingBox());
+	TestPhysRenderer render(world, collider->getBoundingBox());
 	render.frame_delay = 20;
-	render.draw(colMan);
+	render.draw();
 
 	while (render.curr_frame < 8) {
 
 		box->set_vel(Vec2f{ 5000.f, 0.f });
 		update();
-		render.draw(colMan);
+		render.draw();
 
 		EXPECT_EQ(box->get_contacts().size(), 1);
 
@@ -298,9 +300,9 @@ TEST_F(collision, tunneling_moving)
 	box->teleport(Vec2f{ 8, 40 });
 	box->set_vel(Vec2f{ 5000.f, 0.f });
 
-	TestPhysRenderer render(math::rect_extend(collider->getBoundingBox(), Cardinal::W, 64.f));
+	TestPhysRenderer render(world, math::rect_extend(collider->getBoundingBox(), Cardinal::W, 64.f));
 	render.frame_delay = 20;
-	render.draw(colMan);
+	render.draw();
 
 	while (render.curr_frame < 8) {
 
@@ -311,7 +313,7 @@ TEST_F(collision, tunneling_moving)
 
 		box->set_vel(Vec2f{ 5000.f, 0.f });
 		update();
-		render.draw(colMan);
+		render.draw();
 
 		EXPECT_EQ(box->get_contacts().size(), 1);
 
@@ -342,9 +344,9 @@ TEST_F(collision, wedge_against_floor_right)
 		{ "slope-hv", 	"", 		""},
 	};
 
-	auto wedge = colMan.create_collider<ColliderTileMap>(
+	auto wedge = world.get(world.create_collider<ColliderTileMap>(
 			Vec2i{ (int)wedge_tiles.column_count(), (int)wedge_tiles.row_count() }
-		);
+		));
 	initTileMap(wedge, wedge_tiles);
 	//auto quad = wedge->get_quad({ 1, 0 });
 	wedge->teleport(Vec2f{0.f, -16.f});
@@ -352,9 +354,9 @@ TEST_F(collision, wedge_against_floor_right)
 	box->teleport(Vec2f{ 8, 64 });
 	box->set_gravity(Vec2f{0.f, 500.f});
 
-	TestPhysRenderer render(math::rect_extend(collider->getBoundingBox(), Cardinal::E, 64.f));
+	TestPhysRenderer render(world, math::rect_extend(collider->getBoundingBox(), Cardinal::E, 64.f));
 	render.frame_delay = 2;
-	render.draw(colMan);
+	render.draw();
 
 	while (render.curr_frame < 120) {
 
@@ -370,7 +372,7 @@ TEST_F(collision, wedge_against_floor_right)
 		collider->velocity = vel2;
 
 		update();
-		render.draw(colMan);
+		render.draw();
 
 		if (render.curr_frame > 24 && box->getPosition().x < 32) {
 			EXPECT_GT(box->get_vel().x, 0.f);
@@ -395,18 +397,18 @@ TEST_F(collision, floor_into_wedge_left)
 		{ "solid", 		"solid"},
 	};
 
-	auto floor = colMan.create_collider<ColliderTileMap>(
+	auto floor = world.get(world.create_collider<ColliderTileMap>(
 		Vec2i{ (int)floor_tiles.column_count(), (int)floor_tiles.row_count() }
-	);
+	));
 	initTileMap(floor, floor_tiles);
 	floor->teleport(Vec2f{ 32.f, 64.f });
 
 	box->teleport(Vec2f{ 56, 64 });
 	box->set_gravity(Vec2f{ 0.f, 500.f });
 
-	TestPhysRenderer render(collider->getBoundingBox());
+	TestPhysRenderer render(world, collider->getBoundingBox());
 	render.frame_delay = 2;
-	render.draw(colMan);
+	render.draw();
 
 	while (render.curr_frame < 60) {
 
@@ -419,7 +421,7 @@ TEST_F(collision, floor_into_wedge_left)
 		floor->update(one_frame);
 
 		update();
-		render.draw(colMan);
+		render.draw();
 
 		if (render.curr_frame > 24 && box->getPosition().x > 0) {
 			EXPECT_LT(box->get_vel().x, 0.f);
@@ -440,13 +442,13 @@ TEST_F(collision, wedge_with_oneway_floor) {
 	box->set_vel({ -100, -100 });
 	box->set_gravity({ 0, 500 });
 
-	TestPhysRenderer render(collider->getBoundingBox());
+	TestPhysRenderer render(world, collider->getBoundingBox());
 	render.frame_delay = 20;
-	render.draw(colMan);
+	render.draw();
 
 	while (render.curr_frame < 2) {
 		update();
-		render.draw(colMan);
+		render.draw();
 		EXPECT_EQ(box->getPosition().y, 32.f);
 	}
 }
@@ -464,14 +466,14 @@ TEST_F(collision, wedge_with_oneway_ceil) {
 	box->set_vel({ 500, 0 });
 	box->set_gravity({ 0, 500 });
 
-	TestPhysRenderer render(collider->getBoundingBox());
+	TestPhysRenderer render(world, collider->getBoundingBox());
 	render.frame_delay = 8;
-	render.draw(colMan);
+	render.draw();
 
 	while (render.curr_frame < 20) {
 		box->set_vel({ 500, 0 });
 		update();
-		render.draw(colMan);
+		render.draw();
 
 		if (render.curr_frame >= 4) {
 			EXPECT_GE(box->getPosition().y, 40.f);
@@ -496,15 +498,15 @@ TEST_F(collision, into_steep_slope)
 	box->set_vel({ 200, 0 });
 	box->set_gravity({ 0, 50 });
 
-	TestPhysRenderer render(collider->getBoundingBox());
+	TestPhysRenderer render(world, collider->getBoundingBox());
 	render.frame_delay = 2;
-	render.draw(colMan);
+	render.draw();
 
 	while (render.curr_frame < 30) {
 		box->add_accel({ 500, 0 });
-		int fcount = colMan.getFrameCount();
+		int fcount = colMan->getFrameCount();
 		update();
-		render.draw(colMan);
+		render.draw();
 
 		if (box->getPosition().x < 40) {
 
@@ -537,15 +539,15 @@ TEST_F(collision, into_shallow_corner_w_oneway)
 	box->set_vel({ -1, -200 });
 	box->set_gravity({ 0, 0 });
 
-	TestPhysRenderer render(collider->getBoundingBox());
+	TestPhysRenderer render(world, collider->getBoundingBox());
 	render.frame_delay = 2;
-	render.draw(colMan);
+	render.draw();
 
 	while (render.curr_frame < 30) {
 
-		int fcount = colMan.getFrameCount();
+		int fcount = colMan->getFrameCount();
 		update();
-		render.draw(colMan);
+		render.draw();
 
 		bool has_wall = box->get_state_flags().has_any(
 			collision_state_t::flags::Wall_L,
