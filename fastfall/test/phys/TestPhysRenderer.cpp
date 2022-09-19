@@ -14,8 +14,9 @@ struct TestPhysRenderer::GifWriterImpl {
 };
 #endif
 
-TestPhysRenderer::TestPhysRenderer(ff::Rectf area)
-	: render_area(area)
+TestPhysRenderer::TestPhysRenderer(World& w, ff::Rectf area)
+	: world(&w)
+    , render_area(area)
 {
 #if FF_TESTPHYSRENDERER_ENABLED
 	std::string test_name = fmt::format("phys_render_out/{}__{}.gif",
@@ -41,7 +42,7 @@ TestPhysRenderer::~TestPhysRenderer()
 #endif
 }
 
-void TestPhysRenderer::draw(CollisionSystem& colMan) {
+void TestPhysRenderer::draw() {
 
 #if FF_TESTPHYSRENDERER_ENABLED
 
@@ -78,9 +79,9 @@ void TestPhysRenderer::draw(CollisionSystem& colMan) {
 	};
 
 	// draw colliders
-	for (const auto& collider : colMan.get_colliders())
+	for (const auto& collider : world->all<ColliderRegion>())
 	{
-		std::vector<std::pair<Rectf, const ColliderQuad*>> quads;
+		std::vector<std::pair<Rectf, QuadID>> quads;
 		collider->get_quads_in_rect(render_area, quads);
 
 		Vec2f offset = collider->getPosition();
@@ -88,11 +89,13 @@ void TestPhysRenderer::draw(CollisionSystem& colMan) {
 		//Rectf bb = collider->getSweptBoundingBox();
 		//drawRectOutline(bb, 100, 100, 0, 255);
 
-		for (const auto& quad : quads) {
+		for (const auto& [rect, id] : quads) {
+
+            auto& quad = *collider->get_quad(id);
 
 			SDL_SetRenderDrawColor(render, 50, 50, 50, 255);
-			for (const auto& line : quad.second->surfaces) {
-				if (!line.hasSurface && !quad.second->hasOneWay) {
+			for (const auto& line : quad.surfaces) {
+				if (!line.hasSurface && !quad.hasOneWay) {
 					Linef li = line.collider.surface;
 					li.p1 += off + offset;
 					li.p2 += off + offset;
@@ -104,7 +107,7 @@ void TestPhysRenderer::draw(CollisionSystem& colMan) {
 			
 
 			SDL_SetRenderDrawColor(render, 200, 200, 200, 255);
-			for (const auto& line : quad.second->surfaces) {
+			for (const auto& line : quad.surfaces) {
 				if (line.hasSurface) {
 					Linef li = line.collider.surface;
 					li.p1 += off + offset;
@@ -114,8 +117,8 @@ void TestPhysRenderer::draw(CollisionSystem& colMan) {
 					SDL_RenderDrawLineF(render, li.p1.x, li.p1.y, li.p2.x, li.p2.y);
 
 					// add extra line for one ways
-					if (quad.second->hasOneWay
-						&& quad.second->getSurface(quad.second->oneWayDir) == &line.collider)
+					if (quad.hasOneWay
+						&& quad.getSurface(quad.oneWayDir) == &line.collider)
 					{
 						Vec2f n = math::vector(line.collider.surface).lefthand().unit();
 						Linef li2 = math::shift(li, -n * scale);
@@ -129,11 +132,11 @@ void TestPhysRenderer::draw(CollisionSystem& colMan) {
 	}
 
 	// draw collidables
-	for (const auto& cArb : colMan.get_collidables()) {
+	for (const auto& collidable : world->all<Collidable>()) {
 		SDL_SetRenderDrawColor(render, 0, 150, 0, 255);
 
-		Rectf prev = cArb->collidable.getPrevBox();
-		Rectf box = cArb->collidable.getBox();
+		Rectf prev = collidable.getPrevBox();
+		Rectf box = collidable.getBox();
 		//Rectf bb = math::rect_bound(prev, box);
 
 		//drawRectOutline(bb, 100, 100, 0, 255);
@@ -143,14 +146,14 @@ void TestPhysRenderer::draw(CollisionSystem& colMan) {
 		{
 			SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
 			Vec2f p1 = off + math::rect_mid(box);
-			Vec2f p2 = off + p1 + cArb->collidable.get_vel() * (1.f / 60.f);
+			Vec2f p2 = off + p1 + collidable.get_vel() * (1.f / 60.f);
 			p1 *= scale;
 			p2 *= scale;
 			SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
 		}
 
 		// draw contacts
-		for (const auto& contact : cArb->collidable.get_contacts()) {
+		for (const auto& contact : collidable.get_contacts()) {
 			if (contact.hasContact) {
 
 				SDL_SetRenderDrawColor(render, 255, 255, 0, 255);

@@ -48,11 +48,13 @@ namespace ff {
 
 		constexpr grid_iterator& operator=(const grid_iterator& other)
 		{
-			m_ptr = other.m_ptr;
-			m_curr_column = other.m_curr_column;
-			m_curr_row = other.m_curr_row;
-			m_columns = other.m_columns;
-			m_row_stride = other.m_row_stride;
+            if (&other != this) {
+                m_ptr = other.m_ptr;
+                m_curr_column = other.m_curr_column;
+                m_curr_row = other.m_curr_row;
+                m_columns = other.m_columns;
+                m_row_stride = other.m_row_stride;
+            }
 			return *this;
 		}
 

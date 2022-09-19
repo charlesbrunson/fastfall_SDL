@@ -36,6 +36,10 @@ public:
 	inline void resetFrameCount() { frame_count = 0; };
 	inline size_t getFrameCount() const { return frame_count; };
 
+    const CollidableArbiter& get_arbiter(ID<Collidable> id) const {
+        return arbiters.at(id);
+    }
+
 private:
     std::unordered_map<ID<Collidable>, CollidableArbiter> arbiters;
 
