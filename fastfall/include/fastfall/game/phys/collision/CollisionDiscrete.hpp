@@ -23,7 +23,7 @@ public:
         CurrFrame
     };
 
-    CollisionDiscrete(CollisionID t_id, Type collidePrev);
+    CollisionDiscrete(CollisionContext ctx, ColliderQuad quad, CollisionID t_id, Type collidePrev);
 
 	inline void setPrevious() { collision_time = Type::PrevFrame; };
 	inline const DiscreteContact& getContact() const noexcept { return contact; };

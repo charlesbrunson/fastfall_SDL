@@ -344,11 +344,11 @@ TEST_F(collision, wedge_against_floor_right)
 		{ "slope-hv", 	"", 		""},
 	};
 
-	auto wedge = world.get(world.create_collider<ColliderTileMap>(
-			Vec2i{ (int)wedge_tiles.column_count(), (int)wedge_tiles.row_count() }
-		));
+	auto wedge = world.get(
+            world.create_collider<ColliderTileMap>(
+			    Vec2i{ (int)wedge_tiles.column_count(), (int)wedge_tiles.row_count() }
+		    ));
 	initTileMap(wedge, wedge_tiles);
-	//auto quad = wedge->get_quad({ 1, 0 });
 	wedge->teleport(Vec2f{0.f, -16.f});
 
 	box->teleport(Vec2f{ 8, 64 });

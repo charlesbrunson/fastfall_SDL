@@ -7,8 +7,8 @@
 
 namespace ff {
 
-Arbiter::Arbiter(CollisionID t_id)
-    : collision(t_id)
+Arbiter::Arbiter(CollisionContext ctx, ColliderQuad quad, CollisionID t_id)
+    : collision(ctx, t_id)
     , id(t_id)
 {
 }
@@ -33,7 +33,7 @@ void Arbiter::update(CollisionContext ctx, secs deltaTime)
 		recalcCounter++;
 	}
 
-	collision.update(ctx, deltaTime);
+    collision.update(ctx, deltaTime);
     accumTime(deltaTime);
     collision.set_touch_duration(touchTimer);
 }

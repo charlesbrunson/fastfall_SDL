@@ -25,8 +25,8 @@ void RegionArbiter::updateRegion(CollisionContext ctx, Rectf bounds) {
 
 		if (iter == quadArbiters.end() || iter->first != qid) {
 			// just entered this quad
-			iter = quadArbiters.insert(iter, { qid, Arbiter{ {collidable_id, collider_id, qid} } });
-            iter->second.reset(ctx, 0.0);
+            auto collision_id = CollisionID{ collidable_id, collider_id, qid };
+			iter = quadArbiters.insert(iter, { qid, Arbiter{ ctx, *quad, collision_id } });
 		}
 		iter->second.stale = false;
 	}

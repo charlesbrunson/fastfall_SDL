@@ -19,7 +19,7 @@ private:
     void accumTime(secs deltaTime);
 
 public:
-	Arbiter(CollisionID t_id);
+	Arbiter(CollisionContext ctx, ColliderQuad quad, CollisionID t_id);
 
     void reset(CollisionContext ctx, secs deltaTime);
 	void update(CollisionContext ctx, secs deltaTime);

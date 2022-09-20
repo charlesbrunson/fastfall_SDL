@@ -13,13 +13,15 @@ inline float getYforX(const Linef& onLine, float X) {
 	return (scale * v.y) + onLine.p1.y;
 };
 
-CollisionDiscrete::CollisionDiscrete(CollisionID t_id, Type collidePrev)
+CollisionDiscrete::CollisionDiscrete(CollisionContext ctx, ColliderQuad quad, CollisionID t_id, Type collidePrev)
     : id(t_id)
     , collision_time(collidePrev)
 {
+    reset(ctx, quad, collidePrev);
 }
 
 void CollisionDiscrete::reset(CollisionContext ctx, ColliderQuad quad, Type collidePrev) {
+
 	collision_time = collidePrev;
 	cQuad = quad;
 
