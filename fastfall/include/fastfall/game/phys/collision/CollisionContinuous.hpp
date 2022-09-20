@@ -25,7 +25,7 @@ private:
 	std::optional<ContinuousContact> getVerticalSlipContact(float leeway);
 
 public:
-    CollisionContinuous(CollisionID t_id);
+    CollisionContinuous(CollisionContext ctx, CollisionID t_id);
 
 	void update(CollisionContext ctx, secs deltaTime);
 

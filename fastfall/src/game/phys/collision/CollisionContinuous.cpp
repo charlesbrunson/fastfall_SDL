@@ -5,12 +5,13 @@
 
 namespace ff {
 
-CollisionContinuous::CollisionContinuous(CollisionID t_id)
+CollisionContinuous::CollisionContinuous(CollisionContext ctx, CollisionID t_id)
     : id(t_id)
-	, prevCollision(t_id, CollisionDiscrete::Type::PrevFrame)
-	, currCollision(t_id, CollisionDiscrete::Type::CurrFrame)
+	, prevCollision(ctx, *ctx.collider->get_quad(t_id.quad), t_id, CollisionDiscrete::Type::PrevFrame)
+	, currCollision(ctx, *ctx.collider->get_quad(t_id.quad), t_id, CollisionDiscrete::Type::CurrFrame)
+    , prev_quad(*ctx.collider->get_quad(t_id.quad))
 {
-	//evalContact(0.0);
+	evalContact(ctx, 0.0);
 }
 
 void CollisionContinuous::update(CollisionContext ctx, secs deltaTime)
