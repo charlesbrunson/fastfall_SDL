@@ -49,6 +49,7 @@ void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
 	};
 
 	contact = {};
+    contact.id = id;
 
 	unsigned pCount = prevCollision.getAxisCount();
 	unsigned cCount = currCollision.getAxisCount();
@@ -232,6 +233,7 @@ void CollisionContinuous::slipUpdate(CollisionContext ctx) {
 		auto slip = getVerticalSlipContact(ctx.collidable->getSlip().leeway);
 		if (slip) {
 			contact = slip.value();
+            contact.id = id;
 		}
 	}
 

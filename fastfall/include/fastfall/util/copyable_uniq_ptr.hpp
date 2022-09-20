@@ -30,11 +30,13 @@ struct copyable_unique_ptr {
 	
 	copyable_unique_ptr(const copyable_unique_ptr<Base>& other)
 	{
-		clone = other.clone;
-		ptr = clone(other.ptr);
+        if (this != &other) {
+            clone = other.clone;
+            ptr = clone(other.ptr);
+        }
 	}
 
-	copyable_unique_ptr(copyable_unique_ptr<Base>&& other)
+	copyable_unique_ptr(copyable_unique_ptr<Base>&& other) noexcept
 	{
 		clone = other.clone;
 		ptr = std::move(other.ptr);
@@ -42,12 +44,15 @@ struct copyable_unique_ptr {
 
 	copyable_unique_ptr<Base>& operator=(const copyable_unique_ptr<Base>& other)
 	{
+        if (this == &other)
+            return *this;
+
 		clone = other.clone;
 		ptr = clone(other.ptr);
 		return *this;
 	}
 
-	copyable_unique_ptr<Base>& operator=(copyable_unique_ptr<Base>&& other) {
+	copyable_unique_ptr<Base>& operator=(copyable_unique_ptr<Base>&& other) noexcept {
 		clone = other.clone;
 		ptr = std::move(other.ptr);
 		return *this;

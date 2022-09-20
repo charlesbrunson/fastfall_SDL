@@ -28,7 +28,6 @@ public:
 private:
 	static constexpr float scale = 2;
 
-
 #if FF_TESTPHYSRENDERER_ENABLED
 	SDL_Surface* surface = nullptr;
 	SDL_Renderer* render = nullptr;

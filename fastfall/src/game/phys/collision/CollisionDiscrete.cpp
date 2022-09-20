@@ -28,6 +28,7 @@ void CollisionDiscrete::reset(CollisionContext ctx, ColliderQuad quad, Type coll
 	valleys = { false, false, false, false };
 
 	contact = {};
+    contact.id = id;
 
 	Vec2f topLeft(FLT_MAX, FLT_MAX);
 	Vec2f botRight(-FLT_MAX, -FLT_MAX);
@@ -435,6 +436,7 @@ void CollisionDiscrete::evalContact() noexcept {
 
 	if (!bestPick || bestPick->contact.separation == FLT_MAX) {
 		contact = {};
+        contact.id = id;
 		hasContact = false;
 	}
 
@@ -453,6 +455,7 @@ void CollisionDiscrete::evalContact() noexcept {
 CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexcept {
 
 	CollisionAxis axis(initData);
+    axis.contact.id = id;
 	axis.contact.ortho_n    = Vec2f(0.f, -1.f);
 	axis.contact.collider_n = Vec2f(0.f, -1.f);
 	if (cQuad.material) {
@@ -493,6 +496,7 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
 CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcept {
 
 	CollisionAxis axis(initData);
+    axis.contact.id = id;
 	axis.contact.ortho_n    = Vec2f(0.f, 1.f);
 	axis.contact.collider_n = Vec2f(0.f, 1.f);
 	if (cQuad.material) {
@@ -697,6 +701,7 @@ bool wallHasValley(
 CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noexcept {
 
 	CollisionAxis axis(initData);
+    axis.contact.id = id;
 	axis.contact.ortho_n    = Vec2f(1.f, 0.f);
 	axis.contact.collider_n = Vec2f(1.f, 0.f);
 	if (cQuad.material) {
@@ -719,6 +724,7 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noexcept {
 
 	CollisionAxis axis(initData);
+    axis.contact.id = id;
 	axis.contact.ortho_n    = Vec2f(-1.f, 0.f);
 	axis.contact.collider_n = Vec2f(-1.f, 0.f);
 	if (cQuad.material) {
