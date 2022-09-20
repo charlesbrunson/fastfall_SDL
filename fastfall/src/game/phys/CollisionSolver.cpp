@@ -290,8 +290,8 @@ CollisionSolver::CompResult compare(const ContinuousContact* lhs, const Continuo
 	const ContinuousContact& lhsContact = *lhs;
 	const ContinuousContact& rhsContact = *rhs;
 
-	comp.discardFirst = lhs->quad_valid;
-	comp.discardSecond = rhs->quad_valid;
+	comp.discardFirst = !lhs->quad_valid;
+	comp.discardSecond = !rhs->quad_valid;
 
 	// ghost check
 	if (!comp.discardFirst && !comp.discardSecond)
@@ -307,7 +307,7 @@ CollisionSolver::CompResult compare(const ContinuousContact* lhs, const Continuo
 				// pick one
 				if (g1 == g2) {
 					// double ghost, pick the one with least separation
-					g1_isGhost = lhs >= rhs;
+					g1_isGhost = !(lhs < rhs);
 				}
 				else {
 					g1_isGhost = g2 < g1;
@@ -432,6 +432,7 @@ std::optional<ContinuousContact> CollisionSolver::detectWedge(const ContinuousCo
 			float side = (north->collider_n.x + south->collider_n.x < 0.f ? -1.f : 1.f);
 
 			contact = ContinuousContact{};
+            contact->id = std::nullopt;
             contact->separation = abs(intersect.x - pos.x),
             contact->hasContact = true,
             contact->position	= Vec2f{ pos.x, math::rect_mid(colBox).y },

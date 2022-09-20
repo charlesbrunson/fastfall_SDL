@@ -436,7 +436,6 @@ void CollisionDiscrete::evalContact() noexcept {
 
 	if (!bestPick || bestPick->contact.separation == FLT_MAX) {
 		contact = {};
-        contact.id = id;
 		hasContact = false;
 	}
 
@@ -450,6 +449,7 @@ void CollisionDiscrete::evalContact() noexcept {
 	}
 
 	contact.hasContact = hasContact;
+    contact.id = id;
 }
 
 CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexcept {

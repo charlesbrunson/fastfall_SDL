@@ -76,7 +76,7 @@ struct ContinuousContact : public DiscreteContact {
 
     bool isSlip = false;
 
-    bool quad_valid = false;
+    bool quad_valid = true;
 
     // the velocity of the surface in contact
     // relative to worldspace
