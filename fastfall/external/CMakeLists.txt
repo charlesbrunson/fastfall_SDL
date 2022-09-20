@@ -106,6 +106,12 @@ if (NOT EMSCRIPTEN)
 	# sdl
 	set(SDL_SHARED OFF CACHE INTERNAL "")
 	set(SDL_STATIC ON  CACHE INTERNAL "")
+
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+		# no idea why this is now needed on clion
+		set(LIBC ON CACHE INTERNAL "")
+	endif()
+
 	FetchContent_Declare(
 		sdl
 		URL			https://www.libsdl.org/release/SDL2-2.0.14.tar.gz

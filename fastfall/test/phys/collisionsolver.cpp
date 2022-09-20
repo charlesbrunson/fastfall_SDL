@@ -6,6 +6,7 @@
 using namespace ff;
 
 
+/*
 TEST(collisionsolver, ghost_edge) {
 
 	{
@@ -83,7 +84,7 @@ TEST(collisionsolver, ghost_edge) {
 		EXPECT_EQ(g2, GhostEdge::Full);
 	}
 }
-
+*/
 /*
 TEST(collisionsolver, wedge_velocity) {
 

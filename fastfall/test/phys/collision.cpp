@@ -26,7 +26,6 @@ protected:
 	nlohmann::ordered_json data;
 
 	collision() {
-        colMan = &world.collision();
     };
 
 	virtual ~collision() 
@@ -50,6 +49,7 @@ protected:
 		Vec2f size = { 16, 32 };
 		Vec2f grav = { 0, 0 };
 		box = world.get(world.create_collidable(pos, size, grav));
+        colMan = &world.collision();
 	}
 
 	void TearDown() override
@@ -70,7 +70,9 @@ protected:
 
 	void initTileMap(grid_vector<std::string_view> tiles)
 	{
-		collider = world.get(world.create_collider<ColliderTileMap>(Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() }));
+		collider = world.get(
+                world.create_collider<ColliderTileMap>(Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() })
+                );
 		for (auto it = tiles.begin(); it != tiles.end(); it++) {
 			if (!it->empty()) {
 				collider->setTile({ (int)it.column(), (int)it.row() }, TileShape::from_string(*it));
@@ -337,6 +339,7 @@ TEST_F(collision, wedge_against_floor_right)
 		{"",			"",			"",			""},
 		{"shallow1",	"shallow2",	"solid",	"solid"},
 	});
+    assert(collider != nullptr);
 
 	grid_vector<std::string_view> wedge_tiles{
 		{ "solid", 		"solid", 	""},

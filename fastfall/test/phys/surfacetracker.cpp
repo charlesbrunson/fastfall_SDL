@@ -30,7 +30,6 @@ protected:
 	nlohmann::ordered_json data;
 
 	surfacetracker() {
-        colMan = &world.collision();
     }
 
 	virtual ~surfacetracker() {
@@ -66,6 +65,8 @@ protected:
 				.slope_sticking = true,
 				.stick_angle_max = Angle::Degree(90)
 			};
+
+        colMan = &world.collision();
 	}
 
 	void TearDown() override 
