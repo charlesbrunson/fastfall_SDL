@@ -21,7 +21,7 @@ void CollisionContinuous::update(CollisionContext ctx, secs deltaTime)
 
 		// check if conditions are similar enough we can reuse the
 		// collision data from last frame
-		if (ctx.collider->getPrevPosition() == ctx.collider->getPosition()
+		if (!ctx.collider->hasMoved()
 			&& prev_quad == curr_quad)
 		{
 			prevCollision = std::move(currCollision);
@@ -30,7 +30,7 @@ void CollisionContinuous::update(CollisionContext ctx, secs deltaTime)
 		}
 		// else redo the collision from last frame
 		else {
-			prevCollision.reset(ctx, prev_quad, CollisionDiscrete::Type::PrevFrame);
+			prevCollision.reset(ctx, curr_quad, CollisionDiscrete::Type::PrevFrame);
 		}
 
 		currCollision.reset(ctx, curr_quad, CollisionDiscrete::Type::CurrFrame);
@@ -218,6 +218,7 @@ void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
 
     auto& curr_quad = *ctx.collider->get_quad(id.quad);
     contact.quad_valid = curr_quad.hasAnySurface();
+    contact.id = id;
 
 	evaluated = true;
 

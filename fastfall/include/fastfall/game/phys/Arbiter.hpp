@@ -13,15 +13,11 @@ private:
 
 	secs aliveTimer = 0.0; // time this arbiter has existed
 	secs touchTimer = 0.0; // time of positive collision
-
 	size_t recalcCounter = 0;
-
-    void accumTime(secs deltaTime);
 
 public:
 	Arbiter(CollisionContext ctx, ColliderQuad quad, CollisionID t_id);
 
-    void reset(CollisionContext ctx, secs deltaTime);
 	void update(CollisionContext ctx, secs deltaTime);
 
 	void setApplied();

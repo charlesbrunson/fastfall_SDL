@@ -92,6 +92,31 @@ protected:
 	}
 };
 
+TEST_F(collision, minimal)
+{
+    initTileMap({
+            /*          x:0
+            /* y:0 _*/ {""},
+            /* y:16_*/ {""},
+            /* y:32_*/ {"solid"},
+    });
+
+    box->teleport(Vec2f{ 8, 32 });
+    box->set_vel(Vec2f{ 0.f, 0.f });
+    box->set_gravity(Vec2f{ 0.f, 500.f });
+
+    TestPhysRenderer render(world, { 0, 0, 16, 48 });
+    render.frame_delay = 2;
+    render.draw();
+
+    while (render.curr_frame < 10) {
+        update();
+        render.draw();
+
+        EXPECT_EQ(box->get_contacts().size(), 1);
+    }
+}
+
 TEST_F(collision, wall_to_ceil_clip)
 {
 	initTileMap({
