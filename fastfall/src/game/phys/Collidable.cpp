@@ -152,6 +152,7 @@ Collidable::Collidable(const Collidable& rhs)
     decel_accum = rhs.decel_accum;
     currContacts = rhs.currContacts;
     trackers = rhs.trackers;
+    callbacks = rhs.callbacks;
 
     for (auto& tracker : trackers)
     {
@@ -176,6 +177,7 @@ Collidable::Collidable(Collidable&& rhs) noexcept
     decel_accum = rhs.decel_accum;
     currContacts = std::move(rhs.currContacts);
     trackers = std::move(rhs.trackers);
+    callbacks = rhs.callbacks;
 
     for (auto& tracker : trackers)
     {
@@ -203,6 +205,7 @@ Collidable& Collidable::operator=(const Collidable& rhs)
     decel_accum = rhs.decel_accum;
     currContacts = rhs.currContacts;
     trackers = rhs.trackers;
+    callbacks = rhs.callbacks;
 
     for (auto& tracker : trackers)
     {
@@ -231,6 +234,7 @@ Collidable& Collidable::operator=(Collidable&& rhs) noexcept
     decel_accum = rhs.decel_accum;
     currContacts = std::move(rhs.currContacts);
     trackers = std::move(rhs.trackers);
+    callbacks = rhs.callbacks;
 
     for (auto& tracker : trackers)
     {
