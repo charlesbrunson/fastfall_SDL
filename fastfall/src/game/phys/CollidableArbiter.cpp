@@ -33,10 +33,6 @@ namespace ff {
 
 		std::set<const Arbiter*> updatedBuffer;
 
-		auto is_updated = [&](const Arbiter& arbiter) {
-			return std::find(updatedBuffer.cbegin(), updatedBuffer.cend(), &arbiter) != updatedBuffer.end();
-		};
-
 		Rectf body_rect(collidable.getBox());
 
 		// using double for this as float can lead to infinite loop due to floating point inaccuracy when pushing boundary

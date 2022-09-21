@@ -49,7 +49,7 @@ private:
     std::map<CollisionID, Arbiter*> arbiters;
 
 	// collision set of arbiters to solve
-	std::vector<ContinuousContact> contacts;
+	std::vector<ContinuousContact*> contacts;
 	std::deque<ContinuousContact> created_contacts;
 
 	// json ptr that the solver will optionally output state to
@@ -98,7 +98,7 @@ public:
 
 	// add an arbiter associated with the collidable to the collision set
 	inline void pushContact(Arbiter* arb) {
-        contacts.push_back(arb->getContact());
+        contacts.push_back(&arb->getContact());
         arbiters.emplace(arb->id, arb);
     };
 

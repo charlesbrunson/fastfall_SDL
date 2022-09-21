@@ -33,7 +33,7 @@ public:
 
     inline void set_touch_duration(secs time) noexcept { contact.touchDuration = time; }
 
-	inline const ContinuousContact& getContact() const noexcept { return contact; }
+	inline ContinuousContact& getContact() noexcept { return contact; }
 
     CollisionID id;
 
