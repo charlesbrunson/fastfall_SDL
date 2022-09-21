@@ -10,24 +10,26 @@ namespace ff {
 
 template<class Base>
 struct copyable_unique_ptr {
+
+    template<class Derived>
+    friend struct copyable_unique_ptr;
+
 	copyable_unique_ptr() = default;
 
 	template<std::copy_constructible Type>
-		requires (std::derived_from<Type, Base> && !std::same_as<Type, Base>)
-	copyable_unique_ptr(Type* in_ptr)
+	explicit copyable_unique_ptr(Type* in_ptr)
 	{
 		clone = make_copy_fn<Type>();
-		ptr = in_ptr;
+		ptr = std::unique_ptr<Base>(in_ptr);
 	}
 
 	template<std::copy_constructible Type>
-        requires (std::derived_from<Type, Base> && !std::same_as<Type, Base>)
 	copyable_unique_ptr(std::unique_ptr<Type>&& in_ptr)
 	{
 		clone = make_copy_fn<Type>();
 		ptr = std::move(in_ptr);
 	}
-	
+
 	copyable_unique_ptr(const copyable_unique_ptr<Base>& other)
 	{
         if (this != &other) {
@@ -39,7 +41,7 @@ struct copyable_unique_ptr {
 	copyable_unique_ptr(copyable_unique_ptr<Base>&& other) noexcept
 	{
 		clone = other.clone;
-		ptr = std::move(other.ptr);
+        std::swap(ptr, other.ptr);
 	}
 
 	copyable_unique_ptr<Base>& operator=(const copyable_unique_ptr<Base>& other)
@@ -54,7 +56,7 @@ struct copyable_unique_ptr {
 
 	copyable_unique_ptr<Base>& operator=(copyable_unique_ptr<Base>&& other) noexcept {
 		clone = other.clone;
-		ptr = std::move(other.ptr);
+        std::swap(ptr, other.ptr);
 		return *this;
 	}
 
@@ -102,7 +104,7 @@ private:
 	clone_fn* clone = nullptr;
 
 	template<std::copy_constructible Type>
-        requires (std::derived_from<Type, Base> && !std::same_as<Type, Base>)
+        requires (std::derived_from<Type, Base> || std::same_as<Type, Base>)
 	static auto make_copy_fn()
 	{
 		return [](const std::unique_ptr<Base>& ptr) -> std::unique_ptr<Base> {
@@ -111,11 +113,5 @@ private:
 		};
 	}
 };
-
-template<std::copy_constructible Type, class... Args>
-copyable_unique_ptr<Type> make_copyable_unique(Args&&... args)
-{
-	return copyable_unique_ptr<Type>(new Type(std::forward<Args>(args)...));
-}
 
 }

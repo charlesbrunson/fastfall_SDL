@@ -109,7 +109,7 @@ public:
 		};
 		getMap().insert(std::make_pair(type.typeName, type));
 	}
-	static copyable_unique_ptr<TileLogic>&& create(World* world, std::string_view typeName);
+	static copyable_unique_ptr<TileLogic> create(World* world, std::string_view typeName);
 
     void set_world(World* w) { world = w; }
 
