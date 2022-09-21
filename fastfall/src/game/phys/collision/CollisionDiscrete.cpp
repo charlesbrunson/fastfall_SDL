@@ -77,6 +77,7 @@ void CollisionDiscrete::reset(CollisionContext ctx, ColliderQuad quad, Type coll
 	tMid = math::rect_mid(tArea);
 	tHalf = tArea.getSize() / 2.f;
 
+    initCollidableData(ctx);
 	createAxes();
 	updateContact(ctx);
 	evalContact();

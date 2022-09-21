@@ -16,7 +16,7 @@ private:
 	size_t recalcCounter = 0;
 
 public:
-	Arbiter(CollisionContext ctx, ColliderQuad quad, CollisionID t_id);
+	Arbiter(CollisionContext ctx, CollisionID t_id);
 
 	void update(CollisionContext ctx, secs deltaTime);
 
@@ -24,7 +24,7 @@ public:
 
 	inline const CollisionContinuous* getCollision() const noexcept { return &collision; };
 
-	inline ContinuousContact getContact() const noexcept { return collision.getContact(); };
+	inline ContinuousContact& getContact() noexcept { return collision.getContact(); };
 
 	inline secs getAliveDuration() const noexcept { return aliveTimer; };
 	inline secs getTouchDuration() const noexcept { return touchTimer; };

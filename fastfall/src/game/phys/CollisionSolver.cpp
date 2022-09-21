@@ -307,7 +307,7 @@ CollisionSolver::CompResult compare(const ContinuousContact* lhs, const Continuo
 				// pick one
 				if (g1 == g2) {
 					// double ghost, pick the one with least separation
-					g1_isGhost = !(lhs < rhs);
+					g1_isGhost = !compare_contact(*lhs, *rhs);
 				}
 				else {
 					g1_isGhost = g2 < g1;
@@ -375,7 +375,7 @@ void CollisionSolver::compareAll()
 	for (size_t i = 0; i < contacts.size() - 1; i++) {
 		for (size_t j = i + 1; j < contacts.size(); ) {
 
-			CompResult result = compare(&contacts.at(i), &contacts.at(j));
+			CompResult result = compare(contacts.at(i), contacts.at(j));
 
 			if (json_dump)
 			{
@@ -485,8 +485,8 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 
 	if (json_dump)
 	{
-		for (auto& contact : contacts) {
-			(*json_dump)["precompare"] += to_json(&contact);
+		for (auto* contact : contacts) {
+			(*json_dump)["precompare"] += to_json(contact);
 		}
 		(*json_dump)["compare"];
 	}
@@ -497,16 +497,16 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 
 	if (json_dump)
 	{
-		for (auto& contact : contacts)
+		for (auto* contact : contacts)
 		{
-			(*json_dump)["postcompare"] += to_json(&contact);
+			(*json_dump)["postcompare"] += to_json(contact);
 		}
 	}
 
 	// organize contacts into north/east/south/west
-    for (auto& contact : contacts)
+    for (auto* contact : contacts)
     {
-        pushToAStack(&contact);
+        pushToAStack(contact);
     }
 	//contacts.clear();
 
@@ -537,8 +537,10 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 	north_alt.clear();
 	south_alt.clear();
 
-	std::sort(east.begin(), east.end());
-	std::sort(west.begin(), west.end());
+    auto cmp_contact_ptrs = [](auto* lhs, auto* rhs) { return compare_contact(*lhs, *rhs); };
+
+	std::sort(east.begin(), east.end(), cmp_contact_ptrs);
+	std::sort(west.begin(), west.end(), cmp_contact_ptrs);
 
 	if (json_dump) {
 		(*json_dump)["apply"] += {
@@ -559,8 +561,8 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 
 	}
 
-	std::sort(north.begin(), north.end());
-	std::sort(south.begin(), south.end());
+	std::sort(north.begin(), north.end(), cmp_contact_ptrs);
+	std::sort(south.begin(), south.end(), cmp_contact_ptrs);
 
 	if (json_dump) {
 		(*json_dump)["apply"] += {
@@ -728,7 +730,6 @@ bool CollisionSolver::apply(const ContinuousContact& contact, ContactType type)
 
 		AppliedContact applied{contact};
 		applied.type = type;
-
 
         auto arb = contact.id ? arbiters.find(*contact.id) : arbiters.end();
 		if (arb != arbiters.end()) {

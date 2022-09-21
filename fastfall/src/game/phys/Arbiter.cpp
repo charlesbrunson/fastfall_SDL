@@ -7,7 +7,7 @@
 
 namespace ff {
 
-Arbiter::Arbiter(CollisionContext ctx, ColliderQuad quad, CollisionID t_id)
+Arbiter::Arbiter(CollisionContext ctx, CollisionID t_id)
     : collision(ctx, t_id)
     , id(t_id)
 {

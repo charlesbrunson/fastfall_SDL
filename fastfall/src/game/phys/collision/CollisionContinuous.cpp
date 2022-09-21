@@ -234,7 +234,6 @@ void CollisionContinuous::slipUpdate(CollisionContext ctx) {
 		auto slip = getVerticalSlipContact(ctx.collidable->getSlip().leeway);
 		if (slip) {
 			contact = slip.value();
-            contact.id = id;
 		}
 	}
 

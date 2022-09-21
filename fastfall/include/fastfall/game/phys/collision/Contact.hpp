@@ -104,8 +104,10 @@ struct ContinuousContact : public DiscreteContact {
         }
     }
 
-    bool operator<(const ContinuousContact &other) const;
 };
+
+bool compare_contact(const ContinuousContact& lhs, const ContinuousContact& rhs);
+
 
 struct AppliedContact : public ContinuousContact {
     AppliedContact() = default;
