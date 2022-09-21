@@ -6,9 +6,9 @@
 
 namespace ff {
 
-void SceneSystem::notify_created(ID<SceneObject> id)
+void SceneSystem::notify_created(World& world, ID<SceneObject> id)
 {
-    auto& scene_obj = world->at(id);
+    auto& scene_obj = world.at(id);
     struct Comp
     {
         World* w;
@@ -20,16 +20,16 @@ void SceneSystem::notify_created(ID<SceneObject> id)
             scene_order.begin(),
             scene_order.end(),
             scene_obj.layer_id,
-            Comp{world});
+            Comp{&world});
 
-    auto it = std::upper_bound(beg, end, scene_obj.priority, [this](scene_priority p, ID<SceneObject> d) {
-        return p < world->at(d).priority;
+    auto it = std::upper_bound(beg, end, scene_obj.priority, [this, &world](scene_priority p, ID<SceneObject> d) {
+        return p < world.at(d).priority;
     });
 
     scene_order.insert(it, id);
 }
 
-void SceneSystem::notify_erased(ID<SceneObject> id)
+void SceneSystem::notify_erased(World& world, ID<SceneObject> id)
 {
     std::erase(scene_order, id);
 }
@@ -50,15 +50,14 @@ void SceneSystem::set_size(Vec2u size) {
 	background.setSize(scene_size + Vec2f{2.f, 2.f});
 }
 
-void SceneSystem::draw(ff::RenderTarget& target, ff::RenderState state) const {
+void SceneSystem::draw(const World& world, RenderTarget& target, RenderState state) const {
 
 	bool scissor_enabled = enableScissor(target, cam_pos);
 
 	target.draw(background, state);
 
 	for (auto scene_id : scene_order) {
-        auto& scene_object = world->at(scene_id);
-        auto& drawable = *scene_object.drawable.get();
+        const auto& scene_object = world.at(scene_id);
 
         if (!scene_object.render_enable)
             continue;
@@ -72,7 +71,7 @@ void SceneSystem::draw(ff::RenderTarget& target, ff::RenderState state) const {
 			continue;
 		}
 
-		target.draw(drawable, state);
+		target.draw(*scene_object.drawable, state);
 	}
 
 	if (scissor_enabled) {

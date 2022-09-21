@@ -2,23 +2,9 @@
 
 namespace ff {
 
-World::World() {
-    _collision_system.set_world(this);
-    _trigger_system.set_world(this);
-    _camera_system.set_world(this);
-    _scene_system.set_world(this);
-    _object_system.set_world(this);
-}
-
 ID<Collidable> World::create_collidable(Vec2f position, Vec2f size, Vec2f gravity) {
     return notify_created_all(
             create(_collidables, position, size, gravity),
-            _collision_system);
-}
-
-ID<SurfaceTracker> World::create_tracker(ID<Collidable> collidable, Angle ang_min, Angle ang_max, bool inclusive) {
-    return notify_created_all(
-            create(_trackers, collidable, ang_min, ang_max, inclusive),
             _collision_system);
 }
 
@@ -35,13 +21,13 @@ ID<SceneObject> World::create_scene_object(SceneObject obj) {
 }
 
 void World::update(secs deltaTime) {
-    if (Level* active = _level_system.get_active())
+    if (Level* active = _level_system.get_active(*this))
     {
         active->update(deltaTime);
-        _trigger_system.update(deltaTime);
-        _object_system.update(deltaTime);
-        _collision_system.update(deltaTime);
-        _camera_system.update(deltaTime);
+        _trigger_system.update(*this, deltaTime);
+        _object_system.update(*this, deltaTime);
+        _collision_system.update(*this, deltaTime);
+        _camera_system.update(*this, deltaTime);
         update_counter++;
     }
 }
@@ -51,11 +37,11 @@ void World::predraw(float interp, bool updated) {
     //if (want_reset)
     //    reset();
 
-    if (Level* active = _level_system.get_active())
+    if (Level* active = _level_system.get_active(*this))
     {
         _scene_system.set_bg_color(active->getBGColor());
         _scene_system.set_size(active->size());
-        _object_system.predraw(interp, updated);
+        _object_system.predraw(*this, interp, updated);
         active->predraw(interp, updated);
         _scene_system.set_cam_pos(_camera_system.getPosition(interp));
     }
@@ -64,5 +50,12 @@ void World::predraw(float interp, bool updated) {
         _scene_system.set_bg_color(ff::Color::Transparent);
     }
 }
+
+
+void World::draw(RenderTarget& target, RenderState state) const
+{
+    _scene_system.draw(*this, target, state);
+}
+
 
 }

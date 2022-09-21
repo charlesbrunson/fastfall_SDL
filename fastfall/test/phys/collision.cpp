@@ -64,7 +64,7 @@ protected:
 		//box->update(one_frame);
 
 		colMan->dumpCollisionDataThisFrame(&data[colMan->getFrameCount()]);
-		colMan->update(one_frame);
+		colMan->update(world, one_frame);
 
 	}
 

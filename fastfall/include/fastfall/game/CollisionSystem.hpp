@@ -18,17 +18,17 @@ class World;
 
 class CollisionSystem {
 public:
-	void update(secs deltaTime);
+	void update(World& world, secs deltaTime);
 
-    void set_world(World* w);
+    //void set_world(World* w);
 
-    void notify_created(ID<Collidable> id);
-    void notify_created(ID<ColliderRegion> id);
-    void notify_created(ID<SurfaceTracker> id);
+    void notify_created(World& world, ID<Collidable> id);
+    void notify_created(World& world, ID<ColliderRegion> id);
+    //void notify_created(World& world, ID<SurfaceTracker> id);
 
-    void notify_erased(ID<Collidable> id);
-    void notify_erased(ID<ColliderRegion> id);
-    void notify_erased(ID<SurfaceTracker> id);
+    void notify_erased(World& world, ID<Collidable> id);
+    void notify_erased(World& world, ID<ColliderRegion> id);
+    //void notify_erased(World& world, ID<SurfaceTracker> id);
 
 	// dump collision data from this frame into json, is reset at the end of the update
 	inline void dumpCollisionDataThisFrame(nlohmann::ordered_json* dump_ptr) { collision_dump = dump_ptr; };
@@ -47,7 +47,7 @@ private:
 	size_t frame_collision_count = 0;
 	
 	nlohmann::ordered_json* collision_dump = nullptr;
-    World* world;
+    //World* world;
 
 };
 

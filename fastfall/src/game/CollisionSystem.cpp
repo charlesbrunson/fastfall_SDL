@@ -10,8 +10,8 @@
 
 namespace ff {
 
-void CollisionSystem::update(secs deltaTime) {
-
+void CollisionSystem::update(World& world, secs deltaTime)
+{
 	if (collision_dump)
 	{
 		(*collision_dump) = {
@@ -20,8 +20,8 @@ void CollisionSystem::update(secs deltaTime) {
 		};
 	}
 
-    auto& collidables = world->all<Collidable>();
-    auto& colliders = world->all<ColliderRegion>();
+    auto& collidables = world.all<Collidable>();
+    auto& colliders = world.all<ColliderRegion>();
 
 	if (deltaTime > 0.0) 
 	{
@@ -33,7 +33,7 @@ void CollisionSystem::update(secs deltaTime) {
 		for (auto& [id, arb] : arbiters)
 		{
             auto* dump_ptr = (collision_dump ? &(*collision_dump)["collisions"][ndx] : nullptr);
-			arb.gather_and_solve_collisions(world->at(id), colliders, deltaTime, dump_ptr);
+			arb.gather_and_solve_collisions(world.at(id), colliders, deltaTime, dump_ptr);
 			ndx++;
 		}
 	}
@@ -45,55 +45,26 @@ void CollisionSystem::update(secs deltaTime) {
 	frame_count++;
 };
 
-void CollisionSystem::set_world(World* w) {
-    world = w;
-    // update all collidable & surface tracker pointers
-    for (auto& collidable : w->all<Collidable>()) {
-        size_t tracker_ndx = 0;
-        for (auto& [id, tracker] : collidable.tracker_ids) {
-            tracker = world->get(id);
-            tracker->set_collidable_ptr(&collidable);
-            collidable.tracker_ids[tracker_ndx].second = tracker;
-            ++tracker_ndx;
-        }
-    }
-}
-
-void CollisionSystem::notify_created(ID<Collidable> id)
+void CollisionSystem::notify_created(World& world, ID<Collidable> id)
 {
     arbiters[id] = CollidableArbiter{.collidable_id = id};
 }
 
-void CollisionSystem::notify_created(ID<ColliderRegion> id)
+void CollisionSystem::notify_created(World& world, ID<ColliderRegion> id)
 {
 }
 
-void CollisionSystem::notify_created(ID<SurfaceTracker> id)
-{
-    auto& tracker = world->at(id);
-    auto& collidable = world->at(tracker.get_collidable_id());
-    collidable.tracker_ids.emplace_back(std::pair<ID<SurfaceTracker>, SurfaceTracker*>{ id, &tracker });
-    tracker.set_collidable_ptr(&collidable);
-}
-
-void CollisionSystem::notify_erased(ID<Collidable> id)
+void CollisionSystem::notify_erased(World& world, ID<Collidable> id)
 {
     arbiters.erase(id);
 }
 
-void CollisionSystem::notify_erased(ID<ColliderRegion> id)
+void CollisionSystem::notify_erased(World& world, ID<ColliderRegion> id)
 {
     for (auto& [_, arb] : arbiters)
     {
         arb.erase_region(id);
     }
-}
-
-void CollisionSystem::notify_erased(ID<SurfaceTracker> id)
-{
-    auto& tracker = world->at(id);
-    auto& collidable = world->at(tracker.get_collidable_id());
-    std::erase_if(collidable.tracker_ids, [id](const auto& pair) { return pair.first == id; });
 }
 
 }

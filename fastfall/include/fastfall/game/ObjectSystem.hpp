@@ -17,15 +17,15 @@ class World;
 
 class ObjectSystem {
 public:
-	void update(secs deltaTime);
-	void predraw(float interp, bool updated);
+	void update(World& world, secs deltaTime);
+	void predraw(World& world, float interp, bool updated);
 
-    inline void set_world(World* w) { world = w; }
-    void notify_created(ID<GameObject> id) {}
-    void notify_erased(ID<GameObject> id) {}
+    //inline void set_world(World* w) { world = w; }
+    void notify_created(World& world, ID<GameObject> id) {}
+    void notify_erased(World& world, ID<GameObject> id) {}
 
 private:
-    World* world;
+    //World* world;
 };
 
 }

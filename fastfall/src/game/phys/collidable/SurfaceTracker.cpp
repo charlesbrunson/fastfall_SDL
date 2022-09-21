@@ -6,9 +6,9 @@
 
 namespace ff {
 
-SurfaceTracker::SurfaceTracker(ID<Collidable> t_owner, Angle ang_min, Angle ang_max, bool inclusive)
+SurfaceTracker::SurfaceTracker(Collidable* t_owner, Angle ang_min, Angle ang_max, bool inclusive)
 	: angle_range{ang_min, ang_max, inclusive}
-    , owner_id(t_owner)
+    , owner(t_owner)
 {
 
 }

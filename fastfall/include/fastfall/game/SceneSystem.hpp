@@ -13,12 +13,12 @@ namespace ff {
 
 class World;
 
-class SceneSystem : public Drawable {
+class SceneSystem {
 public:
 
-    inline void set_world(World* w) { world = w; }
-    void notify_created(ID<SceneObject> id);
-    void notify_erased(ID<SceneObject> id);
+    //inline void set_world(World* w) { world = w; }
+    void notify_created(World& world, ID<SceneObject> id);
+    void notify_erased(World& world, ID<SceneObject> id);
 
 	void set_cam_pos(Vec2f center);
 	void set_bg_color(Color color);
@@ -27,8 +27,9 @@ public:
 	inline Color get_bg_color() const { return background.getColor(); };
 	inline Vec2f get_size() const { return scene_size; };
 
+    void draw(const World& world, RenderTarget& target, RenderState state = RenderState()) const;
 private:
-    void draw(ff::RenderTarget& target, ff::RenderState state = RenderState()) const override;
+    //void draw(ff::RenderTarget& target, ff::RenderState state = RenderState()) const override;
     bool enableScissor(const RenderTarget& target, Vec2f viewPos) const;
     void disableScissor() const;
 
@@ -38,7 +39,7 @@ private:
 	Vec2f scene_size;
 	Vec2f cam_pos;
 
-    World* world;
+    //World* world;
 
 
 };

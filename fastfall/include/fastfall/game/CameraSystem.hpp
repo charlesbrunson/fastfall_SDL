@@ -20,11 +20,11 @@ public:
 	CameraSystem() = default;
 	CameraSystem(Vec2f initPos);
 
-	inline void set_world(World* w) { world = w; }
-	void notify_created(ID<CameraTarget> id);
-	void notify_erased(ID<CameraTarget> id);
+	//inline void set_world(World* w) { world = w; }
+	void notify_created(World& world, ID<CameraTarget> id);
+	void notify_erased(World& world, ID<CameraTarget> id);
 
-	void update(secs deltaTime);
+	void update(World& world, secs deltaTime);
 
 	Vec2f getPosition(float interpolation);
 
@@ -36,11 +36,11 @@ public:
 	Vec2f currentPosition;
 
 private:
-	void add_to_ordered(ID<CameraTarget> id);
+	void add_to_ordered(World& world, ID<CameraTarget> id);
 
 	std::optional<ID<CameraTarget>> active_target;
 	std::vector<ID<CameraTarget>> ordered_targets;
-	World* world = nullptr;
+	//World* world = nullptr;
 };
 
 }

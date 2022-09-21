@@ -11,15 +11,12 @@ class World;
 
 class TriggerSystem {
 public:
-    void update(secs deltaTime);
-
-    inline void set_world(World* w) { world = w; }
-    void notify_created(ID<Trigger> id);
-    void notify_erased(ID<Trigger> id);
+    void update(World& world, secs deltaTime);
+    void notify_created(World& world, ID<Trigger> id);
+    void notify_erased(World& world, ID<Trigger> id);
 
 private:
 	void compareTriggers(Trigger& A, Trigger& B, secs deltaTime);
-    World* world = nullptr;
 };
 
 }
