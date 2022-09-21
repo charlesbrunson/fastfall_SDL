@@ -11,11 +11,11 @@ class LevelSystem {
 public:
     inline void set_world(World* w) { world = w; }
 
-    void notify_created(ID<Level> id);
-    void notify_erased(ID<Level> id);
+    void notify_created(World& world, ID<Level> id);
+    void notify_erased(World& world, ID<Level> id);
 
     std::optional<ID<Level>> get_active_id() const;
-    Level* get_active() const;
+    Level* get_active(World& world) const;
     void set_active(ID<Level> id);
 
 private:

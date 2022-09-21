@@ -23,10 +23,10 @@ void debugDrawTrigger(const Trigger& tr) {
 	}
 }
 
-void TriggerSystem::update(secs deltaTime)
+void TriggerSystem::update(World& world, secs deltaTime)
 {
 
-    auto triggers = world->all<Trigger>();
+    auto triggers = world.all<Trigger>();
 	for (auto& trigger : triggers)
 	{
 		trigger.update();
@@ -56,14 +56,14 @@ void TriggerSystem::compareTriggers(Trigger& A, Trigger& B, secs deltaTime)
 	}
 }
 
-void TriggerSystem::notify_created(ID<Trigger> id)
+void TriggerSystem::notify_created(World& world, ID<Trigger> id)
 {
 }
 
-void TriggerSystem::notify_erased(ID<Trigger> id)
+void TriggerSystem::notify_erased(World& world, ID<Trigger> id)
 {
     // if the trigger is being erased, try to trigger any drivers associated first
-    for (auto& trigger : world->all<Trigger>()) {
+    for (auto& trigger : world.all<Trigger>()) {
         auto iter = trigger.drivers.find(id);
         if (iter != trigger.drivers.end())
         {

@@ -63,6 +63,12 @@ public:
 public:
 	Collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
 
+    Collidable(const Collidable&);
+    Collidable(Collidable&&) noexcept;
+
+    Collidable& operator=(const Collidable&);
+    Collidable& operator=(Collidable&&) noexcept;
+
 	void update(poly_id_map<ColliderRegion>* colliders, secs deltaTime);
 
 	Rectf getBoundingBox();
@@ -74,6 +80,7 @@ public:
 	inline Vec2f getPrevPosition() const noexcept { return prevPos; };
 
 	void setPosition(Vec2f position, bool swapPrev = true) noexcept;
+
 	inline void move(Vec2f offset, bool swapPrev = true) {
 		setPosition(getPosition() + offset, swapPrev);
 	};
@@ -114,19 +121,27 @@ public:
 
 	void setSlip(slip_t set) { slip = set; };
 
-	bool hasSlip() const noexcept { return slip.leeway != 0.f; };
-	bool hasSlipH() const noexcept { return hasSlip() && slip.state == SlipState::SlipHorizontal; };
-	bool hasSlipV() const noexcept { return hasSlip() && slip.state == SlipState::SlipVertical; };
-	slip_t getSlip() const noexcept { return slip; }
+	bool    hasSlip()   const noexcept { return slip.leeway != 0.f; };
+	bool    hasSlipH()  const noexcept { return hasSlip() && slip.state == SlipState::SlipHorizontal; };
+	bool    hasSlipV()  const noexcept { return hasSlip() && slip.state == SlipState::SlipVertical; };
+	slip_t  getSlip()   const noexcept { return slip; }
 
-
-	struct callbacks_t {
-		std::function<void()> onPostCollision;
-	} callbacks;
 
 	const collision_state_t& get_state_flags() const { return col_state; }
 
-    std::vector<std::pair<ID<SurfaceTracker>, SurfaceTracker*>> tracker_ids;
+    std::pair<ID<SurfaceTracker>, SurfaceTracker*>
+    create_tracker(Angle ang_min, Angle ang_max, bool inclusive = true);
+
+    bool erase_tracker(ID<SurfaceTracker> id);
+
+    SurfaceTracker* get_tracker(ID<SurfaceTracker> id) { return trackers.get(id); };
+    const SurfaceTracker* get_tracker(ID<SurfaceTracker> id) const { return trackers.get(id); };
+
+    const id_map<SurfaceTracker>& get_trackers() const { return trackers; };
+
+    struct callbacks_t {
+        std::function<void()> onPostCollision;
+    } callbacks;
 
 private:
 
@@ -151,6 +166,7 @@ private:
 	Vec2f decel_accum;
 
 	std::vector<AppliedContact> currContacts;
+    id_map<SurfaceTracker> trackers;
 };
 
 }

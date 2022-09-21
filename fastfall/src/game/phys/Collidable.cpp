@@ -134,6 +134,112 @@ Collidable::Collidable(Vec2f position, Vec2f size, Vec2f gravity)
 	gravity_acc = gravity;
 }
 
+
+Collidable::Collidable(const Collidable& rhs)
+{
+    col_state = rhs.col_state;
+    slip = rhs.slip;
+    pos = rhs.pos;
+    prevPos = rhs.prevPos;
+    curRect = rhs.curRect;
+    prevRect = rhs.prevRect;
+    vel = rhs.vel;
+    precollision_vel = rhs.precollision_vel;
+    friction = rhs.friction;
+    acc = rhs.acc;
+    gravity_acc = rhs.gravity_acc;
+    accel_accum = rhs.accel_accum;
+    decel_accum = rhs.decel_accum;
+    currContacts = rhs.currContacts;
+    trackers = rhs.trackers;
+
+    for (auto& tracker : trackers)
+    {
+        tracker.update_collidable_ptr(this);
+    }
+}
+
+Collidable::Collidable(Collidable&& rhs) noexcept
+{
+    col_state = rhs.col_state;
+    slip = rhs.slip;
+    pos = rhs.pos;
+    prevPos = rhs.prevPos;
+    curRect = rhs.curRect;
+    prevRect = rhs.prevRect;
+    vel = rhs.vel;
+    precollision_vel = rhs.precollision_vel;
+    friction = rhs.friction;
+    acc = rhs.acc;
+    gravity_acc = rhs.gravity_acc;
+    accel_accum = rhs.accel_accum;
+    decel_accum = rhs.decel_accum;
+    currContacts = std::move(rhs.currContacts);
+    trackers = std::move(rhs.trackers);
+
+    for (auto& tracker : trackers)
+    {
+        tracker.update_collidable_ptr(this);
+    }
+}
+
+Collidable& Collidable::operator=(const Collidable& rhs)
+{
+    if (this == &rhs)
+        return *this;
+
+    col_state = rhs.col_state;
+    slip = rhs.slip;
+    pos = rhs.pos;
+    prevPos = rhs.prevPos;
+    curRect = rhs.curRect;
+    prevRect = rhs.prevRect;
+    vel = rhs.vel;
+    precollision_vel = rhs.precollision_vel;
+    friction = rhs.friction;
+    acc = rhs.acc;
+    gravity_acc = rhs.gravity_acc;
+    accel_accum = rhs.accel_accum;
+    decel_accum = rhs.decel_accum;
+    currContacts = rhs.currContacts;
+    trackers = rhs.trackers;
+
+    for (auto& tracker : trackers)
+    {
+        tracker.update_collidable_ptr(this);
+    }
+    return *this;
+}
+
+Collidable& Collidable::operator=(Collidable&& rhs) noexcept
+{
+    if (this == &rhs)
+        return *this;
+
+    col_state = rhs.col_state;
+    slip = rhs.slip;
+    pos = rhs.pos;
+    prevPos = rhs.prevPos;
+    curRect = rhs.curRect;
+    prevRect = rhs.prevRect;
+    vel = rhs.vel;
+    precollision_vel = rhs.precollision_vel;
+    friction = rhs.friction;
+    acc = rhs.acc;
+    gravity_acc = rhs.gravity_acc;
+    accel_accum = rhs.accel_accum;
+    decel_accum = rhs.decel_accum;
+    currContacts = std::move(rhs.currContacts);
+    trackers = std::move(rhs.trackers);
+
+    for (auto& tracker : trackers)
+    {
+        tracker.update_collidable_ptr(this);
+    }
+    return *this;
+}
+
+
 void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) {
 
 	Vec2f prev_pos = pos;
@@ -145,14 +251,14 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
 		acc = accel_accum;
 
         Vec2f surfaceVel;
-		for (auto& [id, tracker] : tracker_ids) {
-			CollidableOffsets offsets = tracker->premove_update(colliders, deltaTime);
+		for (auto& tracker : trackers) {
+			CollidableOffsets offsets = tracker.premove_update(colliders, deltaTime);
 			next_pos += offsets.position;
 			vel += offsets.velocity;
 			acc += offsets.acceleration;
 
-            if (tracker->has_contact()) {
-                surfaceVel += tracker->get_contact()->surface_vel();
+            if (tracker.has_contact()) {
+                surfaceVel += tracker.get_contact()->surface_vel();
             }
 		}
 
@@ -163,8 +269,8 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
 		next_pos += vel * deltaTime;
 
 		// perform post move before applying gravity
-		for (auto& [id, tracker] : tracker_ids) {
-			CollidableOffsets offsets = tracker->postmove_update(colliders, next_pos, prev_pos);
+		for (auto& tracker : trackers) {
+			CollidableOffsets offsets = tracker.postmove_update(colliders, next_pos, prev_pos);
 			next_pos += offsets.position;
 			vel += offsets.velocity;
 			acc += offsets.acceleration;
@@ -233,8 +339,8 @@ void Collidable::teleport(Vec2f position) noexcept {
 	pos = Vec2f(curRect.getPosition()) + Vec2f(curRect.width / 2, curRect.height);
 	prevPos = pos;
 
-	for (auto& [id, tracker] : tracker_ids) {
-        tracker->force_end_contact();
+	for (auto& tracker : trackers) {
+        tracker.force_end_contact();
 	}
 }
 
@@ -262,8 +368,8 @@ void Collidable::applyContact(const AppliedContact& contact, ContactType type)
 	}
 
 	if (contact.hasImpactTime) {
-		for (auto& [id, tracker] : tracker_ids) {
-			tracker->firstCollisionWith(contact);
+		for (auto& tracker : trackers) {
+            tracker.firstCollisionWith(contact);
 		}
 	}
 }
@@ -271,9 +377,9 @@ void Collidable::applyContact(const AppliedContact& contact, ContactType type)
 // will return nullptr if no contact in the given range, or no record for that range
 const AppliedContact* Collidable::get_contact(Angle angle) const noexcept {
 
-	for (auto& [id, tracker] : tracker_ids) {
-		if (tracker->angle_range.within_range(angle)) {
-			return tracker->get_contact().has_value() ? &tracker->get_contact().value() : nullptr;
+	for (auto& tracker : trackers) {
+		if (tracker.angle_range.within_range(angle)) {
+			return tracker.get_contact().has_value() ? &tracker.get_contact().value() : nullptr;
 		}
 	}
 
@@ -330,9 +436,9 @@ void Collidable::set_frame(
     }
 
     friction = Vec2f{};
-    for (auto& [id, tracker] : tracker_ids) {
-        tracker->process_contacts(colliders, currContacts);
-        friction += tracker->calc_friction(precollision_vel);
+    for (auto& tracker : trackers) {
+        tracker.process_contacts(colliders, currContacts);
+        friction += tracker.calc_friction(precollision_vel);
     }
 
     //Vec2f prev = vel;
@@ -340,6 +446,16 @@ void Collidable::set_frame(
     if (callbacks.onPostCollision)
         callbacks.onPostCollision();
 
+}
+
+std::pair<ID<SurfaceTracker>, SurfaceTracker*>
+Collidable::create_tracker(Angle ang_min, Angle ang_max, bool inclusive) {
+    auto id = trackers.create(this, ang_min, ang_max, inclusive);
+    return { id, trackers.get(id) };
+}
+
+bool Collidable::erase_tracker(ID<SurfaceTracker> id) {
+    return trackers.erase(id);
 }
 
 void Collidable::debug_draw() const 

@@ -55,12 +55,11 @@ protected:
         auto box_id = world.create_collidable(pos, size, grav);
 		box = world.get(box_id);
 
-        auto tracker_id = world.create_tracker(box_id,
+        ground = box->create_tracker(
                 Angle::Degree(-135),
                 Angle::Degree(-45)
-            );
+            ).second;
 
-        ground = world.get(tracker_id);
         ground->settings = {
 				.slope_sticking = true,
 				.stick_angle_max = Angle::Degree(90)
@@ -81,7 +80,7 @@ protected:
 		//box->update(one_frame);
 
 		colMan->dumpCollisionDataThisFrame(&data[colMan->getFrameCount()]);
-		colMan->update(one_frame);
+		colMan->update(world, one_frame);
 	}
 
 	void initTileMap(grid_vector<std::string_view> tiles) 

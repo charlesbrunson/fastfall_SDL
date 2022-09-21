@@ -17,7 +17,7 @@
 
 namespace ff {
 
-class World
+class World : public Drawable
 {
 private:
     auto span(auto& components) { return std::span{components.begin(), components.end()}; };
@@ -32,7 +32,7 @@ private:
     }
 
     auto notify_created_all(auto id, auto&... systems) {
-        (systems.notify_created(id), ...);
+        (systems.notify_created(*this, id), ...);
         return id;
     }
 
@@ -44,15 +44,8 @@ private:
         return components.erase(id);
     }
 
+    void draw(RenderTarget& target, RenderState state = RenderState()) const override;
 public:
-    World();
-
-    // TODO
-    World(const World& other) = delete;
-    World& operator=(const World& other) = delete;
-    World(World&& other) noexcept = delete;
-    World& operator=(World&& other) noexcept = delete;
-
     // manage state
     void update(secs deltaTime);
     void predraw(float interp, bool updated);
@@ -62,11 +55,13 @@ public:
     T& at(ID<T> id) { return (T&)container<T>().at(id); }
 
     template<class T>
+    const T& at(ID<T> id) const { return (const T&)container<T>().at(id); }
+
+    template<class T>
     T* get(ID<T> id) { return (T*)container<T>().get(id); }
 
 	// create component
 	ID<Collidable> create_collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
-    ID<SurfaceTracker> create_tracker(ID<Collidable> collidable, Angle ang_min, Angle ang_max, bool inclusive = true);
     ID<Trigger> create_trigger();
     ID<SceneObject> create_scene_object(SceneObject obj);
 
@@ -113,12 +108,11 @@ public:
     inline auto& all() { return container<T>(); }
 
 	// get system
-	//inline LevelSystem& 	levels() 	{ return _level_system; }
-	inline ObjectSystem&    objects() 	{ return _object_system; }
 	inline CollisionSystem& collision() { return _collision_system; }
 	inline TriggerSystem&   trigger()   { return _trigger_system; }
 	inline CameraSystem&    camera()    { return _camera_system; }
 	inline SceneSystem&     scene()     { return _scene_system; }
+    inline ObjectSystem&    objects() 	{ return _object_system; }
     inline LevelSystem&     levels()    { return _level_system; }
 
 private:
@@ -127,12 +121,35 @@ private:
 	id_map<Level> 			_levels;
 
     template<class T>
-    constexpr auto& container() {
+    constexpr auto& container() const {
         if constexpr (std::same_as<T, Collidable>) {
             return _collidables;
         }
-        else if constexpr (std::same_as<T, SurfaceTracker>) {
-            return _trackers;
+        else if constexpr (std::derived_from<T, ColliderRegion>) {
+            return _colliders;
+        }
+        else if constexpr (std::same_as<T, Trigger>) {
+            return _triggers;
+        }
+        else if constexpr (std::derived_from<T, CameraTarget>) {
+            return _camera_targets;
+        }
+        else if constexpr (std::same_as<T, SceneObject>) {
+            return _scene_objects;
+        }
+        else if constexpr (std::derived_from<T, GameObject>) {
+            return _objects;
+        }
+        else if constexpr (std::same_as<T, Level>) {
+            return _levels;
+        }
+        else { throw std::exception{}; }
+    }
+
+    template<class T>
+    constexpr auto& container() {
+        if constexpr (std::same_as<T, Collidable>) {
+            return _collidables;
         }
         else if constexpr (std::derived_from<T, ColliderRegion>) {
             return _colliders;
@@ -157,7 +174,6 @@ private:
 
 	// components
 	id_map<Collidable> 			_collidables;
-    id_map<SurfaceTracker> 		_trackers;
 	poly_id_map<ColliderRegion> _colliders;
 	id_map<Trigger> 			_triggers;
 	poly_id_map<CameraTarget> 	_camera_targets;

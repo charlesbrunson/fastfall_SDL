@@ -56,7 +56,7 @@ public:
 		return removed;
 	}
 
-	bool exists(ID<T> id)
+	bool exists(ID<T> id) const
 	{
 		return components.exists(id.value);
 	}

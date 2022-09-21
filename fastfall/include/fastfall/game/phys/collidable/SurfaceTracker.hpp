@@ -27,10 +27,12 @@ struct CollidableOffsets {
 // track contact duration for surfaces between the given angle ranges
 class SurfaceTracker {
 public:
-	SurfaceTracker(ID<Collidable> t_owner, Angle ang_min, Angle ang_max, bool inclusive = true);
+	SurfaceTracker(Collidable* t_owner, Angle ang_min, Angle ang_max, bool inclusive = true);
 
 	CollidableOffsets premove_update(poly_id_map<ColliderRegion>* colliders, secs deltaTime);
 	CollidableOffsets postmove_update(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos) const;
+
+    void update_collidable_ptr(Collidable* t_owner) { owner = t_owner; }
 
 	void process_contacts(
             poly_id_map<ColliderRegion>* colliders,
@@ -47,12 +49,12 @@ public:
 
     void force_end_contact();
 
-	inline ID<Collidable> get_collidable_id() { return owner_id; };
-    inline void set_collidable_ptr(Collidable* ptr) { owner = ptr;}
+	//inline ID<Collidable> get_collidable_id() { return owner_id; };
+    //inline void set_collidable_ptr(Collidable* ptr) { owner = ptr;}
 
 	bool can_make_contact_with(const AppliedContact& contact) const noexcept;
 
-	const std::optional<AppliedContact>& get_contact() { return currentContact; };
+	const std::optional<AppliedContact>& get_contact() const { return currentContact; };
 
 	void start_touch(AppliedContact& contact);
 	void end_touch(AppliedContact& contact);
@@ -116,7 +118,6 @@ private:
 	// returns position offset
 	Vec2f do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos, float left, float right) const noexcept;
 
-    ID<Collidable> owner_id;
     Collidable* owner;
 };
 

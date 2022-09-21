@@ -4,11 +4,11 @@
 
 namespace ff {
 
-void LevelSystem::notify_created(ID<Level> id)
+void LevelSystem::notify_created(World& world, ID<Level> id)
 {
 }
 
-void LevelSystem::notify_erased(ID<Level> id)
+void LevelSystem::notify_erased(World& world, ID<Level> id)
 {
     if (active_level && *active_level == id) {
         active_level.reset();
@@ -19,9 +19,9 @@ std::optional<ID<Level>> LevelSystem::get_active_id() const {
     return active_level;
 }
 
-Level* LevelSystem::get_active() const {
+Level* LevelSystem::get_active(World& world) const {
     if (active_level) {
-        return world->get(*active_level);
+        return world.get(*active_level);
     }
     return nullptr;
 }
