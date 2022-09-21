@@ -49,9 +49,12 @@ void CollisionSystem::set_world(World* w) {
     world = w;
     // update all collidable & surface tracker pointers
     for (auto& collidable : w->all<Collidable>()) {
+        size_t tracker_ndx = 0;
         for (auto& [id, tracker] : collidable.tracker_ids) {
             tracker = world->get(id);
             tracker->set_collidable_ptr(&collidable);
+            collidable.tracker_ids[tracker_ndx].second = tracker;
+            ++tracker_ndx;
         }
     }
 }
@@ -70,6 +73,7 @@ void CollisionSystem::notify_created(ID<SurfaceTracker> id)
     auto& tracker = world->at(id);
     auto& collidable = world->at(tracker.get_collidable_id());
     collidable.tracker_ids.emplace_back(std::pair<ID<SurfaceTracker>, SurfaceTracker*>{ id, &tracker });
+    tracker.set_collidable_ptr(&collidable);
 }
 
 void CollisionSystem::notify_erased(ID<Collidable> id)

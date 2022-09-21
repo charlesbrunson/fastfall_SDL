@@ -20,7 +20,7 @@ protected:
 	CollisionSystem* colMan;
 
 	Collidable* box = nullptr;
-	SurfaceTracker* ground;
+	SurfaceTracker* ground = nullptr;
 
 	ColliderTileMap* collider = nullptr;
 	std::fstream log;
@@ -48,7 +48,6 @@ protected:
 
 	void SetUp() override {
 		
-
 		Vec2f pos  = { 0, 0 };
 		Vec2f size = { 16, 32 };
 		Vec2f grav = { 0, 0 };
@@ -61,7 +60,8 @@ protected:
                 Angle::Degree(-45)
             );
 
-        world.at(tracker_id).settings = {
+        ground = world.get(tracker_id);
+        ground->settings = {
 				.slope_sticking = true,
 				.stick_angle_max = Angle::Degree(90)
 			};
