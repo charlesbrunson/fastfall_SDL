@@ -9,6 +9,51 @@ namespace ff {
 class World;
 
 template<class T>
+class unique_id {
+private:
+    World* world = nullptr;
+    ID<T> id;
+
+public:
+    unique_id() = default;
+    unique_id(World* t_world, ID<T> t_id)
+    : world(t_world)
+    , id(t_id)
+    {
+        assert(t_world);
+    }
+
+    unique_id(const unique_id&) = delete;
+    unique_id& operator=(const unique_id&) = delete;
+
+    unique_id(unique_id&&) noexcept = default;
+    unique_id& operator=(unique_id&&) noexcept = default;
+
+    ~unique_id() {
+        reset();
+    }
+
+    T* operator->() {
+        return world->get(id);
+    }
+
+    T& operator*() {
+        return world->at(id);
+    }
+
+    void update_world(World* w) {
+        assert(w);
+        world = w;
+    }
+
+    void reset() {
+        if (world)
+            world->erase(id);
+    }
+};
+
+/*
+template<class T>
 class uniq_id_ptr {
 private:
     struct data_t {
@@ -19,8 +64,8 @@ private:
 
 public:
     uniq_id_ptr() = default;
-    uniq_id_ptr(World& w, ID<T> id)
-        : data{data_t{&w, id}}
+    uniq_id_ptr(World* w, ID<T> id)
+        : data{data_t{w, id}}
     {
     }
 
@@ -83,6 +128,6 @@ public:
         return get();
     }
 };
-
+*/
 
 }

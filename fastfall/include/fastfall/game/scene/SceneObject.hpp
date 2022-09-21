@@ -35,4 +35,11 @@ struct SceneObject {
     bool            resort_flag   = false;
 };
 
+struct SceneParams {
+    scene_layer		layer_id    = 0;
+    scene_type		type        = scene_type::Object;
+    scene_priority	priority    = scene_priority::Normal;
+    bool            render_enable = true;
+};
+
 }
