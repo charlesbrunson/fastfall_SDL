@@ -11,11 +11,13 @@ public:
 	static const ff::ObjectType Type;
 	const ff::ObjectType& type() const override { return Type; };
 
-	BasicPlatform(ff::GameContext context, ff::ObjectLevelData& data);
+	BasicPlatform(ff::World& w, ff::ObjectLevelData& data);
 
-	void update(secs deltaTime) override;
+	void update(ff::World& w, secs deltaTime) override;
 
-	void predraw(float interp, bool updated) override;
+	void predraw(ff::World& w, float interp, bool updated) override;
+
+    void clean(ff::World& w) override;
 
 protected:
 	bool has_path = false;
@@ -35,8 +37,8 @@ protected:
 	float progress = 0.f;
 	bool reverser = false;
 
-	ff::Collider_ptr<ff::ColliderSimple> collider;
-	ff::Scene_ptr<ff::ShapeRectangle> shape;
-	//ff::ShapeRectangle shape;
-	
+    ff::ID<ff::SceneObject> scene_id;
+    ff::ID<ff::ColliderSimple> collider;
+
+    ff::ShapeRectangle& shape(ff::World& w) const;
 };
