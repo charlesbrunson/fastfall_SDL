@@ -32,7 +32,7 @@ struct TileLogicCommand {
 
 class TileLogicType {
 public:
-	using FactoryFunction = std::function<copyable_unique_ptr<TileLogic>&&(World*)>;
+	using FactoryFunction = std::function<copyable_unique_ptr<TileLogic>&&(World&)>;
 
 	TileLogicType(std::string_view type, FactoryFunction builder);
 
@@ -103,13 +103,13 @@ public:
 	static void addType(const std::string& typeName) {
 		TileLogicType type{
 			typeName,
-			[](World* w) -> copyable_unique_ptr<TileLogic>&& {
+			[](World& w) -> copyable_unique_ptr<TileLogic>&& {
 				return make_copyable_unique<T>(w);
 			}
 		};
 		getMap().insert(std::make_pair(type.typeName, type));
 	}
-	static copyable_unique_ptr<TileLogic> create(World* world, std::string_view typeName);
+	static copyable_unique_ptr<TileLogic> create(World& world, std::string_view typeName);
 
     void set_world(World* w) { world = w; }
 
