@@ -167,14 +167,12 @@ const ObjectType* ObjectFactory::getType(std::string_view name) {
 	return nullptr;
 }
 
-GameObject::GameObject(World* w)
-	: world(w)
+GameObject::GameObject(World& w)
 {
 }
 
-GameObject::GameObject(World* w, ObjectLevelData& data)
-	: world(w)
-	, m_data(&data)
+GameObject::GameObject(World& w, ObjectLevelData& data)
+	: m_data(&data)
 {
 }
 

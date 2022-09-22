@@ -24,11 +24,11 @@ TestState::TestState()
         auto lvl_id = world->create_level(*lvlptr);
         world->levels().set_active(lvl_id);
 	}
-    Level* lvl = world->levels().get_active();
+    Level* lvl = world->levels().get_active(*world);
     assert(lvl);
 
 	//instance->populateSceneFromLevel(*lvl);
-	edit = std::make_unique<LevelEditor>( *lvl, false );
+	edit = std::make_unique<LevelEditor>( *world, *lvl, false );
 	edit->select_layer(-1);
 	edit->select_tileset("tech_fg.tsx");
 	edit->select_tile(edit->get_tileset()->getAutoTileForShape("slope"_ts).value_or(TileID{0u, 0u}));
@@ -154,7 +154,7 @@ void TestState::update(secs deltaTime) {
 
 		if (Input::getMouseInView() && (Input::isHeld(InputType::MOUSE1) || Input::isHeld(InputType::MOUSE2)))
 		{
-            Level* lvl = world->levels().get_active();
+            Level* lvl = world->levels().get_active(*world);
 			if (Rectf{ Vec2f{}, Vec2f{lvl->size()} * TILESIZE_F }.contains(mpos)
 				&& (!painting || (last_paint != tpos)))
 			{
@@ -270,7 +270,7 @@ void TestState::predraw(float interp, bool updated) {
 
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const 
 {
-    target.draw(world->scene(), state);
+    target.draw(*world, state);
 
 	if (edit && edit->get_tile_layer()) {
 		target.draw(tile_ghost, state);

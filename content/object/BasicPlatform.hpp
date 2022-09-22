@@ -1,13 +1,10 @@
 
 
-#include "fastfall/game/GameContext.hpp"
 #include "fastfall/game/object/GameObject.hpp"
 #include "fastfall/game/phys/collider_regiontypes/ColliderSimple.hpp"
+#include "fastfall/game/World.hpp"
 
 #include "fastfall/render/ShapeRectangle.hpp"
-
-#include "fastfall/game/InstanceInterface.hpp"
-#include "fastfall/game/object/ObjectComponents.hpp"
 
 class BasicPlatform : public ff::GameObject {
 public:

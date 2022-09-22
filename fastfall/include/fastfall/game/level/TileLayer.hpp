@@ -61,7 +61,6 @@ public:
 
 	~TileLayer();
 
-    void prepare_to_destroy(World& world);
 
 	void initFromAsset(World& world, const TileLayerData& layerData);
 	void update(World& world, secs deltaTime);
@@ -69,7 +68,9 @@ public:
 
 	void setTile(World& world, const Vec2u& position, TileID tile_id, const TilesetAsset& tileset, bool useLogic = true);
 	void removeTile(World& world, const Vec2u& position);
-	void clear(World& world);
+
+    // removes all tiles, collision, parallax and scrolling
+	void clean(World& world);
 
 	void shallow_copy(World& world, const TileLayer& src, Rectu src_area, Vec2u dst);
 

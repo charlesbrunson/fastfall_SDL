@@ -8,7 +8,7 @@ using namespace ff;
 
 class AnimLogic : public TileLogic {
 public:
-	AnimLogic(World* world) : TileLogic(world, "anim") {}
+	AnimLogic(World& world) : TileLogic(world, "anim") {}
 
 	void addTile(Vec2u tilePos, Tile tile, std::string_view arg) override;
 	void removeTile(Vec2u tilePos) override;
