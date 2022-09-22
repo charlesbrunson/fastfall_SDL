@@ -15,6 +15,17 @@ Level::Level(World& world, const LevelAsset& levelData)
     initFromAsset(world, levelData);
 }
 
+void Level::clean(World& w) {
+    levelName = {};
+    bgColor = {};
+    levelSize = Vec2u{};
+    for(auto& tile_layer : layers.get_tile_layers())
+    {
+        tile_layer.tilelayer.clean(w);
+    }
+    layers.clear_all();
+}
+
 void Level::update(World& world, secs deltaTime) {
 	for (auto& [pos, layer] : layers.get_tile_layers()) {
 		layer.update(world, deltaTime);
@@ -30,11 +41,7 @@ void Level::predraw(World& world, float interp, bool updated) {
 
 void Level::initFromAsset(World& world, const LevelAsset& levelData)
 {
-    for (auto& layer : layers.get_tile_layers())
-    {
-        layer.tilelayer.prepare_to_destroy(world);
-    }
-	layers.clear_all();
+    clean(world);
 
 	levelName = levelData.getAssetName();
 	bgColor = levelData.getBGColor();

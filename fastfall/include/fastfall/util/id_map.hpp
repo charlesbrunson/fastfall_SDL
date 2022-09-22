@@ -83,14 +83,15 @@ public:
 template<class T>
 class poly_id_map
 {
-private:
-	using base_type = T;
-	using value_type = copyable_unique_ptr<T>;
+public:
+    using base_type = T;
+    using value_type = copyable_unique_ptr<T>;
+    using span = std::span<value_type>;
 
+private:
 	slot_map<value_type> components;
 
 public:
-    using span = std::span<value_type>;
 
 	// polymorphic
 	template<std::derived_from<T> Type, class... Args>

@@ -177,29 +177,40 @@ public:
 
 class GameObject : public Commandable<ObjCmd> {
 public:
-	GameObject(World* w);
-	GameObject(World* w, ObjectLevelData& data);
+	GameObject(World& w);
+	GameObject(World& w, ObjectLevelData& data);
 	virtual ~GameObject() = default;
 
-	virtual void update(secs deltaTime) = 0;
-	virtual void predraw(float interp, bool updated) = 0;
 
-    virtual void set_world(World* w) { world = w; }
-
+	virtual void update(World& world, secs deltaTime) = 0;
+	virtual void predraw(World& world, float interp, bool updated) = 0;
 	virtual const ObjectType& type() const = 0;
 
 	virtual void ImGui_Inspect() {
 		ImGui::Text("Hello World!");
 	};
 
-	inline const ObjectLevelData* level_data() const { return m_data; };
-
 	bool m_has_collider = false;
 	bool m_show_inspect = false;
 
+    bool should_delete() const { return m_should_delete; }
+    const ObjectLevelData* level_data() const { return m_data; };
+
 protected:
 	ObjectLevelData* const m_data = nullptr;
-    World* world;
+
+    void raise_should_delete(bool t_delete = true) {
+        if (t_delete)
+            m_should_delete = true;
+    }
+
+    // erase any components allocated by this object from the world
+    // called prior to deletion from world
+    virtual void clean(World& world) = 0;
+
+    friend class ObjectSystem;
+private:
+    bool m_should_delete = false;
 };
 
 

@@ -25,10 +25,12 @@ public:
 	Level() = default;
 	Level(World& w, const LevelAsset& levelData);
 
-	void initFromAsset(World& world, const LevelAsset& levelData);
+    void initFromAsset(World& world, const LevelAsset& levelData);
+
+    // removes all layers, resets name, bg color and size
+    void clean(World& w);
 
 	void update(World& world, secs deltaTime);
-
 	void predraw(World& world, float interp, bool updated);
 
 	inline const Color& getBGColor() const { return bgColor; };

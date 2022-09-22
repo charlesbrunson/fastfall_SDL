@@ -30,24 +30,6 @@ TileLayer::TileLayer(World& world, const TileLayerData& layerData)
 	initFromAsset(world, layerData);
 }
 
-
-void TileLayer::prepare_to_destroy(World& world)
-{
-    for (auto k : dyn.chunks)
-    {
-        world.erase(k);
-    }
-    dyn.chunks.clear();
-
-    if (dyn.collision.collider)
-    {
-        world.erase(*dyn.collision.collider);
-        dyn.collision.collider.reset();
-    }
-    is_clean = true;
-}
-
-
 TileLayer::~TileLayer() {
     assert(is_clean);
 }
@@ -68,7 +50,7 @@ void TileLayer::set_layer(World& world, scene_layer lyr) {
 }
 
 void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
-	clear(world);
+	clean(world);
 
 	layer_data = layerData;
 
@@ -239,6 +221,7 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
             world.erase(*dyn.collision.collider);
         }
         dyn.collision.collider.reset();
+        dyn.collision.is_modified = false;
 		layer_data.setCollision(false);
 	}
 	return true;
@@ -585,17 +568,21 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 	}
 }
 
-void TileLayer::clear(World& world)
+void TileLayer::clean(World& world)
 {
-	layer_data.clearTiles();
-	dyn.chunks.clear();
-	dyn.tile_logic.clear();
-
-	tiles_dyn = grid_vector<TileDynamic>(layer_data.getSize());
-
 	set_collision(world, false);
 	set_parallax(world, false);
 	set_scroll(world, false);
+
+    for (auto k : dyn.chunks)
+    {
+        world.erase(k);
+    }
+    dyn.chunks.clear();
+
+    layer_data.clearTiles();
+    dyn.tile_logic.clear();
+    tiles_dyn = grid_vector<TileDynamic>(layer_data.getSize());
     is_clean = true;
 }
 

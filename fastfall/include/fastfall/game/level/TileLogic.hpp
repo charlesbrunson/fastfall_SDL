@@ -61,13 +61,11 @@ protected:
 	}
 
 public:
-
-	TileLogic(World* w, std::string name)
-		: world(w)
-        , m_name(name)
+	TileLogic(World& w, std::string name)
+		: m_name(name)
 	{
-
 	}
+
 	virtual ~TileLogic() = default;
 
 	virtual void addTile(Vec2u tilePos, Tile tile, std::string_view args) = 0;
@@ -81,23 +79,14 @@ public:
 
 	virtual void on_postcontact(const AppliedContact& contact) const {};
 
-
 	inline std::string_view getName() const {
 		return m_name;
 	}
 
-	inline bool hasNextCommand() const {
-		return !commands.empty();
-	}
-	inline const TileLogicCommand& nextCommand() const {
-		return commands.front();
-	}
-	inline void popCommand() {
-		commands.pop();
-	}
-	inline void clearCommands() {
-		commands = std::queue<TileLogicCommand>{};
-	}
+	inline bool hasNextCommand() const { return !commands.empty(); }
+	inline const TileLogicCommand& nextCommand() const { return commands.front(); }
+	inline void popCommand() { commands.pop(); }
+	inline void clearCommands() { commands = std::queue<TileLogicCommand>{}; }
 
 	template<typename T, typename = std::enable_if<std::is_base_of<TileLogic, T>::value>>
 	static void addType(const std::string& typeName) {
@@ -111,8 +100,6 @@ public:
 	}
 	static copyable_unique_ptr<TileLogic> create(World& world, std::string_view typeName);
 
-    void set_world(World* w) { world = w; }
-
 private:
 	using Map = std::map<std::string, TileLogicType, std::less<>>;
 	using Iterator = std::map<std::string, TileLogicType>::iterator;
@@ -124,7 +111,6 @@ private:
 
 	std::string m_name;
 	std::queue<TileLogicCommand> commands;
-    World* world;
 };
 
 
