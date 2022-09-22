@@ -52,7 +52,7 @@ void Level::initFromAsset(World& world, const LevelAsset& levelData)
 
 	for (auto& layer : layers.get_tile_layers())
 	{
-		layer.tilelayer.set_layer(layer.position);
+		layer.tilelayer.set_layer(world, layer.position);
 	}
 
 	layers.get_obj_layer().initFromAsset(

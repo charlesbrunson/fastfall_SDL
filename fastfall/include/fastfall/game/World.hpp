@@ -89,13 +89,13 @@ public:
 
     ID<Level> create_level(const LevelAsset& lvl_asset) {
         return notify_created_all(
-                create(_levels, this, lvl_asset),
+                create(_levels, *this, lvl_asset),
                 _level_system) ;
     }
 
     ID<Level> create_level() {
         return notify_created_all(
-                create(_levels, this),
+                create(_levels),
                 _level_system) ;
     }
 

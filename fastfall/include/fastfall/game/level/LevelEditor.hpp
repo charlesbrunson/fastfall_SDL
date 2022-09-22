@@ -19,10 +19,10 @@ public:
 	// CONSTRUCTORS
 
 	// attach to existing level
-	LevelEditor(Level& lvl, bool show_imgui);
+	LevelEditor(World& t_world, Level& lvl, bool show_imgui);
 
 	// create a new level
-	LevelEditor(World* world, bool show_imgui, std::string name = "New Level", Vec2u tile_size = MIN_LEVEL_SIZE);
+	LevelEditor(World& t_world, bool show_imgui, std::string name = "New Level", Vec2u tile_size = MIN_LEVEL_SIZE);
 
 
 
@@ -125,6 +125,7 @@ protected:
 
 	std::unique_ptr<Level> created_level = nullptr;
 	Level* level = nullptr;								// pointer to level being edited, may point externally or to created_level
+    World* world;
 
 	bool obj_layer_selected = false;
 	Level::Layers::TileEntry* curr_layer = nullptr;				// current tile layer

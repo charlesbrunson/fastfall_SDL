@@ -23,7 +23,7 @@ ID<SceneObject> World::create_scene_object(SceneObject obj) {
 void World::update(secs deltaTime) {
     if (Level* active = _level_system.get_active(*this))
     {
-        active->update(deltaTime);
+        active->update(*this, deltaTime);
         _trigger_system.update(*this, deltaTime);
         _object_system.update(*this, deltaTime);
         _collision_system.update(*this, deltaTime);
@@ -42,7 +42,7 @@ void World::predraw(float interp, bool updated) {
         _scene_system.set_bg_color(active->getBGColor());
         _scene_system.set_size(active->size());
         _object_system.predraw(*this, interp, updated);
-        active->predraw(interp, updated);
+        active->predraw(*this, interp, updated);
         _scene_system.set_cam_pos(_camera_system.getPosition(interp));
     }
     else
