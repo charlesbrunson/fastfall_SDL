@@ -7,19 +7,21 @@
 namespace ff {
 
 
-LevelEditor::LevelEditor(Level& lvl, bool show_imgui) 
+LevelEditor::LevelEditor(World& t_world, Level& lvl, bool show_imgui)
+    : world(&t_world)
 {
 	level = &lvl;
 	assert(level);
 
 }
 
-LevelEditor::LevelEditor(World* world, bool show_imgui, std::string name, Vec2u tile_size)
+LevelEditor::LevelEditor(World& t_world, bool show_imgui, std::string name, Vec2u tile_size)
+    : world(&t_world)
 {
 	assert(tile_size.x >= LevelEditor::MIN_LEVEL_SIZE.x);
 	assert(tile_size.y >= LevelEditor::MIN_LEVEL_SIZE.y);
 
-	created_level = std::make_unique<Level>(world);
+	created_level = std::make_unique<Level>();
 	level = created_level.get();
 
 	assert(level);
@@ -42,7 +44,7 @@ bool LevelEditor::create_layer(int layer_pos)
 	{
 		level->get_layers().insert(
 			layer_pos,
-			TileLayer{ level->get_world(), 0, level->size() }
+			TileLayer{ 0, level->size() }
 		);
 	}
 	return false;
@@ -139,21 +141,21 @@ bool LevelEditor::erase_layer()
 bool LevelEditor::layer_set_collision(bool enabled, unsigned borderBits)
 {
 	if (level && curr_layer) {
-		return curr_layer->tilelayer.set_collision(enabled, borderBits);
+		return curr_layer->tilelayer.set_collision(*world, enabled, borderBits);
 	}
 	return false;
 }
 bool LevelEditor::layer_set_scroll(bool enabled, Vec2f scroll_rate)
 {
 	if (level && curr_layer) {
-		return curr_layer->tilelayer.set_scroll(enabled, scroll_rate);
+		return curr_layer->tilelayer.set_scroll(*world, enabled, scroll_rate);
 	}
 	return false;
 }
 bool LevelEditor::layer_set_parallax(bool enabled, Vec2u parallax_size)
 {
 	if (level && curr_layer) {
-		return curr_layer->tilelayer.set_parallax(enabled, parallax_size);
+		return curr_layer->tilelayer.set_parallax(*world, enabled, parallax_size);
 	}
 	return false;
 }
@@ -170,7 +172,7 @@ bool LevelEditor::paint_tile(Vec2u pos)
 
 		if (pos.x < size.x && pos.y < size.y) 
 		{
-			curr_layer->tilelayer.setTile(pos, *tileset_pos, *curr_tileset);
+			curr_layer->tilelayer.setTile(*world, pos, *tileset_pos, *curr_tileset);
 			return true;
 
 		}
@@ -188,7 +190,7 @@ bool LevelEditor::erase_tile(Vec2u pos)
 
 		if (pos.x < size.x && pos.y < size.y)
 		{
-			curr_layer->tilelayer.removeTile(pos);
+			curr_layer->tilelayer.removeTile(*world, pos);
 			return true;
 		}
 	}
@@ -270,7 +272,7 @@ bool LevelEditor::set_bg_color(Color bg_color)
 bool LevelEditor::set_size(Vec2u size)
 {
 	if (level && level->size() != size) {
-		level->resize(size);
+		level->resize(*world, size);
 		return true;
 	}
 	return false;
@@ -329,7 +331,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		);
 		if (not_in_lvl)
 		{
-			lvl_layers.push_fg_front(TileLayer{ level->get_world(), layer_ref.tilelayer });
+			lvl_layers.push_fg_front(TileLayer{ *world, layer_ref.tilelayer });
 			nLayers.insert(layer_ref.tilelayer.getID());
 		}
 	}
@@ -356,17 +358,17 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		// disable layer properties
 		if (layer.tilelayer.hasCollision() && !tile_ref.hasCollision())
 		{
-			layer.tilelayer.set_collision(false);
+			layer.tilelayer.set_collision(*world, false);
 			LOG_INFO("disable collision");
 		}
 		if (layer.tilelayer.hasScrolling() && !tile_ref.hasScrolling())
 		{
-			layer.tilelayer.set_scroll(false);
+			layer.tilelayer.set_scroll(*world, false);
 			LOG_INFO("disable scroll");
 		}
 		if (layer.tilelayer.hasParallax() && !tile_ref.hasParallax())
 		{
-			layer.tilelayer.set_parallax(false);
+			layer.tilelayer.set_parallax(*world, false);
 			LOG_INFO("disable parallax");
 		}
 
@@ -374,19 +376,19 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		if ((!layer.tilelayer.hasCollision() && tile_ref.hasCollision()) ||
 			(tile_ref.hasCollision() && (layer.tilelayer.getCollisionBorders() != tile_ref.getCollisionBorders())))
 		{
-			layer.tilelayer.set_collision(true, tile_ref.getCollisionBorders());
+			layer.tilelayer.set_collision(*world, true, tile_ref.getCollisionBorders());
 			LOG_INFO("enable collision");
 		}
 		if ((!layer.tilelayer.hasScrolling() && tile_ref.hasScrolling()) ||
 			(tile_ref.hasScrolling() && (layer.tilelayer.getScrollRate() != tile_ref.getScrollRate())))
 		{
-			layer.tilelayer.set_scroll(true, tile_ref.getScrollRate());
+			layer.tilelayer.set_scroll(*world, true, tile_ref.getScrollRate());
 			LOG_INFO("enable scroll");
 		}
 		if ((!layer.tilelayer.hasParallax() && tile_ref.hasParallax()) ||
 			(tile_ref.hasParallax() && (layer.tilelayer.getParallaxSize() != tile_ref.getParallaxSize())))
 		{
-			layer.tilelayer.set_parallax(true, tile_ref.getParallaxSize());
+			layer.tilelayer.set_parallax(*world, true, tile_ref.getParallaxSize());
 			LOG_INFO("enable parallax");
 		}
 
@@ -423,7 +425,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		}
 
 		// predraw to apply changes
-		layer.tilelayer.predraw(0.0, true);
+		layer.tilelayer.predraw(*world, 0.0, true);
 
 		// increment to next tilelayer ref
 		it++; 

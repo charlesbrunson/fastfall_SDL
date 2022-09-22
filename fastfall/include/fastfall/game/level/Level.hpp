@@ -48,10 +48,7 @@ private:
 	std::string levelName;
 	Color bgColor;
 	Vec2u levelSize;
-
 	Layers layers;
-
-    //World* world;
 };
 
 }
