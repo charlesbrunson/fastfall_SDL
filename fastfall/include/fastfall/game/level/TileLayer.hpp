@@ -45,6 +45,7 @@ private:
 
 		struct collision_dyn_t {
             std::optional<ID<ColliderTileMap>> collider;
+            bool is_modified = false;
 		} collision;
 
 		std::vector<copyable_unique_ptr<TileLogic>> tile_logic;
@@ -52,32 +53,29 @@ private:
 	} dyn;
 
 	Vec2f offset;
-
-    World* world;
-
-    ColliderTileMap& get_collider();
+    bool is_clean = true;
 
 public:
-	TileLayer(World* w, unsigned id, Vec2u levelsize);
-	TileLayer(World* w, const TileLayerData& layerData);
+	TileLayer(unsigned id, Vec2u levelsize);
+	TileLayer(World& world, const TileLayerData& layerData);
 
 	~TileLayer();
 
-	void initFromAsset(const TileLayerData& layerData);
-	void update(secs deltaTime);
-	void predraw(float interp, bool updated);
+    void prepare_to_destroy(World& world);
 
-	void setTile(const Vec2u& position, TileID tile_id, const TilesetAsset& tileset, bool useLogic = true);
-	void removeTile(const Vec2u& position);
-	void clear();
+	void initFromAsset(World& world, const TileLayerData& layerData);
+	void update(World& world, secs deltaTime);
+	void predraw(World& world, float interp, bool updated);
 
-    void set_world(World* w) { world = w; }
+	void setTile(World& world, const Vec2u& position, TileID tile_id, const TilesetAsset& tileset, bool useLogic = true);
+	void removeTile(World& world, const Vec2u& position);
+	void clear(World& world);
 
-	void shallow_copy(const TileLayer& src, Rectu src_area, Vec2u dst);
+	void shallow_copy(World& world, const TileLayer& src, Rectu src_area, Vec2u dst);
 
-	bool set_collision(bool enabled, unsigned border = 0u);
-	bool set_parallax(bool enabled, Vec2u parallax_size = Vec2u{});
-	bool set_scroll(bool enabled, Vec2f rate = Vec2f{});
+	bool set_collision(World& world, bool enabled, unsigned border = 0u);
+	bool set_parallax(World& world, bool enabled, Vec2u parallax_size = Vec2u{});
+	bool set_scroll(World& world, bool enabled, Vec2f rate = Vec2f{});
 
 	inline Vec2f getOffset() const noexcept { return offset; };
 	inline void  setOffset(Vec2f off) noexcept { offset = off; };
@@ -126,18 +124,19 @@ public:
 	// set visibility
 	bool hidden = false;
 
-	void set_layer(scene_layer lyr);
+	void set_layer(World& world, scene_layer lyr);
 	scene_layer get_layer() const { return layer; }
 
 protected:
 
 	scene_layer layer;
-	ChunkVertexArray* get_chunk(ID<SceneObject> id);
+    ColliderTileMap* get_collider(World& world);
+	ChunkVertexArray* get_chunk(World& world, ID<SceneObject> id);
 
 	bool handlePreContact(const ContinuousContact& contact, secs duration);
 	void handlePostContact(const AppliedContact& contact);
 
-	void updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic = true);
+	void updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic = true);
 };
 
 }

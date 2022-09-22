@@ -10,37 +10,30 @@ namespace ff {
 
 // LEVEL
 
-Level::Level(World* w)
-    : world(w)
+Level::Level(World& world, const LevelAsset& levelData)
 {
-
+    initFromAsset(world, levelData);
 }
 
-Level::Level(World* w, const LevelAsset& levelData)
-    : world(w)
-{
-	init(levelData);
-}
-
-
-void Level::update(secs deltaTime) {
+void Level::update(World& world, secs deltaTime) {
 	for (auto& [pos, layer] : layers.get_tile_layers()) {
-		layer.update(deltaTime);
+		layer.update(world, deltaTime);
 	}	
 }
 
-void Level::predraw(float interp, bool updated) {
+void Level::predraw(World& world, float interp, bool updated) {
 
 	for (auto& [pos, layer] : layers.get_tile_layers()) {
-		layer.predraw(interp, updated);
+		layer.predraw(world, interp, updated);
 	}
 }
 
-void Level::init(const LevelAsset& levelData) 
+void Level::initFromAsset(World& world, const LevelAsset& levelData)
 {
-
-	asset = &levelData;
-
+    for (auto& layer : layers.get_tile_layers())
+    {
+        layer.tilelayer.prepare_to_destroy(world);
+    }
 	layers.clear_all();
 
 	levelName = levelData.getAssetName();
@@ -67,7 +60,7 @@ void Level::init(const LevelAsset& levelData)
 	);
 }
 
-void Level::resize(Vec2u n_size)
+void Level::resize(World& world, Vec2u n_size)
 {
 	for (auto& [pos, layer] : layers.get_tile_layers())
 	{
@@ -81,12 +74,12 @@ void Level::resize(Vec2u n_size)
 			std::min(n_size.y, layer.getParallaxSize().y)
 		};
 
-		TileLayer n_layer{ world, layer.getID(), n_size };
-		n_layer.set_layer(layer.get_layer());
-		n_layer.set_collision(layer.hasCollision(), layer.getCollisionBorders());
-		n_layer.set_scroll(layer.hasScrolling(), layer.getScrollRate());
-		n_layer.set_parallax(layer.hasParallax(), parallax_size);
-		n_layer.shallow_copy(layer, Rectu{ Vec2u{}, Vec2u{layer_size} }, {0, 0});
+		TileLayer n_layer{ layer.getID(), n_size };
+		n_layer.set_layer(world, layer.get_layer());
+		n_layer.set_collision(world, layer.hasCollision(), layer.getCollisionBorders());
+		n_layer.set_scroll(world, layer.hasScrolling(), layer.getScrollRate());
+		n_layer.set_parallax(world, layer.hasParallax(), parallax_size);
+		n_layer.shallow_copy(world, layer, Rectu{ Vec2u{}, Vec2u{layer_size} }, {0, 0});
 		layer = std::move(n_layer);
 	}
 	levelSize = n_size;

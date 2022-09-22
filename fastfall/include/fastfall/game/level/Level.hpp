@@ -22,30 +22,20 @@ class Level  {
 public:
 	using Layers = LevelLayerContainer<TileLayer, ObjectLayer>;
 
-	Level(World* w);
-	Level(World* w, const LevelAsset& levelData);
+	Level() = default;
+	Level(World& w, const LevelAsset& levelData);
 
-	void init(const LevelAsset& levelData);
+	void initFromAsset(World& world, const LevelAsset& levelData);
 
-	void update(secs deltaTime);
+	void update(World& world, secs deltaTime);
 
-	void predraw(float interp, bool updated);
+	void predraw(World& world, float interp, bool updated);
 
 	inline const Color& getBGColor() const { return bgColor; };
 	inline const Vec2u& size() const { return levelSize; };
 	inline const std::string& name() const { return levelName; };
 
-    void set_world(World* w) {
-        world = w;
-        for (auto& layer : layers.get_tile_layers())
-        {
-            layer.tilelayer.set_world(w);
-        }
-    }
-
-    World* get_world() const { return world; }
-
-	void resize(Vec2u n_size);
+	void resize(World& world, Vec2u n_size);
 	void set_name(std::string name) { levelName = name; };
 	void set_bg_color(Color color) { bgColor = color; };
 
@@ -61,8 +51,7 @@ private:
 
 	Layers layers;
 
-    World* world;
-	const LevelAsset* asset = nullptr;
+    //World* world;
 };
 
 }

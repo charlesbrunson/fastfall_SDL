@@ -19,202 +19,63 @@
 namespace ff {
 
 
-TileLayer::TileLayer(World* w, unsigned id, Vec2u levelsize)
-	: world(w)
-	, layer_data(id, levelsize)
+TileLayer::TileLayer(unsigned id, Vec2u levelsize)
+	: layer_data(id, levelsize)
 	, tiles_dyn(levelsize)
 {
 }
 
-TileLayer::TileLayer(World* w, const TileLayerData& layerData)
-	: world(w)
+TileLayer::TileLayer(World& world, const TileLayerData& layerData)
 {
-	initFromAsset(layerData);
+	initFromAsset(world, layerData);
 }
 
-/*
-TileLayer::TileLayer(const TileLayer& tile)
-	: world(tile.world)
-	, layer_data(tile.layer_data)
-	, tiles_dyn(tile.tiles_dyn)
+
+void TileLayer::prepare_to_destroy(World& world)
 {
+    for (auto k : dyn.chunks)
+    {
+        world.erase(k);
+    }
+    dyn.chunks.clear();
 
-	for (auto k : dyn.chunks)
-	{
-        // TODO
-		//instance::scene_erase(m_context, k);
-	}
-	dyn.chunks.clear();
-
-	for (auto& ch : tile.dyn.chunks)
-	{
-        // TODO
-		//ChunkVertexArray* ptr = (ChunkVertexArray*)instance::scene_get(m_context, ch);
-		//dyn.chunks.push_back(instance::scene_create<ChunkVertexArray>(
-		//	m_context,
-		//	scene_config{ 0, scene_type::Level },
-		//	*ptr));
-	}
-
-	dyn.parallax = tile.dyn.parallax;
-	dyn.scroll = tile.dyn.scroll;
-
-	dyn.tile_logic.clear();
-	for (const auto& logic : tile.dyn.tile_logic) {
-		dyn.tile_logic.push_back(logic);
-	}
-
-	set_collision(false);
-	if (tile.hasCollision()) {
-		set_collision(tile.hasCollision(), tile.getCollisionBorders());
-
-		dyn.collision.tilemap_ptr->set_on_precontact(
-			std::bind(&TileLayer::handlePreContact, this,
-				std::placeholders::_1, std::placeholders::_2)
-		);
-		dyn.collision.tilemap_ptr->set_on_postcontact(
-			std::bind(&TileLayer::handlePostContact, this,
-				std::placeholders::_1)
-		);
-	}
-}
-TileLayer& TileLayer::operator=(const TileLayer& tile) {
-
-    world = tile.world;
-	layer_data = tile.layer_data;
-	tiles_dyn = tile.tiles_dyn;
-
-	for (auto k : dyn.chunks)
-	{
-        // TODO
-		//instance::scene_erase(m_context, k);
-	}
-	dyn.chunks.clear();
-
-	for (auto& ch : tile.dyn.chunks)
-	{
-        // TODO
-		//ChunkVertexArray* ptr = (ChunkVertexArray*)instance::scene_get(m_context, ch);
-		//dyn.chunks.push_back(instance::scene_create<ChunkVertexArray>(
-		//	m_context,
-		//	scene_config{ 0, scene_type::Level },
-		//	*ptr));
-	}
-
-	dyn.parallax = tile.dyn.parallax;
-	dyn.scroll = tile.dyn.scroll;
-
-	dyn.tile_logic.clear();
-	for (const auto& logic : tile.dyn.tile_logic) {
-		dyn.tile_logic.push_back(logic);
-	}
-
-	set_collision(false);
-	if (tile.hasCollision()) {
-		set_collision(tile.hasCollision(), tile.getCollisionBorders());
-
-		dyn.collision.tilemap_ptr->set_on_precontact(
-			std::bind(&TileLayer::handlePreContact, this,
-				std::placeholders::_1, std::placeholders::_2)
-		);
-		dyn.collision.tilemap_ptr->set_on_postcontact(
-			std::bind(&TileLayer::handlePostContact, this,
-				std::placeholders::_1)
-		);
-	}
-
-	return *this;
-}
-TileLayer::TileLayer(TileLayer&& tile) noexcept
-	: world(tile.world)
-{
-
-	std::swap(layer_data, tile.layer_data);
-	std::swap(tiles_dyn, tile.tiles_dyn);
-
-	std::swap(dyn.chunks, tile.dyn.chunks);
-	std::swap(dyn.parallax, tile.dyn.parallax);
-	std::swap(dyn.scroll, tile.dyn.scroll);
-
-	std::swap(dyn.collision, tile.dyn.collision);
-	std::swap(dyn.tile_logic, tile.dyn.tile_logic);
-
-	if (hasCollision()) {
-		dyn.collision.tilemap_ptr->set_on_precontact(
-			std::bind(&TileLayer::handlePreContact, this,
-				std::placeholders::_1, std::placeholders::_2)
-		);
-		dyn.collision.tilemap_ptr->set_on_postcontact(
-			std::bind(&TileLayer::handlePostContact, this,
-				std::placeholders::_1)
-		);
-	}
-}
-TileLayer& TileLayer::operator=(TileLayer&& tile) noexcept {
-	world = tile.world;
-
-	std::swap(layer_data, tile.layer_data);
-	std::swap(tiles_dyn, tile.tiles_dyn);
-
-	std::swap(dyn.chunks, tile.dyn.chunks);
-	std::swap(dyn.parallax, tile.dyn.parallax);
-	std::swap(dyn.scroll, tile.dyn.scroll);
-
-	std::swap(dyn.collision, tile.dyn.collision);
-	std::swap(dyn.tile_logic, tile.dyn.tile_logic);
-
-	if (hasCollision()) {
-		dyn.collision.tilemap_ptr->set_on_precontact(
-			std::bind(&TileLayer::handlePreContact, this,
-				std::placeholders::_1, std::placeholders::_2)
-		);
-		dyn.collision.tilemap_ptr->set_on_postcontact(
-			std::bind(&TileLayer::handlePostContact, this,
-				std::placeholders::_1)
-		);
-	}
-	return *this;
+    if (dyn.collision.collider)
+    {
+        world.erase(*dyn.collision.collider);
+        dyn.collision.collider.reset();
+    }
+    is_clean = true;
 }
 
-*/
 
 TileLayer::~TileLayer() {
-	for (auto chunk_id : dyn.chunks)
-	{
-        world->erase(chunk_id);
-	}
-    if (hasCollision())
-    {
-        world->erase(*dyn.collision.collider);
-    }
+    assert(is_clean);
 }
 
-
-ChunkVertexArray* TileLayer::get_chunk(ID<SceneObject> id)
+ChunkVertexArray* TileLayer::get_chunk(World& world, ID<SceneObject> id)
 {
-    return (ChunkVertexArray*)world->at(id).drawable.get();
+    return (ChunkVertexArray*)world.at(id).drawable.get();
 }
 
-
-void TileLayer::set_layer(scene_layer lyr) {
+void TileLayer::set_layer(World& world, scene_layer lyr) {
 	layer = lyr;
 	for (auto chunk_id : dyn.chunks)
 	{
-        auto& scene_obj = world->at(chunk_id);
+        auto& scene_obj = world.at(chunk_id);
         scene_obj.layer_id = layer;
         scene_obj.resort_flag = true;
 	}
 }
 
-void TileLayer::initFromAsset(const TileLayerData& layerData) {
-	clear();
+void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
+	clear(world);
 
 	layer_data = layerData;
 
 	// init chunks
 	for (auto& [tileset, _] : layer_data.getTilesets())
 	{
-        auto chunk_id = world->create_scene_object({
+        auto chunk_id = world.create_scene_object({
             .drawable = std::make_unique<ChunkVertexArray>(
                 getSize(),
                 kChunkSize
@@ -222,7 +83,9 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
             .layer_id = layer,
             .type = scene_type::Level
         });
-        auto* cvr = get_chunk(chunk_id);
+        is_clean = false;
+
+        auto* cvr = get_chunk(world, chunk_id);
         cvr->setTexture(tileset->getTexture());
         cvr->use_visible_rect = true;
 	}
@@ -245,7 +108,7 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 			continue;
 
 		auto& chunk = dyn.chunks.at(tile.tileset_ndx);
-		get_chunk(chunk)->setTile(tile.pos, opt_tile->id);
+		get_chunk(world, chunk)->setTile(tile.pos, opt_tile->id);
 
 		if (auto [logic, args] = tileset->getTileLogic(tile.tile_id); !logic.empty())
 		{
@@ -272,25 +135,25 @@ void TileLayer::initFromAsset(const TileLayerData& layerData) {
 		}
 	}
 
-
-	set_collision(layerData.hasCollision(), layerData.getCollisionBorders());
-	set_parallax(layerData.hasParallax(), layerData.getParallaxSize());
-	set_scroll(layerData.hasScrolling(), layerData.getScrollRate());
+	set_collision(world, layerData.hasCollision(), layerData.getCollisionBorders());
+	set_parallax(world, layerData.hasParallax(), layerData.getParallaxSize());
+	set_scroll(world, layerData.hasScrolling(), layerData.getScrollRate());
 
 	for (auto& chunk : dyn.chunks) {
-		get_chunk(chunk)->predraw(1.f, true);
+		get_chunk(world, chunk)->predraw(1.f, true);
 	}
 
 }
 
-void TileLayer::update(secs deltaTime) {
+void TileLayer::update(World& world, secs deltaTime) {
 	if (hasCollision()) {
-        auto& collider = get_collider();
-		collider.setPosition(collider.getPosition());
-		collider.delta_velocity = Vec2f{};
-		collider.velocity = Vec2f{};
-		collider.update(deltaTime);
+        auto* collider = get_collider(world);
+		collider->setPosition(collider->getPosition());
+		collider->delta_velocity = Vec2f{};
+		collider->velocity = Vec2f{};
+		collider->update(deltaTime);
 	}
+
 	if (hasScrolling()) {
 		dyn.scroll.prev_offset = dyn.scroll.offset;
 		dyn.scroll.offset += getScrollRate() * deltaTime;
@@ -315,12 +178,13 @@ void TileLayer::update(secs deltaTime) {
 			dyn.scroll.offset.y -= sizef.y;
 		}
 	}
+
 	for (auto& logic : dyn.tile_logic) {
 		logic->update(deltaTime);
 	}
 }
 
-bool TileLayer::set_collision(bool enabled, unsigned border)
+bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 {
 	if (enabled && (hasScrolling() || hasParallax())) {
 		LOG_ERR_("Cannot enable collision on layer with scrolling or parallax");
@@ -331,8 +195,9 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 	{
 		if (!dyn.collision.collider) {
 
-            dyn.collision.collider = world->create_collider<ColliderTileMap>(Vec2i{ getLevelSize() }, true);
-            auto& collider = get_collider();
+            dyn.collision.collider = world.create_collider<ColliderTileMap>(Vec2i{ getLevelSize() }, true);
+            is_clean = false;
+            auto* collider = get_collider(world);
 
 			layer_data.setCollision(true, border);
 
@@ -344,7 +209,7 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 					auto tile = tileset->getTile(tile_data.tile_id);
 
 					if (tile) {
-						collider.setTile(
+						collider->setTile(
 							Vec2i{ tile_data.pos },
 							tile->shape,
 							&tileset->getMaterial(tile_data.tile_id),
@@ -354,14 +219,14 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 				}
 			}
 
-			collider.setBorders(getLevelSize(), layer_data.getCollisionBorders());
-			collider.applyChanges();
+			collider->setBorders(getLevelSize(), layer_data.getCollisionBorders());
+			collider->applyChanges();
 
-			collider.set_on_precontact(
+			collider->set_on_precontact(
 				std::bind(&TileLayer::handlePreContact, this,
 					std::placeholders::_1, std::placeholders::_2)
 			);
-			collider.set_on_postcontact(
+			collider->set_on_postcontact(
 				std::bind(&TileLayer::handlePostContact, this,
 					std::placeholders::_1)
 			);
@@ -369,6 +234,10 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 	}
 	else if (!enabled)
 	{
+        if (dyn.collision.collider)
+        {
+            world.erase(*dyn.collision.collider);
+        }
         dyn.collision.collider.reset();
 		layer_data.setCollision(false);
 	}
@@ -376,7 +245,7 @@ bool TileLayer::set_collision(bool enabled, unsigned border)
 }
 
 
-bool TileLayer::set_parallax(bool enabled, Vec2u parallax_size)
+bool TileLayer::set_parallax(World& world, bool enabled, Vec2u parallax_size)
 {
 	if (enabled && hasCollision()) {
 		LOG_ERR_("Cannot enable parallax on layer with collision");
@@ -400,16 +269,16 @@ bool TileLayer::set_parallax(bool enabled, Vec2u parallax_size)
 	else {
 		// reset offset on each chunk
 		for (auto& chunk : dyn.chunks) {
-			get_chunk(chunk)->offset = Vec2f{};
+			get_chunk(world, chunk)->offset = Vec2f{};
 		}
 	}
 
 	for (auto& chunk : dyn.chunks) {
-		get_chunk(chunk)->set_size(getSize());
+		get_chunk(world, chunk)->set_size(getSize());
 	}
 	return true;
 }
-bool TileLayer::set_scroll(bool enabled, Vec2f rate)
+bool TileLayer::set_scroll(World& world, bool enabled, Vec2f rate)
 {
 	if (enabled && hasCollision()) {
 		LOG_ERR_("Cannot enable scrolling on layer with collision");
@@ -420,7 +289,7 @@ bool TileLayer::set_scroll(bool enabled, Vec2f rate)
 	{
 		dyn.scroll.offset = Vec2f{};
 		for (auto& chunk : dyn.chunks) {
-			get_chunk(chunk)->scroll = Vec2f{};
+			get_chunk(world, chunk)->scroll = Vec2f{};
 		}
 	}
 
@@ -429,8 +298,11 @@ bool TileLayer::set_scroll(bool enabled, Vec2f rate)
 }
 
 bool TileLayer::handlePreContact(const ContinuousContact& contact, secs duration) {
-    auto& collider = get_collider();
-    auto pos = collider.to_pos(contact.id->quad);
+    // based on to_pos from TileMapCollider
+    Vec2i pos;
+    pos.y = contact.id->quad.value / ((int)getLevelSize().x + 1);
+    pos.x = contact.id->quad.value - (pos.y * ((int)getLevelSize().x + 2));
+    pos += Vec2i(-1, -1);
 
 	if (pos.x < 0 || pos.x >= getLevelSize().x
 		|| pos.y < 0 || pos.y >= getLevelSize().y)
@@ -445,8 +317,11 @@ bool TileLayer::handlePreContact(const ContinuousContact& contact, secs duration
 }
 
 void TileLayer::handlePostContact(const AppliedContact& contact) {
-    auto& collider = get_collider();
-    auto pos = collider.to_pos(contact.id->quad);
+    // based on to_pos from TileMapCollider
+    Vec2i pos;
+    pos.y = contact.id->quad.value / ((int)getLevelSize().x + 1);
+    pos.x = contact.id->quad.value - (pos.y * ((int)getLevelSize().x + 2));
+    pos += Vec2i(-1, -1);
 
 	if (pos.x < 0 || pos.x >= getLevelSize().x
 		|| pos.y < 0 || pos.y >= getLevelSize().y)
@@ -458,12 +333,12 @@ void TileLayer::handlePostContact(const AppliedContact& contact) {
 	}
 }
 
-void TileLayer::predraw(float interp, bool updated) {
+void TileLayer::predraw(World& world, float interp, bool updated) {
 	const auto& tile_data = layer_data.getTileData();
 
 	bool changed = false;
 
-	// update logic
+	// update tile logic
 	if (updated) {
 		for (auto& logic : dyn.tile_logic) {
 			TileLogic* ptr = logic.get();
@@ -473,55 +348,56 @@ void TileLayer::predraw(float interp, bool updated) {
 				const TileLogicCommand& cmd = ptr->nextCommand();
 
 				if (cmd.type == TileLogicCommand::Type::Set) {
-					setTile(cmd.position, cmd.texposition, cmd.tileset, cmd.updateLogic);
+					setTile(world, cmd.position, cmd.texposition, cmd.tileset, cmd.updateLogic);
 				}
 				else if (tile_data[cmd.position].has_tile && cmd.type == TileLogicCommand::Type::Remove) {
-					removeTile(cmd.position);
+					removeTile(world, cmd.position);
 				}
 				changed = true;
 
 				ptr->popCommand();
 			}
 		}
-
-		if (changed && hasCollision()) {
-            auto& collider = get_collider();
-            collider.applyChanges();
-        }
 	}
+    if (hasCollision() && dyn.collision.is_modified) {
+        get_collider(world)->applyChanges();
+        dyn.collision.is_modified = false;
+    }
 
-
-
+    // calc visible area
 	Rectf visible;
-	Vec2f cam_pos = world->camera().getPosition(interp); //instance::cam_get_interpolated_pos(m_context, interp);
-	float cam_zoom = world->camera().zoomFactor; //instance::cam_get_zoom(m_context);
+	Vec2f cam_pos = world.camera().getPosition(interp); //instance::cam_get_interpolated_pos(m_context, interp);
+	float cam_zoom = world.camera().zoomFactor; //instance::cam_get_zoom(m_context);
 	visible.width = GAME_W_F * cam_zoom;
 	visible.height = GAME_H_F * cam_zoom;
 	visible.left = cam_pos.x - (visible.width / 2.f);
 	visible.top = cam_pos.y - (visible.height / 2.f);
-	for (auto& chunk : dyn.chunks) {
-		get_chunk(chunk)->visibility = visible;
-	}
 
-	// parallax update
+    // update parallax offset
 	if (hasParallax()) {
-
 		dyn.parallax.offset = Vec2f{ 
 			cam_pos.x * dyn.parallax.cam_factor.x,
 			cam_pos.y * dyn.parallax.cam_factor.y
 		} - dyn.parallax.init_offset;
-
-		for (auto& chunk : dyn.chunks) {
-			get_chunk(chunk)->offset = dyn.parallax.offset;
-		}
 	}
 
-	// scroll update
-	if (hasScrolling()) {
-		for (auto& chunk : dyn.chunks) {
-			get_chunk(chunk)->scroll = math::lerp(dyn.scroll.prev_offset, dyn.scroll.offset, interp);
-		}
-	}
+    for (auto& chunk_id : dyn.chunks) {
+        auto* chunk = get_chunk(world, chunk_id);
+        chunk->visibility = visible;
+
+        // parallax update
+        if (hasParallax()) {
+            chunk->offset = dyn.parallax.offset;
+        }
+
+        // scroll update
+        if (hasScrolling()) {
+            chunk->scroll = math::lerp(dyn.scroll.prev_offset, dyn.scroll.offset, interp);
+        }
+
+        // chunk predraw
+        chunk->predraw(interp, updated);
+    }
 
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_AREA) && updated)
 	{
@@ -543,16 +419,9 @@ void TileLayer::predraw(float interp, bool updated) {
 			debug_draw::set_offset();
 		}
 	}
-
-	if (!hidden) {
-		for (auto& chunk : dyn.chunks) {
-			get_chunk(chunk)->predraw(interp, updated);
-		}
-	}
-
 }
 
-void TileLayer::setTile(const Vec2u& position, TileID tile_id, const TilesetAsset& tileset, bool useLogic)
+void TileLayer::setTile(World& world, const Vec2u& position, TileID tile_id, const TilesetAsset& tileset, bool useLogic)
 {
 
 	auto& tile_data = layer_data.getTileData();
@@ -565,6 +434,7 @@ void TileLayer::setTile(const Vec2u& position, TileID tile_id, const TilesetAsse
 		auto next_tileset_ndx = tile_data[change.position].tileset_ndx;
 
 		updateTile(
+            world,
 			change.position, 
 			change.position == position ? prev_tileset_ndx : tile_data[change.position].tileset_ndx, 
 			change.tileset, 
@@ -574,19 +444,21 @@ void TileLayer::setTile(const Vec2u& position, TileID tile_id, const TilesetAsse
 
 
 
-void TileLayer::removeTile(const Vec2u& position) {
+void TileLayer::removeTile(World& world, const Vec2u& position) {
 	const auto& tile_data = layer_data.getTileData();
 
 	if (tile_data[position].tileset_ndx != TILEDATA_NONE) {
 		uint8_t t_ndx = tile_data[position].tileset_ndx;
-		get_chunk(dyn.chunks.at(t_ndx))->blank(position);
+        // TODO buffer changes?
+		get_chunk(world, dyn.chunks.at(t_ndx))->blank(position);
 	}
 	if (tiles_dyn[position].logic_id != TILEDATA_NONE) {
 		dyn.tile_logic.at(tiles_dyn[position].logic_id)->removeTile(position);
 	}
 	if (hasCollision()) {
-        auto& collider = get_collider();
-		collider.removeTile(Vec2i(position));
+        // TODO buffer changes?
+        get_collider(world)->removeTile(Vec2i(position));
+        dyn.collision.is_modified = true;
 	}
 
 	uint8_t tileset_ndx = tile_data[position].tileset_ndx;
@@ -600,6 +472,7 @@ void TileLayer::removeTile(const Vec2u& position) {
 		auto next_tileset_ndx = tile_data[change.position].tileset_ndx;
 
 		updateTile(
+            world,
 			change.position,
 			tile_data[change.position].tileset_ndx,
 			change.tileset,
@@ -608,11 +481,12 @@ void TileLayer::removeTile(const Vec2u& position) {
 
 }
 
-void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic)
+void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic)
 {
 	uint8_t tileset_ndx = prev_tileset_ndx;
 	if (tileset_ndx != TILEDATA_NONE) {
-		get_chunk(dyn.chunks.at(tileset_ndx))->blank(at);
+        // TODO buffer changes?
+		get_chunk(world, dyn.chunks.at(tileset_ndx))->blank(at);
 	}
 
 	uint8_t logic_ndx = tiles_dyn[at].logic_id;
@@ -627,8 +501,9 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 	{
 		if (hasCollision())
 		{
-            auto& collider = get_collider();
-			collider.removeTile(Vec2i(at));
+            // TODO buffer changes?
+            get_collider(world)->removeTile(Vec2i(at));
+            dyn.collision.is_modified = true;
 		}
 		return;
 	}
@@ -637,7 +512,8 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 
 	if (tile.tileset_ndx == dyn.chunks.size())
 	{
-        auto chunk_id = world->create_scene_object({
+        // TODO buffer changes?
+        auto chunk_id = world.create_scene_object({
             .drawable = std::make_unique<ChunkVertexArray>(
                    getSize(),
                    kChunkSize
@@ -646,7 +522,9 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
             .type = scene_type::Level
         });
 
-        auto* cvr = get_chunk(chunk_id);
+        is_clean = false;
+
+        auto* cvr = get_chunk(world, chunk_id);
         cvr->setTexture(next_tileset->getTexture());
         cvr->setTile(at, tile.tile_id);
         cvr->use_visible_rect = true;
@@ -654,17 +532,20 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
         dyn.chunks.push_back(chunk_id);
 	}
 	else {
-		get_chunk(dyn.chunks.at(tile.tileset_ndx))->setTile(at, tile.tile_id);
+        // TODO buffer changes?
+		get_chunk(world, dyn.chunks.at(tile.tileset_ndx))->setTile(at, tile.tile_id);
 	}
 
 	if (hasCollision() && next_tile) {
-        auto& collider = get_collider();
-		collider.setTile(
+
+        // TODO buffer changes?
+        get_collider(world)->setTile(
 			Vec2i(at),
 			next_tile->shape,
 			&next_tileset->getMaterial(tile.tile_id),
 			next_tile->matFacing
 		);
+        dyn.collision.is_modified = true;
 	}
 
 	if (useLogic) {
@@ -704,19 +585,21 @@ void TileLayer::updateTile(const Vec2u& at, uint8_t prev_tileset_ndx, const Tile
 	}
 }
 
-void TileLayer::clear() {
+void TileLayer::clear(World& world)
+{
 	layer_data.clearTiles();
 	dyn.chunks.clear();
 	dyn.tile_logic.clear();
 
 	tiles_dyn = grid_vector<TileDynamic>(layer_data.getSize());
 
-	set_collision(false);
-	set_parallax(false);
-	set_scroll(false);
+	set_collision(world, false);
+	set_parallax(world, false);
+	set_scroll(world, false);
+    is_clean = true;
 }
 
-void TileLayer::shallow_copy(const TileLayer& src, Rectu src_area, Vec2u dst)
+void TileLayer::shallow_copy(World& world, const TileLayer& src, Rectu src_area, Vec2u dst)
 {
 	Rectu dst_area{ dst, Vec2u{ src_area.getSize() } };
 
@@ -742,7 +625,7 @@ void TileLayer::shallow_copy(const TileLayer& src, Rectu src_area, Vec2u dst)
 		}
 
 		TileID tex_pos = tile.tile_id;
-		setTile(tile.pos - dst, tex_pos, *tileset);
+		setTile(world, tile.pos - dst, tex_pos, *tileset);
 	}
 }
 
@@ -828,8 +711,8 @@ std::optional<Vec2i> TileLayer::getTileFromWorldPos(Vec2f position) const {
 
 }
 
-ColliderTileMap& TileLayer::get_collider() {
-    return world->at(*dyn.collision.collider);
+ColliderTileMap* TileLayer::get_collider(World& world) {
+    return world.get(*dyn.collision.collider);
 }
 
 }
