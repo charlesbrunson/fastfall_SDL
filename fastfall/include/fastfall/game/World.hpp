@@ -60,6 +60,16 @@ public:
     template<class T>
     T* get(ID<T> id) { return (T*)container<T>().get(id); }
 
+    template<std::derived_from<Drawable> T>
+    T* get_drawable(ID<SceneObject> scene_id) {
+        return (T*)at(scene_id).drawable.get();
+    }
+
+    template<std::derived_from<Drawable> T>
+    T& at_drawable(ID<SceneObject> scene_id) {
+        return *(T*)at(scene_id).drawable.get();
+    }
+
 	// create component
 	ID<Collidable> create_collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
     ID<Trigger> create_trigger();

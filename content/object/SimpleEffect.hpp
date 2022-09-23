@@ -17,7 +17,7 @@ public:
 	{
         auto& scene_obj = world.at(scene_id);
         scene_obj.drawable = ff::copyable_unique_ptr<ff::Drawable>{ new ff::AnimatedSprite() };
-        auto& spr = sprite(world);
+        auto& spr = world.at_drawable<ff::AnimatedSprite>(scene_id);
 		spr.set_pos(position);
 		spr.set_pos(position);
 		spr.set_hflip(hflip);
@@ -25,21 +25,17 @@ public:
 	};
 
 	void update(ff::World& w, secs deltaTime) override {
-        auto& spr = sprite(w);
+        auto& spr = w.at_drawable<ff::AnimatedSprite>(scene_id);
 		spr.update(deltaTime);
         raise_should_delete(spr.is_complete());
 	};
 
 	void predraw(ff::World& w, float interp, bool updated) override {
-		sprite(w).predraw(interp);
+		w.at_drawable<ff::AnimatedSprite>(scene_id).predraw(interp);
 	};
 
     void clean(ff::World& w) override {
         w.erase(scene_id);
-    }
-
-    ff::AnimatedSprite& sprite(ff::World& w) const {
-        return *(ff::AnimatedSprite*)w.at(scene_id).drawable.get();
     }
 
 private:

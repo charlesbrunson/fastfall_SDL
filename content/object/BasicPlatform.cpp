@@ -1,7 +1,5 @@
 #include "BasicPlatform.hpp"
 
-#include "fastfall/game/InstanceInterface.hpp"
-
 using namespace ff;
 
 constexpr ff::Color platformColor = ff::Color{ 0x285cc4FF };
@@ -19,17 +17,23 @@ const ObjectType BasicPlatform::Type{
 	}
 };
 
-BasicPlatform::BasicPlatform(ff::GameContext context, ff::ObjectLevelData& data)
-	: ff::GameObject(context, data)
-	, shape{ context, scene_config{ 1, ff::scene_type::Object }, ff::Rectf{}, platformColor }
-	, collider(context, ff::Rectf{ Vec2f{}, Vec2f{ data.size } })
+BasicPlatform::BasicPlatform(World& w, ff::ObjectLevelData& data)
+	: ff::GameObject(w, data)
+	//, scene_id{ context, scene_config{ 1, ff::scene_type::Object }, ff::Rectf{}, platformColor }
+	//, collider(context, ff::Rectf{ Vec2f{}, Vec2f{ data.size } })
+    , scene_id{ w.create_scene_object({ {}, 1, ff::scene_type::Object }) }
+    , collider_id{ w.create_collider<ColliderSimple>(ff::Rectf{ Vec2f{}, Vec2f{ data.size } })}
 {
-
+    w.at(scene_id).drawable = copyable_unique_ptr<Drawable>{
+        new ShapeRectangle{{}, platformColor}
+    };
 	ObjLevelID path_id = data.getPropAsID("path");
 	max_vel = data.getPropAsFloat("max_velocity");
 	accel = data.getPropAsFloat("acceleration");
 
-	if (auto path_ptr = instance::lvl_get_active(m_context)->get_layers().get_obj_layer().getObjectDataByID(path_id)) {
+
+    auto* lvl = w.levels().get_active(w);
+	if (auto path_ptr = lvl->get_layers().get_obj_layer().getObjectDataByID(path_id)) {
 		waypoints_origin = ff::Vec2f{ path_ptr->position };
 		waypoints = &path_ptr->points;
 	}
@@ -52,21 +56,28 @@ BasicPlatform::BasicPlatform(ff::GameContext context, ff::ObjectLevelData& data)
 
 	ff::Rectf colliderRect{ Vec2f{}, Vec2f{ data.size } };
 
+    auto& collider = w.at(collider_id);
 	if (has_path) {
-		collider->teleport(waypoints_origin + ff::Vec2f(waypoints->at(waypoint_ndx)));
+		collider.teleport(waypoints_origin + ff::Vec2f(waypoints->at(waypoint_ndx)));
 	}
 	else {
 		auto pos = ff::Vec2f{ data.position };
 		auto off = ff::Vec2f{ colliderRect.width / 2.f, colliderRect.height };
-		collider->teleport(pos - off);
+		collider.teleport(pos - off);
 	}
 
 	m_has_collider = true;
 
 }
 
-void BasicPlatform::update(secs deltaTime) {
+void BasicPlatform::clean(ff::World& w)  {
+    w.erase(scene_id);
+    w.erase(collider_id);
+}
 
+void BasicPlatform::update(World& w, secs deltaTime) {
+
+    auto& collider = w.at(collider_id);
 	if (deltaTime > 0)
 	{
 		if (has_path)
@@ -93,25 +104,27 @@ void BasicPlatform::update(secs deltaTime) {
 			else {
 				next_pos = ff::Vec2f{ waypoints->at(waypoint_ndx) };
 			}
-			collider->setPosition(ff::Vec2f(waypoints_origin) + next_pos);
+			collider.setPosition(ff::Vec2f(waypoints_origin) + next_pos);
 
-			ff::Vec2f nVel = (collider->getPosition() - collider->getPrevPosition()) / deltaTime;
+			ff::Vec2f nVel = (collider.getPosition() - collider.getPrevPosition()) / deltaTime;
 
-			collider->delta_velocity = nVel - collider->velocity;
-			collider->velocity = nVel;
+			collider.delta_velocity = nVel - collider.velocity;
+			collider.velocity = nVel;
 
 		}
 		else if (!has_path) {
 
-			collider->setPosition(collider->getPosition());
-			collider->delta_velocity = Vec2f{};
-			collider->velocity = Vec2f{};
+			collider.setPosition(collider.getPosition());
+			collider.delta_velocity = Vec2f{};
+			collider.velocity = Vec2f{};
 		}
 	}
-	collider->update(deltaTime);
+	collider.update(deltaTime);
 }
 
-void BasicPlatform::predraw(float interp, bool updated) {
-	shape->setPosition(math::lerp(collider->getPrevPosition(), collider->getPosition() + collider_offset, interp));
-	shape->setSize(ff::Vec2f{ collider->getBoundingBox().getSize() });
+void BasicPlatform::predraw(World& w, float interp, bool updated) {
+    auto& sh = w.at_drawable<ShapeRectangle>(scene_id);
+    auto& collider = w.at(collider_id);
+	sh.setPosition(math::lerp(collider.getPrevPosition(), collider.getPosition() + collider_offset, interp));
+	sh.setSize(ff::Vec2f{ collider.getBoundingBox().getSize() });
 }
