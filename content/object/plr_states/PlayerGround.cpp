@@ -6,53 +6,60 @@ using namespace ff;
 
 using namespace plr;
 
-void PlayerGroundState::enter(plr::members& plr, PlayerState* from)
+void PlayerGroundState::enter(ff::World& w, plr::members& plr, PlayerState* from)
 {
-	plr.ground->settings.slope_sticking = true;
-	plr.ground->settings.slope_wall_stop = true;
 
-	auto gspeed = plr.ground->traverse_get_speed();
-	float speed = gspeed ? *gspeed : plr.box->get_vel().x;
+    auto& box = w.at(plr.collidable_id);
+    auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
+	ground.settings.slope_sticking = true;
+	ground.settings.slope_wall_stop = true;
+
+	auto gspeed = ground.traverse_get_speed();
+	float speed = gspeed ? *gspeed : box.get_vel().x;
 	//float speed = plr.ground->traverse_get_speed();
 
 	// set initial ground max speed
-	plr.ground->settings.max_speed =
+	ground.settings.max_speed =
 		math::clamp(std::abs(speed), constants::norm_speed.get(), constants::max_speed.get());
 
 }
 
-PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
+PlayerStateID PlayerGroundState::update(ff::World& w, plr::members& plr, secs deltaTime)
 {
 	if (deltaTime <= 0.0) 
 		return PlayerStateID::Continue;
 
-	plr.sprite->set_playback(1.f);
-	plr.box->set_gravity(constants::grav_normal);
+    auto& sprite = w.at_drawable<AnimatedSprite>(plr.sprite_scene_id);
+    auto& box = w.at(plr.collidable_id);
+    auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
 
-	if (plr.ground->has_contact()) {
+	sprite.set_playback(1.f);
+	box.set_gravity(constants::grav_normal);
 
-		plr.box->setSlip({});
-		const AppliedContact& contact = plr.ground->get_contact().value();
-		plr.ground->settings.slope_sticking = true;
+	if (ground.has_contact()) {
 
-		move_t move{ plr };
+		box.setSlip({});
+		const AppliedContact& contact = ground.get_contact().value();
+		ground.settings.slope_sticking = true;
+
+		move_t move{ w, plr };
 
 		bool speeding = false;
 
 		// clamp ground max speed to current speed and normal speed
-		plr.ground->settings.max_speed =
-			math::clamp(move.speed, constants::norm_speed.get(), plr.ground->settings.max_speed);
+		ground.settings.max_speed =
+			math::clamp(move.speed, constants::norm_speed.get(), ground.settings.max_speed);
 
 		// if we're going faster than normal, force decceleration
-		if (move.speed > constants::norm_speed && plr.ground->settings.has_friction) {
+		if (move.speed > constants::norm_speed && ground.settings.has_friction) {
 			speeding = true;
-			plr.ground->traverse_add_decel(constants::ground_high_decel);
+			ground.traverse_add_decel(constants::ground_high_decel);
 		}
 
 		auto accel = [&](int dir) 
 		{
-			plr.ground->traverse_add_accel(dir * constants::ground_accel);
-			plr.ground->settings.surface_friction = constants::moving;
+			ground.traverse_add_accel(dir * constants::ground_accel);
+			ground.settings.surface_friction = constants::moving;
 		};
 
 		auto brake = [&](bool is_idle)
@@ -61,20 +68,20 @@ PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
 			bool heavy_brake = false;
 			if (move.speed > 100.f) {
 
-				plr.sprite->set_anim(
+				sprite.set_anim(
 					move.rel_movex < 0 ? anim::brakeb : anim::brakef
 				);
 
 				if (move.speed <= 250.f) {
-					plr.sprite->set_frame(1);
+					sprite.set_frame(1);
 				}
-				heavy_brake = plr.sprite->get_frame() == 0;
+				heavy_brake = sprite.get_frame() == 0;
 			}
 
-			plr.ground->settings.surface_friction = constants::braking;
+			ground.settings.surface_friction = constants::braking;
 
-			if (plr.ground->settings.has_friction) {
-				plr.ground->traverse_add_decel(
+			if (ground.settings.has_friction) {
+				ground.traverse_add_decel(
 					(is_idle ? constants::ground_idle_decel : constants::ground_high_decel)
 					 * (heavy_brake ? 0.5f : 1.f)
 				);
@@ -83,24 +90,24 @@ PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
 
 		auto run = [&]() 
 		{
-			plr.ground->traverse_add_accel(move.wishx * constants::ground_accel);
-			plr.ground->settings.surface_friction = constants::moving;
+			ground.traverse_add_accel(move.wishx * constants::ground_accel);
+			ground.settings.surface_friction = constants::moving;
 
-			if (plr.sprite->get_hflip() != (move.wishx < 0)) {
+			if (sprite.get_hflip() != (move.wishx < 0)) {
 				move.facing	   *= -1;
 				move.rel_movex *= -1;
 				move.rel_speed *= -1;
 				move.rel_wishx *= -1;
-				plr.sprite->set_hflip(move.wishx < 0);
+				sprite.set_hflip(move.wishx < 0);
 			}
 
-			if (!plr.sprite->is_playing(anim::run)) {
+			if (!sprite.is_playing(anim::run)) {
 				if (move.speed < constants::norm_speed)
-					plr.sprite->set_anim_if_not(anim::idle_to_run);
+					sprite.set_anim_if_not(anim::idle_to_run);
 				else
-					plr.sprite->set_anim_if_not(anim::run);
+					sprite.set_anim_if_not(anim::run);
 			}
-			plr.sprite->set_playback(
+			sprite.set_playback(
 				std::clamp(move.speed / 150.f, 0.5f, 1.5f)
 			);
 		};
@@ -121,7 +128,7 @@ PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
 				else
 				{
 					if (move.speed < 25.f) {
-						plr.ground->traverse_set_speed(move.wishx * 25.f);
+						ground.traverse_set_speed(move.wishx * 25.f);
 					}
 					brake(true);
 				}
@@ -136,30 +143,30 @@ PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
 			{
 				if (move.speed < 25.f) 
 				{
-					plr.sprite->set_anim_if_not(anim::idle);
+					sprite.set_anim_if_not(anim::idle);
 				}
 				brake(false);
 			}
 			else 
 			{
-				plr.sprite->set_anim_if_not(anim::idle);
+				sprite.set_anim_if_not(anim::idle);
 			}
 
-			plr.ground->settings.surface_friction = constants::braking;
+			ground.settings.surface_friction = constants::braking;
 		}
 
 		// jumping
 		if (Input::isPressed(InputType::JUMP, 0.1f)) 
 		{
 			Input::confirmPress(InputType::JUMP);
-			return action::jump(plr, move);
+			return action::jump(w, plr, move);
 		}
 
 		// dashing
 		if (Input::isPressed(InputType::DASH, 0.25f))
 		{
 			Input::confirmPress(InputType::DASH);
-			return action::dash(plr, move);
+			return action::dash(w, plr, move);
 		}
 		
 	}
@@ -169,9 +176,10 @@ PlayerStateID PlayerGroundState::update(plr::members& plr, secs deltaTime)
 	return PlayerStateID::Continue;
 }
 
-void PlayerGroundState::exit(plr::members& plr, PlayerState* to)
+void PlayerGroundState::exit(ff::World& w, plr::members& plr, PlayerState* to)
 {
-	plr.ground->settings.max_speed = 0.f;
+    auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
+	ground.settings.max_speed = 0.f;
 }
 
 void PlayerGroundState::get_imgui(plr::members& plr)

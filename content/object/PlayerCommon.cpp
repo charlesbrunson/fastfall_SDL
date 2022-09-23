@@ -4,16 +4,20 @@
 
 using namespace ff;
 
-plr::move_t::move_t(const plr::members& plr)
+plr::move_t::move_t(World& w, const plr::members& plr)
 {
+    auto& sprite = w.at_drawable<AnimatedSprite>(plr.sprite_scene_id);
+    auto& box = w.at(plr.collidable_id);
+    auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
+
 	wishx = 0;
 	if (Input::isHeld(InputType::RIGHT)) wishx++;
 	if (Input::isHeld(InputType::LEFT))  wishx--;
 
-	int flipper = (plr.sprite->get_hflip() ? -1 : 1);
+	int flipper = (sprite.get_hflip() ? -1 : 1);
 
-	auto gspeed = plr.ground->traverse_get_speed();
-	speed = gspeed ? *gspeed : plr.box->get_vel().x;
+	auto gspeed = ground.traverse_get_speed();
+	speed = gspeed ? *gspeed : box.get_vel().x;
 	rel_speed = speed * flipper;
 
 	movex = (speed == 0.f ? 0 : (speed < 0.f ? -1 : 1));
@@ -26,14 +30,34 @@ plr::move_t::move_t(const plr::members& plr)
 }
 
 
-plr::members::members(GameContext context_, GameObject& plr, Vec2f position)
-	: box(context_, position, ff::Vec2f(8.f, 28.f), constants::grav_normal)
-	, hitbox(context_, box->getBox(), { "hitbox" }, {}, &plr)
-	, hurtbox(context_, box->getBox(), { "hurtbox" }, { "hitbox" }, &plr)
-	, sprite(context_, {})
-	, cam_target(context_, CamTargetPriority::Medium, [&]() { return box->getPosition() + Vec2f{ 0.f, -16.f }; })
-	, plr_context(context_)
+plr::members::members(World& w, GameObject& plr, Vec2f position)
+    : sprite_scene_id(w.create_scene_object({}))
+    , collidable_id(w.create_collidable(position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
+    , surfacetracker_id()
+    , hurtbox_id()
+    , hitbox_id()
+    , cameratarget_id()
 {
+    auto& box = w.at(collidable_id);
+    auto [id, ptr] = box.create_tracker(
+            Angle::Degree(-135.f),
+            Angle::Degree( -45.f));
+
+    surfacetracker_id = id;
+    ptr->settings = {
+            .move_with_platforms = true,
+            .slope_sticking = true,
+            .slope_wall_stop = true,
+            .has_friction = true,
+            .use_surf_vel = true,
+            .stick_angle_max = Angle::Degree(90.f),
+            .max_speed = constants::norm_speed,
+            .slope_stick_speed_factor = 0.f,
+    };
+
+    auto& sprite = w.at_drawable<AnimatedSprite>(sprite_scene_id);
+    sprite.set_anim(plr::anim::idle);
+    sprite.set_pos(box.getPosition());
 }
 
 namespace plr::anim {
@@ -106,22 +130,28 @@ namespace plr::constants {
 
 namespace plr::action {
 
-	PlayerStateID dash(plr::members& plr, const move_t& move)
+	PlayerStateID dash(World& w, plr::members& plr, const move_t& move)
 	{
+
+        auto& sprite = w.at_drawable<AnimatedSprite>(plr.sprite_scene_id);
 		if (move.wishx != 0) {
-			plr.sprite->set_hflip(move.wishx < 0);
+			sprite.set_hflip(move.wishx < 0);
 		}
 		return PlayerStateID::Dash;
 	}
 
-	PlayerStateID jump(plr::members& plr, const move_t& move)
+	PlayerStateID jump(World& w, plr::members& plr, const move_t& move)
 	{
+        auto& sprite = w.at_drawable<AnimatedSprite>(plr.sprite_scene_id);
+        auto& box = w.at(plr.collidable_id);
+        auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
+
 		Vec2f contact_normal = Vec2f{0.f, -1.f};
 		Vec2f contact_velocity = Vec2f{};
 
-		if (plr.ground->has_contact()) {
-			contact_normal = plr.ground->get_contact()->collider_n;
-			contact_velocity = plr.ground->get_contact()->velocity;
+		if (ground.has_contact()) {
+			contact_normal = ground.get_contact()->collider_n;
+			contact_velocity = ground.get_contact()->velocity;
 		}
 
 
@@ -132,38 +162,38 @@ namespace plr::action {
 		{
 			// running jump
 
-			plr.sprite->set_anim(anim::jump_f);
+			sprite.set_anim(anim::jump_f);
 		}
 		else if (move.rel_speed >= neutral_min_vx) {
 			// neutral jump
 
 			if (move.speed < 100.f && move.wishx != 0) {
-				if (plr.ground->has_contact()) {
-					plr.ground->traverse_set_speed(*plr.ground->traverse_get_speed() + 50.f * move.wishx);
+				if (ground.has_contact()) {
+					ground.traverse_set_speed(*ground.traverse_get_speed() + 50.f * move.wishx);
 				}
 				else {
-					plr.box->set_vel(plr.box->get_vel().x + 50.f * move.wishx, {});
+					box.set_vel(box.get_vel().x + 50.f * move.wishx, {});
 				}
 			}
-			plr.sprite->set_anim(anim::jump);
+			sprite.set_anim(anim::jump);
 
 		}
 		else if (move.rel_speed < neutral_min_vx)
 		{
 			//back jump
 			if (move.rel_wishx < 0) {
-				plr.sprite->set_hflip(!plr.sprite->get_hflip());
-				plr.sprite->set_anim(anim::jump_f);
+				sprite.set_hflip(!sprite.get_hflip());
+				sprite.set_anim(anim::jump_f);
 			}
 			else {
-				plr.sprite->set_anim(anim::jump);
+				sprite.set_anim(anim::jump);
 			}
 		}
 
-		plr.ground->settings.slope_sticking = false;
-		plr.ground->settings.slope_wall_stop = false;
+		ground.settings.slope_sticking = false;
+		ground.settings.slope_wall_stop = false;
 
-		Vec2f jumpVel = Vec2f{ plr.box->get_vel().x, constants::jumpVelY };
+		Vec2f jumpVel = Vec2f{ box.get_vel().x, constants::jumpVelY };
 		Angle jump_ang = math::angle(jumpVel) - math::angle(contact_normal);
 
 		// from perpendicular to the ground
@@ -175,7 +205,7 @@ namespace plr::action {
 		else if (jump_ang > min_jump_ang) {
 			jumpVel = math::rotate(jumpVel, -jump_ang + min_jump_ang);
 		}
-		plr.box->set_vel(jumpVel + Vec2f{ 0.f, contact_velocity.y });
+		box.set_vel(jumpVel + Vec2f{ 0.f, contact_velocity.y });
 
 		return PlayerStateID::Air;
 	}

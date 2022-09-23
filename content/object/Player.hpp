@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fastfall/game/object/GameObject.hpp"
+#include "fastfall/game/World.hpp"
 
 #include "PlayerCommon.hpp"
 #include "plr_states/PlayerGround.hpp"
@@ -15,14 +16,15 @@ public:
 	static const ff::ObjectType Type;
 	const ff::ObjectType& type() const override { return Type; };
 
-	Player(ff::GameContext context, ff::Vec2f position, bool faceleft);
+	Player(ff::World& w, ff::Vec2f position, bool faceleft);
 
-	Player(ff::GameContext context, ff::ObjectLevelData& data);
+	Player(ff::World& w, ff::ObjectLevelData& data);
 
-	void update(secs deltaTime) override;
-	void predraw(float interp, bool updated) override;
+	void update(ff::World& w, secs deltaTime) override;
+	void predraw(ff::World& w, float interp, bool updated) override;
+    void clean(ff::World& w) override;
 
-	void ImGui_Inspect() override;
+	//void ImGui_Inspect() override;
 
 protected:
 	std::variant<
@@ -45,9 +47,9 @@ protected:
 		}, state);
 	}
 
-	void manage_state(PlayerStateID n_id);
+	void manage_state(ff::World& w, PlayerStateID n_id);
 
-	CmdResponse do_command(ff::ObjCmd cmd, const std::any& payload) override;
+	//CmdResponse do_command(ff::ObjCmd cmd, const std::any& payload) override;
 
-	void init();
+	void init(ff::World& w);
 };

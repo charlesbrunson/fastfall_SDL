@@ -2,8 +2,7 @@
 #include "PlayerCommon.hpp"
 
 #include "fastfall/engine/input.hpp"
-
-#include "fastfall/game/InstanceInterface.hpp"
+#include "fastfall/game/trigger/Trigger.hpp"
 
 
 #include <functional>
@@ -23,42 +22,28 @@ const ObjectType Player::Type{
 	}
 };
 
-Player::Player(GameContext context, Vec2f position, bool faceleft)
-	: GameObject{ context }
-	, plr::members{ context, *this, position }
+Player::Player(World& w, Vec2f position, bool faceleft)
+	: GameObject{ w }
+	, plr::members{ w, *this, position }
 {
-	init();
-	sprite->set_hflip(faceleft);
+	init(w);
+    auto& sprite = w.at_drawable<AnimatedSprite>(sprite_scene_id);
+	sprite.set_hflip(faceleft);
 };
 
-Player::Player(GameContext context, ObjectLevelData& data)
-	: GameObject( context, data )
-	, plr::members{ context, *this, Vec2f{ data.position } }
+Player::Player(World& w, ObjectLevelData& data)
+	: GameObject( w, data )
+	, plr::members{ w, *this, Vec2f{ data.position } }
 {
-	init();
-	sprite->set_hflip(data.getPropAsBool("faceleft"));
+	init(w);
+    auto& sprite = w.at_drawable<AnimatedSprite>(sprite_scene_id);
+	sprite.set_hflip(data.getPropAsBool("faceleft"));
 };
 
 
-void Player::init() {
+void Player::init(World& w) {
 
-	// surface tracker
-	ground = &box->create_tracker(
-		Angle::Degree(-135.f),
-		Angle::Degree( -45.f),
-		SurfaceTracker::Settings{
-			.move_with_platforms = true,
-			.slope_sticking = true,
-			.slope_wall_stop = true,
-			.has_friction = true,
-			.use_surf_vel = true,
-			.stick_angle_max = Angle::Degree(90.f),
-			.max_speed = constants::norm_speed,
-			.slope_stick_speed_factor = 0.f,
-		});
-
-	//instance::cam_add_target(context(), cam_target);
-	
+    /*
 	// trigger testing
 	hurtbox->set_trigger_callback(
 		[this](const TriggerPull& pull) 
@@ -77,24 +62,24 @@ void Player::init() {
 				}
 			}
 		});
+    */
 
-	sprite->set_anim(plr::anim::idle);
-	sprite->set_pos(box->getPosition());
-
-	box->callbacks.onPostCollision = [this] {
+    /*
+    box->callbacks.onPostCollision = [this] {
 			hitbox->set_area(box->getBox());
 			manage_state(get_state().post_collision(*this));
 		};
+    */
 }
 
-void Player::manage_state(PlayerStateID n_id)
+void Player::manage_state(World& w, PlayerStateID n_id)
 {
-	auto state_transition = [this]<std::derived_from<PlayerState> T>( T&& next_state ) 
+	auto state_transition = [this, &w]<std::derived_from<PlayerState> T>( T&& next_state )
 	{
-		get_state().exit(*this, &next_state);
+		get_state().exit(w, *this, &next_state);
 		auto& prev_state = get_state();
 		state = next_state;
-		get_state().enter(*this, &prev_state);
+		get_state().enter(w, *this, &prev_state);
 	};
 
 	switch (n_id) {
@@ -112,26 +97,41 @@ void Player::manage_state(PlayerStateID n_id)
 	}
 }
 
-void Player::update(secs deltaTime) {
-	manage_state(get_state().update(*this, deltaTime));
+void Player::update(World& w, secs deltaTime) {
+	manage_state(w, get_state().update(w, *this, deltaTime));
 
-	sprite->update(deltaTime);
+    auto& sprite = w.at_drawable<AnimatedSprite>(sprite_scene_id);
+	sprite.update(deltaTime);
 }
 
+/*
 Player::CmdResponse Player::do_command(ObjCmd cmd, const std::any& payload) 
 {
-	return Behavior{ cmd, payload }
-		.match<ObjCmd::NoOp>(		[]() { return true; })
-		.match<ObjCmd::GetPosition>([this]() { return box->getPosition(); })
-		.match<ObjCmd::Hurt>(		[this](float damage) { LOG_INFO("OUCH: {}", damage); });
+    return Behavior{ cmd, payload }
+        .match<ObjCmd::NoOp>(		[]() { return true; })
+        .match<ObjCmd::GetPosition>([this]() { return box->getPosition(); })
+        .match<ObjCmd::Hurt>(		[this](float damage) { LOG_INFO("OUCH: {}", damage); });
+}
+*/
+
+void Player::predraw(World& w, float interp, bool updated) {
+
+    auto& sprite = w.at_drawable<AnimatedSprite>(sprite_scene_id);
+    auto& box = w.at(collidable_id);
+	sprite.set_pos(math::lerp(box.getPrevPosition(), box.getPosition(), interp));
+	sprite.predraw(interp);
 }
 
-void Player::predraw(float interp, bool updated) {
 
-	sprite->set_pos(math::lerp(box->getPrevPosition(), box->getPosition(), interp));
-	sprite->predraw(interp);
+void Player::clean(ff::World& w) {
+    w.erase(sprite_scene_id);
+    w.erase(collidable_id);
+    w.erase(hurtbox_id);
+    w.erase(hitbox_id);
+    w.erase(cameratarget_id);
 }
 
+/*
 void Player::ImGui_Inspect() {
 	using namespace ImGui;
 
@@ -180,3 +180,4 @@ void Player::ImGui_Inspect() {
 
 	get_state().get_imgui(*this);
 }
+*/

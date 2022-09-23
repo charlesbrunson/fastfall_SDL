@@ -53,13 +53,11 @@ private:
 	} dyn;
 
 	Vec2f offset;
-    bool is_clean = true;
+    //bool is_clean = true;
 
 public:
 	TileLayer(unsigned id, Vec2u levelsize);
 	TileLayer(World& world, const TileLayerData& layerData);
-
-	~TileLayer();
 
 
 	void initFromAsset(World& world, const TileLayerData& layerData);

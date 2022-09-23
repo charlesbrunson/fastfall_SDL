@@ -4,7 +4,7 @@
 #include "fastfall/util/Default.hpp"
 
 #include "fastfall/render/AnimatedSprite.hpp"
-#include "fastfall/game/object/ObjectComponents.hpp"
+#include "fastfall/game/World.hpp"
 #include "../camera/SimpleCamTarget.hpp"
 
 namespace plr::anim {
@@ -64,18 +64,19 @@ namespace plr::constants {
 namespace plr {
 	struct members {
 
-		members(ff::GameContext context, ff::GameObject& plr, ff::Vec2f position);
+		members(ff::World& w, ff::GameObject& plr, ff::Vec2f position);
 
-		ff::Scene_ptr<ff::AnimatedSprite> sprite;
-		ff::Collidable_ptr box;
-		ff::SurfaceTracker* ground;
-		ff::Trigger_ptr hurtbox;
-		ff::Trigger_ptr hitbox;
-		ff::CamTarget_ptr<SimpleCamTarget> cam_target;
+        ff::ID<ff::SceneObject> sprite_scene_id;
+        ff::ID<ff::Collidable> collidable_id;
+        ff::ID<ff::SurfaceTracker> surfacetracker_id;
+        ff::ID<ff::Trigger> hurtbox_id;
+        ff::ID<ff::Trigger> hitbox_id;
+        ff::ID<SimpleCamTarget> cameratarget_id;
+
 	};
 
 	struct move_t {
-		move_t(const plr::members& plr);
+		move_t(ff::World& w, const plr::members& plr);
 
 		float speed = 0.f;
 		int movex = 0;
@@ -98,8 +99,8 @@ enum class PlayerStateID {
 };
 
 namespace plr::action {
-	PlayerStateID jump(plr::members& plr, const move_t& move);
-	PlayerStateID dash(plr::members& plr, const move_t& move);
+	PlayerStateID jump(ff::World& w, plr::members& plr, const move_t& move);
+	PlayerStateID dash(ff::World& w, plr::members& plr, const move_t& move);
 }
 
 
@@ -107,14 +108,14 @@ class PlayerState {
 public:
 	virtual ~PlayerState() {};
 
-	virtual void enter(plr::members& plr, PlayerState* from) {};
-	virtual PlayerStateID update(plr::members& plr, secs deltaTime) = 0;
-	virtual void exit(plr::members& plr, PlayerState* to) {};
+	virtual void enter(ff::World& w, plr::members& plr, PlayerState* from) {};
+	virtual PlayerStateID update(ff::World& w, plr::members& plr, secs deltaTime) = 0;
+	virtual void exit(ff::World& w, plr::members& plr, PlayerState* to) {};
 
 	virtual constexpr PlayerStateID get_id() const = 0;
 	virtual constexpr std::string_view get_name() const = 0;
 
-	virtual PlayerStateID post_collision(plr::members& plr) { return PlayerStateID::Continue; };
+	virtual PlayerStateID post_collision(ff::World& w, plr::members& plr) { return PlayerStateID::Continue; };
 
 	virtual void get_imgui(plr::members& plr) {};
 };
