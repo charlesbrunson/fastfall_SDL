@@ -199,7 +199,9 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 			collider->setBorders(getLevelSize(), layer_data.getCollisionBorders());
 			collider->applyChanges();
 
-			collider->set_on_precontact(
+            // TODO REDO CALLBACKS
+            /*
+            collider->set_on_precontact(
 				std::bind(&TileLayer::handlePreContact, this,
 					std::placeholders::_1, std::placeholders::_2)
 			);
@@ -207,6 +209,7 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 				std::bind(&TileLayer::handlePostContact, this,
 					std::placeholders::_1)
 			);
+            */
 		}
 	}
 	else if (!enabled)

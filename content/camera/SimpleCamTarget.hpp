@@ -2,14 +2,17 @@
 
 #include "fastfall/game/CameraSystem.hpp"
 
+namespace ff {
+    class World;
+}
+
 class SimpleCamTarget : public ff::CameraTarget {
 public:
-	SimpleCamTarget(ff::CamTargetPriority priority, std::function<ff::Vec2f()>&& callback);
+	SimpleCamTarget(ff::CamTargetPriority priority, std::function<ff::Vec2f(ff::World&)>&& callback);
 
-	void update(secs delta) override;
-	ff::Vec2f get_target_pos() const override;
+	void update(ff::World& w, secs delta) override;
 
-	std::function<ff::Vec2f()> pos_callback;
+	std::function<ff::Vec2f(ff::World&)> pos_callback;
 
 };
 

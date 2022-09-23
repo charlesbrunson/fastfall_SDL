@@ -34,7 +34,7 @@ void CameraSystem::update(World& world, secs deltaTime) {
 		deltaPosition = Vec2f{};
 
 		for (auto t : ordered_targets) {
-            world.at(t).update(deltaTime);
+            world.at(t).update(world, deltaTime);
 		}
 
 		if (active_target && *active_target != ordered_targets.back()) {

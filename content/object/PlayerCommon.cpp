@@ -34,8 +34,6 @@ plr::members::members(World& w, GameObject& plr, Vec2f position)
     : sprite_scene_id(w.create_scene_object({.drawable = make_copyable_unique<Drawable, AnimatedSprite>()}))
     , collidable_id(w.create_collidable(position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
     , surfacetracker_id()
-    , hurtbox_id()
-    , hitbox_id()
     , cameratarget_id()
 {
     auto& box = w.at(collidable_id);
@@ -54,6 +52,13 @@ plr::members::members(World& w, GameObject& plr, Vec2f position)
             .max_speed = constants::norm_speed,
             .slope_stick_speed_factor = 0.f,
     };
+
+    cameratarget_id = w.create_camera_target<SimpleCamTarget>(
+            ff::CamTargetPriority::Medium,
+            [id = collidable_id](World& w) {
+                return w.at(id).getPosition() - Vec2f{0.f, 16.f};
+            }
+    );
 
     auto& sprite = w.at_drawable<AnimatedSprite>(sprite_scene_id);
     sprite.set_anim(plr::anim::idle);
