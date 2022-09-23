@@ -31,7 +31,7 @@ plr::move_t::move_t(World& w, const plr::members& plr)
 
 
 plr::members::members(World& w, GameObject& plr, Vec2f position)
-    : sprite_scene_id(w.create_scene_object({}))
+    : sprite_scene_id(w.create_scene_object({.drawable = make_copyable_unique<Drawable, AnimatedSprite>()}))
     , collidable_id(w.create_collidable(position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
     , surfacetracker_id()
     , hurtbox_id()

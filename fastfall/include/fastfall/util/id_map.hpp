@@ -100,6 +100,11 @@ public:
 		return { id };
 	}
 
+    ID<T> emplace(value_type&& val) {
+        auto id = components.emplace_back(std::move(val));
+        return { id };
+    }
+
 	template<std::derived_from<T> Type>
 	Type& at(ID<Type> id) {
 		return *reinterpret_cast<Type*>(components.at(id.value).get());

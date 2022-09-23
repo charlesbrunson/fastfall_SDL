@@ -15,6 +15,7 @@
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/util/log.hpp"
 #include "fastfall/util/tag.hpp"
+#include "fastfall/util/copyable_uniq_ptr.hpp"
 #include "fastfall/util/commandable.hpp"
 #include "fastfall/game/object/ObjectCommands.hpp"
 
@@ -118,7 +119,7 @@ struct ObjectFactory {
 private:
 	struct ObjectFactoryImpl {
 		const ObjectType* object_type;
-		std::unique_ptr<GameObject>(*createfn)(World* world, ObjectLevelData& data);
+        copyable_unique_ptr<GameObject>(*createfn)(World& world, ObjectLevelData& data);
 	};
 
 	static std::map<size_t, ObjectFactoryImpl>& getFactories();
@@ -129,13 +130,13 @@ public:
 	static void register_object() {
 		ObjectFactoryImpl factory;
 		factory.object_type = &T::Type;
-		factory.createfn = [](World* world, ObjectLevelData& data) -> std::unique_ptr<GameObject>
+		factory.createfn = [](World& world, ObjectLevelData& data) -> copyable_unique_ptr<GameObject>
 		{
-			if constexpr (std::is_constructible_v<T, World*, ObjectLevelData&>) {
-				std::unique_ptr<GameObject> ret;
+			if constexpr (std::is_constructible_v<T, World&, ObjectLevelData&>) {
+                copyable_unique_ptr<GameObject> ret;
 				const ObjectType& type = T::Type;
 				if (type.test(data)) {
-					ret = std::make_unique<T>(world, data);
+					ret = make_copyable_unique<GameObject, T>(world, data);
 				}
 				else {
 					LOG_WARN("unable to instantiate object:{}:{}", type.type.name, data.level_id.id);
@@ -146,7 +147,7 @@ public:
 			else {
 				const ObjectType& type = T::Type;
 				LOG_WARN("object not constructible with level data:{}:{}", type.type.name, data.level_id.id);
-				return nullptr;
+				return copyable_unique_ptr<GameObject>{};
 			}
 		};
 		getFactories().insert(std::make_pair( factory.object_type->type.hash, std::move(factory) ));
@@ -155,19 +156,19 @@ public:
 
 	template<typename T, typename ... Args>
 	requires valid_object<T> && std::is_constructible_v<T, World*, Args...>
-	static std::unique_ptr<GameObject>&& create(World* world, Args&&... args)
+	static copyable_unique_ptr<GameObject> create(World* world, Args&&... args)
 	{
-		std::unique_ptr<GameObject> obj = std::make_unique<T>(world, args...);
+        copyable_unique_ptr<GameObject> obj = make_copyable_unique<GameObject, T>(world, args...);
 		if (obj) {
-			return std::move(obj);
+			return obj;
 		}
 		else {
 			LOG_ERR_("Failed to create object: {}", T::Type.type.name);
 		}
-		return std::move(std::unique_ptr<GameObject>{});
+		return copyable_unique_ptr<GameObject>{};
 	}
 
-	static std::unique_ptr<GameObject> createFromData(World* world, ObjectLevelData& data);
+	static copyable_unique_ptr<GameObject> createFromData(World& world, ObjectLevelData& data);
 
 	static const ObjectType* getType(size_t hash);
 

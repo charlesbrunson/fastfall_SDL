@@ -108,10 +108,24 @@ public:
                 _object_system);
     }
 
-    ID<Level> create_level(const LevelAsset& lvl_asset) {
+    ID<GameObject> add_object(copyable_unique_ptr<GameObject>&& obj) {
         return notify_created_all(
-                create(_levels, *this, lvl_asset),
-                _level_system) ;
+                _objects.emplace(std::move(obj)),
+                _object_system);
+    }
+
+
+    ID<Level> create_level(const LevelAsset& lvl_asset, bool create_objects) {
+
+        auto id = create(_levels, *this, lvl_asset);
+        notify_created_all(id, _level_system);
+
+        if (create_objects)
+        {
+            at(id).get_layers().get_obj_layer().createObjectsFromData(*this);
+        }
+
+        return id;
     }
 
     ID<Level> create_level() {

@@ -24,9 +24,7 @@ BasicPlatform::BasicPlatform(World& w, ff::ObjectLevelData& data)
     , scene_id{ w.create_scene_object({ {}, 1, ff::scene_type::Object }) }
     , collider_id{ w.create_collider<ColliderSimple>(ff::Rectf{ Vec2f{}, Vec2f{ data.size } })}
 {
-    w.at(scene_id).drawable = copyable_unique_ptr<Drawable>{
-        new ShapeRectangle{{}, platformColor}
-    };
+    w.at(scene_id).drawable = make_copyable_unique<Drawable, ShapeRectangle>( Rectf{}, platformColor );
 	ObjLevelID path_id = data.getPropAsID("path");
 	max_vel = data.getPropAsFloat("max_velocity");
 	accel = data.getPropAsFloat("acceleration");

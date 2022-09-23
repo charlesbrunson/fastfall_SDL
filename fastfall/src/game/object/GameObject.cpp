@@ -128,12 +128,12 @@ std::map<size_t, ObjectFactory::ObjectFactoryImpl>& ObjectFactory::getFactories(
 	return factories;
 }
 
-std::unique_ptr<GameObject> ObjectFactory::createFromData(World* world, ObjectLevelData& data) {
+copyable_unique_ptr<GameObject> ObjectFactory::createFromData(World& world, ObjectLevelData& data) {
 	if (auto it = getFactories().find(data.typehash); it != getFactories().end())
     {
-		std::unique_ptr<GameObject> obj = it->second.createfn(world, data);
+        copyable_unique_ptr<GameObject> obj = it->second.createfn(world, data);
 		if (obj) {
-			return obj;
+			return std::move(obj);
 		}
 		else {
 			LOG_ERR_("Failed to create object: {}:{}", it->second.object_type->type.name, data.level_id.id);
@@ -148,7 +148,7 @@ std::unique_ptr<GameObject> ObjectFactory::createFromData(World* world, ObjectLe
 			LOG_ERR_("{}: {}", impl.object_type->type.hash, impl.object_type->type.name);
 		}
 	}
-	return nullptr;
+	return copyable_unique_ptr<GameObject>{};
 }
 
 const ObjectType* ObjectFactory::getType(size_t hash) {
