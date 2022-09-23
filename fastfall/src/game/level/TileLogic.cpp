@@ -10,10 +10,11 @@ TileLogicType::TileLogicType(std::string_view type, FactoryFunction builder) :
 
 }
 
-copyable_unique_ptr<TileLogic> TileLogic::create(World& world, std::string_view typeName) {
+copyable_unique_ptr<TileLogic>&& TileLogic::create(World& world, std::string_view typeName) {
 	auto iter = getMap().find(typeName);
 	if (iter != getMap().end()) {
-		return iter->second.fn_create(world);
+        auto ptr = std::move(iter->second.fn_create(world));
+		return std::move(ptr);
 	}
     return copyable_unique_ptr<TileLogic>{};
 }

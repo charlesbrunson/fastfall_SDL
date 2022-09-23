@@ -93,12 +93,12 @@ public:
 		TileLogicType type{
 			typeName,
 			[](World& w) -> copyable_unique_ptr<TileLogic>&& {
-				return make_copyable_unique<T>(w);
+				return std::move(copyable_unique_ptr<TileLogic>( new T{w} ));
 			}
 		};
 		getMap().insert(std::make_pair(type.typeName, type));
 	}
-	static copyable_unique_ptr<TileLogic> create(World& world, std::string_view typeName);
+	static copyable_unique_ptr<TileLogic>&& create(World& world, std::string_view typeName);
 
 private:
 	using Map = std::map<std::string, TileLogicType, std::less<>>;

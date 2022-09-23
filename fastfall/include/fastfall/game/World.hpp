@@ -70,6 +70,17 @@ public:
         return *(T*)at(scene_id).drawable.get();
     }
 
+    SurfaceTracker* get_tracker(ID<Collidable> collidable_id, ID<SurfaceTracker> tracker_id)
+    {
+        return at(collidable_id).get_tracker(tracker_id);
+    }
+
+    SurfaceTracker& at_tracker(ID<Collidable> collidable_id, ID<SurfaceTracker> tracker_id)
+    {
+        return *at(collidable_id).get_tracker(tracker_id);
+    }
+
+
 	// create component
 	ID<Collidable> create_collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
     ID<Trigger> create_trigger();

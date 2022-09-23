@@ -3,6 +3,8 @@
 #include <memory>
 #include <concepts>
 
+#include <iostream>
+
 namespace ff {
 
 // uses type erasure to allow copying
@@ -19,19 +21,22 @@ struct copyable_unique_ptr {
 	template<std::copy_constructible Type>
 	explicit copyable_unique_ptr(Type* in_ptr)
 	{
+        std::cout << "ptr ctor" << std::endl;
 		clone = make_copy_fn<Type>();
 		ptr = std::unique_ptr<Base>(in_ptr);
 	}
 
 	template<std::copy_constructible Type>
-	copyable_unique_ptr(std::unique_ptr<Type>&& in_ptr)
+	copyable_unique_ptr(std::unique_ptr<Type>&& in_ptr) noexcept
 	{
+        std::cout << "unique_ptr&& ctor" << std::endl;
 		clone = make_copy_fn<Type>();
 		ptr = std::move(in_ptr);
 	}
 
 	copyable_unique_ptr(const copyable_unique_ptr<Base>& other)
 	{
+        std::cout << "copy ctor" << std::endl;
         if (this != &other) {
             clone = other.clone;
             ptr = clone(other.ptr);
@@ -40,12 +45,15 @@ struct copyable_unique_ptr {
 
 	copyable_unique_ptr(copyable_unique_ptr<Base>&& other) noexcept
 	{
+        std::cout << "move ctor" << std::endl;
 		clone = other.clone;
         std::swap(ptr, other.ptr);
+        other.ptr.reset();
 	}
 
 	copyable_unique_ptr<Base>& operator=(const copyable_unique_ptr<Base>& other)
 	{
+        std::cout << "copy assign" << std::endl;
         if (this == &other)
             return *this;
 
@@ -55,8 +63,10 @@ struct copyable_unique_ptr {
 	}
 
 	copyable_unique_ptr<Base>& operator=(copyable_unique_ptr<Base>&& other) noexcept {
+        std::cout << "move assign" << std::endl;
 		clone = other.clone;
         std::swap(ptr, other.ptr);
+        other.ptr.reset();
 		return *this;
 	}
 

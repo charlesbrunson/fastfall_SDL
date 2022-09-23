@@ -30,10 +30,6 @@ TileLayer::TileLayer(World& world, const TileLayerData& layerData)
 	initFromAsset(world, layerData);
 }
 
-TileLayer::~TileLayer() {
-    assert(is_clean);
-}
-
 ChunkVertexArray* TileLayer::get_chunk(World& world, ID<SceneObject> id)
 {
     return (ChunkVertexArray*)world.at(id).drawable.get();
@@ -65,7 +61,7 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
             .layer_id = layer,
             .type = scene_type::Level
         });
-        is_clean = false;
+        dyn.chunks.push_back(chunk_id);
 
         auto* cvr = get_chunk(world, chunk_id);
         cvr->setTexture(tileset->getTexture());
@@ -111,7 +107,8 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 			else
 			{
 				dyn_tile.logic_id = dyn.tile_logic.size();
-				dyn.tile_logic.push_back(TileLogic::create(world, logic));
+                auto ptr = TileLogic::create(world, logic);
+				dyn.tile_logic.emplace_back(std::move(ptr));
 				dyn.tile_logic.back()->addTile(tile.pos, *opt_tile, args);
 			}
 		}
@@ -178,7 +175,6 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 		if (!dyn.collision.collider) {
 
             dyn.collision.collider = world.create_collider<ColliderTileMap>(Vec2i{ getLevelSize() }, true);
-            is_clean = false;
             auto* collider = get_collider(world);
 
 			layer_data.setCollision(true, border);
@@ -505,8 +501,6 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
             .type = scene_type::Level
         });
 
-        is_clean = false;
-
         auto* cvr = get_chunk(world, chunk_id);
         cvr->setTexture(next_tileset->getTexture());
         cvr->setTile(at, tile.tile_id);
@@ -583,7 +577,6 @@ void TileLayer::clean(World& world)
     layer_data.clearTiles();
     dyn.tile_logic.clear();
     tiles_dyn = grid_vector<TileDynamic>(layer_data.getSize());
-    is_clean = true;
 }
 
 void TileLayer::shallow_copy(World& world, const TileLayer& src, Rectu src_area, Vec2u dst)
