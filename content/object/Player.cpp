@@ -26,7 +26,6 @@ Player::Player(World& w, Vec2f position, bool faceleft)
 	: GameObject{ w }
 	, plr::members{ w, *this, position }
 {
-	init(w);
     auto& sprite = w.at_drawable<AnimatedSprite>(sprite_scene_id);
 	sprite.set_hflip(faceleft);
 };
@@ -35,42 +34,10 @@ Player::Player(World& w, ObjectLevelData& data)
 	: GameObject( w, data )
 	, plr::members{ w, *this, Vec2f{ data.position } }
 {
-	init(w);
     auto& sprite = w.at_drawable<AnimatedSprite>(sprite_scene_id);
 	sprite.set_hflip(data.getPropAsBool("faceleft"));
 };
 
-
-void Player::init(World& w) {
-
-    /*
-	// trigger testing
-	hurtbox->set_trigger_callback(
-		[this](const TriggerPull& pull) 
-		{
-			if (auto owner = pull.trigger->get_owner();
-				owner && owner->type().group_tags.contains("player")
-				&& pull.state == Trigger::State::Entry)
-			{
-				if (auto& rpayload = owner->command<ObjCmd::GetPosition>().payload())
-				{
-					LOG_INFO("position: {}", rpayload->to_string());
-					if (owner->command<ObjCmd::Hurt>(100.f)) 
-					{
-						LOG_INFO("gottem");
-					}
-				}
-			}
-		});
-    */
-
-    /*
-    box->callbacks.onPostCollision = [this] {
-			hitbox->set_area(box->getBox());
-			manage_state(get_state().post_collision(*this));
-		};
-    */
-}
 
 void Player::manage_state(World& w, PlayerStateID n_id)
 {
