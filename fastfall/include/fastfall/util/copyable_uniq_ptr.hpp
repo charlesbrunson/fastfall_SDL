@@ -26,14 +26,6 @@ struct copyable_unique_ptr {
 		ptr = std::unique_ptr<Base>(in_ptr);
 	}
 
-	template<std::copy_constructible Type>
-	copyable_unique_ptr(std::unique_ptr<Type>&& in_ptr) noexcept
-	{
-        std::cout << "unique_ptr&& ctor" << std::endl;
-		clone = make_copy_fn<Type>();
-		ptr = std::move(in_ptr);
-	}
-
 	copyable_unique_ptr(const copyable_unique_ptr<Base>& other)
 	{
         std::cout << "copy ctor" << std::endl;
@@ -47,8 +39,8 @@ struct copyable_unique_ptr {
 	{
         std::cout << "move ctor" << std::endl;
 		clone = other.clone;
-        std::swap(ptr, other.ptr);
-        other.ptr.reset();
+        ptr = std::move(other.ptr);
+        other.clone = nullptr;
 	}
 
 	copyable_unique_ptr<Base>& operator=(const copyable_unique_ptr<Base>& other)
@@ -65,8 +57,8 @@ struct copyable_unique_ptr {
 	copyable_unique_ptr<Base>& operator=(copyable_unique_ptr<Base>&& other) noexcept {
         std::cout << "move assign" << std::endl;
 		clone = other.clone;
-        std::swap(ptr, other.ptr);
-        other.ptr.reset();
+        ptr = std::move(other.ptr);
+        other.clone = nullptr;
 		return *this;
 	}
 
@@ -110,7 +102,7 @@ struct copyable_unique_ptr {
 private:
 	using clone_fn = std::unique_ptr<Base>(const std::unique_ptr<Base>& ptr);
 
-	std::unique_ptr<Base> ptr = nullptr;
+	std::unique_ptr<Base> ptr;
 	clone_fn* clone = nullptr;
 
 	template<std::copy_constructible Type>
@@ -123,5 +115,11 @@ private:
 		};
 	}
 };
+
+template<class Base, std::derived_from<Base> Derived, class... Args>
+copyable_unique_ptr<Base> make_copyable_unique(Args&&... args) {
+    return copyable_unique_ptr<Base>{ new Derived{std::forward<Args>(args)...} };
+}
+
 
 }

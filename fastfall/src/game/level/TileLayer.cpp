@@ -54,7 +54,7 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 	for (auto& [tileset, _] : layer_data.getTilesets())
 	{
         auto chunk_id = world.create_scene_object({
-            .drawable = std::make_unique<ChunkVertexArray>(
+            .drawable = make_copyable_unique<Drawable, ChunkVertexArray>(
                 getSize(),
                 kChunkSize
             ),
@@ -107,8 +107,7 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 			else
 			{
 				dyn_tile.logic_id = dyn.tile_logic.size();
-                auto ptr = TileLogic::create(world, logic);
-				dyn.tile_logic.emplace_back(std::move(ptr));
+				dyn.tile_logic.emplace_back(TileLogic::create(world, logic));
 				dyn.tile_logic.back()->addTile(tile.pos, *opt_tile, args);
 			}
 		}
@@ -493,7 +492,7 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 	{
         // TODO buffer changes?
         auto chunk_id = world.create_scene_object({
-            .drawable = std::make_unique<ChunkVertexArray>(
+            .drawable = make_copyable_unique<Drawable, ChunkVertexArray>(
                    getSize(),
                    kChunkSize
             ),

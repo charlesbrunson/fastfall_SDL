@@ -96,7 +96,7 @@ public:
 	// polymorphic
 	template<std::derived_from<T> Type, class... Args>
 	ID<Type> create(Args&&... args) {
-		auto id = components.emplace_back(std::make_unique<Type>(std::forward<Args>(args)...));
+		auto id = components.emplace_back(make_copyable_unique<T, Type>(std::forward<Args>(args)...));
 		return { id };
 	}
 

@@ -30,6 +30,7 @@ include(GoogleTest)
 
 create_ff_test(ff_test_utils 
 	utils/grid-vector.cpp
+	utils/copyable-unique.cpp
 )
 create_ff_test(ff_test_phys 
 	phys/collision.cpp
