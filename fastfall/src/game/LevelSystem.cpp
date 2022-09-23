@@ -6,6 +6,9 @@ namespace ff {
 
 void LevelSystem::notify_created(World& world, ID<Level> id)
 {
+    if (!active_level) {
+        active_level = id;
+    }
 }
 
 void LevelSystem::notify_erased(World& world, ID<Level> id)

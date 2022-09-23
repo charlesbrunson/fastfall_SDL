@@ -2,16 +2,13 @@
 
 using namespace ff;
 
-SimpleCamTarget::SimpleCamTarget(CamTargetPriority priority, std::function<ff::Vec2f()>&& callback)
+SimpleCamTarget::SimpleCamTarget(CamTargetPriority priority, std::function<ff::Vec2f(World&)>&& callback)
 	: CameraTarget(priority)
 	, pos_callback(callback)
 {
 }
 
-void SimpleCamTarget::update(secs delta) 
+void SimpleCamTarget::update(World& w, secs delta)
 {
-}
-
-Vec2f SimpleCamTarget::get_target_pos() const {
-	return pos_callback();
+    position = pos_callback(w);
 }

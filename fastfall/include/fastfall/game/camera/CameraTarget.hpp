@@ -16,15 +16,16 @@ enum class CamTargetState {
 	Active
 };
 
+class World;
 
 class CameraTarget {
 public:
 	CameraTarget(CamTargetPriority priority);
 	virtual ~CameraTarget() = default;
 
-	virtual void update(secs delta) = 0;
+	virtual void update(World& w, secs delta) = 0;
 
-	virtual Vec2f get_target_pos() const = 0;
+	Vec2f get_target_pos() const { return position; }
 
 	CamTargetPriority get_priority() const { return m_priority; };
 	CamTargetState get_state() const { return m_state; };
@@ -32,6 +33,9 @@ public:
 	friend bool operator< (const CameraTarget& lhs, const CameraTarget& rhs) {
 		return lhs.m_priority < rhs.m_priority;
 	}
+
+protected:
+    Vec2f position;
 
 private:
 	friend class CameraSystem;
