@@ -39,7 +39,7 @@ private:
     bool erase(auto id, auto& components, auto&... systems) {
         bool exists = components.exists(id);
         if (exists) {
-            (systems.notify_erased(id), ...);
+            (systems.notify_erased(*this, id), ...);
         }
         return components.erase(id);
     }
@@ -100,12 +100,14 @@ public:
                 _camera_system) ;
     }
 
-    template<class T, class... Args> requires std::derived_from<T, Drawable>
+    template<class T, class... Args> requires std::derived_from<T, GameObject>
     ID<T> create_object(Args&&... args) {
-        std::unique_ptr<T> obj = ObjectFactory::create<T>(this, std::forward<Args>(args)...);
-        return notify_created_all(
-                poly_create<T>(std::move(obj)),
-                _object_system);
+        //copyable_unique_ptr<GameObject> obj = ObjectFactory::create<T>(*this, std::forward<Args>(args)...);
+        //ID<GameObject> id = notify_created_all(
+        //        _objects.emplace(std::move(obj)),
+        //        _object_system);
+        auto id = add_object(ObjectFactory::create<T>(*this, std::forward<Args>(args)...));
+        return id_cast<T>(id);
     }
 
     ID<GameObject> add_object(copyable_unique_ptr<GameObject>&& obj) {
@@ -137,6 +139,10 @@ public:
 	// erase component
     template<class T>
     bool erase(ID<T> id) { return erase(id, container<T>()); }
+
+    // TODO EXPAND THIS FOR ALL COMPONENTS
+    bool erase(ID<GameObject> id) {return erase(id, _objects, _object_system);}
+    bool erase(ID<SceneObject> id) {return erase(id, _scene_objects, _scene_system);}
 
     // span components
     template<class T>

@@ -155,8 +155,8 @@ public:
 
 
 	template<typename T, typename ... Args>
-	requires valid_object<T> && std::is_constructible_v<T, World*, Args...>
-	static copyable_unique_ptr<GameObject> create(World* world, Args&&... args)
+	requires valid_object<T> && std::is_constructible_v<T, World&, Args...>
+	static copyable_unique_ptr<GameObject> create(World& world, Args&&... args)
 	{
         copyable_unique_ptr<GameObject> obj = make_copyable_unique<GameObject, T>(world, args...);
 		if (obj) {

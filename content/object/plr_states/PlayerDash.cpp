@@ -110,6 +110,7 @@ void PlayerDashState::enter(ff::World& w, plr::members& plr, PlayerState* from)
 		{
 			Vec2f pos = box.getPosition();
 			//ObjectFactory::create<SimpleEffect>(&w, dash_anims.fx->id(), pos, sprite.get_hflip());
+            w.create_object<SimpleEffect>(dash_anims.fx->id(), pos, sprite.get_hflip());
 		}
 		dash_speed = *ground.traverse_get_speed() * (sprite.get_hflip() ? -1.f : 1.f);
 	}
