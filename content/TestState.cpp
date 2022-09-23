@@ -21,7 +21,7 @@ TestState::TestState()
 
 	if (auto* lvlptr = ff::Resources::get<ff::LevelAsset>("map_test.tmx"))
 	{
-        auto lvl_id = world->create_level(*lvlptr);
+        auto lvl_id = world->create_level(*lvlptr, true);
         world->levels().set_active(lvl_id);
 	}
     Level* lvl = world->levels().get_active(*world);

@@ -1,6 +1,7 @@
 #include "fastfall/game/level/ObjectLayer.hpp"
 
 #include "fastfall/game/ObjectSystem.hpp"
+#include "fastfall/game/World.hpp"
 
 namespace ff {
 
@@ -92,10 +93,10 @@ bool ObjectLayer::removeObjectDataByID(ObjLevelID id) {
 	return false;
 }
 
-void ObjectLayer::createObjectsFromData(World* world) {
+void ObjectLayer::createObjectsFromData(World& world) {
 	for (auto& objRef : object_refs) {
 		if (objRef.typehash != 0) {
-			ObjectFactory::createFromData(world, objRef);
+			world.add_object(ObjectFactory::createFromData(world, objRef));
 		}
 	}
 }
