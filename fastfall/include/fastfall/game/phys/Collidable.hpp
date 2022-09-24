@@ -14,6 +14,8 @@
 
 namespace ff {
 
+class World;
+
 struct collision_state_t {
 	enum class flags : unsigned {
 		None = 0,
@@ -140,7 +142,7 @@ public:
     const id_map<SurfaceTracker>& get_trackers() const { return trackers; };
 
     struct callbacks_t {
-        std::function<void()> onPostCollision;
+        std::function<void(World&)> onPostCollision;
     } callbacks;
 
 private:

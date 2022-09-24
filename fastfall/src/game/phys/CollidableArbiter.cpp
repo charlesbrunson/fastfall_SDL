@@ -15,11 +15,11 @@ namespace ff {
 	}
 
 	void CollidableArbiter::gather_collisions(
-            Collidable& collidable,
-            poly_id_map<ColliderRegion>& colliders,
+            World& world,
 			secs deltaTime,
 			nlohmann::ordered_json* dump_ptr)
 	{
+        auto& collidable = world.at(collidable_id);
 
 		if (dump_ptr) {
 			(*dump_ptr)["collidable"] = {
@@ -48,13 +48,13 @@ namespace ff {
 				body_rect.left - body_bound.left											// WEST
 			};
 
-			update_region_arbiters(collidable, colliders, body_bound);
+			update_region_arbiters(world, body_bound);
 
 			// try to push out collidable bounds
 			for (auto& [rid, rarb] : region_arbiters) {
 
                 CollisionContext ctx{
-                    .collider = colliders.get(rid),
+                    .collider = world.get(rid),
                     .collidable = &collidable
                 };
 
@@ -87,7 +87,7 @@ namespace ff {
 
 			size_t region_count = 0;
 			for (auto& [rid, rarb] : region_arbiters) {
-                ColliderRegion* region = colliders.get(rid);
+                ColliderRegion* region = world.get(rid);
 				(*dump_ptr)["broad_phase"]["colliders"][region_count] = {
 					{ "id",				rid.raw()},
 					{ "vel",			fmt::format("{}", region->velocity)},
@@ -99,11 +99,12 @@ namespace ff {
 		}
 	}
 
-	void CollidableArbiter::update_region_arbiters(Collidable& collidable, poly_id_map<ColliderRegion>& colliders, Rectf bounds)
+	void CollidableArbiter::update_region_arbiters(World& world, Rectf bounds)
 	{
-		for (auto& region : colliders) {
+        auto& collidable = world.at(collidable_id);
+		for (auto& region : world.all<ColliderRegion>()) {
 
-            auto collider_id = colliders.id_of(region);
+            auto collider_id = world.all<ColliderRegion>().id_of(region);
             auto rarb_iter = region_arbiters.find(collider_id);
             bool exists = rarb_iter != region_arbiters.end();
 
@@ -156,10 +157,11 @@ namespace ff {
 	}
 
 	void CollidableArbiter::solve_collisions(
-            Collidable& collidable,
-            poly_id_map<ColliderRegion>& colliders,
+            World& world,
             nlohmann::ordered_json* dump_ptr)
 	{
+        auto& colliders = world.all<ColliderRegion>();
+        auto& collidable = world.at(collidable_id);
 		CollisionSolver solver{ &colliders, &collidable };
 
 		for (auto& [rid, rarb] : region_arbiters) {
@@ -181,6 +183,9 @@ namespace ff {
 		}
 
         collidable.set_frame(&colliders, solver.solve(json_dump));
+
+        if (collidable.callbacks.onPostCollision)
+            collidable.callbacks.onPostCollision(world);
 	}
 
 }

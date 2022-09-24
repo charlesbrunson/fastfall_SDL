@@ -444,12 +444,6 @@ void Collidable::set_frame(
         tracker.process_contacts(colliders, currContacts);
         friction += tracker.calc_friction(precollision_vel);
     }
-
-    //Vec2f prev = vel;
-
-    if (callbacks.onPostCollision)
-        callbacks.onPostCollision();
-
 }
 
 std::pair<ID<SurfaceTracker>, SurfaceTracker*>
