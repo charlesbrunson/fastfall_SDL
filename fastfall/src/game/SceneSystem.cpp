@@ -31,7 +31,9 @@ void SceneSystem::notify_created(World& world, ID<SceneObject> id)
 
 void SceneSystem::notify_erased(World& world, ID<SceneObject> id)
 {
-    std::erase(scene_order, id);
+    scene_order.erase(
+            std::find(scene_order.begin(), scene_order.end(),id)
+            );
 }
 
 void SceneSystem::set_cam_pos(Vec2f center) {
@@ -43,7 +45,7 @@ void SceneSystem::set_bg_color(Color color) {
 }
 
 void SceneSystem::set_size(Vec2u size) {
-	scene_size = Vec2f{ size } *TILESIZE_F;
+	scene_size = Vec2f{ size } * TILESIZE_F;
 
 	// pixel buffer prevent visual artifacts at the edges of the level
 	background.setPosition(Vec2f{ -1.f, -1.f });
@@ -59,9 +61,6 @@ void SceneSystem::draw(const World& world, RenderTarget& target, RenderState sta
 	for (auto scene_id : scene_order) {
         const auto& scene_object = world.at(scene_id);
 
-        if (!scene_object.render_enable)
-            continue;
-
 		if (scissor_enabled && scene_object.layer_id >= 0) {
 			scissor_enabled = false;
 			disableScissor();
@@ -71,7 +70,11 @@ void SceneSystem::draw(const World& world, RenderTarget& target, RenderState sta
 			continue;
 		}
 
-		target.draw(*scene_object.drawable, state);
+        if (scene_object.render_enable
+            && scene_object.drawable.get())
+        {
+            target.draw(*scene_object.drawable, state);
+        }
 	}
 
 	if (scissor_enabled) {

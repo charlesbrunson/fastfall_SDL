@@ -79,10 +79,28 @@ struct ObjectData {
 
 struct ObjectLevelData : public ObjectData {
 	ObjLevelID level_id;
+    const std::vector<ObjectLevelData>* all_objects = nullptr;
 
 	bool operator< (const ObjectLevelData& rhs) const {
 		return level_id < rhs.level_id;
 	}
+
+    const ObjectLevelData* get_sibling(ObjLevelID obj_id) const {
+        const ObjectLevelData* ref = nullptr;
+
+        if (obj_id && all_objects) {
+            auto it = std::find_if(
+                    all_objects->begin(), all_objects->end(),
+                    [obj_id](const ObjectLevelData& ref) {
+                        return ref.level_id == obj_id;
+                    });
+
+            if (it != all_objects->end()) {
+                ref = &*it;
+            }
+        }
+        return ref;
+    }
 };
 
 struct ObjectLayerData {

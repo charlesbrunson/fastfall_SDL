@@ -116,9 +116,7 @@ public:
                 _object_system);
     }
 
-
     ID<Level> create_level(const LevelAsset& lvl_asset, bool create_objects) {
-
         auto id = create(_levels, *this, lvl_asset);
         notify_created_all(id, _level_system);
 
@@ -137,12 +135,13 @@ public:
     }
 
 	// erase component
-    template<class T>
-    bool erase(ID<T> id) { return erase(id, container<T>()); }
-
-    // TODO EXPAND THIS FOR ALL COMPONENTS
-    bool erase(ID<GameObject> id) {return erase(id, _objects, _object_system);}
-    bool erase(ID<SceneObject> id) {return erase(id, _scene_objects, _scene_system);}
+    bool erase(ID<GameObject> id)       { return erase(id, _objects, _object_system); }
+    bool erase(ID<Level> id)            { return erase(id, _levels, _level_system); }
+    bool erase(ID<Collidable> id)       { return erase(id, _collidables, _collision_system); }
+    bool erase(ID<ColliderRegion> id)   { return erase(id, _colliders, _collision_system); }
+    bool erase(ID<SceneObject> id)      { return erase(id, _scene_objects, _scene_system); }
+    bool erase(ID<Trigger> id)          { return erase(id, _triggers, _trigger_system); }
+    bool erase(ID<CameraTarget> id)     { return erase(id, _camera_targets, _camera_system); }
 
     // span components
     template<class T>
