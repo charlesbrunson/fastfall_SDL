@@ -1,6 +1,92 @@
 #include "fastfall/game/World.hpp"
 
+#include "fastfall/game/WorldImGui.hpp"
+
 namespace ff {
+
+World::World() {
+    WorldImGui::add(this);
+}
+
+World::World(const World& other) {
+    WorldImGui::add(this);
+    _objects = other._objects;
+    _levels = other._levels;
+    _collidables = other._collidables;
+    _colliders = other._colliders;
+    _triggers = other._triggers;
+    _camera_targets = other._camera_targets;
+    _scene_objects = other._scene_objects;
+    _level_system = other._level_system;
+    _object_system = other._object_system;
+    _collision_system = other._collision_system;
+    _trigger_system = other._trigger_system;
+    _camera_system = other._camera_system;
+    _scene_system = other._scene_system;
+    update_counter = other.update_counter;
+    update_time = other.update_time;
+}
+
+World::World(World&& other) noexcept {
+    WorldImGui::add(this);
+    _objects = std::move(other._objects);
+    _levels = std::move(other._levels);
+    _collidables = std::move(other._collidables);
+    _colliders = std::move(other._colliders);
+    _triggers = std::move(other._triggers);
+    _camera_targets = std::move(other._camera_targets);
+    _scene_objects = std::move(other._scene_objects);
+    _level_system = std::move(other._level_system);
+    _object_system = std::move(other._object_system);
+    _collision_system = std::move(other._collision_system);
+    _trigger_system = std::move(other._trigger_system);
+    _camera_system = std::move(other._camera_system);
+    _scene_system = std::move(other._scene_system);
+    update_counter = other.update_counter;
+    update_time = other.update_time;
+}
+
+World& World::operator=(const World& other) {
+    WorldImGui::add(this);
+    _objects = other._objects;
+    _levels = other._levels;
+    _collidables = other._collidables;
+    _colliders = other._colliders;
+    _triggers = other._triggers;
+    _camera_targets = other._camera_targets;
+    _scene_objects = other._scene_objects;
+    _level_system = other._level_system;
+    _object_system = other._object_system;
+    _collision_system = other._collision_system;
+    _trigger_system = other._trigger_system;
+    _camera_system = other._camera_system;
+    _scene_system = other._scene_system;
+    update_counter = other.update_counter;
+    update_time = other.update_time;
+}
+
+World& World::operator=(World&& other) noexcept {
+    WorldImGui::add(this);
+    _objects = std::move(other._objects);
+    _levels = std::move(other._levels);
+    _collidables = std::move(other._collidables);
+    _colliders = std::move(other._colliders);
+    _triggers = std::move(other._triggers);
+    _camera_targets = std::move(other._camera_targets);
+    _scene_objects = std::move(other._scene_objects);
+    _level_system = std::move(other._level_system);
+    _object_system = std::move(other._object_system);
+    _collision_system = std::move(other._collision_system);
+    _trigger_system = std::move(other._trigger_system);
+    _camera_system = std::move(other._camera_system);
+    _scene_system = std::move(other._scene_system);
+    update_counter = other.update_counter;
+    update_time = other.update_time;
+}
+
+World::~World() {
+    WorldImGui::remove(this);
+}
 
 ID<Collidable> World::create_collidable(Vec2f position, Vec2f size, Vec2f gravity) {
     return notify_created_all(
@@ -28,7 +114,11 @@ void World::update(secs deltaTime) {
         _object_system.update(*this, deltaTime);
         _collision_system.update(*this, deltaTime);
         _camera_system.update(*this, deltaTime);
-        update_counter++;
+
+        if (deltaTime > 0.0)
+            update_counter++;
+
+        update_time += deltaTime;
     }
 }
 
