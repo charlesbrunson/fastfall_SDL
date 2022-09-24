@@ -28,6 +28,12 @@ Player::Player(World& w, Vec2f position, bool faceleft)
 {
     auto& sprite = w.at_drawable<AnimatedSprite>(sprite_scene_id);
 	sprite.set_hflip(faceleft);
+
+    auto& box = w.at(collidable_id);
+	box.callbacks.onPostCollision = [id = *w.id_of(*this)](World& w) {
+            auto& player = (Player&)w.at(id);
+			player.manage_state(w, player.get_state().post_collision(w, player));
+		};
 };
 
 Player::Player(World& w, ObjectLevelData& data)

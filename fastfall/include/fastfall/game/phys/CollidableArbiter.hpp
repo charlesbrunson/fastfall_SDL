@@ -19,13 +19,12 @@ public:
 	std::unordered_map<ID<ColliderRegion>, RegionArbiter> region_arbiters;
 
 	inline void gather_and_solve_collisions(
-            Collidable& collidable,
-            poly_id_map<ColliderRegion>& colliders,
+            World& world,
 			secs deltaTime,
 			nlohmann::ordered_json* dump_ptr = nullptr)
 	{
-		gather_collisions(collidable, colliders, deltaTime, dump_ptr);
-		solve_collisions(collidable, colliders, dump_ptr);
+		gather_collisions(world, deltaTime, dump_ptr);
+		solve_collisions(world, dump_ptr);
 	};
 	void erase_region(ID<ColliderRegion> region);
 
@@ -33,19 +32,16 @@ public:
 
 private:
 	void gather_collisions(
-            Collidable& collidable,
-            poly_id_map<ColliderRegion>& colliders,
+            World& world,
             secs deltaTime,
             nlohmann::ordered_json* dump_ptr = nullptr);
 
 	void solve_collisions(
-            Collidable& collidable,
-            poly_id_map<ColliderRegion>& colliders,
+            World& world,
             nlohmann::ordered_json* dump_ptr = nullptr);
 
 	void update_region_arbiters(
-            Collidable& collidable,
-            poly_id_map<ColliderRegion>& colliders,
+            World& world,
             Rectf bounds);
 
 	Rectf push_bounds_for_contact(

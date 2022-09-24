@@ -57,5 +57,55 @@ void World::draw(RenderTarget& target, RenderState state) const
     _scene_system.draw(*this, target, state);
 }
 
+SurfaceTracker* World::get_tracker(ID<Collidable> collidable_id, ID<SurfaceTracker> tracker_id)
+{
+    return at(collidable_id).get_tracker(tracker_id);
+}
+
+SurfaceTracker& World::at_tracker(ID<Collidable> collidable_id, ID<SurfaceTracker> tracker_id)
+{
+    return *at(collidable_id).get_tracker(tracker_id);
+}
+
+ID<GameObject> World::add_object(copyable_unique_ptr<GameObject>&& obj) {
+    return notify_created_all(
+            _objects.emplace(std::move(obj)),
+            _object_system);
+}
+
+ID<Level> World::create_level(const LevelAsset& lvl_asset, bool create_objects) {
+    auto id = create(_levels, *this, lvl_asset);
+    notify_created_all(id, _level_system);
+
+    if (create_objects)
+    {
+        at(id).get_layers().get_obj_layer().createObjectsFromData(*this);
+    }
+
+    return id;
+}
+
+ID<Level> World::create_level() {
+    return notify_created_all(create(_levels), _level_system);
+}
+
+bool World::erase(ID<GameObject> id)       { return erase(id, _objects, _object_system); }
+bool World::erase(ID<Level> id)            { return erase(id, _levels, _level_system); }
+bool World::erase(ID<Collidable> id)       { return erase(id, _collidables, _collision_system); }
+bool World::erase(ID<ColliderRegion> id)   { return erase(id, _colliders, _collision_system); }
+bool World::erase(ID<SceneObject> id)      { return erase(id, _scene_objects, _scene_system); }
+bool World::erase(ID<Trigger> id)          { return erase(id, _triggers, _trigger_system); }
+bool World::erase(ID<CameraTarget> id)     { return erase(id, _camera_targets, _camera_system); }
+
+std::optional<ID<GameObject>> World::id_of(GameObject &obj) {
+    std::optional<ID<GameObject>> id;
+    for (auto& object : _objects) {
+        if (object.get() == &obj) {
+            id = _objects.id_of(object);
+            break;
+        }
+    }
+    return id;
+}
 
 }

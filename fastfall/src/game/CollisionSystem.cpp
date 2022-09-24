@@ -33,7 +33,7 @@ void CollisionSystem::update(World& world, secs deltaTime)
 		for (auto& [id, arb] : arbiters)
 		{
             auto* dump_ptr = (collision_dump ? &(*collision_dump)["collisions"][ndx] : nullptr);
-			arb.gather_and_solve_collisions(world.at(id), colliders, deltaTime, dump_ptr);
+			arb.gather_and_solve_collisions(world, deltaTime, dump_ptr);
 			ndx++;
 		}
 	}
