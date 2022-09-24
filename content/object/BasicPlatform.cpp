@@ -19,8 +19,6 @@ const ObjectType BasicPlatform::Type{
 
 BasicPlatform::BasicPlatform(World& w, ff::ObjectLevelData& data)
 	: ff::GameObject(w, data)
-	//, scene_id{ context, scene_config{ 1, ff::scene_type::Object }, ff::Rectf{}, platformColor }
-	//, collider(context, ff::Rectf{ Vec2f{}, Vec2f{ data.size } })
     , scene_id{ w.create_scene_object({ {}, 1, ff::scene_type::Object }) }
     , collider_id{ w.create_collider<ColliderSimple>(ff::Rectf{ Vec2f{}, Vec2f{ data.size } })}
 {
@@ -29,9 +27,7 @@ BasicPlatform::BasicPlatform(World& w, ff::ObjectLevelData& data)
 	max_vel = data.getPropAsFloat("max_velocity");
 	accel = data.getPropAsFloat("acceleration");
 
-
-    auto* lvl = w.levels().get_active(w);
-	if (auto path_ptr = lvl->get_layers().get_obj_layer().getObjectDataByID(path_id)) {
+	if (auto path_ptr = data.get_sibling(path_id)) {
 		waypoints_origin = ff::Vec2f{ path_ptr->position };
 		waypoints = &path_ptr->points;
 	}
