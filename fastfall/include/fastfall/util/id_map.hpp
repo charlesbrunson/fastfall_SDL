@@ -78,6 +78,8 @@ public:
     ID<T> id_of(typename slot_map<value_type>::const_iterator iter) const {
         return { *components.key_of(iter) };
     }
+
+    ID<T> peek_next_id() const { return { components.peek_next_key() }; }
 };
 
 template<class T>
@@ -156,6 +158,8 @@ public:
     ID<T> id_of(typename slot_map<value_type>::const_iterator iter) const {
         return { components.key_of(iter) };
     }
+
+    ID<T> peek_next_id() const { return { components.peek_next_key() }; }
 };
 
 

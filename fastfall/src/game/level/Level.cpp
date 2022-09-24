@@ -10,18 +10,18 @@ namespace ff {
 
 // LEVEL
 
-/*
-Level::Level(World& world)
-    : m_id(*world.id_of(*this))
+
+Level::Level(World& world, ID<Level> t_id)
+    : m_id(t_id)
 {
 }
 
-Level::Level(World& world, const LevelAsset& levelData)
-    : m_id(*world.id_of(*this))
+Level::Level(World& world, ID<Level> t_id, const LevelAsset& levelData)
+    : m_id(t_id)
 {
     initFromAsset(world, levelData);
 }
-*/
+
 
 void Level::clean(World& w) {
     levelName = {};
@@ -47,15 +47,9 @@ void Level::predraw(World& world, float interp, bool updated) {
 	}
 }
 
-void Level::init(World& world, ID<Level> t_id) {
-    clean(world);
-    m_id = t_id;
-}
-
-void Level::initFromAsset(World& world, ID<Level> t_id, const LevelAsset& levelData)
+void Level::initFromAsset(World& world, const LevelAsset& levelData)
 {
     clean(world);
-    m_id = t_id;
 
 	levelName = levelData.getAssetName();
 	bgColor = levelData.getBGColor();
