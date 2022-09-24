@@ -211,8 +211,8 @@ void TestState::update(secs deltaTime) {
 
 }
 
-void TestState::predraw(float interp, bool updated)
-{
+void TestState::predraw(float interp, bool updated) {
+
     world->predraw(interp, updated);
 
     if (to_save) {
@@ -324,4 +324,5 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const
 			}
 		}
 	}
+
 }
