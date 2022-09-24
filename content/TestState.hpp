@@ -27,6 +27,9 @@ private:
 	void draw(ff::RenderTarget& target, ff::RenderState states = ff::RenderState()) const override;
 
     std::unique_ptr<ff::World> world;
+    std::unique_ptr<ff::World> save_world;
+    bool to_save = false;
+    bool to_load = false;
 
 	bool painting = false;
 	ff::Vec2i last_paint;

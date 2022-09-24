@@ -87,7 +87,6 @@ void TestState::update(secs deltaTime) {
 					edit->select_layer(curr_layer);
 				}
 				layer = edit->get_tile_layer()->position;
-				//LOG_INFO("layer = {}", layer);
 			});
 		};
 
@@ -98,6 +97,9 @@ void TestState::update(secs deltaTime) {
 
 		layerOnKeyPressed(SDL_SCANCODE_KP_MINUS, -1);
 		layerOnKeyPressed(SDL_SCANCODE_KP_PLUS, 1);
+
+        onKeyPressed(SDL_SCANCODE_F1, [&]() { to_save = true; });
+        onKeyPressed(SDL_SCANCODE_F2, [&]() { to_load = true; });
 
 		onKeyPressed(SDL_SCANCODE_C, [&]() {
 				const auto* tilelayer = edit->get_tile_layer();
@@ -209,9 +211,28 @@ void TestState::update(secs deltaTime) {
 
 }
 
-void TestState::predraw(float interp, bool updated) {
-
+void TestState::predraw(float interp, bool updated)
+{
     world->predraw(interp, updated);
+
+    if (to_save) {
+        if (save_world) {
+            *save_world = *world;
+        }
+        else {
+            save_world = std::make_unique<World>(*world);
+        }
+        to_save = false;
+        LOG_INFO("saved state");
+    }
+    else if (to_load) {
+        if (save_world) {
+            *world = *save_world;
+            debug_draw::clear();
+        }
+        to_load = false;
+        LOG_INFO("loaded state");
+    }
 
 	viewPos = world->camera().getPosition(interp);
 	viewZoom = world->camera().zoomFactor;
@@ -303,5 +324,4 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const
 			}
 		}
 	}
-
 }
