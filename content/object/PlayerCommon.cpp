@@ -1,6 +1,7 @@
 #include "PlayerCommon.hpp"
 
 #include "fastfall/engine/input.hpp"
+#include "Player.hpp"
 
 using namespace ff;
 
@@ -30,7 +31,7 @@ plr::move_t::move_t(World& w, const plr::members& plr)
 }
 
 
-plr::members::members(World& w, GameObject& plr, Vec2f position)
+plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     : sprite_scene_id(w.create_scene_object({.drawable = make_copyable_unique<Drawable, AnimatedSprite>()}))
     , collidable_id(w.create_collidable(position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
     , surfacetracker_id()
@@ -44,10 +45,10 @@ plr::members::members(World& w, GameObject& plr, Vec2f position)
     surfacetracker_id = id;
     ptr->settings = {
             .move_with_platforms = true,
-            .slope_sticking = true,
-            .slope_wall_stop = true,
-            .has_friction = true,
-            .use_surf_vel = true,
+            .slope_sticking      = true,
+            .slope_wall_stop     = true,
+            .has_friction        = true,
+            .use_surf_vel        = true,
             .stick_angle_max = Angle::Degree(90.f),
             .max_speed = constants::norm_speed,
             .slope_stick_speed_factor = 0.f,
@@ -63,6 +64,7 @@ plr::members::members(World& w, GameObject& plr, Vec2f position)
     auto& sprite = w.at_drawable<AnimatedSprite>(sprite_scene_id);
     sprite.set_anim(plr::anim::idle);
     sprite.set_pos(box.getPosition());
+    sprite.set_hflip(face_dir);
 }
 
 namespace plr::anim {
