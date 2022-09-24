@@ -1,6 +1,7 @@
 #include "fastfall/game/level/LevelEditor.hpp"
 
 #include "fastfall/resource/Resources.hpp"
+#include "fastfall/game/World.hpp"
 
 #include <chrono>
 
@@ -15,17 +16,19 @@ LevelEditor::LevelEditor(World& t_world, Level& lvl, bool show_imgui)
 
 }
 
+/*
 LevelEditor::LevelEditor(World& t_world, bool show_imgui, std::string name, Vec2u tile_size)
     : world(&t_world)
 {
 	assert(tile_size.x >= LevelEditor::MIN_LEVEL_SIZE.x);
 	assert(tile_size.y >= LevelEditor::MIN_LEVEL_SIZE.y);
 
-	created_level = std::make_unique<Level>(*world);
-	level = created_level.get();
+    created_level_id = world->create_level();
+	level = world->get(*created_level_id);
 
 	assert(level);
 }
+*/
 
 
 // LAYERS

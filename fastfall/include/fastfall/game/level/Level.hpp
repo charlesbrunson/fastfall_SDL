@@ -22,10 +22,12 @@ class Level  {
 public:
 	using Layers = LevelLayerContainer<TileLayer, ObjectLayer>;
 
-	Level(World& w);
-	Level(World& w, const LevelAsset& levelData);
+	//Level(World& w);
+	//Level(World& w, const LevelAsset& levelData);
 
-    void initFromAsset(World& world, const LevelAsset& levelData);
+
+    void init(World& world, ID<Level> t_id);
+    void initFromAsset(World& world, ID<Level> t_id, const LevelAsset& levelData);
 
     // removes all layers, resets name, bg color and size
     void clean(World& w);

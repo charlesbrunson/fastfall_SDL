@@ -22,7 +22,8 @@ public:
 	LevelEditor(World& t_world, Level& lvl, bool show_imgui);
 
 	// create a new level
-	LevelEditor(World& t_world, bool show_imgui, std::string name = "New Level", Vec2u tile_size = MIN_LEVEL_SIZE);
+    // disabled for now, need to figure out created level lifetime
+	//LevelEditor(World& t_world, bool show_imgui, std::string name = "New Level", Vec2u tile_size = MIN_LEVEL_SIZE);
 
 
 
@@ -123,7 +124,7 @@ public:
 
 protected:
 
-	std::unique_ptr<Level> created_level = nullptr;
+	std::optional<ID<Level>> created_level_id;
 	Level* level = nullptr;								// pointer to level being edited, may point externally or to created_level
     World* world;
 
