@@ -8,6 +8,7 @@
 #include <set>
 #include <string>
 #include <typeindex>
+#include <utility>
 
 #include "imgui.h"
 
@@ -37,18 +38,45 @@ enum class ObjectPropertyType {
 struct ObjectProperty {
 
 	// only specify the expected type
-	ObjectProperty(std::string propName, ObjectPropertyType type) : name(propName), type(type), default_value("") {}
+	ObjectProperty(std::string propName, ObjectPropertyType type)
+        : name(std::move(propName))
+        , type(type)
+        , default_value()
+    {}
 
 	// specify type and default value
-	ObjectProperty(std::string propName, std::string value_default): name(propName), type(ObjectPropertyType::String), default_value(value_default) {}
-	ObjectProperty(std::string propName, int value_default)		: name(propName), type(ObjectPropertyType::Int),    default_value(std::to_string(value_default)) {}
-	ObjectProperty(std::string propName, bool value_default)		: name(propName), type(ObjectPropertyType::Bool),   default_value(std::to_string(value_default)) {}
-	ObjectProperty(std::string propName, float value_default)		: name(propName), type(ObjectPropertyType::Float),  default_value(std::to_string(value_default)) {}
-	ObjectProperty(std::string propName, ObjLevelID value_default)	: name(propName), type(ObjectPropertyType::Object), default_value(std::to_string(value_default.id)) {}
+	ObjectProperty(std::string propName, std::string value_default)
+        : name(std::move(propName))
+        , type(ObjectPropertyType::String)
+        , default_value(std::move(value_default))
+    {}
+
+	ObjectProperty(std::string propName, int value_default)
+        : name(std::move(propName)), type(ObjectPropertyType::Int)
+        , default_value(std::to_string(value_default))
+    {}
+
+	ObjectProperty(std::string propName, bool value_default)
+        : name(std::move(propName))
+        , type(ObjectPropertyType::Bool)
+        , default_value(std::to_string(value_default))
+    {}
+
+	ObjectProperty(std::string propName, float value_default)
+        : name(std::move(propName))
+        , type(ObjectPropertyType::Float)
+        , default_value(std::to_string(value_default))
+    {}
+
+	ObjectProperty(std::string propName, ObjLevelID value_default)
+        : name(std::move(propName))
+        , type(ObjectPropertyType::Object)
+        , default_value(std::to_string(value_default.id))
+    {}
 
 	std::string name;
 	ObjectPropertyType type;
-	std::string default_value = "";
+	std::string default_value;
 
 	inline bool operator< (const ObjectProperty& rhs) const {
 		return name < rhs.name;
@@ -64,7 +92,7 @@ struct ObjectType {
 		{
 		}
 
-		Type(std::string typeName)
+		Type(const std::string& typeName)
 			: name(typeName)
 			, hash(std::hash<std::string>{}(typeName))
 		{
@@ -90,23 +118,6 @@ struct ObjectType {
 
 class GameObject;
 
-struct ObjSpawnID {
-	static constexpr unsigned NO_ID = 0;
-
-	unsigned id = NO_ID;
-
-	bool operator== (const ObjSpawnID& rhs) const {
-		return id == rhs.id;
-	}
-	bool operator< (const ObjSpawnID& rhs) const {
-		return id < rhs.id;
-	}
-
-	operator bool() {
-		return id != NO_ID;
-	}
-};
-
 template<typename T>
 concept valid_object =
 std::is_base_of_v<GameObject, T>
@@ -129,7 +140,7 @@ public:
 	template<typename T>
 	requires valid_object<T>
 	static void register_object() {
-		ObjectFactoryImpl factory;
+		ObjectFactoryImpl factory{};
 		factory.object_type = &T::Type;
 		factory.createfn = [](World& world, ID<GameObject> id, ObjectLevelData& data) -> copyable_unique_ptr<GameObject>
 		{
@@ -171,9 +182,7 @@ public:
 	static copyable_unique_ptr<GameObject> createFromData(World& world, ID<GameObject> id, ObjectLevelData& data);
 
 	static const ObjectType* getType(size_t hash);
-
 	static const ObjectType* getType(std::string_view name);
-
 };
 
 class GameObject : public Commandable<ObjCmd> {
@@ -191,12 +200,13 @@ public:
 		ImGui::Text("Hello World!");
 	};
 
-	bool m_has_collider = false;
+	//bool m_has_collider = false;
 	bool m_show_inspect = false;
 
     bool should_delete() const { return m_should_delete; }
     const ObjectLevelData* level_data() const { return m_data; };
 
+    [[nodiscard]]
     ID<GameObject> getID() const { return m_id; };
 
 protected:
