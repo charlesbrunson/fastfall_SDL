@@ -73,11 +73,11 @@ public:
 
 	virtual void update(secs deltaTime) = 0;
 
-	virtual bool on_precontact(const ContinuousContact& contact, secs duration) const {
+	virtual bool on_precontact(World& w, const ContinuousContact& contact, secs duration) const {
 		return true;
 	};
 
-	virtual void on_postcontact(const AppliedContact& contact) const {};
+	virtual void on_postcontact(World& w, const AppliedContact& contact) const {};
 
 	inline std::string_view getName() const {
 		return m_name;

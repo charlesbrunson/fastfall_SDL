@@ -86,7 +86,7 @@ ID<Level> World::create_level(const LevelAsset& lvl_asset, bool create_objects) 
 }
 
 ID<Level> World::create_level() {
-    return notify_created_all(create(_levels), _level_system);
+    return notify_created_all(create(_levels, *this), _level_system);
 }
 
 bool World::erase(ID<GameObject> id)       { return erase(id, _objects, _object_system); }
@@ -106,6 +106,10 @@ std::optional<ID<GameObject>> World::id_of(GameObject &obj) {
         }
     }
     return id;
+}
+
+std::optional<ID<Level>> World::id_of(Level& lvl) {
+    return _levels.id_of(lvl);
 }
 
 }

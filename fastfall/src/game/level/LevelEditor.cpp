@@ -21,7 +21,7 @@ LevelEditor::LevelEditor(World& t_world, bool show_imgui, std::string name, Vec2
 	assert(tile_size.x >= LevelEditor::MIN_LEVEL_SIZE.x);
 	assert(tile_size.y >= LevelEditor::MIN_LEVEL_SIZE.y);
 
-	created_level = std::make_unique<Level>();
+	created_level = std::make_unique<Level>(*world);
 	level = created_level.get();
 
 	assert(level);
@@ -44,7 +44,7 @@ bool LevelEditor::create_layer(int layer_pos)
 	{
 		level->get_layers().insert(
 			layer_pos,
-			TileLayer{ 0, level->size() }
+			TileLayer{ level->getID(), 0, level->size() }
 		);
 	}
 	return false;
@@ -331,7 +331,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		);
 		if (not_in_lvl)
 		{
-			lvl_layers.push_fg_front(TileLayer{ *world, layer_ref.tilelayer });
+			lvl_layers.push_fg_front(TileLayer{ *world, level->getID(), layer_ref.tilelayer });
 			nLayers.insert(layer_ref.tilelayer.getID());
 		}
 	}

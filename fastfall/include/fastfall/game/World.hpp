@@ -165,6 +165,7 @@ public:
 
     // get id
     std::optional<ID<GameObject>> id_of(GameObject& obj);
+    std::optional<ID<Level>> id_of(Level& lvl);
 
     // span components
     template<class T>

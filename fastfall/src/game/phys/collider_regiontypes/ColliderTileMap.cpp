@@ -62,17 +62,17 @@ namespace ff {
         return position;
     }
 
-	bool ColliderTileMap::on_precontact(const ContinuousContact& contact, secs duration) const {
+	bool ColliderTileMap::on_precontact(World& w, const ContinuousContact& contact, secs duration) const {
         auto quad_id = contact.id->quad;
 		if (validPosition(quad_id) && callback_on_precontact) {
-			return callback_on_precontact(contact, duration);
+			return callback_on_precontact(w, contact, duration);
 		}
 		return true;
 	}
 
-	void ColliderTileMap::on_postcontact(const AppliedContact& contact) const {
+	void ColliderTileMap::on_postcontact(World& w, const AppliedContact& contact) const {
 		if (validPosition(contact.id->quad) && callback_on_precontact) {
-			callback_on_postcontact(contact);
+			callback_on_postcontact(w, contact);
 		}
 	}
 

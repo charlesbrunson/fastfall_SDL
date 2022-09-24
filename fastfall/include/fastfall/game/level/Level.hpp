@@ -22,7 +22,7 @@ class Level  {
 public:
 	using Layers = LevelLayerContainer<TileLayer, ObjectLayer>;
 
-	Level() = default;
+	Level(World& w);
 	Level(World& w, const LevelAsset& levelData);
 
     void initFromAsset(World& world, const LevelAsset& levelData);
@@ -44,9 +44,18 @@ public:
 	Layers& get_layers() { return layers; };
 	const Layers& get_layers() const { return layers; };
 
+    ObjectLayer& get_obj_layer() { return layers.get_obj_layer(); }
+    const ObjectLayer& get_obj_layer() const { return layers.get_obj_layer(); }
+
+    TileLayer& get_tile_layer(unsigned id) { return layers.get_tile_layers().at(id).tilelayer; }
+    const TileLayer& get_tile_layer(unsigned id) const { return layers.get_tile_layers().at(id).tilelayer; }
+
 	bool hasEditorHooked = false;
 
+    ID<Level> getID() const { return m_id; }
+
 private:
+    ID<Level> m_id;
 	std::string levelName;
 	Color bgColor;
 	Vec2u levelSize;

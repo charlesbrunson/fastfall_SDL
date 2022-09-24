@@ -17,6 +17,7 @@
 namespace ff {
 
 class World;
+class Level;
 
 class TileLayer {
 private:
@@ -56,9 +57,8 @@ private:
     //bool is_clean = true;
 
 public:
-	TileLayer(unsigned id, Vec2u levelsize);
-	TileLayer(World& world, const TileLayerData& layerData);
-
+	TileLayer(ID<Level> lvl_id, unsigned id, Vec2u levelsize);
+	TileLayer(World& world, ID<Level> lvl_id, const TileLayerData& layerData);
 
 	void initFromAsset(World& world, const TileLayerData& layerData);
 	void update(World& world, secs deltaTime);
@@ -127,13 +127,10 @@ public:
 	scene_layer get_layer() const { return layer; }
 
 protected:
-
+    ID<Level> level_id;
 	scene_layer layer;
     ColliderTileMap* get_collider(World& world);
 	ChunkVertexArray* get_chunk(World& world, ID<SceneObject> id);
-
-	bool handlePreContact(const ContinuousContact& contact, secs duration);
-	void handlePostContact(const AppliedContact& contact);
 
 	void updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic = true);
 };
