@@ -4,31 +4,37 @@
 
 namespace ff {
 
-void ObjectSystem::update(World& world, secs deltaTime) {
-    for (auto& obj : world.all<GameObject>()) {
-        obj->update(world, deltaTime);
+void ObjectSystem::update(World& world, secs deltaTime)
+{
+    append_created();
+    for (auto obj : update_order) {
+        world.at(obj).update(world, deltaTime);
     }
+    append_created();
 }
 
 void ObjectSystem::predraw(World& world, float interp, bool updated)
 {
-    auto& objects = world.all<GameObject>();
-    for (auto& obj : objects) {
-        if (obj->should_delete()) {
-            world.erase(objects.id_of(obj));
+    //auto& objects = world.all<GameObject>();
+    for (auto& id : update_order) {
+        auto& obj = world.at(id);
+        if (obj.should_delete()) {
+            world.erase(id);
         }
         else {
-            obj->predraw(world, interp, updated);
+            obj.predraw(world, interp, updated);
         }
     }
 }
 
 void ObjectSystem::notify_created(World& world, ID<GameObject> id) {
-
+    created_objects.push_back(id);
 }
 
 void ObjectSystem::notify_erased(World& world, ID<GameObject> id) {
     world.at(id).clean(world);
+    std::erase(update_order, id);
+    std::erase(created_objects, id);
 }
 
 }
