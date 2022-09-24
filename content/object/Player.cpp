@@ -22,23 +22,23 @@ const ObjectType Player::Type{
 	}
 };
 
-Player::Player(World& w, Vec2f position, bool faceleft)
-	: GameObject{ w }
+Player::Player(World& w, ID<GameObject> id, Vec2f position, bool faceleft)
+	: GameObject{ w , id }
 	, plr::members{ w, *this, position, faceleft}
 {
     auto& box = w.at(collidable_id);
-	box.callbacks.onPostCollision = [id = *w.id_of(*this)](World& w) {
+    box.callbacks.onPostCollision = [id = getID()](World& w) {
         auto& player = (Player&)w.at(id);
         player.manage_state(w, player.get_state().post_collision(w, player));
     };
 };
 
-Player::Player(World& w, ObjectLevelData& data)
-	: GameObject( w, data )
+Player::Player(World& w, ID<GameObject> id, ObjectLevelData& data)
+	: GameObject( w, id, data )
 	, plr::members{ w, *this, Vec2f{ data.position }, data.getPropAsBool("faceleft")}
 {
     auto& box = w.at(collidable_id);
-    box.callbacks.onPostCollision = [id = *w.id_of(*this)](World& w) {
+    box.callbacks.onPostCollision = [id = getID()](World& w) {
         auto& player = (Player&)w.at(id);
         player.manage_state(w, player.get_state().post_collision(w, player));
     };

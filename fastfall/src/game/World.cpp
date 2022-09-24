@@ -67,11 +67,13 @@ SurfaceTracker& World::at_tracker(ID<Collidable> collidable_id, ID<SurfaceTracke
     return *at(collidable_id).get_tracker(tracker_id);
 }
 
+/*
 ID<GameObject> World::add_object(copyable_unique_ptr<GameObject>&& obj) {
     return notify_created_all(
             _objects.emplace(std::move(obj)),
             _object_system);
 }
+*/
 
 ID<Level> World::create_level(const LevelAsset& lvl_asset, bool create_objects) {
     auto id = notify_created_all(
@@ -113,6 +115,16 @@ std::optional<ID<GameObject>> World::id_of(GameObject &obj) {
 
 std::optional<ID<Level>> World::id_of(Level& lvl) {
     return _levels.id_of(lvl);
+}
+
+std::optional<ID<GameObject>> World::create_object_from_data(ObjectLevelData &data) {
+    auto ptr = ObjectFactory::createFromData(*this, _objects.peek_next_id(), data);
+    if (ptr) {
+        return notify_created_all(_objects.emplace(std::move(ptr)), _object_system);
+    }
+    else {
+        return std::nullopt;
+    }
 }
 
 }

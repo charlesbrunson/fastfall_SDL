@@ -11,8 +11,8 @@ public:
 	static const ff::ObjectType Type;
 	const ff::ObjectType& type() const override { return Type; };
 
-	SimpleEffect(ff::World& world, const ff::AnimID& anim, ff::Vec2f position, bool hflip)
-		: ff::GameObject(world)
+	SimpleEffect(ff::World& world, ff::ID<ff::GameObject> id, const ff::AnimID& anim, ff::Vec2f position, bool hflip)
+		: ff::GameObject(world, id)
 		, scene_id(world.create_scene_object({}))
 	{
         auto& scene_obj = world.at(scene_id);

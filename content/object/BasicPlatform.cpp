@@ -17,8 +17,8 @@ const ObjectType BasicPlatform::Type{
 	}
 };
 
-BasicPlatform::BasicPlatform(World& w, ff::ObjectLevelData& data)
-	: ff::GameObject(w, data)
+BasicPlatform::BasicPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
+	: ff::GameObject(w, id, data)
     , scene_id{ w.create_scene_object({ {}, 1, ff::scene_type::Object }) }
     , collider_id{ w.create_collider<ColliderSimple>(ff::Rectf{ Vec2f{}, Vec2f{ data.size } })}
 {
