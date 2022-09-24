@@ -167,7 +167,9 @@ bool SurfaceTracker::do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, 
 		// correct velocity and position so we're still grounded
 		owner->set_vel(Vec2f{});
 
-		const ColliderRegion* region = colliders->get(currentContact->id->collider);
+		const ColliderRegion* region = currentContact && currentContact->id
+                ? colliders->get(currentContact->id->collider)
+                : nullptr;
 
 		if (settings.move_with_platforms && region
 			&& region->hasMoved())
@@ -194,7 +196,9 @@ bool SurfaceTracker::do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, 
 
 CollidableOffsets SurfaceTracker::do_move_with_platform(poly_id_map<ColliderRegion>* colliders, CollidableOffsets in) noexcept {
 
-	if (currentContact && settings.move_with_platforms) 
+	if (currentContact
+        && currentContact->id
+        && settings.move_with_platforms)
 	{
 		AppliedContact& contact = currentContact.value();
 		if (const ColliderRegion* region = colliders->get(currentContact->id->collider);
@@ -237,7 +241,10 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
 	// TODO: REFACTOR FOR ALL SURFACE DIRECTIONS
 
 	Vec2f regionOffset;
-    const ColliderRegion* region = colliders->get(currentContact->id->collider);
+    const ColliderRegion* region = nullptr;
+    if (currentContact && currentContact->id) {
+        region = colliders->get(currentContact->id->collider);
+    }
 	if (region) {
 		regionOffset = region->getPosition();
 	}
@@ -384,7 +391,10 @@ void SurfaceTracker::end_touch(AppliedContact& contact) {
 		// have to avoid collider velocity being double-applied
 		bool still_touching = false;
 		for (auto& contact_ : owner->get_contacts()) {
-			if (contact_.id && contact.id->collider == contact_.id->collider) {
+			if (contact_.id
+                && contact.id
+                && contact.id->collider == contact_.id->collider)
+            {
 				still_touching = true;
 			}
 		}
