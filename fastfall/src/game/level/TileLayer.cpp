@@ -19,13 +19,15 @@
 namespace ff {
 
 
-TileLayer::TileLayer(unsigned id, Vec2u levelsize)
-	: layer_data(id, levelsize)
+TileLayer::TileLayer(ID<Level> lvl_id, unsigned id, Vec2u levelsize)
+	: level_id(lvl_id)
+    , layer_data(id, levelsize)
 	, tiles_dyn(levelsize)
 {
 }
 
-TileLayer::TileLayer(World& world, const TileLayerData& layerData)
+TileLayer::TileLayer(World& world, ID<Level> lvl_id, const TileLayerData& layerData)
+    : level_id(lvl_id)
 {
 	initFromAsset(world, layerData);
 }
@@ -199,17 +201,51 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 			collider->setBorders(getLevelSize(), layer_data.getCollisionBorders());
 			collider->applyChanges();
 
-            // TODO REDO CALLBACKS
-            /*
             collider->set_on_precontact(
-				std::bind(&TileLayer::handlePreContact, this,
-					std::placeholders::_1, std::placeholders::_2)
+                [level_id = level_id, layer_id = layer_data.getID()]
+                (World& w, const ContinuousContact& contact, secs duration)
+                {
+                    auto& lvl = w.at(level_id);
+                    auto& tile_layer = lvl.get_tile_layer(layer_id);
+                    auto size = tile_layer.getLevelSize();
+                    Vec2i pos = contact.id->quad.to_pos(size, true);
+
+                    if (pos.x < 0 || pos.x >= size.x
+                        || pos.y < 0 || pos.y >= size.y)
+                        return true;
+
+                    auto& tiles_dyn = tile_layer.tiles_dyn;
+
+                    bool r = true;
+                    if (tiles_dyn[pos].logic_id != TILEDATA_NONE) {
+                        r = tile_layer.dyn.tile_logic.at(tiles_dyn[pos].logic_id)->on_precontact(w, contact, duration);
+                    }
+                    return r;
+                }
 			);
 			collider->set_on_postcontact(
-				std::bind(&TileLayer::handlePostContact, this,
-					std::placeholders::_1)
+                [level_id = level_id, layer_id = layer_data.getID()]
+                (World& w, const AppliedContact& contact)
+                {
+                    auto& lvl = w.at(level_id);
+                    auto& tile_layer = lvl.get_tile_layer(layer_id);
+                    auto size = tile_layer.getLevelSize();
+                    Vec2i pos = contact.id->quad.to_pos(size, true);
+
+                    // based on to_pos from TileMapCollider
+                    if (pos.x < 0 || pos.x >= size.x
+                        || pos.y < 0 || pos.y >= size.y)
+                        return;
+
+                    auto& tiles_dyn = tile_layer.tiles_dyn;
+
+                    //unsigned ndx = pos.y * getLevelSize().x + pos.x;
+                    if (tiles_dyn[pos].logic_id != TILEDATA_NONE) {
+                        tile_layer.dyn.tile_logic.at(tiles_dyn[pos].logic_id)->on_postcontact(w, contact);
+                    }
+                }
 			);
-            */
+
 		}
 	}
 	else if (!enabled)
@@ -276,42 +312,6 @@ bool TileLayer::set_scroll(World& world, bool enabled, Vec2f rate)
 
 	layer_data.setScroll(enabled, rate);
 	return true;
-}
-
-bool TileLayer::handlePreContact(const ContinuousContact& contact, secs duration) {
-    // based on to_pos from TileMapCollider
-    Vec2i pos;
-    pos.y = contact.id->quad.value / ((int)getLevelSize().x + 1);
-    pos.x = contact.id->quad.value - (pos.y * ((int)getLevelSize().x + 2));
-    pos += Vec2i(-1, -1);
-
-	if (pos.x < 0 || pos.x >= getLevelSize().x
-		|| pos.y < 0 || pos.y >= getLevelSize().y)
-		return true;
-
-	//unsigned ndx = pos.y * getLevelSize().x + pos.x;
-	bool r = true;
-	if (tiles_dyn[pos].logic_id != TILEDATA_NONE) {
-		r = dyn.tile_logic.at(tiles_dyn[pos].logic_id)->on_precontact(contact, duration);
-	}
-	return r;
-}
-
-void TileLayer::handlePostContact(const AppliedContact& contact) {
-    // based on to_pos from TileMapCollider
-    Vec2i pos;
-    pos.y = contact.id->quad.value / ((int)getLevelSize().x + 1);
-    pos.x = contact.id->quad.value - (pos.y * ((int)getLevelSize().x + 2));
-    pos += Vec2i(-1, -1);
-
-	if (pos.x < 0 || pos.x >= getLevelSize().x
-		|| pos.y < 0 || pos.y >= getLevelSize().y)
-		return;
-
-	//unsigned ndx = pos.y * getLevelSize().x + pos.x;
-	if (tiles_dyn[pos].logic_id != TILEDATA_NONE) {
-		dyn.tile_logic.at(tiles_dyn[pos].logic_id)->on_postcontact(contact);
-	}
 }
 
 void TileLayer::predraw(World& world, float interp, bool updated) {

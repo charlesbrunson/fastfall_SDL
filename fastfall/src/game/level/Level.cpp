@@ -10,7 +10,13 @@ namespace ff {
 
 // LEVEL
 
+Level::Level(World& world)
+    : m_id(*world.id_of(*this))
+{
+}
+
 Level::Level(World& world, const LevelAsset& levelData)
+    : m_id(*world.id_of(*this))
 {
     initFromAsset(world, levelData);
 }
@@ -50,10 +56,10 @@ void Level::initFromAsset(World& world, const LevelAsset& levelData)
 	for (auto& layerRef : levelData.getLayerRefs().get_tile_layers())
 	{
 		if (layerRef.position < 0) {
-			layers.push_bg_front(TileLayer{ world, layerRef.tilelayer });
+			layers.push_bg_front(TileLayer{ world, m_id, layerRef.tilelayer });
 		}
 		else {
-			layers.push_fg_front(TileLayer{ world, layerRef.tilelayer });
+			layers.push_fg_front(TileLayer{ world, m_id, layerRef.tilelayer });
 		}
 	}
 
@@ -81,7 +87,7 @@ void Level::resize(World& world, Vec2u n_size)
 			std::min(n_size.y, layer.getParallaxSize().y)
 		};
 
-		TileLayer n_layer{ layer.getID(), n_size };
+		TileLayer n_layer{ m_id, layer.getID(), n_size };
 		n_layer.set_layer(world, layer.get_layer());
 		n_layer.set_collision(world, layer.hasCollision(), layer.getCollisionBorders());
 		n_layer.set_scroll(world, layer.hasScrolling(), layer.getScrollRate());

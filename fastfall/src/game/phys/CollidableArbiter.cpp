@@ -170,7 +170,7 @@ namespace ff {
 			for (auto& [qid, qarb] : rarb.getQuadArbiters())
 			{
                 // allow precontact callback to reject collision
-				if (collider.on_precontact(qarb.getContact(), qarb.getTouchDuration()))
+				if (collider.on_precontact(world, qarb.getContact(), qarb.getTouchDuration()))
 				{
 					solver.pushContact(&qarb);
 				}
