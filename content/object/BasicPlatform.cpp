@@ -60,8 +60,6 @@ BasicPlatform::BasicPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& d
 		collider.teleport(pos - off);
 	}
 
-	m_has_collider = true;
-
 }
 
 void BasicPlatform::clean(ff::World& w)  {
