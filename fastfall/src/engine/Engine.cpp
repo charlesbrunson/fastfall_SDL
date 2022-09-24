@@ -201,7 +201,7 @@ void Engine::drawRunnable(EngineRunnable& run) {
 void Engine::prerun_init()
 {
     ImGui_addContent();
-    //instanceObs.ImGui_addContent();
+    worldImgui.ImGui_addContent();
     input.ImGui_addContent();
     debugdrawImgui.ImGui_addContent();
 

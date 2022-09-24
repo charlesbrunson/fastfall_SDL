@@ -97,6 +97,13 @@ private:
     }
 
 public:
+    World();
+    World(const World&);
+    World(World&&) noexcept;
+    World& operator=(const World&);
+    World& operator=(World&&) noexcept;
+    ~World();
+
     // manage state
     void update(secs deltaTime);
     void predraw(float interp, bool updated);
@@ -180,6 +187,9 @@ public:
     inline ObjectSystem&    objects() 	{ return _object_system; }
     inline LevelSystem&     levels()    { return _level_system; }
 
+    size_t tick_count() const { return update_counter; }
+    secs uptime() const { return update_time; }
+
 private:
     void draw(RenderTarget& target, RenderState state = RenderState()) const override;
 
@@ -203,6 +213,7 @@ private:
 	SceneSystem		_scene_system;
 
     size_t update_counter = 0;
+    secs update_time = 0.0;
 };
 
 }
