@@ -64,7 +64,7 @@ namespace plr::constants {
 namespace plr {
 	struct members {
 
-		members(ff::World& w, ff::GameObject& plr, ff::Vec2f position);
+		members(ff::World& w, ff::GameObject& plr, ff::Vec2f position, bool face_dir);
 
         ff::ID<ff::SceneObject> sprite_scene_id;
         ff::ID<ff::Collidable> collidable_id;
