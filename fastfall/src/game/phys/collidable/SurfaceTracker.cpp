@@ -384,7 +384,7 @@ void SurfaceTracker::end_touch(AppliedContact& contact) {
 		// have to avoid collider velocity being double-applied
 		bool still_touching = false;
 		for (auto& contact_ : owner->get_contacts()) {
-			if (contact.id->collider == contact_.id->collider) {
+			if (contact_.id && contact.id->collider == contact_.id->collider) {
 				still_touching = true;
 			}
 		}
