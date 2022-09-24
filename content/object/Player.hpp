@@ -16,9 +16,9 @@ public:
 	static const ff::ObjectType Type;
 	const ff::ObjectType& type() const override { return Type; };
 
-	Player(ff::World& w, ff::Vec2f position, bool faceleft);
+	Player(ff::World& w, ff::ID<ff::GameObject> id, ff::Vec2f position, bool faceleft);
 
-	Player(ff::World& w, ff::ObjectLevelData& data);
+	Player(ff::World& w, ff::ID<ff::GameObject> id, ff::ObjectLevelData& data);
 
 	void update(ff::World& w, secs deltaTime) override;
 	void predraw(ff::World& w, float interp, bool updated) override;

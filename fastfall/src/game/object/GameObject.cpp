@@ -128,10 +128,10 @@ std::map<size_t, ObjectFactory::ObjectFactoryImpl>& ObjectFactory::getFactories(
 	return factories;
 }
 
-copyable_unique_ptr<GameObject> ObjectFactory::createFromData(World& world, ObjectLevelData& data) {
+copyable_unique_ptr<GameObject> ObjectFactory::createFromData(World& world, ID<GameObject> id, ObjectLevelData& data) {
 	if (auto it = getFactories().find(data.typehash); it != getFactories().end())
     {
-        copyable_unique_ptr<GameObject> obj = it->second.createfn(world, data);
+        copyable_unique_ptr<GameObject> obj = it->second.createfn(world, id, data);
 		if (obj) {
 			return std::move(obj);
 		}
@@ -167,12 +167,14 @@ const ObjectType* ObjectFactory::getType(std::string_view name) {
 	return nullptr;
 }
 
-GameObject::GameObject(World& w)
+GameObject::GameObject(World& w, ID<GameObject> id)
+    : m_id(id)
 {
 }
 
-GameObject::GameObject(World& w, ObjectLevelData& data)
-	: m_data(&data)
+GameObject::GameObject(World& w, ID<GameObject> id, ObjectLevelData& data)
+    : m_id(id)
+	, m_data(&data)
 {
 }
 

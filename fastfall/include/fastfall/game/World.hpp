@@ -142,16 +142,17 @@ public:
                 _camera_system) ;
     }
 
+
     template<class T, class... Args> requires std::derived_from<T, GameObject>
     ID<T> create_object(Args&&... args) {
-        auto id = add_object(ObjectFactory::create<T>(*this, std::forward<Args>(args)...));
-        return id_cast<T>(id);
+        return notify_created_all(
+                poly_create<T>(_objects, *this, _objects.peek_next_id(), std::forward<Args>(args)...),
+                _object_system) ;
     }
 
-    ID<GameObject> add_object(copyable_unique_ptr<GameObject>&& obj);
+    std::optional<ID<GameObject>> create_object_from_data(ObjectLevelData& data);
 
     ID<Level> create_level(const LevelAsset& lvl_asset, bool create_objects);
-
     ID<Level> create_level();
 
 	// erase component

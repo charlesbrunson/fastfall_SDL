@@ -15,6 +15,7 @@
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/util/log.hpp"
 #include "fastfall/util/tag.hpp"
+#include "fastfall/util/id.hpp"
 #include "fastfall/util/copyable_uniq_ptr.hpp"
 #include "fastfall/util/commandable.hpp"
 #include "fastfall/game/object/ObjectCommands.hpp"
@@ -119,7 +120,7 @@ struct ObjectFactory {
 private:
 	struct ObjectFactoryImpl {
 		const ObjectType* object_type;
-        copyable_unique_ptr<GameObject>(*createfn)(World& world, ObjectLevelData& data);
+        copyable_unique_ptr<GameObject>(*createfn)(World& world, ID<GameObject> id, ObjectLevelData& data);
 	};
 
 	static std::map<size_t, ObjectFactoryImpl>& getFactories();
@@ -130,13 +131,13 @@ public:
 	static void register_object() {
 		ObjectFactoryImpl factory;
 		factory.object_type = &T::Type;
-		factory.createfn = [](World& world, ObjectLevelData& data) -> copyable_unique_ptr<GameObject>
+		factory.createfn = [](World& world, ID<GameObject> id, ObjectLevelData& data) -> copyable_unique_ptr<GameObject>
 		{
-			if constexpr (std::is_constructible_v<T, World&, ObjectLevelData&>) {
+			if constexpr (std::is_constructible_v<T, World&, ID<GameObject>, ObjectLevelData&>) {
                 copyable_unique_ptr<GameObject> ret;
 				const ObjectType& type = T::Type;
 				if (type.test(data)) {
-					ret = make_copyable_unique<GameObject, T>(world, data);
+					ret = make_copyable_unique<GameObject, T>(world, id, data);
 				}
 				else {
 					LOG_WARN("unable to instantiate object:{}:{}", type.type.name, data.level_id.id);
@@ -153,12 +154,11 @@ public:
 		getFactories().insert(std::make_pair( factory.object_type->type.hash, std::move(factory) ));
 	}
 
-
 	template<typename T, typename ... Args>
-	requires valid_object<T> && std::is_constructible_v<T, World&, Args...>
-	static copyable_unique_ptr<GameObject> create(World& world, Args&&... args)
+	requires valid_object<T> && std::is_constructible_v<T, World&, ID<GameObject>, Args...>
+	static copyable_unique_ptr<GameObject> create(World& world, ID<GameObject> id, Args&&... args)
 	{
-        copyable_unique_ptr<GameObject> obj = make_copyable_unique<GameObject, T>(world, args...);
+        copyable_unique_ptr<GameObject> obj = make_copyable_unique<GameObject, T>(world, id, args...);
 		if (obj) {
 			return obj;
 		}
@@ -168,7 +168,7 @@ public:
 		return copyable_unique_ptr<GameObject>{};
 	}
 
-	static copyable_unique_ptr<GameObject> createFromData(World& world, ObjectLevelData& data);
+	static copyable_unique_ptr<GameObject> createFromData(World& world, ID<GameObject> id, ObjectLevelData& data);
 
 	static const ObjectType* getType(size_t hash);
 
@@ -178,8 +178,8 @@ public:
 
 class GameObject : public Commandable<ObjCmd> {
 public:
-	GameObject(World& w);
-	GameObject(World& w, ObjectLevelData& data);
+	GameObject(World& w, ID<GameObject> id);
+	GameObject(World& w, ID<GameObject> id, ObjectLevelData& data);
 	virtual ~GameObject() = default;
 
 
@@ -197,6 +197,8 @@ public:
     bool should_delete() const { return m_should_delete; }
     const ObjectLevelData* level_data() const { return m_data; };
 
+    ID<GameObject> getID() const { return m_id; };
+
 protected:
 	ObjectLevelData* const m_data = nullptr;
 
@@ -211,6 +213,7 @@ protected:
 
     friend class ObjectSystem;
 private:
+    ID<GameObject> m_id;
     bool m_should_delete = false;
 };
 
