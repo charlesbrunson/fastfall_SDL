@@ -210,6 +210,15 @@ namespace ff {
 			return key_of(*it);
 		}
 
+        slot_key peek_next_key() const {
+            uint32_t sparse_ndx = first_empty_;
+            auto& sp = sparse_[(size_t)sparse_ndx];
+            return {
+                    .generation = sp.key.generation + 1,
+                    .sparse_index = sparse_ndx
+            };
+        }
+
 	private:
 		sparse_vector sparse_;
 		dense_vector dense_;

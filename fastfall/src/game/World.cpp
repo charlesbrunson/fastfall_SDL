@@ -74,9 +74,9 @@ ID<GameObject> World::add_object(copyable_unique_ptr<GameObject>&& obj) {
 }
 
 ID<Level> World::create_level(const LevelAsset& lvl_asset, bool create_objects) {
-    auto id = create(_levels);
-    at(id).initFromAsset(*this, id, lvl_asset);
-    notify_created_all(id, _level_system);
+    auto id = notify_created_all(
+            create(_levels, *this, _levels.peek_next_id(), lvl_asset),
+            _level_system);
 
     if (create_objects)
     {
@@ -87,10 +87,9 @@ ID<Level> World::create_level(const LevelAsset& lvl_asset, bool create_objects) 
 }
 
 ID<Level> World::create_level() {
-    auto id = create(_levels);
-    at(id).init(*this, id);
-    notify_created_all(id, _level_system);
-    return id;
+    return notify_created_all(
+            create(_levels, *this, _levels.peek_next_id()),
+            _level_system);
 }
 
 bool World::erase(ID<GameObject> id)       { return erase(id, _objects, _object_system); }
