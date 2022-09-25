@@ -25,17 +25,14 @@ struct StringLiteral {
     constexpr size_t size() const { return sizeof(value); }
 };
 
-
+// 32 bit string hash
 constexpr unsigned int hash(char *str)
 {
-    constexpr unsigned MULTIPLIER = 37;
-    unsigned int h;
-    unsigned char *p;
-
-    h = 0;
-    for (p = (unsigned char*)str; *p != '\0'; p++)
-        h = MULTIPLIER * h + *p;
-    return h; // or, h % ARRAY_SIZE;
+    constexpr unsigned MULTIPLIER = 37u;
+    unsigned int hash = 0u;
+    for (unsigned char* p = (unsigned char*)str; *p != '\0'; p++)
+        hash = MULTIPLIER * hash + *p;
+    return hash;
 }
 
 enum class dtype : uint8_t {
