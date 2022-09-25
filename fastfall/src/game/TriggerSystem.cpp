@@ -26,7 +26,7 @@ void debugDrawTrigger(const Trigger& tr) {
 void TriggerSystem::update(World& world, secs deltaTime)
 {
 
-    auto triggers = world.all<Trigger>();
+    auto& triggers = world.all<Trigger>();
 	for (auto& trigger : triggers)
 	{
 		trigger.update();
