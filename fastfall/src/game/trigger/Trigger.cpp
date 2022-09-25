@@ -1,5 +1,8 @@
 #include "fastfall/game/trigger/Trigger.hpp"
 
+#include "fastfall/game/World.hpp"
+#include "fastfall/game/object/GameObject.hpp"
+
 namespace ff {
 
 void Trigger::set_trigger_callback(TriggerFn&& trigger_fn) {
@@ -36,6 +39,7 @@ std::optional<TriggerPull> Trigger::triggerable_by(const Trigger& trigger, secs 
 
 	std::optional<TriggerPull> pull = std::nullopt;
 	if (result && is_enabled()) {
+        bool is_end = driver_iter == drivers.end();
 		if (driver_iter != drivers.end()) {
 
 			driver_iter->second.duration.delta = delta_time;
@@ -51,7 +55,8 @@ std::optional<TriggerPull> Trigger::triggerable_by(const Trigger& trigger, secs 
 		else {
 
 			// start
-			driver_iter = drivers.emplace(trigger.m_id, TriggerData{}).first;
+			auto [iter, inserted] = drivers.emplace(trigger.m_id, TriggerData{});
+            driver_iter = iter;
 			driver_iter->second.duration.delta = delta_time;
 
 			pull = TriggerPull{
@@ -83,8 +88,12 @@ void Trigger::update() {
 void Trigger::trigger(World& w, const TriggerPull& confirm) {
 	if (on_trigger) {
 		activated = true;
-		on_trigger(w, confirm);
+		on_trigger(w, w.at(confirm.trigger), confirm);
 	}
+}
+
+GameObject* Trigger::get_owner(World& w) const {
+    return owner ? w.get(*owner) : nullptr;
 }
 
 const TriggerTag ttag_generic = "generic";

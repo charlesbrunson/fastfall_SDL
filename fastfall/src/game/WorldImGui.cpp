@@ -245,6 +245,7 @@ void imgui_triggers(World* w) {
             for(auto& driver : trig.drivers) {
                 ImGui::Text("\t%d", driver.first.value.sparse_index);
             }
+            ImGui::Separator();
 
             ImGui::TreePop();
         }

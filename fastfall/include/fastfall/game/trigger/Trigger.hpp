@@ -43,7 +43,7 @@ private:
 	};
 
 public:
-	using TriggerFn = std::function<void(World& w, const TriggerPull&)>;
+	using TriggerFn = std::function<void(World& w, Trigger& source, const TriggerPull&)>;
 
     void set_id(ID<Trigger> t_id) { m_id = t_id; }
 	void set_owning_object(std::optional<ID<GameObject>> id) { owner = id; }
@@ -69,6 +69,7 @@ public:
 	std::map<ID<Trigger>, TriggerData> drivers;
 
     std::optional<ID<GameObject>> get_owner_id() const { return owner; }
+    GameObject* get_owner(World& w) const;
 
 private:
 	bool enabled = true;

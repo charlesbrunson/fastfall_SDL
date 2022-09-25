@@ -11,7 +11,11 @@ struct ID {
 	slot_key value;
 	bool operator==(const ID<T>& other) const { return value == other.value; };
 	bool operator!=(const ID<T>& other) const { return value != other.value; };
-	bool operator<(const ID<T>& other)  const { return value.sparse_index < other.value.sparse_index; };
+	bool operator<(const ID<T>& other)  const {
+        return value.sparse_index != other.value.sparse_index
+            ? value.sparse_index < other.value.sparse_index
+            : value.generation < other.value.generation;
+    };
 
 	template<class Base>
 		requires std::derived_from<T, Base>
