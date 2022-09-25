@@ -27,8 +27,16 @@ Player::Player(World& w, ID<GameObject> id, Vec2f position, bool faceleft)
 	, plr::members{ w, *this, position, faceleft}
 {
     auto& box = w.at(collidable_id);
-    box.callbacks.onPostCollision = [id = getID()](World& w) {
+    box.callbacks.onPostCollision = [
+            id = getID(),
+            collidable_id = collidable_id,
+            hitbox_id = hitbox_id
+    ] (World& w)
+    {
         auto& player = (Player&)w.at(id);
+        auto& box = w.at(collidable_id);
+        auto& hitbox = w.at(hitbox_id);
+        hitbox.set_area(box.getBox());
         player.manage_state(w, player.get_state().post_collision(w, player));
     };
 };
@@ -38,8 +46,16 @@ Player::Player(World& w, ID<GameObject> id, ObjectLevelData& data)
 	, plr::members{ w, *this, Vec2f{ data.position }, data.getPropAsBool("faceleft")}
 {
     auto& box = w.at(collidable_id);
-    box.callbacks.onPostCollision = [id = getID()](World& w) {
+    box.callbacks.onPostCollision = [
+            id = getID(),
+            collidable_id = collidable_id,
+            hitbox_id = hitbox_id
+    ] (World& w)
+    {
         auto& player = (Player&)w.at(id);
+        auto& box = w.at(collidable_id);
+        auto& hitbox = w.at(hitbox_id);
+        hitbox.set_area(box.getBox());
         player.manage_state(w, player.get_state().post_collision(w, player));
     };
 };
@@ -77,15 +93,14 @@ void Player::update(World& w, secs deltaTime) {
 	sprite.update(deltaTime);
 }
 
-/*
-Player::CmdResponse Player::do_command(ObjCmd cmd, const std::any& payload) 
+Player::CmdResponse Player::do_command(ObjCmd cmd, const std::any& payload)
 {
+    //TODO
     return Behavior{ cmd, payload }
-        .match<ObjCmd::NoOp>(		[]() { return true; })
-        .match<ObjCmd::GetPosition>([this]() { return box->getPosition(); })
-        .match<ObjCmd::Hurt>(		[this](float damage) { LOG_INFO("OUCH: {}", damage); });
+        .match<ObjCmd::NoOp>([]() { return true; })
+        .match<ObjCmd::GetPosition>([]() { return Vec2f{}; })
+        .match<ObjCmd::Hurt>([](float damage) { LOG_INFO("OUCH: {}", damage); });
 }
-*/
 
 void Player::predraw(World& w, float interp, bool updated) {
 
@@ -100,6 +115,8 @@ void Player::clean(ff::World& w) {
     w.erase(sprite_scene_id);
     w.erase(collidable_id);
     w.erase(cameratarget_id);
+    w.erase(hitbox_id);
+    w.erase(hurtbox_id);
 }
 
 /*

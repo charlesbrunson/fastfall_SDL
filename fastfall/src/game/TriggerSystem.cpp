@@ -36,8 +36,8 @@ void TriggerSystem::update(World& world, secs deltaTime)
 		for (auto it1 = triggers.begin(); it1 != (--triggers.end()); it1++) {
 			auto it2 = it1; it2++;
 			for (; it2 != triggers.end(); it2++) {
-				compareTriggers(*it1, *it2, deltaTime);
-				compareTriggers(*it2, *it1, deltaTime);
+				compareTriggers(world, *it1, *it2, deltaTime);
+				compareTriggers(world, *it2, *it1, deltaTime);
 			}
 		}
 	}
@@ -49,10 +49,10 @@ void TriggerSystem::update(World& world, secs deltaTime)
 	}
 }
 
-void TriggerSystem::compareTriggers(Trigger& A, Trigger& B, secs deltaTime)
+void TriggerSystem::compareTriggers(World& w, Trigger& A, Trigger& B, secs deltaTime)
 {
 	if (auto pull = A.triggerable_by(B, deltaTime)) {
-		A.trigger(pull.value());
+		A.trigger(w, pull.value());
 	}
 }
 
@@ -73,7 +73,7 @@ void TriggerSystem::notify_erased(World& world, ID<Trigger> id)
                         .state = Trigger::State::Exit,
                         .trigger = id
                 };
-                trigger.trigger(pull);
+                trigger.trigger(world, pull);
             }
             trigger.drivers.erase(iter);
         }

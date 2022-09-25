@@ -36,6 +36,8 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     , collidable_id(w.create_collidable(position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
     , surfacetracker_id()
     , cameratarget_id()
+    , hitbox_id(w.create_trigger())
+    , hurtbox_id(w.create_trigger())
 {
     auto& box = w.at(collidable_id);
     auto [id, ptr] = box.create_tracker(
@@ -60,6 +62,37 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
                 return w.at(id).getPosition() - Vec2f{0.f, 16.f};
             }
     );
+
+    auto& hitbox = w.at(hitbox_id);
+    hitbox.set_area(box.getBox());
+    hitbox.set_owning_object(plr.getID());
+    hitbox.self_flags = {"hitbox"};
+
+    auto& hurtbox = w.at(hurtbox_id);
+    hurtbox.set_area(box.getBox());
+    hurtbox.set_owning_object(plr.getID());
+    hurtbox.self_flags = {"hurtbox"};
+    hurtbox.filter_flags = {"hitbox"};
+
+    hurtbox.set_trigger_callback(
+    [](World& w, const TriggerPull& pull) {
+        auto& trigger = w.at(pull.trigger);
+        auto owner_id = trigger.get_owner_id();
+        auto* owner = owner_id ? w.get(*owner_id) : nullptr;
+
+        if (owner && owner->type().group_tags.contains("player")
+            && pull.state == Trigger::State::Entry)
+        {
+            if (auto& rpayload = owner->command<ObjCmd::GetPosition>().payload())
+            {
+                LOG_INFO("position: {}", rpayload->to_string());
+                if (owner->command<ObjCmd::Hurt>(100.f))
+                {
+                    LOG_INFO("gottem");
+                }
+            }
+        }
+    });
 
     auto& sprite = w.at_drawable<AnimatedSprite>(sprite_scene_id);
     sprite.set_anim(plr::anim::idle);

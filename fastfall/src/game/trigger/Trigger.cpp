@@ -80,10 +80,10 @@ void Trigger::update() {
 	activated = false;
 }
 
-void Trigger::trigger(const TriggerPull& confirm) {
+void Trigger::trigger(World& w, const TriggerPull& confirm) {
 	if (on_trigger) {
 		activated = true;
-		on_trigger(confirm);
+		on_trigger(w, confirm);
 	}
 }
 

@@ -70,6 +70,8 @@ namespace plr {
         ff::ID<ff::Collidable> collidable_id;
         ff::ID<ff::SurfaceTracker> surfacetracker_id;
         ff::ID<SimpleCamTarget> cameratarget_id;
+        ff::ID<ff::Trigger> hurtbox_id;
+        ff::ID<ff::Trigger> hitbox_id;
 	};
 
 	struct move_t {
