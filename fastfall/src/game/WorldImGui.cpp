@@ -243,7 +243,7 @@ void imgui_triggers(World* w) {
             ImGui::Separator();
             ImGui::Text("drivers:");
             for(auto& driver : trig.drivers) {
-                ImGui::Text("\t%d", driver.first.value.sparse_index);
+                ImGui::Text("\tTrigger %d", driver.first.value.sparse_index);
             }
             ImGui::Separator();
 
