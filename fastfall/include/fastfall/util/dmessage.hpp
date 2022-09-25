@@ -44,9 +44,7 @@ enum class dtype : uint8_t {
     Float   = 3,
     Vec2i   = 4,
     Vec2f   = 5,
-    Spare1  = 6,
-    Spare2  = 7,
-    // can go to 15 (4 bits) actually
+    // can go to 15 (4 bits)
 };
 
 using dparam = std::variant<
@@ -58,23 +56,11 @@ using dparam = std::variant<
         Vec2f
     >;
 
-// dtype enum to datatype helpers
-template<dtype T> struct to_type {};
-template<> struct to_type<dtype::Nil>      { using type = std::monostate; };
-template<> struct to_type<dtype::Bool>     { using type = bool; };
-template<> struct to_type<dtype::Int>      { using type = int; };
-template<> struct to_type<dtype::Float>    { using type = float; };
-template<> struct to_type<dtype::Vec2i>    { using type = Vec2i; };
-template<> struct to_type<dtype::Vec2f>    { using type = Vec2f; };
-template<> struct to_type<dtype::Spare1>   { using type = void; };
-template<> struct to_type<dtype::Spare2>   { using type = void; };
-
 template<dtype T>
-using to_type_t = typename to_type<T>::type;
+using to_type_t = std::variant_alternative_t<static_cast<uint64_t>(T), dparam>;
 
 class dmessage {
 public:
-
     constexpr dmessage
     (
         uint64_t t_hash,
