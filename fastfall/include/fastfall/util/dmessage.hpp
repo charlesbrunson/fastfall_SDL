@@ -130,7 +130,7 @@ public:
             }(std::make_index_sequence<sizeof...(Params)>{});
         }
         else {
-            throw std::exception{};
+            throw std::exception{"message hash doesn't match format hash"};
         }
     }
 
@@ -158,7 +158,7 @@ public:
                 return std::get<to_type_t<RType>>(*r);
             }
             else {
-                throw std::exception{};
+                throw std::exception{"unexpected message return type"};
             }
         }
         else {
@@ -166,7 +166,7 @@ public:
                 return {};
             }
             else {
-                throw std::exception{};
+                throw std::exception{"unexpected message return type, should be nil"};
             }
         }
     }
