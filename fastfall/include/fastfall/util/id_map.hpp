@@ -61,6 +61,10 @@ public:
 		return components.exists(id.value);
 	}
 
+    bool empty() const {
+        return size() == 0;
+    }
+
     size_t size() const { return components.size(); }
 
 	inline auto begin() { return components.begin(); }

@@ -139,6 +139,7 @@ public:
     SurfaceTracker* get_tracker(ID<SurfaceTracker> id) { return trackers.get(id); };
     const SurfaceTracker* get_tracker(ID<SurfaceTracker> id) const { return trackers.get(id); };
 
+    id_map<SurfaceTracker>& get_trackers() { return trackers; };
     const id_map<SurfaceTracker>& get_trackers() const { return trackers; };
 
     struct callbacks_t {
