@@ -41,45 +41,43 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
 {
     auto& box = w.at(collidable_id);
     auto [id, ptr] = box.create_tracker(
-            Angle::Degree(-135.f),
-            Angle::Degree( -45.f));
-
+        Angle::Degree(-135.f),
+        Angle::Degree( -45.f)
+    );
     surfacetracker_id = id;
     ptr->settings = {
-            .move_with_platforms = true,
-            .slope_sticking      = true,
-            .slope_wall_stop     = true,
-            .has_friction        = true,
-            .use_surf_vel        = true,
-            .stick_angle_max = Angle::Degree(90.f),
-            .max_speed = constants::norm_speed,
-            .slope_stick_speed_factor = 0.f,
+        .move_with_platforms = true,
+        .slope_sticking      = true,
+        .slope_wall_stop     = true,
+        .has_friction        = true,
+        .use_surf_vel        = true,
+        .stick_angle_max = Angle::Degree(90.f),
+        .max_speed = constants::norm_speed,
+        .slope_stick_speed_factor = 0.f,
     };
 
     cameratarget_id = w.create_camera_target<SimpleCamTarget>(
-            ff::CamTargetPriority::Medium,
-            [id = collidable_id](World& w) {
-                return w.at(id).getPosition() - Vec2f{0.f, 16.f};
-            }
+        ff::CamTargetPriority::Medium,
+        [id = collidable_id](World& w) {
+            return w.at(id).getPosition() - Vec2f{0.f, 16.f};
+        }
     );
 
     auto& hitbox = w.at(hitbox_id);
+    hitbox.set_id(hitbox_id);
     hitbox.set_area(box.getBox());
     hitbox.set_owning_object(plr.getID());
     hitbox.self_flags = {"hitbox"};
 
     auto& hurtbox = w.at(hurtbox_id);
+    hurtbox.set_id(hurtbox_id);
     hurtbox.set_area(box.getBox());
     hurtbox.set_owning_object(plr.getID());
     hurtbox.self_flags = {"hurtbox"};
     hurtbox.filter_flags = {"hitbox"};
-
     hurtbox.set_trigger_callback(
-    [](World& w, const TriggerPull& pull) {
-        auto& trigger = w.at(pull.trigger);
-        auto owner_id = trigger.get_owner_id();
-        auto* owner = owner_id ? w.get(*owner_id) : nullptr;
-
+    [](World& w, Trigger& source, const TriggerPull& pull) {
+        auto* owner = source.get_owner(w);
         if (owner && owner->type().group_tags.contains("player")
             && pull.state == Trigger::State::Entry)
         {
