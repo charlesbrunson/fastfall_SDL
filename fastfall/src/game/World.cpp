@@ -98,7 +98,7 @@ ID<Collidable> World::create_collidable(Vec2f position, Vec2f size, Vec2f gravit
 
 ID<Trigger> World::create_trigger() {
     return notify_created_all(
-            create(_triggers),
+            create(_triggers, _triggers.peek_next_id()),
             _trigger_system);
 }
 

@@ -5,6 +5,11 @@
 
 namespace ff {
 
+Trigger::Trigger(ID<Trigger> t_id)
+    : m_id(t_id)
+{
+}
+
 void Trigger::set_trigger_callback(TriggerFn&& trigger_fn) {
 	on_trigger = std::move(trigger_fn);
 }

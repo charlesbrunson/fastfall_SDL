@@ -45,7 +45,9 @@ private:
 public:
 	using TriggerFn = std::function<void(World& w, Trigger& source, const TriggerPull&)>;
 
-    void set_id(ID<Trigger> t_id) { m_id = t_id; }
+    Trigger(ID<Trigger> t_id);
+
+    //void set_id(ID<Trigger> t_id) { m_id = t_id; }
 	void set_owning_object(std::optional<ID<GameObject>> id) { owner = id; }
 	void set_trigger_callback(TriggerFn&& trigger_fn);
 
