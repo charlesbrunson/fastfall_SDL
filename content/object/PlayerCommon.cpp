@@ -64,13 +64,11 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     );
 
     auto& hitbox = w.at(hitbox_id);
-    hitbox.set_id(hitbox_id);
     hitbox.set_area(box.getBox());
     hitbox.set_owning_object(plr.getID());
     hitbox.self_flags = {"hitbox"};
 
     auto& hurtbox = w.at(hurtbox_id);
-    hurtbox.set_id(hurtbox_id);
     hurtbox.set_area(box.getBox());
     hurtbox.set_owning_object(plr.getID());
     hurtbox.self_flags = {"hurtbox"};
