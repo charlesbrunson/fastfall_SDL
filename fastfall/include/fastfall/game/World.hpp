@@ -175,6 +175,9 @@ public:
     std::optional<ID<GameObject>> id_of(GameObject& obj);
     std::optional<ID<Level>> id_of(Level& lvl);
 
+    std::optional<ID<Collidable>> id_of(Collidable& col);
+    std::optional<ID<ColliderRegion>> id_of(ColliderRegion& col);
+
     // span components
     template<class T>
     inline auto& all() { return container<T>(); }

@@ -63,6 +63,7 @@ World& World::operator=(const World& other) {
     _scene_system = other._scene_system;
     update_counter = other.update_counter;
     update_time = other.update_time;
+    return *this;
 }
 
 World& World::operator=(World&& other) noexcept {
@@ -82,6 +83,7 @@ World& World::operator=(World&& other) noexcept {
     _scene_system = std::move(other._scene_system);
     update_counter = other.update_counter;
     update_time = other.update_time;
+    return *this;
 }
 
 World::~World() {
@@ -205,6 +207,21 @@ std::optional<ID<GameObject>> World::id_of(GameObject &obj) {
 
 std::optional<ID<Level>> World::id_of(Level& lvl) {
     return _levels.id_of(lvl);
+}
+
+std::optional<ID<Collidable>> World::id_of(Collidable& col) {
+    return _collidables.id_of(col);
+}
+
+std::optional<ID<ColliderRegion>> World::id_of(ColliderRegion& col) {
+    std::optional<ID<ColliderRegion>> id;
+    for (auto& collider : _colliders) {
+        if (collider.get() == &col) {
+            id = _colliders.id_of(collider);
+            break;
+        }
+    }
+    return id;
 }
 
 std::optional<ID<GameObject>> World::create_object_from_data(ObjectLevelData &data) {
