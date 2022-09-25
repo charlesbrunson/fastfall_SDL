@@ -49,5 +49,5 @@ protected:
 
 	void manage_state(ff::World& w, PlayerStateID n_id);
 
-	//CmdResponse do_command(ff::ObjCmd cmd, const std::any& payload) override;
+	CmdResponse do_command(ff::ObjCmd cmd, const std::any& payload) override;
 };

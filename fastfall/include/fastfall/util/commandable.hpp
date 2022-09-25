@@ -201,7 +201,10 @@ public:
 			return { resp.response };
 		}
 		else {
-			return { resp.response, std::any_cast<CmdReturnType>(resp.payload) };
+            if (resp.payload.has_value())
+			    return { resp.response, std::any_cast<CmdReturnType>(resp.payload) };
+            else
+                return { resp.response, CmdReturnType{} };
 		}
 	}
 

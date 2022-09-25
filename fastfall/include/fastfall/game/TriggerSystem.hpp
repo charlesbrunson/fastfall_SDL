@@ -16,7 +16,7 @@ public:
     void notify_erased(World& world, ID<Trigger> id);
 
 private:
-	void compareTriggers(Trigger& A, Trigger& B, secs deltaTime);
+	void compareTriggers(World& w, Trigger& A, Trigger& B, secs deltaTime);
 };
 
 }

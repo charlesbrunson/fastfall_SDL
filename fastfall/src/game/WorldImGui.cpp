@@ -215,6 +215,41 @@ void imgui_colliders(World* w) {
     }
 }
 
+void imgui_triggers(World* w) {
+    auto &triggers = w->all<Trigger>();
+    for (auto &trig: triggers) {
+        auto id = triggers.id_of(trig);
+        if (ImGui::TreeNode((void *) (&trig), "Trigger %d", id.value.sparse_index)) {
+
+            ImGui::Text("Enabled: %s", trig.is_enabled() ? "true" : "false");
+            ImGui::Text("Active: %s", trig.is_activated() ? "true" : "false");
+
+            switch (trig.overlap) {
+                case Trigger::Overlap::Partial: ImGui::Text("Overlap: Partial"); break;
+                case Trigger::Overlap::Outside: ImGui::Text("Overlap: Outside"); break;
+                case Trigger::Overlap::Inside:  ImGui::Text("Overlap: Inside");  break;
+            }
+
+            ImGui::Separator();
+            ImGui::Text("self flags:");
+            for(auto& self_flag : trig.self_flags) {
+                ImGui::Text("\t%s", self_flag.tag_name_str().data());
+            }
+            ImGui::Separator();
+            ImGui::Text("filter flags:");
+            for(auto& filter : trig.filter_flags) {
+                ImGui::Text("\t%s", filter.tag_name_str().data());
+            }
+            ImGui::Separator();
+            ImGui::Text("drivers:");
+            for(auto& driver : trig.drivers) {
+                ImGui::Text("\t%d", driver.first.value.sparse_index);
+            }
+
+            ImGui::TreePop();
+        }
+    }
+}
 
 // ------------------------------------------------------------
 
@@ -304,7 +339,7 @@ void WorldImGui::ImGui_getContent()
                     ImGui::EndTabItem();
                 }
                 if (ImGui::BeginTabItem("Triggers")) {
-
+                    imgui_triggers(curr_world);
                     ImGui::EndTabItem();
                 }
                 if (ImGui::BeginTabItem("Cameras")) {

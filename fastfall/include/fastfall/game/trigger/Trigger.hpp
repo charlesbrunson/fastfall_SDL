@@ -12,6 +12,7 @@
 
 namespace ff {
 
+class World;
 class GameObject;
 
 struct TriggerPull;
@@ -42,17 +43,14 @@ private:
 	};
 
 public:
-	using TriggerFn = std::function<void(const TriggerPull&)>;
+	using TriggerFn = std::function<void(World& w, const TriggerPull&)>;
 
     void set_id(ID<Trigger> t_id) { m_id = t_id; }
 	void set_owning_object(std::optional<ID<GameObject>> id) { owner = id; }
 	void set_trigger_callback(TriggerFn&& trigger_fn);
 
 	std::optional<TriggerPull> triggerable_by(const Trigger& trigger, secs delta_time);
-	void trigger(const TriggerPull& confirm);
-
-	//void add_duration(secs time, size_t ticks = 1);
-	//void reset_duration();
+	void trigger(World& w, const TriggerPull& confirm);
 
 	void update();
 
@@ -69,6 +67,8 @@ public:
 	bool is_enabled() const { return enabled; };
 
 	std::map<ID<Trigger>, TriggerData> drivers;
+
+    std::optional<ID<GameObject>> get_owner_id() const { return owner; }
 
 private:
 	bool enabled = true;
