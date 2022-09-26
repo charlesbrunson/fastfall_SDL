@@ -63,15 +63,17 @@ void TriggerSystem::notify_created(World& world, ID<Trigger> id)
 void TriggerSystem::notify_erased(World& world, ID<Trigger> id)
 {
     // if the trigger is being erased, try to trigger any drivers associated first
+    auto& tr = world.at(id);
     for (auto& trigger : world.all<Trigger>()) {
         auto iter = trigger.drivers.find(id);
         if (iter != trigger.drivers.end())
         {
             if (trigger.is_enabled()) {
                 auto pull = TriggerPull{
-                        .duration = iter->second.duration,
-                        .state = Trigger::State::Exit,
-                        .trigger = id
+                    .self = &trigger,
+                    .source = &tr,
+                    .state = Trigger::State::Exit,
+                    .duration = iter->second.duration,
                 };
                 trigger.trigger(world, pull);
             }

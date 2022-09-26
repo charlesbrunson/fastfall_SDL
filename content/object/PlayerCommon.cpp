@@ -74,8 +74,8 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     hurtbox.self_flags = {"hurtbox"};
     hurtbox.filter_flags = {"hitbox"};
     hurtbox.set_trigger_callback(
-    [](World& w, Trigger& source, const TriggerPull& pull) {
-        auto* owner = source.get_owner(w);
+    [](World& w, const TriggerPull& pull) {
+        auto* owner = pull.source->get_owner(w);
         if (owner
             && owner->type().group_tags.contains("player")
             && pull.state == Trigger::State::Entry)
