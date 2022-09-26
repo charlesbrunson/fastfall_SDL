@@ -18,8 +18,8 @@
 #include "fastfall/util/tag.hpp"
 #include "fastfall/util/id.hpp"
 #include "fastfall/util/copyable_uniq_ptr.hpp"
-#include "fastfall/util/commandable.hpp"
-#include "fastfall/game/object/ObjectCommands.hpp"
+//#include "fastfall/util/commandable.hpp"
+#include "fastfall/game/object/objmessage.hpp"
 
 namespace ff {
 
@@ -185,7 +185,7 @@ public:
 	static const ObjectType* getType(std::string_view name);
 };
 
-class GameObject : public Commandable<ObjCmd> {
+class GameObject {
 public:
 	GameObject(World& w, ID<GameObject> id);
 	GameObject(World& w, ID<GameObject> id, ObjectLevelData& data);
@@ -208,6 +208,8 @@ public:
 
     [[nodiscard]]
     ID<GameObject> getID() const { return m_id; };
+
+    virtual objcfg::dresult message(World&, const objcfg::dmessage&) { return objcfg::reject; }
 
 protected:
 	ObjectLevelData* const m_data = nullptr;

@@ -93,14 +93,19 @@ void Player::update(World& w, secs deltaTime) {
 	sprite.update(deltaTime);
 }
 
-Player::CmdResponse Player::do_command(ObjCmd cmd, const std::any& payload)
-{
-    //TODO
-    return Behavior{ cmd, payload }
-        .match<ObjCmd::NoOp>([]() { return true; })
-        .match<ObjCmd::GetPosition>([]() { return Vec2f{}; })
-        .match<ObjCmd::Hurt>([](float damage) { LOG_INFO("OUCH: {}", damage); });
-}
+objcfg::dresult Player::message(World& w, const objcfg::dmessage& msg) {
+    switch(msg) {
+        case objNoOp:
+            return objNoOp.accept();
+        case objGetPos:
+            return objGetPos.accept(w.at(collidable_id).getPosition());
+        case objHurt:
+            auto [damage] = objHurt.unwrap(msg);
+            LOG_INFO("OUCH: {}", damage);
+            return objHurt.accept();
+    }
+    return objcfg::reject;
+};
 
 void Player::predraw(World& w, float interp, bool updated) {
 

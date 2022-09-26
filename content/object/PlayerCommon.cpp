@@ -76,13 +76,14 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     hurtbox.set_trigger_callback(
     [](World& w, Trigger& source, const TriggerPull& pull) {
         auto* owner = source.get_owner(w);
-        if (owner && owner->type().group_tags.contains("player")
+        if (owner
+            && owner->type().group_tags.contains("player")
             && pull.state == Trigger::State::Entry)
         {
-            if (auto& rpayload = owner->command<ObjCmd::GetPosition>().payload())
-            {
-                LOG_INFO("position: {}", rpayload->to_string());
-                if (owner->command<ObjCmd::Hurt>(100.f))
+            if (auto pos = objGetPos.send(*owner, w)) {
+                LOG_INFO("position: {}", *pos);
+
+                if (objHurt.send(*owner, w, 100.f))
                 {
                     LOG_INFO("gottem");
                 }
