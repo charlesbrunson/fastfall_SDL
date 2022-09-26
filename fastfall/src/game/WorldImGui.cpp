@@ -8,6 +8,7 @@
 namespace ff {
 
 std::vector<World*> WorldImGui::worlds;
+bool WorldImGui::update_labels = false;
 
 
 // ------------------------------------------------------------
@@ -270,19 +271,19 @@ void WorldImGui::ImGui_getContent()
     static std::array<std::string, 32> world_labels = { "" };
     static unsigned comboWorld = 0;
 
-    int i = 0;
-    for (auto w : worlds)
-    {
-        world_labels[i] = fmt::format("{:8} {}", fmt::ptr(w), (i + 1));
+    if (update_labels) {
+        int i = 0;
+        for (auto w: worlds) {
+            world_labels[i] = fmt::format("{:8} {}", fmt::ptr(w), (i + 1));
 
-        if (++i > 32)
-            break;
-    }
-    while (i < 32) {
-        if (!world_labels[i].empty())
+            if (++i > 32)
+                break;
+        }
+        while (i < 32) {
             world_labels[i] = "";
-
-        ++i;
+            ++i;
+        }
+        update_labels = false;
     }
 
     if (ImGui::BeginCombo("##Instance", world_labels[comboWorld].c_str())) {
@@ -290,7 +291,7 @@ void WorldImGui::ImGui_getContent()
         for (int n = 0; n < 32; n++)
         {
             if (world_labels[n].empty())
-                continue;
+                break;
 
             const bool is_selected = (comboWorld == n);
             if (ImGui::Selectable(world_labels[n].c_str(), is_selected)) {
