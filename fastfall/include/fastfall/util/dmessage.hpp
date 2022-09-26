@@ -4,6 +4,7 @@
 #include <cinttypes>
 #include <string>
 #include <variant>
+#include <stdexcept>
 
 #include "math.hpp"
 
@@ -34,9 +35,6 @@ struct StringLiteral {
     constexpr size_t size() const { return sizeof(value); }
 };
 
-// 32 bit string hash
-//constexpr unsigned int hash(char *str);
-
 enum class dtype : uint8_t {
     Nil     = 0,
     Bool    = 1,
@@ -47,7 +45,7 @@ enum class dtype : uint8_t {
     // can go to 15 (4 bits)
 };
 
-using dparam = std::variant<
+using dvar = std::variant<
         std::monostate,
         bool,
         int,
@@ -57,14 +55,14 @@ using dparam = std::variant<
     >;
 
 template<dtype T>
-using to_type_t = std::variant_alternative_t<static_cast<uint64_t>(T), dparam>;
+using to_type_t = std::variant_alternative_t<static_cast<uint64_t>(T), dvar>;
 
 class dmessage {
 public:
     constexpr dmessage
     (
         uint64_t t_hash,
-        std::array<dparam, 4> t_params,
+        std::array<dvar, 4> t_params,
         unsigned t_count
     )
         : type_hash(t_hash)
@@ -76,16 +74,21 @@ public:
     constexpr operator size_t() const { return type_hash; }
     constexpr uint64_t hash() const { return type_hash; }
 
-    const std::array<dparam, 4>& params() const { return param_data; }
+    const std::array<dvar, 4>& params() const { return param_data; }
     unsigned pcount() const { return param_count; }
 
 private:
     uint64_t type_hash;
-    std::array<dparam, 4> param_data;
+    std::array<dvar, 4> param_data;
     unsigned param_count = 0;
 };
 
-template<StringLiteral Name, dtype RType, dtype... Params>
+struct dresult {
+    bool accepted = false;
+    std::optional<dvar> result = {};
+};
+
+template<StringLiteral Name, dtype RType = dtype::Nil, dtype... Params>
     requires (sizeof...(Params) <= 4)
 class dformat {
 private:
@@ -117,6 +120,35 @@ public:
 
     constexpr operator uint64_t() const { return type_hash; }
 
+    // wraps message return param
+    constexpr dresult
+    accept(to_type_t<RType> r) const requires(RType != dtype::Nil) {
+        return { true, r };
+    }
+
+    constexpr dresult
+    accept() const requires(RType == dtype::Nil) {
+        return { true, std::nullopt };
+    }
+
+    template<class Callable, class... Binds>
+        requires std::is_invocable_v<Callable, Binds..., to_type_t<Params>...>
+    constexpr dresult
+    apply(const dmessage& msg, Callable&& callable, Binds&&... binds)  const {
+        return { true, std::apply(callable, std::tuple_cat(std::tuple(binds...), unwrap(msg))) };
+    };
+
+    template<class Sendable>
+    constexpr std::conditional_t<RType == dtype::Nil, bool, std::optional<to_type_t<RType>>>
+    send(Sendable& mailbox, to_type_t<Params>... params) const {
+        if constexpr (RType == dtype::Nil) {
+            return unwrap_r(mailbox.message(wrap(std::forward<to_type_t<Params>>(params)...)));
+        }
+        else {
+            return unwrap_r(mailbox.message(wrap(std::forward<to_type_t<Params>>(params)...)));
+        }
+    }
+
     // unwrap message parameters
     constexpr
     std::tuple<to_type_t<Params>...>
@@ -130,7 +162,7 @@ public:
             }(std::make_index_sequence<sizeof...(Params)>{});
         }
         else {
-            throw std::exception{"message hash doesn't match format hash"};
+            throw std::invalid_argument{"message hash doesn't match format hash"};
         }
     }
 
@@ -142,46 +174,29 @@ public:
         return { type_hash, { params... }, sizeof...(Params)};
     }
 
-    // wraps message return param
-    constexpr
-    dparam
-    wrap_r(to_type_t<RType> r) const {
-        return { r };
-    }
-
     // unwrap message return param
-    constexpr
-    to_type_t<RType>
-    unwrap_r(std::optional<dparam> r) const {
+    constexpr std::conditional_t<RType == dtype::Nil, bool, std::optional<to_type_t<RType>>>
+    unwrap_r(dresult r) const {
         if constexpr (RType != dtype::Nil) {
-            if (r && r->index() == dparam{to_type_t<RType>{}}.index()) {
-                return std::get<to_type_t<RType>>(*r);
+            if (r.accepted) {
+                if (r.result && r.result->index() == dvar{to_type_t<RType>{}}.index()) {
+                    return std::get<to_type_t<RType>>(*r.result);
+                } else {
+                    throw std::invalid_argument{"unexpected message return type"};
+                }
             }
             else {
-                throw std::exception{"unexpected message return type"};
-            }
-        }
-        else {
-            if (!r) {
                 return {};
             }
-            else {
-                throw std::exception{"unexpected message return type, should be nil"};
-            }
-        }
-    }
-
-    template<class Sendable>
-    constexpr std::conditional_t<RType == dtype::Nil, void, to_type_t<RType>>
-    send(Sendable& mailbox, to_type_t<Params>... params) const {
-        if constexpr (RType == dtype::Nil) {
-            unwrap_r(mailbox.message(wrap(std::forward<to_type_t<Params>>(params)...)));
         }
         else {
-            return unwrap_r(mailbox.message(wrap(std::forward<to_type_t<Params>>(params)...)));
+            if (!r.result) {
+                return r.accepted;
+            } else {
+                throw std::invalid_argument{"unexpected message return type, should be nil"};
+            }
         }
     }
 };
-
 
 }

@@ -4,33 +4,50 @@
 
 using namespace ff;
 
-constexpr auto dGetPosition = dformat<"getpos", dtype::Vec2i>{};
-constexpr auto dSetPosition = dformat<"setpos", dtype::Nil, dtype::Vec2i>{};
+// define some message formats: message name, return type, message parameters... (up to 4 for now)
+constexpr auto dGetPosition  = dformat<"getpos", dtype::Vec2i>{};
+constexpr auto dSetPosition  = dformat<"setpos", dtype::Nil, dtype::Vec2i>{};
+constexpr auto dHasHPBetween = dformat<"ishpbetween", dtype::Bool, dtype::Float, dtype::Float>{};
+constexpr auto dUnhandled    = dformat<"unhandled">{};
 
+// this mailbox responds correctly to messages
 struct Mailbox {
-    std::optional<dparam> message(dmessage msg) {
+    dresult message(dmessage msg) {
         switch(msg)
         {
-            case dGetPosition:
-                return dGetPosition.wrap_r(pos);
-            case dSetPosition:
-                std::tie(pos) = dSetPosition.unwrap(msg);
-                break;
+        case dGetPosition:
+            return dGetPosition.accept(pos);
+        case dSetPosition:
+            std::tie(pos) = dSetPosition.unwrap(msg);
+            return dSetPosition.accept();
+        case dHasHPBetween:
+            //auto [min, max] = dHasHPBetween.unwrap(msg);
+            //return dHasHPBetween.accept(min <= health && health <= max);
+            // OR
+            //return dHasHPBetween.apply(msg, &Mailbox::hasHPBetween, this);
+            // OR
+            return dHasHPBetween.apply(msg, [this](float min, float max) { return min <= health && health <= max; });
         }
         return {};
     }
 
+    bool hasHPBetween(float min, float max) const {
+        return min <= health && health <= max;
+    }
+
     Vec2i pos;
+    float health = 50.f;
 };
 
+// this mailbox responds incorrectly to messages
 struct Badbox {
-    std::optional<dparam> message(dmessage msg) {
+    dresult message(dmessage msg) {
         switch(msg)
         {
-            case dGetPosition:
-                return Vec2f{};
-            case dSetPosition:
-                return Vec2i{};
+        case dGetPosition:
+            return {true, {} };
+        case dSetPosition:
+            return {true, Vec2i{} };
         }
         return {};
     }
@@ -41,7 +58,6 @@ TEST(dmessage, wrap_unwrap)
     auto getpos_msg = dGetPosition.wrap();
 
     auto test_vec1 = Vec2i{12, 15};
-    auto test_vec2 = Vec2i{10, 100};
 
     auto setpos_msg = dSetPosition.wrap(test_vec1);
 
@@ -53,25 +69,25 @@ TEST(dmessage, wrap_unwrap)
 
     auto [vec] = dSetPosition.unwrap(setpos_msg);
     ASSERT_TRUE(vec == test_vec1);
-
-    auto r = dGetPosition.wrap_r(test_vec2);
-
-    auto r2 = dGetPosition.unwrap_r(r);
-    ASSERT_TRUE(r2 == test_vec2);
-
 }
 
 TEST(dmessage, mailbox) {
     Mailbox box;
 
     Vec2i r1 = {100, 20};
-    Vec2i v1 = dGetPosition.send(box);
+    Vec2i v1 = *dGetPosition.send(box);
     ASSERT_TRUE(v1 == Vec2i{});
 
     dSetPosition.send(box, r1);
 
-    Vec2i v2 = dGetPosition.send(box);
+    Vec2i v2 = *dGetPosition.send(box);
     ASSERT_TRUE(v2 == r1);
+
+    auto h = dUnhandled.send(box);
+    ASSERT_FALSE(h);
+
+    bool hp = *dHasHPBetween.send(box, 20.f, 80.f);
+    ASSERT_TRUE(hp);
 }
 
 TEST(dmessage, badbox) {
@@ -80,6 +96,9 @@ TEST(dmessage, badbox) {
     Vec2i r1 = {100, 20};
     ASSERT_ANY_THROW(dGetPosition.send(box));
     ASSERT_ANY_THROW(dSetPosition.send(box, r1));
+
+    auto h = dUnhandled.send(box);
+    ASSERT_FALSE(h);
 }
 
 
