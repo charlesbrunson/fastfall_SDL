@@ -26,6 +26,7 @@ public:
 
 	//void ImGui_Inspect() override;
 
+    ff::objcfg::dresult message(ff::World&, const ff::objcfg::dmessage&) override;
 protected:
 	std::variant<
 		PlayerGroundState, 
@@ -49,5 +50,5 @@ protected:
 
 	void manage_state(ff::World& w, PlayerStateID n_id);
 
-	CmdResponse do_command(ff::ObjCmd cmd, const std::any& payload) override;
+	//CmdResponse do_command(ff::ObjCmd cmd, const std::any& payload) override;
 };
