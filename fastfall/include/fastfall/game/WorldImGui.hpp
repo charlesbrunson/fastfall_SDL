@@ -13,6 +13,7 @@ private:
     World* curr_world = nullptr;
     static std::vector<World*> worlds;
 
+    static bool update_labels;
 public:
     WorldImGui();
 
@@ -23,12 +24,15 @@ public:
     static void add(World* w) {
         bool exists = std::find(worlds.begin(), worlds.end(), w) != worlds.end();
 
-        if (!exists)
+        if (!exists) {
             worlds.push_back(w);
+            update_labels = true;
+        }
     }
 
     static void remove(World* w) {
         std::erase(worlds, w);
+        update_labels = false;
     }
 
 };
