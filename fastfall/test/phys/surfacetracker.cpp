@@ -135,20 +135,21 @@ TEST_F(surfacetracker, broken_slope)
 		{"slope",	"",			"",			"",			""},
 	});
 
-	box->teleport({ 72, 8 });
-	box->set_vel({ 0.f, 0.f });
+	box->teleport({ 48.1, 32 });
+    box->setPosition({ 47.9, 32.3  });
+	box->set_vel({ -150.f, 150.f });
 	box->set_gravity({ 0, 400 });
 
 	TestPhysRenderer render(world, collider->getBoundingBox());
 	render.draw();
 
-	while (render.curr_frame < 600 && box->getPosition().x > 0)
-	{
-		ground->traverse_set_speed(-50.f);
-		update();
-		render.draw();
-		EXPECT_TRUE(ground->has_contact());
-	}
+    while (render.curr_frame < 15) {
+        update();
+        render.draw();
+    }
+
+    EXPECT_TRUE(ground->has_contact());
+
 }
 
 TEST_F(surfacetracker, stick_on_touch)

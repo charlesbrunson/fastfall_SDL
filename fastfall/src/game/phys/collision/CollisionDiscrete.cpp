@@ -259,17 +259,25 @@ void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
 			if (!math::is_horizontal(axis.contact.collider.surface)) {
 				Y = getYforX(axis.contact.collider.surface, cMid.x);
 
+                float clamp = math::clamp(cMid.x, tArea.left, tArea.left + tArea.width);
+                axis.contact.collider_n = math::vector(axis.contact.collider.surface).lefthand().unit();
 				if (cPrev.top + cPrev.height <= tArea.top &&
 					Y <= tArea.top &&
 					(axis.quadIndex != 255U) &&
 					cQuad.getSurface(Cardinal(axis.quadIndex)) &&
-					math::clamp(cMid.x, tArea.left, tArea.left + tArea.width) != cMid.x)
+                    clamp != cMid.x)
 				{
-					axis.contact.collider_n = Vec2f(0.f, -1.f);
+                    if (cMid.x > tArea.left + tArea.width
+                        && axis.contact.collider.getGhostNext().p2.y >= tArea.top)
+                    {
+                        axis.contact.collider_n = Vec2f(0.f, -1.f);
+                    }
+                    else if (cMid.x < tArea.left
+                             && axis.contact.collider.getGhostPrev().p1.y >= tArea.top)
+                    {
+                        axis.contact.collider_n = Vec2f(0.f, -1.f);
+                    }
 					Y = tArea.top;
-				}
-				else {
-					axis.contact.collider_n = math::vector(axis.contact.collider.surface).lefthand().unit();
 				}
 			}
 
@@ -302,19 +310,28 @@ void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
 
 			float Y = tArea.top + tArea.height;
 			if (!math::is_horizontal(axis.contact.collider.surface)) {
+
 				Y = getYforX(axis.contact.collider.surface, cMid.x);
+                axis.contact.collider_n = math::vector(axis.contact.collider.surface).lefthand().unit();
+                float clamp = math::clamp(cMid.x, tArea.left, tArea.left + tArea.width);
 
 				if (cPrev.top >= tArea.top + tArea.height &&
 					Y >= tArea.top + tArea.height &&
 					(axis.quadIndex != 255U) &&
 					cQuad.getSurface(Cardinal(axis.quadIndex)) &&
-					math::clamp(cMid.x, tArea.left, tArea.left + tArea.width) != cMid.x)
+                    clamp != cMid.x)
 				{
-					axis.contact.collider_n = Vec2f(0.f, 1.f);
+                    if (cMid.x > tArea.left + tArea.width
+                        && axis.contact.collider.getGhostPrev().p1.y <= tArea.top)
+                    {
+                        axis.contact.collider_n = Vec2f(0.f, 1.f);
+                    }
+                    else if (cMid.x < tArea.left
+                         && axis.contact.collider.getGhostNext().p2.y <= tArea.top)
+                    {
+                        axis.contact.collider_n = Vec2f(0.f, 1.f);
+                    }
 					Y = tArea.top + tArea.height;
-				}
-				else {
-					axis.contact.collider_n = math::vector(axis.contact.collider.surface).lefthand().unit();
 				}
 			}
 
