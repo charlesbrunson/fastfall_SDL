@@ -24,23 +24,24 @@ namespace detail {
 
     template<class Variant, class T>
     constexpr size_t index_of_v = index_of<Variant, T>::value;
+
+    template<size_t N>
+    struct StringLiteral {
+        constexpr StringLiteral(const char (&str)[N]) {
+            std::copy_n(str, N, value);
+        }
+
+        char value[N];
+
+        constexpr const char* data() const { return value; }
+        constexpr operator std::string_view() const {
+            return std::string_view{data()};
+        }
+
+        constexpr size_t size() const { return sizeof(value); }
+    };
 }
 
-template<size_t N>
-struct StringLiteral {
-    constexpr StringLiteral(const char (&str)[N]) {
-        std::copy_n(str, N, value);
-    }
-
-    char value[N];
-
-    constexpr const char* data() const { return value; }
-    constexpr operator std::string_view() const {
-        return std::string_view{data()};
-    }
-
-    constexpr size_t size() const { return sizeof(value); }
-};
 
 template<class Variant, class... Binds>
     requires (std::variant_size_v<Variant> <= 16)
@@ -79,7 +80,7 @@ public:
 
     static constexpr dresult reject = { false, {} };
 
-    template<StringLiteral Name, class RType = std::monostate, class... Params>
+    template<detail::StringLiteral Name, class RType = std::monostate, class... Params>
         requires (sizeof...(Params) <= 4)
     class dformat {
     private:
