@@ -43,7 +43,7 @@ private:
 	};
 
 public:
-	using TriggerFn = std::function<void(World& w, Trigger& source, const TriggerPull&)>;
+	using TriggerFn = std::function<void(World& w, const TriggerPull&)>;
 
     Trigger(ID<Trigger> t_id);
 
@@ -51,7 +51,7 @@ public:
 	void set_owning_object(std::optional<ID<GameObject>> id) { owner = id; }
 	void set_trigger_callback(TriggerFn&& trigger_fn);
 
-	std::optional<TriggerPull> triggerable_by(const Trigger& trigger, secs delta_time);
+	std::optional<TriggerPull> triggerable_by(Trigger& trigger, secs delta_time);
 	void trigger(World& w, const TriggerPull& confirm);
 
 	void update();
@@ -84,9 +84,10 @@ private:
 };
 
 struct TriggerPull {
-	Trigger::Duration duration;
-	Trigger::State state = Trigger::State::None;
-	ID<Trigger> trigger;
+    Trigger* self = nullptr;
+    Trigger* source = nullptr;
+    Trigger::State state = Trigger::State::None;
+    Trigger::Duration duration;
 };
 
 extern const TriggerTag ttag_generic;

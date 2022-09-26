@@ -14,7 +14,7 @@ void Trigger::set_trigger_callback(TriggerFn&& trigger_fn) {
 	on_trigger = std::move(trigger_fn);
 }
 
-std::optional<TriggerPull> Trigger::triggerable_by(const Trigger& trigger, secs delta_time) {
+std::optional<TriggerPull> Trigger::triggerable_by(Trigger& trigger, secs delta_time) {
 	Rectf intersection;
 	area.intersects(trigger.area, intersection);
 
@@ -52,9 +52,10 @@ std::optional<TriggerPull> Trigger::triggerable_by(const Trigger& trigger, secs 
 			driver_iter->second.duration.ticks++;
 
 			pull = TriggerPull{
+                .self = this,
+                .source = &trigger,
+                .state = State::Loop,
 				.duration = driver_iter->second.duration,
-				.state = State::Loop,
-				.trigger = trigger.m_id
 			};
 		}
 		else {
@@ -65,9 +66,10 @@ std::optional<TriggerPull> Trigger::triggerable_by(const Trigger& trigger, secs 
 			driver_iter->second.duration.delta = delta_time;
 
 			pull = TriggerPull{
+                .self = this,
+                .source = &trigger,
+                .state = State::Entry,
 				.duration = driver_iter->second.duration,
-				.state = State::Entry,
-				.trigger = trigger.m_id
 			};
 		}
 	}
@@ -75,9 +77,10 @@ std::optional<TriggerPull> Trigger::triggerable_by(const Trigger& trigger, secs 
 		// exit
 		driver_iter->second.duration.delta = delta_time;
 		pull = TriggerPull{
+            .self = this,
+            .source = &trigger,
+            .state = State::Exit,
 			.duration = driver_iter->second.duration,
-			.state = State::Exit,
-			.trigger = trigger.m_id
 		};
 		drivers.erase(driver_iter);
 	}
@@ -93,7 +96,7 @@ void Trigger::update() {
 void Trigger::trigger(World& w, const TriggerPull& confirm) {
 	if (on_trigger) {
 		activated = true;
-		on_trigger(w, w.at(confirm.trigger), confirm);
+		on_trigger(w, confirm);
 	}
 }
 

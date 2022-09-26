@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <tuple>
 #include <cinttypes>
 #include <string>
 #include <variant>
@@ -123,7 +124,7 @@ public:
             return {true, std::nullopt};
         }
 
-        template<class Callable, class... Binds>
+        template<class Callable>
         requires std::is_invocable_v<Callable, Binds..., Params...>
         constexpr dresult
         apply(const dmessage &msg, Callable &&callable, Binds &&... binds) const {
