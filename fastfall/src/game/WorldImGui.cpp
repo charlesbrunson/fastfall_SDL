@@ -14,8 +14,9 @@ bool WorldImGui::update_labels = false;
 // ------------------------------------------------------------
 
 void imgui_collidables(World* w) {
-    for (auto& col : w->all<Collidable>()) {
-        auto id = *w->id_of(col);
+    auto& collidables = w->all<Collidable>();
+    for (auto& col : collidables) {
+        auto id = collidables.id_of(col);
         if (ImGui::TreeNode((void*)(&col), "Collidable %d", id.value.sparse_index)) {
 
             ImGui::Text("Curr Pos: %3.2f, %3.2f", col.getPosition().x, col.getPosition().y);

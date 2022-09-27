@@ -115,7 +115,7 @@ void BasicPlatform::update(World& w, secs deltaTime) {
 }
 
 void BasicPlatform::predraw(World& w, float interp, bool updated) {
-    auto& sh = w.at_drawable<ShapeRectangle>(scene_id);
+    auto& sh = w.at(id_cast<ShapeRectangle>(scene_id));
     auto& collider = w.at(collider_id);
 	sh.setPosition(math::lerp(collider.getPrevPosition(), collider.getPosition() + collider_offset, interp));
 	sh.setSize(ff::Vec2f{ collider.getBoundingBox().getSize() });

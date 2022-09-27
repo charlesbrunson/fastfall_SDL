@@ -28,9 +28,9 @@ struct ID {
     }
 };
 
-template<class Derived, class Base>
-requires std::derived_from<Derived, Base>
-ID<Derived> id_cast(ID<Base> id) {
+template<class Other, class Base>
+//requires std::derived_from<Derived, Base>
+ID<Other> id_cast(ID<Base> id) {
 	return { id.value };
 }
 

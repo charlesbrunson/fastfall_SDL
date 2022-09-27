@@ -194,36 +194,6 @@ bool World::erase(ID<SceneObject> id)      { return erase(id, _scene_objects, _s
 bool World::erase(ID<Trigger> id)          { return erase(id, _triggers, _trigger_system); }
 bool World::erase(ID<CameraTarget> id)     { return erase(id, _camera_targets, _camera_system); }
 
-std::optional<ID<GameObject>> World::id_of(GameObject &obj) {
-    std::optional<ID<GameObject>> id;
-    for (auto& object : _objects) {
-        if (object.get() == &obj) {
-            id = _objects.id_of(object);
-            break;
-        }
-    }
-    return id;
-}
-
-std::optional<ID<Level>> World::id_of(Level& lvl) {
-    return _levels.id_of(lvl);
-}
-
-std::optional<ID<Collidable>> World::id_of(Collidable& col) {
-    return _collidables.id_of(col);
-}
-
-std::optional<ID<ColliderRegion>> World::id_of(ColliderRegion& col) {
-    std::optional<ID<ColliderRegion>> id;
-    for (auto& collider : _colliders) {
-        if (collider.get() == &col) {
-            id = _colliders.id_of(collider);
-            break;
-        }
-    }
-    return id;
-}
-
 std::optional<ID<GameObject>> World::create_object_from_data(ObjectLevelData &data) {
     auto ptr = ObjectFactory::createFromData(*this, _objects.peek_next_id(), data);
     if (ptr) {

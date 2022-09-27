@@ -8,7 +8,6 @@ using namespace plr;
 
 void PlayerGroundState::enter(ff::World& w, plr::members& plr, PlayerState* from)
 {
-
     auto& box = w.at(plr.collidable_id);
     auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
 	ground.settings.slope_sticking = true;
@@ -29,8 +28,7 @@ PlayerStateID PlayerGroundState::update(ff::World& w, plr::members& plr, secs de
 	if (deltaTime <= 0.0) 
 		return PlayerStateID::Continue;
 
-    auto& sprite = w.at_drawable<AnimatedSprite>(plr.sprite_scene_id);
-    auto& box = w.at(plr.collidable_id);
+    auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
     auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
 
 	sprite.set_playback(1.f);

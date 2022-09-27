@@ -7,7 +7,7 @@ using namespace ff;
 
 plr::move_t::move_t(World& w, const plr::members& plr)
 {
-    auto& sprite = w.at_drawable<AnimatedSprite>(plr.sprite_scene_id);
+    auto& sprite = w.at(plr.sprite_id);
     auto& box = w.at(plr.collidable_id);
     auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
 
@@ -32,13 +32,15 @@ plr::move_t::move_t(World& w, const plr::members& plr)
 
 
 plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
-    : sprite_scene_id(w.create_scene_object({.drawable = make_copyable_unique<Drawable, AnimatedSprite>()}))
+    : scene_id(w.create_scene_object({.drawable = make_copyable_unique<Drawable, AnimatedSprite>()}))
     , collidable_id(w.create_collidable(position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
     , surfacetracker_id()
     , cameratarget_id()
     , hitbox_id(w.create_trigger())
     , hurtbox_id(w.create_trigger())
 {
+    sprite_id = id_cast<AnimatedSprite>(scene_id);
+
     auto& box = w.at(collidable_id);
     auto [id, ptr] = box.create_tracker(
         Angle::Degree(-135.f),
@@ -91,7 +93,7 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
         }
     });
 
-    auto& sprite = w.at_drawable<AnimatedSprite>(sprite_scene_id);
+    auto& sprite = w.at(sprite_id);
     sprite.set_anim(plr::anim::idle);
     sprite.set_pos(box.getPosition());
     sprite.set_hflip(face_dir);
@@ -169,8 +171,7 @@ namespace plr::action {
 
 	PlayerStateID dash(World& w, plr::members& plr, const move_t& move)
 	{
-
-        auto& sprite = w.at_drawable<AnimatedSprite>(plr.sprite_scene_id);
+        auto& sprite = w.at(plr.sprite_id);
 		if (move.wishx != 0) {
 			sprite.set_hflip(move.wishx < 0);
 		}
@@ -179,7 +180,7 @@ namespace plr::action {
 
 	PlayerStateID jump(World& w, plr::members& plr, const move_t& move)
 	{
-        auto& sprite = w.at_drawable<AnimatedSprite>(plr.sprite_scene_id);
+        auto& sprite = w.at(plr.sprite_id);
         auto& box = w.at(plr.collidable_id);
         auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
 
