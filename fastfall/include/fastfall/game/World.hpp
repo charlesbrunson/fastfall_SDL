@@ -115,20 +115,44 @@ public:
     template<class T>
     const T& at(ID<T> id) const { return (T&)container<T>().at(id); }
 
+    template<class... IDs>
+    requires (sizeof...(IDs) > 1)
+    auto at(IDs... ids) { return std::forward_as_tuple(at(ids)...); }
+
+    template<class... IDs>
+    requires (sizeof...(IDs) > 1)
+    auto at(IDs... ids) const { return std::forward_as_tuple(at(ids)...); }
+
     template<class T>
     T* get(ID<T> id) { return (T*)container<T>().get(id); }
 
     template<class T>
     const T* get(ID<T> id) const { return (T*)container<T>().get(id); }
 
+    template<class... IDs>
+    requires (sizeof...(IDs) > 1)
+    auto get(IDs... ids) { return std::forward_as_tuple(get(ids)...); }
+
+    template<class... IDs>
+    requires (sizeof...(IDs) > 1)
+    auto get(IDs... ids) const { return std::forward_as_tuple(get(ids)...); }
+
+    // id_cast SceneObject to a drawble type to retrieve that from the sceneobject
+    // kinda scuffed but its fun
     template<std::derived_from<Drawable> T>
-    T* get_drawable(ID<SceneObject> scene_id) { return (T*)at(scene_id).drawable.get(); }
+    T& at(ID<T> id) { return *(T*)at(id_cast<SceneObject>(id)).drawable.get(); }
 
     template<std::derived_from<Drawable> T>
-    T& at_drawable(ID<SceneObject> scene_id) { return *(T*)at(scene_id).drawable.get(); }
+    const T& at(ID<T> id) const { return *(T*)at(id_cast<SceneObject>(id)).drawable.get(); }
 
-    SurfaceTracker* get_tracker(ID<Collidable> collidable_id, ID<SurfaceTracker> tracker_id);
+    template<std::derived_from<Drawable> T>
+    T* get(ID<T> id) { return (T*)at(id_cast<SceneObject>(id)).drawable.get(); }
+
+    template<std::derived_from<Drawable> T>
+    const T* get(ID<T> id) const { return (T*)at(id_cast<SceneObject>(id)).drawable.get(); }
+
     SurfaceTracker& at_tracker(ID<Collidable> collidable_id, ID<SurfaceTracker> tracker_id);
+    SurfaceTracker* get_tracker(ID<Collidable> collidable_id, ID<SurfaceTracker> tracker_id);
 
 	// create component
 	ID<Collidable> create_collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
@@ -170,13 +194,6 @@ public:
     bool erase(ID<SceneObject> id);
     bool erase(ID<Trigger> id);
     bool erase(ID<CameraTarget> id);
-
-    // get id
-    std::optional<ID<GameObject>> id_of(GameObject& obj);
-    std::optional<ID<Level>> id_of(Level& lvl);
-
-    std::optional<ID<Collidable>> id_of(Collidable& col);
-    std::optional<ID<ColliderRegion>> id_of(ColliderRegion& col);
 
     // span components
     template<class T>

@@ -21,8 +21,7 @@ float get_dash_vel(float min_speed) {
 
 void apply_dash_vel(ff::World& w, plr::members& plr, float min_vel) {
 
-    auto& sprite = w.at_drawable<AnimatedSprite>(plr.sprite_scene_id);
-    auto& box = w.at(plr.collidable_id);
+    auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
     auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
 
 	float vel = min_vel;
@@ -57,8 +56,7 @@ dash_anims select_dash_anim(ff::World& w, const plr::members& plr)
 {
 	dash_anims anims{ &anim::dash_0, &anim::fx::dash_0 };
 
-    auto& sprite = w.at_drawable<AnimatedSprite>(plr.sprite_scene_id);
-    auto& box = w.at(plr.collidable_id);
+    auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
     auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
 
 	if (ground.has_contact()) {
@@ -96,9 +94,7 @@ dash_anims select_dash_anim(ff::World& w, const plr::members& plr)
 
 void PlayerDashState::enter(ff::World& w, plr::members& plr, PlayerState* from)
 {
-
-    auto& sprite = w.at_drawable<AnimatedSprite>(plr.sprite_scene_id);
-    auto& box = w.at(plr.collidable_id);
+    auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
     auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
 
 	ground_flag = ground.has_contact();
@@ -123,8 +119,7 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
 	if (deltaTime <= 0.0)
 		return PlayerStateID::Continue;
 
-    auto& sprite = w.at_drawable<AnimatedSprite>(plr.sprite_scene_id);
-    auto& box = w.at(plr.collidable_id);
+    auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
     auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
 
 	if (ground.has_contact()) {

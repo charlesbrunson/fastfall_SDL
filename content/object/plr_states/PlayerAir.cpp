@@ -17,8 +17,7 @@ PlayerStateID PlayerAirState::update(ff::World& w, plr::members& plr, secs delta
 	if (deltaTime <= 0.0)
 		return PlayerStateID::Continue;
 
-    auto& sprite = w.at_drawable<AnimatedSprite>(plr.sprite_scene_id);
-    auto& box = w.at(plr.collidable_id);
+    auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
     auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
 
 	int wishx = (int)Input::isHeld(InputType::RIGHT) - (int)Input::isHeld(InputType::LEFT);
@@ -120,8 +119,7 @@ PlayerStateID PlayerAirState::update(ff::World& w, plr::members& plr, secs delta
 
 PlayerStateID PlayerAirState::post_collision(ff::World& w, plr::members& plr)
 {
-    auto& sprite = w.at_drawable<AnimatedSprite>(plr.sprite_scene_id);
-    auto& box = w.at(plr.collidable_id);
+    auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
     auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
     
 	if (ground.has_contact()) {

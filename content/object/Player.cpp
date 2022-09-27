@@ -47,16 +47,14 @@ Player::Player(World& w, ID<GameObject> id, ObjectLevelData& data)
 {
     auto& box = w.at(collidable_id);
     box.callbacks.onPostCollision = [
-            id = getID(),
-            collidable_id = collidable_id,
-            hitbox_id = hitbox_id
+        plr_id = id_cast<Player>(getID()),
+        col_id = collidable_id,
+        hit_id = hitbox_id
     ] (World& w)
     {
-        auto& player = (Player&)w.at(id);
-        auto& box = w.at(collidable_id);
-        auto& hitbox = w.at(hitbox_id);
-        hitbox.set_area(box.getBox());
-        player.manage_state(w, player.get_state().post_collision(w, player));
+        auto [plr, colbox, hitbox] = w.at(plr_id, col_id, hit_id);
+        hitbox.set_area(colbox.getBox());
+        plr.manage_state(w, plr.get_state().post_collision(w, plr));
     };
 };
 
@@ -88,9 +86,7 @@ void Player::manage_state(World& w, PlayerStateID n_id)
 
 void Player::update(World& w, secs deltaTime) {
 	manage_state(w, get_state().update(w, *this, deltaTime));
-
-    auto& sprite = w.at_drawable<AnimatedSprite>(sprite_scene_id);
-	sprite.update(deltaTime);
+    w.at(sprite_id).update(deltaTime);
 }
 
 objcfg::dresult Player::message(World& w, const objcfg::dmessage& msg) {
@@ -108,16 +104,14 @@ objcfg::dresult Player::message(World& w, const objcfg::dmessage& msg) {
 };
 
 void Player::predraw(World& w, float interp, bool updated) {
-
-    auto& sprite = w.at_drawable<AnimatedSprite>(sprite_scene_id);
-    auto& box = w.at(collidable_id);
-	sprite.set_pos(math::lerp(box.getPrevPosition(), box.getPosition(), interp));
-	sprite.predraw(interp);
+    auto [spr, box] = w.at(sprite_id, collidable_id);
+	spr.set_pos(math::lerp(box.getPrevPosition(), box.getPosition(), interp));
+	spr.predraw(interp);
 }
 
 
 void Player::clean(ff::World& w) {
-    w.erase(sprite_scene_id);
+    w.erase(scene_id);
     w.erase(collidable_id);
     w.erase(cameratarget_id);
     w.erase(hitbox_id);

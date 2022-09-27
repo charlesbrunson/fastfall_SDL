@@ -66,7 +66,8 @@ namespace plr {
 
 		members(ff::World& w, ff::GameObject& plr, ff::Vec2f position, bool face_dir);
 
-        ff::ID<ff::SceneObject> sprite_scene_id;
+        ff::ID<ff::SceneObject> scene_id;
+        ff::ID<ff::AnimatedSprite> sprite_id;
         ff::ID<ff::Collidable> collidable_id;
         ff::ID<ff::SurfaceTracker> surfacetracker_id;
         ff::ID<SimpleCamTarget> cameratarget_id;
