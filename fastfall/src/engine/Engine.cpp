@@ -948,9 +948,8 @@ void Engine::ImGui_getContent() {
     if (ImGui::CollapsingHeader("Framerate Graph", ImGuiTreeNodeFlags_DefaultOpen))
     {
         const auto& buff = profiler::duration_buffer;
-        if (ImPlot::BeginPlot("##FPS", NULL, NULL, ImVec2(-1, 150), 
-            ImPlotFlags_NoTitle | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMouseText,
-            ImPlotAxisFlags_None, 0))
+        if (ImPlot::BeginPlot("##FPS", ImVec2(-1, 150),
+            ImPlotFlags_NoTitle | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMouseText))
         {
             profiler::enable = true;
 
@@ -1000,7 +999,7 @@ void Engine::ImGui_getContent() {
 
     ImGui::Text("| FPS:%4d |", clock.getAvgFPS());
     ImGui::SameLine();
-    ImGui::Text("Tick#:%6d | ", clock.getTickCount());
+    ImGui::Text("Tick#:%6zu | ", clock.getTickCount());
 
     ImGui::Separator();
 
