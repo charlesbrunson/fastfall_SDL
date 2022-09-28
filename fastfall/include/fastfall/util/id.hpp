@@ -17,6 +17,10 @@ struct ID {
             : value.generation < other.value.generation;
     };
 
+    explicit operator bool() const {
+        return (bool)value;
+    }
+
 	template<class Base>
 		requires std::derived_from<T, Base>
 	operator ID<Base>() {

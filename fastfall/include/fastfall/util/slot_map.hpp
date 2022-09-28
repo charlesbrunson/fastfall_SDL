@@ -26,6 +26,10 @@ namespace ff {
 		constexpr size_t raw() const {
 			return *((size_t*)this);
 		}
+
+        constexpr explicit operator bool() const {
+            return generation != 0;
+        }
 	};
 
 	template<class T>
@@ -134,8 +138,9 @@ namespace ff {
 
 			sp.valid = true;
 			sp.dense_index = (uint32_t)dense_.size();
+
 			sp.key = {
-				.generation = sp.key.generation + 1,
+				.generation = incr_gen(sp.key.generation),
 				.sparse_index = sparse_ndx
 			};
 
@@ -214,7 +219,7 @@ namespace ff {
             uint32_t sparse_ndx = first_empty_;
             auto& sp = sparse_[(size_t)sparse_ndx];
             return {
-                    .generation = sp.key.generation + 1,
+                    .generation = incr_gen(sp.key.generation),
                     .sparse_index = sparse_ndx
             };
         }
@@ -229,6 +234,8 @@ namespace ff {
 
 		// last of the empty list
 		uint32_t last_empty_;
+
+        static unsigned incr_gen(unsigned gen) { return gen + 1 == 0 ? 1 : gen + 1; }
 
 		// add new empty slots to back of sparse
 		void push_empty() {
