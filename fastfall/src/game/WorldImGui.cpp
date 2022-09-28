@@ -254,6 +254,107 @@ void imgui_triggers(World* w) {
     }
 }
 
+void imgui_camera(World* w) {
+
+    auto &cameras = w->all<CameraTarget>();
+    for (auto &cam : cameras) {
+        auto id = cameras.id_of(cam);
+
+        if (ImGui::TreeNode((void *) (&cam), "Camera Target %d", id.value.sparse_index)) {
+            cam->get_priority();
+
+            static std::string_view priority[] = {
+                "Low", "Medium", "High"
+            };
+
+            ImGui::Text("Priority:   %s", priority[static_cast<size_t>(cam->get_priority())].data());
+            ImGui::Text("State:      %s", cam->get_state() == CamTargetState::Active ? "Active" : "Inactive");
+            ImGui::Text("Position:   %3.2f, %3.2f", cam->get_target_pos().x, cam->get_target_pos().y);
+
+            ImGui::TreePop();
+        }
+    }
+}
+
+void imgui_scene(World* w) {
+    for (auto id : w->scene().get_scene_order()) {
+        auto& scene = w->at(id);
+
+        if (ImGui::TreeNode((void *) (&scene), "Scene Object %d", id.value.sparse_index)) {
+            static std::string_view priority_str[] = {
+                "Lowest",
+                "Low",
+                "Medium",
+                "High",
+                "Highest"
+            };
+
+            ImGui::Text("Drawable:  %p", scene.drawable.get());
+            ImGui::Text("Layer:     %d", scene.layer_id);
+            ImGui::Text("Type:      %s", scene.type == scene_type::Object ? "Object" : "Level");
+            ImGui::Text("Priority:  %s", priority_str[static_cast<size_t>(scene.priority)].data());
+            ImGui::Text("Enabled:   %s", scene.render_enable ? "true" : "false");
+
+            ImGui::TreePop();
+        }
+    }
+}
+
+// ------------------------------------------------------------
+
+void imgui_levels(World* w) {
+
+}
+
+void imgui_objects(World* w) {
+
+    auto& objects = w->all<GameObject>();
+    for(auto& obj : objects) {
+
+        auto id = objects.id_of(obj);
+        auto& type = obj->type();
+        auto* lvldata = obj->level_data();
+
+        if (ImGui::TreeNode((void *) (&obj), "%s %d", type.type.name.c_str(), id.value.sparse_index)) {
+            if (ImGui::Button("Inspect"))
+                obj->m_show_inspect = !obj->m_show_inspect;
+
+            if (ImGui::TreeNode((void *) (&obj->type()), "Type")) {
+
+                ImGui::Text("Type Name: %s", type.type.name.c_str());
+                ImGui::Text("Type Hash: %zu", type.type.hash);
+                ImGui::Text("Allowed in Level Data: %s", type.allow_as_level_data ? "true" : "false");
+                if (!type.group_tags.empty()) {
+                    ImGui::Text("Group Tags:");
+                    for(auto& tag : type.group_tags) {
+                        ImGui::Text("\t%s", tag.to_string().c_str());
+                    }
+                }
+                ImGui::TreePop();
+            }
+
+            if (lvldata && ImGui::TreeNode((void *) (lvldata), "Level Data")) {
+
+                ImGui::Text("Level Object ID: %d", lvldata->level_id.id);
+                ImGui::Text("Level Name:      %s", lvldata->name.c_str());
+                ImGui::Text("Type Hash:       %zu", lvldata->typehash);
+                ImGui::Text("Position:        %d, %d", lvldata->position.x, lvldata->position.y);
+                ImGui::Text("Size:            %d, %d", lvldata->size.x, lvldata->size.y);
+                if (!lvldata->properties.empty()) {
+                    ImGui::Text("Properties:");
+                    for(auto& prop : lvldata->properties) {
+                        ImGui::Text("\t%s: %s", prop.first.c_str(), prop.second.c_str());
+                    }
+                }
+                ImGui::TreePop();
+            }
+
+            ImGui::TreePop();
+        }
+    }
+}
+
+
 // ------------------------------------------------------------
 
 WorldImGui::WorldImGui() :
@@ -324,11 +425,11 @@ void WorldImGui::ImGui_getContent()
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Levels")) {
-            // TODO
+            imgui_levels(curr_world);
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Objects")) {
-            // TODO
+            imgui_objects(curr_world);
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Components")) {
@@ -346,11 +447,11 @@ void WorldImGui::ImGui_getContent()
                     ImGui::EndTabItem();
                 }
                 if (ImGui::BeginTabItem("Cameras")) {
-
+                    imgui_camera(curr_world);
                     ImGui::EndTabItem();
                 }
                 if (ImGui::BeginTabItem("Scene Objects")) {
-
+                    imgui_scene(curr_world);
                     ImGui::EndTabItem();
                 }
                 ImGui::EndTabBar();
