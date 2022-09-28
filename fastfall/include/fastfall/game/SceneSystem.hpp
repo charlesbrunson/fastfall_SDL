@@ -27,6 +27,8 @@ public:
 	inline Color get_bg_color() const { return background.getColor(); };
 	inline Vec2f get_size() const { return scene_size; };
 
+    const std::vector<ID<SceneObject>>& get_scene_order() const { return scene_order; }
+
     void draw(const World& world, RenderTarget& target, RenderState state = RenderState()) const;
 private:
     //void draw(ff::RenderTarget& target, ff::RenderState state = RenderState()) const override;
