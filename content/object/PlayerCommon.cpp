@@ -1,7 +1,7 @@
 #include "PlayerCommon.hpp"
 
 #include "fastfall/engine/input.hpp"
-#include "Player.hpp"
+//#include "Player.hpp"
 
 using namespace ff;
 
@@ -82,14 +82,7 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
             && owner->type().group_tags.contains("player")
             && pull.state == Trigger::State::Entry)
         {
-            if (auto pos = objGetPos.send(*owner, w)) {
-                LOG_INFO("position: {}", *pos);
-
-                if (objHurt.send(*owner, w, 100.f))
-                {
-                    LOG_INFO("gottem");
-                }
-            }
+            objHurt.send(*owner, w, 100.f);
         }
     });
 
