@@ -26,7 +26,7 @@ void CollisionSystem::update(World& world, secs deltaTime)
 	if (deltaTime > 0.0) 
 	{
 		size_t ndx = 0;
-        for (auto& col : collidables) {
+        for (auto& [id, col] : collidables) {
             col.update(&colliders, deltaTime);
         }
 
@@ -38,8 +38,8 @@ void CollisionSystem::update(World& world, secs deltaTime)
 		}
 	}
 
-	for (auto& collidable : collidables) {
-		collidable.debug_draw();
+	for (auto& [id, col] : collidables) {
+		col.debug_draw();
 	}
 	collision_dump = nullptr;
 	frame_count++;

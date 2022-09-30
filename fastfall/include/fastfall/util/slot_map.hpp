@@ -54,7 +54,7 @@ namespace ff {
 		};
 
 		using sparse_vector = std::vector<sparse_t>;
-		using dense_vector = std::vector<T>;
+		using dense_vector = std::vector<std::pair<slot_key, T>>;
 
 		// sentinal value for the empty list
 		static constexpr size_t EmptyLast = std::numeric_limits<uint32_t>::max();
@@ -90,7 +90,7 @@ namespace ff {
 				throw std::exception{};
 			}
 
-			return dense_.at(sp.dense_index);
+			return dense_.at(sp.dense_index).second;
 		}
 
 		constexpr reference at(const slot_key& k) {
@@ -144,8 +144,8 @@ namespace ff {
 				.sparse_index = sparse_ndx
 			};
 
-			dense_.emplace_back(std::forward<Args>(args)...);
-			dense_to_sparse_.push_back(sparse_ndx);
+			dense_.emplace_back(sp.key, value_type(std::forward<Args>(args)...));
+			//dense_to_sparse_.push_back(sparse_ndx);
 
 			while (dense_.size() >= sparse_.size() * sparse_density
 				&& sparse_.size() - dense_.size() <= sparse_max)
@@ -164,11 +164,11 @@ namespace ff {
 			auto d_ndx = sparse_[s_ndx].dense_index;
 
 			auto r = dense_.erase(dense_.begin() + d_ndx);
-			auto it = dense_to_sparse_.erase(dense_to_sparse_.begin() + d_ndx);
-			for (; it != dense_to_sparse_.end(); it++)
-			{
-				--sparse_[*it].dense_index;
-			}
+			//auto it = dense_to_sparse_.erase(dense_to_sparse_.begin() + d_ndx);
+			//for (; it != dense_to_sparse_.end(); it++)
+			//{
+			//	--sparse_[*it].dense_index;
+			//}
 			sparse_[s_ndx].valid = false;
 			push_empty(k.sparse_index);
 			return r;
@@ -203,12 +203,14 @@ namespace ff {
 
 		// key accessors
 		constexpr std::optional<slot_key> key_of(const T& value) const {
-			size_t ndx = &value - dense_.data();
-			if (ndx < dense_to_sparse_.size())
-			{
-				return sparse_.at(dense_to_sparse_.at(ndx)).key;
-			}
-			return {};
+            if ((&value >= dense_.data()) && (&value < &dense_.back()))
+            {
+                ptrdiff_t p1 = &dense_.data()->second;
+                ptrdiff_t p2 = &value;
+                ptrdiff_t diff = (p2 - p1) / sizeof(dense_vector::value_type);
+                return { (dense_.data() + diff)->first };
+            }
+            return{};
 		}
 
 		constexpr std::optional<slot_key> key_of(const_iterator it) const {
@@ -227,7 +229,6 @@ namespace ff {
 	private:
 		sparse_vector sparse_;
 		dense_vector dense_;
-		std::vector<uint32_t> dense_to_sparse_;
 
 		// start of the empty list
 		uint32_t first_empty_;
