@@ -12,8 +12,6 @@
 
 namespace ff {
 
-
-
 template<class T>
 class id_map
 {

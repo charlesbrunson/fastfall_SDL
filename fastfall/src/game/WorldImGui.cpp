@@ -14,10 +14,8 @@ bool WorldImGui::update_labels = false;
 // ------------------------------------------------------------
 
 void imgui_collidables(World* w) {
-    auto& collidables = w->all<Collidable>();
-    for (auto& col : collidables) {
-        auto id = collidables.id_of(col);
-        if (ImGui::TreeNode((void*)(&col), "Collidable %d", id.value.sparse_index)) {
+    for (auto& [cid, col] : w->all<Collidable>()) {
+        if (ImGui::TreeNode((void*)(&col), "Collidable %d", cid.sparse_index)) {
 
             ImGui::Text("Curr Pos: %3.2f, %3.2f", col.getPosition().x, col.getPosition().y);
 
@@ -40,7 +38,7 @@ void imgui_collidables(World* w) {
                     ImGui::Text("No trackers!");
                 }
 
-                for (auto& tracker : col.get_trackers()) {
+                for (auto& [tid, tracker] : col.get_trackers()) {
 
 
                     static char labelbuf[32];
@@ -194,10 +192,8 @@ void imgui_collidables(World* w) {
 }
 
 void imgui_colliders(World* w) {
-    auto& colliders = w->all<ColliderRegion>();
-    for (auto& col : colliders) {
-        auto id = colliders.id_of(col);
-        if (ImGui::TreeNode((void *) (&col), "Collider %d", id.value.sparse_index)) {
+    for (auto& [id, col] : w->all<ColliderRegion>()) {
+        if (ImGui::TreeNode((void *) (&col), "Collider %d", id.sparse_index)) {
 
             ImGui::Text("Curr Position: %3.2f, %3.2f", col->getPosition().x, col->getPosition().y);
             ImGui::Text("Prev Position: %3.2f, %3.2f", col->getPrevPosition().x, col->getPrevPosition().y);
@@ -218,10 +214,8 @@ void imgui_colliders(World* w) {
 }
 
 void imgui_triggers(World* w) {
-    auto &triggers = w->all<Trigger>();
-    for (auto &trig: triggers) {
-        auto id = triggers.id_of(trig);
-        if (ImGui::TreeNode((void *) (&trig), "Trigger %d", id.value.sparse_index)) {
+    for (auto& [id, trig] : w->all<Trigger>()) {
+        if (ImGui::TreeNode((void *) (&trig), "Trigger %d", id.sparse_index)) {
 
             ImGui::Text("Enabled: %s", trig.is_enabled() ? "true" : "false");
             ImGui::Text("Active: %s", trig.is_activated() ? "true" : "false");
@@ -256,11 +250,8 @@ void imgui_triggers(World* w) {
 
 void imgui_camera(World* w) {
 
-    auto &cameras = w->all<CameraTarget>();
-    for (auto &cam : cameras) {
-        auto id = cameras.id_of(cam);
-
-        if (ImGui::TreeNode((void *) (&cam), "Camera Target %d", id.value.sparse_index)) {
+    for (auto& [id, cam] : w->all<CameraTarget>()) {
+        if (ImGui::TreeNode((void *) (&cam), "Camera Target %d", id.sparse_index)) {
             cam->get_priority();
 
             static std::string_view priority[] = {
@@ -308,14 +299,12 @@ void imgui_levels(World* w) {
 
 void imgui_objects(World* w) {
 
-    auto& objects = w->all<GameObject>();
-    for(auto& obj : objects) {
-
-        auto id = objects.id_of(obj);
+    for(auto& [id, obj] : w->all<GameObject>())
+    {
         auto& type = obj->type();
         auto* lvldata = obj->level_data();
 
-        if (ImGui::TreeNode((void *) (&obj), "%s %d", type.type.name.c_str(), id.value.sparse_index)) {
+        if (ImGui::TreeNode((void *) (&obj), "%s %d", type.type.name.c_str(), id.sparse_index)) {
             if (ImGui::Button("Inspect"))
                 obj->m_show_inspect = !obj->m_show_inspect;
 
@@ -467,7 +456,7 @@ void WorldImGui::ImGui_getContent()
 void WorldImGui::ImGui_getExtraContent() {
 
     if (curr_world) {
-        for (auto& obj : curr_world->all<GameObject>()) {
+        for (auto& [id, obj] : curr_world->all<GameObject>()) {
             if (obj->m_show_inspect
                 && ImGui::Begin(obj->type().type.name.c_str(), &obj->m_show_inspect))
             {
