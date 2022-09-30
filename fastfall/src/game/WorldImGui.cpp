@@ -284,7 +284,12 @@ void imgui_scene(World* w) {
             ImGui::Text("Layer:     %d", scene.layer_id);
             ImGui::Text("Type:      %s", scene.type == scene_type::Object ? "Object" : "Level");
             ImGui::Text("Priority:  %s", priority_str[static_cast<size_t>(scene.priority)].data());
+
             ImGui::Text("Enabled:   %s", scene.render_enable ? "true" : "false");
+            if (ImGui::Button("Toggle Visibility")) {
+                scene.render_enable = !scene.render_enable;
+            }
+
 
             ImGui::TreePop();
         }
