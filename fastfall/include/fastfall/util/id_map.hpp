@@ -12,6 +12,56 @@
 
 namespace ff {
 
+
+template<class T, class Ptr>
+class id_iterator_base
+{
+public:
+    using iterator_category = std::random_access_iterator_tag;
+    using difference_type   = std::ptrdiff_t;
+    using value_type        = Ptr;
+
+    id_iterator_base() = default;
+    explicit id_iterator_base(value_type ptr) : m_ptr(ptr) {}
+
+    id_iterator_base& operator=(value_type ptr) { m_ptr = ptr; return *this; }
+    id_iterator_base& operator=(const id_iterator_base& other) { m_ptr = other.ptr; return *this; }
+
+    auto operator*() requires(!std::is_const_v<Ptr>) { return std::make_pair( ID<T>{m_ptr->first}, std::ref(m_ptr->second) ); }
+    auto operator*() const { return std::make_pair( ID<T>{m_ptr->first}, std::ref(m_ptr->second) ); }
+
+    auto operator->() requires(!std::is_const_v<Ptr>) { return &m_ptr->second; }
+    auto operator->() const { return &m_ptr->second; }
+
+    ID<T> id() const { return {m_ptr->first}; }
+
+    auto& value() { return m_ptr->second; }
+    const auto& value() const { return m_ptr->second; }
+
+    int operator<=>(const id_iterator_base& other) const { return m_ptr <=> other.m_ptr; }
+    int operator!=(const id_iterator_base& other) const { return m_ptr != other.m_ptr; }
+
+    id_iterator_base& operator++() { ++m_ptr; return *this; }
+    id_iterator_base operator++(int) { id_iterator_base it{*this}; ++(*this); return it; }
+
+    id_iterator_base operator--() { --m_ptr; return *this; }
+    id_iterator_base operator--(int) { id_iterator_base it{*this}; --(this); return it; }
+
+    id_iterator_base operator+(difference_type movement) const { auto it = *this; it.m_ptr + movement; return it; }
+    id_iterator_base operator-(difference_type movement) const { auto it = *this; it.m_ptr - movement; return it; }
+
+    difference_type operator-(const id_iterator_base& other) const { return std::distance(m_ptr, other.m_ptr); }
+
+private:
+    value_type m_ptr = nullptr;
+};
+
+template<class T>
+using id_iterator = id_iterator_base<T, std::pair<slot_key, T>*>;
+
+template<class T>
+using const_id_iterator = id_iterator_base<T, const std::pair<slot_key, T>*>;
+
 template<class T>
 class id_map
 {
@@ -23,6 +73,9 @@ private:
 
 public:
     using span = std::span<value_type>;
+
+    using iterator = id_iterator<T>;
+    using const_iterator = const_id_iterator<T>;
 
 	template<class... Args>
 	ID<T> create(Args&&... args) {
@@ -65,13 +118,13 @@ public:
 
     size_t size() const { return components.size(); }
 
-	inline auto begin() { return components.begin(); }
-	inline auto begin() const { return components.begin(); }
-	inline auto cbegin() const { return components.begin(); }
+	inline auto begin() { return iterator{ components.data() }; }
+	inline auto begin() const { return const_iterator{ components.data() }; }
+	inline auto cbegin() const { return const_iterator{ components.data() }; }
 
-	inline auto end() { return components.end(); }
-	inline auto end() const { return components.end(); }
-	inline auto cend() const { return components.cend(); }
+	inline auto end() { return iterator{ components.data() + components.size() }; }
+	inline auto end() const { return const_iterator{ components.data() + components.size() }; }
+	inline auto cend() const { return const_iterator{ components.data() + components.size() }; }
 
     ID<T> id_of(const value_type& value) const {
        return { *components.key_of(value) };
@@ -96,6 +149,8 @@ private:
 	slot_map<value_type> components;
 
 public:
+    using iterator = id_iterator<T>;
+    using const_iterator = const_id_iterator<T>;
 
 	// polymorphic
 	template<std::derived_from<T> Type, class... Args>

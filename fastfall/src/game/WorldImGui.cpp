@@ -14,8 +14,8 @@ bool WorldImGui::update_labels = false;
 // ------------------------------------------------------------
 
 void imgui_collidables(World* w) {
-    for (auto& [cid, col] : w->all<Collidable>()) {
-        if (ImGui::TreeNode((void*)(&col), "Collidable %d", cid.sparse_index)) {
+    for (auto [cid, col] : w->all<Collidable>()) {
+        if (ImGui::TreeNode((void*)(&col), "Collidable %d", cid.value.sparse_index)) {
 
             ImGui::Text("Curr Pos: %3.2f, %3.2f", col.getPosition().x, col.getPosition().y);
 
@@ -38,7 +38,7 @@ void imgui_collidables(World* w) {
                     ImGui::Text("No trackers!");
                 }
 
-                for (auto& [tid, tracker] : col.get_trackers()) {
+                for (auto [tid, tracker] : col.get_trackers()) {
 
 
                     static char labelbuf[32];
@@ -214,8 +214,8 @@ void imgui_colliders(World* w) {
 }
 
 void imgui_triggers(World* w) {
-    for (auto& [id, trig] : w->all<Trigger>()) {
-        if (ImGui::TreeNode((void *) (&trig), "Trigger %d", id.sparse_index)) {
+    for (auto [id, trig] : w->all<Trigger>()) {
+        if (ImGui::TreeNode((void *) (&trig), "Trigger %d", id.value.sparse_index)) {
 
             ImGui::Text("Enabled: %s", trig.is_enabled() ? "true" : "false");
             ImGui::Text("Active: %s", trig.is_activated() ? "true" : "false");

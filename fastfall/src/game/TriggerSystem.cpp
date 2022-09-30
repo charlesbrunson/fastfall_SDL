@@ -27,7 +27,7 @@ void TriggerSystem::update(World& world, secs deltaTime)
 {
 
     auto& triggers = world.all<Trigger>();
-	for (auto& [id, trigger] : triggers)
+	for (auto [id, trigger] : triggers)
 	{
 		trigger.update();
 	}
@@ -36,14 +36,14 @@ void TriggerSystem::update(World& world, secs deltaTime)
 		for (auto it1 = triggers.begin(); it1 != (--triggers.end()); it1++) {
 			auto it2 = it1; it2++;
 			for (; it2 != triggers.end(); it2++) {
-				compareTriggers(world, it1->second, it2->second, deltaTime);
-				compareTriggers(world, it2->second, it1->second, deltaTime);
+				compareTriggers(world, it1.value(), it2.value(), deltaTime);
+				compareTriggers(world, it2.value(), it1.value(), deltaTime);
 			}
 		}
 	}
 
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::TRIGGER_AREA)) {
-		for (auto& [id, trigger] : triggers) {
+		for (auto [id, trigger] : triggers) {
 			debugDrawTrigger(trigger);
 		}
 	}
@@ -64,7 +64,7 @@ void TriggerSystem::notify_erased(World& world, ID<Trigger> id)
 {
     // if the trigger is being erased, try to trigger any drivers associated first
     auto& tr = world.at(id);
-    for (auto& [_, trigger] : world.all<Trigger>()) {
+    for (auto [_, trigger] : world.all<Trigger>()) {
         auto iter = trigger.drivers.find(id);
         if (iter != trigger.drivers.end())
         {

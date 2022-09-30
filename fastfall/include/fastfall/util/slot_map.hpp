@@ -120,6 +120,14 @@ namespace ff {
 			return dense_.size();
 		}
 
+        std::pair<slot_key, T>* data() {
+            return dense_.data();
+        }
+        const std::pair<slot_key, T>* data() const {
+            return dense_.data();
+        }
+
+
 		// modifiers
 		constexpr void clear() {
 			dense_.clear();
