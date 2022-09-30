@@ -20,11 +20,11 @@ namespace detail {
 
     template<class Variant, class T>
     struct index_of {
-        constexpr static size_t value = Variant(T()).index();
+        constinit const static size_t value = Variant(T()).index();
     };
 
     template<class Variant, class T>
-    constexpr size_t index_of_v = index_of<Variant, T>::value;
+    constinit const size_t index_of_v = index_of<Variant, T>::value;
 
     template<size_t N>
     struct StringLiteral {
@@ -76,6 +76,7 @@ public:
 
     struct dresult {
         bool accepted = false;
+        uint64_t type_hash;
         std::optional<Variant> result = {};
     };
 
@@ -116,28 +117,28 @@ public:
         // wraps message return param
         constexpr dresult
         accept(RType r) const requires (detail::index_of_v<Variant, RType> != 0) {
-            return {true, r};
+            return {true, type_hash, r};
         }
 
         constexpr dresult
         accept() const requires (detail::index_of_v<Variant, RType> == 0) {
-            return {true, std::nullopt};
+            return {true, type_hash, std::nullopt};
         }
 
         template<class Callable>
         requires std::is_invocable_v<Callable, Binds..., Params...>
         constexpr dresult
         apply(const dmessage &msg, Callable &&callable, Binds &&... binds) const {
-            return {true, std::apply(callable, std::tuple_cat(std::tuple(binds...), unwrap(msg)))};
+            return {true, type_hash, std::apply(callable, std::tuple_cat(std::tuple(binds...), unwrap(msg)))};
         };
 
         template<class Sendable>
         constexpr std::conditional_t<detail::index_of_v<Variant, RType> == 0, bool, std::optional<RType>>
         send(Sendable &mailbox, Binds... binds, Params... params) const {
             if constexpr (detail::index_of_v<Variant, RType> == 0) {
-                return unwrap_r(mailbox.message(std::forward<Binds>(binds)..., wrap(std::forward<Params>(params)...)));
+                return unwrap_result(mailbox.message(std::forward<Binds>(binds)..., wrap(std::forward<Params>(params)...)));
             } else {
-                return unwrap_r(mailbox.message(std::forward<Binds>(binds)..., wrap(std::forward<Params>(params)...)));
+                return unwrap_result(mailbox.message(std::forward<Binds>(binds)..., wrap(std::forward<Params>(params)...)));
             }
         }
 
@@ -146,7 +147,6 @@ public:
         std::tuple<Params...>
         unwrap(const dmessage &msg) const {
             if (msg.hash() == type_hash) {
-                // what fresh hell is this
                 return [&]<uint64_t...Is>(std::index_sequence<Is...>) {
                     return std::make_tuple(
                             std::get<Params>(msg.params()[Is])...);
@@ -156,6 +156,19 @@ public:
             }
         }
 
+        template<class U>
+        constexpr U
+        unwrap_as(const dmessage &msg) const {
+            if (msg.hash() == type_hash) {
+                return [&]<uint64_t...Is>(std::index_sequence<Is...>) {
+                    return U{std::get<Params>(msg.params()[Is])...};
+                }(std::make_index_sequence<sizeof...(Params)>{});
+            } else {
+                throw std::invalid_argument{"message hash doesn't match format hash"};
+            }
+        }
+
+
         // wraps parameters into a message
         constexpr
         dmessage
@@ -164,11 +177,12 @@ public:
         }
 
         // unwrap message return param
-        constexpr std::conditional_t<detail::index_of_v<Variant, RType> == 0, bool, std::optional<RType>>
-        unwrap_r(dresult r) const {
+        constexpr
+        std::conditional_t<detail::index_of_v<Variant, RType> == 0, bool, std::optional<RType>>
+        unwrap_result(dresult r) const {
             if constexpr (detail::index_of_v<Variant, RType> != 0) {
                 if (r.accepted) {
-                    if (r.result && std::holds_alternative<RType>(*r.result)) {
+                    if (r.result && r.type_hash == type_hash && std::holds_alternative<RType>(*r.result)) {
                         return std::get<RType>(*r.result);
                     } else {
                         throw std::invalid_argument{"unexpected message return type"};
@@ -178,7 +192,7 @@ public:
                 }
             } else {
                 if (!r.result) {
-                    return r.accepted;
+                    return r.accepted && r.type_hash == type_hash;
                 } else {
                     throw std::invalid_argument{"unexpected message return type, should be nil"};
                 }
