@@ -13,54 +13,50 @@
 namespace ff {
 
 
-template<class T, class Ptr>
-class id_iterator_base
+template<class T>
+class id_iterator
 {
 public:
     using iterator_category = std::random_access_iterator_tag;
     using difference_type   = std::ptrdiff_t;
-    using value_type        = Ptr;
+    using base_type         = std::remove_const_t<T>;
+    using value_type        = std::conditional_t<std::is_const_v<T>, const std::pair<slot_key, base_type>*, std::pair<slot_key, base_type>*>;
+    using id_type           = ID<base_type>;
 
-    id_iterator_base() = default;
-    explicit id_iterator_base(value_type ptr) : m_ptr(ptr) {}
+    id_iterator() = default;
+    explicit id_iterator(value_type ptr) : m_ptr(ptr) {}
 
-    id_iterator_base& operator=(value_type ptr) { m_ptr = ptr; return *this; }
-    id_iterator_base& operator=(const id_iterator_base& other) { m_ptr = other.ptr; return *this; }
+    id_iterator& operator=(value_type ptr) { m_ptr = ptr; return *this; }
+    id_iterator& operator=(const id_iterator& other) { m_ptr = other.ptr; return *this; }
 
-    auto operator*() requires(!std::is_const_v<Ptr>) { return std::make_pair( ID<T>{m_ptr->first}, std::ref(m_ptr->second) ); }
-    auto operator*() const { return std::make_pair( ID<T>{m_ptr->first}, std::ref(m_ptr->second) ); }
+    auto operator*() requires(!std::is_const_v<T>) { return std::make_pair( id_type{m_ptr->first}, std::ref(m_ptr->second) ); }
+    auto operator*() const { return std::make_pair( id_type{m_ptr->first}, std::ref(m_ptr->second) ); }
 
-    auto operator->() requires(!std::is_const_v<Ptr>) { return &m_ptr->second; }
+    auto operator->() requires(!std::is_const_v<T>) { return &m_ptr->second; }
     auto operator->() const { return &m_ptr->second; }
 
-    ID<T> id() const { return {m_ptr->first}; }
+    id_type id() const { return {m_ptr->first}; }
 
     auto& value() { return m_ptr->second; }
     const auto& value() const { return m_ptr->second; }
 
-    int operator<=>(const id_iterator_base& other) const { return m_ptr <=> other.m_ptr; }
-    int operator!=(const id_iterator_base& other) const { return m_ptr != other.m_ptr; }
+    int operator<=>(const id_iterator& other) const { return m_ptr <=> other.m_ptr; }
+    int operator!=(const id_iterator& other) const { return m_ptr != other.m_ptr; }
 
-    id_iterator_base& operator++() { ++m_ptr; return *this; }
-    id_iterator_base operator++(int) { id_iterator_base it{*this}; ++(*this); return it; }
+    id_iterator& operator++() { ++m_ptr; return *this; }
+    id_iterator operator++(int) { id_iterator it{*this}; ++(*this); return it; }
 
-    id_iterator_base operator--() { --m_ptr; return *this; }
-    id_iterator_base operator--(int) { id_iterator_base it{*this}; --(this); return it; }
+    id_iterator operator--() { --m_ptr; return *this; }
+    id_iterator operator--(int) { id_iterator it{*this}; --(this); return it; }
 
-    id_iterator_base operator+(difference_type movement) const { auto it = *this; it.m_ptr + movement; return it; }
-    id_iterator_base operator-(difference_type movement) const { auto it = *this; it.m_ptr - movement; return it; }
+    id_iterator operator+(difference_type movement) const { auto it = *this; it.m_ptr + movement; return it; }
+    id_iterator operator-(difference_type movement) const { auto it = *this; it.m_ptr - movement; return it; }
 
-    difference_type operator-(const id_iterator_base& other) const { return std::distance(m_ptr, other.m_ptr); }
+    difference_type operator-(const id_iterator& other) const { return std::distance(m_ptr, other.m_ptr); }
 
 private:
     value_type m_ptr = nullptr;
 };
-
-template<class T>
-using id_iterator = id_iterator_base<T, std::pair<slot_key, T>*>;
-
-template<class T>
-using const_id_iterator = id_iterator_base<T, const std::pair<slot_key, T>*>;
 
 template<class T>
 class id_map
@@ -74,8 +70,8 @@ private:
 public:
     using span = std::span<value_type>;
 
-    using iterator = id_iterator<T>;
-    using const_iterator = const_id_iterator<T>;
+    using iterator = id_iterator<value_type>;
+    using const_iterator = id_iterator<const value_type>;
 
 	template<class... Args>
 	ID<T> create(Args&&... args) {
@@ -149,8 +145,8 @@ private:
 	slot_map<value_type> components;
 
 public:
-    using iterator = id_iterator<T>;
-    using const_iterator = const_id_iterator<T>;
+    using iterator = id_iterator<value_type>;
+    using const_iterator = id_iterator<const value_type>;
 
 	// polymorphic
 	template<std::derived_from<T> Type, class... Args>
