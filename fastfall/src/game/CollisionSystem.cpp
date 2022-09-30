@@ -26,11 +26,11 @@ void CollisionSystem::update(World& world, secs deltaTime)
 	if (deltaTime > 0.0) 
 	{
 		size_t ndx = 0;
-        for (auto& [id, col] : collidables) {
+        for (auto [id, col] : collidables) {
             col.update(&colliders, deltaTime);
         }
 
-		for (auto& [id, arb] : arbiters)
+		for (auto [id, arb] : arbiters)
 		{
             auto* dump_ptr = (collision_dump ? &(*collision_dump)["collisions"][ndx] : nullptr);
 			arb.gather_and_solve_collisions(world, deltaTime, dump_ptr);
@@ -38,7 +38,7 @@ void CollisionSystem::update(World& world, secs deltaTime)
 		}
 	}
 
-	for (auto& [id, col] : collidables) {
+	for (auto [id, col] : collidables) {
 		col.debug_draw();
 	}
 	collision_dump = nullptr;
