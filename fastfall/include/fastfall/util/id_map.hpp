@@ -20,7 +20,8 @@ public:
     using iterator_category = std::random_access_iterator_tag;
     using difference_type   = std::ptrdiff_t;
     using base_type         = std::remove_const_t<T>;
-    using value_type        = std::conditional_t<std::is_const_v<T>, const std::pair<slot_key, base_type>*, std::pair<slot_key, base_type>*>;
+    using pair_type         = std::pair<slot_key, base_type>;
+    using value_type        = std::conditional_t<std::is_const_v<T>, const pair_type*, pair_type*>;
     using id_type           = ID<base_type>;
 
     id_iterator() = default;
