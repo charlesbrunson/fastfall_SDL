@@ -125,11 +125,22 @@ public:
             return {true, type_hash, std::nullopt};
         }
 
-        template<class Callable>
-        requires std::is_invocable_v<Callable, Binds..., Params...>
+        template<class Callable, class... CallBinds>
+        requires std::is_invocable_r_v<
+            std::conditional_t<detail::index_of_v<Variant, RType> != 0, RType, void>,
+            Callable,
+            CallBinds...,
+            Params...
+        >
         constexpr dresult
-        apply(const dmessage &msg, Callable &&callable, Binds &&... binds) const {
-            return {true, type_hash, std::apply(callable, std::tuple_cat(std::tuple(binds...), unwrap(msg)))};
+        apply(const dmessage &msg, Callable &&callable, CallBinds&&... binds) const {
+            if constexpr (detail::index_of_v<Variant, RType> != 0) {
+                return {true, type_hash, std::apply(std::forward<Callable>(callable), std::tuple_cat(std::tuple(std::forward<CallBinds>(binds)...), unwrap(msg)))};
+            }
+            else {
+                std::apply(std::forward<Callable>(callable), std::tuple_cat(std::tuple(std::forward<CallBinds>(binds)...), unwrap(msg)));
+                return {true, type_hash, std::nullopt};
+            }
         };
 
         template<class Sendable>

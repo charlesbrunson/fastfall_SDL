@@ -416,8 +416,7 @@ TEST_F(surfacetracker, uphill)
 		update();
 
 		int contacts = 0;
-		for (auto& col : world.all<Collidable>()) {
-            auto cid = world.all<Collidable>().id_of(col);
+		for (auto [cid, col] : world.all<Collidable>()) {
             const auto& arbiters = colMan->get_arbiter(cid);
 			for (const auto& [rid, rarb] : arbiters.region_arbiters) {
 				contacts += rarb.getQuadArbiters().size();
@@ -451,8 +450,7 @@ TEST_F(surfacetracker, uphill_oneway)
 		update();
 
 		int contacts = 0;
-        for (auto& col : world.all<Collidable>()) {
-            auto cid = world.all<Collidable>().id_of(col);
+        for (auto [cid, col] : world.all<Collidable>()) {
             const auto& arbiters = colMan->get_arbiter(cid);
             for (const auto& [rid, rarb] : arbiters.region_arbiters) {
                 contacts += rarb.getQuadArbiters().size();

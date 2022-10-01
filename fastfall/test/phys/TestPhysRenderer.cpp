@@ -79,7 +79,7 @@ void TestPhysRenderer::draw() {
 	};
 
 	// draw colliders
-	for (const auto& collider : world->all<ColliderRegion>())
+	for (const auto& [collider_id, collider] : world->all<ColliderRegion>())
 	{
 		std::vector<std::pair<Rectf, QuadID>> quads;
 		collider->get_quads_in_rect(render_area, quads);
@@ -132,7 +132,7 @@ void TestPhysRenderer::draw() {
 	}
 
 	// draw collidables
-	for (const auto& collidable : world->all<Collidable>()) {
+	for (const auto& [collidable_id, collidable] : world->all<Collidable>()) {
 		SDL_SetRenderDrawColor(render, 0, 150, 0, 255);
 
 		Rectf prev = collidable.getPrevBox();
