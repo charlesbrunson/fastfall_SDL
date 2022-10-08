@@ -136,6 +136,7 @@ void World::predraw(float interp, bool updated) {
         _object_system.predraw(*this, interp, updated);
         active->predraw(*this, interp, updated);
         _scene_system.set_cam_pos(_camera_system.getPosition(interp));
+        _scene_system.predraw(*this, interp, updated);
     }
     else
     {

@@ -8,32 +8,52 @@ namespace ff {
 
 void SceneSystem::notify_created(World& world, ID<SceneObject> id)
 {
-    auto& scene_obj = world.at(id);
-    struct Comp
-    {
-        World* w;
-        bool operator() (ID<SceneObject> s, scene_layer i) const { return w->at(s).layer_id < i; }
-        bool operator() (scene_layer i, ID<SceneObject> s) const { return i < w->at(s).layer_id; }
+    to_add.push_back(id);
+}
+
+void SceneSystem::predraw(World& world, float interp, bool updated)
+{
+    if (updated) {
+        add_to_scene(world);
+    }
+}
+
+void SceneSystem::add_to_scene(World& world)
+{
+    struct Comp {
+        World *w;
+        bool operator()(ID<SceneObject> s, scene_layer i) const { return w->at(s).layer_id < i; }
+        bool operator()(scene_layer i, ID<SceneObject> s) const { return i < w->at(s).layer_id; }
     };
 
-    auto [beg, end] = std::equal_range(
-            scene_order.begin(),
-            scene_order.end(),
-            scene_obj.layer_id,
-            Comp{&world});
+    for (auto id : to_add) {
+        auto &scene_obj = world.at(id);
 
-    auto it = std::upper_bound(beg, end, scene_obj.priority, [this, &world](scene_priority p, ID<SceneObject> d) {
-        return p < world.at(d).priority;
-    });
+        auto [beg, end] = std::equal_range(
+                scene_order.begin(),
+                scene_order.end(),
+                scene_obj.layer_id,
+                Comp{&world});
 
-    scene_order.insert(it, id);
+        auto it = std::upper_bound(beg, end, scene_obj.priority, [this, &world](scene_priority p, ID<SceneObject> d) {
+            return p < world.at(d).priority;
+        });
+
+        scene_order.insert(it, id);
+    }
+    to_add.clear();
+
+    for (auto id : to_erase) {
+        scene_order.erase(
+                std::find(scene_order.begin(), scene_order.end(), id)
+        );
+    }
+    to_erase.clear();
 }
 
 void SceneSystem::notify_erased(World& world, ID<SceneObject> id)
 {
-    scene_order.erase(
-            std::find(scene_order.begin(), scene_order.end(),id)
-            );
+    to_erase.push_back(id);
 }
 
 void SceneSystem::set_cam_pos(Vec2f center) {
@@ -58,7 +78,8 @@ void SceneSystem::draw(const World& world, RenderTarget& target, RenderState sta
 
 	target.draw(background, state);
 
-	for (auto scene_id : scene_order) {
+	for (size_t ndx = 0; ndx < scene_order.size(); ndx++) {
+        auto scene_id = scene_order[ndx];
         const auto& scene_object = world.at(scene_id);
 
 		if (scissor_enabled && scene_object.layer_id >= 0) {
