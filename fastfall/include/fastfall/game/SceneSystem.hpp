@@ -29,13 +29,19 @@ public:
 
     const std::vector<ID<SceneObject>>& get_scene_order() const { return scene_order; }
 
+    void predraw(World& world, float interp, bool updated);
+
     void draw(const World& world, RenderTarget& target, RenderState state = RenderState()) const;
 private:
     //void draw(ff::RenderTarget& target, ff::RenderState state = RenderState()) const override;
     bool enableScissor(const RenderTarget& target, Vec2f viewPos) const;
     void disableScissor() const;
 
+    std::vector<ID<SceneObject>> to_add;
+    std::vector<ID<SceneObject>> to_erase;
 	std::vector<ID<SceneObject>> scene_order;
+
+    void add_to_scene(World& world);
 
 	ShapeRectangle background;
 	Vec2f scene_size;
