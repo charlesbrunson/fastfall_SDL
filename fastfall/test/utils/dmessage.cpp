@@ -62,9 +62,9 @@ struct Badbox {
         switch(msg)
         {
         case dGetPosition:
-            return {true, {} };
+            return {true, {}, {} };
         case dSetPosition:
-            return {true, Vec2i{} };
+            return {true, {}, Vec2i{} };
         }
         return {};
     }
