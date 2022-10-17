@@ -6,7 +6,7 @@
 #include "fastfall/render/ShapeCircle.hpp"
 #include "fastfall/render/ShapeLine.hpp"
 #include "fastfall/render/DebugDraw.hpp"
-#include "fastfall/engine/input.hpp"
+#include "fastfall/engine/InputConfig.hpp"
 
 #include "tilelogic/AnimLogic.hpp"
 #include "fastfall/engine/Engine.hpp"

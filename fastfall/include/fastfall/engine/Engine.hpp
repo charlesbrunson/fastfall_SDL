@@ -11,7 +11,7 @@
 
 #include "fastfall/render/VertexArray.hpp"
 #include "fastfall/render/Window.hpp"
-#include "fastfall/engine/input.hpp"
+#include "fastfall/engine/InputConfig.hpp"
 #include "fastfall/game/WorldImGui.hpp"
 
 #include <queue>
@@ -67,7 +67,7 @@ private:
 	static std::unique_ptr<Engine> engineInstance;
 
 	DebugDrawImgui debugdrawImgui;
-	Input::InputObserver input;
+	InputConfig::InputObserver input_cfg;
     WorldImGui worldImgui;
 
 	Engine(std::unique_ptr<Window>&& initWindow, EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings);

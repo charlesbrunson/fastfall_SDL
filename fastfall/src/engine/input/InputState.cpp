@@ -1,68 +1,170 @@
-#include "fastfall/engine/input/InputState.hpp"
+#include "fastfall/engine/InputState.hpp"
 
-namespace ff {
+#include "fastfall/engine/InputConfig.hpp"
 
-InputState::InputState(InputType t) :
-	type(t)
+using namespace ff;
+
+InputState::listen_config_t InputState::config_gameplay = {
+    InputType::UP,
+    InputType::LEFT,
+    InputType::DOWN,
+    InputType::RIGHT,
+    InputType::JUMP,
+    InputType::DASH,
+    InputType::ATTACK,
+};
+
+void InputState::update(secs deltaTime) {
+
+}
+
+void InputState::pushEvent(const SDL_Event &e) {
+
+}
+
+void InputState::resetState() {
+
+}
+
+void InputState::resetState(InputType map_input) {
+
+}
+
+void InputState::resetState(SDL_Keycode sdl_input) {
+
+}
+
+bool InputState::is_pressed(InputType input, secs bufferWindow) const {
+
+}
+
+bool InputState::is_held(InputType input) const {
+
+}
+
+void InputState::confirm_press(InputType input) {
+
+}
+
+bool InputState::is_pressed(SDL_Keycode input, secs bufferWindow) const {
+
+}
+
+bool InputState::is_held(SDL_Keycode input) const {
+
+}
+
+void InputState::confirm_press(SDL_Keycode input) {
+
+}
+
+void InputState::start_listen(InputType map_input) {
+
+}
+
+void InputState::start_listen(SDL_Keycode sdl_input) {
+
+}
+
+void InputState::stop_listen(InputType map_input) {
+
+}
+
+void InputState::stop_listen(SDL_Keycode sdl_input) {
+
+}
+
+void InputState::stop_listen_all() {
+
+}
+
+void InputState::listen_set_config(const listen_config_t& input_config) {
+
+}
+
+void InputState::listen_set_config(listen_config_t&& input_config) {
+
+}
+
+const InputState::listen_config_t& InputState::listen_get_config() const {
+
+}
+
+Input* InputState::get_state(const map_or_sdl_input_t& input) {
+    auto it = input_states.find(input);
+    return it != input_states.end() ? &it->second : nullptr;
+}
+
+void InputState::process_events()
 {
+    SDL_Event e;
+    while (!event_queue.empty()) {
+        e = event_queue.front();
+        event_queue.pop();
+
+        switch (e.type) {
+            case SDL_KEYDOWN:               process_key_down(e);    break;
+            case SDL_KEYUP:                 process_key_up(e);      break;
+            case SDL_CONTROLLERBUTTONDOWN:  process_button_down(e); break;
+            case SDL_CONTROLLERBUTTONUP:    process_button_up(e);   break;
+            case SDL_CONTROLLERAXISMOTION:  process_axis_move(e);   break;
+        }
+    }
 }
 
-void InputState::update(secs deltaTime)
+void InputState::process_key_down(const SDL_Event& e)
 {
-	if (active) {
-		if (firstFrame && lastPressed > 0.0) {
-			firstFrame = false;
-		}
-	}
+    if (e.key.repeat != 0) {
+        // disregard repeats
+        return;
+    }
+    else  {
+        auto scancode = e.key.keysym.sym;
+        auto state_it = input_states.end();
 
-	if (lastPressed >= DBL_MAX - deltaTime) {
-		lastPressed = DBL_MAX;
-	}
-	else {
-		lastPressed += deltaTime;
-	}
+        if (auto it = InputConfig::get_input_type(scancode))
+        {
+            state_it = input_states.find(*it);
+            InputConfig::notify(scancode, InputConfig::EventState::Active);
+        }
+        else {
+            state_it = input_states.find(scancode);
+        }
+
+        if (state_it != input_states.end()) {
+            state_it->second.activate();
+        }
+    }
 }
 
-void InputState::reset() {
-	activeCounter = 0;
-	active = false;
-	confirmed = true;
-	firstFrame = false;
-	lastHoldDuration = lastPressed;
-	lastPressed = DBL_MAX;
+void InputState::process_key_up(const SDL_Event& e) {
+
+    auto scancode = e.key.keysym.sym;
+    auto state_it = input_states.end();
+
+    if (auto it = InputConfig::get_input_type(scancode))
+    {
+        state_it = input_states.find(*it);
+        InputConfig::notify(scancode, InputConfig::EventState::Inactive);
+    }
+    else {
+        state_it = input_states.find(scancode);
+    }
+
+    if (state_it != input_states.end()) {
+        state_it->second.deactivate();
+    }
 }
 
-void InputState::activate() {
-	if (activeCounter == 0) {
-		active = true;
-		confirmed = false;
-		firstFrame = true;
-		lastPressed = 0.0;
-	}
-	activeCounter++;
+void InputState::process_button_down(const SDL_Event& e) {
+
 }
 
-void InputState::deactivate() {
-	activeCounter--;
-	if (activeCounter <= 0) {
-		activeCounter = 0;
-		active = false;
-		firstFrame = false;
-		lastHoldDuration = lastPressed;
-	}
+void InputState::process_button_up(const SDL_Event& e) {
+
 }
 
-bool InputState::is_pressed(secs bufferWindow) const {
-	return is_confirmable()
-		&& ((lastPressed <= bufferWindow) || (firstFrame && bufferWindow == 0.0));
-}
-
-bool InputState::is_held() const {
-	return active;
-}
-
-void InputState::confirm_press() {
-	confirmed = true;
-}
+void InputState::process_axis_move(const SDL_Event& e) {
+    constexpr short JOY_AXIS_MAP_THRESHOLD = 25000;
 
 }

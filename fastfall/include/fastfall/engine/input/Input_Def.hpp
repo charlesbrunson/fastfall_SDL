@@ -26,7 +26,7 @@ enum class InputType : int {
 };
 static constexpr unsigned int INPUT_COUNT = static_cast<unsigned>(InputType::COUNT);
 
-namespace Input {
+namespace InputConfig {
 	using Button = unsigned int;
 	using JoystickAxis = uint8_t;
 	using MouseButton = uint8_t;

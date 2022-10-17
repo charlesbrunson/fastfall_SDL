@@ -1,7 +1,6 @@
 #include "Player.hpp"
 #include "PlayerCommon.hpp"
 
-#include "fastfall/engine/input.hpp"
 #include "fastfall/game/trigger/Trigger.hpp"
 
 
