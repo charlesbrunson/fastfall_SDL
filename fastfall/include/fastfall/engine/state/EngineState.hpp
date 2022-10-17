@@ -57,6 +57,8 @@ public:
 
 	virtual void updateImGUI() {};
 
+    virtual bool pushEvent(const SDL_Event& event) { return false; };
+
 	inline Vec2f getViewPos() const noexcept { return viewPos; };
 	inline float getViewZoom() const noexcept { return viewZoom; };
 

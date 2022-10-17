@@ -1,6 +1,6 @@
 #include "PlayerDash.hpp"
 
-#include "fastfall/engine/input.hpp"
+#include "fastfall/engine/InputConfig.hpp"
 
 #include "../SimpleEffect.hpp"
 

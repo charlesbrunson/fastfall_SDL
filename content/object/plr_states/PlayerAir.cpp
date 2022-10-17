@@ -1,6 +1,6 @@
 #include "PlayerAir.hpp"
 
-#include "fastfall/engine/input.hpp"
+#include "fastfall/engine/InputConfig.hpp"
 
 using namespace ff;
 
@@ -20,7 +20,8 @@ PlayerStateID PlayerAirState::update(ff::World& w, plr::members& plr, secs delta
     auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
     auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
 
-	int wishx = (int)Input::isHeld(InputType::RIGHT) - (int)Input::isHeld(InputType::LEFT);
+	//int wishx = (int)Input::isHeld(InputType::RIGHT) - (int)Input::isHeld(InputType::LEFT);
+    //int wishx = w.input().is_held(InputType::RIGHT) - w.input().is_held(InputType::LEFT);
 
 	sprite.set_playback(1.f);
 	box.set_gravity(constants::grav_normal);

@@ -10,6 +10,7 @@
 #include "fastfall/game/SceneSystem.hpp"
 #include "fastfall/game/ObjectSystem.hpp"
 #include "fastfall/game/LevelSystem.hpp"
+#include "fastfall/engine/InputState.hpp"
 
 #include <optional>
 #include <concepts>
@@ -206,6 +207,7 @@ public:
 	inline SceneSystem&     scene()     { return _scene_system; }
     inline ObjectSystem&    objects() 	{ return _object_system; }
     inline LevelSystem&     levels()    { return _level_system; }
+    inline InputState&      input()     { return _input; }
 
     size_t tick_count() const { return update_counter; }
     secs uptime() const { return update_time; }
@@ -231,6 +233,7 @@ private:
 	TriggerSystem	_trigger_system;
 	CameraSystem	_camera_system;
 	SceneSystem		_scene_system;
+    InputState      _input;
 
     size_t update_counter = 0;
     secs update_time = 0.0;

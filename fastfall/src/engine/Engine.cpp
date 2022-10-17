@@ -15,7 +15,7 @@
 #include "fastfall/engine/Engine.hpp"
 #include "fastfall/engine/config.hpp"
 
-#include "fastfall/engine/input.hpp"
+#include "fastfall/engine/InputConfig.hpp"
 
 #include "fastfall/resource/ResourceWatcher.hpp"
 
@@ -28,9 +28,13 @@
 #include "fmt/format.h"
 
 #if defined(__EMSCRIPTEN__)
-#include <emscripten.h>
-#include <emscripten/html5.h>
+#define FF_HAS_EMSCRIPTEN 1
+#else
+#define FF_HAS_EMSCRIPTEN 0
 #endif
+
+#define IF_EMSCRIPTEN( expr ) if constexpr (FF_HAS_EMSCRIPTEN) { expr; }
+#define IF_N_EMSCRIPTEN( expr ) if constexpr (!FF_HAS_EMSCRIPTEN) { expr; }
 
 namespace profiler {
 
@@ -202,7 +206,7 @@ void Engine::prerun_init()
 {
     ImGui_addContent();
     worldImgui.ImGui_addContent();
-    input.ImGui_addContent();
+    input_cfg.ImGui_addContent();
     debugdrawImgui.ImGui_addContent();
 
     if (window) {
@@ -253,7 +257,8 @@ bool Engine::run_singleThread()
 
         updateTimer();
 
-        Input::update(tick.elapsed);
+        // TODO
+        //Input::update(tick.elapsed);
 
         updateRunnables();
         profiler::curr_duration.update_time = profiler::frame_timer.elapsed();
@@ -431,7 +436,8 @@ void Engine::emscripten_loop(void* engine_ptr) {
 
 	engine->updateTimer();
 
-	Input::update(engine->tick.elapsed);
+    // TODO
+	//Input::update(engine->tick.elapsed);
 
     engine->updateRunnables();
     profiler::curr_duration.update_time = profiler::frame_timer.elapsed();
@@ -470,7 +476,7 @@ void Engine::close() {
     if (window) {
         window->showWindow(false);
     }
-    Input::closeJoystick();
+    InputConfig::closeJoystick();
     running = false;
 }
 
@@ -543,7 +549,8 @@ void Engine::updateRunnables()
 
         if (tickDuration > 0.0)
         {
-            Input::update(tickDuration);
+            // TODO
+            //Input::update(tickDuration);
         }
 
         for (auto& run : runnables) {
@@ -640,7 +647,7 @@ void Engine::handleEvents(bool* timeWasted)
     if (window == nullptr)
         return;
 
-    bool discardMousePress = false;
+    bool discardAllMousePresses = false;
 
     SDL_Event event;
     event_count = 0u;
@@ -654,6 +661,11 @@ void Engine::handleEvents(bool* timeWasted)
             if (ImGui::GetIO().WantCaptureMouse && (event.type & SDL_MOUSEMOTION) > 0) {
                 continue;
             }
+        }
+
+        if (discardAllMousePresses && (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP))
+        {
+            continue;
         }
 
         switch (event.type) {
@@ -671,12 +683,14 @@ void Engine::handleEvents(bool* timeWasted)
             case SDL_WINDOWEVENT_FOCUS_GAINED:
                 hasFocus = true;
                 *timeWasted = true;
-                discardMousePress = true;
-                Input::resetState();
+                discardAllMousePresses = true;
+                // TODO
+                //Input::resetState();
                 break;
             case SDL_WINDOWEVENT_FOCUS_LOST:
                 hasFocus = false;
-                Input::resetState();
+                // TODO
+                //Input::resetState();
                 break;
             }
             break;
@@ -684,9 +698,7 @@ void Engine::handleEvents(bool* timeWasted)
             switch (event.key.keysym.sym) {
             case SDLK_ESCAPE: 
                 if (!settings.fullscreen) {
-#if not defined(__EMSCRIPTEN__)
-                    close();
-#endif
+                    IF_N_EMSCRIPTEN(close());
                 }
                 else {
                     setFullscreen(!settings.fullscreen);
@@ -709,9 +721,7 @@ void Engine::handleEvents(bool* timeWasted)
             case SDLK_KP_3:
                 settings.showDebug = !settings.showDebug;
                 unsigned scale = settings.showDebug ? 2 : 1;
-#if not defined(__EMSCRIPTEN__)
-                SDL_SetWindowMinimumSize(window->getSDL_Window(), GAME_W * scale, GAME_H * scale);
-#endif
+                IF_N_EMSCRIPTEN(SDL_SetWindowMinimumSize(window->getSDL_Window(), GAME_W * scale, GAME_H * scale));
                 resizeWindow(Vec2u(window->getSize()));
                 debug_draw::enable(settings.showDebug);
                 LOG_INFO("Toggling debug mode");
@@ -719,14 +729,21 @@ void Engine::handleEvents(bool* timeWasted)
             }
             [[fallthrough]];
         default:
-            if (!discardMousePress || (event.type != SDL_MOUSEBUTTONDOWN && event.type != SDL_MOUSEBUTTONUP))
-                Input::pushEvent(event);
-            break;
+            // push event to runnables
+            for (auto &runnable: runnables) {
+                if (auto state = runnable.getStateHandle().getActiveState();
+                    state && state->pushEvent(event))
+                {
+                    // engine state consumed the event
+                    break;
+                }
+            }
         }
     }
 
     if (window) {
-        Vec2i pixel_pos = Input::getMouseWindowPosition();
+        // TODO
+        Vec2i pixel_pos = {}; //Input::getMouseWindowPosition();
         Vec2f world_pos = Vec2f{ window->windowCoordToWorld(pixel_pos) };
 
         glm::vec4 viewport = window->getView().getViewport();
@@ -736,8 +753,8 @@ void Engine::handleEvents(bool* timeWasted)
             && pixel_pos.y <= (viewport[1] + viewport[3]);
 
 
-        Input::setMouseWorldPosition(world_pos);
-        Input::setMouseInView(inside);
+        //Input::setMouseWorldPosition(world_pos);
+        //Input::setMouseInView(inside);
 
     }
 }
@@ -766,10 +783,9 @@ void Engine::initRenderTarget(bool fullscreen)
     }
 
     window->setActive();
-#if not defined(__EMSCRIPTEN__)
-	// browser handles vsync if emscripten
-    window->setVsyncEnabled(settings.vsyncEnabled);
-#endif
+    // browser handles vsync if emscripten
+    IF_N_EMSCRIPTEN(window->setVsyncEnabled(settings.vsyncEnabled));
+
     window->showWindow();
 
     margins = std::make_unique<VertexArray>(Primitive::TRIANGLE_STRIP, 10);
@@ -778,10 +794,7 @@ void Engine::initRenderTarget(bool fullscreen)
     }
 
     unsigned scale = settings.showDebug ? 2 : 1;
-#if not defined(__EMSCRIPTEN__)
-    SDL_SetWindowMinimumSize(window->getSDL_Window(), GAME_W * scale, GAME_H * scale);
-#endif
-
+    IF_N_EMSCRIPTEN(SDL_SetWindowMinimumSize(window->getSDL_Window(), GAME_W * scale, GAME_H * scale));
     resizeWindow(Vec2u(window->getSize()));
 }
 
@@ -918,13 +931,12 @@ void Engine::ImGui_getContent() {
         showImPlotDemo = true;
     }
 
-
-#if not defined(__EMSCRIPTEN__)
-	static bool wireframe_enabled = false;
-	if(ImGui::Checkbox("Wireframe", &wireframe_enabled)) {
-		glCheck(glPolygonMode(GL_FRONT_AND_BACK, wireframe_enabled ? GL_LINE : GL_FILL));
-	}
-#endif
+    IF_N_EMSCRIPTEN(
+        static bool wireframe_enabled = false;
+        if(ImGui::Checkbox("Wireframe", &wireframe_enabled)) {
+            glCheck(glPolygonMode(GL_FRONT_AND_BACK, wireframe_enabled ? GL_LINE : GL_FILL));
+        }
+    );
 
     ImGui::BulletText("Window");
     ImGui::Text("Window Vertex Counter = %4zu", window->getVertexCounter());
@@ -939,8 +951,9 @@ void Engine::ImGui_getContent() {
     glm::fvec4 vp = window->getView().getViewport();
     ImGui::Text("Viewport      = (%6.2f, %6.2f, %6.2f, %6.2f)", vp[0], vp[1], vp[2], vp[3]);
     ImGui::Text("Zoom          =  %2dx", windowZoom);
-    ImGui::Text("Cursor (game) = (%6.2f, %6.2f)", Input::getMouseWorldPosition().x, Input::getMouseWorldPosition().y);
-    ImGui::Text("Cursor inside = %s", Input::getMouseInView() ? "true" : "false");
+    // TODO
+    //ImGui::Text("Cursor (game) = (%6.2f, %6.2f)", Input::getMouseWorldPosition().x, Input::getMouseWorldPosition().y);
+    //ImGui::Text("Cursor inside = %s", Input::getMouseInView() ? "true" : "false");
     ImGui::Separator();
     ImGui::Text("Events  = %4d", event_count);
 
@@ -1014,22 +1027,22 @@ void Engine::ImGui_getContent() {
         freezeStepOnce();
     }
 
-#if not defined(__EMSCRIPTEN__)
-    if (ImGui::Checkbox("Vsync Enabled", &settings.vsyncEnabled)) {
-        window->setVsyncEnabled(settings.vsyncEnabled);
-    }
-#endif
+    IF_N_EMSCRIPTEN(
+        if (ImGui::Checkbox("Vsync Enabled", &settings.vsyncEnabled)) {
+            window->setVsyncEnabled(settings.vsyncEnabled);
+        }
+    );
 
     int fps = clock.getTargetFPS();
     constexpr std::string_view show_inf = "UNLIMITED";
     constexpr std::string_view show_fps = "%d";
 
-#if not defined(__EMSCRIPTEN__)
-    if (ImGui::DragInt("FPS", &fps, 5, 0, 500, (fps == 0 ? show_inf : show_fps).data())) {
-        settings.refreshRate = fps;
-        clock.setTargetFPS(fps);
-    }
-#endif
+    IF_N_EMSCRIPTEN(
+        if (ImGui::DragInt("FPS", &fps, 5, 0, 500, (fps == 0 ? show_inf : show_fps).data())) {
+            settings.refreshRate = fps;
+            clock.setTargetFPS(fps);
+        }
+    );
 
     int ups = clock.getTargetUPS();
     if (ImGui::DragInt("UPS", &ups, 5, 10, 500, "%d")) {

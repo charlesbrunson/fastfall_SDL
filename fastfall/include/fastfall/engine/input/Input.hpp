@@ -9,9 +9,9 @@
 
 namespace ff {
 
-class InputState {
+class Input {
 public:
-	InputState(InputType t);
+    Input(InputType t);
 
 	void update(secs deltaTime);
 

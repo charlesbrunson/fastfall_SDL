@@ -4,7 +4,7 @@
 
 namespace ff {
 
-	namespace Input {
+	namespace InputConfig {
 
 		enum class GamepadInputType {
 			NONE,

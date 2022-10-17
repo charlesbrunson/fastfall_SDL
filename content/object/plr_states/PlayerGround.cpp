@@ -1,6 +1,6 @@
 #include "PlayerGround.hpp"
 
-#include "fastfall/engine/input.hpp"
+#include "fastfall/engine/InputConfig.hpp"
 
 using namespace ff;
 

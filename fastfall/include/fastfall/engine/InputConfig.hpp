@@ -15,7 +15,7 @@
 
 namespace ff {
 
-namespace Input {
+namespace InputConfig {
 
 	class InputObserver : public ImGuiContent {
 	public:
@@ -26,14 +26,24 @@ namespace Input {
 	void setAxisDeadzone(float deadzone = 0.1f);
 	float getAxisDeadzone();
 
-	void update(secs deltaTime);
-	void pushEvent(const SDL_Event& e);
+	//void update(secs deltaTime);
+	//void pushEvent(const SDL_Event& e);
 
 	void bindInput(InputType input, SDL_Keycode key);
 	void bindInput(InputType input, GamepadInput gamepad);
 
 	void unbind(InputType input);
 
+    std::optional<InputType> get_input_type(SDL_Keycode key);
+
+    enum class EventState {
+        Active,
+        Inactive
+    };
+
+    void notify(SDL_Keycode key, EventState active);
+
+    /*
 	void resetState();
 
 	bool isPressed(InputType input, secs bufferWindow = 0.0);
@@ -47,11 +57,12 @@ namespace Input {
 
 	void setMouseInView(bool in_view);
 	bool getMouseInView();
+    */
 
 	void updateJoystick();
 	void closeJoystick();
 
-	extern bool debugEvents;
+	//extern bool debugEvents;
 }
 
 }

@@ -6,7 +6,7 @@
 #include <sstream>
 
 
-using namespace ff::Input;
+using namespace ff::InputConfig;
 
 GamepadInput GamepadInput::makeAxis(JoystickAxis axis, bool positiveEnd) {
 	GamepadInput r;
@@ -15,7 +15,7 @@ GamepadInput GamepadInput::makeAxis(JoystickAxis axis, bool positiveEnd) {
 	r.positiveSide = positiveEnd;
 	return r;
 };
-GamepadInput GamepadInput::makeButton(Input::Button button) {
+GamepadInput GamepadInput::makeButton(Button button) {
 	GamepadInput r;
 	r.type = GamepadInputType::BUTTON;
 	r.button = button;
