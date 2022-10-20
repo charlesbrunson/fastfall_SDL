@@ -412,7 +412,7 @@ namespace InputConfig {
 
     ///////////////////////////////////////////////////////////////////////////////////////
 
-    std::optional<InputType> get_input_type(SDL_Keycode key) {
+    std::optional<InputType> get_type(SDL_Keycode key) {
         auto it = keyMap.find(key);
         return it != keyMap.end() ? std::make_optional(it->second.type) : std::nullopt;
     }

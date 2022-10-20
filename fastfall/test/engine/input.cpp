@@ -4,9 +4,9 @@
 
 using namespace ff;
 
-TEST(input, input_state) 
+TEST(input, input)
 {
-	InputState state{InputType::JUMP};
+	Input state{InputType::JUMP};
 	state.activate();
 	EXPECT_TRUE(state.is_active());
 	EXPECT_TRUE(state.is_held());
@@ -29,9 +29,9 @@ TEST(input, input_state)
 	EXPECT_TRUE(state.is_confirmed());
 }
 
-TEST(input, input_state_buffer)
+TEST(input, input_buffer)
 {
-	InputState state{ InputType::JUMP };
+	Input state{ InputType::JUMP };
 	state.activate();
 	state.update(1.0);
 	EXPECT_TRUE(state.is_pressed(0.0));
@@ -41,9 +41,9 @@ TEST(input, input_state_buffer)
 	EXPECT_TRUE(state.is_pressed(2.0));
 }
 
-TEST(input, input_state_deactivated_buffer)
+TEST(input, input_deactivated_buffer)
 {
-	InputState state{ InputType::JUMP };
+	Input state{ InputType::JUMP };
 	state.activate();
 	state.deactivate();
 	state.update(1.0);
