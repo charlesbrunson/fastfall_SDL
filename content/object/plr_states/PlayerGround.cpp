@@ -154,16 +154,16 @@ PlayerStateID PlayerGroundState::update(ff::World& w, plr::members& plr, secs de
 		}
 
 		// jumping
-		if (Input::isPressed(InputType::JUMP, 0.1f)) 
+		if (w.input()[InputType::JUMP].is_pressed(0.1))
 		{
-			Input::confirmPress(InputType::JUMP);
+			w.input()[InputType::JUMP].confirm_press();
 			return action::jump(w, plr, move);
 		}
 
 		// dashing
-		if (Input::isPressed(InputType::DASH, 0.25f))
+		if (w.input()[InputType::DASH].is_pressed(0.25))
 		{
-			Input::confirmPress(InputType::DASH);
+            w.input()[InputType::DASH].confirm_press();
 			return action::dash(w, plr, move);
 		}
 		

@@ -14,6 +14,12 @@ std::vector<InputType> InputState::config_gameplay = {
     InputType::ATTACK,
 };
 
+InputState::InputState(const std::vector<InputType>& listen_inputs) {
+    for (auto& in : listen_inputs) {
+        listen(in);
+    }
+}
+
 void InputState::update(secs deltaTime)
 {
     if (deltaTime > 0.0) {
@@ -77,4 +83,12 @@ void InputState::listen(InputType input) {
 void InputState::unlisten(InputType input) {
     input_states.erase(input);
     std::erase_if(events, [input](const auto& event) { return event.type == input; } );
+}
+
+void InputState::listen_config(const std::vector<InputType>& listen_inputs) {
+    events.clear();
+    input_states.clear();
+    for (auto& in : listen_inputs) {
+        listen(in);
+    }
 }

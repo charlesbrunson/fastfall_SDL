@@ -131,9 +131,9 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
 		auto dash_anims = select_dash_anim(w, plr);
 		sprite.set_anim_if_not(dash_anims.dash->id());
 
-		if (Input::isPressed(InputType::JUMP, 0.1f))
+		if (w.input()[InputType::JUMP].is_pressed(0.1))
 		{
-			Input::confirmPress(InputType::JUMP);
+			w.input()[InputType::JUMP].confirm_press();
 			return dash_jump(w, plr, move_t(w, plr));
 		}
 
@@ -154,9 +154,9 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
 		box.set_gravity(Vec2f{});
 		if (ground_flag) {
 
-			if (Input::isPressed(InputType::JUMP, 0.1f))
-			{
-				Input::confirmPress(InputType::JUMP);
+            if (w.input()[InputType::JUMP].is_pressed(0.1))
+            {
+                w.input()[InputType::JUMP].confirm_press();
 				return dash_jump(w, plr, move_t(w, plr));
 			}
 

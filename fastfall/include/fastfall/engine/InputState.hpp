@@ -17,7 +17,7 @@ namespace ff {
 class InputState {
 public:
     InputState() = default;
-    InputState(std::vector<InputType> listen_inputs);
+    InputState(const std::vector<InputType>& listen_inputs);
 
 
     void update(secs deltaTime);
@@ -35,7 +35,7 @@ public:
 
     void listen(InputType input);
     void unlisten(InputType input);
-    void listen_config(std::vector<InputType> listen_inputs);
+    void listen_config(const std::vector<InputType>& listen_inputs);
 
     bool is_listening(InputType in) const { return input_states.contains(in); }
     bool is_listening(std::optional<InputType> in) const { return in && input_states.contains(*in); }

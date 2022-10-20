@@ -652,6 +652,17 @@ void Engine::handleEvents(bool* timeWasted)
     SDL_Event event;
     event_count = 0u;
 
+    auto push_to_states = [this](SDL_Event event) {
+        for (auto &runnable: runnables) {
+            if (auto state = runnable.getStateHandle().getActiveState();
+                    state && state->pushEvent(event))
+            {
+                // engine state consumed the event
+                break;
+            }
+        }
+    };
+
     while (SDL_PollEvent(&event)) 
     {
 
@@ -718,7 +729,7 @@ void Engine::handleEvents(bool* timeWasted)
             case SDLK_KP_2:
                 freezeStepOnce();
                 break;
-            case SDLK_KP_3:
+            case SDLK_KP_3: {
                 settings.showDebug = !settings.showDebug;
                 unsigned scale = settings.showDebug ? 2 : 1;
                 IF_N_EMSCRIPTEN(SDL_SetWindowMinimumSize(window->getSDL_Window(), GAME_W * scale, GAME_H * scale));
@@ -727,17 +738,13 @@ void Engine::handleEvents(bool* timeWasted)
                 LOG_INFO("Toggling debug mode");
                 break;
             }
-            [[fallthrough]];
-        default:
-            // push event to runnables
-            for (auto &runnable: runnables) {
-                if (auto state = runnable.getStateHandle().getActiveState();
-                    state && state->pushEvent(event))
-                {
-                    // engine state consumed the event
-                    break;
-                }
+            default:
+                push_to_states(event);
             }
+            break;
+        case SDL_KEYDOWN:
+            push_to_states(event);
+            break;
         }
     }
 
