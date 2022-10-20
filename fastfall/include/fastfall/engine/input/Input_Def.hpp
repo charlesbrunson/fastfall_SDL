@@ -5,12 +5,6 @@
 
 namespace ff {
 
-enum class InputMethod {
-	KEYBOARD,
-	MOUSE,
-	JOYSTICK
-};
-
 enum class InputType : int {
 	NONE	= -1,
 	UP		= 0,
@@ -26,10 +20,8 @@ enum class InputType : int {
 };
 static constexpr unsigned int INPUT_COUNT = static_cast<unsigned>(InputType::COUNT);
 
-namespace InputConfig {
-	using Button = unsigned int;
-	using JoystickAxis = uint8_t;
-	using MouseButton = uint8_t;
-}
+using Button        = unsigned int;
+using JoystickAxis  = uint8_t;
+using MouseButton   = uint8_t;
 
 }
