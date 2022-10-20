@@ -34,7 +34,10 @@ namespace InputConfig {
 
 	void unbind(InputType input);
 
-    std::optional<InputType> get_input_type(SDL_Keycode key);
+    std::optional<InputType> get_input_type_key(SDL_Keycode code);
+    std::optional<InputType> get_input_type_mouse(MouseButton mbutton);
+    std::optional<InputType> get_input_type_button(Button jbutton);
+    std::optional<InputType> get_input_type_axis(JoystickAxis axis);
 
     enum class EventState {
         Active,
