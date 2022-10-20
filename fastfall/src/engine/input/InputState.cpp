@@ -17,95 +17,64 @@ std::vector<InputType> InputState::config_gameplay = {
 void InputState::update(secs deltaTime)
 {
     if (deltaTime > 0.0) {
-        //processEvents();
+        process_events();
         for (auto& [type, input] : input_states) {
             input.update(deltaTime);
         }
     }
 }
 
-bool InputState::push_event(SDL_Event e) {
-
+bool InputState::push_event(SDL_Event e)
+{
+    bool caught = false;
     switch (e.type) {
         case SDL_KEYDOWN:
-            return process_key_down(e.key);
+            if (e.key.repeat != 0) {
+                // discard repeats
+                break;
+            }
+            else if (auto input_type = InputConfig::get_type(e.key.keysym.sym);
+                input_type && is_listening(*input_type))
+            {
+                events.push_back({*input_type, true});
+                caught = true;
+            }
+            break;
         case SDL_KEYUP:
-            return process_key_up(e.key);
+            if (auto input_type = InputConfig::get_type(e.key.keysym.sym);
+                input_type && is_listening(*input_type))
+            {
+                events.push_back({*input_type, false});
+                caught = true;
+            }
+            break;
         //case SDL_CONTROLLERBUTTONDOWN:  break;
         //case SDL_CONTROLLERBUTTONUP:    break;
         //case SDL_CONTROLLERAXISMOTION:  break;
     }
-    return false;
+    return caught;
 }
 
-bool InputState::is_pressed(InputType input, secs bufferWindow) const {
-    if (auto it = input_states.find(input);
-        it != input_states.find(input))
-    {
-        return it->second.is_pressed(bufferWindow);
+void InputState::process_events() {
+    for (const auto& event : events) {
+        auto& input = at(event.type);
+
+        if (event.active)
+            input.activate();
+        else
+            input.deactivate();
+
     }
-    return false;
+    events.clear();
 }
 
-bool InputState::is_held(InputType input) const {
-    if (auto it = input_states.find(input);
-            it != input_states.find(input))
-    {
-        return it->second.is_held();
-    }
-    return false;
+// ------------------------------------------------------
+
+void InputState::listen(InputType input) {
+    input_states.emplace(input, Input{input});
 }
 
-bool InputState::confirm_press(InputType input) {
-    auto it = input_states.find(input);
-    if (it != input_states.find(input))
-    {
-        it->second.confirm_press();
-    }
-    return it != input_states.find(input);
-}
-
-Input* InputState::get_state(InputType input) {
-    auto it = input_states.find(input);
-    return it != input_states.end() ? &it->second : nullptr;
-}
-
-bool InputState::process_key_down(SDL_KeyboardEvent e)
-{
-    // discard repeats
-    if (e.repeat == 0) {
-        auto scancode = e.keysym.sym;
-        auto state_it = input_states.end();
-
-        if (auto it = InputConfig::get_input_type_key(scancode))
-        {
-            state_it = input_states.find(*it);
-            InputConfig::notify(scancode, InputConfig::EventState::Active);
-        }
-
-        bool has_value = state_it != input_states.end();
-        if (has_value) {
-            state_it->second.activate();
-        }
-        return has_value;
-    }
-    return false;
-}
-
-bool InputState::process_key_up(SDL_KeyboardEvent e) {
-
-    auto scancode = e.keysym.sym;
-    auto state_it = input_states.end();
-
-    if (auto it = InputConfig::get_input_type_key(scancode))
-    {
-        state_it = input_states.find(*it);
-        InputConfig::notify(scancode, InputConfig::EventState::Inactive);
-    }
-
-    bool has_value = state_it != input_states.end();
-    if (has_value) {
-        state_it->second.deactivate();
-    }
-    return has_value;
+void InputState::unlisten(InputType input) {
+    input_states.erase(input);
+    std::erase_if(events, [input](const auto& event) { return event.type == input; } );
 }

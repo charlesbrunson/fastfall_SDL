@@ -43,6 +43,7 @@ create_ff_test(ff_test_phys
 create_ff_test(ff_test_engine
 	engine/statehandler.cpp
 	engine/input.cpp
+	engine/inputstate.cpp
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/phys_render_out)
