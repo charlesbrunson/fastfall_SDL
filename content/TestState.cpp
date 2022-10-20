@@ -49,7 +49,8 @@ void TestState::update(secs deltaTime) {
 
 		const TileLayer& tilelayer = edit->get_tile_layer()->tilelayer;
 
-		mpos = Input::getMouseWorldPosition();
+        // TODO
+		mpos = Vec2f{}; // Input::getMouseWorldPosition();
 		tpos = tilelayer.getTileFromWorldPos(mpos).value_or(Vec2i{});
 
 		static auto onKeyPressed = [this](SDL_Scancode c, auto&& callable) {
@@ -160,6 +161,8 @@ void TestState::update(secs deltaTime) {
 			}
 			});
 
+        // TODO
+        /*
 		if (Input::getMouseInView() && (Input::isHeld(InputType::MOUSE1) || Input::isHeld(InputType::MOUSE2)))
 		{
             Level* lvl = world->levels().get_active(*world);
@@ -178,6 +181,7 @@ void TestState::update(secs deltaTime) {
 		else {
 			painting = false;
 		}
+         */
 
 		auto tileset = edit->get_tileset();
 		auto tile_id = edit->get_tile();
@@ -269,7 +273,8 @@ void TestState::predraw(float interp, bool updated) {
 			int posx, posy;
 			SDL_GetMouseState(&posx, &posy);
 
-			Vec2f mouse_pos { Input::getMouseWindowPosition() };
+            // TODO
+			Vec2f mouse_pos { /* Input::getMouseWindowPosition() */ };
 			Vec2f win_size  { Engine::getWindow()->getSize() };
 			Vec2f text_off  { 0.f, -tile_text.getScaledBounds().height };
 
@@ -288,6 +293,10 @@ void TestState::predraw(float interp, bool updated) {
 		tile_ghost.setColor(ff::Color::Transparent);
 		tile_text.setColor(ff::Color::Transparent);
 	}
+}
+
+bool TestState::pushEvent(const SDL_Event& event) {
+    return world->input().push_event(event);
 }
 
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const 

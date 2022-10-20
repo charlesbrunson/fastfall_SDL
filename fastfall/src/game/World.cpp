@@ -6,6 +6,7 @@ namespace ff {
 
 World::World() {
     WorldImGui::add(this);
+    _input.listen_config(InputState::config_gameplay);
 }
 
 World::World(const World& other) {
@@ -25,6 +26,7 @@ World::World(const World& other) {
     _scene_system = other._scene_system;
     update_counter = other.update_counter;
     update_time = other.update_time;
+    _input.listen_config(InputState::config_gameplay);
 }
 
 World::World(World&& other) noexcept {
@@ -44,6 +46,7 @@ World::World(World&& other) noexcept {
     _scene_system = std::move(other._scene_system);
     update_counter = other.update_counter;
     update_time = other.update_time;
+    _input.listen_config(InputState::config_gameplay);
 }
 
 World& World::operator=(const World& other) {
@@ -111,6 +114,7 @@ ID<SceneObject> World::create_scene_object(SceneObject obj) {
 void World::update(secs deltaTime) {
     if (Level* active = _level_system.get_active(*this))
     {
+        _input.update(deltaTime);
         active->update(*this, deltaTime);
         _trigger_system.update(*this, deltaTime);
         _object_system.update(*this, deltaTime);

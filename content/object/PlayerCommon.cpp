@@ -12,8 +12,8 @@ plr::move_t::move_t(World& w, const plr::members& plr)
     auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
 
 	wishx = 0;
-	if (Input::isHeld(InputType::RIGHT)) wishx++;
-	if (Input::isHeld(InputType::LEFT))  wishx--;
+    if (w.input()[InputType::RIGHT].is_held()) wishx++;
+    if (w.input()[InputType::LEFT].is_held()) wishx--;
 
 	int flipper = (sprite.get_hflip() ? -1 : 1);
 
