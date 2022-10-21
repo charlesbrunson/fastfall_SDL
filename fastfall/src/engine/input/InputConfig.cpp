@@ -20,7 +20,7 @@ namespace InputConfig {
 
     namespace {
 
-        short _deadzone = (short)(0.2 * (double)SHRT_MAX);
+        short _deadzone = (SHRT_MAX / 5); //(short)(0.2 * (double)SHRT_MAX);
 
         //InputMethod activeInputMethod = InputMethod::KEYBOARD;
         InputType waitingForInput = InputType::NONE;
