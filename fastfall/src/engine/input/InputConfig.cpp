@@ -143,6 +143,14 @@ namespace InputConfig {
         }
         */
 
+        const GamepadInput* getGamepadInput(JoystickAxis axis, bool side) {
+            auto t = joystickMap.find(GamepadInput::makeAxis(axis, side));
+            if (t != joystickMap.end()) {
+                return &t->first;
+            }
+            return nullptr;
+        }
+
         void clearBinds() {
             keyMap.clear();
             joystickMap.clear();
@@ -451,6 +459,11 @@ namespace InputConfig {
             opt_find_type(joystickMap, GamepadInput::makeAxis(axis, false)),
             opt_find_type(joystickMap, GamepadInput::makeAxis(axis, true)),
         };
+    }
+
+    const GamepadInput* getGamepadInput(JoystickAxis axis, bool side) {
+        auto it = joystickMap.find(GamepadInput::makeAxis(axis, side));
+        return it != joystickMap.end() ? &it->first : nullptr;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////

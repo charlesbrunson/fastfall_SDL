@@ -745,6 +745,7 @@ void Engine::handleEvents(bool* timeWasted)
         case SDL_KEYDOWN:
         case SDL_CONTROLLERBUTTONDOWN:
         case SDL_CONTROLLERBUTTONUP:
+        case SDL_CONTROLLERAXISMOTION:
             push_to_states(event);
             break;
         case SDL_JOYDEVICEADDED:
