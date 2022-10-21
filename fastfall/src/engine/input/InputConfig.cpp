@@ -48,9 +48,9 @@ namespace InputConfig {
         */
 
         struct InputMapValue {
-            InputMapValue() = default;
+            constexpr InputMapValue() = default;
 
-            InputMapValue(InputType t)
+            constexpr InputMapValue(InputType t)
                 : type(t)
             {
             }
@@ -76,19 +76,35 @@ namespace InputConfig {
             {SDL_BUTTON_RIGHT,     {InputType::MOUSE2}},
         };
 
+
+        constexpr
+        std::pair<GamepadInput, InputMapValue>
+        button_map(Button button, InputType input)
+        {
+            return { GamepadInput::makeButton(button), { input } };
+        }
+
+        constexpr
+        std::pair<GamepadInput, InputMapValue>
+        axis_map(JoystickAxis axis, bool positive, InputType input)
+        {
+            return { GamepadInput::makeAxis(axis, positive), { input } };
+        }
+
         // default input mapping for joysticks
         std::map<GamepadInput, InputMapValue> joystickMap = {
-            {GamepadInput::makeAxis(SDL_CONTROLLER_AXIS_LEFTY, false),   {InputType::UP}},
-            {GamepadInput::makeAxis(SDL_CONTROLLER_AXIS_LEFTX, false),   {InputType::LEFT}},
-            {GamepadInput::makeAxis(SDL_CONTROLLER_AXIS_LEFTY, true),    {InputType::DOWN}},
-            {GamepadInput::makeAxis(SDL_CONTROLLER_AXIS_LEFTX, true),    {InputType::RIGHT}},
-            {GamepadInput::makeButton(SDL_CONTROLLER_BUTTON_DPAD_UP),    {InputType::UP}},
-            {GamepadInput::makeButton(SDL_CONTROLLER_BUTTON_DPAD_LEFT),  {InputType::LEFT}},
-            {GamepadInput::makeButton(SDL_CONTROLLER_BUTTON_DPAD_DOWN),  {InputType::DOWN}},
-            {GamepadInput::makeButton(SDL_CONTROLLER_BUTTON_DPAD_RIGHT), {InputType::RIGHT}},
-            {GamepadInput::makeButton(SDL_CONTROLLER_BUTTON_A),          {InputType::JUMP}},
-            {GamepadInput::makeButton(SDL_CONTROLLER_BUTTON_B),          {InputType::DASH}},
-            {GamepadInput::makeButton(SDL_CONTROLLER_BUTTON_X),          {InputType::ATTACK}},
+            axis_map(SDL_CONTROLLER_AXIS_LEFTY, GamepadInput::AXIS_DIR_U, InputType::UP),
+            axis_map(SDL_CONTROLLER_AXIS_LEFTX, GamepadInput::AXIS_DIR_L, InputType::LEFT),
+            axis_map(SDL_CONTROLLER_AXIS_LEFTY, GamepadInput::AXIS_DIR_D, InputType::DOWN),
+            axis_map(SDL_CONTROLLER_AXIS_LEFTX, GamepadInput::AXIS_DIR_R, InputType::RIGHT),
+            button_map(SDL_CONTROLLER_BUTTON_DPAD_UP,      InputType::UP),
+            button_map(SDL_CONTROLLER_BUTTON_DPAD_LEFT,    InputType::LEFT),
+            button_map(SDL_CONTROLLER_BUTTON_DPAD_DOWN,    InputType::DOWN),
+            button_map(SDL_CONTROLLER_BUTTON_DPAD_RIGHT,   InputType::RIGHT),
+            button_map(SDL_CONTROLLER_BUTTON_A,            InputType::JUMP),
+            button_map(SDL_CONTROLLER_BUTTON_B,            InputType::DASH),
+            button_map(SDL_CONTROLLER_BUTTON_LEFTSHOULDER, InputType::DASH),
+            button_map(SDL_CONTROLLER_BUTTON_X,            InputType::ATTACK),
         };
 
 
@@ -412,16 +428,29 @@ namespace InputConfig {
 
     ///////////////////////////////////////////////////////////////////////////////////////
 
-    std::optional<InputType> get_type(SDL_Keycode key) {
-        auto it = keyMap.find(key);
-        return it != keyMap.end() ? std::make_optional(it->second.type) : std::nullopt;
+    inline auto opt_find_type(const auto& map, auto key) {
+        auto it = map.find(key);
+        return it != map.end() ? std::make_optional(it->second.type) : std::nullopt;
     }
 
-    void notify(SDL_Keycode key, EventState active) {
-        auto it = keyMap.find(key);
+    std::optional<InputType> get_type_key(SDL_Keycode key) {
+        return opt_find_type(keyMap, key);
+    }
 
-        if (it != keyMap.end())
-            it->second.active = (active == EventState::Active);
+    std::optional<InputType> get_type_mbutton(MouseButton mbutton) {
+        return opt_find_type(mouseMap, mbutton);
+    }
+
+    std::optional<InputType> get_type_jbutton(Button jbutton) {
+        return opt_find_type(joystickMap, GamepadInput::makeButton(jbutton));
+    }
+
+    std::pair<std::optional<InputType>, std::optional<InputType>>
+    get_type_jaxis(JoystickAxis axis) {
+        return {
+            opt_find_type(joystickMap, GamepadInput::makeAxis(axis, false)),
+            opt_find_type(joystickMap, GamepadInput::makeAxis(axis, true)),
+        };
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////

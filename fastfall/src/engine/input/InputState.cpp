@@ -34,29 +34,52 @@ bool InputState::push_event(SDL_Event e)
 {
     bool caught = false;
     switch (e.type) {
-        case SDL_KEYDOWN:
+        case SDL_KEYDOWN: {
             if (e.key.repeat != 0) {
                 // discard repeats
                 break;
-            }
-            else if (auto input_type = InputConfig::get_type(e.key.keysym.sym);
+            } else if (auto input_type = InputConfig::get_type_key(e.key.keysym.sym);
                 input_type && is_listening(*input_type))
             {
                 events.push_back({*input_type, true});
                 caught = true;
             }
-            break;
-        case SDL_KEYUP:
-            if (auto input_type = InputConfig::get_type(e.key.keysym.sym);
+        }
+        break;
+        case SDL_KEYUP: {
+            if (auto input_type = InputConfig::get_type_key(e.key.keysym.sym);
                 input_type && is_listening(*input_type))
             {
                 events.push_back({*input_type, false});
                 caught = true;
             }
-            break;
-        //case SDL_CONTROLLERBUTTONDOWN:  break;
-        //case SDL_CONTROLLERBUTTONUP:    break;
-        //case SDL_CONTROLLERAXISMOTION:  break;
+        }
+        break;
+        case SDL_CONTROLLERBUTTONDOWN: {
+            if (auto input_type = InputConfig::get_type_jbutton(e.cbutton.button);
+                input_type && is_listening(*input_type))
+            {
+                events.push_back({*input_type, true});
+                caught = true;
+            }
+        }
+        break;
+        case SDL_CONTROLLERBUTTONUP: {
+            if (auto input_type = InputConfig::get_type_jbutton(e.cbutton.button);
+                input_type && is_listening(*input_type))
+            {
+                events.push_back({*input_type, false});
+                caught = true;
+            }
+        }
+        break;
+        case SDL_CONTROLLERAXISMOTION: {
+            auto [axis1, axis2] = InputConfig::get_type_jaxis(e.caxis.axis);
+            int16_t axis_position = e.caxis.value;
+
+
+        }
+        break;
     }
     return caught;
 }

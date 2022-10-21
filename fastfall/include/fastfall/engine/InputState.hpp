@@ -45,16 +45,6 @@ private:
     Input* get_state(InputType input);
 
     void process_events();
-    //bool process_key_down(SDL_KeyboardEvent e);
-    //bool process_key_up(SDL_KeyboardEvent e);
-
-    /*
-    bool process_joystick_button_down(Button jbutton);
-    bool process_joystick_button_up(Button jbutton);
-    bool process_mouse_button_down(MouseButton mbutton);
-    bool process_mouse_button_up(MouseButton mbutton);
-    bool process_axis_move(JoystickAxis axis);
-    */
 
     struct InputEvent {
         InputType type;

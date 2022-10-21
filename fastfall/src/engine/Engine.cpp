@@ -743,8 +743,17 @@ void Engine::handleEvents(bool* timeWasted)
             }
             break;
         case SDL_KEYDOWN:
+        case SDL_CONTROLLERBUTTONDOWN:
+        case SDL_CONTROLLERBUTTONUP:
             push_to_states(event);
             break;
+        case SDL_JOYDEVICEADDED:
+        case SDL_JOYDEVICEREMOVED:
+        case SDL_CONTROLLERDEVICEADDED:
+        case SDL_CONTROLLERDEVICEREMOVED:
+            InputConfig::updateJoystick();
+            break;
+
         }
     }
 
