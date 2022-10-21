@@ -11,30 +11,26 @@ void InputState::process_axis(const InputConfig::GamepadInput* gamepad, Input* i
 
         constexpr int16_t max = std::numeric_limits<int16_t>::max();
         int16_t deadzone = InputConfig::getAxisDeadzone();
-        size_t deadzone_squared = (size_t)deadzone * (size_t)deadzone;
+        size_t deadzone_squared = (size_t)deadzone * (size_t)deadzone * 2;
         size_t axis_squared = (size_t)axis_pos * (size_t)axis_pos + (size_t)alt_axis_pos * (size_t)alt_axis_pos;
         uint8_t magnitude = 0;
 
         if ((gamepad->positiveSide && axis_pos > 0)
             || (!gamepad->positiveSide && axis_pos < 0))
         {
-            if (abs(axis_pos) > abs(alt_axis_pos) / 2) {
-                if (axis_squared > deadzone_squared) {
+            if (abs(axis_pos) >= abs(alt_axis_pos) / 2) {
+                if (axis_squared >= deadzone_squared) {
                     inrangeCur = true;
-                    //double dbl_mag = sqrt((double)axis_squared) - (double)deadzone;
-                    //LOG_INFO("mag:{}\t{}\t{}", dbl_mag, sqrt((double)axis_squared), deadzone);
-                    //magnitude = (uint8_t)((dbl_mag / (max - (double)deadzone)) * 255.0);
-                    magnitude = ((size_t)abs(axis_pos) - (size_t)deadzone) * (size_t)0xFF / ((size_t)max - (size_t)deadzone);
+                    magnitude = 1 + ((size_t)abs(axis_pos) - (size_t)deadzone) * (size_t)0xFE / ((size_t)max - (size_t)deadzone);
                 }
             }
         }
-
-        LOG_INFO("axis:{} mag:{}", SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)gamepad->axis), magnitude);
 
         if (inrangeCur != input->axis_prev_in_range) {
             events.push_back({input->type, magnitude});
         }
         input->axis_prev_in_range = inrangeCur;
+        input->magnitude = magnitude;
     }
 }
 
@@ -143,14 +139,15 @@ bool InputState::push_event(SDL_Event e)
                 process_axis(InputConfig::getGamepadInput(*alt_axis, false), (alt1 ? get(*alt1) : nullptr), alt_axis_pos, axis_pos);
                 process_axis(InputConfig::getGamepadInput(*alt_axis, true), (alt2 ? get(*alt2) : nullptr), alt_axis_pos, axis_pos);
 
-                /*
-                if (axis < *alt_axis) {
-                    LOG_INFO("a1:{} a2:{}", axis_pos, alt_axis_pos);
-                }
-                else {
-                    LOG_INFO("a1:{} a2:{}", alt_axis_pos, axis_pos);
-                }
-                */
+                //int16_t magx = (int16_t)(get(*axis1)->magnitude) - (int16_t)(get(*axis2)->magnitude);
+                //int16_t magy = (int16_t)(get(*alt1)->magnitude) - (int16_t)(get(*alt2)->magnitude);
+
+                //if (*axis1 < *alt1) {
+                //    LOG_INFO("{} {}", magx, magy);
+                //}
+                //else {
+                //    LOG_INFO("{} {}", magy, magx);
+                //}
             }
         }
         break;
@@ -168,8 +165,13 @@ void InputState::process_events() {
         else {
             input.deactivate();
         }
-        input.magnitude = event.magnitude;
+        //input.magnitude = event.magnitude;
     }
+
+    int x_axis = ((int)get(InputType::RIGHT)->magnitude - (int)get(InputType::LEFT)->magnitude);
+    int y_axis = ((int)get(InputType::UP)->magnitude - (int)get(InputType::DOWN)->magnitude);
+    LOG_INFO("{:3}, {:3}", x_axis, y_axis);
+
     events.clear();
 }
 
