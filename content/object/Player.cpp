@@ -90,19 +90,19 @@ void Player::update(World& w, secs deltaTime) {
 
 objcfg::dresult Player::message(World& w, const objcfg::dmessage& msg) {
     switch(msg) {
-        case objNoOp:{
+        case objNoOp: {
             LOG_INFO("Nothing!");
             return objNoOp.accept();
         }
-        case objGetPos:{
+        case objGetPos: {
             return objGetPos.accept(w.at(collidable_id).getPosition());
         }
-        case objSetPos:{
+        case objSetPos: {
             auto [pos] = objSetPos.unwrap(msg);
             w.at(collidable_id).setPosition(pos);
             return objSetPos.accept();
         }
-        case objHurt:{
+        case objHurt: {
             // float [damage] = objHurt.unwrap(msg);
             LOG_INFO("OUCH: {}", objHurt.unwrap_as<float>(msg));
             return objHurt.accept();
