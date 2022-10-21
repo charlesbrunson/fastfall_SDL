@@ -23,8 +23,8 @@ namespace InputConfig {
 		void ImGui_getContent();
 	};
 
-	void setAxisDeadzone(float deadzone = 0.1f);
-	float getAxisDeadzone();
+	void setAxisDeadzone(short deadzone);
+	short getAxisDeadzone();
 
 	//void update(secs deltaTime);
 	//void pushEvent(const SDL_Event& e);

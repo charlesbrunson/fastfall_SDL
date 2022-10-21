@@ -20,7 +20,7 @@ namespace InputConfig {
 
     namespace {
 
-        short _deadzone = (short)(0.2 * SHRT_MAX);
+        short _deadzone = (short)(0.2 * (double)SHRT_MAX);
 
         //InputMethod activeInputMethod = InputMethod::KEYBOARD;
         InputType waitingForInput = InputType::NONE;
@@ -161,10 +161,10 @@ namespace InputConfig {
     } // anonymous namespace
 
     //////////////////////////////////////////////////////////////////////////////////////////
-    void setAxisDeadzone(float deadzone) {
+    void setAxisDeadzone(short deadzone) {
         _deadzone = deadzone;
     }
-    float getAxisDeadzone() {
+    short getAxisDeadzone() {
         return _deadzone;
     }
 

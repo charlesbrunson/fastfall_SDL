@@ -1,8 +1,42 @@
 #include "fastfall/engine/InputState.hpp"
 
 #include "fastfall/engine/InputConfig.hpp"
+#include "fastfall/util/log.hpp"
 
 using namespace ff;
+
+void InputState::process_axis(const InputConfig::GamepadInput* gamepad, Input* input, int16_t axis_pos, int16_t alt_axis_pos) {
+    if (gamepad && input) {
+        bool inrangeCur = false;
+
+        constexpr int16_t max = std::numeric_limits<int16_t>::max();
+        int16_t deadzone = InputConfig::getAxisDeadzone();
+        size_t deadzone_squared = (size_t)deadzone * (size_t)deadzone;
+        size_t axis_squared = (size_t)axis_pos * (size_t)axis_pos + (size_t)alt_axis_pos * (size_t)alt_axis_pos;
+        uint8_t magnitude = 0;
+
+        if ((gamepad->positiveSide && axis_pos > 0)
+            || (!gamepad->positiveSide && axis_pos < 0))
+        {
+            if (abs(axis_pos) > abs(alt_axis_pos) / 2) {
+                if (axis_squared > deadzone_squared) {
+                    inrangeCur = true;
+                    //double dbl_mag = sqrt((double)axis_squared) - (double)deadzone;
+                    //LOG_INFO("mag:{}\t{}\t{}", dbl_mag, sqrt((double)axis_squared), deadzone);
+                    //magnitude = (uint8_t)((dbl_mag / (max - (double)deadzone)) * 255.0);
+                    magnitude = ((size_t)abs(axis_pos) - (size_t)deadzone) * (size_t)0xFF / ((size_t)max - (size_t)deadzone);
+                }
+            }
+        }
+
+        LOG_INFO("axis:{} mag:{}", SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)gamepad->axis), magnitude);
+
+        if (inrangeCur != input->axis_prev_in_range) {
+            events.push_back({input->type, magnitude});
+        }
+        input->axis_prev_in_range = inrangeCur;
+    }
+}
 
 std::vector<InputType> InputState::config_gameplay = {
     InputType::UP,
@@ -41,7 +75,7 @@ bool InputState::push_event(SDL_Event e)
             } else if (auto input_type = InputConfig::get_type_key(e.key.keysym.sym);
                 input_type && is_listening(*input_type))
             {
-                events.push_back({*input_type, true});
+                events.push_back({*input_type, Input::MAG_FULL});
                 caught = true;
             }
         }
@@ -50,7 +84,7 @@ bool InputState::push_event(SDL_Event e)
             if (auto input_type = InputConfig::get_type_key(e.key.keysym.sym);
                 input_type && is_listening(*input_type))
             {
-                events.push_back({*input_type, false});
+                events.push_back({*input_type, Input::MAG_ZERO});
                 caught = true;
             }
         }
@@ -59,7 +93,7 @@ bool InputState::push_event(SDL_Event e)
             if (auto input_type = InputConfig::get_type_jbutton(e.cbutton.button);
                 input_type && is_listening(*input_type))
             {
-                events.push_back({*input_type, true});
+                events.push_back({*input_type, Input::MAG_FULL});
                 caught = true;
             }
         }
@@ -68,44 +102,56 @@ bool InputState::push_event(SDL_Event e)
             if (auto input_type = InputConfig::get_type_jbutton(e.cbutton.button);
                 input_type && is_listening(*input_type))
             {
-                events.push_back({*input_type, false});
+                events.push_back({*input_type, Input::MAG_ZERO});
                 caught = true;
             }
         }
         break;
         case SDL_CONTROLLERAXISMOTION: {
-
             // TODO implement circular deadzone, currently square
 
+            JoystickAxis axis = e.caxis.axis;
+            int16_t axis_pos = e.caxis.value;
+
+            std::optional<JoystickAxis> alt_axis;
+            int16_t alt_axis_pos = 0;
+
+            switch (e.caxis.axis) {
+                case SDL_CONTROLLER_AXIS_LEFTX:
+                    alt_axis = SDL_CONTROLLER_AXIS_LEFTY;
+                    break;
+                case SDL_CONTROLLER_AXIS_LEFTY:
+                    alt_axis = SDL_CONTROLLER_AXIS_LEFTX;
+                    break;
+                case SDL_CONTROLLER_AXIS_RIGHTX:
+                    alt_axis = SDL_CONTROLLER_AXIS_RIGHTY;
+                    break;
+                case SDL_CONTROLLER_AXIS_RIGHTY:
+                    alt_axis = SDL_CONTROLLER_AXIS_RIGHTX;
+                    break;
+            }
+            if (alt_axis) {
+                alt_axis_pos = SDL_JoystickGetAxis(SDL_JoystickFromInstanceID(e.caxis.which), *alt_axis);
+            }
+
             auto [axis1, axis2] = InputConfig::get_type_jaxis(e.caxis.axis);
-            int16_t axis_position = e.caxis.value;
+            process_axis(InputConfig::getGamepadInput(e.caxis.axis, false), (axis1 ? get(*axis1) : nullptr), axis_pos, alt_axis_pos);
+            process_axis(InputConfig::getGamepadInput(e.caxis.axis, true), (axis2 ? get(*axis2) : nullptr), axis_pos, alt_axis_pos);
 
-            auto gamepad1 = InputConfig::getGamepadInput(e.caxis.axis, false);
-            auto gamepad2 = InputConfig::getGamepadInput(e.caxis.axis, true);
+            if (alt_axis) {
+                auto [alt1, alt2] = InputConfig::get_type_jaxis(*alt_axis);
+                process_axis(InputConfig::getGamepadInput(*alt_axis, false), (alt1 ? get(*alt1) : nullptr), alt_axis_pos, axis_pos);
+                process_axis(InputConfig::getGamepadInput(*alt_axis, true), (alt2 ? get(*alt2) : nullptr), alt_axis_pos, axis_pos);
 
-            Input* input1 = axis1 ? get(*axis1) : nullptr;
-            Input* input2 = axis2 ? get(*axis2) : nullptr;
-
-            constexpr auto inRange = [](bool side, float position) {
-                return side
-                    ? position >= InputConfig::getAxisDeadzone()
-                    : position <= -InputConfig::getAxisDeadzone();
-            };
-
-            auto checkAxisSide = [&](const InputConfig::GamepadInput* gamepad, Input* input) {
-                if (gamepad && input) {
-                    bool inrangeCur = inRange(gamepad->positiveSide, axis_position);
-                    bool inrangePrev = inRange(gamepad->positiveSide, input->axis_prev_pos);
-
-                    if (inrangeCur != inrangePrev) {
-                        inrangeCur ? input->activate() : input->deactivate();
-                    }
-                    input->axis_prev_pos = e.caxis.value;
+                /*
+                if (axis < *alt_axis) {
+                    LOG_INFO("a1:{} a2:{}", axis_pos, alt_axis_pos);
                 }
-            };
-
-            checkAxisSide(gamepad1, input1);
-            checkAxisSide(gamepad2, input2);
+                else {
+                    LOG_INFO("a1:{} a2:{}", alt_axis_pos, axis_pos);
+                }
+                */
+            }
         }
         break;
     }
@@ -116,11 +162,13 @@ void InputState::process_events() {
     for (const auto& event : events) {
         auto& input = at(event.type);
 
-        if (event.active)
+        if (event.magnitude > 0) {
             input.activate();
-        else
+        }
+        else {
             input.deactivate();
-
+        }
+        input.magnitude = event.magnitude;
     }
     events.clear();
 }

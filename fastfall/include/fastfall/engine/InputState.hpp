@@ -48,10 +48,12 @@ private:
     Input* get_state(InputType input);
 
     void process_events();
+    void process_axis(const InputConfig::GamepadInput* gamepad, Input* input, int16_t axis_pos, int16_t alt_axis_pos);
 
     struct InputEvent {
         InputType type;
-        bool active;
+        uint8_t magnitude;
+        //bool active;
     };
 
     std::map<InputType, Input> input_states;
