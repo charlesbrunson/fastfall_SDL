@@ -74,10 +74,38 @@ bool InputState::push_event(SDL_Event e)
         }
         break;
         case SDL_CONTROLLERAXISMOTION: {
+
+            // TODO implement circular deadzone, currently square
+
             auto [axis1, axis2] = InputConfig::get_type_jaxis(e.caxis.axis);
             int16_t axis_position = e.caxis.value;
 
+            auto gamepad1 = InputConfig::getGamepadInput(e.caxis.axis, false);
+            auto gamepad2 = InputConfig::getGamepadInput(e.caxis.axis, true);
 
+            Input* input1 = axis1 ? get(*axis1) : nullptr;
+            Input* input2 = axis2 ? get(*axis2) : nullptr;
+
+            constexpr auto inRange = [](bool side, float position) {
+                return side
+                    ? position >= InputConfig::getAxisDeadzone()
+                    : position <= -InputConfig::getAxisDeadzone();
+            };
+
+            auto checkAxisSide = [&](const InputConfig::GamepadInput* gamepad, Input* input) {
+                if (gamepad && input) {
+                    bool inrangeCur = inRange(gamepad->positiveSide, axis_position);
+                    bool inrangePrev = inRange(gamepad->positiveSide, input->axis_prev_pos);
+
+                    if (inrangeCur != inrangePrev) {
+                        inrangeCur ? input->activate() : input->deactivate();
+                    }
+                    input->axis_prev_pos = e.caxis.value;
+                }
+            };
+
+            checkAxisSide(gamepad1, input1);
+            checkAxisSide(gamepad2, input2);
         }
         break;
     }

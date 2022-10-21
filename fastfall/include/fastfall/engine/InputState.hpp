@@ -33,6 +33,9 @@ public:
     Input& at(InputType in) { return input_states.at(in); }
     const Input& at(InputType in) const { return input_states.at(in); }
 
+    Input* get(InputType in) { return input_states.contains(in) ? &at(in) : nullptr; }
+    const Input* get(InputType in) const { return input_states.contains(in) ? &at(in) : nullptr; }
+
     void listen(InputType input);
     void unlisten(InputType input);
     void listen_config(const std::vector<InputType>& listen_inputs);

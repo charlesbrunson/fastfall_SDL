@@ -64,6 +64,8 @@ namespace InputConfig {
 	bool getMouseInView();
     */
 
+    const GamepadInput* getGamepadInput(JoystickAxis axis, bool side);
+
 	void updateJoystick();
 	void closeJoystick();
 
