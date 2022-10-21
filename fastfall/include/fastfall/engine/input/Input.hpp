@@ -35,11 +35,18 @@ public:
 	const InputType type;
 
 	// for axis inputs
-	short axis_prev_pos = 0;
+	//short axis_prev_pos = 0;
+    bool axis_prev_in_range = false;
 
 	// for mouse inputs
 	Vec2i mouse_press_pos;
 	Vec2i mouse_release_pos;
+
+
+    constexpr static uint8_t MAG_ZERO = 0x0;
+    constexpr static uint8_t MAG_FULL = 0xFF;
+    uint8_t magnitude = MAG_ZERO;
+
 private:
 
 	int activeCounter = 0; // num of inputs activating this
