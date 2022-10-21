@@ -8,19 +8,6 @@
 
 using namespace ff::InputConfig;
 
-GamepadInput GamepadInput::makeAxis(JoystickAxis axis, bool positiveEnd) {
-	GamepadInput r;
-	r.type = GamepadInputType::AXIS;
-	r.axis = axis;
-	r.positiveSide = positiveEnd;
-	return r;
-};
-GamepadInput GamepadInput::makeButton(Button button) {
-	GamepadInput r;
-	r.type = GamepadInputType::BUTTON;
-	r.button = button;
-	return r;
-};
 
 std::string GamepadInput::toString() const {
 	std::stringstream ss;
