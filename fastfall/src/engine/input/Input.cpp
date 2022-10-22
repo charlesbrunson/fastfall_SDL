@@ -21,6 +21,9 @@ void Input::update(secs deltaTime)
 	else {
 		lastPressed += deltaTime;
 	}
+
+    curr_velocity = (int)(((double)curr_magnitude - (double)prev_magnitude) / deltaTime);
+    prev_magnitude = curr_magnitude;
 }
 
 void Input::reset() {

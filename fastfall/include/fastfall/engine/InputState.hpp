@@ -47,7 +47,7 @@ public:
 private:
     Input* get_state(InputType input);
 
-    void process_events();
+    void process_events(secs deltaTime);
     void process_axis(const InputConfig::GamepadInput* gamepad, Input* input, int16_t axis_pos, int16_t alt_axis_pos);
 
     struct InputEvent {

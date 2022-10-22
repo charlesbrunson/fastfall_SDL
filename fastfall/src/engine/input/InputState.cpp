@@ -30,7 +30,7 @@ void InputState::process_axis(const InputConfig::GamepadInput* gamepad, Input* i
             events.push_back({input->type, magnitude});
         }
         input->axis_prev_in_range = inrangeCur;
-        input->magnitude = magnitude;
+        input->set_magnitude(magnitude);
     }
 }
 
@@ -53,10 +53,18 @@ InputState::InputState(const std::vector<InputType>& listen_inputs) {
 void InputState::update(secs deltaTime)
 {
     if (deltaTime > 0.0) {
-        process_events();
+        process_events(deltaTime);
         for (auto& [type, input] : input_states) {
             input.update(deltaTime);
         }
+
+        /*
+        int x_axis = ((int)get(InputType::RIGHT)->magnitude() - (int)get(InputType::LEFT)->magnitude());
+        int y_axis = ((int)get(InputType::UP)->magnitude() - (int)get(InputType::DOWN)->magnitude());
+        int x_vel = ((int)get(InputType::RIGHT)->velocity() - (int)get(InputType::LEFT)->velocity());
+        int y_vel = ((int)get(InputType::UP)->velocity() - (int)get(InputType::DOWN)->velocity());
+        LOG_INFO("mag:{:4}, {:4} v:{:6}, {:6}", x_axis, y_axis, x_vel, y_vel);
+        */
     }
 }
 
@@ -138,16 +146,6 @@ bool InputState::push_event(SDL_Event e)
                 auto [alt1, alt2] = InputConfig::get_type_jaxis(*alt_axis);
                 process_axis(InputConfig::getGamepadInput(*alt_axis, false), (alt1 ? get(*alt1) : nullptr), alt_axis_pos, axis_pos);
                 process_axis(InputConfig::getGamepadInput(*alt_axis, true), (alt2 ? get(*alt2) : nullptr), alt_axis_pos, axis_pos);
-
-                //int16_t magx = (int16_t)(get(*axis1)->magnitude) - (int16_t)(get(*axis2)->magnitude);
-                //int16_t magy = (int16_t)(get(*alt1)->magnitude) - (int16_t)(get(*alt2)->magnitude);
-
-                //if (*axis1 < *alt1) {
-                //    LOG_INFO("{} {}", magx, magy);
-                //}
-                //else {
-                //    LOG_INFO("{} {}", magy, magx);
-                //}
             }
         }
         break;
@@ -155,7 +153,8 @@ bool InputState::push_event(SDL_Event e)
     return caught;
 }
 
-void InputState::process_events() {
+void InputState::process_events(secs deltaTime) {
+
     for (const auto& event : events) {
         auto& input = at(event.type);
 
@@ -165,12 +164,7 @@ void InputState::process_events() {
         else {
             input.deactivate();
         }
-        //input.magnitude = event.magnitude;
     }
-
-    int x_axis = ((int)get(InputType::RIGHT)->magnitude - (int)get(InputType::LEFT)->magnitude);
-    int y_axis = ((int)get(InputType::UP)->magnitude - (int)get(InputType::DOWN)->magnitude);
-    LOG_INFO("{:3}, {:3}", x_axis, y_axis);
 
     events.clear();
 }
