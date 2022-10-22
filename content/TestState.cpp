@@ -13,13 +13,14 @@
 
 
 TestState::TestState()
-    : input_source(input_sets::gameplay, 1.0/60.0, ff::RecordInputs::Yes)
+    : insrc_realtime(input_sets::gameplay, 1.0/60.0, ff::RecordInputs::Yes)
 {
 	stateID = ff::EngineStateID::TEST_STATE;
 	clearColor = ff::Color{ 0x141013FF };
 
     world = std::make_unique<ff::World>();
-    world->input().set_source(&input_source);
+    world->input().set_source(&insrc_realtime);
+    on_realtime = true;
 
 	if (auto* lvlptr = ff::Resources::get<ff::LevelAsset>("map_test.tmx"))
 	{
@@ -44,8 +45,13 @@ void TestState::update(secs deltaTime) {
 
     world->update(deltaTime);
     if (deltaTime > 0.0) {
-        input_source.record_events();
-        input_source.clear_events();
+        if (on_realtime) {
+            insrc_realtime.record_events();
+            insrc_realtime.clear_events();
+        }
+        else if (insrc_record) {
+            insrc_record->advance_position();
+        }
     }
 
 	currKeys = SDL_GetKeyboardState(&key_count);
@@ -94,7 +100,6 @@ void TestState::update(secs deltaTime) {
 					edit->select_layer(curr_layer);
 				}
 				layer = edit->get_tile_layer()->position;
-				//LOG_INFO("layer = {}", layer);
 			});
 		};
 
@@ -106,13 +111,9 @@ void TestState::update(secs deltaTime) {
 		layerOnKeyPressed(SDL_SCANCODE_KP_MINUS, -1);
 		layerOnKeyPressed(SDL_SCANCODE_KP_PLUS, 1);
 
-        onKeyPressed(SDL_SCANCODE_F1, [&]() {
-            to_save = true;
-        });
-
-        onKeyPressed(SDL_SCANCODE_F2, [&]() {
-            to_load = true;
-        });
+        onKeyPressed(SDL_SCANCODE_F1, [&]() { to_save = true; });
+        onKeyPressed(SDL_SCANCODE_F2, [&]() { to_load = true; on_realtime = true; });
+        onKeyPressed(SDL_SCANCODE_F3, [&]() { to_load = true; on_realtime = false; });
 
 		onKeyPressed(SDL_SCANCODE_C, [&]() {
 				const auto* tilelayer = edit->get_tile_layer();
@@ -232,17 +233,36 @@ void TestState::predraw(float interp, bool updated) {
     world->predraw(interp, updated);
 
     if (to_save) {
-        LOG_INFO("saved state");
-        save_world = std::make_unique<World>(*world);
+        if (save_world) {
+            *save_world = *world;
+        }
+        else {
+            save_world = std::make_unique<World>(*world);
+        }
         to_save = false;
+        LOG_INFO("saved state");
     }
     else if (to_load) {
-        LOG_INFO("loaded state");
         if (save_world) {
+            if (!on_realtime)
+            {
+                insrc_record = InputSourceRecord{ *insrc_realtime.get_record(), save_world->tick_count()};
+            }
+
             *world = *save_world;
+
+            if (on_realtime)
+            {
+                world->input().set_source(&insrc_realtime);
+            }
+            else {
+                world->input().set_source(&*insrc_record);
+            }
+
             debug_draw::clear();
         }
         to_load = false;
+        LOG_INFO("loaded state");
     }
 
 	viewPos = world->camera().getPosition(interp);
@@ -302,8 +322,10 @@ void TestState::predraw(float interp, bool updated) {
 }
 
 bool TestState::pushEvent(const SDL_Event& event) {
-    //return world->input().push_event(event);
-    return input_source.push_event(event);
+    if (on_realtime) {
+        return insrc_realtime.push_event(event);
+    }
+    return false;
 }
 
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const 

@@ -7,6 +7,8 @@
 #include "fastfall/engine/state/EngineState.hpp"
 #include "fastfall/engine/imgui/ImGuiContent.hpp"
 #include "fastfall/engine/input/InputSourceRealtime.hpp"
+#include "fastfall/engine/input/InputSourceRecord.hpp"
+
 
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/game/World.hpp"
@@ -28,7 +30,9 @@ public:
 private:
 	void draw(ff::RenderTarget& target, ff::RenderState states = ff::RenderState()) const override;
 
-    ff::InputSourceRealtime input_source;
+    ff::InputSourceRealtime insrc_realtime;
+    std::optional<ff::InputSourceRecord>   insrc_record;
+    bool on_realtime;
 
     std::unique_ptr<ff::World> world;
     std::unique_ptr<ff::World> save_world;
