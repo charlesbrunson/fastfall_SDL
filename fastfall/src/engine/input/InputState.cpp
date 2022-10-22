@@ -46,14 +46,14 @@ std::vector<InputType> InputState::config_gameplay = {
 
 InputState::InputState(const std::vector<InputType>& listen_inputs) {
     for (auto& in : listen_inputs) {
-        listen(in);
+        input_states.emplace(in, Input{in});
     }
 }
 
 void InputState::update(secs deltaTime)
 {
     if (deltaTime > 0.0) {
-        process_events(deltaTime);
+        process_events();
         for (auto& [type, input] : input_states) {
             input.update(deltaTime);
         }
@@ -153,8 +153,8 @@ bool InputState::push_event(SDL_Event e)
     return caught;
 }
 
-void InputState::process_events(secs deltaTime) {
-
+void InputState::process_events()
+{
     for (const auto& event : events) {
         auto& input = at(event.type);
 
@@ -165,12 +165,19 @@ void InputState::process_events(secs deltaTime) {
             input.deactivate();
         }
     }
-
     events.clear();
 }
 
 // ------------------------------------------------------
 
+
+bool InputState::is_listening(InputType in) const { return input_states.contains(in); }
+bool InputState::is_listening(std::optional<InputType> in) const { return in && input_states.contains(*in); }
+
+void InputState::set_tick(size_t tick) { input_tick = tick; }
+size_t InputState::get_tick() const { return input_tick; }
+
+/*
 void InputState::listen(InputType input) {
     input_states.emplace(input, Input{input});
 }
@@ -187,3 +194,4 @@ void InputState::listen_config(const std::vector<InputType>& listen_inputs) {
         listen(in);
     }
 }
+*/

@@ -9,11 +9,9 @@ Input::Input(InputType t) :
 
 void Input::update(secs deltaTime)
 {
-	if (active) {
-		if (firstFrame && lastPressed > 0.0) {
-			firstFrame = false;
-		}
-	}
+    if (firstFrame && lastPressed > 0.0) {
+        firstFrame = false;
+    }
 
 	if (lastPressed >= DBL_MAX - deltaTime) {
 		lastPressed = DBL_MAX;
@@ -50,7 +48,7 @@ void Input::deactivate() {
 	if (activeCounter <= 0) {
 		activeCounter = 0;
 		active = false;
-		firstFrame = false;
+		//firstFrame = false;
 		lastHoldDuration = lastPressed;
 	}
 }

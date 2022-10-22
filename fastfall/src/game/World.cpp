@@ -4,18 +4,22 @@
 
 namespace ff {
 
-World::World() {
+World::World()
+    : _input(InputState::config_gameplay)
+{
     WorldImGui::add(this);
-    _input.listen_config(InputState::config_gameplay);
 }
 
-World::World(const World& other) {
+World::World(const World& other)
+    : _input(InputState::config_gameplay)
+{
     WorldImGui::add(this);
     _objects = other._objects;
     _levels = other._levels;
     _collidables = other._collidables;
     _colliders = other._colliders;
     _triggers = other._triggers;
+    _input = other._input;
     _camera_targets = other._camera_targets;
     _scene_objects = other._scene_objects;
     _level_system = other._level_system;
@@ -26,16 +30,18 @@ World::World(const World& other) {
     _scene_system = other._scene_system;
     update_counter = other.update_counter;
     update_time = other.update_time;
-    _input.listen_config(InputState::config_gameplay);
 }
 
-World::World(World&& other) noexcept {
+World::World(World&& other) noexcept
+    : _input(InputState::config_gameplay)
+{
     WorldImGui::add(this);
     _objects = std::move(other._objects);
     _levels = std::move(other._levels);
     _collidables = std::move(other._collidables);
     _colliders = std::move(other._colliders);
     _triggers = std::move(other._triggers);
+    _input = other._input;
     _camera_targets = std::move(other._camera_targets);
     _scene_objects = std::move(other._scene_objects);
     _level_system = std::move(other._level_system);
@@ -46,7 +52,6 @@ World::World(World&& other) noexcept {
     _scene_system = std::move(other._scene_system);
     update_counter = other.update_counter;
     update_time = other.update_time;
-    _input.listen_config(InputState::config_gameplay);
 }
 
 World& World::operator=(const World& other) {
@@ -56,6 +61,7 @@ World& World::operator=(const World& other) {
     _collidables = other._collidables;
     _colliders = other._colliders;
     _triggers = other._triggers;
+    _input = other._input;
     _camera_targets = other._camera_targets;
     _scene_objects = other._scene_objects;
     _level_system = other._level_system;
@@ -76,6 +82,7 @@ World& World::operator=(World&& other) noexcept {
     _collidables = std::move(other._collidables);
     _colliders = std::move(other._colliders);
     _triggers = std::move(other._triggers);
+    _input = other._input;
     _camera_targets = std::move(other._camera_targets);
     _scene_objects = std::move(other._scene_objects);
     _level_system = std::move(other._level_system);

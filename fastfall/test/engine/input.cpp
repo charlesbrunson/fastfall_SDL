@@ -44,8 +44,12 @@ TEST(input, input_buffer)
 TEST(input, input_deactivated_buffer)
 {
 	Input state{ InputType::JUMP };
+    Input cmp{ InputType::ATTACK };
 	state.activate();
 	state.deactivate();
 	state.update(1.0);
 	EXPECT_TRUE(state.is_pressed(1.0));
+    EXPECT_TRUE(state.is_pressed(0.0));
+    EXPECT_FALSE(state.is_active());
+    EXPECT_FALSE(state.is_held());
 }
