@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "fastfall/engine/InputState.hpp"
+#include "fastfall/engine/input/InputState.hpp"
 #include "fastfall/engine/InputConfig.hpp"
 
 using namespace ff;

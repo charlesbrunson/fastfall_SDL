@@ -6,10 +6,10 @@
 
 #include "fastfall/util/log.hpp"
 
-#include "Gamepad.hpp"
+#include "input/Gamepad.hpp"
 #include <optional>
 
-#include <SDL.h>
+#include "SDL.h"
 
 #include <vector>
 #include <queue>
@@ -72,8 +72,8 @@ namespace InputConfig {
 
         // input mapping for mouse
         std::map<MouseButton, InputMapValue> mouseMap = {
-            {SDL_BUTTON_LEFT,      {InputType::MOUSE1}},
-            {SDL_BUTTON_RIGHT,     {InputType::MOUSE2}},
+            //{SDL_BUTTON_LEFT,      {InputType::MOUSE1}},
+            //{SDL_BUTTON_RIGHT,     {InputType::MOUSE2}},
         };
 
 

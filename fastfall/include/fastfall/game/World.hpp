@@ -10,7 +10,7 @@
 #include "fastfall/game/SceneSystem.hpp"
 #include "fastfall/game/ObjectSystem.hpp"
 #include "fastfall/game/LevelSystem.hpp"
-#include "fastfall/engine/InputState.hpp"
+#include "fastfall/engine/input/InputState.hpp"
 
 #include <optional>
 #include <concepts>
@@ -237,6 +237,8 @@ private:
 
     size_t update_counter = 0;
     secs update_time = 0.0;
+
+    InputSourceNull input_null;
 };
 
 }

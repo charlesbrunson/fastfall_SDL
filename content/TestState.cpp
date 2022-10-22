@@ -13,11 +13,13 @@
 
 
 TestState::TestState()
+    : input_source(input_sets::gameplay, 1.0/60.0, ff::RecordInputs::Yes)
 {
 	stateID = ff::EngineStateID::TEST_STATE;
 	clearColor = ff::Color{ 0x141013FF };
 
     world = std::make_unique<ff::World>();
+    world->input().set_source(&input_source);
 
 	if (auto* lvlptr = ff::Resources::get<ff::LevelAsset>("map_test.tmx"))
 	{
@@ -41,6 +43,10 @@ TestState::TestState()
 void TestState::update(secs deltaTime) {
 
     world->update(deltaTime);
+    if (deltaTime > 0.0) {
+        input_source.record_events();
+        input_source.clear_events();
+    }
 
 	currKeys = SDL_GetKeyboardState(&key_count);
 
@@ -296,7 +302,8 @@ void TestState::predraw(float interp, bool updated) {
 }
 
 bool TestState::pushEvent(const SDL_Event& event) {
-    return world->input().push_event(event);
+    //return world->input().push_event(event);
+    return input_source.push_event(event);
 }
 
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const 

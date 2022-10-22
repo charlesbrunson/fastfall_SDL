@@ -5,13 +5,11 @@
 namespace ff {
 
 World::World()
-    : _input(InputState::config_gameplay)
 {
     WorldImGui::add(this);
 }
 
 World::World(const World& other)
-    : _input(InputState::config_gameplay)
 {
     WorldImGui::add(this);
     _objects = other._objects;
@@ -33,7 +31,6 @@ World::World(const World& other)
 }
 
 World::World(World&& other) noexcept
-    : _input(InputState::config_gameplay)
 {
     WorldImGui::add(this);
     _objects = std::move(other._objects);
