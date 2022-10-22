@@ -14,8 +14,8 @@ enum class InputType : int {
 	JUMP,
 	DASH,
 	ATTACK,
-	MOUSE1,
-	MOUSE2,
+	//MOUSE1,
+	//MOUSE2,
 	COUNT
 };
 static constexpr unsigned int INPUT_COUNT = static_cast<unsigned>(InputType::COUNT);
