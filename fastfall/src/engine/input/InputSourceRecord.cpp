@@ -37,8 +37,9 @@ void InputSourceRecord::set_position(size_t t_position)
 void InputSourceRecord::make_events(InputFrame* prev_frame, const InputFrame& frame)
 {
     LOG_INFO(
-        "{:08b} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d}",
+        "{:08b} {:08b} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d}",
         frame.pressed.to_ulong(),
+        frame.activation_change.to_ulong(),
         frame.magnitudes[0],
         frame.magnitudes[1],
         frame.magnitudes[2],
@@ -54,12 +55,15 @@ void InputSourceRecord::make_events(InputFrame* prev_frame, const InputFrame& fr
         bool pressed = frame.pressed.test(ndx);
         uint8_t mag = frame.magnitudes.at(ndx);
 
-        bool can_switch = true;
 
+        bool can_switch = frame.activation_change.test(ndx);
+
+        /*
         if (prev_frame) {
             uint8_t prev_mag = prev_frame->magnitudes.at(ndx);
             can_switch = (prev_mag == 0) != (mag == 0);
         }
+        */
 
         if (pressed && mag == 0)
         {

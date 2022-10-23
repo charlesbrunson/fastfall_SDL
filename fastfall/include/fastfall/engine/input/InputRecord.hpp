@@ -12,6 +12,7 @@ namespace ff {
 
     struct InputFrame {
         std::bitset<INPUT_COUNT> pressed;
+        std::bitset<INPUT_COUNT> activation_change;
         std::array<uint8_t, INPUT_COUNT> magnitudes;
     };
 
