@@ -146,6 +146,7 @@ void InputSourceRealtime::record_events() {
                 : record->frame_data.back();
 
         frame.pressed.reset();
+        frame.activation_change.reset();
 
         for (auto& e : events) {
             size_t type_ndx = static_cast<size_t>(e.type);
@@ -154,21 +155,23 @@ void InputSourceRealtime::record_events() {
                 frame.pressed.set(type_ndx, true);
             }
             frame.magnitudes[type_ndx] = e.magnitude;
+
+            if (e.activate_or_deactivate)
+                frame.activation_change.set(type_ndx);
         }
 
-        /*
         LOG_INFO(
-            "{:08b} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d}",
-             frame.pressed.to_ulong(),
-             frame.magnitudes[0],
-             frame.magnitudes[1],
-             frame.magnitudes[2],
-             frame.magnitudes[3],
-             frame.magnitudes[4],
-             frame.magnitudes[5],
-             frame.magnitudes[6]
-         );
-        */
+            "{:08b} {:08b} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d}",
+            frame.pressed.to_ulong(),
+            frame.activation_change.to_ulong(),
+            frame.magnitudes[0],
+            frame.magnitudes[1],
+            frame.magnitudes[2],
+            frame.magnitudes[3],
+            frame.magnitudes[4],
+            frame.magnitudes[5],
+            frame.magnitudes[6]
+        );
 
         record->frame_data.push_back(frame);
     }
