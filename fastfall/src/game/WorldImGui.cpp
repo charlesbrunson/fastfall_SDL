@@ -370,7 +370,7 @@ void WorldImGui::ImGui_getContent()
     if (update_labels) {
         int i = 0;
         for (auto w: worlds) {
-            world_labels[i] = fmt::format("{:8} {}", fmt::ptr(w), (i + 1));
+            world_labels[i] = fmt::format("{:8} {} {}", fmt::ptr(w), (w->name.empty() ? "unnamed" : w->name), (i + 1));
 
             if (++i > 32)
                 break;
