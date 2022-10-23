@@ -34,9 +34,8 @@ void InputSourceRecord::set_position(size_t t_position)
     }
 }
 
-void InputSourceRecord::make_events(InputFrame* prev_frame, const InputFrame& frame) {
-
-    /*
+void InputSourceRecord::make_events(InputFrame* prev_frame, const InputFrame& frame)
+{
     LOG_INFO(
         "{:08b} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d}",
         frame.pressed.to_ulong(),
@@ -48,7 +47,6 @@ void InputSourceRecord::make_events(InputFrame* prev_frame, const InputFrame& fr
         frame.magnitudes[5],
         frame.magnitudes[6]
     );
-    */
 
     for (size_t ndx = 0; ndx < INPUT_COUNT; ++ndx) {
 

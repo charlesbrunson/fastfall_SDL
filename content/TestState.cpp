@@ -40,8 +40,10 @@ TestState::TestState()
 	tile_text.setText(*font, 8, {});
 
     save_world = std::make_unique<World>(*world);
-}
 
+    world->name = "current";
+    save_world->name = "saved";
+}
 
 void TestState::update(secs deltaTime) {
 
@@ -246,18 +248,16 @@ void TestState::predraw(float interp, bool updated) {
     }
     else if (to_load) {
         if (save_world) {
-            if (!on_realtime)
-            {
+            if (!on_realtime) {
                 insrc_record = InputSourceRecord{ *insrc_realtime.get_record(), save_world->tick_count()};
             }
 
             *world = *save_world;
 
-            if (on_realtime)
-            {
+            if (on_realtime) {
                 auto record = *insrc_realtime.get_record();
                 record.frame_data.erase(
-                        std::begin(record.frame_data) + world->tick_count(),
+                        record.frame_data.begin() + world->tick_count(),
                         record.frame_data.end());
 
                 insrc_realtime.set_record(record);

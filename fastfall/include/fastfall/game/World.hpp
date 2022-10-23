@@ -105,6 +105,8 @@ public:
     World& operator=(World&&) noexcept;
     ~World();
 
+    std::string name;
+
     // manage state
     void update(secs deltaTime);
     void predraw(float interp, bool updated);
