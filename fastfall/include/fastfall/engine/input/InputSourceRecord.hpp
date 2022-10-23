@@ -14,6 +14,7 @@ public:
     const std::vector<InputEvent>& get_events() const override;
     const InputRecord& get_record() const;
 
+    bool is_complete() const { return position >= curr_events.size(); }
     void set_position(size_t t_position);
     void advance_position() { set_position(position + 1); }
 private:

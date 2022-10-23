@@ -183,6 +183,12 @@ const std::vector<InputEvent>& InputSourceRealtime::get_events() const
     return events;
 }
 
+void InputSourceRealtime::set_record(const InputRecord& t_record)
+{
+    if (record)
+        record = t_record;
+}
+
 const std::optional<InputRecord>& InputSourceRealtime::get_record() const
 {
     return record;

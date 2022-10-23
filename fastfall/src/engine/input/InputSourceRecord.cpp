@@ -20,16 +20,15 @@ void InputSourceRecord::set_position(size_t t_position)
 
         curr_events.clear();
 
-        LOG_INFO("{} {}", position, record.frame_data.size());
         if (position < record.frame_data.size()) {
-            //prev_frame = position == 0 ? std::nullopt : std::make_optional( record.frame_data.at(position - 1) );
+            LOG_INFO("playback frame {} of {}", position + 1, record.frame_data.size());
             auto &frame = record.frame_data.at(position);
             make_events(
                     position == 0 ? nullptr : &record.frame_data.at(position - 1),
                     frame);
         }
         else if (position == record.frame_data.size() && !record.frame_data.empty()) {
-            // deactivate all inputs
+            LOG_INFO("playback end");
             make_events(&record.frame_data.back(), {});
         }
     }

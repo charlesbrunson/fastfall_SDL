@@ -38,6 +38,8 @@ TestState::TestState()
 
 	auto font = ff::Resources::get<ff::FontAsset>("LionelMicroNbp-gA25.ttf");
 	tile_text.setText(*font, 8, {});
+
+    save_world = std::make_unique<World>(*world);
 }
 
 
@@ -253,6 +255,12 @@ void TestState::predraw(float interp, bool updated) {
 
             if (on_realtime)
             {
+                auto record = *insrc_realtime.get_record();
+                record.frame_data.erase(
+                        std::begin(record.frame_data) + world->tick_count(),
+                        record.frame_data.end());
+
+                insrc_realtime.set_record(record);
                 world->input().set_source(&insrc_realtime);
             }
             else {
