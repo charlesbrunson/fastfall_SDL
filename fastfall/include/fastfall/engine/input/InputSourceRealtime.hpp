@@ -34,6 +34,11 @@ namespace ff {
         void record_events();
         void clear_events();
 
+        void record_and_clear_events() {
+            record_events();
+            clear_events();
+        }
+
         void set_record(const InputRecord& t_record);
         const std::optional<InputRecord>& get_record() const;
 

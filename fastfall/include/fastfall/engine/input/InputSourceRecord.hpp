@@ -14,12 +14,13 @@ public:
     const std::vector<InputEvent>& get_events() const override;
     const InputRecord& get_record() const;
 
-    bool is_complete() const { return position >= curr_events.size(); }
+    bool is_complete() const { return position >= record.frame_data.size(); }
     void set_position(size_t t_position);
+    size_t get_position() const { return position; }
     void advance_position() { set_position(position + 1); }
 private:
 
-    void make_events(InputFrame* prev_frame, const InputFrame& frame);
+    void make_events(const InputFrame& frame);
 
     InputRecord record;
     size_t position = 0;

@@ -249,7 +249,7 @@ void TestState::predraw(float interp, bool updated) {
     else if (to_load) {
         if (save_world) {
             if (!on_realtime) {
-                insrc_record = InputSourceRecord{ *insrc_realtime.get_record(), save_world->tick_count()};
+                insrc_record = InputSourceRecord{ *insrc_realtime.get_record(), save_world->tick_count() + 1 };
             }
 
             *world = *save_world;
