@@ -18,6 +18,7 @@ namespace ff {
 class InputState {
 public:
     InputState() = default;
+    InputState(InputSource* source);
 
     void set_source(InputSource* source);
 

@@ -37,6 +37,11 @@ void InputState::process_axis(const InputConfig::GamepadInput* gamepad, Input* i
 */
 
 
+InputState::InputState(InputSource* source)
+{
+   set_source(source);
+}
+
 void InputState::set_source(InputSource* source)
 {
     input_source = source;

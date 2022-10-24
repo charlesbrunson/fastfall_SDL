@@ -28,39 +28,30 @@ public:
 	bool is_confirmed()		const { return confirmed; };
 	bool is_confirmable()	const { return /* active && */ !confirmed; };
 
-	int num_activators()	const { return activeCounter; };
-	secs get_last_pressed() const { return lastPressed; }
+	//int num_activators()	const { return activeCounter; };
+	//secs get_last_pressed() const { return lastPressed; }
 
 	const InputType type;
 
 	// for axis inputs
 	//short axis_prev_pos = 0;
-    bool axis_prev_in_range = false;
+    //bool axis_prev_in_range = false;
 
 	// for mouse inputs
-	Vec2i mouse_press_pos;
-	Vec2i mouse_release_pos;
+	//Vec2i mouse_press_pos;
+	//Vec2i mouse_release_pos;
 
     constexpr static uint8_t MAG_ZERO = 0x0;
     constexpr static uint8_t MAG_FULL = 0xFF;
 
     void set_magnitude(uint8_t mag) { curr_magnitude = mag; }
 
-    uint8_t magnitude() { return curr_magnitude; }
-    int velocity() { return curr_velocity; }
-
-    /*
-    void update(secs deltaTime) {
-        velocity = (int)(((double)magnitude - (double)prev_magnitude) / deltaTime);
-        prev_magnitude = magnitude;
-    }
-    */
+    uint8_t magnitude() const { return curr_magnitude; }
+    int velocity() const { return curr_velocity; }
 
 private:
-
 	int activeCounter = 0; // num of inputs activating this
 
-	//bool enabled = true;
 	bool active = false;
 	bool confirmed = true;
 	bool firstFrame = false;

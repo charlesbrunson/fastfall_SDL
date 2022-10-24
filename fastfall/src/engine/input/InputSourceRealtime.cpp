@@ -161,7 +161,8 @@ void InputSourceRealtime::record_events() {
         }
 
         LOG_INFO(
-            "{:08b} {:08b} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d}",
+            "realtime {:5d} {:08b} {:08b} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d}",
+            record->frame_data.size(),
             frame.pressed.to_ulong(),
             frame.activation_change.to_ulong(),
             frame.magnitudes[0],
