@@ -21,9 +21,9 @@ public:
     InputState(InputSource* source);
 
     void set_source(InputSource* source);
+    const InputSource* get_source() const { return input_source; }
 
     void update(secs deltaTime);
-    //bool push_event(SDL_Event e);
 
     Input& operator[](InputType in) { return input_states.at(in); }
     const Input& operator[](InputType in) const { return input_states.at(in); }
@@ -37,17 +37,18 @@ public:
     bool is_listening(InputType in) const;
     bool is_listening(std::optional<InputType> in) const;
 
-    void set_tick(size_t tick);
+    //void set_tick(size_t tick);
     size_t get_tick() const;
 
-    static std::vector<InputType> config_gameplay;
+    const std::map<InputType, Input> all_inputs() const { return input_states; }
+
 private:
     Input* get_state(InputType input);
 
     void process_events();
     void process_axis(const InputConfig::GamepadInput* gamepad, Input* input, int16_t axis_pos, int16_t alt_axis_pos);
 
-    InputSource* input_source;
+    InputSource* input_source = nullptr;
     std::map<InputType, Input> input_states;
     size_t input_tick = 0;
 };

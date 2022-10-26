@@ -38,7 +38,7 @@ World::World(World&& other) noexcept
     _collidables = std::move(other._collidables);
     _colliders = std::move(other._colliders);
     _triggers = std::move(other._triggers);
-    _input = other._input;
+    _input = std::move(other._input);
     _camera_targets = std::move(other._camera_targets);
     _scene_objects = std::move(other._scene_objects);
     _level_system = std::move(other._level_system);
@@ -79,7 +79,7 @@ World& World::operator=(World&& other) noexcept {
     _collidables = std::move(other._collidables);
     _colliders = std::move(other._colliders);
     _triggers = std::move(other._triggers);
-    _input = other._input;
+    _input = std::move(other._input);
     _camera_targets = std::move(other._camera_targets);
     _scene_objects = std::move(other._scene_objects);
     _level_system = std::move(other._level_system);

@@ -11,7 +11,14 @@ namespace ff {
 
 class Input {
 public:
+    constexpr static uint8_t MAG_ZERO = 0x0;
+    constexpr static uint8_t MAG_FULL = 0xFF;
+
     Input(InputType t);
+    Input(const Input& t) = default;
+    Input(Input&& t) = default;
+    Input& operator=(const Input& t) = default;
+    Input& operator=(Input&& t) = default;
 
 	void update(secs deltaTime);
 
@@ -23,15 +30,19 @@ public:
 	bool is_held() const;
 	void confirm_press();
 
-	//bool is_enabled()		const { return enabled; };
 	bool is_active()		const { return active; };
 	bool is_confirmed()		const { return confirmed; };
-	bool is_confirmable()	const { return /* active && */ !confirmed; };
+	bool is_confirmable()	const { return !confirmed; };
 
-	//int num_activators()	const { return activeCounter; };
-	//secs get_last_pressed() const { return lastPressed; }
+	int num_activators()	const { return activeCounter; };
+	secs get_last_pressed() const { return lastPressed; }
 
-	const InputType type;
+    InputType type() const { return m_type; }
+
+    void set_magnitude(uint8_t mag) { curr_magnitude = mag; }
+    uint8_t magnitude() const { return curr_magnitude; }
+
+    int velocity() const { return curr_velocity; }
 
 	// for axis inputs
 	//short axis_prev_pos = 0;
@@ -41,15 +52,8 @@ public:
 	//Vec2i mouse_press_pos;
 	//Vec2i mouse_release_pos;
 
-    constexpr static uint8_t MAG_ZERO = 0x0;
-    constexpr static uint8_t MAG_FULL = 0xFF;
-
-    void set_magnitude(uint8_t mag) { curr_magnitude = mag; }
-
-    uint8_t magnitude() const { return curr_magnitude; }
-    int velocity() const { return curr_velocity; }
-
 private:
+    InputType m_type;
 	int activeCounter = 0; // num of inputs activating this
 
 	bool active = false;

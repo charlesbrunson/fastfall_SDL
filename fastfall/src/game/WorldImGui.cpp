@@ -5,6 +5,9 @@
 
 #include "fastfall/game/World.hpp"
 
+#include "fastfall/engine/input/InputSourceRealtime.hpp"
+#include "fastfall/engine/input/InputSourceRecord.hpp"
+
 namespace ff {
 
 std::vector<World*> WorldImGui::worlds;
@@ -348,6 +351,84 @@ void imgui_objects(World* w) {
     }
 }
 
+// ------------------------------------------------------------
+
+void imgui_input(World* w) {
+
+
+    static const char* inputNames[] = {
+            "Up",
+            "Left",
+            "Down",
+            "Right",
+            "Jump",
+            "Dash",
+            "Attack",
+            //"Mouse1",
+            //"Mouse2"
+    };
+
+    ImGui::Columns(6, "inputs");
+    ImGui::Separator();
+    ImGui::Text("Input"); ImGui::NextColumn();
+    ImGui::Text("Active"); ImGui::NextColumn();
+    ImGui::Text("Magnitude"); ImGui::NextColumn();
+    ImGui::Text("Counter"); ImGui::NextColumn();
+    ImGui::Text("Confirmed"); ImGui::NextColumn();
+    //ImGui::Text("Enabled"); ImGui::NextColumn();
+    ImGui::Text("Duration"); ImGui::NextColumn();
+
+    //ImGui::Separator();
+    int i = 0;
+    for (auto& [type, in] : w->input().all_inputs()) {
+        ImGui::Text("%s", inputNames[i]); ImGui::NextColumn();
+        ImGui::Text("%d", in.is_active()); ImGui::NextColumn();
+        ImGui::Text("%d", in.magnitude()); ImGui::NextColumn();
+        ImGui::Text("%d", in.num_activators()); ImGui::NextColumn();
+
+        if (in.is_confirmable()) {
+            static char confirmbuf[32];
+            sprintf(confirmbuf, "Confirm##%d", i);
+            if (ImGui::SmallButton(confirmbuf)) {
+                w->input()[type].confirm_press();
+            }
+        }
+        ImGui::NextColumn();
+        if (in.get_last_pressed() != DBL_MAX) {
+            ImGui::Text("%.2f", in.get_last_pressed());
+        }
+        else {
+            ImGui::Text("inf");
+        }
+        ImGui::NextColumn();
+        i++;
+    };
+
+    ImGui::Columns(1);
+    ImGui::Separator();
+
+    std::string source_str;
+    auto* source = w->input().get_source();
+    if (dynamic_cast<const InputSourceNull*>(source)) {
+        source_str = "null";
+    }
+    else if (dynamic_cast<const InputSourceRecord*>(source)) {
+        source_str = "record";
+    }
+    else if (dynamic_cast<const InputSourceRealtime*>(source)) {
+        source_str = "realtime";
+    }
+
+    ImGui::Text("Input Source: %s", source_str.c_str() );
+    ImGui::Text("Input Tick: %zu", w->input().get_tick() );
+
+    if (auto* record = dynamic_cast<const InputSourceRecord*>(source)) {
+        ImGui::Text("Record Tick: %zu", record->get_tick() );
+    }
+    else if (auto* realtime = dynamic_cast<const InputSourceRealtime*>(source)) {
+        ImGui::Text("Realtime Tick: %zu", realtime->get_tick() );
+    }
+}
 
 // ------------------------------------------------------------
 
@@ -451,6 +532,10 @@ void WorldImGui::ImGui_getContent()
                 ImGui::EndTabBar();
             }
             // TODO
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Input")) {
+            imgui_input(curr_world);
             ImGui::EndTabItem();
         }
 

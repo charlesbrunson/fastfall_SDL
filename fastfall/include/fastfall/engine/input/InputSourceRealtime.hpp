@@ -12,7 +12,6 @@
 #include "SDL_keycode.h"
 
 namespace ff {
-
     enum class RecordInputs : bool {
         No  = false,
         Yes = true
@@ -30,14 +29,9 @@ namespace ff {
 
         bool push_event(SDL_Event e);
         const std::vector<InputEvent>& get_events() const override;
+        void next();
 
-        void record_events();
-        void clear_events();
-
-        void record_and_clear_events() {
-            record_events();
-            clear_events();
-        }
+        size_t get_tick() const { return tick; }
 
         void set_record(const InputRecord& t_record);
         const std::optional<InputRecord>& get_record() const;
@@ -47,6 +41,7 @@ namespace ff {
 
 
         secs deltaTime;
+        size_t tick = 0;
 
         std::optional<InputRecord> record;
 
