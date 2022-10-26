@@ -15,9 +15,9 @@ public:
     const InputRecord& get_record() const;
 
     bool is_complete() const { return position >= record.frame_data.size(); }
+    size_t get_tick() const { return position; }
     void set_position(size_t t_position);
-    size_t get_position() const { return position; }
-    void advance_position() { set_position(position + 1); }
+    void next() { set_position(position + 1); }
 private:
 
     void make_events(const InputFrame& frame);

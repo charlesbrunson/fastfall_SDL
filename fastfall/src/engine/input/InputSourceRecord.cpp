@@ -17,36 +17,14 @@ void InputSourceRecord::set_position(size_t t_position)
 {
     position = t_position;
     curr_events.clear();
-
     if (position < record.frame_data.size()) {
-        //LOG_INFO("playback frame {} of {}", position + 1, record.frame_data.size());
         make_events(record.frame_data.at(position));
     }
-    /*
-    // end frame to clear active inputs
-    else if (position == record.frame_data.size() && !record.frame_data.empty()) {
-        //LOG_INFO("playback end");
-        make_events({});
-    }
-    */
 }
 
 void InputSourceRecord::make_events(const InputFrame& frame)
 {
-    LOG_INFO(
-        "playback {:5d} {:08b} {:08b} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d}",
-        position,
-        frame.pressed.to_ulong(),
-        frame.activation_change.to_ulong(),
-        frame.magnitudes[0],
-        frame.magnitudes[1],
-        frame.magnitudes[2],
-        frame.magnitudes[3],
-        frame.magnitudes[4],
-        frame.magnitudes[5],
-        frame.magnitudes[6]
-    );
-
+    //LOG_INFO("playback {:5d} {}", position, frame.to_string());
     for (size_t ndx = 0; ndx < INPUT_COUNT; ++ndx)
     {
         auto type       = static_cast<InputType>(ndx);

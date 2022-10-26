@@ -135,15 +135,13 @@ bool InputSourceRealtime::push_event(SDL_Event e) {
     return caught;
 }
 
-void InputSourceRealtime::record_events() {
+void InputSourceRealtime::next() {
+
+    // record current frame
     if (record && record->frame_data.size() < INPUT_RECORD_SIZE_MAX) {
-
-
-        //constexpr size_t size = sizeof(InputFrame);
-
         auto frame = record->frame_data.empty()
-                ? InputFrame{}
-                : record->frame_data.back();
+                     ? InputFrame{}
+                     : record->frame_data.back();
 
         frame.pressed.reset();
         frame.activation_change.reset();
@@ -159,27 +157,12 @@ void InputSourceRealtime::record_events() {
             if (e.activate_or_deactivate)
                 frame.activation_change.set(type_ndx);
         }
-
-        LOG_INFO(
-            "realtime {:5d} {:08b} {:08b} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d} {:3d}",
-            record->frame_data.size(),
-            frame.pressed.to_ulong(),
-            frame.activation_change.to_ulong(),
-            frame.magnitudes[0],
-            frame.magnitudes[1],
-            frame.magnitudes[2],
-            frame.magnitudes[3],
-            frame.magnitudes[4],
-            frame.magnitudes[5],
-            frame.magnitudes[6]
-        );
-
+        //LOG_INFO("realtime {:5d} {}", record->frame_data.size(), frame.to_string());
         record->frame_data.push_back(frame);
     }
-}
 
-void InputSourceRealtime::clear_events() {
     events.clear();
+    ++tick;
 }
 
 const std::vector<InputEvent>& InputSourceRealtime::get_events() const
@@ -189,8 +172,10 @@ const std::vector<InputEvent>& InputSourceRealtime::get_events() const
 
 void InputSourceRealtime::set_record(const InputRecord& t_record)
 {
-    if (record)
+    if (record) {
         record = t_record;
+        tick = record->frame_data.size();
+    }
 }
 
 const std::optional<InputRecord>& InputSourceRealtime::get_record() const

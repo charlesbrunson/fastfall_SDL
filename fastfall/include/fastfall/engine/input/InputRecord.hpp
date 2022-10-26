@@ -1,10 +1,12 @@
 #pragma once
 
 #include "fastfall/engine/time/time.hpp"
+#include "fastfall/engine/input/Input_Def.hpp"
 
 #include <bitset>
 #include <vector>
 #include <array>
+#include <set>
 
 namespace ff {
 
@@ -14,6 +16,8 @@ namespace ff {
         std::bitset<INPUT_COUNT> pressed;
         std::bitset<INPUT_COUNT> activation_change;
         std::array<uint8_t, INPUT_COUNT> magnitudes;
+
+        std::string to_string() const;
     };
 
     struct InputRecord {

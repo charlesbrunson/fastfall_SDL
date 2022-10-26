@@ -3,7 +3,7 @@
 namespace ff {
 
 Input::Input(InputType t) :
-	type(t)
+	m_type(t)
 {
 }
 
