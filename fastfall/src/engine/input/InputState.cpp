@@ -64,6 +64,7 @@ void InputState::process_events()
 bool InputState::is_listening(InputType in) const { return input_states.contains(in); }
 bool InputState::is_listening(std::optional<InputType> in) const { return in && input_states.contains(*in); }
 
-void InputState::set_tick(size_t tick) { input_tick = tick; }
+//void InputState::set_tick(size_t tick) { input_tick = tick; }
+
 size_t InputState::get_tick() const { return input_tick; }
 

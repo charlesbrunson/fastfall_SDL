@@ -2,6 +2,7 @@
 
 #include "fmt/format.h"
 #include <array>
+#include <vector>
 
 #include "fastfall/game/World.hpp"
 
@@ -422,11 +423,71 @@ void imgui_input(World* w) {
     ImGui::Text("Input Source: %s", source_str.c_str() );
     ImGui::Text("Input Tick: %zu", w->input().get_tick() );
 
+    struct FrameData {
+        size_t tick;
+        InputFrame frame;
+    };
+    static std::vector<std::pair<FrameData, std::string>> frame_data;
+    std::optional<FrameData> curr_frame;
+    constexpr const size_t MAX_FRAMES = 30;
+
+
     if (auto* record = dynamic_cast<const InputSourceRecord*>(source)) {
         ImGui::Text("Record Tick: %zu", record->get_tick() );
+        ImGui::Text("Record Length: %zu", record->get_record().frame_data.size() );
+
+        if (!record->get_record().frame_data.empty()
+            && record->get_tick() < record->get_record().frame_data.size())
+        {
+            curr_frame = {
+                record->get_tick(),
+                record->get_record().frame_data[record->get_tick()]
+            };
+        }
     }
     else if (auto* realtime = dynamic_cast<const InputSourceRealtime*>(source)) {
         ImGui::Text("Realtime Tick: %zu", realtime->get_tick() );
+        ImGui::Text("Recording: %s", (realtime->is_recording() ? "Yes" : "No") );
+
+        if (realtime->is_recording() && !realtime->get_record()->frame_data.empty()) {
+            curr_frame = {
+                realtime->get_tick(),
+                realtime->get_record()->frame_data.back()
+            };
+        }
+    }
+
+    if (curr_frame) {
+        if (!frame_data.empty()
+            && curr_frame->tick != frame_data.back().first.tick + 1
+            && curr_frame->tick != frame_data.back().first.tick)
+        {
+            frame_data.clear();
+        }
+
+        if (frame_data.empty()
+            || curr_frame->tick == frame_data.back().first.tick + 1)
+        {
+            if (frame_data.size() == MAX_FRAMES) {
+                frame_data.erase(frame_data.begin());
+            }
+            frame_data.push_back({
+                 *curr_frame,
+                 fmt::format("{:5} {}", curr_frame->tick, curr_frame->frame.to_string())
+            });
+        }
+    }
+
+    ImGui::Text("Last %zu frames:", MAX_FRAMES);
+    for (auto& [frame, str] : frame_data) {
+        if (!frame.frame.activation_change.any()) {
+            ImGui::PushStyleColor(ImGuiCol_Text, 0xFF808080);
+            ImGui::Text("%s", str.c_str());
+            ImGui::PopStyleColor();
+        }
+        else {
+            ImGui::Text("%s", str.c_str());
+        }
     }
 }
 
