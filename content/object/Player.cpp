@@ -91,7 +91,7 @@ void Player::update(World& w, secs deltaTime) {
 objcfg::dresult Player::message(World& w, const objcfg::dmessage& msg) {
     switch(msg) {
         case objNoOp: {
-            LOG_INFO("Nothing!");
+            //LOG_INFO("Nothing!");
             return objNoOp.accept();
         }
         case objGetPos: {
@@ -104,7 +104,7 @@ objcfg::dresult Player::message(World& w, const objcfg::dmessage& msg) {
         }
         case objHurt: {
             // float [damage] = objHurt.unwrap(msg);
-            LOG_INFO("OUCH: {}", objHurt.unwrap_as<float>(msg));
+            //LOG_INFO("OUCH: {}", objHurt.unwrap_as<float>(msg));
             return objHurt.accept();
         }
     }
