@@ -35,6 +35,7 @@ namespace ff {
 
         void set_record(const InputRecord& t_record);
         const std::optional<InputRecord>& get_record() const;
+        bool is_recording() const { return record.has_value(); }
 
     private:
         void process_axis(InputType type, AxisData& data, int16_t axis_pos, int16_t alt_axis_pos);
