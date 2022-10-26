@@ -87,6 +87,7 @@ void TestState::update(secs deltaTime) {
 				else {
 					edit->select_tile(TileID{ 0u, 0u });
 				}
+				//LOG_INFO("tile pos = {}", edit->get_tile()->to_vec().to_string());
 			});
 		};
 		static auto layerOnKeyPressed = [this](SDL_Scancode c, int i) {
@@ -247,10 +248,7 @@ void TestState::predraw(float interp, bool updated) {
     else if (to_load) {
         if (save_world) {
             if (!on_realtime) {
-                insrc_record = InputSourceRecord{
-                    *insrc_realtime.get_record(),
-                    save_world->tick_count()
-                };
+                insrc_record = InputSourceRecord{ *insrc_realtime.get_record(), save_world->tick_count() + 1 };
             }
 
             *world = *save_world;
@@ -267,6 +265,7 @@ void TestState::predraw(float interp, bool updated) {
             else {
                 world->input().set_source(&*insrc_record);
             }
+
             debug_draw::clear();
         }
         to_load = false;

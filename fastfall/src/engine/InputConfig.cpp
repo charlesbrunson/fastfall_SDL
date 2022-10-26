@@ -489,6 +489,7 @@ namespace InputConfig {
             "Mouse2"
         };
 
+        /*
         ImGui::Columns(5, "inputs");
         ImGui::Separator();
         ImGui::Text("Input"); ImGui::NextColumn();
@@ -498,7 +499,6 @@ namespace InputConfig {
         //ImGui::Text("Enabled"); ImGui::NextColumn();
         ImGui::Text("Duration"); ImGui::NextColumn();
 
-        /*
         ImGui::Separator();
         int i = 0;
         for (auto& in : inputs) {
