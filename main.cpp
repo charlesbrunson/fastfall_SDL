@@ -1,6 +1,8 @@
 
+
 #include "fastfall/util/log.hpp"
 
+#include "fastfall/engine/audio.hpp"
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/resource/ResourceWatcher.hpp"
 
@@ -9,6 +11,7 @@
 
 #include "content/types.hpp"
 #include "content/TestState.hpp"
+#include "soloud_speech.h"
 
 #ifdef WIN32
 #include <Windows.h>
@@ -38,7 +41,7 @@ ff::EngineSettings getSettings() {
 #endif
 
 #if defined(DEBUG)
-	settings.showDebug = true;
+	settings.showDebug = false;
 #else
 	settings.showDebug = false;
 #endif
@@ -46,6 +49,7 @@ ff::EngineSettings getSettings() {
 	return settings;
 }
 
+//SoLoud::Soloud gSoLoud; // SoLoud Engine
 
 int main(int argc, char* argv[])
 {
@@ -67,6 +71,11 @@ int main(int argc, char* argv[])
 	game_InitTypes();
 
 	FFinit();
+    audio_init();
+
+    SoLoud::Speech speech{};
+    speech.setText("Hello world!");
+    audio().play(speech);
 
 	// need to create window before loading resources :(
 	std::unique_ptr<Window> window = std::make_unique<Window>();
@@ -107,6 +116,7 @@ int main(int argc, char* argv[])
 	Engine::shutdown();
 	ImGuiFrame::getInstance().clear();
 
+    audio_quit();
 	FFquit();
 	ResourceWatcher::join_watch_thread();
 #endif

@@ -13,7 +13,7 @@ constexpr secs one_frame = 1.0 / 60.0;
 
 void cmp_input(const Input& lhs, const Input& rhs)
 {
-    assert(lhs.type == rhs.type);
+    assert(lhs.type() == rhs.type());
     EXPECT_EQ(lhs.is_held(),      rhs.is_held());
     EXPECT_EQ(lhs.is_confirmed(), rhs.is_confirmed());
     EXPECT_EQ(lhs.magnitude(),    rhs.magnitude());
@@ -62,7 +62,7 @@ void expect_matching_inputs(InputSourceRealtime& realtime, InputState& state_rea
 
     while (!record.is_complete()) {
         state_record.update(one_frame);
-        record.advance_position();
+        record.next();
     }
 
     auto space_real   = state_realtime.get(type);
@@ -80,7 +80,7 @@ TEST(inputstate, realtime_matches_record_source)
 
         realtime.push_event(keydown(SDLK_SPACE));
         state_realtime.update(one_frame);
-        realtime.record_and_clear_events();
+        realtime.next();
 
         expect_matching_inputs(realtime, state_realtime, InputType::JUMP);
     }
@@ -93,7 +93,7 @@ TEST(inputstate, realtime_matches_record_source)
         realtime.push_event(keydown(SDLK_SPACE));
         realtime.push_event(keyup(SDLK_SPACE));
         state_realtime.update(one_frame);
-        realtime.record_and_clear_events();
+        realtime.next();
 
         expect_matching_inputs(realtime, state_realtime, InputType::JUMP);
     }
@@ -105,14 +105,14 @@ TEST(inputstate, realtime_matches_record_source)
 
         realtime.push_event(keydown(SDLK_SPACE));
         state_realtime.update(one_frame);
-        realtime.record_and_clear_events();
+        realtime.next();
 
         state_realtime.update(one_frame);
-        realtime.record_and_clear_events();
+        realtime.next();
 
         realtime.push_event(keyup(SDLK_SPACE));
         state_realtime.update(one_frame);
-        realtime.record_and_clear_events();
+        realtime.next();
 
         expect_matching_inputs(realtime, state_realtime, InputType::JUMP);
     }
@@ -124,19 +124,19 @@ TEST(inputstate, realtime_matches_record_source)
 
         realtime.push_event(axis(SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTX, 0x7FFF));
         state_realtime.update(one_frame);
-        realtime.record_and_clear_events();
+        realtime.next();
 
         realtime.push_event(axis(SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTX, 0x3FFF));
         state_realtime.update(one_frame);
-        realtime.record_and_clear_events();
+        realtime.next();
 
         realtime.push_event(axis(SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTX, 0x0000));
         state_realtime.update(one_frame);
-        realtime.record_and_clear_events();
+        realtime.next();
 
         realtime.push_event(axis(SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTX, 0x7FFF));
         state_realtime.update(one_frame);
-        realtime.record_and_clear_events();
+        realtime.next();
 
         expect_matching_inputs(realtime, state_realtime, InputType::RIGHT);
     }
