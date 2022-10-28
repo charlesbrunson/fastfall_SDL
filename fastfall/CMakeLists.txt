@@ -53,6 +53,7 @@ set(FF_INCLUDES
 	
 	${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
 	${CMAKE_CURRENT_SOURCE_DIR}/external/implot
+	${CMAKE_CURRENT_SOURCE_DIR}/external/soloud/include
 )
 
 set(FF_LIBRARIES
@@ -60,6 +61,7 @@ set(FF_LIBRARIES
 	glm
 	fmt::fmt
 	flatbuffers
+	soloud
 )
 
 

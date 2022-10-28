@@ -82,6 +82,7 @@ FetchContent_Declare(
 	SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/freetype
 )
 
+
 FetchContent_MakeAvailable(
 	freetype
 	glm
@@ -159,6 +160,7 @@ if (NOT EMSCRIPTEN)
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_image
 	)
 
+
 	FetchContent_MakeAvailable(
 		glew
 		zlib
@@ -190,5 +192,38 @@ if (NOT EMSCRIPTEN)
 	target_link_libraries(SDL2image PUBLIC png_static)
 	target_compile_definitions(SDL2image PRIVATE LOAD_PNG LOAD_BMP)
 
+	# soloud
+	set(SDL2_LIBRARY SDL2-static)
+	set(SDL2_INCLUDE_DIR "${sdl_SOURCE_DIR}/include")
+	set(SOLOUD_STATIC 		ON  CACHE INTERNAL "")
+	set(SOLOUD_BACKEND_SDL2 ON  CACHE INTERNAL "")
+	FetchContent_Declare(
+		soloud
+		URL			http://solhsa.com/soloud/soloud_20200207.zip
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/soloud
+		SOURCE_SUBDIR  contrib
+	)
+	FetchContent_MakeAvailable(
+		soloud
+	)
 endif()
 
+# compile soloud as static lib
+#file(GLOB_RECURSE SOLOUD_HEADERS ${soloud_SOURCE_DIR}/include/*.h)
+#file(GLOB_RECURSE SOLOUD_SOURCES
+#		${soloud_SOURCE_DIR}/src/audiosource/*.cpp
+#		${soloud_SOURCE_DIR}/src/core/*.cpp
+#		${soloud_SOURCE_DIR}/src/filter/*.cpp
+#		${soloud_SOURCE_DIR}/src/backend/sdl2_static/*.cpp
+#		)
+#
+#message(STATUS "AAAAAAAAAAAA ${SOLOUD_SOURCES}")
+#message(STATUS "BBBBBBBBBBBB ${SOLOUD_HEADERS}")
+#add_library(soloud_lib STATIC
+#		${SOLOUD_SOURCES}
+#		${SOLOUD_HEADERS}
+#		)
+#set_target_properties(soloud_lib PROPERTIES LINKER_LANGUAGE CXX)
+#target_include_directories(soloud_lib PRIVATE "${soloud_SOURCE_DIR}/include")
+#target_compile_definitions(soloud_lib PUBLIC WITH_SDL2_STATIC)
+#target_include_directories(soloud_lib PRIVATE "${sdl_SOURCE_DIR}/include")

@@ -52,7 +52,7 @@ bool FFinit()
     assert(!renderInitialized);
     renderInitialized = true;
 
-    checkSDL(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER));
+    checkSDL(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO));
 
     SDL_version version;
     SDL_GetVersion(&version);
@@ -85,6 +85,7 @@ bool FFinit()
     }
 
     freetype_init();
+
 
     return renderInitialized;
 }
