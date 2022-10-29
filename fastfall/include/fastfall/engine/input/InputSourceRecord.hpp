@@ -17,7 +17,7 @@ public:
     bool is_complete() const { return position >= record.frame_data.size(); }
     size_t get_tick() const { return position; }
     void set_position(size_t t_position);
-    void next() { set_position(position + 1); }
+    void next() override { set_position(position + 1); }
 private:
 
     void make_events(const InputFrame& frame);

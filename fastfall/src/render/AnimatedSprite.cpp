@@ -113,10 +113,8 @@ void AnimatedSprite::predraw(float interp)
 	if (animation) {
 		if (flag_dirty) {
 			if (curr_anim != animation->anim_id) {
-
 				curr_anim = animation->anim_id;
 				sprite.setTexture(&animation->get_sprite_texture());
-
 			}
 
 			Rectf area = Rectf(

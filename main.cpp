@@ -27,7 +27,6 @@ ff::EngineSettings getSettings() {
 	ff::EngineSettings settings;
 	settings.allowMargins = true;
 	settings.fullscreen = false;
-	settings.noWindow = false;
 
 #if defined(__EMSCRIPTEN__)
 	settings.refreshRate = 0;
@@ -36,16 +35,9 @@ ff::EngineSettings getSettings() {
 #else
 	settings.refreshRate = 0;
 	settings.vsyncEnabled = true;
-	//settings.runstyle = ff::EngineRunStyle::SingleThread;
 	settings.runstyle = ff::EngineRunStyle::DoubleThread;
 #endif
-
-#if defined(DEBUG)
 	settings.showDebug = false;
-#else
-	settings.showDebug = false;
-#endif
-
 	return settings;
 }
 
@@ -72,10 +64,6 @@ int main(int argc, char* argv[])
 
 	FFinit();
     audio_init();
-
-    SoLoud::Speech speech{};
-    speech.setText("Hello world!");
-    audio().play(speech);
 
 	// need to create window before loading resources :(
 	std::unique_ptr<Window> window = std::make_unique<Window>();

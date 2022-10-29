@@ -30,7 +30,9 @@ TestState::TestState()
     Level* lvl = world->levels().get_active(*world);
     assert(lvl);
 
-	//instance->populateSceneFromLevel(*lvl);
+    //viewPos = world->camera().getPosition(0.f);
+    //viewZoom = world->camera().zoomFactor;
+
 	edit = std::make_unique<LevelEditor>( *world, *lvl, false );
 	edit->select_layer(-1);
 	edit->select_tileset("tech_fg.tsx");
@@ -48,20 +50,10 @@ TestState::TestState()
 void TestState::update(secs deltaTime) {
 
     world->update(deltaTime);
-    if (deltaTime > 0.0) {
-        if (on_realtime) {
-            insrc_realtime.next();
-        }
-        else if (insrc_record) {
-            insrc_record->next();
-        }
-    }
 
-	currKeys = SDL_GetKeyboardState(&key_count);
-
-	if (edit) 
+	if (edit)
 	{
-
+        currKeys = SDL_GetKeyboardState(&key_count);
 		const TileLayer& tilelayer = edit->get_tile_layer()->tilelayer;
 
         // TODO
@@ -87,7 +79,6 @@ void TestState::update(secs deltaTime) {
 				else {
 					edit->select_tile(TileID{ 0u, 0u });
 				}
-				//LOG_INFO("tile pos = {}", edit->get_tile()->to_vec().to_string());
 			});
 		};
 		static auto layerOnKeyPressed = [this](SDL_Scancode c, int i) {
@@ -233,7 +224,6 @@ void TestState::update(secs deltaTime) {
 
 void TestState::predraw(float interp, bool updated) {
 
-    world->predraw(interp, updated);
 
     if (to_save) {
         if (save_world) {
@@ -271,7 +261,7 @@ void TestState::predraw(float interp, bool updated) {
         to_load = false;
         LOG_INFO("loaded state");
     }
-
+    world->predraw(interp, updated);
 	viewPos = world->camera().getPosition(interp);
 	viewZoom = world->camera().zoomFactor;
 

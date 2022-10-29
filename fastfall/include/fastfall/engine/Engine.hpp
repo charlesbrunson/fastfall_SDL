@@ -47,9 +47,6 @@ struct EngineSettings {
 	// display ImGui
 	bool showDebug = false;
 
-	// run displayless
-	bool noWindow = false;
-
 	// run style
 	EngineRunStyle runstyle = EngineRunStyle::DoubleThread;
 };

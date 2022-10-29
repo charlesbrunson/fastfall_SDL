@@ -29,6 +29,7 @@ public:
     bool is_listening(InputType in) const { return listening.contains(in); }
     const std::set<InputType>& get_listening() const { return listening; }
 
+    virtual void next() = 0;
 private:
     std::set<InputType> listening;
 };
@@ -37,6 +38,7 @@ class InputSourceNull : InputSource {
 public:
     InputSourceNull() : InputSource({}) {};
     const std::vector<InputEvent>& get_events() const override { return null_events; }
+    void next() override {};
 private:
     std::vector<InputEvent> null_events;
 };

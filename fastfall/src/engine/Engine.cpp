@@ -849,8 +849,7 @@ bool Engine::setFullscreen(bool fullscreen) {
     return true;
 }
 
-void Engine::resizeWindow(
-    Vec2u size)
+void Engine::resizeWindow(Vec2u size)
 {
     if (!window)
         return;
@@ -915,16 +914,20 @@ void Engine::resizeWindow(
     };
     Recti windowSize(0, 0, window->getSize().x, window->getSize().y);
 
-    (*margins.get())[0].pos = glm::fvec2((float)windowSize.left, (float)windowSize.top);
-    (*margins.get())[1].pos = glm::fvec2((float)viewport.left,   (float)viewport.top);
-    (*margins.get())[2].pos = glm::fvec2((float)windowSize.left, (float)windowSize.top + windowSize.height);
-    (*margins.get())[3].pos = glm::fvec2((float)viewport.left,   (float)viewport.top + viewport.height);
-    (*margins.get())[4].pos = glm::fvec2((float)windowSize.left + windowSize.width, (float)windowSize.top + windowSize.height);
-    (*margins.get())[5].pos = glm::fvec2((float)viewport.left + viewport.width, (float)viewport.top + viewport.height);
-    (*margins.get())[6].pos = glm::fvec2((float)windowSize.left + windowSize.width, (float)windowSize.top);
-    (*margins.get())[7].pos = glm::fvec2((float)viewport.left + viewport.width, (float)viewport.top);
-    (*margins.get())[8].pos = glm::fvec2((float)windowSize.left, (float)windowSize.top);
-    (*margins.get())[9].pos = glm::fvec2((float)viewport.left, (float)viewport.top);
+    Rectf vpf {viewport};
+    Rectf wsf {windowSize};
+
+    auto& margin = *margins;
+    margin[0] = { math::rect_topleft(wsf)  };
+    margin[1] = { math::rect_topleft(vpf)  };
+    margin[2] = { math::rect_botleft(wsf)  };
+    margin[3] = { math::rect_botleft(vpf)  };
+    margin[4] = { math::rect_botright(wsf) };
+    margin[5] = { math::rect_botright(vpf) };
+    margin[6] = { math::rect_topright(wsf) };
+    margin[7] = { math::rect_topright(vpf) };
+    margin[8] = { math::rect_topleft(wsf)  };
+    margin[9] = { math::rect_topleft(vpf)  };
 
     marginView = View{ { 0.f, 0.f }, window->getSize() };
     marginView.setCenter(glm::fvec2{ window->getSize() } / 2.f);
