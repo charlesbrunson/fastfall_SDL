@@ -1,40 +1,48 @@
 #include "fastfall/engine/audio.hpp"
+#include "fastfall/util/log.hpp"
+
+#include "SDL.h"
 
 #include <cassert>
 
 namespace ff {
 
-SoLoud::Soloud *audio_engine = nullptr;
+SoLoud::Soloud audio_engine;
+bool is_init = false;
 
 bool audio_init() {
-    if (audio_engine == nullptr) {
-        audio_engine = new SoLoud::Soloud{};
-        audio_engine->init(
-            SoLoud::Soloud::CLIP_ROUNDOFF,
-            SoLoud::Soloud::SDL2,
-            SoLoud::Soloud::AUTO,
-            SoLoud::Soloud::AUTO,
-            2
-        );
+    auto r = audio_engine.init(
+        SoLoud::Soloud::CLIP_ROUNDOFF,
+        SoLoud::Soloud::BACKENDS::SDL2,
+        SoLoud::Soloud::AUTO,
+        SoLoud::Soloud::AUTO,
+        2
+    );
+
+    if (r != SoLoud::SOLOUD_ERRORS::SO_NO_ERROR) {
+        LOG_ERR_("Failed to initialize audio: {}", r);
+        std::string err = SDL_GetError();
+        LOG_ERR_("SDL: {}", err);
+        is_init = false;
     }
-    return audio_is_init();
+    else {
+        is_init = true;
+    }
+    return is_init;
 }
 
 bool audio_quit() {
-    if (audio_engine != nullptr) {
-        audio_engine->deinit();
-        delete audio_engine;
-    }
-    return !audio_is_init();
+    audio_engine.deinit();
+    is_init = false;
+    return !is_init;
 }
 
 bool audio_is_init() {
-    return audio_engine != nullptr;
+    return is_init;
 }
 
 SoLoud::Soloud& audio() {
-    assert(audio_is_init());
-    return *audio_engine;
+    return audio_engine;
 }
 
 }
