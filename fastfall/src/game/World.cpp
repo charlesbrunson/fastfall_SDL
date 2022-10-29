@@ -133,10 +133,6 @@ void World::update(secs deltaTime) {
 }
 
 void World::predraw(float interp, bool updated) {
-    // TODO
-    //if (want_reset)
-    //    reset();
-
     if (Level* active = _level_system.get_active(*this))
     {
         _scene_system.set_bg_color(active->getBGColor());

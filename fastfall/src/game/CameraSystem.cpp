@@ -21,6 +21,7 @@ CameraSystem::CameraSystem(Vec2f initPos)
 };
 
 void CameraSystem::notify_created(World& world, ID<CameraTarget> id) {
+    world.at(id).update(world, 0.0);
     add_to_ordered(world, id);
 };
 

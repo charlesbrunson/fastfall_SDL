@@ -29,7 +29,7 @@ namespace ff {
 
         bool push_event(SDL_Event e);
         const std::vector<InputEvent>& get_events() const override;
-        void next();
+        void next() override;
 
         size_t get_tick() const { return tick; }
 
