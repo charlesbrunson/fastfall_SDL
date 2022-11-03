@@ -135,7 +135,7 @@ namespace profiler {
 namespace ff {
 
 Engine::Engine(Window* window)
-    : Engine{window, {GAME_W * 4, GAME_H * 4}, {}}
+    : Engine{window, {GAME_W * 3, GAME_H * 3}, {}}
 {
 }
 
@@ -166,45 +166,6 @@ Engine::Engine(Window* window, const Vec2u init_window_size, EngineSettings sett
 Engine::~Engine() {
     LOG_INFO("Shutting down engine");
 }
-
-//std::unique_ptr<Engine> Engine::engineInstance;
-
-/*
-void Engine::init(std::unique_ptr<Window>&& window, EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings) {
-    LOG_INFO("Initializing engine instance");
-    engineInstance = std::unique_ptr<Engine>(new Engine{ std::move(window), std::move(toRun), initWindowSize, engineSettings });
-    LOG_INFO("Initialization complete");
-}
-
-void Engine::shutdown() {
-    LOG_INFO("Shutting down engine instance");
-    engineInstance.reset();
-    LOG_INFO("Shutdown complete, have a nice day");
-}
-
-Engine::Engine(
-    std::unique_ptr<Window>&& initWindow,
-    EngineRunnable&& toRun,
-    const Vec2u& initWindowSize,
-    EngineSettings engineSettings
-) 
-    : window{std::move(initWindow)}
-    , initWinSize(initWindowSize)
-    , settings(engineSettings)
-    , ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Engine", "System")
-{
-    // use first runnable to determine if we need a window
-    addRunnable(std::move(toRun));
-    initRenderTarget(settings.fullscreen);
-
-    initialized = true;
-    if (runnables.empty() || (window && !window->valid())) {
-        initialized = false;
-    }
-
-    debug_draw::enable(settings.showDebug);
-}
-*/
 
 void Engine::push_runnable(EngineRunnable&& toRun) {
     runnables.push_back(std::forward<EngineRunnable>(toRun));
