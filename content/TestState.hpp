@@ -30,6 +30,7 @@ public:
 private:
 	void draw(ff::RenderTarget& target, ff::RenderState states = ff::RenderState()) const override;
 
+    // save states and replays
     ff::InputSourceRealtime insrc_realtime;
     std::optional<ff::InputSourceRecord>   insrc_record;
     bool on_realtime;
@@ -39,6 +40,8 @@ private:
     bool to_save = false;
     bool to_load = false;
 
+
+    // level editing
 	bool painting = false;
 	ff::Vec2i last_paint;
 
@@ -54,9 +57,11 @@ private:
 
 	int layer = -1;
 
+    /*
 	ff::Vec2f mirror;
 	ff::Vec2i tpos;
 	ff::Vec2f mpos;
+    */
 
 	ff::Text tile_text;
 };

@@ -30,9 +30,6 @@ TestState::TestState()
     Level* lvl = world->levels().get_active(*world);
     assert(lvl);
 
-    //viewPos = world->camera().getPosition(0.f);
-    //viewZoom = world->camera().zoomFactor;
-
 	edit = std::make_unique<LevelEditor>( *world, *lvl, false );
 	edit->select_layer(-1);
 	edit->select_tileset("tech_fg.tsx");
@@ -56,8 +53,7 @@ void TestState::update(secs deltaTime) {
         currKeys = SDL_GetKeyboardState(&key_count);
 		const TileLayer& tilelayer = edit->get_tile_layer()->tilelayer;
 
-        // TODO
-		mpos = Vec2f{}; // Input::getMouseWorldPosition();
+		mpos = Input::getMouseWorldPosition();
 		tpos = tilelayer.getTileFromWorldPos(mpos).value_or(Vec2i{});
 
 		static auto onKeyPressed = [this](SDL_Scancode c, auto&& callable) {
@@ -162,8 +158,6 @@ void TestState::update(secs deltaTime) {
 			}
 			});
 
-        // TODO
-        /*
 		if (Input::getMouseInView() && (Input::isHeld(InputType::MOUSE1) || Input::isHeld(InputType::MOUSE2)))
 		{
             Level* lvl = world->levels().get_active(*world);
@@ -173,7 +167,6 @@ void TestState::update(secs deltaTime) {
 				Input::isHeld(InputType::MOUSE1)
 					? edit->paint_tile(Vec2u{ tpos })
 					: edit->erase_tile(Vec2u{ tpos });
-
 			}
 
 			last_paint = tpos;
@@ -182,7 +175,6 @@ void TestState::update(secs deltaTime) {
 		else {
 			painting = false;
 		}
-         */
 
 		auto tileset = edit->get_tileset();
 		auto tile_id = edit->get_tile();
@@ -288,7 +280,7 @@ void TestState::predraw(float interp, bool updated) {
 				});
 
 
-			float win_scale = 1; //Engine::getWindowScale();
+			float win_scale = Engine::getWindowScale();
 			float scale = viewZoom / win_scale;
 			tile_text.setScale( Vec2f{ 1.f, 1.f } * scale * (win_scale > 2 ? 2.f : 1.f) );
 			tile_text.setColor(ff::Color::White);
@@ -296,9 +288,8 @@ void TestState::predraw(float interp, bool updated) {
 			int posx, posy;
 			SDL_GetMouseState(&posx, &posy);
 
-            // TODO
-			Vec2f mouse_pos { /* Input::getMouseWindowPosition() */ };
-			Vec2f win_size  { /* Engine::getWindow()->getSize() */ };
+			Vec2f mouse_pos { Input::getMouseWindowPosition() };
+			Vec2f win_size  { Engine::getWindow()->getSize() };
 			Vec2f text_off  { 0.f, -tile_text.getScaledBounds().height };
 
 			Vec2f mouse_from_cam = (mouse_pos - (win_size / 2.f));
@@ -319,6 +310,7 @@ void TestState::predraw(float interp, bool updated) {
 }
 
 bool TestState::pushEvent(const SDL_Event& event) {
+
     if (on_realtime) {
         return insrc_realtime.push_event(event);
     }
