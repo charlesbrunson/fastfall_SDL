@@ -58,13 +58,12 @@ Window::Window(std::string_view title, unsigned initWidth, unsigned initHeight)
 }
 
 void Window::init() {
-	assert(ff::FFisInit());
+	assert(ff::render_is_init());
 
 	m_context = SDL_GL_CreateContext(m_window);
 	checkSDL(m_context);
 
-	ff::FFinitGLEW();
-	if (!FFisGLEWInit()) {
+	if (!ff::render_glew_init()) {
 		SDL_DestroyWindow(m_window);
 		m_window = nullptr;
 		return;

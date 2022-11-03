@@ -45,9 +45,6 @@ public:
 	void setVsyncEnabled(bool enable = true);
 
 	glm::ivec2 getPosition();
-
-
-
 	void showWindow(bool visible = true);
 
 	SDL_Window* getSDL_Window() const;

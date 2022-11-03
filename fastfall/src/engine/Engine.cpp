@@ -1,9 +1,6 @@
 
 #include <queue>
-#include <memory>
 #include <thread>
-#include <algorithm>
-#include <atomic>
 
 #include "fastfall/engine/imgui/ImGuiFrame.hpp"
 
@@ -18,8 +15,6 @@
 #include "fastfall/engine/InputConfig.hpp"
 
 #include "fastfall/resource/ResourceWatcher.hpp"
-
-#include <iostream>
 
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/render/AnimatedSprite.hpp"
@@ -139,8 +134,42 @@ namespace profiler {
 
 namespace ff {
 
-std::unique_ptr<Engine> Engine::engineInstance;
+Engine::Engine(Window* window)
+    : Engine{window, {GAME_W * 4, GAME_H * 4}, {}}
+{
+}
 
+Engine::Engine(Window* window, const Vec2u init_window_size, EngineSettings settings)
+    : window{window}
+    , initWinSize(init_window_size)
+    , settings(settings)
+    , ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Engine", "System")
+{
+    assert(window);
+    initRenderTarget(settings.fullscreen);
+
+    initialized = true;
+    if ((window && !window->valid())) {
+        initialized = false;
+    }
+
+    debug_draw::enable(settings.showDebug);
+
+    if (initialized) {
+        LOG_INFO("Engine initialized");
+    }
+    else {
+        LOG_INFO("Engine failed to initialize");
+    }
+}
+
+Engine::~Engine() {
+    LOG_INFO("Shutting down engine");
+}
+
+//std::unique_ptr<Engine> Engine::engineInstance;
+
+/*
 void Engine::init(std::unique_ptr<Window>&& window, EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings) {
     LOG_INFO("Initializing engine instance");
     engineInstance = std::unique_ptr<Engine>(new Engine{ std::move(window), std::move(toRun), initWindowSize, engineSettings });
@@ -175,16 +204,17 @@ Engine::Engine(
 
     debug_draw::enable(settings.showDebug);
 }
+*/
 
-void Engine::addRunnable(EngineRunnable&& toRun) {
-    runnables.push_back(std::move(toRun));
+void Engine::push_runnable(EngineRunnable&& toRun) {
+    runnables.push_back(std::forward<EngineRunnable>(toRun));
 }
 
 void Engine::drawRunnable(EngineRunnable& run) {
     RenderTarget* target =
         run.getRTexture() ?
         static_cast<RenderTarget*>(run.getRTexture()) :
-        static_cast<RenderTarget*>(window.get());
+        static_cast<RenderTarget*>(window);
 
     auto activeState = run.getStateHandle().getActiveState();
     target->clear(activeState->getClearColor());
@@ -233,6 +263,9 @@ void Engine::prerun_init()
 
 
 bool Engine::run() {
+    if (runnables.empty())
+        return false;
+
     switch (settings.runstyle) {
     case EngineRunStyle::SingleThread:  return run_singleThread();
     case EngineRunStyle::DoubleThread:  return run_doubleThread();
@@ -250,7 +283,7 @@ bool Engine::run_singleThread()
 
     running = true;
 
-    while (isRunning() && !runnables.empty()) 
+    while (is_running() && !runnables.empty())
     {
         profiler::curr_duration = {};
         profiler::frame_timer.reset();
@@ -320,7 +353,7 @@ bool Engine::run_doubleThread()
     clock.reset();
     std::thread stateWorker(&Engine::runUpdate, this, &bar);
 
-    while (isRunning() && !runnables.empty()) {
+    while (is_running() && !runnables.empty()) {
         profiler::curr_duration = {};
         profiler::frame_timer.reset();
 
@@ -383,7 +416,7 @@ bool Engine::run_doubleThread()
 void Engine::runUpdate(std::barrier<>* bar) {
     SDL_SetThreadPriority(SDL_ThreadPriority::SDL_THREAD_PRIORITY_HIGH);
 
-    while (isRunning() && !runnables.empty()) {
+    while (is_running() && !runnables.empty()) {
 
         bar->arrive_and_wait();
 
@@ -428,7 +461,7 @@ bool Engine::run_emscripten() {
 void Engine::emscripten_loop(void* engine_ptr) {
 	Engine* engine = (Engine*)engine_ptr;
 
-	if(!engine->isRunning() || engine->runnables.empty())
+	if(!engine->is_running() || engine->runnables.empty())
 		return;
 
     profiler::curr_duration = {};
