@@ -420,18 +420,18 @@ namespace InputConfig {
                     break;
                 }
                 else {
-                    controller = std::nullopt;
+                    controller.reset();
                 }
             }
         }
         else if (!controller->isConnected()) {
             LOG_INFO("Disconnected game controller");
-            controller = std::nullopt;
+            controller.reset();
         }
     }
 
     void closeJoystick() {
-        controller = std::nullopt;
+        controller.reset();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////

@@ -288,7 +288,7 @@ void TestState::predraw(float interp, bool updated) {
 				});
 
 
-			float win_scale = Engine::getWindowScale();
+			float win_scale = 1; //Engine::getWindowScale();
 			float scale = viewZoom / win_scale;
 			tile_text.setScale( Vec2f{ 1.f, 1.f } * scale * (win_scale > 2 ? 2.f : 1.f) );
 			tile_text.setColor(ff::Color::White);
@@ -298,7 +298,7 @@ void TestState::predraw(float interp, bool updated) {
 
             // TODO
 			Vec2f mouse_pos { /* Input::getMouseWindowPosition() */ };
-			Vec2f win_size  { Engine::getWindow()->getSize() };
+			Vec2f win_size  { /* Engine::getWindow()->getSize() */ };
 			Vec2f text_off  { 0.f, -tile_text.getScaledBounds().height };
 
 			Vec2f mouse_from_cam = (mouse_pos - (win_size / 2.f));

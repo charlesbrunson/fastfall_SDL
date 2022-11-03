@@ -38,8 +38,8 @@ struct EngineSettings {
 	bool allowMargins = true;
 
 	// display refresh rate
-	int refreshRate = 60;
-	bool vsyncEnabled = false;
+	int refreshRate = 0;
+	bool vsyncEnabled = true;
 
 	// display fullscreen
 	bool fullscreen = false;
@@ -60,38 +60,43 @@ public:
 
 class Engine : public ImGuiContent {
 private:
-	// singleton
-	static std::unique_ptr<Engine> engineInstance;
-
 	DebugDrawImgui debugdrawImgui;
 	InputConfig::InputObserver input_cfg;
     WorldImGui worldImgui;
 
-	Engine(std::unique_ptr<Window>&& initWindow, EngineRunnable&& toRun, const Vec2u& initWindowSize, EngineSettings engineSettings);
-
 public:
-	~Engine() = default;
+    explicit Engine(Window* window);
+    Engine(Window* window, const Vec2u init_window_size, EngineSettings settings);
 
-	static void init(std::unique_ptr<Window>&& window, EngineRunnable&& toRun, const Vec2u& initWindowSize = Vec2u(0, 0), EngineSettings engineSettings = EngineSettings{});
-	static void shutdown();
+    Engine(const Engine&) = delete;
+    Engine& operator=(const Engine&) = delete;
 
-	static bool is_init() { return engineInstance && engineInstance->isInit(); }
-	static bool start_running() { return is_init() && engineInstance->run(); }
+    Engine(Engine&&) = default;
+    Engine& operator=(Engine&&) = default;
 
-	static int getWindowScale() noexcept { return engineInstance->windowZoom; }
-	static const Window* getWindow() noexcept { return engineInstance->window.get(); }
-	static const FixedEngineClock* getClock() { return &engineInstance->clock; }
-	static secs getUpTime() { return engineInstance->upTime; }
+	~Engine() override;
+
+    void push_runnable(EngineRunnable&& toRun);
+
+    template<typename InitState>
+    void make_runnable(auto&&... args) {
+        push_runnable(EngineRunnable{
+            std::make_unique<InitState>( std::forward<decltype(args)>(args)... ),
+            false
+        });
+    }
+
+    bool run();
+
+    bool is_running() const noexcept { return running; };
+    bool is_init() const noexcept { return initialized; }
+
+    int get_window_scale() const noexcept { return windowZoom; }
+    const Window* get_window() const noexcept { return window; }
+    const FixedEngineClock& get_clock() const { return clock; }
+    secs get_uptime() const { return upTime; }
 
 private:
-
-	void addRunnable(EngineRunnable&& toRun);
-
-	bool run();
-
-	bool isRunning() const noexcept { return running; };
-	bool isInit() const noexcept { return initialized; }
-
 	void freeze();
 	void freezeStepOnce();
 	void unfreeze();
@@ -130,7 +135,7 @@ private:
 	unsigned int avgUPS = 0;
 
 	// display management
-	std::unique_ptr<Window> window;
+	Window* window = nullptr;
 	Vec2i lastWindowedPos;
 	Vec2u initWinSize;
 	Vec2u lastWindowedSize;
@@ -159,7 +164,6 @@ private:
 
 	std::vector<EngineRunnable> runnables;
 
-	// run() subcalls
 	void initRenderTarget(bool fullscreen);
 	void runUpdate(std::barrier<>* bar);
 	void drawRunnable(EngineRunnable& run);

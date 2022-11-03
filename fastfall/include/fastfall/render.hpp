@@ -2,20 +2,14 @@
 
 #include "fastfall/render/opengl.hpp"
 
-
 namespace ff {
-	
-	bool FFinit();
+	bool render_init();
+	void render_quit();
+	bool render_is_init();
 
-	void FFquit();
-
-	bool FFisInit();
-
-	void FFinitGLEW();
-	bool FFisGLEWInit();
-
+	bool render_glew_init();
+	bool render_glew_is_init();
 }
-
 
 #include "fastfall/render/Window.hpp"
 #include "fastfall/render/Color.hpp"
@@ -38,12 +32,10 @@ namespace ff {
 	void ImGuiRender();
 }
 
-
 namespace ff {
 	void glStaleVertexArrays(size_t count, const GLuint* vao);
 	void glStaleVertexBuffers(size_t count, const GLuint* vbo);
 	void glStaleVertexArrays(const GLuint vao);
 	void glStaleVertexBuffers(const GLuint vbo);
-
 	void glDeleteStale();
 }

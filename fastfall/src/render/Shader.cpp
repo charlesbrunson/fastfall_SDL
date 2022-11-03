@@ -214,7 +214,7 @@ ShaderProgram TileArrayProgram;
 ShaderProgram TextProgram;
 
 const ShaderProgram& ShaderProgram::getDefaultProgram() {
-	if (!DefaultProgram.isLinked() && FFisGLEWInit()) {
+	if (!DefaultProgram.isLinked() && render_glew_is_init()) {
 		DefaultProgram.add(ff::ShaderType::VERTEX, vertex_default);
 		DefaultProgram.add(ff::ShaderType::FRAGMENT, fragment_default);
 		DefaultProgram.link();
@@ -223,7 +223,7 @@ const ShaderProgram& ShaderProgram::getDefaultProgram() {
 	return DefaultProgram;
 }
 const ShaderProgram& ShaderProgram::getTileArrayProgram() {
-	if (!TileArrayProgram.isLinked() && FFisGLEWInit()) {
+	if (!TileArrayProgram.isLinked() && render_glew_is_init()) {
 		TileArrayProgram.add(ff::ShaderType::VERTEX,   tilearray_vertex);
 		TileArrayProgram.add(ff::ShaderType::FRAGMENT, tilearray_fragment);
 		TileArrayProgram.link();
@@ -233,7 +233,7 @@ const ShaderProgram& ShaderProgram::getTileArrayProgram() {
 	return TileArrayProgram;
 }
 const ShaderProgram& ShaderProgram::getTextProgram() {
-	if (!TextProgram.isLinked() && FFisGLEWInit()) {
+	if (!TextProgram.isLinked() && render_glew_is_init()) {
 		TextProgram.add(ff::ShaderType::VERTEX, text_vertex);
 		TextProgram.add(ff::ShaderType::FRAGMENT, text_fragment);
 		TextProgram.link();

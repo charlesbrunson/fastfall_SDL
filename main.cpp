@@ -41,41 +41,25 @@ ff::EngineSettings getSettings() {
 	return settings;
 }
 
-//SoLoud::Soloud gSoLoud; // SoLoud Engine
-
 int main(int argc, char* argv[])
 {
 	srand(time(NULL));
-	{
-		log::scope scope;
-		LOG_VERB("TEST");
-		LOG_INFO("TEST");
-		LOG_WARN("TEST");
-		LOG_ERR_("TEST");
-	}
-	log::set_verbosity(log::level::INFO);
-
 
 	using namespace ff;
 
-	id_map<int> t;
-
 	game_InitTypes();
 
-	FFinit();
+	render_init();
     audio_init();
 
 	// need to create window before loading resources :(
-	std::unique_ptr<Window> window = std::make_unique<Window>();
-	if (!window->valid()) {
+    Window window;
+	if (!window.valid()) {
 		LOG_ERR_("Could not initialize window");
 		return EXIT_FAILURE;
 	}
 
 	bool result = Resources::loadAll(Resources::AssetSource::INDEX_FILE, "fileindex.xml");
-	//result &= Resources::buildPackFile("data.pack");
-	//Resources::unloadAll();
-	//result &= Resources::loadAll(Resources::AssetSource::PACK_FILE, "data.pack");
 	if (!result) {
 		LOG_ERR_("Could not load assets");
 		return EXIT_FAILURE;
@@ -86,26 +70,20 @@ int main(int argc, char* argv[])
 	ResourceWatcher::start_watch_thread();
 #endif
 
-	Engine::init(
-		std::move(window),
-		EngineRunnable(std::make_unique<TestState>()),
-		Vec2u{ GAME_W * 7, GAME_H * 5 },
-		getSettings()
-	);
-
-	if (!Engine::start_running()) {
-		LOG_ERR_("Could not initialize engine");
-	}
+    {
+        Engine engine{ &window };
+        engine.make_runnable<TestState>();
+        engine.run();
+    }
 
 #if not defined(__EMSCRIPTEN__)
 	ResourceWatcher::stop_watch_thread();
 
 	Resources::unloadAll();
-	Engine::shutdown();
 	ImGuiFrame::getInstance().clear();
 
     audio_quit();
-	FFquit();
+	render_quit();
 	ResourceWatcher::join_watch_thread();
 #endif
 

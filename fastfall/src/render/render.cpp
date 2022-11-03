@@ -47,7 +47,7 @@ namespace {
 
 }
 
-bool FFinit()
+bool render_init()
 {
     assert(!renderInitialized);
     renderInitialized = true;
@@ -90,7 +90,7 @@ bool FFinit()
     return renderInitialized;
 }
 
-void FFquit()
+void render_quit()
 {
     assert(renderInitialized);
 
@@ -104,20 +104,20 @@ void FFquit()
     renderInitialized = false;
 }
 
-bool FFisInit()
+bool render_is_init()
 {
 	return renderInitialized;
 }
 
-void FFinitGLEW() {
-    if (glewInitialized) return;
+bool render_glew_init() {
+    if (glewInitialized) return true;
 
     GLenum glew_err = glewInit();
     if (GLEW_OK != glew_err) {
         glewInitialized = false;
         std::string err = (char*)glewGetErrorString(glew_err);
         LOG_ERR_("Unable to init glew: {}", err);
-        return;
+        return false;
     }
     glewInitialized = true;
     LOG_INFO("{:>10} {}", "GLEW", glewGetString(GLEW_VERSION));
@@ -177,9 +177,10 @@ void FFinitGLEW() {
 
     ImPlot::CreateContext();
 
+    return glewInitialized;
 }
 
-bool FFisGLEWInit() {
+bool render_glew_is_init() {
     return glewInitialized;
 }
 
