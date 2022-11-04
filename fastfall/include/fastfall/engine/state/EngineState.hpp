@@ -28,6 +28,11 @@ enum class EngineStateAction {
 	CLOSE_ALL  // exit and free all states, engine will finish running
 };
 
+struct WindowState {
+    int scale;
+    Vec2u window_size;
+};
+
 class EngineState : public Drawable {
 
 	friend EngineStateHandler;
@@ -53,7 +58,7 @@ public:
 	}
 
 	virtual void update(secs deltaTime) = 0;
-	virtual void predraw(float interp, bool updated) = 0;
+	virtual void predraw(float interp, bool updated, const WindowState* win_state) = 0;
 
 	virtual void updateImGUI() {};
 

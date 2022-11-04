@@ -8,6 +8,8 @@
 #include "fastfall/render/DebugDraw.hpp"
 #include "fastfall/engine/InputConfig.hpp"
 
+#include "fastfall/engine/input/Mouse.hpp"
+
 #include "tilelogic/AnimLogic.hpp"
 #include "fastfall/engine/Engine.hpp"
 
@@ -53,7 +55,7 @@ void TestState::update(secs deltaTime) {
         currKeys = SDL_GetKeyboardState(&key_count);
 		const TileLayer& tilelayer = edit->get_tile_layer()->tilelayer;
 
-		mpos = Input::getMouseWorldPosition();
+		mpos = Mouse::world_pos();
 		tpos = tilelayer.getTileFromWorldPos(mpos).value_or(Vec2i{});
 
 		static auto onKeyPressed = [this](SDL_Scancode c, auto&& callable) {
@@ -158,13 +160,13 @@ void TestState::update(secs deltaTime) {
 			}
 			});
 
-		if (Input::getMouseInView() && (Input::isHeld(InputType::MOUSE1) || Input::isHeld(InputType::MOUSE2)))
+		if (Mouse::in_view() && (Mouse::m1.is_held() || Mouse::m2.is_held()))
 		{
             Level* lvl = world->levels().get_active(*world);
 			if (Rectf{ Vec2f{}, Vec2f{lvl->size()} * TILESIZE_F }.contains(mpos)
 				&& (!painting || (last_paint != tpos)))
 			{
-				Input::isHeld(InputType::MOUSE1)
+				Mouse::m1.is_held()
 					? edit->paint_tile(Vec2u{ tpos })
 					: edit->erase_tile(Vec2u{ tpos });
 			}
@@ -214,7 +216,7 @@ void TestState::update(secs deltaTime) {
 
 }
 
-void TestState::predraw(float interp, bool updated) {
+void TestState::predraw(float interp, bool updated, const WindowState* win_state) {
 
 
     if (to_save) {
@@ -259,7 +261,7 @@ void TestState::predraw(float interp, bool updated) {
 
 	tile_text.predraw();
 
-	if (edit) 
+	if (edit && win_state)
 	{
 		auto tileset = edit->get_tileset();
 		auto tile = edit->get_tile();
@@ -280,7 +282,7 @@ void TestState::predraw(float interp, bool updated) {
 				});
 
 
-			float win_scale = Engine::getWindowScale();
+			float win_scale = win_state->scale;
 			float scale = viewZoom / win_scale;
 			tile_text.setScale( Vec2f{ 1.f, 1.f } * scale * (win_scale > 2 ? 2.f : 1.f) );
 			tile_text.setColor(ff::Color::White);
@@ -288,8 +290,8 @@ void TestState::predraw(float interp, bool updated) {
 			int posx, posy;
 			SDL_GetMouseState(&posx, &posy);
 
-			Vec2f mouse_pos { Input::getMouseWindowPosition() };
-			Vec2f win_size  { Engine::getWindow()->getSize() };
+			Vec2f mouse_pos { Mouse::window_pos() };
+			Vec2f win_size  { win_state->window_size };
 			Vec2f text_off  { 0.f, -tile_text.getScaledBounds().height };
 
 			Vec2f mouse_from_cam = (mouse_pos - (win_size / 2.f));
