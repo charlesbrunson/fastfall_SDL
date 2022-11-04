@@ -71,11 +71,12 @@ namespace InputConfig {
         };
 
         // input mapping for mouse
+        /*
         std::map<MouseButton, InputMapValue> mouseMap = {
-            //{SDL_BUTTON_LEFT,      {InputType::MOUSE1}},
-            //{SDL_BUTTON_RIGHT,     {InputType::MOUSE2}},
+            {SDL_BUTTON_LEFT,      {InputType::MOUSE1}},
+            {SDL_BUTTON_RIGHT,     {InputType::MOUSE2}},
         };
-
+        */
 
         constexpr
         std::pair<GamepadInput, InputMapValue>
@@ -445,9 +446,9 @@ namespace InputConfig {
         return opt_find_type(keyMap, key);
     }
 
-    std::optional<InputType> get_type_mbutton(MouseButton mbutton) {
-        return opt_find_type(mouseMap, mbutton);
-    }
+    //std::optional<InputType> get_type_mbutton(MouseButton mbutton) {
+    //    return opt_find_type(mouseMap, mbutton);
+    //}
 
     std::optional<InputType> get_type_jbutton(Button jbutton) {
         return opt_find_type(joystickMap, GamepadInput::makeButton(jbutton));

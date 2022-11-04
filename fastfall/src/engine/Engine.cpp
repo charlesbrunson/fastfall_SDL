@@ -11,6 +11,7 @@
 
 #include "fastfall/engine/Engine.hpp"
 #include "fastfall/engine/config.hpp"
+#include "fastfall/engine/input/Mouse.hpp"
 
 #include "fastfall/engine/InputConfig.hpp"
 #include "fastfall/engine/time/profiler.hpp"
@@ -444,7 +445,7 @@ void Engine::updateRunnables()
         if (tickDuration > 0.0)
         {
             // TODO
-            //Input::update(tickDuration);
+            Mouse::update(tickDuration);
         }
 
         for (auto& run : runnables) {
@@ -469,8 +470,13 @@ void Engine::predrawRunnables()
         interp = 1.f;
     }
 
+    WindowState state {
+        .scale = get_window_scale(),
+        .window_size = Vec2u{ get_window()->getSize() }
+    };
+
     for (auto& run : runnables) {
-        run.getStateHandle().getActiveState()->predraw(interp, hasUpdated);
+        run.getStateHandle().getActiveState()->predraw(interp, hasUpdated, &state);
     }
     if (settings.showDebug) {
         if (hasUpdated) {
@@ -589,13 +595,11 @@ void Engine::handleEvents(bool* timeWasted)
                 hasFocus = true;
                 *timeWasted = true;
                 discardAllMousePresses = true;
-                // TODO
-                //Input::resetState();
+                Mouse::reset();
                 break;
             case SDL_WINDOWEVENT_FOCUS_LOST:
                 hasFocus = false;
-                // TODO
-                //Input::resetState();
+                Mouse::reset();
                 break;
             }
             break;
@@ -648,25 +652,33 @@ void Engine::handleEvents(bool* timeWasted)
         case SDL_CONTROLLERDEVICEREMOVED:
             InputConfig::updateJoystick();
             break;
+        case SDL_MOUSEMOTION:
+            Mouse::set_window_pos({event.motion.x, event.motion.y});
+            break;
+        case SDL_MOUSEBUTTONDOWN: {
+            Vec2i pos{event.button.x, event.button.y};
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                Mouse::notify_down(Mouse::MButton::Left, pos);
+            } else if (event.button.button == SDL_BUTTON_RIGHT) {
+                Mouse::notify_down(Mouse::MButton::Right, pos);
+            }
+            break;
+        }
+        case SDL_MOUSEBUTTONUP: {
+            Vec2i pos{event.button.x, event.button.y};
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                Mouse::notify_up(Mouse::MButton::Left, pos);
+            } else if (event.button.button == SDL_BUTTON_RIGHT) {
+                Mouse::notify_up(Mouse::MButton::Right, pos);
+            }
+            break;
+        }
 
         }
     }
 
     if (window) {
-        // TODO
-        Vec2i pixel_pos = {}; //Input::getMouseWindowPosition();
-        Vec2f world_pos = Vec2f{ window->windowCoordToWorld(pixel_pos) };
-
-        glm::vec4 viewport = window->getView().getViewport();
-        bool inside = pixel_pos.x >= viewport[0] 
-            && pixel_pos.x <= (viewport[0] + viewport[2])
-            && pixel_pos.y >= viewport[1]
-            && pixel_pos.y <= (viewport[1] + viewport[3]);
-
-
-        //Input::setMouseWorldPosition(world_pos);
-        //Input::setMouseInView(inside);
-
+        Mouse::update_view(window->getView());
     }
 }
 
@@ -865,9 +877,8 @@ void Engine::ImGui_getContent() {
     glm::fvec4 vp = window->getView().getViewport();
     ImGui::Text("Viewport      = (%6.2f, %6.2f, %6.2f, %6.2f)", vp[0], vp[1], vp[2], vp[3]);
     ImGui::Text("Zoom          =  %2dx", windowZoom);
-    // TODO
-    //ImGui::Text("Cursor (game) = (%6.2f, %6.2f)", Input::getMouseWorldPosition().x, Input::getMouseWorldPosition().y);
-    //ImGui::Text("Cursor inside = %s", Input::getMouseInView() ? "true" : "false");
+    ImGui::Text("Cursor (game) = (%6.2f, %6.2f)", Mouse::world_pos().x, Mouse::world_pos().y);
+    ImGui::Text("Cursor inside = %s", Mouse::in_view() ? "true" : "false");
     ImGui::Separator();
     ImGui::Text("Events  = %4d", event_count);
 

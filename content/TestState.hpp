@@ -22,7 +22,7 @@ public:
 	TestState();
 
 	void update(secs deltaTime) override;
-	void predraw(float interp, bool updated) override;
+	void predraw(float interp, bool updated, const ff::WindowState* win_state) override;
     bool pushEvent(const SDL_Event& event) override;
 
 	inline void setEngineAction(const ff::EngineStateAction& act) noexcept { eAct = act; };
@@ -57,11 +57,9 @@ private:
 
 	int layer = -1;
 
-    /*
 	ff::Vec2f mirror;
 	ff::Vec2i tpos;
 	ff::Vec2f mpos;
-    */
 
 	ff::Text tile_text;
 };
