@@ -17,11 +17,19 @@ namespace ff {
 
 class InputState {
 public:
-    InputState() = default;
+    InputState();
     InputState(InputSource* source);
 
+    InputState(const InputState& st);
+    InputState(InputState&& st) noexcept;
+
+    InputState& operator=(const InputState& st) = default;
+    InputState& operator=(InputState&& st) noexcept = default;
+
+    ~InputState();
+
     void set_source(InputSource* source);
-    const InputSource* get_source() const { return input_source; }
+    InputSource* get_source() const { return input_source; }
 
     void update(secs deltaTime);
 
@@ -36,6 +44,8 @@ public:
 
     bool is_listening(InputType in) const;
     bool is_listening(std::optional<InputType> in) const;
+
+    void notify_unbind(InputType in);
 
     //void set_tick(size_t tick);
     size_t get_tick() const;

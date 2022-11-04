@@ -54,11 +54,6 @@ public:
 
 	void display();
 
-	glm::fvec2 windowCoordToWorld(int windowCoordX, int windowCoordY);
-	glm::fvec2 windowCoordToWorld(glm::ivec2 windowCoord);
-	glm::ivec2 worldCoordToWindow(float worldCoordX, float worldCoordY);
-	glm::ivec2 worldCoordToWindow(glm::fvec2 worldCoord);
-
 	unsigned int getID();
 
 	inline bool valid() { return m_window != nullptr; };

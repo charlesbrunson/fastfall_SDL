@@ -1,8 +1,10 @@
 #include "fastfall/engine/input/InputSource.hpp"
 
-using namespace ff;
+#include "fastfall/engine/input/InputState.hpp"
 
-namespace ff::input_sets {
+namespace ff {
+
+namespace input_sets {
     const std::set<InputType> gameplay = {
             InputType::UP,
             InputType::LEFT,
@@ -12,4 +14,6 @@ namespace ff::input_sets {
             InputType::DASH,
             InputType::ATTACK,
     };
+}
+
 }
