@@ -23,7 +23,8 @@ public:
 
 	EngineStateHandler& getStateHandle();
 
-	const bool isRunning() const;
+	bool isRunning() const;
+    bool usesRTexture() const;
 
 private:
 	EngineStateHandler stateHandle;

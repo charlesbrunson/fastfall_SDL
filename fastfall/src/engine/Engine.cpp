@@ -153,9 +153,6 @@ bool Engine::run_singleThread()
 
         updateTimer();
 
-        // TODO
-        //Input::update(tick.elapsed);
-
         updateRunnables();
         profiler::curr_duration.update_time = profiler::frame_timer.elapsed();
 
@@ -331,9 +328,6 @@ void Engine::emscripten_loop(void* engine_ptr) {
 
 	engine->updateTimer();
 
-    // TODO
-	//Input::update(engine->tick.elapsed);
-
     engine->updateRunnables();
     profiler::curr_duration.update_time = profiler::frame_timer.elapsed();
 
@@ -391,7 +385,7 @@ void Engine::updateTimer() {
 
     if (ResourceWatcher::is_watch_running()) {
         if (Resources::reloadOutOfDateAssets()) {
-           // clock.tick();
+           clock.tick();
         }
     }
 
@@ -409,15 +403,16 @@ void Engine::updateStateHandler() {
 void Engine::updateView() {
 
     if (window) {
-        View v = window->getView();
-        EngineState* st = runnables.front().getStateHandle().getActiveState();
-        Vec2f vPos = st->getViewPos();
-        float vZoom = st->getViewZoom();
+        if (!runnables.empty()) {
+            View v = window->getView();
+            EngineState *st = runnables.front().getStateHandle().getActiveState();
+            Vec2f vPos = st->getViewPos();
+            float vZoom = st->getViewZoom();
 
-        v.setCenter(vPos);
-        v.setSize(GAME_W_F * vZoom, GAME_H_F * vZoom);
-        window->setView(v);
-
+            v.setCenter(vPos);
+            v.setSize(GAME_W_F * vZoom, GAME_H_F * vZoom);
+            window->setView(v);
+        }
 
         if (avgFPS != clock.getAvgFPS() || avgUPS != clock.getAvgUPS()) {
             avgFPS = clock.getAvgFPS();
@@ -445,6 +440,7 @@ void Engine::updateRunnables()
         if (tickDuration > 0.0)
         {
             // TODO
+            //Mouse::update(tickDuration);
             Mouse::update(tickDuration);
         }
 

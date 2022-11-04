@@ -16,14 +16,18 @@ EngineRunnable::EngineRunnable(std::unique_ptr<EngineState> initState, bool useT
 
 // may return nullptr if EngineRunnable isn't using texture
 RenderTexture* EngineRunnable::getRTexture() const {
-	return windowless ? rTexPtr.get() : nullptr;
+	return rTexPtr.get();
 };
+
+bool EngineRunnable::usesRTexture() const {
+    return windowless;
+}
 
 EngineStateHandler& EngineRunnable::getStateHandle() {
 	return stateHandle;
 };
 
-const bool EngineRunnable::isRunning() const {
+bool EngineRunnable::isRunning() const {
 	return stateHandle.empty();
 };
 

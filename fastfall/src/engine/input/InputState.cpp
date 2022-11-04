@@ -2,11 +2,36 @@
 
 #include "fastfall/util/log.hpp"
 
+#include "fastfall/engine/InputConfig.hpp"
+
 using namespace ff;
+
+InputState::InputState() {
+    InputConfig::add_listener(*this);
+}
 
 InputState::InputState(InputSource* source)
 {
-   set_source(source);
+    set_source(source);
+    InputConfig::add_listener(*this);
+}
+
+InputState::InputState(const InputState& st) {
+    input_source = st.input_source;
+    input_states = st.input_states;
+    input_tick = st.input_tick;
+    InputConfig::add_listener(*this);
+}
+
+InputState::InputState(InputState&& st) noexcept {
+    input_source = st.input_source;
+    input_states = std::move(st.input_states);
+    input_tick = st.input_tick;
+    InputConfig::add_listener(*this);
+}
+
+InputState::~InputState() {
+    InputConfig::remove_listener(*this);
 }
 
 void InputState::set_source(InputSource* source)
@@ -56,7 +81,7 @@ void InputState::process_events()
 
             input.set_magnitude(event.magnitude);
         }
-        input_source->next();
+        //input_source->next();
     }
 }
 
@@ -64,6 +89,12 @@ void InputState::process_events()
 
 bool InputState::is_listening(InputType in) const { return input_states.contains(in); }
 bool InputState::is_listening(std::optional<InputType> in) const { return in && input_states.contains(*in); }
+
+void InputState::notify_unbind(InputType in) {
+    if (is_listening(in)) {
+        at(in).reset();
+    }
+}
 
 //void InputState::set_tick(size_t tick) { input_tick = tick; }
 

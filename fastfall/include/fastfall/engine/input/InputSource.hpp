@@ -17,6 +17,8 @@ struct InputEvent {
     uint8_t magnitude;
 };
 
+class InputState;
+
 class InputSource {
 public:
     InputSource(const std::set<InputType>& listen_to)
@@ -32,6 +34,7 @@ public:
     virtual void next() = 0;
 private:
     std::set<InputType> listening;
+    InputState* consumer = nullptr;
 };
 
 class InputSourceNull : InputSource {

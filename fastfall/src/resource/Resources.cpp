@@ -613,7 +613,6 @@ bool Resources::reloadOutOfDateAssets()
 		}
 	};
 
-
 	std::vector<const Asset*> assets_changed;
 	reloadAssets(resource.fonts, assets_changed);
 	reloadAssets(resource.sprites, assets_changed);

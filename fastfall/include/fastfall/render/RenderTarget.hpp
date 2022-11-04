@@ -44,6 +44,11 @@ public:
 	size_t getDrawCallCounter() { return draw_call_counter; }
 	void resetDrawCallCounter() { draw_call_counter = 0; }
 
+    glm::fvec2 coordToWorldPos(int windowCoordX, int windowCoordY);
+    glm::fvec2 coordToWorldPos(glm::ivec2 windowCoord);
+    glm::ivec2 worldPosToCoord(float worldCoordX, float worldCoordY);
+    glm::ivec2 worldPosToCoord(glm::fvec2 worldCoord);
+
 protected:
 	bool hasShader = false;
 	bool hasBlend = false;
