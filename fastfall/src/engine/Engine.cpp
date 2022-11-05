@@ -674,6 +674,16 @@ void Engine::handleEvents(bool* timeWasted)
     }
 
     if (window) {
+        // track mouse outside the window
+        auto window_pos = Mouse::window_pos();
+        if (window_pos.x <= 0 || window_pos.x >= window->getSize().x - 1
+            || window_pos.y <= 0 || window_pos.y >= window->getSize().y - 1)
+        {
+            Vec2i g_mpos;
+            SDL_GetGlobalMouseState(&g_mpos.x, &g_mpos.y);
+            Mouse::set_window_pos(g_mpos - Vec2i{ window->getPosition() });
+        }
+
         Mouse::update_view(window->getView());
     }
 }

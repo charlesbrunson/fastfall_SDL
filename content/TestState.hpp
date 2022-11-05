@@ -40,7 +40,6 @@ private:
     bool to_save = false;
     bool to_load = false;
 
-
     // level editing
 	bool painting = false;
 	ff::Vec2i last_paint;
@@ -62,4 +61,6 @@ private:
 	ff::Vec2f mpos;
 
 	ff::Text tile_text;
+
+    bool show_tile = false;
 };
