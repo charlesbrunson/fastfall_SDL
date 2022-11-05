@@ -27,6 +27,7 @@ namespace ff {
         }
     };
 
+    // describe how particles should be created
     struct EmitStrategy {
         range<secs> emit_rate = {0.1, 1.0}; // number of emissions per second
         range<unsigned> emit_count = {1, 1};
@@ -63,34 +64,41 @@ namespace ff {
     public:
         Vec2f position;
         Vec2f velocity;
-        EmitStrategy strat;
+        EmitStrategy strategy;
 
-        void update(secs deltaTime)
+        using Transform = std::function<void(const Emitter&, Particle&)>;
+
+        void update_particles(secs deltaTime)
         {
-            // update particles
             for (auto& p : particles)
             {
                 p.prev_position = p.position;
-                p.position += p.velocity * deltaTime;
                 p.lifetime += deltaTime;
+                for (auto& tf : transforms) {
+                    tf(*this, p);
+                }
+                p.velocity += p.accel * deltaTime;
+                p.position += p.velocity * deltaTime;
             }
+        }
 
-            // kill particles
+        void erase_dead_particles() {
             std::erase_if(particles, [this](Particle& p) {
-                return p.lifetime >= strat.max_lifetime;
+                return !p.is_alive;
             });
+        }
 
-            // spawn particles
+        void spawn_particles(secs deltaTime) {
             buffer -= deltaTime;
             while (buffer <= 0.0)
             {
-                buffer += strat.emit_rate.pick(rand);
-                unsigned count = strat.emit_count.pick(rand);
-                while(count > 0) {
-                    if (particles.size() < strat.max_particles) {
-                        particles.push_back(strat.spawn(position, velocity, rand));
+                buffer += strategy.emit_rate.pick(rand);
+                for(unsigned count = strategy.emit_count.pick(rand); count > 0; --count)
+                {
+                    if (particles.size() < strategy.max_particles)
+                    {
+                        particles.push_back(strategy.spawn(position, velocity, rand));
                     }
-                    --count;
                 }
             }
         }
@@ -104,7 +112,9 @@ namespace ff {
             rand.seed(s);
         }
 
-        std::vector<Particle> particles;
+        std::vector<Particle>  particles;
+        std::vector<Transform> transforms;
+
     private:
         std::default_random_engine rand{};
         secs buffer = 0.0;
