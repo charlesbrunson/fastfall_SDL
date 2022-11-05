@@ -63,9 +63,9 @@ namespace ff::Mouse {
         _world_pos += Vec2f{ view.getCenter() };
 
         mouse_in_view = _window_pos.x >= viewport[0]
-                     && _window_pos.x <= (viewport[0] + viewport[2])
+                     && _window_pos.x < (viewport[0] + viewport[2])
                      && _window_pos.y >= viewport[1]
-                     && _window_pos.y <= (viewport[1] + viewport[3]);
+                     && _window_pos.y < (viewport[1] + viewport[3]);
     }
 
     Vec2i window_pos() {
