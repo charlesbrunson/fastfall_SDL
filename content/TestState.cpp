@@ -263,6 +263,8 @@ void TestState::predraw(float interp, bool updated, const WindowState* win_state
 
 	tile_text.predraw();
 
+    show_tile = Mouse::in_view();
+
 	if (edit && win_state)
 	{
 		auto tileset = edit->get_tileset();
@@ -325,7 +327,7 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const
 {
     target.draw(*world, state);
 
-	if (edit && edit->get_tile_layer()) {
+	if (show_tile && edit && edit->get_tile_layer()) {
 		target.draw(tile_ghost, state);
 		target.draw(tile_text, state);
 
