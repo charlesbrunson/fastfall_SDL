@@ -68,6 +68,8 @@ public:
 	}
 
 
+    auto operator<=>(const Angle&) const = default;
+
 protected:
 	float rad;
 	float deg;
@@ -168,6 +170,14 @@ inline constexpr ff::Angle operator /(const ff::Angle& left, float right) {
 inline constexpr ff::Angle& operator /=(ff::Angle& left, float right) {
 	left.setRad(left.radians() / right);
 	return left;
+}
+
+inline constexpr ff::Angle operator /(const ff::Angle& left, ff::Angle right) {
+    return ff::Angle(left.radians() / right.radians());
+}
+inline constexpr ff::Angle& operator /=(ff::Angle& left, ff::Angle right) {
+    left.setRad(left.radians() / right.radians());
+    return left;
 }
 
 inline constexpr ff::Angle abs(const ff::Angle& ang) {
