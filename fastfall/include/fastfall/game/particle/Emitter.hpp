@@ -86,11 +86,11 @@ namespace ff {
             {
                 buffer += strat.emit_rate.pick(rand);
                 unsigned count = strat.emit_count.pick(rand);
-                for (unsigned i = 0; i < count; ++i)
-                {
+                while(count > 0) {
                     if (particles.size() < strat.max_particles) {
                         particles.push_back(strat.spawn(position, velocity, rand));
                     }
+                    --count;
                 }
             }
         }
