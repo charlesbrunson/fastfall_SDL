@@ -29,6 +29,8 @@ namespace ff {
         }
     };
 
+    class Emitter;
+
     // describe how particles should be created
     struct EmitterStrategy {
         range<secs> emit_rate = {0.1, 1.0}; // number of emissions per second
@@ -42,6 +44,9 @@ namespace ff {
         range<float> velocity_range;
 
         bool inherits_vel;
+
+        using Transform = std::function<void(const Emitter&, Particle&, secs)>;
+        std::vector<Transform> transforms;
 
         Particle spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::default_random_engine& rand);
     };
@@ -57,19 +62,18 @@ namespace ff {
         Vec2f velocity;
         EmitterStrategy strategy;
 
-        using Transform = std::function<void(const Emitter&, Particle&)>;
 
         void update(secs deltaTime);
         void clear();
         void seed(size_t s);
 
         std::vector<Particle>  particles;
-        std::vector<Transform> transforms;
         EmitterListener* listener = nullptr;
 
     private:
         std::default_random_engine rand{};
         secs buffer = 0.0;
+        size_t emit_count = 0;
 
         void update_particle(Particle& p, secs deltaTime);
         void update_particles(secs deltaTime);
