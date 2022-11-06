@@ -1,4 +1,5 @@
 #include "fastfall/game/particle/Emitter.hpp"
+#include "fastfall/util/log.hpp"
 
 namespace ff {
 
@@ -7,26 +8,33 @@ Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::defau
     p.position      = emitter_pos;
     p.prev_position = emitter_pos;
 
-    Angle out = Angle::Radian(range<float>{
-            direction.radians() - (open_angle.radians() / 2.f),
-            direction.radians() + (open_angle.radians() / 2.f)
-    }.pick(rand));
+    Vec2f v_off = Vec2f{velocity_range.pick(rand), 0.f};
+    v_off = math::rotate(v_off, direction);
 
-    Vec2f v_off = math::rotate(
-            Vec2f{velocity_range.pick(rand), 0.f},
-            out);
+    Angle ang_offset = Angle::Degree(
+        range<float>{
+            -open_angle_degrees,
+            open_angle_degrees
+        }.pick(rand) / 2.f
+    );
+    v_off = math::rotate(v_off, ang_offset);
 
     p.velocity = (inherits_vel ? emitter_vel : Vec2f{}) + v_off;
     return p;
 }
 
 void Emitter::update(secs deltaTime) {
+    lifetime += deltaTime;
+    if (strategy.emitter_transform)
+        strategy.emitter_transform(*this, deltaTime);
+
     update_particles(deltaTime);
     destroy_dead_particles();
     spawn_particles(deltaTime);
+
 }
 
-void Emitter::clear() {
+void Emitter::clear_particles() {
     particles.clear();
     buffer = 0.0;
 }
@@ -40,9 +48,9 @@ void Emitter::update_particle(Particle& p, secs deltaTime) {
         if (p.lifetime >= strategy.max_lifetime) {
             p.is_alive = false;
         } else {
-            for (auto& tf : strategy.transforms) {
-                tf(*this, p, deltaTime);
-            }
+            if (strategy.particle_transform)
+                strategy.particle_transform(*this, p, deltaTime);
+
             p.prev_position = p.position;
             p.position += p.velocity * deltaTime;
             p.lifetime += deltaTime;
@@ -82,7 +90,8 @@ void Emitter::spawn_particles(secs deltaTime) {
 
         for(auto i = strategy.emit_count.pick(rand); i > 0; --i)
         {
-            if (particles.size() < strategy.max_particles)
+            if (strategy.max_particles < 0
+                || particles.size() < strategy.max_particles)
             {
                 auto p = strategy.spawn(position, velocity, rand);
                 update_particle(p, deltaTime);
@@ -100,6 +109,19 @@ void Emitter::spawn_particles(secs deltaTime) {
             listener->notify_particles_pushed(init_size, created);
         }
     }
+}
+
+void Emitter::set_strategy(EmitterStrategy strat) {
+    strategy = strat;
+    strategy_backup = strat;
+}
+
+void Emitter::reset_strategy() {
+    strategy = strategy_backup;
+}
+
+void Emitter::backup_strategy() {
+    strategy_backup = strategy;
 }
 
 }

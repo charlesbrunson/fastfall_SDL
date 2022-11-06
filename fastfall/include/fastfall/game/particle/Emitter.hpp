@@ -20,7 +20,7 @@ namespace ff {
             std::uniform_int_distribution<> rdist{};
             if (max != min) {
                 // [0.0, 1.0]
-                double roll = (double)(rdist(engine) % 101) / 100.0;
+                double roll = (double)(rdist(engine)) / rdist.max();
                 return min + (roll * (max - min));
             }
             else {
@@ -37,16 +37,20 @@ namespace ff {
         range<unsigned> emit_count = {1, 1};
         secs max_lifetime = std::numeric_limits<secs>::max();
 
-        unsigned max_particles = 100;
+        long int max_particles = 100;
 
         Angle direction;
-        Angle open_angle;
+        float open_angle_degrees;
         range<float> velocity_range;
 
         bool inherits_vel;
 
-        using Transform = std::function<void(const Emitter&, Particle&, secs)>;
-        std::vector<Transform> transforms;
+
+        using ParticleTransformFn = std::function<void(const Emitter&, Particle&, secs)>;
+        ParticleTransformFn particle_transform;
+
+        using EmitterTransformFn = std::function<void(Emitter&, secs)>;
+        EmitterTransformFn emitter_transform;
 
         Particle spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::default_random_engine& rand);
     };
@@ -60,20 +64,28 @@ namespace ff {
     public:
         Vec2f position;
         Vec2f velocity;
+        bool is_enabled = true;
         EmitterStrategy strategy;
-
-
-        void update(secs deltaTime);
-        void clear();
-        void seed(size_t s);
 
         std::vector<Particle>  particles;
         EmitterListener* listener = nullptr;
 
+        void update(secs deltaTime);
+        void clear_particles();
+        void seed(size_t s);
+
+        void set_strategy(EmitterStrategy strat);
+        void reset_strategy();
+        void backup_strategy();
+
+        secs get_lifetime() const { return lifetime; };
+
     private:
         std::default_random_engine rand{};
         secs buffer = 0.0;
+        secs lifetime = 0.0;
         size_t emit_count = 0;
+        EmitterStrategy strategy_backup;
 
         void update_particle(Particle& p, secs deltaTime);
         void update_particles(secs deltaTime);
