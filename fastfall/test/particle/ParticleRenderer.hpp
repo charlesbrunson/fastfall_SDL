@@ -24,7 +24,7 @@ public:
 
 
 private:
-	static constexpr float scale = 2;
+	static constexpr float scale = 1;
 
     ff::Emitter* emitter;
 
