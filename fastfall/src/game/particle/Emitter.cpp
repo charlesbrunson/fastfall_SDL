@@ -40,11 +40,10 @@ void Emitter::update_particle(Particle& p, secs deltaTime) {
         if (p.lifetime >= strategy.max_lifetime) {
             p.is_alive = false;
         } else {
-            for (auto &tf: transforms) {
-                tf(*this, p);
+            for (auto& tf : strategy.transforms) {
+                tf(*this, p, deltaTime);
             }
             p.prev_position = p.position;
-            p.velocity += p.accel * deltaTime;
             p.position += p.velocity * deltaTime;
             p.lifetime += deltaTime;
         }
@@ -89,8 +88,10 @@ void Emitter::spawn_particles(secs deltaTime) {
                 update_particle(p, deltaTime);
 
                 if (p.is_alive) {
+                    p.id = emit_count;
                     particles.push_back(p);
                     ++created;
+                    ++emit_count;
                 }
             }
         }

@@ -48,9 +48,11 @@ create_ff_test(ff_test_engine
 
 create_ff_test(ff_test_particle
 	particle/particle.cpp
+	particle/ParticleRenderer.cpp
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/phys_render_out)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/particle_render_out)
 
 # add more tests...
 
