@@ -33,7 +33,7 @@ TEST(particle, emitter)
     emit.strategy.open_angle_degrees = 0.f;
     emit.strategy.particle_speed = {300.f, 300.f};
     emit.strategy.scatter_max_radius = 0.f;
-    emit.strategy.local_spawn_area = {-400, -410, 800, 10.f};
+    emit.strategy.local_spawn_area = {0, -410, 400, 10.f};
     emit.strategy.emit_rate = { one_tick / 50, one_tick / 50 };
     emit.strategy.max_particles = -1;
     emit.strategy.max_lifetime = -1;
@@ -45,7 +45,7 @@ TEST(particle, emitter)
     };
 
     emit.strategy.particle_transform = [](const Emitter& e, Particle& p, secs delta){
-        constexpr Vec2f gpos = {0.f, 200.f};
+        constexpr Vec2f gpos = {0.f, 0.f};
         p.velocity += attract(40'000'000.f, gpos, p.position, delta);
 
         if (p.velocity.magnitude() > 1000.f)
@@ -62,11 +62,17 @@ TEST(particle, emitter)
     auto update = [&](unsigned count) {
         for (int i = 0; i < count; ++i) {
             emit.update(one_tick);
+        }
+    };
+    auto update_and_render = [&](unsigned count) {
+        for (int i = 0; i < count; ++i) {
+            emit.update(one_tick);
             render.draw();
         }
     };
 
-    update(600 / one_tick);
+    update(6000 / one_tick);
+    update_and_render(10 / one_tick);
 
     /*
     std::locale::global(std::locale("es_CO.UTF-8"));
