@@ -7,6 +7,7 @@
 
 #include "object/Player.hpp"
 #include "object/BasicPlatform.hpp"
+#include "object/JetPlatform.hpp"
 #include "object/SimpleEffect.hpp"
 
 
@@ -52,5 +53,6 @@ void game_InitTypes() {
 
 	ObjectFactory::register_object<Player>();
 	ObjectFactory::register_object<BasicPlatform>();
+    ObjectFactory::register_object<JetPlatform>();
 	ObjectFactory::register_object<SimpleEffect>();
 }

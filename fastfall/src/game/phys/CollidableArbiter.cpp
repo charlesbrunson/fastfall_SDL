@@ -182,7 +182,16 @@ namespace ff {
 			json_dump = &(*dump_ptr)["solver"];
 		}
 
-        collidable.set_frame(&colliders, solver.solve(json_dump));
+        auto frame = solver.solve(json_dump);
+        for (auto& fr : frame) {
+            if (fr.id) {
+                if (auto* collider = world.get(fr.id->collider)) {
+                    collider->on_postcontact(world, fr);
+                }
+            }
+        }
+
+        collidable.set_frame(&colliders, std::move(frame));
 
         if (collidable.callbacks.onPostCollision)
             collidable.callbacks.onPostCollision(world);

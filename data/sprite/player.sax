@@ -169,10 +169,14 @@
 		<framerate count="3" defaultMS="50"/>
 		<loop>1</loop>
 	</animation>
-	
-	
-	
-	
+
+	<animation name="jet_blast">
+		<area   x="0" y="208" w="16" h="16" />
+		<origin x="8" y="8" />
+		<framerate count="6" defaultMS="50"/>
+		<loop>1</loop>
+	</animation>
+
 </sprite>
 
 

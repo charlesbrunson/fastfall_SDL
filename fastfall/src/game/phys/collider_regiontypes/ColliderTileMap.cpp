@@ -71,7 +71,7 @@ namespace ff {
 	}
 
 	void ColliderTileMap::on_postcontact(World& w, const AppliedContact& contact) const {
-		if (validPosition(contact.id->quad) && callback_on_precontact) {
+		if (validPosition(contact.id->quad) && callback_on_postcontact) {
 			callback_on_postcontact(w, contact);
 		}
 	}
