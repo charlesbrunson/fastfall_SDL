@@ -115,6 +115,7 @@ struct AppliedContact : public ContinuousContact {
         : ContinuousContact(other)
     {}
 
+    Vec2f collidable_precontact_velocity;
     ContactType type = ContactType::NO_SOLUTION;
 };
 

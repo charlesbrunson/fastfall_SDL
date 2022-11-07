@@ -53,7 +53,7 @@ private:
 
 class AnimIDRef {
 public:
-	AnimIDRef();
+	AnimIDRef() {};
 	AnimIDRef(std::string_view sprite, std::string_view anim);
 
 	AnimIDRef(const AnimIDRef&) = default;

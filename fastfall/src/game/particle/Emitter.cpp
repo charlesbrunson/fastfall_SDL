@@ -1,14 +1,23 @@
 #include "fastfall/game/particle/Emitter.hpp"
 #include "fastfall/util/log.hpp"
+#include <algorithm>
+#include <execution>
 
 namespace ff {
 
 Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::default_random_engine& rand) {
     Particle p;
-    p.position      = emitter_pos;
-    p.prev_position = emitter_pos;
 
-    Vec2f v_off = Vec2f{velocity_range.pick(rand), 0.f};
+    float dist      = range<float>{0.f, scatter_max_radius}.pick(rand);
+    float dist_ang  = range<float>{0.f, M_PI * 2}.pick(rand);
+    p.position = emitter_pos;
+    p.position.x += local_spawn_area.left + range<float>{0.f, local_spawn_area.width}.pick(rand);
+    p.position.y += local_spawn_area.top  + range<float>{0.f, local_spawn_area.height}.pick(rand);
+    p.position += Vec2f{cosf(dist_ang), sinf(dist_ang)} * dist;
+
+    p.prev_position = p.position;
+
+    Vec2f v_off = Vec2f{particle_speed.pick(rand), 0.f};
     v_off = math::rotate(v_off, direction);
 
     Angle ang_offset = Angle::Degree(
@@ -23,6 +32,11 @@ Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::defau
     return p;
 }
 
+Emitter::Emitter()
+    : vertex(ff::Primitive::POINT)
+{
+}
+
 void Emitter::update(secs deltaTime) {
     lifetime += deltaTime;
     if (strategy.emitter_transform)
@@ -31,6 +45,10 @@ void Emitter::update(secs deltaTime) {
     update_particles(deltaTime);
     destroy_dead_particles();
     spawn_particles(deltaTime);
+
+}
+
+void predraw(float interp) {
 
 }
 
@@ -43,26 +61,36 @@ void Emitter::seed(size_t s) {
     rand.seed(s);
 }
 
-void Emitter::update_particle(Particle& p, secs deltaTime) {
+Particle Emitter::update_particle(const Emitter& e, Particle p, secs deltaTime) {
     if (p.is_alive) {
-        if (p.lifetime >= strategy.max_lifetime) {
+        if (e.strategy.max_lifetime >= 0 && p.lifetime >= e.strategy.max_lifetime) {
             p.is_alive = false;
         } else {
-            if (strategy.particle_transform)
-                strategy.particle_transform(*this, p, deltaTime);
+            if (e.strategy.particle_transform)
+                e.strategy.particle_transform(e, p, deltaTime);
 
             p.prev_position = p.position;
             p.position += p.velocity * deltaTime;
             p.lifetime += deltaTime;
         }
     }
+    return p;
 }
 
 void Emitter::update_particles(secs deltaTime)
 {
-    for (auto& p : particles)
-    {
-        update_particle(p, deltaTime);
+    if (parallelize) {
+        std::transform(
+                std::execution::par,
+                particles.cbegin(),
+                particles.cend(),
+                particles.begin(),
+                [this, &deltaTime](Particle p){ return update_particle(*this, p, deltaTime); });
+    }
+    else {
+        for (auto &p: particles) {
+            p = update_particle(*this, p, deltaTime);
+        }
     }
 }
 
@@ -94,7 +122,7 @@ void Emitter::spawn_particles(secs deltaTime) {
                 || particles.size() < strategy.max_particles)
             {
                 auto p = strategy.spawn(position, velocity, rand);
-                update_particle(p, deltaTime);
+                update_particle(*this, p, deltaTime);
 
                 if (p.is_alive) {
                     p.id = emit_count;
@@ -122,6 +150,10 @@ void Emitter::reset_strategy() {
 
 void Emitter::backup_strategy() {
     strategy_backup = strategy;
+}
+
+void Emitter::draw(RenderTarget& target, RenderState states) const {
+    target.draw(vertex);
 }
 
 }

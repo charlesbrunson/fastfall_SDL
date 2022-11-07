@@ -726,9 +726,11 @@ bool CollisionSolver::apply(const ContinuousContact& contact, ContactType type)
 			(*json_dump)["apply"].back()["type"] = type;
 		}
 
+        Vec2f prevel = collidable->get_vel();
 		collidable->applyContact(contact, type);
 
 		AppliedContact applied{contact};
+        applied.collidable_precontact_velocity = prevel;
 		applied.type = type;
 
         auto arb = contact.id ? arbiters.find(*contact.id) : arbiters.end();

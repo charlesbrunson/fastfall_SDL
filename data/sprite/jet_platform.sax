@@ -1,0 +1,39 @@
+
+<!-- .SAX defines a sprite for the engine -->
+<!-- One sprite per .sax -->
+<sprite>
+
+	<!-- Relative path to image source -->
+	<image source="jet_platform.png"/>
+		
+	<animation name="platform_3">
+		<area   x="0" y="0" w="48" h="16" />
+		<origin x="0" y="0" />
+		<framerate count="1" defaultMS="100"/>
+		<loop>0</loop>
+	</animation>
+	
+	<animation name="platform_4">
+		<area   x="0" y="16" w="64" h="16" />
+		<origin x="0" y="0" />
+		<framerate count="1" defaultMS="100"/>
+		<loop>0</loop>
+	</animation>
+	
+	<animation name="platform_5">
+		<area   x="0" y="32" w="80" h="16" />
+		<origin x="0" y="0" />
+		<framerate count="1" defaultMS="100"/>
+		<loop>0</loop>
+	</animation>
+	
+	<animation name="effect">
+		<area   x="0" y="16" w="16" h="16" />
+		<origin x="8" y="8" />
+		<framerate count="6" defaultMS="50"/>
+		<loop>1</loop>
+	</animation>
+
+</sprite>
+
+

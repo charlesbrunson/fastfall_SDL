@@ -30,14 +30,13 @@ void Arbiter::update(CollisionContext ctx, secs deltaTime)
 
     if (deltaTime > 0.0) {
         aliveTimer += deltaTime;
-        if (collision.getContact().hasContact) {
-            touchTimer += deltaTime;
-        }
-        else {
+        if (!collision.getContact().hasContact) {
             touchTimer = 0.0;
         }
+        else {
+            touchTimer += deltaTime;
+        }
     }
-
     collision.set_touch_duration(touchTimer);
 }
 
