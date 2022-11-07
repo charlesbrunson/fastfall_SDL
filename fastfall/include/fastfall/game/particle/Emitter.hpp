@@ -5,6 +5,7 @@
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/util/math.hpp"
 #include "fastfall/render/AnimatedSprite.hpp"
+#include "fastfall/resource/asset/AnimAssetTypes.hpp"
 
 #include <concepts>
 #include <random>
@@ -34,23 +35,38 @@ namespace ff {
 
     // describe how particles should be created
     struct EmitterStrategy {
-        range<secs> emit_rate = {0.1, 1.0}; // number of emissions per second
-        range<unsigned> emit_count = {1, 1};
-        secs max_lifetime = std::numeric_limits<secs>::max();
 
-        long int max_particles = 100;
+        // number of emissions per second
+        range<secs>     emit_rate           = {0.1, 1.0};
+        // number of particles per emission
+        range<unsigned> emit_count          = {1, 1};
+        // max lifetime of each particle, <0 is infinite
+        secs            max_lifetime        = -1;
+        // max particles at any time, <0 is infinite
+        long int        max_particles       = 10;
+        // direction of the particles
+        Angle           direction           = Angle::Radian(0.f);
+        // variation of direction, in degrees
+        float           open_angle_degrees  = 0.f;
+        // speed of the particles
+        range<float>    particle_speed      = { 0.f, 0.f };
 
-        Angle direction;
-        float open_angle_degrees;
-        range<float> velocity_range;
+        // local rect the particles are spawned in
+        Rectf           local_spawn_area    = {};
+        // max distance to scatter particles, radially (note: combine with local_spawn_area for a bezelled area)
+        float           scatter_max_radius  = 0.f;
 
-        bool inherits_vel;
+        // particles inherit velocity of emitter
+        bool            inherits_vel        = false;
+
+        // animation for particles to play
         AnimIDRef animation;
 
-
+        // function applied to each particle each tick
         using ParticleTransformFn = std::function<void(const Emitter&, Particle&, secs)>;
         ParticleTransformFn particle_transform;
 
+        // function applied to the emitter each tick
         using EmitterTransformFn = std::function<void(Emitter&, secs)>;
         EmitterTransformFn emitter_transform;
 
@@ -69,6 +85,7 @@ namespace ff {
         Vec2f position;
         Vec2f velocity;
         bool is_enabled = true;
+        bool parallelize = true;
         EmitterStrategy strategy;
 
         std::vector<Particle>  particles;
@@ -78,6 +95,13 @@ namespace ff {
         void predraw(float interp);
 
         void clear_particles();
+        void reset(size_t s) {
+            lifetime = 0.0;
+            emit_count = 0;
+            reset_strategy();
+            clear_particles();
+            seed(s);
+        };
         void seed(size_t s);
 
         void set_strategy(EmitterStrategy strat);
@@ -87,9 +111,9 @@ namespace ff {
         secs get_lifetime() const { return lifetime; };
 
     private:
-        void draw(RenderTarget& target, RenderState states = RenderState{}) const;
+        void draw(RenderTarget& target, RenderState states = RenderState{}) const override;
 
-        AnimID curr_anim;
+        AnimIDRef curr_anim;
         const Animation* animation = nullptr;
 
         std::default_random_engine rand{};
@@ -99,7 +123,7 @@ namespace ff {
         EmitterStrategy strategy_backup;
         VertexArray vertex;
 
-        void update_particle(Particle& p, secs deltaTime);
+        static Particle update_particle(const Emitter& e, Particle p, secs deltaTime);
         void update_particles(secs deltaTime);
         void destroy_dead_particles();
         void spawn_particles(secs deltaTime);

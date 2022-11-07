@@ -23,6 +23,9 @@ protected:
     ff::Vec2f base_position;
     secs lifetime = 0.0;
 
-    ff::Vec2f push;
+    ff::Vec2f position;
+    ff::Vec2f velocity;
+    ff::Vec2f push_accum;
     ff::Vec2f offset;
+    unsigned tile_width = 3;
 };
