@@ -4,6 +4,7 @@
 
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/util/math.hpp"
+#include "fastfall/render/AnimatedSprite.hpp"
 
 #include <concepts>
 #include <random>
@@ -44,6 +45,7 @@ namespace ff {
         range<float> velocity_range;
 
         bool inherits_vel;
+        AnimIDRef animation;
 
 
         using ParticleTransformFn = std::function<void(const Emitter&, Particle&, secs)>;
@@ -60,8 +62,10 @@ namespace ff {
         virtual void notify_particles_pushed(size_t begin, size_t count) = 0;
     };
 
-    class Emitter {
+    class Emitter : public Drawable {
     public:
+        Emitter();
+
         Vec2f position;
         Vec2f velocity;
         bool is_enabled = true;
@@ -71,6 +75,8 @@ namespace ff {
         EmitterListener* listener = nullptr;
 
         void update(secs deltaTime);
+        void predraw(float interp);
+
         void clear_particles();
         void seed(size_t s);
 
@@ -81,15 +87,22 @@ namespace ff {
         secs get_lifetime() const { return lifetime; };
 
     private:
+        void draw(RenderTarget& target, RenderState states = RenderState{}) const;
+
+        AnimID curr_anim;
+        const Animation* animation = nullptr;
+
         std::default_random_engine rand{};
         secs buffer = 0.0;
         secs lifetime = 0.0;
         size_t emit_count = 0;
         EmitterStrategy strategy_backup;
+        VertexArray vertex;
 
         void update_particle(Particle& p, secs deltaTime);
         void update_particles(secs deltaTime);
         void destroy_dead_particles();
         void spawn_particles(secs deltaTime);
     };
+
 }
