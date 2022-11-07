@@ -49,10 +49,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     collider.applyChanges();
 
     auto colliderRect = Rectf{ Vec2f{}, Vec2f{ data.size } };
-    auto pos = Vec2f{ data.position };
-    auto off = Vec2f{ colliderRect.width / 2.f, colliderRect.height };
-
-    base_position = pos - off;
+    base_position = Vec2f{ data.position } - Vec2f{ colliderRect.width / 2.f, colliderRect.height };
     position = base_position;
 
     collider.teleport(base_position);
