@@ -491,6 +491,27 @@ void imgui_input(World* w) {
     }
 }
 
+
+void imgui_status(World* w) {
+    ImGui::Text("Tick Count: %zu", w->tick_count());
+    ImGui::Text("Uptime: %f", w->uptime());
+
+    ImGui::Checkbox("Lock Camera", &w->camera().lockPosition);
+
+    //const char* label, float v[2], float v_speed, float v_min, float v_max, const char* format, ImGuiSliderFlags flags
+    float v[2] = {
+            w->camera().currentPosition.x,
+            w->camera().currentPosition.y,
+    };
+    if (ImGui::DragFloat2("Cam Pos", v)) {
+        w->camera().currentPosition.x = floor(v[0]);
+        w->camera().currentPosition.y = floor(v[1]);
+    }
+
+}
+
+
+
 // ------------------------------------------------------------
 
 WorldImGui::WorldImGui() :
@@ -556,8 +577,7 @@ void WorldImGui::ImGui_getContent()
     if (ImGui::BeginTabBar("MyTabBar"))
     {
         if (ImGui::BeginTabItem("Status")) {
-            ImGui::Text("Tick Count: %zu", curr_world->tick_count());
-            ImGui::Text("Uptime: %f", curr_world->uptime());
+            imgui_status(curr_world);
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Levels")) {
