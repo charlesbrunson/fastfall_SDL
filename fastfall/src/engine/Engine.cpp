@@ -561,10 +561,8 @@ void Engine::handleEvents(bool* timeWasted)
 
     while (SDL_PollEvent(&event)) 
     {
-
         event_count++;
-
-        if (ImGui_ImplSDL2_ProcessEvent(&event)) {
+        if (settings.showDebug && ImGui_ImplSDL2_ProcessEvent(&event)) {
             if (ImGui::GetIO().WantCaptureMouse && (event.type & SDL_MOUSEMOTION) > 0) {
                 continue;
             }
