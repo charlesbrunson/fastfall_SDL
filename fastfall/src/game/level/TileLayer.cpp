@@ -131,7 +131,7 @@ void TileLayer::update(World& world, secs deltaTime) {
 		collider->setPosition(collider->getPosition());
 		collider->delta_velocity = Vec2f{};
 		collider->velocity = Vec2f{};
-		collider->update(deltaTime);
+		//collider->update(deltaTime);
 	}
 
 	if (hasScrolling()) {

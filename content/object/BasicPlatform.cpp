@@ -111,7 +111,7 @@ void BasicPlatform::update(World& w, secs deltaTime) {
 			collider.velocity = Vec2f{};
 		}
 	}
-	collider.update(deltaTime);
+	//collider.update(deltaTime);
 }
 
 void BasicPlatform::predraw(World& w, float interp, bool updated) {
