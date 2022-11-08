@@ -63,11 +63,16 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
         {
             auto& collidable = w.at(c.id->collidable);
 
-            auto vel = c.collidable_precontact_velocity;
-            vel.x /= -3.f;
-            Vec2f acc = (vel - collider.velocity);
-            acc.x /= 2.f;
-            jetpl.push_accum += acc;
+            jetpl.push_accum.y += (c.collidable_precontact_velocity - collider.velocity).y * 0.9f;
+
+            for (auto [tid, track] : collidable.get_trackers()) {
+                if (auto& contact = track.get_contact()) {
+                    if (contact->id && contact->id->collider == id_cast<ColliderRegion>(cid)) {
+                        jetpl.push_accum.x += collidable.get_friction().x;
+                        jetpl.push_accel -= collidable.get_acc().x * 0.5f;
+                    }
+                }
+            }
         }
 
     });
@@ -80,7 +85,9 @@ void JetPlatform::update(ff::World& w, secs deltaTime) {
         lifetime += deltaTime;
 
         // apply accumulated push to velocity
-        velocity += push_accum;
+        velocity.x += push_accum.x + (push_accel * deltaTime);
+        velocity.y += push_accum.y;
+        push_accel = 0.f;
         push_accum = Vec2f{};
 
         constexpr Vec2f spring{50.f, 50.f};
