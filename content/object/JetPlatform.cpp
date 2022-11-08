@@ -59,7 +59,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
 
         auto [jetpl, collider] = w.at(id, cid);
 
-        if (c.hasContact && c.ortho_n == Vec2f{0.f, -1.f} && c.id)
+        if (c.hasContact && c.id && c.id->collider == id_cast<ColliderRegion>(cid))
         {
             auto& collidable = w.at(c.id->collidable);
 
@@ -107,7 +107,7 @@ void JetPlatform::update(ff::World& w, secs deltaTime) {
 
     }
     sprite.update(deltaTime);
-    collider.update(deltaTime);
+    //collider.update(deltaTime);
 }
 
 void JetPlatform::predraw(ff::World& w, float interp, bool updated) {
