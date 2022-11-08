@@ -442,7 +442,7 @@ void SurfaceTracker::traverse_add_decel(float decel) {
 	}
 }
 
-std::optional<float> SurfaceTracker::traverse_get_speed() {
+std::optional<float> SurfaceTracker::traverse_get_speed() const {
 	std::optional<float> speed;
 	if (has_contact()) {
 		Vec2f surfVel = (settings.use_surf_vel ? currentContact->surface_vel() : Vec2f{});

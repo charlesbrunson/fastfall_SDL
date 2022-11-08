@@ -42,7 +42,7 @@ public:
 
 	// applies velocity/acceleration accounting for gravity (for movement consistency)
 	// if !has_contact, no op
-	std::optional<float> traverse_get_speed();
+	std::optional<float> traverse_get_speed() const;
 	void traverse_set_speed(float speed);
 	void traverse_add_accel(float accel);
 	void traverse_add_decel(float decel);
@@ -103,6 +103,7 @@ public:
 	} angle_range;
 
     Vec2f calc_friction(Vec2f prevVel);
+    float accel_accum = 0.f;
 
 private:
 	// the best suited contact for this recorder
