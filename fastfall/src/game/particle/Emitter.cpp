@@ -5,35 +5,43 @@
 
 namespace ff {
 
-Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::default_random_engine& rand) {
+template<class T>
+T pick_random(T min, T max, std::default_random_engine& engine)
+{
+    std::uniform_int_distribution<> rdist{};
+    if (max != min) {
+        // [0.0, 1.0]
+        double roll = (double)(rdist(engine)) / rdist.max();
+        return min + (roll * (max - min));
+    }
+    else {
+        return min;
+    }
+}
+
+Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::default_random_engine& rand) const
+{
     Particle p;
-
-    float dist      = range<float>{0.f, scatter_max_radius}.pick(rand);
-    float dist_ang  = range<float>{0.f, M_PI * 2}.pick(rand);
+    float dist      = pick_random(0.f, scatter_max_radius, rand);
+    float dist_ang  = pick_random(0.f, M_PIf * 2.f, rand);
     p.position = emitter_pos;
-    p.position.x += local_spawn_area.left + range<float>{0.f, local_spawn_area.width}.pick(rand);
-    p.position.y += local_spawn_area.top  + range<float>{0.f, local_spawn_area.height}.pick(rand);
-    p.position += Vec2f{cosf(dist_ang), sinf(dist_ang)} * dist;
-
+    p.position.x += local_spawn_area.left + pick_random(0.f, local_spawn_area.width, rand);
+    p.position.y += local_spawn_area.top  + pick_random(0.f, local_spawn_area.height, rand);
+    p.position += math::rotate(Vec2f{dist, 0.f}, dist_ang); //maVec2f{cosf(dist_ang), sinf(dist_ang)} * dist;
     p.prev_position = p.position;
 
-    Vec2f v_off = Vec2f{particle_speed.pick(rand), 0.f};
-    v_off = math::rotate(v_off, direction);
+    Vec2f vel = Vec2f{pick_random(particle_speed_min, particle_speed_max, rand), 0.f};
+    vel = math::rotate(vel, direction);
 
-    Angle ang_offset = Angle::Degree(
-        range<float>{
-            -open_angle_degrees,
-            open_angle_degrees
-        }.pick(rand) / 2.f
-    );
-    v_off = math::rotate(v_off, ang_offset);
+    auto ang_offset = pick_random(-open_angle_degrees * 0.5f, open_angle_degrees * 0.5f, rand);
+    vel = math::rotate(vel, Angle::Degree(ang_offset));
 
-    p.velocity = (inherits_vel ? emitter_vel : Vec2f{}) + v_off;
+    p.velocity = vel + (inherits_vel ? emitter_vel : Vec2f{});
     return p;
 }
 
 Emitter::Emitter()
-    : vertex(ff::Primitive::POINT)
+    : varr(ff::Primitive::POINT)
 {
 }
 
@@ -45,11 +53,19 @@ void Emitter::update(secs deltaTime) {
     update_particles(deltaTime);
     destroy_dead_particles();
     spawn_particles(deltaTime);
-
 }
 
-void predraw(float interp) {
-
+void Emitter::predraw(float interp)
+{
+    if (varr.size() < particles.capacity()) {
+        varr = VertexArray{Primitive::POINT, particles.capacity()};
+    }
+    size_t ndx = 0;
+    for (auto& p : particles) {
+        varr[ndx].pos = p.prev_position + (p.position - p.prev_position) * interp;
+        varr[ndx].color = Color::Red;
+        ++ndx;
+    }
 }
 
 void Emitter::clear_particles() {
@@ -111,12 +127,11 @@ void Emitter::spawn_particles(secs deltaTime) {
     buffer -= deltaTime;
     while (buffer < 0.0)
     {
-        buffer += strategy.emit_rate.pick(rand);
-
+        buffer += pick_random(strategy.emit_rate_min, strategy.emit_rate_max, rand);
         size_t init_size = particles.size();
         size_t created = 0;
-
-        for(auto i = strategy.emit_count.pick(rand); i > 0; --i)
+        unsigned emit_count = pick_random(strategy.emit_count_min, strategy.emit_count_max, rand);
+        for(auto i = emit_count; i > 0; --i)
         {
             if (strategy.max_particles < 0
                 || particles.size() < strategy.max_particles)
@@ -153,7 +168,9 @@ void Emitter::backup_strategy() {
 }
 
 void Emitter::draw(RenderTarget& target, RenderState states) const {
-    target.draw(vertex);
+    glPointSize(4.f);
+    target.draw(varr);
+    glPointSize(1.f);
 }
 
 }
