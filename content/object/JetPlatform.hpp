@@ -29,7 +29,7 @@ protected:
     ff::Vec2f position;
     ff::Vec2f velocity;
     ff::Vec2f push_accum;
-    float push_accel;
-    ff::Vec2f offset;
+    float push_accel = 0.f;
+    ff::Vec2f offset = {};
     unsigned tile_width = 3;
 };
