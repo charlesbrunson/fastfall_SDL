@@ -12,52 +12,43 @@
 
 namespace ff {
 
-    template<class T>
-    struct range {
-        T min;
-        T max;
-
-        T pick(std::default_random_engine& engine)
-        {
-            std::uniform_int_distribution<> rdist{};
-            if (max != min) {
-                // [0.0, 1.0]
-                double roll = (double)(rdist(engine)) / rdist.max();
-                return min + (roll * (max - min));
-            }
-            else {
-                return min;
-            }
-        }
-    };
-
     class Emitter;
 
     // describe how particles should be created
     struct EmitterStrategy {
 
         // number of emissions per second
-        range<secs>     emit_rate           = {0.1, 1.0};
+        secs emit_rate_min = 0.1;
+        secs emit_rate_max = 0.1;
+
         // number of particles per emission
-        range<unsigned> emit_count          = {1, 1};
+        unsigned emit_count_min = 1;
+        unsigned emit_count_max = 1;
+
         // max lifetime of each particle, <0 is infinite
-        secs            max_lifetime        = -1;
+        secs max_lifetime = 10.0;
+
         // max particles at any time, <0 is infinite
-        long int        max_particles       = 10;
+        long int max_particles = 10;
+
         // direction of the particles
-        Angle           direction           = Angle::Radian(0.f);
+        Angle direction = Angle::Radian(0.f);
+
         // variation of direction, in degrees
-        float           open_angle_degrees  = 0.f;
+        float open_angle_degrees = 0.f;
+
         // speed of the particles
-        range<float>    particle_speed      = { 0.f, 0.f };
+        float particle_speed_min = 100.f;
+        float particle_speed_max = 100.f;
 
         // local rect the particles are spawned in
-        Rectf           local_spawn_area    = {};
+        Rectf local_spawn_area = {};
+
         // max distance to scatter particles, radially (note: combine with local_spawn_area for a bezelled area)
-        float           scatter_max_radius  = 0.f;
+        float scatter_max_radius = 0.f;
 
         // particles inherit velocity of emitter
-        bool            inherits_vel        = false;
+        bool inherits_vel = false;
 
         // animation for particles to play
         AnimIDRef animation;
@@ -70,7 +61,7 @@ namespace ff {
         using EmitterTransformFn = std::function<void(Emitter&, secs)>;
         EmitterTransformFn emitter_transform;
 
-        Particle spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::default_random_engine& rand);
+        Particle spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::default_random_engine& rand) const;
     };
 
     struct EmitterListener {
@@ -97,7 +88,7 @@ namespace ff {
         void clear_particles();
         void reset(size_t s) {
             lifetime = 0.0;
-            emit_count = 0;
+            total_emit_count = 0;
             reset_strategy();
             clear_particles();
             seed(s);
@@ -119,9 +110,9 @@ namespace ff {
         std::default_random_engine rand{};
         secs buffer = 0.0;
         secs lifetime = 0.0;
-        size_t emit_count = 0;
+        size_t total_emit_count = 0;
         EmitterStrategy strategy_backup;
-        VertexArray vertex;
+        VertexArray varr;
 
         static Particle update_particle(const Emitter& e, Particle p, secs deltaTime);
         void update_particles(secs deltaTime);

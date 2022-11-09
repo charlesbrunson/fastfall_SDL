@@ -3,6 +3,7 @@
 #include "fastfall/game/object/GameObject.hpp"
 #include "fastfall/game/phys/collider_regiontypes/ColliderSimple.hpp"
 #include "fastfall/render/AnimatedSprite.hpp"
+#include "fastfall/game/particle/Emitter.hpp"
 #include "fastfall/game/World.hpp"
 
 class JetPlatform : public ff::GameObject {
@@ -17,9 +18,11 @@ public:
     void clean(ff::World& w) override;
 
 protected:
-    ff::ID<ff::SceneObject> scene_id;
+    ff::ID<ff::SceneObject> scene_spr_id;
+    ff::ID<ff::SceneObject> scene_emi_id;
     ff::ID<ff::ColliderTileMap> collider_id;
     ff::ID<ff::AnimatedSprite> sprite_id;
+    ff::ID<ff::Emitter> emitter_id;
     ff::Vec2f base_position;
     secs lifetime = 0.0;
 
