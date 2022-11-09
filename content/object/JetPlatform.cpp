@@ -28,7 +28,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
             .drawable = make_copyable_unique<Drawable, AnimatedSprite>(),
             .layer_id = 0,
             .type     = scene_type::Object,
-            .priority = scene_priority::Lowest
+            .priority = scene_priority::Low
         }))
         , scene_emi_id(w.create_scene_object({
              .drawable = make_copyable_unique<Drawable, Emitter>(),
@@ -90,10 +90,10 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     emitter.strategy.emit_count_max = 10;
     emitter.strategy.open_angle_degrees = 10.f;
     emitter.strategy.direction = Angle::Degree(90.f);
-    emitter.strategy.max_lifetime = 0.3;
+    emitter.strategy.max_lifetime = 0.1;
     emitter.strategy.max_particles = -1;
-    emitter.strategy.particle_speed_min = 200.f;
-    emitter.strategy.particle_speed_min = 300.f;
+    emitter.strategy.particle_speed_min = 600.f;
+    emitter.strategy.particle_speed_min = 900.f;
     emitter.strategy.inherits_vel = true;
 
 }
