@@ -95,7 +95,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     emitter.strategy.particle_speed_min = 600.f;
     emitter.strategy.particle_speed_min = 900.f;
     emitter.strategy.inherits_vel = true;
-
+    emitter.strategy.animation = AnimIDRef{ "jet_platform.sax", "effect" };
 }
 
 void JetPlatform::update(ff::World& w, secs deltaTime) {
@@ -110,13 +110,13 @@ void JetPlatform::update(ff::World& w, secs deltaTime) {
         emitter.update(deltaTime);
 
         // apply accumulated push to velocity
-        velocity.x += push_accum.x + (push_accel * deltaTime);
+        velocity.x += push_accum.x + (push_accel * (float)deltaTime);
         velocity.y += push_accum.y;
         push_accel = 0.f;
         push_accum = Vec2f{};
 
-        constexpr Vec2f spring{50.f, 50.f};
-        constexpr Vec2f damping{5.f, 3.5f};
+        constexpr Vec2f spring{30.f, 50.f};
+        constexpr Vec2f damping{8.f, 3.f};
 
         Vec2f accel;
 

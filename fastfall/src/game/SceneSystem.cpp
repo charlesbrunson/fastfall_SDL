@@ -35,7 +35,7 @@ void SceneSystem::add_to_scene(World& world)
                 scene_obj.layer_id,
                 Comp{&world});
 
-        auto it = std::upper_bound(beg, end, scene_obj.priority, [this, &world](scene_priority p, ID<SceneObject> d) {
+        auto it = std::upper_bound(beg, end, scene_obj.priority, [&world](scene_priority p, ID<SceneObject> d) {
             return p < world.at(d).priority;
         });
 
