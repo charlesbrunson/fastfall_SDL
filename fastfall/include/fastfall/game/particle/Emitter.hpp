@@ -18,8 +18,8 @@ namespace ff {
     struct EmitterStrategy {
 
         // number of emissions per second
-        secs emit_rate_min = 0.1;
-        secs emit_rate_max = 0.1;
+        secs emit_rate_min = 10;
+        secs emit_rate_max = 10;
 
         // number of particles per emission
         unsigned emit_count_min = 1;

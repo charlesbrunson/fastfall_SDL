@@ -86,8 +86,8 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     });
 
     emitter.strategy.scatter_max_radius = 1.f;
-    emitter.strategy.emit_rate_min = 0.02;
-    emitter.strategy.emit_rate_max = 0.02;
+    emitter.strategy.emit_rate_min = 50;
+    emitter.strategy.emit_rate_max = 50;
     emitter.strategy.emit_count_min = 1;
     emitter.strategy.emit_count_max = 2;
     emitter.strategy.open_angle_degrees = 5.f;

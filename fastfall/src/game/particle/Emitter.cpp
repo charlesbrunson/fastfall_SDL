@@ -184,7 +184,7 @@ void Emitter::spawn_particles(secs deltaTime) {
     buffer -= deltaTime;
     while (buffer < 0.0)
     {
-        buffer += pick_random(strategy.emit_rate_min, strategy.emit_rate_max, rand);
+        buffer +=  1.f / pick_random(strategy.emit_rate_min, strategy.emit_rate_max, rand);
         size_t init_size = particles.size();
         size_t created = 0;
         unsigned emit_count = pick_random(strategy.emit_count_min, strategy.emit_count_max, rand);
