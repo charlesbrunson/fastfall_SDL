@@ -151,15 +151,16 @@ namespace ff {
 				.generation = incr_gen(sp.key.generation),
 				.sparse_index = sparse_ndx
 			};
+            auto out_key = sp.key;
 
-			dense_.emplace_back(sp.key, value_type(std::forward<Args>(args)...));
+			dense_.emplace_back(out_key, value_type(std::forward<Args>(args)...));
 
 			while (dense_.size() >= sparse_.size() * sparse_density
 				&& sparse_.size() - dense_.size() <= sparse_max)
 			{
 				push_empty();
 			}
-			return sp.key;
+			return out_key;
 		}
 
 		constexpr iterator erase(const slot_key& k)

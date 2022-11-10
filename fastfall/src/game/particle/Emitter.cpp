@@ -1,7 +1,9 @@
 #include "fastfall/game/particle/Emitter.hpp"
 #include "fastfall/util/log.hpp"
+
 #include <algorithm>
 #include <execution>
+#include <cmath>
 
 namespace ff {
 
@@ -50,6 +52,7 @@ Emitter::Emitter()
 }
 
 void Emitter::update(secs deltaTime) {
+    prev_position = position;
     lifetime += deltaTime;
     if (strategy.emitter_transform)
         strategy.emitter_transform(*this, deltaTime);
@@ -85,9 +88,22 @@ void Emitter::predraw(float interp)
 
         size_t ndx = 0;
 
+        Vec2f inter_pos = prev_position + (position - prev_position) * interp;
+
+        float int_part;
+        Vec2f subpixel = { std::modf(inter_pos.x, &int_part), std::modf(inter_pos.y, &int_part) };
+
         assert(varr.size() >= particles.size() * 6);
         for (auto& p : particles) {
             Vec2f center = p.prev_position + (p.position - p.prev_position) * interp;
+
+
+            // nearest pixel
+            center.x = floorf(center.x + 0.5f);
+            center.y = floorf(center.y + 0.5f);
+            center += subpixel;
+
+
             varr[ndx + 0].pos = center + Vec2f{ -spr_size.x, -spr_size.y };
             varr[ndx + 1].pos = center + Vec2f{  spr_size.x, -spr_size.y };
             varr[ndx + 2].pos = center + Vec2f{ -spr_size.x,  spr_size.y };
@@ -184,7 +200,8 @@ void Emitter::spawn_particles(secs deltaTime) {
     buffer -= deltaTime;
     while (buffer < 0.0)
     {
-        buffer +=  1.f / pick_random(strategy.emit_rate_min, strategy.emit_rate_max, rand);
+        secs time = 1.f / pick_random(strategy.emit_rate_min, strategy.emit_rate_max, rand);
+        buffer += time;
         size_t init_size = particles.size();
         size_t created = 0;
         unsigned emit_count = pick_random(strategy.emit_count_min, strategy.emit_count_max, rand);
@@ -194,7 +211,8 @@ void Emitter::spawn_particles(secs deltaTime) {
                 || particles.size() < strategy.max_particles)
             {
                 auto p = strategy.spawn(position, velocity, rand);
-                update_particle(*this, p, deltaTime);
+                // "catch up" the particle so stream is smoother
+                p = update_particle(*this, p,  -buffer);
 
                 if (p.is_alive) {
                     p.id = emit_count;

@@ -85,18 +85,18 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
         }
     });
 
-    emitter.strategy.scatter_max_radius = 1.f;
-    emitter.strategy.emit_rate_min = 50;
-    emitter.strategy.emit_rate_max = 50;
+    emitter.strategy.scatter_max_radius = 0.f;
+    emitter.strategy.emit_rate_min = 200;
+    emitter.strategy.emit_rate_max = 200;
     emitter.strategy.emit_count_min = 1;
-    emitter.strategy.emit_count_max = 2;
+    emitter.strategy.emit_count_max = 1;
     emitter.strategy.open_angle_degrees = 5.f;
     emitter.strategy.direction = Angle::Degree(90.f);
     emitter.strategy.max_lifetime = 0.1;
     emitter.strategy.max_particles = -1;
     emitter.strategy.particle_speed_min = 400.f;
     emitter.strategy.particle_speed_max = 600.f;
-    emitter.strategy.inherits_vel = true;
+    emitter.strategy.inherits_vel = false;
     emitter.strategy.animation = AnimIDRef{ "jet_platform.sax", "effect" };
 
 }
@@ -107,7 +107,6 @@ void JetPlatform::update(ff::World& w, secs deltaTime) {
 
     if (deltaTime > 0.0) {
         lifetime += deltaTime;
-
 
         // apply accumulated push to velocity
         velocity.x += push_accum.x + (push_accel * (float)deltaTime);
@@ -137,13 +136,13 @@ void JetPlatform::update(ff::World& w, secs deltaTime) {
         position += velocity * deltaTime;
         collider.setPosition(position);
 
-        emitter.position = collider.getPosition();
-        emitter.position += Vec2f{(float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F};
+        emitter.position = position;
+        emitter.position += Vec2f{(float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f};
         emitter.velocity = collider.velocity;
         emitter.update(deltaTime);
+
+        //LOG_INFO("{}", emitter.particles.size());
     }
-    //sprite.update(deltaTime);
-    //collider.update(deltaTime);
 }
 
 void JetPlatform::predraw(ff::World& w, float interp, bool updated) {

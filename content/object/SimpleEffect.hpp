@@ -13,8 +13,9 @@ public:
 
 	SimpleEffect(ff::World& world, ff::ID<ff::GameObject> id, const ff::AnimID& anim, ff::Vec2f position, bool hflip)
 		: ff::GameObject(world, id)
-		, scene_id(world.create_scene_object(ff::SceneObject{}))
+		//, scene_id(world.create_scene_object({.drawable = ff::make_copyable_unique<ff::Drawable, ff::AnimatedSprite>()}))
 	{
+        scene_id = world.create_scene_object(ff::SceneObject{});
         auto& scene_obj = world.at(scene_id);
         scene_obj.drawable = ff::copyable_unique_ptr<ff::Drawable>{ new ff::AnimatedSprite() };
         auto& spr = world.at(id_cast<ff::AnimatedSprite>(scene_id));
