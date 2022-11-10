@@ -63,44 +63,61 @@ void Emitter::predraw(float interp)
 {
     if (varr.size() < particles.size() * 6) {
         //varr = VertexArray{Primitive::POINT, particles.capacity()};
-        varr.insert(varr.size(), particles.size() - varr.size(), {});
+        size_t add_count = (particles.size() * 6) - varr.size();
+        varr.insert(varr.size(), add_count, {});
     }
 
     auto* anim = Resources::get_animation(strategy.animation);
     if (anim) {
         texture = anim->get_sprite_texture();
 
-        Vec2f tex_size = Vec2f{ texture.get()->size() } / 2.f;
+        Vec2f spr_size = Vec2f{ anim->area.getSize() } * 0.5f;
+
+        auto texiv = texture.get()->inverseSize();
 
         Vec2f tpos = Vec2f{ anim->area.getPosition() };
-        Vec2f tsize = Vec2f{ anim->area.getSize() };
+        tpos.x *= texture.get()->inverseSize().x;
+        tpos.y *= texture.get()->inverseSize().y;
+
+        Vec2f tsize = spr_size;
         tsize.x *= texture.get()->inverseSize().x;
         tsize.y *= texture.get()->inverseSize().y;
 
         size_t ndx = 0;
+
+        assert(varr.size() >= particles.size() * 6);
         for (auto& p : particles) {
             Vec2f center = p.prev_position + (p.position - p.prev_position) * interp;
-            varr[ndx + 0].pos = center + Vec2f{ -tex_size.x, -tex_size.y };
-            varr[ndx + 1].pos = center + Vec2f{ tex_size.x, -tex_size.y };
-            varr[ndx + 2].pos = center + Vec2f{ -tex_size.x, tex_size.y };
+            varr[ndx + 0].pos = center + Vec2f{ -spr_size.x, -spr_size.y };
+            varr[ndx + 1].pos = center + Vec2f{  spr_size.x, -spr_size.y };
+            varr[ndx + 2].pos = center + Vec2f{ -spr_size.x,  spr_size.y };
 
-            varr[ndx + 3].pos = center + Vec2f{ -tex_size.x, tex_size.y };
-            varr[ndx + 4].pos = center + Vec2f{ tex_size.x, -tex_size.y };
-            varr[ndx + 5].pos = center + Vec2f{ tex_size.x, tex_size.y };
+            varr[ndx + 3].pos = center + Vec2f{ -spr_size.x,  spr_size.y };
+            varr[ndx + 4].pos = center + Vec2f{  spr_size.x, -spr_size.y };
+            varr[ndx + 5].pos = center + Vec2f{  spr_size.x,  spr_size.y };
 
             size_t frame = floor(anim->framerateMS.size() * (float)(p.lifetime / strategy.max_lifetime));
-            Vec2f tp = tpos;
-            tp.x += frame * tsize.x;
 
-            varr[ndx + 0].tex_pos = tp + Vec2f{ -tex_size.x, -tex_size.y };
-            varr[ndx + 1].tex_pos = tp + Vec2f{ tex_size.x, -tex_size.y };
-            varr[ndx + 2].tex_pos = tp + Vec2f{ -tex_size.x, tex_size.y };
+            auto area = anim->area;
+            area.left += frame * area.width;
 
-            varr[ndx + 3].tex_pos = tp + Vec2f{ -tex_size.x, tex_size.y };
-            varr[ndx + 4].tex_pos = tp + Vec2f{ tex_size.x, -tex_size.y };
-            varr[ndx + 5].tex_pos = tp + Vec2f{ tex_size.x, tex_size.y };
+            auto points = Rectf{ area }.toPoints();
+            varr[ndx + 0].tex_pos = points[0] * texiv;
+            varr[ndx + 1].tex_pos = points[1] * texiv;
+            varr[ndx + 2].tex_pos = points[2] * texiv;
 
+            varr[ndx + 3].tex_pos = points[2] * texiv;
+            varr[ndx + 4].tex_pos = points[1] * texiv;
+            varr[ndx + 5].tex_pos = points[3] * texiv;
+
+            for(size_t n = 0; n < 6; ++n) {
+                varr[ndx + n].color = Color::White;
+            }
             ndx += 6;
+        }
+        while (ndx < varr.size()) {
+            varr[ndx] = {};
+            ++ndx;
         }
     }
     else {
@@ -211,6 +228,7 @@ void Emitter::draw(RenderTarget& target, RenderState states) const {
     if (states.texture.exists()) {
         states.texture = texture;
     }
+
     target.draw(varr, states);
 }
 

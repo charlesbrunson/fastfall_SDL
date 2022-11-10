@@ -28,9 +28,9 @@
 	</animation>
 	
 	<animation name="effect">
-		<area   x="0" y="16" w="16" h="16" />
+		<area   x="0" y="48" w="16" h="16" />
 		<origin x="8" y="8" />
-		<framerate count="6" defaultMS="50"/>
+		<framerate count="5" defaultMS="50"/>
 		<loop>1</loop>
 	</animation>
 
