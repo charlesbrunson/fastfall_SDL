@@ -113,6 +113,7 @@ namespace ff {
         size_t total_emit_count = 0;
         EmitterStrategy strategy_backup;
         VertexArray varr;
+        TextureRef texture;
 
         static Particle update_particle(const Emitter& e, Particle p, secs deltaTime);
         void update_particles(secs deltaTime);

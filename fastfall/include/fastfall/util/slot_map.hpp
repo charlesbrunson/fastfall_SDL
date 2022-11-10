@@ -153,7 +153,6 @@ namespace ff {
 			};
 
 			dense_.emplace_back(sp.key, value_type(std::forward<Args>(args)...));
-			//dense_to_sparse_.push_back(sparse_ndx);
 
 			while (dense_.size() >= sparse_.size() * sparse_density
 				&& sparse_.size() - dense_.size() <= sparse_max)
@@ -172,11 +171,6 @@ namespace ff {
 			auto d_ndx = sparse_[s_ndx].dense_index;
 
 			auto r = dense_.erase(dense_.begin() + d_ndx);
-			//auto it = dense_to_sparse_.erase(dense_to_sparse_.begin() + d_ndx);
-			//for (; it != dense_to_sparse_.end(); it++)
-			//{
-			//	--sparse_[*it].dense_index;
-			//}
 			sparse_[s_ndx].valid = false;
 			push_empty(k.sparse_index);
 			return r;

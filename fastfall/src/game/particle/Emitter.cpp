@@ -41,8 +41,12 @@ Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::defau
 }
 
 Emitter::Emitter()
-    : varr(ff::Primitive::POINT)
+    : varr(ff::Primitive::TRIANGLES)
 {
+    auto* anim = Resources::get_animation(strategy.animation);
+    if (anim) {
+        texture = anim->get_sprite_texture();
+    }
 }
 
 void Emitter::update(secs deltaTime) {
@@ -57,14 +61,50 @@ void Emitter::update(secs deltaTime) {
 
 void Emitter::predraw(float interp)
 {
-    if (varr.size() < particles.capacity()) {
-        varr = VertexArray{Primitive::POINT, particles.capacity()};
+    if (varr.size() < particles.size() * 6) {
+        //varr = VertexArray{Primitive::POINT, particles.capacity()};
+        varr.insert(varr.size(), particles.size() - varr.size(), {});
     }
-    size_t ndx = 0;
-    for (auto& p : particles) {
-        varr[ndx].pos = p.prev_position + (p.position - p.prev_position) * interp;
-        varr[ndx].color = Color::Red;
-        ++ndx;
+
+    auto* anim = Resources::get_animation(strategy.animation);
+    if (anim) {
+        texture = anim->get_sprite_texture();
+
+        Vec2f tex_size = Vec2f{ texture.get()->size() } / 2.f;
+
+        Vec2f tpos = Vec2f{ anim->area.getPosition() };
+        Vec2f tsize = Vec2f{ anim->area.getSize() };
+        tsize.x *= texture.get()->inverseSize().x;
+        tsize.y *= texture.get()->inverseSize().y;
+
+        size_t ndx = 0;
+        for (auto& p : particles) {
+            Vec2f center = p.prev_position + (p.position - p.prev_position) * interp;
+            varr[ndx + 0].pos = center + Vec2f{ -tex_size.x, -tex_size.y };
+            varr[ndx + 1].pos = center + Vec2f{ tex_size.x, -tex_size.y };
+            varr[ndx + 2].pos = center + Vec2f{ -tex_size.x, tex_size.y };
+
+            varr[ndx + 3].pos = center + Vec2f{ -tex_size.x, tex_size.y };
+            varr[ndx + 4].pos = center + Vec2f{ tex_size.x, -tex_size.y };
+            varr[ndx + 5].pos = center + Vec2f{ tex_size.x, tex_size.y };
+
+            size_t frame = floor(anim->framerateMS.size() * (float)(p.lifetime / strategy.max_lifetime));
+            Vec2f tp = tpos;
+            tp.x += frame * tsize.x;
+
+            varr[ndx + 0].tex_pos = tp + Vec2f{ -tex_size.x, -tex_size.y };
+            varr[ndx + 1].tex_pos = tp + Vec2f{ tex_size.x, -tex_size.y };
+            varr[ndx + 2].tex_pos = tp + Vec2f{ -tex_size.x, tex_size.y };
+
+            varr[ndx + 3].tex_pos = tp + Vec2f{ -tex_size.x, tex_size.y };
+            varr[ndx + 4].tex_pos = tp + Vec2f{ tex_size.x, -tex_size.y };
+            varr[ndx + 5].tex_pos = tp + Vec2f{ tex_size.x, tex_size.y };
+
+            ndx += 6;
+        }
+    }
+    else {
+        texture = TextureRef{};
     }
 }
 
@@ -168,9 +208,10 @@ void Emitter::backup_strategy() {
 }
 
 void Emitter::draw(RenderTarget& target, RenderState states) const {
-    glPointSize(4.f);
-    target.draw(varr);
-    glPointSize(1.f);
+    if (states.texture.exists()) {
+        states.texture = texture;
+    }
+    target.draw(varr, states);
 }
 
 }
