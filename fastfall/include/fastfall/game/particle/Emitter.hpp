@@ -102,6 +102,8 @@ namespace ff {
         secs get_lifetime() const { return lifetime; };
 
     private:
+
+        Vec2f prev_position;
         void draw(RenderTarget& target, RenderState states = RenderState{}) const override;
 
         AnimIDRef curr_anim;
