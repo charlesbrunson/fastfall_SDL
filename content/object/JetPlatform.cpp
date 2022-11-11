@@ -64,15 +64,15 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
         if (c.hasContact && c.id && c.id->collider == id_cast<ColliderRegion>(cid))
         {
             auto& collidable = w.at(c.id->collidable);
-            jetpl.push_accum.y += (c.collidable_precontact_velocity - collider.velocity).y * 0.9f;
+            jetpl.push_vel.y += (c.collidable_precontact_velocity - collider.velocity).y * 0.9f;
 
             if (auto* track = collidable.get_tracker();
                 track && track->has_contact())
             {
                 auto& contact = track->get_contact();
                 if (contact->id && contact->id->collider == id_cast<ColliderRegion>(cid)) {
-                    jetpl.push_accum.x += collidable.get_friction().x;
-                    jetpl.push_accel -= collidable.get_acc().x * 0.5f;
+                    jetpl.push_vel.x += collidable.get_friction().x;
+                    jetpl.push_accel.x -= collidable.get_acc().x * 0.5f;
                 }
             }
         }
@@ -103,10 +103,9 @@ void JetPlatform::update(ff::World& w, secs deltaTime) {
         lifetime += deltaTime;
 
         // apply accumulated push to velocity
-        velocity.x += push_accum.x + (push_accel * (float)deltaTime);
-        velocity.y += push_accum.y;
-        push_accel = 0.f;
-        push_accum = Vec2f{};
+        velocity += push_vel + (push_accel * (float)deltaTime);
+        push_accel = Vec2f{};
+        push_vel = Vec2f{};
 
         constexpr Vec2f spring{30.f, 50.f};
         constexpr Vec2f damping{8.f, 3.f};
