@@ -17,6 +17,9 @@ class SceneSystem {
 public:
 
     //inline void set_world(World* w) { world = w; }
+    //void notify_created(World& world, ID<SceneObject> id);
+    //void notify_erased(World& world, ID<SceneObject> id);
+
     void notify_created(World& world, ID<SceneObject> id);
     void notify_erased(World& world, ID<SceneObject> id);
 
@@ -27,7 +30,7 @@ public:
 	inline Color get_bg_color() const { return background.getColor(); };
 	inline Vec2f get_size() const { return scene_size; };
 
-    const std::vector<ID<SceneObject>>& get_scene_order() const { return scene_order; }
+    //const std::vector<ID<SceneObject>>& get_scene_order() const { return scene_order; }
 
     void predraw(World& world, float interp, bool updated);
 
@@ -37,9 +40,11 @@ private:
     bool enableScissor(const RenderTarget& target, Vec2f viewPos) const;
     void disableScissor() const;
 
-    std::vector<ID<SceneObject>> to_add;
-    std::vector<ID<SceneObject>> to_erase;
-	std::vector<ID<SceneObject>> scene_order;
+    //std::vector<ID<SceneObject>> to_add;
+    //std::vector<ID<SceneObject>> to_erase;
+    //std::vector<ID<SceneObject>> scene_order;
+
+    std::vector<SceneObject> scene_order;
 
     void add_to_scene(World& world);
 

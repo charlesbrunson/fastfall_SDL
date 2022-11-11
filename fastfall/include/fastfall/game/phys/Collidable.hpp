@@ -131,16 +131,20 @@ public:
 
 	const collision_state_t& get_state_flags() const { return col_state; }
 
-    std::pair<ID<SurfaceTracker>, SurfaceTracker*>
-    create_tracker(Angle ang_min, Angle ang_max, bool inclusive = true);
+    void set_tracker(Angle ang_min, Angle ang_max, bool inclusive = true);
+    bool erase_tracker();
 
-    bool erase_tracker(ID<SurfaceTracker> id);
+    //SurfaceTracker* get_tracker(ID<SurfaceTracker> id) { return trackers.get(id); };
+    //const SurfaceTracker* get_tracker(ID<SurfaceTracker> id) const { return trackers.get(id); };
 
-    SurfaceTracker* get_tracker(ID<SurfaceTracker> id) { return trackers.get(id); };
-    const SurfaceTracker* get_tracker(ID<SurfaceTracker> id) const { return trackers.get(id); };
+    //id_map<SurfaceTracker>& get_trackers() { return trackers; };
+    //const id_map<SurfaceTracker>& get_trackers() const { return trackers; };
 
-    id_map<SurfaceTracker>& get_trackers() { return trackers; };
-    const id_map<SurfaceTracker>& get_trackers() const { return trackers; };
+    SurfaceTracker* get_tracker() { return tracker ? &*tracker : nullptr; }
+    const SurfaceTracker* get_tracker() const { return tracker ? &*tracker : nullptr; }
+
+    SurfaceTracker& at_tracker() { return *tracker; }
+    const SurfaceTracker& at_tracker() const { return *tracker; }
 
     struct callbacks_t {
         std::function<void(World&)> onPostCollision;
@@ -169,7 +173,8 @@ private:
 	Vec2f decel_accum;
 
 	std::vector<AppliedContact> currContacts;
-    id_map<SurfaceTracker> trackers;
+    //id_map<SurfaceTracker> trackers;
+    std::optional<SurfaceTracker> tracker;
 };
 
 }

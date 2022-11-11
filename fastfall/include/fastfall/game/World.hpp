@@ -10,6 +10,7 @@
 #include "fastfall/game/SceneSystem.hpp"
 #include "fastfall/game/ObjectSystem.hpp"
 #include "fastfall/game/LevelSystem.hpp"
+#include "fastfall/game/EmitterSystem.hpp"
 #include "fastfall/engine/input/InputState.hpp"
 
 #include <optional>
@@ -35,8 +36,11 @@ private:
         else if constexpr (std::derived_from<T, CameraTarget>) {
             return _camera_targets;
         }
-        else if constexpr (std::same_as<T, SceneObject>) {
-            return _scene_objects;
+        else if constexpr (std::same_as<T, Emitter>) {
+            return _emitters;
+        }
+        else if constexpr (std::derived_from<T, Drawable>) {
+            return _drawables;
         }
         else if constexpr (std::derived_from<T, GameObject>) {
             return _objects;
@@ -61,8 +65,11 @@ private:
         else if constexpr (std::derived_from<T, CameraTarget>) {
             return _camera_targets;
         }
-        else if constexpr (std::same_as<T, SceneObject>) {
-            return _scene_objects;
+        else if constexpr (std::same_as<T, Emitter>) {
+            return _emitters;
+        }
+        else if constexpr (std::derived_from<T, Drawable>) {
+            return _drawables;
         }
         else if constexpr (std::derived_from<T, GameObject>) {
             return _objects;
@@ -142,6 +149,7 @@ public:
 
     // id_cast SceneObject to a drawble type to retrieve that from the sceneobject
     // kinda scuffed but its fun
+    /*
     template<std::derived_from<Drawable> T>
     T& at(ID<T> id) { return *(T*)at(id_cast<SceneObject>(id)).drawable.get(); }
 
@@ -153,9 +161,10 @@ public:
 
     template<std::derived_from<Drawable> T>
     const T* get(ID<T> id) const { return (T*)at(id_cast<SceneObject>(id)).drawable.get(); }
+    */
 
-    SurfaceTracker& at_tracker(ID<Collidable> collidable_id, ID<SurfaceTracker> tracker_id);
-    SurfaceTracker* get_tracker(ID<Collidable> collidable_id, ID<SurfaceTracker> tracker_id);
+    //SurfaceTracker& at_tracker(ID<Collidable> collidable_id, ID<SurfaceTracker> tracker_id);
+    //SurfaceTracker* get_tracker(ID<Collidable> collidable_id, ID<SurfaceTracker> tracker_id);
 
 	// create component
 	ID<Collidable> create_collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
@@ -226,7 +235,9 @@ private:
 	poly_id_map<ColliderRegion> _colliders;
 	id_map<Trigger> 			_triggers;
 	poly_id_map<CameraTarget> 	_camera_targets;
-    id_map<SceneObject>         _scene_objects;
+    //id_map<SceneObject>         _scene_objects;
+    poly_id_map<Drawable>       _drawables;
+    id_map<Emitter>             _emitters;
 
 	// systems
 	LevelSystem	    _level_system;

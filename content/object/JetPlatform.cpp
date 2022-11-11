@@ -90,7 +90,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     emitter.strategy.emit_rate_max = 200;
     emitter.strategy.emit_count_min = 1;
     emitter.strategy.emit_count_max = 1;
-    emitter.strategy.open_angle_degrees = 5.f;
+    emitter.strategy.open_angle_degrees = 3.f;
     emitter.strategy.direction = Angle::Degree(90.f);
     emitter.strategy.max_lifetime = 0.1;
     emitter.strategy.max_particles = -1;

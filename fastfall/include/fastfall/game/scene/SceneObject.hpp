@@ -27,19 +27,13 @@ enum class scene_priority {
 };
 
 struct SceneObject {
-    copyable_unique_ptr<Drawable> drawable;
+    // copyable_unique_ptr<Drawable> drawable;
+    // ID<Drawable>    drawable_id;
     scene_layer		layer_id    = 0;
     scene_type		type        = scene_type::Object;
     scene_priority	priority    = scene_priority::Normal;
     bool            render_enable = true;
     bool            resort_flag   = false;
-};
-
-struct SceneParams {
-    scene_layer		layer_id    = 0;
-    scene_type		type        = scene_type::Object;
-    scene_priority	priority    = scene_priority::Normal;
-    bool            render_enable = true;
 };
 
 }

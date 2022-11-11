@@ -71,7 +71,7 @@ namespace ff {
 
     class Emitter : public Drawable {
     public:
-        Emitter();
+        //Emitter(World& w);
 
         Vec2f position;
         Vec2f velocity;
@@ -82,8 +82,8 @@ namespace ff {
         std::vector<Particle>  particles;
         EmitterListener* listener = nullptr;
 
-        void update(secs deltaTime);
-        void predraw(float interp);
+        //void update(World& w, secs deltaTime);
+        //void predraw(World& world, float interp, bool updated);
 
         void clear_particles();
         void reset(size_t s) {
@@ -100,6 +100,10 @@ namespace ff {
         void backup_strategy();
 
         secs get_lifetime() const { return lifetime; };
+
+
+
+
 
     private:
 
