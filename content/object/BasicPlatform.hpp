@@ -37,7 +37,7 @@ protected:
 	float progress = 0.f;
 	bool reverser = false;
 
-    ff::ID<ff::SceneObject> scene_id;
+    ff::ID<ff::ShapeRectangle> shape_id;
     ff::ID<ff::ColliderSimple> collider_id;
 
 };

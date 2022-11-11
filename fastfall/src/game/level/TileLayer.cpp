@@ -32,16 +32,18 @@ TileLayer::TileLayer(World& world, ID<Level> lvl_id, const TileLayerData& layerD
 	initFromAsset(world, layerData);
 }
 
-ChunkVertexArray* TileLayer::get_chunk(World& world, ID<SceneObject> id)
+/*
+ChunkVertexArray* TileLayer::get_chunk(World& world, ID<ChunkVertexArray> id)
 {
     return (ChunkVertexArray*)world.at(id).drawable.get();
 }
+*/
 
 void TileLayer::set_layer(World& world, scene_layer lyr) {
 	layer = lyr;
 	for (auto chunk_id : dyn.chunks)
 	{
-        auto& scene_obj = world.at(chunk_id);
+        auto& scene_obj = world.scene().config(chunk_id);
         scene_obj.layer_id = layer;
         scene_obj.resort_flag = true;
 	}
@@ -55,6 +57,7 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 	// init chunks
 	for (auto& [tileset, _] : layer_data.getTilesets())
 	{
+        /*
         auto chunk_id = world.create_scene_object({
             .drawable = make_copyable_unique<Drawable, ChunkVertexArray>(
                 getSize(),
@@ -63,11 +66,15 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
             .layer_id = layer,
             .type = scene_type::Level
         });
+        */
+
+        auto chunk_id = world.create_drawable<ChunkVertexArray>(getSize(), kChunkSize);
+        world.scene().set_config(chunk_id, {layer, scene_type::Level});
         dyn.chunks.push_back(chunk_id);
 
-        auto* cvr = get_chunk(world, chunk_id);
-        cvr->setTexture(tileset->getTexture());
-        cvr->use_visible_rect = true;
+        auto& cvr = world.at(chunk_id);
+        cvr.setTexture(tileset->getTexture());
+        cvr.use_visible_rect = true;
 	}
 
 	// init tiles
@@ -87,8 +94,8 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 		if (!opt_tile)
 			continue;
 
-		auto& chunk = dyn.chunks.at(tile.tileset_ndx);
-		get_chunk(world, chunk)->setTile(tile.pos, opt_tile->id);
+		auto chunk_id = dyn.chunks.at(tile.tileset_ndx);
+        world.at(chunk_id).setTile(tile.pos, opt_tile->id);
 
 		if (auto [logic, args] = tileset->getTileLogic(tile.tile_id); !logic.empty())
 		{
@@ -119,8 +126,8 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 	set_parallax(world, layerData.hasParallax(), layerData.getParallaxSize());
 	set_scroll(world, layerData.hasScrolling(), layerData.getScrollRate());
 
-	for (auto& chunk : dyn.chunks) {
-		get_chunk(world, chunk)->predraw(1.f, true);
+	for (auto chunk_id : dyn.chunks) {
+        world.at(chunk_id).predraw(1.f, true);
 	}
 
 }
@@ -285,13 +292,14 @@ bool TileLayer::set_parallax(World& world, bool enabled, Vec2u parallax_size)
 	}
 	else {
 		// reset offset on each chunk
-		for (auto& chunk : dyn.chunks) {
-			get_chunk(world, chunk)->offset = Vec2f{};
+		for (auto& chunk_id : dyn.chunks) {
+			//get_chunk(world, chunk)->offset = Vec2f{};
+            world.at(chunk_id).offset = Vec2f{};
 		}
 	}
 
-	for (auto& chunk : dyn.chunks) {
-		get_chunk(world, chunk)->set_size(getSize());
+	for (auto& chunk_id : dyn.chunks) {
+        world.at(chunk_id).set_size(getSize());
 	}
 	return true;
 }
@@ -305,8 +313,8 @@ bool TileLayer::set_scroll(World& world, bool enabled, Vec2f rate)
 	if (layer_data.hasScrolling() && !enabled)
 	{
 		dyn.scroll.offset = Vec2f{};
-		for (auto& chunk : dyn.chunks) {
-			get_chunk(world, chunk)->scroll = Vec2f{};
+		for (auto& chunk_id : dyn.chunks) {
+            world.at(chunk_id).scroll = Vec2f{};
 		}
 	}
 
@@ -363,21 +371,21 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
 	}
 
     for (auto& chunk_id : dyn.chunks) {
-        auto* chunk = get_chunk(world, chunk_id);
-        chunk->visibility = visible;
+        auto& chunk = world.at(chunk_id);
+        chunk.visibility = visible;
 
         // parallax update
         if (hasParallax()) {
-            chunk->offset = dyn.parallax.offset;
+            chunk.offset = dyn.parallax.offset;
         }
 
         // scroll update
         if (hasScrolling()) {
-            chunk->scroll = math::lerp(dyn.scroll.prev_offset, dyn.scroll.offset, interp);
+            chunk.scroll = math::lerp(dyn.scroll.prev_offset, dyn.scroll.offset, interp);
         }
 
         // chunk predraw
-        chunk->predraw(interp, updated);
+        chunk.predraw(interp, updated);
     }
 
 	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_AREA) && updated)
@@ -431,7 +439,7 @@ void TileLayer::removeTile(World& world, const Vec2u& position) {
 	if (tile_data[position].tileset_ndx != TILEDATA_NONE) {
 		uint8_t t_ndx = tile_data[position].tileset_ndx;
         // TODO buffer changes?
-		get_chunk(world, dyn.chunks.at(t_ndx))->blank(position);
+        world.at(dyn.chunks.at(t_ndx)).blank(position);
 	}
 	if (tiles_dyn[position].logic_id != TILEDATA_NONE) {
 		dyn.tile_logic.at(tiles_dyn[position].logic_id)->removeTile(position);
@@ -467,7 +475,7 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 	uint8_t tileset_ndx = prev_tileset_ndx;
 	if (tileset_ndx != TILEDATA_NONE) {
         // TODO buffer changes?
-		get_chunk(world, dyn.chunks.at(tileset_ndx))->blank(at);
+        world.at(dyn.chunks.at(tileset_ndx)).blank(at);
 	}
 
 	uint8_t logic_ndx = tiles_dyn[at].logic_id;
@@ -494,25 +502,19 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 	if (tile.tileset_ndx == dyn.chunks.size())
 	{
         // TODO buffer changes?
-        auto chunk_id = world.create_scene_object({
-            .drawable = make_copyable_unique<Drawable, ChunkVertexArray>(
-                   getSize(),
-                   kChunkSize
-            ),
-            .layer_id = layer,
-            .type = scene_type::Level
-        });
+        auto chunk_id = world.create_drawable<ChunkVertexArray>(getSize(), kChunkSize);
+        world.scene().set_config(chunk_id, { layer, scene_type::Level });
 
-        auto* cvr = get_chunk(world, chunk_id);
-        cvr->setTexture(next_tileset->getTexture());
-        cvr->setTile(at, tile.tile_id);
-        cvr->use_visible_rect = true;
+        auto& cvr = world.at(chunk_id);
+        cvr.setTexture(next_tileset->getTexture());
+        cvr.setTile(at, tile.tile_id);
+        cvr.use_visible_rect = true;
 
         dyn.chunks.push_back(chunk_id);
 	}
 	else {
         // TODO buffer changes?
-		get_chunk(world, dyn.chunks.at(tile.tileset_ndx))->setTile(at, tile.tile_id);
+        world.at(dyn.chunks.at(tile.tileset_ndx)).setTile(at, tile.tile_id);
 	}
 
 	if (hasCollision() && next_tile) {

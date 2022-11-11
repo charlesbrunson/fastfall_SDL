@@ -32,15 +32,12 @@ plr::move_t::move_t(World& w, const plr::members& plr)
 
 
 plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
-    : scene_id(w.create_scene_object({.drawable = make_copyable_unique<Drawable, AnimatedSprite>()}))
+    : sprite_id(w.create_drawable<AnimatedSprite>())
     , collidable_id(w.create_collidable(position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
-    , surfacetracker_id()
     , cameratarget_id()
     , hitbox_id(w.create_trigger())
     , hurtbox_id(w.create_trigger())
 {
-    sprite_id = id_cast<AnimatedSprite>(scene_id);
-
     auto& box = w.at(collidable_id);
     box.set_tracker(
         Angle::Degree(-135.f),

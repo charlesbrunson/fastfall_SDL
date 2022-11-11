@@ -6,7 +6,7 @@
 namespace ff {
     // base particle class
     struct Particle {
-        size_t id;
+        size_t id           = 0;
         Vec2f position      = {};
         Vec2f prev_position = {};
         Vec2f velocity      = {};

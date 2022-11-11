@@ -5,7 +5,9 @@
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/slot_map.hpp"
 #include "fastfall/util/id.hpp"
-#include "fastfall/game/scene/SceneObject.hpp"
+#include "fastfall/game/scene/SceneConfig.hpp"
+
+#include <unordered_set>
 
 // manager of drawable for the instance
 
@@ -16,12 +18,8 @@ class World;
 class SceneSystem {
 public:
 
-    //inline void set_world(World* w) { world = w; }
-    //void notify_created(World& world, ID<SceneObject> id);
-    //void notify_erased(World& world, ID<SceneObject> id);
-
-    void notify_created(World& world, ID<SceneObject> id);
-    void notify_erased(World& world, ID<SceneObject> id);
+    void notify_created(World& world, ID<Drawable> id);
+    void notify_erased(World& world, ID<Drawable> id);
 
 	void set_cam_pos(Vec2f center);
 	void set_bg_color(Color color);
@@ -30,30 +28,30 @@ public:
 	inline Color get_bg_color() const { return background.getColor(); };
 	inline Vec2f get_size() const { return scene_size; };
 
-    //const std::vector<ID<SceneObject>>& get_scene_order() const { return scene_order; }
+    const std::vector<ID<Drawable>>& get_scene_order() const { return scene_order; }
+
+    SceneConfig& config(ID<Drawable> id) { return configs.at(id); }
+    const SceneConfig& config(ID<Drawable>id) const { return configs.at(id); }
+
+    void set_config(ID<Drawable> id, SceneConfig cfg);
 
     void predraw(World& world, float interp, bool updated);
 
     void draw(const World& world, RenderTarget& target, RenderState state = RenderState()) const;
 private:
-    //void draw(ff::RenderTarget& target, ff::RenderState state = RenderState()) const override;
     bool enableScissor(const RenderTarget& target, Vec2f viewPos) const;
     void disableScissor() const;
 
-    //std::vector<ID<SceneObject>> to_add;
-    //std::vector<ID<SceneObject>> to_erase;
-    //std::vector<ID<SceneObject>> scene_order;
-
-    std::vector<SceneObject> scene_order;
+    std::vector<ID<Drawable>> scene_order;
+    std::unordered_set<ID<Drawable>> to_add;
+    std::unordered_set<ID<Drawable>> to_erase;
+    std::unordered_map<ID<Drawable>, SceneConfig> configs;
 
     void add_to_scene(World& world);
 
 	ShapeRectangle background;
 	Vec2f scene_size;
 	Vec2f cam_pos;
-
-    //World* world;
-
 
 };
 

@@ -6,7 +6,7 @@
 
 #include "fastfall/game/phys/collider_regiontypes/ColliderTileMap.hpp"
 #include "fastfall/game/level/TileLogic.hpp"
-#include "fastfall/game/scene/SceneObject.hpp"
+#include "fastfall/game/scene/SceneConfig.hpp"
 #include "fastfall/game/tile/Tile.hpp"
 
 #include "fastfall/render/Drawable.hpp"
@@ -50,7 +50,7 @@ private:
 		} collision;
 
 		std::vector<copyable_unique_ptr<TileLogic>> tile_logic;
-		std::vector<ID<SceneObject>> chunks;
+		std::vector<ID<ChunkVertexArray>> chunks;
 	} dyn;
 
 	Vec2f offset;
@@ -130,7 +130,7 @@ protected:
     ID<Level> level_id;
 	scene_layer layer;
     ColliderTileMap* get_collider(World& world);
-	ChunkVertexArray* get_chunk(World& world, ID<SceneObject> id);
+	//ChunkVertexArray* get_chunk(World& world, ID<Drawable> id);
 
 	void updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic = true);
 };
