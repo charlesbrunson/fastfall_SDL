@@ -27,17 +27,17 @@ private:
         if constexpr (std::same_as<T, Collidable>) {
             return _collidables;
         }
-        else if constexpr (std::derived_from<T, ColliderRegion>) {
-            return _colliders;
-        }
         else if constexpr (std::same_as<T, Trigger>) {
             return _triggers;
         }
-        else if constexpr (std::derived_from<T, CameraTarget>) {
-            return _camera_targets;
-        }
         else if constexpr (std::same_as<T, Emitter>) {
             return _emitters;
+        }
+        else if constexpr (std::derived_from<T, ColliderRegion>) {
+            return _colliders;
+        }
+        else if constexpr (std::derived_from<T, CameraTarget>) {
+            return _camera_targets;
         }
         else if constexpr (std::derived_from<T, Drawable>) {
             return _drawables;
@@ -56,17 +56,17 @@ private:
         if constexpr (std::same_as<T, Collidable>) {
             return _collidables;
         }
-        else if constexpr (std::derived_from<T, ColliderRegion>) {
-            return _colliders;
-        }
         else if constexpr (std::same_as<T, Trigger>) {
             return _triggers;
         }
-        else if constexpr (std::derived_from<T, CameraTarget>) {
-            return _camera_targets;
-        }
         else if constexpr (std::same_as<T, Emitter>) {
             return _emitters;
+        }
+        else if constexpr (std::derived_from<T, ColliderRegion>) {
+            return _colliders;
+        }
+        else if constexpr (std::derived_from<T, CameraTarget>) {
+            return _camera_targets;
         }
         else if constexpr (std::derived_from<T, Drawable>) {
             return _drawables;
@@ -120,10 +120,10 @@ public:
 
 	// access component
     template<class T>
-    T& at(ID<T> id) { return (T&)container<T>().at(id); }
+    T& at(ID<T> id) { return container<T>().at(id); }
 
     template<class T>
-    const T& at(ID<T> id) const { return (T&)container<T>().at(id); }
+    const T& at(ID<T> id) const { return container<T>().at(id); }
 
     template<class... IDs>
     requires (sizeof...(IDs) > 1)
@@ -134,10 +134,10 @@ public:
     auto at(IDs... ids) const { return std::forward_as_tuple(at(ids)...); }
 
     template<class T>
-    T* get(ID<T> id) { return (T*)container<T>().get(id); }
+    T* get(ID<T> id) { return container<T>().get(id); }
 
     template<class T>
-    const T* get(ID<T> id) const { return (T*)container<T>().get(id); }
+    const T* get(ID<T> id) const { return container<T>().get(id); }
 
     template<class... IDs>
     requires (sizeof...(IDs) > 1)
@@ -169,7 +169,8 @@ public:
 	// create component
 	ID<Collidable> create_collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
     ID<Trigger> create_trigger();
-    ID<SceneObject> create_scene_object(SceneObject obj);
+    ID<Emitter> create_emitter(EmitterStrategy strat = {});
+    //ID<SceneObject> create_scene_object(SceneObject obj);
 
     template<class T, class... Args> requires std::derived_from<T, ColliderRegion>
 	ID<T> create_collider(Args&&... args) {
@@ -193,6 +194,13 @@ public:
                 _object_system) ;
     }
 
+    template<class T, class... Args> requires std::derived_from<T, Drawable>
+    ID<T> create_drawable(Args&&... args) {
+        return notify_created_all(
+                poly_create<T>(_drawables, std::forward<Args>(args)...),
+                _scene_system);
+    }
+
     std::optional<ID<GameObject>> create_object_from_data(ObjectLevelData& data);
 
     ID<Level> create_level(const LevelAsset& lvl_asset, bool create_objects);
@@ -203,7 +211,8 @@ public:
     bool erase(ID<Level> id);
     bool erase(ID<Collidable> id);
     bool erase(ID<ColliderRegion> id);
-    bool erase(ID<SceneObject> id);
+    bool erase(ID<Emitter> id);
+    bool erase(ID<Drawable> id);
     bool erase(ID<Trigger> id);
     bool erase(ID<CameraTarget> id);
 
@@ -244,6 +253,7 @@ private:
 	ObjectSystem	_object_system;
 	CollisionSystem _collision_system;
 	TriggerSystem	_trigger_system;
+    EmitterSystem	_emitter_system;
 	CameraSystem	_camera_system;
 	SceneSystem		_scene_system;
     InputState      _input;

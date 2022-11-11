@@ -1,6 +1,9 @@
 #include "fastfall/game/particle/Emitter.hpp"
 #include "fastfall/util/log.hpp"
 
+#include "fastfall/game/World.hpp"
+#include "fastfall/resource/Resources.hpp"
+
 #include <algorithm>
 #include <execution>
 #include <cmath>
@@ -21,6 +24,9 @@ T pick_random(T min, T max, std::default_random_engine& engine)
     }
 }
 
+
+
+
 Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::default_random_engine& rand) const
 {
     Particle p;
@@ -29,7 +35,7 @@ Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::defau
     p.position = emitter_pos;
     p.position.x += local_spawn_area.left + pick_random(0.f, local_spawn_area.width, rand);
     p.position.y += local_spawn_area.top  + pick_random(0.f, local_spawn_area.height, rand);
-    p.position += math::rotate(Vec2f{dist, 0.f}, dist_ang); //maVec2f{cosf(dist_ang), sinf(dist_ang)} * dist;
+    p.position += math::rotate(Vec2f{dist, 0.f}, dist_ang);
     p.prev_position = p.position;
 
     Vec2f vel = Vec2f{pick_random(particle_speed_min, particle_speed_max, rand), 0.f};
@@ -42,16 +48,12 @@ Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::defau
     return p;
 }
 
-Emitter::Emitter()
-    : varr(ff::Primitive::TRIANGLES)
+Emitter::Emitter(EmitterStrategy str)
+    : strategy(str)
 {
-    auto* anim = Resources::get_animation(strategy.animation);
-    if (anim) {
-        texture = anim->get_sprite_texture();
-    }
 }
 
-void Emitter::update(secs deltaTime) {
+void Emitter::update(World& w, secs deltaTime) {
     prev_position = position;
     lifetime += deltaTime;
     if (strategy.emitter_transform)
@@ -62,8 +64,9 @@ void Emitter::update(secs deltaTime) {
     spawn_particles(deltaTime);
 }
 
-void Emitter::predraw(float interp)
+void Emitter::predraw(World& world, float interp, bool updated)
 {
+    auto& varr = world.at(varr_id);
     if (varr.size() < particles.size() * 6) {
         //varr = VertexArray{Primitive::POINT, particles.capacity()};
         size_t add_count = (particles.size() * 6) - varr.size();
@@ -71,29 +74,19 @@ void Emitter::predraw(float interp)
     }
 
     auto* anim = Resources::get_animation(strategy.animation);
+    auto& cfg = world.scene().config(varr_id);
     if (anim) {
-        texture = anim->get_sprite_texture();
+        cfg.texture = anim->get_sprite_texture();
+        auto invSize = cfg.texture->get()->inverseSize();
 
         Vec2f spr_size = Vec2f{ anim->area.getSize() } * 0.5f;
 
-        auto texiv = texture.get()->inverseSize();
-
-        Vec2f tpos = Vec2f{ anim->area.getPosition() };
-        tpos.x *= texture.get()->inverseSize().x;
-        tpos.y *= texture.get()->inverseSize().y;
-
-        Vec2f tsize = spr_size;
-        tsize.x *= texture.get()->inverseSize().x;
-        tsize.y *= texture.get()->inverseSize().y;
-
-        size_t ndx = 0;
-
-        Vec2f inter_pos = prev_position + (position - prev_position) * interp;
-
         float int_part;
+        Vec2f inter_pos = prev_position + (position - prev_position) * interp;
         Vec2f subpixel = { std::modf(inter_pos.x, &int_part), std::modf(inter_pos.y, &int_part) };
 
         assert(varr.size() >= particles.size() * 6);
+        size_t ndx = 0;
         for (auto& p : particles) {
             Vec2f center = p.prev_position + (p.position - p.prev_position) * interp;
 
@@ -116,13 +109,13 @@ void Emitter::predraw(float interp)
             area.left += frame * area.width;
 
             auto points = Rectf{ area }.toPoints();
-            varr[ndx + 0].tex_pos = points[0] * texiv;
-            varr[ndx + 1].tex_pos = points[1] * texiv;
-            varr[ndx + 2].tex_pos = points[2] * texiv;
+            varr[ndx + 0].tex_pos = points[0] * invSize;
+            varr[ndx + 1].tex_pos = points[1] * invSize;
+            varr[ndx + 2].tex_pos = points[2] * invSize;
 
-            varr[ndx + 3].tex_pos = points[2] * texiv;
-            varr[ndx + 4].tex_pos = points[1] * texiv;
-            varr[ndx + 5].tex_pos = points[3] * texiv;
+            varr[ndx + 3].tex_pos = points[2] * invSize;
+            varr[ndx + 4].tex_pos = points[1] * invSize;
+            varr[ndx + 5].tex_pos = points[3] * invSize;
 
             for(size_t n = 0; n < 6; ++n) {
                 varr[ndx + n].color = Color::White;
@@ -135,7 +128,7 @@ void Emitter::predraw(float interp)
         }
     }
     else {
-        texture = TextureRef{};
+        cfg.texture.reset();
     }
 }
 
@@ -185,12 +178,14 @@ void Emitter::destroy_dead_particles() {
     auto it = std::remove_if(particles.begin(), particles.end(), [](Particle& p) {
         return !p.is_alive;
     });
+    /*
     if (listener && it != particles.end())
     {
         listener->notify_particles_destroy(
                 std::distance(particles.begin(), it),
                 std::distance(it, particles.end()));
     }
+    */
     particles.erase(it, particles.end());
 }
 
@@ -221,9 +216,11 @@ void Emitter::spawn_particles(secs deltaTime) {
             }
         }
 
+        /*
         if (listener && created) {
             listener->notify_particles_pushed(init_size, created);
         }
+        */
     }
 }
 
@@ -240,6 +237,7 @@ void Emitter::backup_strategy() {
     strategy_backup = strategy;
 }
 
+/*
 void Emitter::draw(RenderTarget& target, RenderState states) const {
     if (states.texture.exists()) {
         states.texture = texture;
@@ -247,5 +245,6 @@ void Emitter::draw(RenderTarget& target, RenderState states) const {
 
     target.draw(varr, states);
 }
+*/
 
 }

@@ -2,10 +2,9 @@
 
 #include "fastfall/util/id.hpp"
 #include "fastfall/util/copyable_uniq_ptr.hpp"
+#include "fastfall/render/Texture.hpp"
 
 namespace ff {
-
-class Drawable;
 
 enum class scene_type {
     Object,
@@ -26,12 +25,11 @@ enum class scene_priority {
     Highest
 };
 
-struct SceneObject {
-    // copyable_unique_ptr<Drawable> drawable;
-    // ID<Drawable>    drawable_id;
+struct SceneConfig {
     scene_layer		layer_id    = 0;
     scene_type		type        = scene_type::Object;
     scene_priority	priority    = scene_priority::Normal;
+    std::optional<TextureRef> texture;
     bool            render_enable = true;
     bool            resort_flag   = false;
 };

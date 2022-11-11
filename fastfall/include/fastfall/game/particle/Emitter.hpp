@@ -4,8 +4,11 @@
 
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/util/math.hpp"
-#include "fastfall/render/AnimatedSprite.hpp"
+#include "fastfall/render/Texture.hpp"
+#include "fastfall/render/VertexArray.hpp"
 #include "fastfall/resource/asset/AnimAssetTypes.hpp"
+#include "fastfall/resource/asset/AnimAsset.hpp"
+#include "fastfall/util/id.hpp"
 
 #include <concepts>
 #include <random>
@@ -13,6 +16,7 @@
 namespace ff {
 
     class Emitter;
+    class World;
 
     // describe how particles should be created
     struct EmitterStrategy {
@@ -41,6 +45,9 @@ namespace ff {
         float particle_speed_min = 100.f;
         float particle_speed_max = 100.f;
 
+        // factor applied to the velocity per second
+        float particle_damping = 0.f;
+
         // local rect the particles are spawned in
         Rectf local_spawn_area = {};
 
@@ -64,26 +71,29 @@ namespace ff {
         Particle spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::default_random_engine& rand) const;
     };
 
+    /*
     struct EmitterListener {
         virtual void notify_particles_destroy(size_t begin, size_t count) = 0;
         virtual void notify_particles_pushed(size_t begin, size_t count) = 0;
     };
+    */
 
-    class Emitter : public Drawable {
+    class Emitter {
     public:
-        //Emitter(World& w);
+        Emitter() = default;
+        Emitter(EmitterStrategy str);
 
         Vec2f position;
+        Vec2f prev_position;
         Vec2f velocity;
         bool is_enabled = true;
         bool parallelize = true;
         EmitterStrategy strategy;
 
         std::vector<Particle>  particles;
-        EmitterListener* listener = nullptr;
 
-        //void update(World& w, secs deltaTime);
-        //void predraw(World& world, float interp, bool updated);
+        void update(World& w, secs deltaTime);
+        void predraw(World& world, float interp, bool updated);
 
         void clear_particles();
         void reset(size_t s) {
@@ -101,14 +111,10 @@ namespace ff {
 
         secs get_lifetime() const { return lifetime; };
 
-
-
-
+        void set_vertexarray(ID<VertexArray> id) { varr_id = id; }
+        ID<VertexArray> get_vertexarray() const { return varr_id; }
 
     private:
-
-        Vec2f prev_position;
-        void draw(RenderTarget& target, RenderState states = RenderState{}) const override;
 
         AnimIDRef curr_anim;
         const Animation* animation = nullptr;
@@ -118,8 +124,9 @@ namespace ff {
         secs lifetime = 0.0;
         size_t total_emit_count = 0;
         EmitterStrategy strategy_backup;
-        VertexArray varr;
-        TextureRef texture;
+        ID<VertexArray> varr_id;
+        //VertexArray varr;
+        //TextureRef texture;
 
         static Particle update_particle(const Emitter& e, Particle p, secs deltaTime);
         void update_particles(secs deltaTime);

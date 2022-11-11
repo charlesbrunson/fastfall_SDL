@@ -119,7 +119,7 @@ void Player::predraw(World& w, float interp, bool updated) {
 
 
 void Player::clean(ff::World& w) {
-    w.erase(scene_id);
+    w.erase(sprite_id);
     w.erase(collidable_id);
     w.erase(cameratarget_id);
     w.erase(hitbox_id);

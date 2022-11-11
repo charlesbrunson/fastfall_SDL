@@ -18,8 +18,8 @@ public:
     void clean(ff::World& w) override;
 
 protected:
-    ff::ID<ff::SceneObject> scene_spr_id;
-    ff::ID<ff::SceneObject> scene_emi_id;
+    //ff::ID<ff::SceneObject> scene_spr_id;
+    //ff::ID<ff::SceneObject> scene_emi_id;
     ff::ID<ff::ColliderTileMap> collider_id;
     ff::ID<ff::AnimatedSprite> sprite_id;
     ff::ID<ff::Emitter> emitter_id;

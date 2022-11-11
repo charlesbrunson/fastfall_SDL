@@ -19,10 +19,14 @@ const ObjectType BasicPlatform::Type{
 
 BasicPlatform::BasicPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
 	: ff::GameObject(w, id, data)
-    , scene_id{ w.create_scene_object({ {}, 1, ff::scene_type::Object }) }
+    , shape_id{ w.create_drawable<ShapeRectangle>(Rectf{}, platformColor) }
     , collider_id{ w.create_collider<ColliderSimple>(ff::Rectf{ Vec2f{}, Vec2f{ data.size } })}
 {
-    w.at(scene_id).drawable = make_copyable_unique<Drawable, ShapeRectangle>( Rectf{}, platformColor );
+    //w.at(shape_id).drawable = make_copyable_unique<Drawable, ShapeRectangle>( Rectf{}, platformColor );
+    w.scene().set_config(shape_id, { 1, ff::scene_type::Object });
+
+
+
 	ObjLevelID path_id = data.getPropAsID("path");
 	max_vel = data.getPropAsFloat("max_velocity");
 	accel = data.getPropAsFloat("acceleration");
@@ -63,7 +67,7 @@ BasicPlatform::BasicPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& d
 }
 
 void BasicPlatform::clean(ff::World& w)  {
-    w.erase(scene_id);
+    w.erase(shape_id);
     w.erase(collider_id);
 }
 
@@ -111,12 +115,11 @@ void BasicPlatform::update(World& w, secs deltaTime) {
 			collider.velocity = Vec2f{};
 		}
 	}
-	//collider.update(deltaTime);
 }
 
-void BasicPlatform::predraw(World& w, float interp, bool updated) {
-    auto& sh = w.at(id_cast<ShapeRectangle>(scene_id));
-    auto& collider = w.at(collider_id);
-	sh.setPosition(math::lerp(collider.getPrevPosition(), collider.getPosition() + collider_offset, interp));
-	sh.setSize(ff::Vec2f{ collider.getBoundingBox().getSize() });
+void BasicPlatform::predraw(World& w, float interp, bool updated)
+{
+    auto [shape, collider] = w.at(shape_id, collider_id);
+    shape.setPosition(math::lerp(collider.getPrevPosition(), collider.getPosition() + collider_offset, interp));
+    shape.setSize(ff::Vec2f{ collider.getBoundingBox().getSize() });
 }

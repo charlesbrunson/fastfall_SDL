@@ -6,9 +6,14 @@
 
 namespace ff {
 
-void SceneSystem::notify_created(World& world, ID<SceneObject> id)
-{
-    to_add.push_back(id);
+
+
+void SceneSystem::set_config(ID<Drawable> id, SceneConfig cfg) {
+    auto it = configs.find(id);
+    if (it != configs.end())
+    {
+        it->second = cfg;
+    }
 }
 
 void SceneSystem::predraw(World& world, float interp, bool updated)
@@ -18,25 +23,32 @@ void SceneSystem::predraw(World& world, float interp, bool updated)
     }
 }
 
+void SceneSystem::notify_created(World& world, ID<Drawable> id)
+{
+    to_add.insert(id);
+    configs.emplace(id, SceneConfig{});
+}
+
 void SceneSystem::add_to_scene(World& world)
 {
+
     struct Comp {
-        World *w;
-        bool operator()(ID<SceneObject> s, scene_layer i) const { return w->at(s).layer_id < i; }
-        bool operator()(scene_layer i, ID<SceneObject> s) const { return i < w->at(s).layer_id; }
+        std::unordered_map<ID<Drawable>, SceneConfig>* configs;
+        bool operator()(ID<Drawable> s, scene_layer i) const { return configs->at(s).layer_id < i; }
+        bool operator()(scene_layer i, ID<Drawable> s) const { return i < configs->at(s).layer_id; }
     };
 
     for (auto id : to_add) {
-        auto &scene_obj = world.at(id);
+        auto &scene_obj = configs.at(id);
 
         auto [beg, end] = std::equal_range(
                 scene_order.begin(),
                 scene_order.end(),
                 scene_obj.layer_id,
-                Comp{&world});
+                Comp{&configs});
 
-        auto it = std::upper_bound(beg, end, scene_obj.priority, [&world](scene_priority p, ID<SceneObject> d) {
-            return p < world.at(d).priority;
+        auto it = std::upper_bound(beg, end, scene_obj.priority, [this](scene_priority p, ID<Drawable> d) {
+            return p < configs.at(d).priority;
         });
 
         scene_order.insert(it, id);
@@ -45,15 +57,18 @@ void SceneSystem::add_to_scene(World& world)
 
     for (auto id : to_erase) {
         scene_order.erase(
-                std::find(scene_order.begin(), scene_order.end(), id)
+            std::find(scene_order.begin(), scene_order.end(), id)
         );
+        to_add.erase(id);
+        configs.erase(id);
     }
     to_erase.clear();
+
 }
 
-void SceneSystem::notify_erased(World& world, ID<SceneObject> id)
+void SceneSystem::notify_erased(World& world, ID<Drawable> id)
 {
-    to_erase.push_back(id);
+    to_erase.insert(id);
 }
 
 void SceneSystem::set_cam_pos(Vec2f center) {
@@ -78,25 +93,30 @@ void SceneSystem::draw(const World& world, RenderTarget& target, RenderState sta
 
 	target.draw(background, state);
 
-	for (size_t ndx = 0; ndx < scene_order.size(); ndx++) {
-        auto scene_id = scene_order[ndx];
-        const auto& scene_object = world.at(scene_id);
+    for (auto id : scene_order) {
+        auto& cfg = configs.at(id);
 
-		if (scissor_enabled && scene_object.layer_id >= 0) {
-			scissor_enabled = false;
-			disableScissor();
-		}
-		else if (!scissor_enabled && scene_object.layer_id < 0)
-		{
-			continue;
-		}
-
-        if (scene_object.render_enable
-            && scene_object.drawable.get())
-        {
-            target.draw(*scene_object.drawable, state);
+        if (scissor_enabled && cfg.layer_id >= 0) {
+            scissor_enabled = false;
+            disableScissor();
         }
-	}
+        else if (!scissor_enabled && cfg.layer_id < 0)
+        {
+            continue;
+        }
+
+        if (cfg.render_enable)
+        {
+            if (cfg.texture) {
+                auto st = state;
+                st.texture = *cfg.texture;
+                target.draw(world.at(id), st);
+            }
+            else {
+                target.draw(world.at(id), state);
+            }
+        }
+    }
 
 	if (scissor_enabled) {
 		disableScissor();

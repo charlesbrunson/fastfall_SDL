@@ -19,7 +19,7 @@ bool WorldImGui::update_labels = false;
 
 void imgui_collidables(World* w) {
     for (auto [cid, col] : w->all<Collidable>()) {
-        if (ImGui::TreeNode((void*)(&col), "Collidable %d", cid.value.sparse_index)) {
+        if (ImGui::TreeNode((void*)(&col), "Collidable %d##1", cid.value.sparse_index)) {
 
             ImGui::Text("Curr Pos: %3.2f, %3.2f", col.getPosition().x, col.getPosition().y);
 
@@ -36,14 +36,13 @@ void imgui_collidables(World* w) {
             ImGui::Text("Speed:        %3.2f", col.get_vel().magnitude());
             ImGui::Text("Gravity:      %3.2f, %3.2f", col.get_gravity().x, col.get_gravity().y);
 
-            if (ImGui::TreeNode((void*)(&col.get_trackers()), "Tracker")) {
+            if (ImGui::TreeNode((void*)(&col), "Tracker##2")) {
 
-                if (col.get_trackers().empty()) {
+                if (!col.get_tracker()) {
                     ImGui::Text("No trackers!");
                 }
-
-                for (auto [tid, tracker] : col.get_trackers()) {
-
+                else {
+                    auto& tracker = col.at_tracker();
 
                     static char labelbuf[32];
                     sprintf(labelbuf, "Friction (%d)", tracker.settings.has_friction);
@@ -273,7 +272,7 @@ void imgui_camera(World* w) {
 
 void imgui_scene(World* w) {
     for (auto id : w->scene().get_scene_order()) {
-        auto& scene = w->at(id);
+        auto& scene = w->scene().config(id);
 
         if (ImGui::TreeNode((void *) (&scene), "Scene Object %d", id.value.sparse_index)) {
             static std::string_view priority_str[] = {
@@ -284,7 +283,7 @@ void imgui_scene(World* w) {
                 "Highest"
             };
 
-            ImGui::Text("Drawable:  %p", scene.drawable.get());
+            ImGui::Text("Drawable:  %p", w->get(id));
             ImGui::Text("Layer:     %d", scene.layer_id);
             ImGui::Text("Type:      %s", scene.type == scene_type::Object ? "Object" : "Level");
             ImGui::Text("Priority:  %s", priority_str[static_cast<size_t>(scene.priority)].data());
