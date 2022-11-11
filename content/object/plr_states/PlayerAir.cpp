@@ -18,7 +18,7 @@ PlayerStateID PlayerAirState::update(ff::World& w, plr::members& plr, secs delta
 		return PlayerStateID::Continue;
 
     auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
-    auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
+    auto& ground = box.at_tracker();
 
 	//int wishx = (int)Input::isHeld(InputType::RIGHT) - (int)Input::isHeld(InputType::LEFT);
     //int wishx = w.input().is_held(InputType::RIGHT) - w.input().is_held(InputType::LEFT);
@@ -121,7 +121,7 @@ PlayerStateID PlayerAirState::update(ff::World& w, plr::members& plr, secs delta
 PlayerStateID PlayerAirState::post_collision(ff::World& w, plr::members& plr)
 {
     auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
-    auto& ground = w.at_tracker(plr.collidable_id, plr.surfacetracker_id);
+    auto& ground = box.at_tracker();
     
 	if (ground.has_contact()) {
 		if (prevVelY > 150.f + ground.get_contact()->velocity.y) {

@@ -97,12 +97,10 @@ void Emitter::predraw(float interp)
         for (auto& p : particles) {
             Vec2f center = p.prev_position + (p.position - p.prev_position) * interp;
 
-
             // nearest pixel
-            center.x = floorf(center.x + 0.5f);
-            center.y = floorf(center.y + 0.5f);
+            center.x = floorf(center.x + 0.25f);
+            center.y = floorf(center.y + 0.25f);
             center += subpixel;
-
 
             varr[ndx + 0].pos = center + Vec2f{ -spr_size.x, -spr_size.y };
             varr[ndx + 1].pos = center + Vec2f{  spr_size.x, -spr_size.y };
