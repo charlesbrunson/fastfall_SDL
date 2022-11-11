@@ -119,7 +119,8 @@ void BasicPlatform::update(World& w, secs deltaTime) {
 
 void BasicPlatform::predraw(World& w, float interp, bool updated)
 {
-    auto [shape, collider] = w.at(shape_id, collider_id);
+    auto& shape = w.at(shape_id);
+    auto& collider = w.at(collider_id);
     shape.setPosition(math::lerp(collider.getPrevPosition(), collider.getPosition() + collider_offset, interp));
     shape.setSize(ff::Vec2f{ collider.getBoundingBox().getSize() });
 }

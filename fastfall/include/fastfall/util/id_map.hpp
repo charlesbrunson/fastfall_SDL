@@ -163,12 +163,12 @@ public:
 
 	template<std::derived_from<T> Type>
 	Type& at(ID<Type> id) {
-		return *reinterpret_cast<Type*>(components.at(id.value).get());
+		return *static_cast<Type*>(components.at(id.value).get());
 	}
 
 	template<std::derived_from<T> Type>
 	const Type& at(ID<Type> id) const {
-		return *reinterpret_cast<const Type*>(components.at(id.value).get());
+		return *static_cast<const Type*>(components.at(id.value).get());
 	}
 
     template<std::derived_from<T> Type>
