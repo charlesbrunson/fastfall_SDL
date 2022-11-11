@@ -33,6 +33,9 @@ private:
         else if constexpr (std::same_as<T, Emitter>) {
             return _emitters;
         }
+        else if constexpr (std::same_as<T, Level>) {
+            return _levels;
+        }
         else if constexpr (std::derived_from<T, ColliderRegion>) {
             return _colliders;
         }
@@ -44,9 +47,6 @@ private:
         }
         else if constexpr (std::derived_from<T, GameObject>) {
             return _objects;
-        }
-        else if constexpr (std::same_as<T, Level>) {
-            return _levels;
         }
         else { throw std::exception{}; }
     }
@@ -62,6 +62,9 @@ private:
         else if constexpr (std::same_as<T, Emitter>) {
             return _emitters;
         }
+        else if constexpr (std::same_as<T, Level>) {
+            return _levels;
+        }
         else if constexpr (std::derived_from<T, ColliderRegion>) {
             return _colliders;
         }
@@ -73,9 +76,6 @@ private:
         }
         else if constexpr (std::derived_from<T, GameObject>) {
             return _objects;
-        }
-        else if constexpr (std::same_as<T, Level>) {
-            return _levels;
         }
         else { throw std::exception{}; }
     }
@@ -120,7 +120,9 @@ public:
 
 	// access component
     template<class T>
-    T& at(ID<T> id) { return container<T>().at(id); }
+    T& at(ID<T> id) {
+        return container<T>().at(id);
+    }
 
     template<class T>
     const T& at(ID<T> id) const { return container<T>().at(id); }
