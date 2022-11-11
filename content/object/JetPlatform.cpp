@@ -11,7 +11,7 @@ AnimIDRef anim_platform[] = {
 };
 
 
-AnimIDRef anim_jetfx("jet_platform.sax", "effect");
+//AnimIDRef anim_jetfx("jet_platform.sax", "effect");
 
 const ObjectType JetPlatform::Type{
         .type = { "JetPlatform" },
@@ -23,19 +23,19 @@ const ObjectType JetPlatform::Type{
 };
 
 const EmitterStrategy jet_emitter_str = {
-    .emit_rate_min = 200,
-    .emit_rate_max = 200,
-    .emit_count_min = 1,
-    .emit_count_max = 1,
-    .max_lifetime = 0.1,
-    .max_particles = -1,
-    .direction = Angle::Degree(90.f),
+    .emit_rate_min      = 200,
+    .emit_rate_max      = 200,
+    .emit_count_min     = 1,
+    .emit_count_max     = 1,
+    .max_lifetime       = 0.1,
+    .max_particles      = -1,
+    .direction          = Angle::Degree(90.f),
     .open_angle_degrees = 3.f,
     .particle_speed_min = 400.f,
     .particle_speed_max = 600.f,
     .scatter_max_radius = 0.f,
-    .inherits_vel = false,
-    .animation = AnimIDRef{ "jet_platform.sax", "effect" },
+    .inherits_vel       = false,
+    .animation          = AnimIDRef{ "jet_platform.sax", "effect" },
 };
 
 JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
