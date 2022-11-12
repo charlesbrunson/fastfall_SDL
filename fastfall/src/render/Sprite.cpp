@@ -78,11 +78,18 @@ void Sprite::setTextureRect(Rectf textureRect) {
 	if (m_textureRect != textureRect) {
 		m_textureRect = textureRect;
 
+        constexpr float tex_offset = 1.f / 16384.f;
+        auto inv_size = m_texture.get()->inverseSize();
 		auto points = m_textureRect.toPoints();
-		m_verts[0].tex_pos = points[0] * m_texture.get()->inverseSize();
-		m_verts[1].tex_pos = points[1] * m_texture.get()->inverseSize();
-		m_verts[2].tex_pos = points[2] * m_texture.get()->inverseSize();
-		m_verts[3].tex_pos = points[3] * m_texture.get()->inverseSize();
+		m_verts[0].tex_pos = points[0] * inv_size;
+		m_verts[1].tex_pos = points[1] * inv_size;
+		m_verts[2].tex_pos = points[2] * inv_size;
+		m_verts[3].tex_pos = points[3] * inv_size;
+
+        m_verts[0].tex_pos += glm::vec2{  tex_offset,  tex_offset } * inv_size;
+        m_verts[1].tex_pos += glm::vec2{ -tex_offset,  tex_offset } * inv_size;
+        m_verts[2].tex_pos += glm::vec2{  tex_offset, -tex_offset } * inv_size;
+        m_verts[3].tex_pos += glm::vec2{ -tex_offset, -tex_offset } * inv_size;
 	}
 
 
