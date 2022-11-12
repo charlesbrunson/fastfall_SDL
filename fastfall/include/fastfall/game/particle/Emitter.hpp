@@ -16,7 +16,7 @@
 namespace ff {
 
     class Emitter;
-    class World;
+    class SceneConfig;
 
     // describe how particles should be created
     struct EmitterStrategy {
@@ -93,7 +93,7 @@ namespace ff {
         std::vector<Particle>  particles;
 
         void update(secs deltaTime);
-        void predraw(World& world, float interp, bool updated);
+        void predraw(VertexArray& varr, SceneConfig& cfg, float interp, bool updated);
 
         void clear_particles();
         void reset(size_t s) {

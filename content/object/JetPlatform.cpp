@@ -115,6 +115,7 @@ void JetPlatform::update(ff::World& w, secs deltaTime) {
         accel.x += velocity.unit().x * (-damping.x * velocity.magnitude());
         accel.y += velocity.unit().y * (-damping.y * velocity.magnitude());
 
+        prev_position = position;
         velocity += accel * deltaTime;
         position += velocity * deltaTime;
 
@@ -122,6 +123,8 @@ void JetPlatform::update(ff::World& w, secs deltaTime) {
         collider.velocity = velocity;
         collider.setPosition(position);
 
+        emitter.prev_position = prev_position;
+        emitter.prev_position += Vec2f{(float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f};
         emitter.position = position;
         emitter.position += Vec2f{(float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f};
         emitter.velocity = collider.velocity;
