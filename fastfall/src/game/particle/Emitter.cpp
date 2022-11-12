@@ -53,7 +53,7 @@ Emitter::Emitter(EmitterStrategy str)
 {
 }
 
-void Emitter::update(World& w, secs deltaTime) {
+void Emitter::update(secs deltaTime) {
     prev_position = position;
     lifetime += deltaTime;
     if (strategy.emitter_transform)

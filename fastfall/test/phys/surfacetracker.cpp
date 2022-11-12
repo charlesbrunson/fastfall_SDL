@@ -19,6 +19,8 @@ protected:
     World world;
 	CollisionSystem* colMan;
 
+    ID<EmptyObject> collider_obj_id;
+    ID<EmptyObject> collidable_obj_id;
 	Collidable* box = nullptr;
 	SurfaceTracker* ground = nullptr;
 
@@ -46,19 +48,24 @@ protected:
 		log.close();
 	}
 
+
+
 	void SetUp() override {
 		
 		Vec2f pos  = { 0, 0 };
 		Vec2f size = { 16, 32 };
 		Vec2f grav = { 0, 0 };
 
-        auto box_id = world.create_collidable(pos, size, grav);
+        collidable_obj_id = world.create_object<EmptyObject>();
+        collider_obj_id = world.create_object<EmptyObject>();
+        auto box_id = world.create_collidable(collidable_obj_id, pos, size, grav);
 		box = world.get(box_id);
 
-        ground = box->create_tracker(
-                Angle::Degree(-135),
-                Angle::Degree(-45)
-            ).second;
+        box->set_tracker(
+            Angle::Degree(-135),
+            Angle::Degree(-45)
+        );
+        ground = box->get_tracker();
 
         ground->settings = {
 				.slope_sticking = true,
@@ -70,6 +77,11 @@ protected:
 
 	void TearDown() override 
 	{
+        world.erase(collidable_obj_id);
+        world.erase(collider_obj_id);
+        box = nullptr;
+        ground = nullptr;
+        collider = nullptr;
 	}
 
 	void update() 
@@ -86,7 +98,7 @@ protected:
 	void initTileMap(grid_vector<std::string_view> tiles) 
 	{
 		collider = world.get(
-                world.create_collider<ColliderTileMap>(Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() })
+                world.create_collider<ColliderTileMap>(collider_obj_id, Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() })
                 );
 		for (auto it = tiles.begin(); it != tiles.end(); it++) {
 			if (!it->empty()) {

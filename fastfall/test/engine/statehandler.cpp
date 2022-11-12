@@ -8,7 +8,7 @@ class BlankState : public EngineState {
 public:
     void update(secs deltaTime) override {};
 
-    void predraw(float interp, bool updated) override {};
+    void predraw(float interp, bool updated, const WindowState* win_state) override {};
 
     inline void setEngineAction(const EngineStateAction& act) noexcept { eAct = act; };
 

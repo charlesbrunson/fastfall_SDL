@@ -178,4 +178,13 @@ GameObject::GameObject(World& w, ID<GameObject> id, ObjectLevelData& data)
 {
 }
 
+const ObjectType EmptyObject::_type = {
+    .type = { "EmptyObject" },
+    .allow_as_level_data = false,
+    .anim = std::nullopt,
+    .tile_size = {0, 0},
+    .group_tags = {},
+    .properties = {}
+};
+
 }

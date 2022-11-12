@@ -8,7 +8,7 @@ namespace ff {
 void EmitterSystem::update(World& world, secs deltaTime) {
     for (auto [eid, e] : world.all<Emitter>())
     {
-        e.update(world, deltaTime);
+        e.update(deltaTime);
     }
 }
 
