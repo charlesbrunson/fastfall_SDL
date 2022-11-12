@@ -109,13 +109,14 @@ void Emitter::predraw(World& world, float interp, bool updated)
             area.left += frame * area.width;
 
             auto points = Rectf{ area }.toPoints();
-            varr[ndx + 0].tex_pos = points[0] * invSize;
-            varr[ndx + 1].tex_pos = points[1] * invSize;
-            varr[ndx + 2].tex_pos = points[2] * invSize;
+            constexpr float tex_offset = 1.f / 16384.f;
+            varr[ndx + 0].tex_pos = (points[0] + glm::vec2{ tex_offset,  tex_offset}) * invSize;
+            varr[ndx + 1].tex_pos = (points[1] + glm::vec2{-tex_offset,  tex_offset}) * invSize;
+            varr[ndx + 2].tex_pos = (points[2] + glm::vec2{ tex_offset, -tex_offset}) * invSize;
 
-            varr[ndx + 3].tex_pos = points[2] * invSize;
-            varr[ndx + 4].tex_pos = points[1] * invSize;
-            varr[ndx + 5].tex_pos = points[3] * invSize;
+            varr[ndx + 3].tex_pos = (points[2] + glm::vec2{ tex_offset, -tex_offset}) * invSize;
+            varr[ndx + 4].tex_pos = (points[1] + glm::vec2{-tex_offset,  tex_offset}) * invSize;
+            varr[ndx + 5].tex_pos = (points[3] + glm::vec2{-tex_offset, -tex_offset}) * invSize;
 
             for(size_t n = 0; n < 6; ++n) {
                 varr[ndx + n].color = Color::White;
