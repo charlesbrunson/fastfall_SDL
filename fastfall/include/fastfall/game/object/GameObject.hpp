@@ -221,7 +221,7 @@ protected:
 
     // erase any components allocated by this object from the world
     // called prior to deletion from world
-    virtual void clean(World& world) = 0;
+    //virtual void clean(World& world) = 0;
 
     friend class ObjectSystem;
 private:

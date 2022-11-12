@@ -40,9 +40,9 @@ const EmitterStrategy jet_emitter_str = {
 
 JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
         : ff::GameObject(w, id, data)
-        , sprite_id(w.create_drawable<AnimatedSprite>())
-        , emitter_id(w.create_emitter())
-        , collider_id{ w.create_collider<ColliderTileMap>(Vec2i{(int)(data.size.x / TILESIZE), 1}) }
+        , sprite_id(w.create_drawable<AnimatedSprite>(id))
+        , emitter_id(w.create_emitter(id))
+        , collider_id{w.create_collider<ColliderTileMap>(id, Vec2i{(int)(data.size.x / TILESIZE), 1})}
 {
     tile_width = data.size.x / TILESIZE;
     assert(platform_width_min <= tile_width && tile_width <= platform_width_max);
@@ -138,10 +138,4 @@ void JetPlatform::predraw(ff::World& w, float interp, bool updated) {
     auto [sprite, collider] = w.at(sprite_id, collider_id);
     sprite.set_pos(math::lerp(collider.getPrevPosition(), collider.getPosition(), interp));
     sprite.predraw(interp);
-}
-
-void JetPlatform::clean(ff::World& w) {
-    w.erase(sprite_id);
-    w.erase(emitter_id);
-    w.erase(collider_id);
 }

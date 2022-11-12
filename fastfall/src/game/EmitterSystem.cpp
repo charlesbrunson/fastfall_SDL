@@ -21,12 +21,15 @@ void EmitterSystem::predraw(World& world, float interp, bool updated) {
 }
 
 void EmitterSystem::notify_created(World &world, ID<Emitter> id) {
-    auto varr_id = world.create_drawable<VertexArray>(ff::Primitive::TRIANGLES);
+    auto varr_id = world.create_drawable<VertexArray>(
+            world.get_entity_of(id),
+            ff::Primitive::TRIANGLES);
+
     world.at(id).set_vertexarray(varr_id);
 }
 
 void EmitterSystem::notify_erased(World &world, ID<Emitter> id) {
-    world.erase(world.at(id).get_vertexarray());
+    //world.erase(world.at(id).get_vertexarray());
 }
 
 }

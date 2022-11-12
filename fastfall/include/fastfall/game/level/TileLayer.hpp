@@ -68,7 +68,7 @@ public:
 	void removeTile(World& world, const Vec2u& position);
 
     // removes all tiles, collision, parallax and scrolling
-	void clean(World& world);
+	//void clean(World& world);
 
 	void shallow_copy(World& world, const TileLayer& src, Rectu src_area, Vec2u dst);
 

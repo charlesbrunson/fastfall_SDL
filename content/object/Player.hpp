@@ -22,7 +22,6 @@ public:
 
 	void update(ff::World& w, secs deltaTime) override;
 	void predraw(ff::World& w, float interp, bool updated) override;
-    void clean(ff::World& w) override;
 
 	//void ImGui_Inspect() override;
 

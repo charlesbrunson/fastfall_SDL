@@ -32,7 +32,7 @@ void ObjectSystem::notify_created(World& world, ID<GameObject> id) {
 }
 
 void ObjectSystem::notify_erased(World& world, ID<GameObject> id) {
-    world.at(id).clean(world);
+    //world.at(id).clean(world);
     std::erase(update_order, id);
     std::erase(created_objects, id);
 }

@@ -17,7 +17,7 @@ public:
 
 	void predraw(ff::World& w, float interp, bool updated) override;
 
-    void clean(ff::World& w) override;
+    //void clean(ff::World& w) override;
 
 protected:
 	bool has_path = false;

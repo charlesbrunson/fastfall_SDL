@@ -25,12 +25,11 @@ public:
 	Level(World& w, ID<Level> t_id);
 	Level(World& w, ID<Level> t_id, const LevelAsset& levelData);
 
-
     //void init(World& world, ID<Level> t_id);
     void initFromAsset(World& world, const LevelAsset& levelData);
 
     // removes all layers, resets name, bg color and size
-    void clean(World& w);
+    // void clean(World& w);
 
 	void update(World& world, secs deltaTime);
 	void predraw(World& world, float interp, bool updated);
