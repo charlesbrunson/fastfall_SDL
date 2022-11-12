@@ -20,17 +20,17 @@
 namespace ff {
 
 using ComponentID = std::variant<
-        ID<Collidable>,
-        ID<ColliderRegion>,
-        ID<Trigger>,
-        ID<CameraTarget>,
-        ID<Drawable>,
-        ID<Emitter>
+    ID<Collidable>,
+    ID<ColliderRegion>,
+    ID<Trigger>,
+    ID<CameraTarget>,
+    ID<Drawable>,
+    ID<Emitter>
 >;
 
 using EntityID = std::variant<
-        ID<GameObject>,
-        ID<Level>
+    ID<GameObject>,
+    ID<Level>
 >;
 
 class World : public Drawable

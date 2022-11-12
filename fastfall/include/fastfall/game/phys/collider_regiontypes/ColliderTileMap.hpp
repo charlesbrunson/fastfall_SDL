@@ -70,6 +70,13 @@ public:
 
 	void setBorders(const Vec2u& size, const unsigned cardinalBits);
 
+    inline void fill(const TileShape& toShape, const TileMaterial* mat = nullptr, Cardinal matFacing = Cardinal::N) {
+        for (auto x = size_min.x; x < size_max.x; x++) {
+            for (auto y = size_min.y; y < size_max.y; y++) {
+                setTile({ x, y }, toShape, mat, matFacing);
+            }
+        }
+    }
 	inline void setTile(const Vec2i& at, const TileShape& toShape, const TileMaterial* mat = nullptr, Cardinal matFacing = Cardinal::N)
 	{ 
 		editQueue.push(Edit{ at, false, toShape, mat, matFacing }); 
