@@ -31,10 +31,12 @@ TEST(particle, emitter)
     emit.seed(0);
     emit.strategy.direction = Angle::Degree(90);
     emit.strategy.open_angle_degrees = 0.f;
-    emit.strategy.particle_speed = {300.f, 300.f};
+    emit.strategy.particle_speed_min = 300.f;
+    emit.strategy.particle_speed_max = 300.f;
     emit.strategy.scatter_max_radius = 0.f;
     emit.strategy.local_spawn_area = {0, -410, 400, 10.f};
-    emit.strategy.emit_rate = { one_tick / 50, one_tick / 50 };
+    emit.strategy.emit_rate_min = one_tick / 50;
+    emit.strategy.emit_rate_max = one_tick / 50;
     emit.strategy.max_particles = -1;
     emit.strategy.max_lifetime = -1;
 
@@ -71,10 +73,11 @@ TEST(particle, emitter)
         }
     };
 
+    /*
     update(6000 / one_tick);
     update_and_render(10 / one_tick);
+    */
 
-    /*
     std::locale::global(std::locale("es_CO.UTF-8"));
     auto timer = std::chrono::steady_clock{};
     emit.parallelize = false;
@@ -95,8 +98,6 @@ TEST(particle, emitter)
     duration = timer.now() - start;
 
     LOG_INFO("DURATION PARALLEL   = {:20L}us", std::chrono::duration_cast<std::chrono::microseconds>(duration).count())
-
-    */
 
     /*
     Emitter emit;

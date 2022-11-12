@@ -92,7 +92,7 @@ namespace ff {
 
         std::vector<Particle>  particles;
 
-        void update(World& w, secs deltaTime);
+        void update(secs deltaTime);
         void predraw(World& world, float interp, bool updated);
 
         void clear_particles();
