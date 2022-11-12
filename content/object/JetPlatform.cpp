@@ -10,9 +10,6 @@ AnimIDRef anim_platform[] = {
         {"jet_platform.sax", "platform_5"},
 };
 
-
-//AnimIDRef anim_jetfx("jet_platform.sax", "effect");
-
 const ObjectType JetPlatform::Type{
         .type = { "JetPlatform" },
         .allow_as_level_data = true,
@@ -39,10 +36,10 @@ const EmitterStrategy jet_emitter_str = {
 };
 
 JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
-        : ff::GameObject(w, id, data)
-        , sprite_id(w.create_drawable<AnimatedSprite>(id))
-        , emitter_id(w.create_emitter(id))
-        , collider_id{w.create_collider<ColliderTileMap>(id, Vec2i{(int)(data.size.x / TILESIZE), 1})}
+    : ff::GameObject(w, id, data)
+    , sprite_id(w.create_drawable<AnimatedSprite>(id))
+    , emitter_id(w.create_emitter(id))
+    , collider_id{w.create_collider<ColliderTileMap>(id, Vec2i{(int)(data.size.x / TILESIZE), 1})}
 {
     tile_width = data.size.x / TILESIZE;
     assert(platform_width_min <= tile_width && tile_width <= platform_width_max);
@@ -52,18 +49,15 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
 
     auto [sprite, collider, emitter] = w.at(sprite_id, collider_id, emitter_id);
 
-    for (int i = 0; i < tile_width; ++i) {
-        collider.setTile(Vec2i{i, 0}, "oneway"_ts);
-    }
+    collider.fill("oneway"_ts);
     collider.applyChanges();
     collider.teleport(base_position);
     collider.set_on_postcontact(
     [id = id_cast<JetPlatform>(getID()), cid = collider_id](World& w, const AppliedContact& c)
     {
-        auto [jetpl, collider] = w.at(id, cid);
         if (c.hasContact && c.id && c.id->collider == id_cast<ColliderRegion>(cid))
         {
-            auto& collidable = w.at(c.id->collidable);
+            auto [jetpl, collider, collidable] = w.at(id, cid, c.id->collidable);
             jetpl.push_vel.y += (c.collidable_precontact_velocity - collider.velocity).y * 0.9f;
 
             if (auto* track = collidable.get_tracker();
