@@ -21,6 +21,7 @@ World::World(const World& other)
     _input = other._input;
     _camera_targets = other._camera_targets;
     _drawables = other._drawables;
+    _attachpoints = other._attachpoints;
     _level_system = other._level_system;
     _object_system = other._object_system;
     _collision_system = other._collision_system;
@@ -28,6 +29,7 @@ World::World(const World& other)
     _camera_system = other._camera_system;
     _scene_system = other._scene_system;
     _emitter_system = other._emitter_system;
+    _attach_system = other._attach_system;
     ent_to_comp = other.ent_to_comp;
     comp_to_ent = other.comp_to_ent;
     update_counter = other.update_counter;
@@ -46,6 +48,7 @@ World::World(World&& other) noexcept
     _input = std::move(other._input);
     _camera_targets = std::move(other._camera_targets);
     _drawables = std::move(other._drawables);
+    _attachpoints = std::move(other._attachpoints);
     _level_system = std::move(other._level_system);
     _object_system = std::move(other._object_system);
     _collision_system = std::move(other._collision_system);
@@ -53,6 +56,7 @@ World::World(World&& other) noexcept
     _camera_system = std::move(other._camera_system);
     _scene_system = std::move(other._scene_system);
     _emitter_system = std::move(other._emitter_system);
+    _attach_system = std::move(other._attach_system);
     ent_to_comp = std::move(other.ent_to_comp);
     comp_to_ent = std::move(other.comp_to_ent);
     update_counter = other.update_counter;
@@ -70,6 +74,7 @@ World& World::operator=(const World& other) {
     _input = other._input;
     _camera_targets = other._camera_targets;
     _drawables = other._drawables;
+    _attachpoints = other._attachpoints;
     _level_system = other._level_system;
     _object_system = other._object_system;
     _collision_system = other._collision_system;
@@ -77,6 +82,7 @@ World& World::operator=(const World& other) {
     _camera_system = other._camera_system;
     _scene_system = other._scene_system;
     _emitter_system = other._emitter_system;
+    _attach_system = other._attach_system;
     ent_to_comp = other.ent_to_comp;
     comp_to_ent = other.comp_to_ent;
     update_counter = other.update_counter;
@@ -95,6 +101,7 @@ World& World::operator=(World&& other) noexcept {
     _input = std::move(other._input);
     _camera_targets = std::move(other._camera_targets);
     _drawables = std::move(other._drawables);
+    _attachpoints = std::move(other._attachpoints);
     _level_system = std::move(other._level_system);
     _object_system = std::move(other._object_system);
     _collision_system = std::move(other._collision_system);
@@ -102,6 +109,7 @@ World& World::operator=(World&& other) noexcept {
     _camera_system = std::move(other._camera_system);
     _scene_system = std::move(other._scene_system);
     _emitter_system = std::move(other._emitter_system);
+    _attach_system = std::move(other._attach_system);
     ent_to_comp = std::move(other.ent_to_comp);
     comp_to_ent = std::move(other.comp_to_ent);
     update_counter = other.update_counter;
@@ -142,10 +150,20 @@ ID<Emitter> World::create_emitter(EntityID ent, EmitterStrategy strat) {
         _emitter_system);
     return id;
 }
+ID<AttachPoint> World::create_attachpoint(EntityID ent) {
+    auto tmp_id = _attachpoints.peek_next_id();
+    ent_to_comp.at(ent).insert(tmp_id);
+    comp_to_ent.emplace(tmp_id, ent);
+    auto id = notify_created_all(
+            create_tmpl(_attachpoints, tmp_id),
+            _attach_system);
+    return id;
+}
 
 void World::update(secs deltaTime) {
     if (Level* active = _level_system.get_active(*this))
     {
+        _attach_system.update(*this, deltaTime);
         _input.update(deltaTime);
         active->update(*this, deltaTime);
         _trigger_system.update(*this, deltaTime);
@@ -251,6 +269,7 @@ bool World::erase_impl(ID<Emitter> id)          { return erase_tmpl(id, _emitter
 bool World::erase_impl(ID<Drawable> id)         { return erase_tmpl(id, _drawables, _scene_system); }
 bool World::erase_impl(ID<Trigger> id)          { return erase_tmpl(id, _triggers, _trigger_system); }
 bool World::erase_impl(ID<CameraTarget> id)     { return erase_tmpl(id, _camera_targets, _camera_system); }
+bool World::erase_impl(ID<AttachPoint> id)      { return erase_tmpl(id, _attachpoints, _attach_system); }
 
 const std::set<ComponentID>& World::get_components_of(EntityID id) const {
     return ent_to_comp.at(id);
