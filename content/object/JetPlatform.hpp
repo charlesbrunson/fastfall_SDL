@@ -23,6 +23,7 @@ protected:
     ff::Vec2f base_position;
     secs lifetime = 0.0;
 
+    ff::Vec2f prev_position;
     ff::Vec2f position;
     ff::Vec2f velocity;
     ff::Vec2f push_vel;

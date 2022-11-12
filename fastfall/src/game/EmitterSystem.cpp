@@ -15,8 +15,11 @@ void EmitterSystem::update(World& world, secs deltaTime) {
 void EmitterSystem::predraw(World& world, float interp, bool updated) {
     for (auto [eid, e] : world.all<Emitter>())
     {
-        e.predraw(world, interp, updated);
-
+        e.predraw(
+                world.at(e.get_vertexarray()),
+                world.scene().config(e.get_vertexarray()),
+                interp,
+                updated);
     }
 }
 
@@ -29,7 +32,7 @@ void EmitterSystem::notify_created(World &world, ID<Emitter> id) {
 }
 
 void EmitterSystem::notify_erased(World &world, ID<Emitter> id) {
-    //world.erase(world.at(id).get_vertexarray());
+
 }
 
 }

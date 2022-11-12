@@ -54,7 +54,7 @@ Emitter::Emitter(EmitterStrategy str)
 }
 
 void Emitter::update(secs deltaTime) {
-    prev_position = position;
+    //prev_position = position;
     lifetime += deltaTime;
     if (strategy.emitter_transform)
         strategy.emitter_transform(*this, deltaTime);
@@ -64,9 +64,9 @@ void Emitter::update(secs deltaTime) {
     spawn_particles(deltaTime);
 }
 
-void Emitter::predraw(World& world, float interp, bool updated)
+void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, float interp, bool updated)
 {
-    auto& varr = world.at(varr_id);
+    //auto& varr = world.at(varr_id);
     if (varr.size() < particles.size() * 6) {
         //varr = VertexArray{Primitive::POINT, particles.capacity()};
         size_t add_count = (particles.size() * 6) - varr.size();
@@ -74,7 +74,7 @@ void Emitter::predraw(World& world, float interp, bool updated)
     }
 
     auto* anim = Resources::get_animation(strategy.animation);
-    auto& cfg = world.scene().config(varr_id);
+    //auto& cfg = world.scene().config(varr_id);
     if (anim) {
         cfg.texture = anim->get_sprite_texture();
         auto invSize = cfg.texture->get()->inverseSize();
@@ -83,17 +83,22 @@ void Emitter::predraw(World& world, float interp, bool updated)
 
         float int_part;
         Vec2f inter_pos = prev_position + (position - prev_position) * interp;
-        Vec2f subpixel = { std::modf(inter_pos.x, &int_part), std::modf(inter_pos.y, &int_part) };
+        //Vec2f subpixel = { std::modf(inter_pos.x, &int_part), std::modf(inter_pos.y, &int_part) };
+
+        Vec2f subpixel = {
+            floorf(inter_pos.x + 0.5f) - inter_pos.x,
+            floorf(inter_pos.y + 0.5f) - inter_pos.y,
+        };
 
         assert(varr.size() >= particles.size() * 6);
         size_t ndx = 0;
         for (auto& p : particles) {
             Vec2f center = p.prev_position + (p.position - p.prev_position) * interp;
 
-            // nearest pixel
-            center.x = floorf(center.x + 0.25f);
-            center.y = floorf(center.y + 0.25f);
-            center += subpixel;
+            // snap to pixel offset of emitter
+            center.x = floorf(center.x + 0.5f);
+            center.y = floorf(center.y + 0.5f);
+            center -= subpixel;
 
             varr[ndx + 0].pos = center + Vec2f{ -spr_size.x, -spr_size.y };
             varr[ndx + 1].pos = center + Vec2f{  spr_size.x, -spr_size.y };
