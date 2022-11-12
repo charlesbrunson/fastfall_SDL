@@ -2,6 +2,7 @@
 
 #include "fastfall/util/id.hpp"
 #include "fastfall/util/id_map.hpp"
+#include "fastfall/game/AnyID.hpp"
 
 #include "fastfall/game/level/Level.hpp"
 #include "fastfall/game/CollisionSystem.hpp"
@@ -11,6 +12,7 @@
 #include "fastfall/game/ObjectSystem.hpp"
 #include "fastfall/game/LevelSystem.hpp"
 #include "fastfall/game/EmitterSystem.hpp"
+#include "fastfall/game/AttachSystem.hpp"
 #include "fastfall/engine/input/InputState.hpp"
 
 #include <optional>
@@ -19,19 +21,6 @@
 
 namespace ff {
 
-using ComponentID = std::variant<
-    ID<Collidable>,
-    ID<ColliderRegion>,
-    ID<Trigger>,
-    ID<CameraTarget>,
-    ID<Drawable>,
-    ID<Emitter>
->;
-
-using EntityID = std::variant<
-    ID<GameObject>,
-    ID<Level>
->;
 
 class World : public Drawable
 {
@@ -46,6 +35,9 @@ private:
         }
         else if constexpr (std::same_as<T, Emitter>) {
             return _emitters;
+        }
+        else if constexpr (std::same_as<T, AttachPoint>) {
+            return _attachpoints;
         }
         else if constexpr (std::same_as<T, Level>) {
             return _levels;
@@ -75,6 +67,9 @@ private:
         }
         else if constexpr (std::same_as<T, Emitter>) {
             return _emitters;
+        }
+        else if constexpr (std::same_as<T, AttachPoint>) {
+            return _attachpoints;
         }
         else if constexpr (std::same_as<T, Level>) {
             return _levels;
@@ -180,6 +175,7 @@ public:
     // create component
 	ID<Collidable> create_collidable(EntityID ent, Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
     ID<Trigger> create_trigger(EntityID ent);
+    ID<AttachPoint> create_attachpoint(EntityID ent);
     ID<Emitter> create_emitter(EntityID ent, EmitterStrategy strat = {});
 
     template<class T, class... Args> requires std::derived_from<T, ColliderRegion>
@@ -228,9 +224,11 @@ public:
 	inline TriggerSystem&   trigger()   { return _trigger_system; }
 	inline CameraSystem&    camera()    { return _camera_system; }
 	inline SceneSystem&     scene()     { return _scene_system; }
+    inline AttachSystem&    attach()    { return _attach_system; }
+    inline InputState&      input()     { return _input; }
+
     inline ObjectSystem&    objects() 	{ return _object_system; }
     inline LevelSystem&     levels()    { return _level_system; }
-    inline InputState&      input()     { return _input; }
 
     size_t tick_count() const { return update_counter; }
     secs uptime() const { return update_time; }
@@ -249,6 +247,7 @@ private:
     bool erase_impl(ID<Drawable> id);
     bool erase_impl(ID<Trigger> id);
     bool erase_impl(ID<CameraTarget> id);
+    bool erase_impl(ID<AttachPoint> id);
 
 	// entities
 	poly_id_map<GameObject> _objects;
@@ -261,6 +260,7 @@ private:
 	poly_id_map<CameraTarget> 	_camera_targets;
     poly_id_map<Drawable>       _drawables;
     id_map<Emitter>             _emitters;
+    id_map<AttachPoint>         _attachpoints;
 
     // entity to component lookup
     std::unordered_map<EntityID, std::set<ComponentID>> ent_to_comp;
@@ -272,6 +272,7 @@ private:
 	CollisionSystem _collision_system;
 	TriggerSystem	_trigger_system;
     EmitterSystem	_emitter_system;
+    AttachSystem	_attach_system;
 	CameraSystem	_camera_system;
 	SceneSystem		_scene_system;
     InputState      _input;

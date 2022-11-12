@@ -37,21 +37,16 @@ const EmitterStrategy jet_emitter_str = {
 
 JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     : ff::GameObject(w, id, data)
-    , sprite_id(w.create_drawable<AnimatedSprite>(id))
-    , emitter_id(w.create_emitter(id))
-    , collider_id{w.create_collider<ColliderTileMap>(id, Vec2i{(int)(data.size.x / TILESIZE), 1})}
 {
-    tile_width = data.size.x / TILESIZE;
+    tile_width = (int)data.size.x / TILESIZE;
     assert(platform_width_min <= tile_width && tile_width <= platform_width_max);
 
     base_position = Vec2f{ data.position } - Vec2f{ (float)data.size.x / 2.f, (float)data.size.y };
-    position = base_position;
 
-    auto [sprite, collider, emitter] = w.at(sprite_id, collider_id, emitter_id);
-
+    collider_id = w.create_collider<ColliderTileMap>(id, Vec2i{tile_width, 1});
+    auto& collider = w.at(collider_id);
     collider.fill("oneway"_ts);
     collider.applyChanges();
-    collider.teleport(base_position);
     collider.set_on_postcontact(
     [id = id_cast<JetPlatform>(getID()), cid = collider_id](World& w, const AppliedContact& c)
     {
@@ -72,67 +67,60 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
         }
     });
 
+    sprite_id = w.create_drawable<AnimatedSprite>(id);
+    auto& sprite = w.at(sprite_id);
     sprite.set_anim(anim_platform[tile_width - platform_width_min]);
-    sprite.set_pos(base_position);
-
-    emitter.strategy = jet_emitter_str;
-
     w.scene().config(sprite_id) = {
         .layer_id = 0,
         .type = scene_type::Object,
         .priority = scene_priority::Low,
     };
 
+    emitter_id = w.create_emitter(id);
+    auto& emitter = w.at(emitter_id);
+    emitter.strategy = jet_emitter_str;
     w.scene().config(emitter.get_vertexarray()) = {
         .layer_id = 0,
         .type = scene_type::Object,
         .priority = scene_priority::Lowest,
     };
+
+    attach_id = w.create_attachpoint(id);
+    auto& attach = w.at(attach_id);
+    //w.attach().attach_to(attach_id, sprite_id, {});
+    w.attach().create(attach_id, collider_id, {});
+    w.attach().create(attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
+    attach.teleport(base_position);
 }
 
-void JetPlatform::update(ff::World& w, secs deltaTime) {
+void JetPlatform::update(ff::World& w, secs deltaTime)
+{
+    constexpr Vec2f spring{30.f, 50.f};
+    constexpr Vec2f damping{8.f, 3.f};
 
     if (deltaTime > 0.0) {
-        auto [sprite, collider, emitter] = w.at(sprite_id, collider_id, emitter_id);
+        auto [attach, sprite, collider, emitter] = w.at(attach_id, sprite_id, collider_id, emitter_id);
         lifetime += deltaTime;
 
         // apply accumulated push to velocity
-        velocity += push_vel + (push_accel * (float)deltaTime);
+        attach.add_vel(push_vel + (push_accel * (float)deltaTime));
         push_accel = Vec2f{};
         push_vel = Vec2f{};
 
-        constexpr Vec2f spring{30.f, 50.f};
-        constexpr Vec2f damping{8.f, 3.f};
-
+        // apply forces
         Vec2f accel{};
+        Vec2f offset = (attach.curr_pos() - base_position);
+        accel += offset.unit() * (-spring * offset.magnitude()); // spring
+        accel += attach.vel().unit() * (-damping * attach.vel().magnitude()); // damping
 
-        // apply spring force
-        Vec2f offset = (position - base_position);
-        accel.x += offset.unit().x * (-spring.x * offset.magnitude());
-        accel.y += offset.unit().y * (-spring.y * offset.magnitude());
-
-        // apply damping force
-        accel.x += velocity.unit().x * (-damping.x * velocity.magnitude());
-        accel.y += velocity.unit().y * (-damping.y * velocity.magnitude());
-
-        prev_position = position;
-        velocity += accel * deltaTime;
-        position += velocity * deltaTime;
-
-        collider.delta_velocity = velocity - collider.velocity;
-        collider.velocity = velocity;
-        collider.setPosition(position);
-
-        emitter.prev_position = prev_position;
-        emitter.prev_position += Vec2f{(float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f};
-        emitter.position = position;
-        emitter.position += Vec2f{(float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f};
-        emitter.velocity = collider.velocity;
+        attach.add_vel(accel * deltaTime);
+        attach.update(deltaTime);
+        w.attach().notify(w, attach_id);
     }
 }
 
 void JetPlatform::predraw(ff::World& w, float interp, bool updated) {
-    auto [sprite, collider] = w.at(sprite_id, collider_id);
-    sprite.set_pos(math::lerp(collider.getPrevPosition(), collider.getPosition(), interp));
+    auto [attach, sprite] = w.at(attach_id, sprite_id);
+    sprite.set_pos(attach.interpolate(interp));
     sprite.predraw(interp);
 }

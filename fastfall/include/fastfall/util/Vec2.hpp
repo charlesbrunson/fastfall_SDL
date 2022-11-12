@@ -191,10 +191,22 @@ constexpr inline ff::Vec2<U> operator*(const T left, const ff::Vec2<U>& right) {
 }
 
 template <typename T, typename U>
+constexpr inline ff::Vec2<U> operator*(const ff::Vec2<T>& left, const ff::Vec2<U>& right) {
+    return ff::Vec2<U>(right.x * left.x, right.y * left.y);
+}
+
+template <typename T, typename U>
 constexpr inline ff::Vec2<T>& operator*=(ff::Vec2<T>& left, const U right) {
 	left.x *= right;
 	left.y *= right;
 	return left;
+}
+
+template <typename T, typename U>
+constexpr inline ff::Vec2<T>& operator*=(ff::Vec2<T>& left, const ff::Vec2<U>& right) {
+    left.x *= right.x;
+    left.y *= right.y;
+    return left;
 }
 
 template <typename T, typename U>
