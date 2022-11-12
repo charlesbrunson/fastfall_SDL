@@ -28,6 +28,8 @@ World::World(const World& other)
     _camera_system = other._camera_system;
     _scene_system = other._scene_system;
     _emitter_system = other._emitter_system;
+    ent_to_comp = other.ent_to_comp;
+    comp_to_ent = other.comp_to_ent;
     update_counter = other.update_counter;
     update_time = other.update_time;
 }
@@ -51,6 +53,8 @@ World::World(World&& other) noexcept
     _camera_system = std::move(other._camera_system);
     _scene_system = std::move(other._scene_system);
     _emitter_system = std::move(other._emitter_system);
+    ent_to_comp = std::move(other.ent_to_comp);
+    comp_to_ent = std::move(other.comp_to_ent);
     update_counter = other.update_counter;
     update_time = other.update_time;
 }
@@ -73,6 +77,8 @@ World& World::operator=(const World& other) {
     _camera_system = other._camera_system;
     _scene_system = other._scene_system;
     _emitter_system = other._emitter_system;
+    ent_to_comp = other.ent_to_comp;
+    comp_to_ent = other.comp_to_ent;
     update_counter = other.update_counter;
     update_time = other.update_time;
     return *this;
@@ -96,6 +102,8 @@ World& World::operator=(World&& other) noexcept {
     _camera_system = std::move(other._camera_system);
     _scene_system = std::move(other._scene_system);
     _emitter_system = std::move(other._emitter_system);
+    ent_to_comp = std::move(other.ent_to_comp);
+    comp_to_ent = std::move(other.comp_to_ent);
     update_counter = other.update_counter;
     update_time = other.update_time;
     return *this;
@@ -105,31 +113,35 @@ World::~World() {
     WorldImGui::remove(this);
 }
 
-ID<Collidable> World::create_collidable(Vec2f position, Vec2f size, Vec2f gravity) {
-    return notify_created_all(
-            create(_collidables, position, size, gravity),
+ID<Collidable> World::create_collidable(EntityID ent, Vec2f position, Vec2f size, Vec2f gravity) {
+    auto tmp_id = _collidables.peek_next_id();
+    ent_to_comp.at(ent).insert(tmp_id);
+    comp_to_ent.emplace(tmp_id, ent);
+    auto id = notify_created_all(
+            create_tmpl(_collidables, position, size, gravity),
             _collision_system);
+    return id;
 }
 
-ID<Trigger> World::create_trigger() {
-    return notify_created_all(
-            create(_triggers, _triggers.peek_next_id()),
+ID<Trigger> World::create_trigger(EntityID ent) {
+    auto tmp_id = _triggers.peek_next_id();
+    ent_to_comp.at(ent).insert(tmp_id);
+    comp_to_ent.emplace(tmp_id, ent);
+    auto id = notify_created_all(
+            create_tmpl(_triggers, tmp_id),
             _trigger_system);
+    return id;
 }
 
-ID<Emitter> World::create_emitter(EmitterStrategy strat) {
-    return notify_created_all(
-        create(_emitters, strat),
+ID<Emitter> World::create_emitter(EntityID ent, EmitterStrategy strat) {
+    auto tmp_id = _emitters.peek_next_id();
+    ent_to_comp.at(ent).insert(tmp_id);
+    comp_to_ent.emplace(tmp_id, ent);
+    auto id = notify_created_all(
+        create_tmpl(_emitters, strat),
         _emitter_system);
+    return id;
 }
-
-/*
-ID<SceneObject> World::create_scene_object(SceneObject obj) {
-    return notify_created_all(
-            create(_scene_objects, obj),
-            _scene_system);
-}
-*/
 
 void World::update(secs deltaTime) {
     if (Level* active = _level_system.get_active(*this))
@@ -193,39 +205,70 @@ ID<GameObject> World::add_object(copyable_unique_ptr<GameObject>&& obj) {
 */
 
 ID<Level> World::create_level(const LevelAsset& lvl_asset, bool create_objects) {
+    auto tmp_id = _levels.peek_next_id();
+    ent_to_comp.emplace(tmp_id, std::set<ComponentID>{});
     auto id = notify_created_all(
-            create(_levels, *this, _levels.peek_next_id(), lvl_asset),
+            create_tmpl(_levels, *this, tmp_id, lvl_asset),
             _level_system);
 
     if (create_objects)
     {
         at(id).get_layers().get_obj_layer().createObjectsFromData(*this);
     }
-
     return id;
 }
 
 ID<Level> World::create_level() {
+    auto tmp_id = _levels.peek_next_id();
+    ent_to_comp.emplace(tmp_id, std::set<ComponentID>{});
     return notify_created_all(
-            create(_levels, *this, _levels.peek_next_id()),
+            create_tmpl(_levels, *this, _levels.peek_next_id()),
             _level_system);
 }
 
-bool World::erase(ID<GameObject> id)       { return erase(id, _objects, _object_system); }
-bool World::erase(ID<Level> id)            { return erase(id, _levels, _level_system); }
-bool World::erase(ID<Collidable> id)       { return erase(id, _collidables, _collision_system); }
-bool World::erase(ID<ColliderRegion> id)   { return erase(id, _colliders, _collision_system); }
-bool World::erase(ID<Emitter> id)          { return erase(id, _emitters, _emitter_system); }
-bool World::erase(ID<Drawable> id)         { return erase(id, _drawables, _scene_system); }
-bool World::erase(ID<Trigger> id)          { return erase(id, _triggers, _trigger_system); }
-bool World::erase(ID<CameraTarget> id)     { return erase(id, _camera_targets, _camera_system); }
+bool World::erase(EntityID entity) {
+    auto components = ent_to_comp.at(entity);
+    for (auto& c : components) {
+        erase(c);
+    }
+    auto r = std::visit([this](auto id) { return erase_impl(id); }, entity);
+    ent_to_comp.erase(entity);
+    return r;
+}
+bool World::erase(ComponentID component) {
+    auto ent = comp_to_ent.at(component);
+    auto r = std::visit([this](auto id) { return erase_impl(id); }, component);
+    comp_to_ent.erase(component);
+    ent_to_comp.at(ent).erase(component);
+    return r;
+}
+
+bool World::erase_impl(ID<GameObject> id)       { return erase_tmpl(id, _objects, _object_system); }
+bool World::erase_impl(ID<Level> id)            { return erase_tmpl(id, _levels, _level_system); }
+bool World::erase_impl(ID<Collidable> id)       { return erase_tmpl(id, _collidables, _collision_system); }
+bool World::erase_impl(ID<ColliderRegion> id)   { return erase_tmpl(id, _colliders, _collision_system); }
+bool World::erase_impl(ID<Emitter> id)          { return erase_tmpl(id, _emitters, _emitter_system); }
+bool World::erase_impl(ID<Drawable> id)         { return erase_tmpl(id, _drawables, _scene_system); }
+bool World::erase_impl(ID<Trigger> id)          { return erase_tmpl(id, _triggers, _trigger_system); }
+bool World::erase_impl(ID<CameraTarget> id)     { return erase_tmpl(id, _camera_targets, _camera_system); }
+
+const std::set<ComponentID>& World::get_components_of(EntityID id) const {
+    return ent_to_comp.at(id);
+}
+
+EntityID World::get_entity_of(ComponentID id) const {
+    return comp_to_ent.at(id);
+}
 
 std::optional<ID<GameObject>> World::create_object_from_data(ObjectLevelData &data) {
-    auto ptr = ObjectFactory::createFromData(*this, _objects.peek_next_id(), data);
+    auto tmp_id = _objects.peek_next_id();
+    ent_to_comp.emplace(tmp_id, std::set<ComponentID>{});
+    auto ptr = ObjectFactory::createFromData(*this, tmp_id, data);
     if (ptr) {
         return notify_created_all(_objects.emplace(std::move(ptr)), _object_system);
     }
     else {
+        ent_to_comp.erase(tmp_id);
         return std::nullopt;
     }
 }

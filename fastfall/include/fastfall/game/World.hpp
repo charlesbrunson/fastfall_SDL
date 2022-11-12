@@ -19,6 +19,20 @@
 
 namespace ff {
 
+using ComponentID = std::variant<
+        ID<Collidable>,
+        ID<ColliderRegion>,
+        ID<Trigger>,
+        ID<CameraTarget>,
+        ID<Drawable>,
+        ID<Emitter>
+>;
+
+using EntityID = std::variant<
+        ID<GameObject>,
+        ID<Level>
+>;
+
 class World : public Drawable
 {
 private:
@@ -82,12 +96,12 @@ private:
 
     auto span(auto& components) { return std::span{components.begin(), components.end()}; };
 
-    auto create(auto& container, auto&&... args) {
+    auto create_tmpl(auto& container, auto&&... args) {
         return container.create(std::forward<decltype(args)>(args)...);
     }
 
     template<class T>
-    auto poly_create(auto& container, auto&&... args) {
+    auto poly_create_tmpl(auto& container, auto&&... args) {
         return container.template create<T>(std::forward<decltype(args)>(args)...);
     }
 
@@ -96,7 +110,7 @@ private:
         return id;
     }
 
-    bool erase(auto id, auto& components, auto&... systems) {
+    bool erase_tmpl(auto id, auto& components, auto&... systems) {
         bool exists = components.exists(id);
         if (exists) {
             (systems.notify_erased(*this, id), ...);
@@ -149,74 +163,61 @@ public:
     requires (sizeof...(IDs) > 1)
     auto get(IDs... ids) const { return std::forward_as_tuple(get(ids)...); }
 
-    // id_cast SceneObject to a drawble type to retrieve that from the sceneobject
-    // kinda scuffed but its fun
-    /*
-    template<std::derived_from<Drawable> T>
-    T& at(ID<T> id) { return *(T*)at(id_cast<SceneObject>(id)).drawable.get(); }
-
-    template<std::derived_from<Drawable> T>
-    const T& at(ID<T> id) const { return *(T*)at(id_cast<SceneObject>(id)).drawable.get(); }
-
-    template<std::derived_from<Drawable> T>
-    T* get(ID<T> id) { return (T*)at(id_cast<SceneObject>(id)).drawable.get(); }
-
-    template<std::derived_from<Drawable> T>
-    const T* get(ID<T> id) const { return (T*)at(id_cast<SceneObject>(id)).drawable.get(); }
-    */
-
-    //SurfaceTracker& at_tracker(ID<Collidable> collidable_id, ID<SurfaceTracker> tracker_id);
-    //SurfaceTracker* get_tracker(ID<Collidable> collidable_id, ID<SurfaceTracker> tracker_id);
-
-	// create component
-	ID<Collidable> create_collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
-    ID<Trigger> create_trigger();
-    ID<Emitter> create_emitter(EmitterStrategy strat = {});
-    //ID<SceneObject> create_scene_object(SceneObject obj);
-
-    template<class T, class... Args> requires std::derived_from<T, ColliderRegion>
-	ID<T> create_collider(Args&&... args) {
-        return notify_created_all(
-                poly_create<T>(_colliders, std::forward<Args>(args)...),
-                _collision_system);
-    }
-
-	template<class T, class... Args> requires std::derived_from<T, CameraTarget>
-	ID<T> create_camera_target(Args&&... args) {
-        return notify_created_all(
-                poly_create<T>(_camera_targets, std::forward<Args>(args)...),
-                _camera_system) ;
-    }
-
-
+    // create entity
+    std::optional<ID<GameObject>> create_object_from_data(ObjectLevelData& data);
     template<class T, class... Args> requires std::derived_from<T, GameObject>
     ID<T> create_object(Args&&... args) {
-        return notify_created_all(
-                poly_create<T>(_objects, *this, _objects.peek_next_id(), std::forward<Args>(args)...),
-                _object_system) ;
+        ent_to_comp.emplace(_objects.peek_next_id(), std::set<ComponentID>{});
+        auto id = notify_created_all(
+                poly_create_tmpl<T>(_objects, *this, _objects.peek_next_id(), std::forward<Args>(args)...),
+                _object_system);
+        return id;
     }
-
-    template<class T, class... Args> requires std::derived_from<T, Drawable>
-    ID<T> create_drawable(Args&&... args) {
-        return notify_created_all(
-                poly_create<T>(_drawables, std::forward<Args>(args)...),
-                _scene_system);
-    }
-
-    std::optional<ID<GameObject>> create_object_from_data(ObjectLevelData& data);
 
     ID<Level> create_level(const LevelAsset& lvl_asset, bool create_objects);
     ID<Level> create_level();
 
+    // create component
+	ID<Collidable> create_collidable(EntityID ent, Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
+    ID<Trigger> create_trigger(EntityID ent);
+    ID<Emitter> create_emitter(EntityID ent, EmitterStrategy strat = {});
+
+    template<class T, class... Args> requires std::derived_from<T, ColliderRegion>
+	ID<T> create_collider(EntityID ent, Args&&... args) {
+        auto tmp_id = _colliders.peek_next_id();
+        ent_to_comp.at(ent).insert(tmp_id);
+        comp_to_ent.emplace(tmp_id, ent);
+        auto id = notify_created_all(
+                poly_create_tmpl<T>(_colliders, std::forward<Args>(args)...),
+                _collision_system);
+        return id;
+    }
+
+	template<class T, class... Args> requires std::derived_from<T, CameraTarget>
+	ID<T> create_camera_target(EntityID ent, Args&&... args) {
+        auto tmp_id = _camera_targets.peek_next_id();
+        ent_to_comp.at(ent).insert(tmp_id);
+        comp_to_ent.emplace(tmp_id, ent);
+        auto id = notify_created_all(
+                poly_create_tmpl<T>(_camera_targets, std::forward<Args>(args)...),
+                _camera_system) ;
+        return id;
+    }
+
+    template<class T, class... Args> requires std::derived_from<T, Drawable>
+    ID<T> create_drawable(EntityID ent, Args&&... args) {
+        auto tmp_id = _drawables.peek_next_id();
+        ent_to_comp.at(ent).insert(tmp_id);
+        comp_to_ent.emplace(tmp_id, ent);
+        auto id = notify_created_all(
+                poly_create_tmpl<T>(_drawables, std::forward<Args>(args)...),
+                _scene_system);
+        return id;
+    }
+
 	// erase component
-    bool erase(ID<GameObject> id);
-    bool erase(ID<Level> id);
-    bool erase(ID<Collidable> id);
-    bool erase(ID<ColliderRegion> id);
-    bool erase(ID<Emitter> id);
-    bool erase(ID<Drawable> id);
-    bool erase(ID<Trigger> id);
-    bool erase(ID<CameraTarget> id);
+    bool erase(EntityID entity);
+    bool erase(ComponentID component);
 
     // span components
     template<class T>
@@ -234,8 +235,20 @@ public:
     size_t tick_count() const { return update_counter; }
     secs uptime() const { return update_time; }
 
+    const std::set<ComponentID>& get_components_of(EntityID id) const;
+    EntityID get_entity_of(ComponentID id) const;
+
 private:
     void draw(RenderTarget& target, RenderState state = RenderState()) const override;
+
+    bool erase_impl(ID<GameObject> id);
+    bool erase_impl(ID<Level> id);
+    bool erase_impl(ID<Collidable> id);
+    bool erase_impl(ID<ColliderRegion> id);
+    bool erase_impl(ID<Emitter> id);
+    bool erase_impl(ID<Drawable> id);
+    bool erase_impl(ID<Trigger> id);
+    bool erase_impl(ID<CameraTarget> id);
 
 	// entities
 	poly_id_map<GameObject> _objects;
@@ -246,9 +259,12 @@ private:
 	poly_id_map<ColliderRegion> _colliders;
 	id_map<Trigger> 			_triggers;
 	poly_id_map<CameraTarget> 	_camera_targets;
-    //id_map<SceneObject>         _scene_objects;
     poly_id_map<Drawable>       _drawables;
     id_map<Emitter>             _emitters;
+
+    // entity to component lookup
+    std::unordered_map<EntityID, std::set<ComponentID>> ent_to_comp;
+    std::unordered_map<ComponentID, EntityID>           comp_to_ent;
 
 	// systems
 	LevelSystem	    _level_system;

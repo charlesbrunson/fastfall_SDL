@@ -19,8 +19,8 @@ const ObjectType BasicPlatform::Type{
 
 BasicPlatform::BasicPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
 	: ff::GameObject(w, id, data)
-    , shape_id{ w.create_drawable<ShapeRectangle>(Rectf{}, platformColor) }
-    , collider_id{ w.create_collider<ColliderSimple>(ff::Rectf{ Vec2f{}, Vec2f{ data.size } })}
+    , shape_id{ w.create_drawable<ShapeRectangle>(id, Rectf{}, platformColor) }
+    , collider_id{ w.create_collider<ColliderSimple>(id, Rectf{ Vec2f{}, Vec2f{ data.size } })}
 {
     //w.at(shape_id).drawable = make_copyable_unique<Drawable, ShapeRectangle>( Rectf{}, platformColor );
     w.scene().set_config(shape_id, { 1, ff::scene_type::Object });
@@ -66,10 +66,12 @@ BasicPlatform::BasicPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& d
 
 }
 
+/*
 void BasicPlatform::clean(ff::World& w)  {
     w.erase(shape_id);
     w.erase(collider_id);
 }
+*/
 
 void BasicPlatform::update(World& w, secs deltaTime) {
 

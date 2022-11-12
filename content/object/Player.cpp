@@ -117,15 +117,6 @@ void Player::predraw(World& w, float interp, bool updated) {
 	spr.predraw(interp);
 }
 
-
-void Player::clean(ff::World& w) {
-    w.erase(sprite_id);
-    w.erase(collidable_id);
-    w.erase(cameratarget_id);
-    w.erase(hitbox_id);
-    w.erase(hurtbox_id);
-}
-
 /*
 void Player::ImGui_Inspect() {
 	using namespace ImGui;

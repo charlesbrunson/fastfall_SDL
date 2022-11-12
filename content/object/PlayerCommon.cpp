@@ -32,18 +32,18 @@ plr::move_t::move_t(World& w, const plr::members& plr)
 
 
 plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
-    : sprite_id(w.create_drawable<AnimatedSprite>())
-    , collidable_id(w.create_collidable(position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
+    : sprite_id(w.create_drawable<AnimatedSprite>(plr.getID()))
+    , collidable_id(w.create_collidable(plr.getID(), position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
     , cameratarget_id()
-    , hitbox_id(w.create_trigger())
-    , hurtbox_id(w.create_trigger())
+    , hitbox_id(w.create_trigger(plr.getID()))
+    , hurtbox_id(w.create_trigger(plr.getID()))
 {
     auto& box = w.at(collidable_id);
     box.set_tracker(
         Angle::Degree(-135.f),
         Angle::Degree( -45.f)
     );
-    //surfacetracker_id = id;
+
     box.at_tracker().settings = {
         .move_with_platforms = true,
         .slope_sticking      = true,
@@ -56,6 +56,7 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     };
 
     cameratarget_id = w.create_camera_target<SimpleCamTarget>(
+        plr.getID(),
         ff::CamTargetPriority::Medium,
         [id = collidable_id](World& w) {
             return w.at(id).getPosition() - Vec2f{0.f, 16.f};

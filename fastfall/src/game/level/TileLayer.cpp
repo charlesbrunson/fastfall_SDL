@@ -32,13 +32,6 @@ TileLayer::TileLayer(World& world, ID<Level> lvl_id, const TileLayerData& layerD
 	initFromAsset(world, layerData);
 }
 
-/*
-ChunkVertexArray* TileLayer::get_chunk(World& world, ID<ChunkVertexArray> id)
-{
-    return (ChunkVertexArray*)world.at(id).drawable.get();
-}
-*/
-
 void TileLayer::set_layer(World& world, scene_layer lyr) {
 	layer = lyr;
 	for (auto chunk_id : dyn.chunks)
@@ -50,25 +43,19 @@ void TileLayer::set_layer(World& world, scene_layer lyr) {
 }
 
 void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
-	clean(world);
+    for (auto chunk : dyn.chunks) {
+        world.erase(chunk);
+    }
+    if (dyn.collision.collider) {
+        world.erase(*dyn.collision.collider);
+    }
 
 	layer_data = layerData;
 
 	// init chunks
 	for (auto& [tileset, _] : layer_data.getTilesets())
 	{
-        /*
-        auto chunk_id = world.create_scene_object({
-            .drawable = make_copyable_unique<Drawable, ChunkVertexArray>(
-                getSize(),
-                kChunkSize
-            ),
-            .layer_id = layer,
-            .type = scene_type::Level
-        });
-        */
-
-        auto chunk_id = world.create_drawable<ChunkVertexArray>(getSize(), kChunkSize);
+        auto chunk_id = world.create_drawable<ChunkVertexArray>(level_id, getSize(), kChunkSize);
         world.scene().set_config(chunk_id, {layer, scene_type::Level});
         dyn.chunks.push_back(chunk_id);
 
@@ -138,7 +125,6 @@ void TileLayer::update(World& world, secs deltaTime) {
 		collider->setPosition(collider->getPosition());
 		collider->delta_velocity = Vec2f{};
 		collider->velocity = Vec2f{};
-		//collider->update(deltaTime);
 	}
 
 	if (hasScrolling()) {
@@ -182,7 +168,7 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 	{
 		if (!dyn.collision.collider) {
 
-            dyn.collision.collider = world.create_collider<ColliderTileMap>(Vec2i{ getLevelSize() }, true);
+            dyn.collision.collider = world.create_collider<ColliderTileMap>(level_id, Vec2i{ getLevelSize() }, true);
             auto* collider = get_collider(world);
 
 			layer_data.setCollision(true, border);
@@ -502,7 +488,7 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 	if (tile.tileset_ndx == dyn.chunks.size())
 	{
         // TODO buffer changes?
-        auto chunk_id = world.create_drawable<ChunkVertexArray>(getSize(), kChunkSize);
+        auto chunk_id = world.create_drawable<ChunkVertexArray>(level_id, getSize(), kChunkSize);
         world.scene().set_config(chunk_id, { layer, scene_type::Level });
 
         auto& cvr = world.at(chunk_id);
@@ -564,23 +550,6 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 			}
 		}
 	}
-}
-
-void TileLayer::clean(World& world)
-{
-	set_collision(world, false);
-	set_parallax(world, false);
-	set_scroll(world, false);
-
-    for (auto k : dyn.chunks)
-    {
-        world.erase(k);
-    }
-    dyn.chunks.clear();
-
-    layer_data.clearTiles();
-    dyn.tile_logic.clear();
-    tiles_dyn = grid_vector<TileDynamic>(layer_data.getSize());
 }
 
 void TileLayer::shallow_copy(World& world, const TileLayer& src, Rectu src_area, Vec2u dst)
