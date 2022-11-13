@@ -27,10 +27,6 @@ public:
         raise_should_delete(spr.is_complete());
 	};
 
-	void predraw(ff::World& w, float interp, bool updated) override {
-		//w.at(id_cast<ff::AnimatedSprite>(anim_spr_id)).predraw(interp);
-	};
-
 private:
     ff::ID<ff::AnimatedSprite> anim_spr_id;
 };

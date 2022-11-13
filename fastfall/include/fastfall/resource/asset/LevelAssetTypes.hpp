@@ -43,6 +43,14 @@ struct ObjectData {
 	std::unordered_map<std::string, std::string> properties;
 	std::vector<Vec2i> points;
 
+    Vec2f getPosition() const {
+        return Vec2f{ position };
+    }
+
+    Vec2f getTopLeftPos() const {
+        return Vec2f{ position } - Vec2f{ (float)size.x / 2.f, (float)size.y };
+    }
+
 	const std::string& getPropAsString(const std::string& key) const
 	{
 		return properties.at(key);

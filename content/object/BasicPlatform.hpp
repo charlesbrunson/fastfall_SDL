@@ -12,12 +12,7 @@ public:
 	const ff::ObjectType& type() const override { return Type; };
 
 	BasicPlatform(ff::World& w, ff::ID<ff::GameObject> id, ff::ObjectLevelData& data);
-
 	void update(ff::World& w, secs deltaTime) override;
-
-	void predraw(ff::World& w, float interp, bool updated) override;
-
-    //void clean(ff::World& w) override;
 
 protected:
 	bool has_path = false;
@@ -30,13 +25,12 @@ protected:
 
 	size_t waypoint_ndx = 0u;
 
-	ff::Vec2f collider_offset;
-
 	ff::Vec2f from;
 	ff::Vec2f to;
 	float progress = 0.f;
 	bool reverser = false;
 
+    ff::ID<ff::AttachPoint> attach_id;
     ff::ID<ff::ShapeRectangle> shape_id;
     ff::ID<ff::ColliderSimple> collider_id;
 

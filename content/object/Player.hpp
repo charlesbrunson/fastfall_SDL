@@ -21,7 +21,6 @@ public:
 	Player(ff::World& w, ff::ID<ff::GameObject> id, ff::ObjectLevelData& data);
 
 	void update(ff::World& w, secs deltaTime) override;
-	void predraw(ff::World& w, float interp, bool updated) override;
 
 	//void ImGui_Inspect() override;
 
