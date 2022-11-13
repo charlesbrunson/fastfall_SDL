@@ -79,7 +79,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     emitter_id = w.create_emitter(id);
     auto& emitter = w.at(emitter_id);
     emitter.strategy = jet_emitter_str;
-    w.scene().config(emitter.get_vertexarray()) = {
+    w.scene().config(emitter.get_drawid()) = {
         .layer_id = 0,
         .type = scene_type::Object,
         .priority = scene_priority::Lowest,
