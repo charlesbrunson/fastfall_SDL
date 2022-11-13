@@ -111,8 +111,8 @@ namespace ff {
 
         secs get_lifetime() const { return lifetime; };
 
-        void set_vertexarray(ID<VertexArray> id) { varr_id = id; }
-        ID<VertexArray> get_vertexarray() const { return varr_id; }
+        void set_drawid(ID<VertexArray> id) { varr_id = id; }
+        ID<VertexArray> get_drawid() const { return varr_id; }
 
     private:
 

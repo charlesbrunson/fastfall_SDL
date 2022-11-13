@@ -16,8 +16,8 @@ void EmitterSystem::predraw(World& world, float interp, bool updated) {
     for (auto [eid, e] : world.all<Emitter>())
     {
         e.predraw(
-                world.at(e.get_vertexarray()),
-                world.scene().config(e.get_vertexarray()),
+                world.at(e.get_drawid()),
+                world.scene().config(e.get_drawid()),
                 interp,
                 updated);
     }
@@ -28,11 +28,11 @@ void EmitterSystem::notify_created(World &world, ID<Emitter> id) {
             world.get_entity_of(id),
             ff::Primitive::TRIANGLES);
 
-    world.at(id).set_vertexarray(varr_id);
+    world.at(id).set_drawid(varr_id);
 }
 
 void EmitterSystem::notify_erased(World &world, ID<Emitter> id) {
-
+    world.erase(world.at(id).get_drawid());
 }
 
 }

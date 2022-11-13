@@ -265,7 +265,7 @@ bool World::erase(ComponentID component) {
 
 bool World::erase_impl(ID<GameObject> id)       { return erase_tmpl(id, _objects, _object_system); }
 bool World::erase_impl(ID<Level> id)            { return erase_tmpl(id, _levels, _level_system); }
-bool World::erase_impl(ID<Collidable> id)       { return erase_tmpl(id, _collidables, _collision_system); }
+bool World::erase_impl(ID<Collidable> id)       { return erase_tmpl(id, _collidables, _collision_system, _attach_system); }
 bool World::erase_impl(ID<ColliderRegion> id)   { return erase_tmpl(id, _colliders, _collision_system); }
 bool World::erase_impl(ID<Emitter> id)          { return erase_tmpl(id, _emitters, _emitter_system); }
 bool World::erase_impl(ID<Drawable> id)         { return erase_tmpl(id, _drawables, _scene_system); }
