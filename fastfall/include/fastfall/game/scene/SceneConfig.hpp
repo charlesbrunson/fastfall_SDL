@@ -3,6 +3,7 @@
 #include "fastfall/util/id.hpp"
 #include "fastfall/util/copyable_uniq_ptr.hpp"
 #include "fastfall/render/Texture.hpp"
+#include "fastfall/render/RenderState.hpp"
 
 namespace ff {
 
@@ -31,7 +32,8 @@ struct SceneConfig {
     // TODO may be redundant now we have entity lookup
     scene_type		type        = scene_type::Object;
     scene_priority	priority    = scene_priority::Normal;
-    std::optional<TextureRef> texture;
+    RenderState     rstate;
+    //std::optional<TextureRef> texture;
     bool            render_enable = true;
     bool            resort_flag   = false;
 };

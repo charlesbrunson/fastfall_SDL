@@ -87,7 +87,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
 
     attach_id = w.create_attachpoint(id);
     auto& attach = w.at(attach_id);
-    //w.attach().attach_to(attach_id, sprite_id, {});
+    w.attach().create(attach_id, sprite_id, {});
     w.attach().create(attach_id, collider_id, {});
     w.attach().create(attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
     attach.teleport(base_position);
@@ -120,7 +120,7 @@ void JetPlatform::update(ff::World& w, secs deltaTime)
 }
 
 void JetPlatform::predraw(ff::World& w, float interp, bool updated) {
-    auto [attach, sprite] = w.at(attach_id, sprite_id);
-    sprite.set_pos(attach.interpolate(interp));
-    sprite.predraw(interp);
+    // auto [attach, sprite] = w.at(attach_id, sprite_id);
+    // sprite.set_pos(attach.interpolate(interp));
+    // sprite.predraw(interp);
 }

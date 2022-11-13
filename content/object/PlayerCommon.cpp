@@ -86,7 +86,7 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
 
     auto& sprite = w.at(sprite_id);
     sprite.set_anim(plr::anim::idle);
-    sprite.set_pos(box.getPosition());
+    //sprite.set_pos(box.getPosition());
     sprite.set_hflip(face_dir);
 }
 

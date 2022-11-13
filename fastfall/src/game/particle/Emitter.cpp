@@ -76,8 +76,8 @@ void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, float interp, bool up
     auto* anim = Resources::get_animation(strategy.animation);
     //auto& cfg = world.scene().config(varr_id);
     if (anim) {
-        cfg.texture = anim->get_sprite_texture();
-        auto invSize = cfg.texture->get()->inverseSize();
+        cfg.rstate.texture = anim->get_sprite_texture();
+        auto invSize = cfg.rstate.texture.get()->inverseSize();
 
         Vec2f spr_size = Vec2f{ anim->area.getSize() } * 0.5f;
 
@@ -134,7 +134,7 @@ void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, float interp, bool up
         }
     }
     else {
-        cfg.texture.reset();
+        cfg.rstate.texture = Texture::getNullTexture();
     }
 }
 

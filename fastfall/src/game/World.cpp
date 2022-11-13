@@ -127,7 +127,8 @@ ID<Collidable> World::create_collidable(EntityID ent, Vec2f position, Vec2f size
     comp_to_ent.emplace(tmp_id, ent);
     auto id = notify_created_all(
             create_tmpl(_collidables, position, size, gravity),
-            _collision_system);
+            _collision_system,
+            _attach_system);
     return id;
 }
 
@@ -184,6 +185,7 @@ void World::predraw(float interp, bool updated) {
     {
         _scene_system.set_bg_color(active->getBGColor());
         _scene_system.set_size(active->size());
+        _attach_system.predraw(*this, interp, updated);
         _object_system.predraw(*this, interp, updated);
         active->predraw(*this, interp, updated);
         _emitter_system.predraw(*this, interp, updated);

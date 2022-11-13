@@ -21,6 +21,10 @@ void SceneSystem::predraw(World& world, float interp, bool updated)
     if (updated) {
         add_to_scene(world);
     }
+
+    for (auto& drawable : world.all<Drawable>()) {
+        drawable.second->predraw(interp, updated);
+    }
 }
 
 void SceneSystem::notify_created(World& world, ID<Drawable> id)
@@ -107,14 +111,21 @@ void SceneSystem::draw(const World& world, RenderTarget& target, RenderState sta
 
         if (cfg.render_enable)
         {
-            if (cfg.texture) {
-                auto st = state;
-                st.texture = *cfg.texture;
-                target.draw(world.at(id), st);
+            auto st = state;
+            if (cfg.rstate.texture.exists()
+                && cfg.rstate.texture.get()->getID() != Texture::getNullTexture().getID())
+            {
+                st.texture = cfg.rstate.texture;
             }
-            else {
-                target.draw(world.at(id), state);
-            }
+
+            st.transform = Transform::combine(st.transform, cfg.rstate.transform);
+
+            if (cfg.rstate.program)
+                st.program = cfg.rstate.program;
+
+            st.blend = cfg.rstate.blend;
+
+            target.draw(world.at(id), st);
         }
     }
 

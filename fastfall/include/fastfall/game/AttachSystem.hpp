@@ -32,9 +32,13 @@ namespace ff {
 
     public:
         void update(World& world, secs deltaTime);
+        void predraw(World& world, float interp, bool updated);
 
         void notify_created(World& world, ID<AttachPoint> id);
         void notify_erased(World& world, ID<AttachPoint> id);
+
+        void notify_created(World& world, ID<Collidable> id);
+        void notify_erased(World& world, ID<Collidable> id);
 
         void notify(World& world, ID<AttachPoint> id);
 

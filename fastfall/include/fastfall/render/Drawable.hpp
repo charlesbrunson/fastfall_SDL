@@ -11,6 +11,8 @@ class Drawable {
 public:
 	virtual ~Drawable() = default;
 
+    virtual void predraw(float interp, bool updated) {};
+
 	bool visible = true;
 
 private:

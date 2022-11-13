@@ -28,7 +28,7 @@ public:
 	};
 
 	void predraw(ff::World& w, float interp, bool updated) override {
-		w.at(id_cast<ff::AnimatedSprite>(anim_spr_id)).predraw(interp);
+		//w.at(id_cast<ff::AnimatedSprite>(anim_spr_id)).predraw(interp);
 	};
 
 private:

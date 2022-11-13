@@ -228,7 +228,7 @@ void SpriteAsset::ImGui_getContent() {
 					if (imgui_anim->has_anim()) 
 					{
 						imgui_anim->update(secs * playback_speed);
-						imgui_anim->predraw(secs * playback_speed);
+						imgui_anim->predraw(secs * playback_speed, false);
 
 						if (imgui_anim->is_complete() 
 							&& imgui_anim->get_anim()->loop != 0)
