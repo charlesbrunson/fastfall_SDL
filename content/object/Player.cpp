@@ -113,12 +113,6 @@ objcfg::dresult Player::message(World& w, const objcfg::dmessage& msg) {
     return objcfg::reject;
 };
 
-void Player::predraw(World& w, float interp, bool updated) {
-    //auto [spr, box] = w.at(sprite_id, collidable_id);
-	//spr.set_pos(math::lerp(box.getPrevPosition(), box.getPosition(), interp));
-	//spr.predraw(interp);
-}
-
 /*
 void Player::ImGui_Inspect() {
 	using namespace ImGui;

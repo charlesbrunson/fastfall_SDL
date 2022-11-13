@@ -193,7 +193,6 @@ public:
 
 
 	virtual void update(World& world, secs deltaTime) = 0;
-	virtual void predraw(World& world, float interp, bool updated) = 0;
 	virtual const ObjectType& type() const = 0;
 
 	virtual void ImGui_Inspect() {
@@ -233,7 +232,6 @@ class EmptyObject : public GameObject {
 public:
     EmptyObject(World& w, ID<GameObject> id) : GameObject(w, id) {};
     void update(World& world, secs deltaTime) override {};
-    void predraw(World& world, float interp, bool updated) override {};
     const ObjectType& type() const override { return _type; };
 private:
     const static ObjectType _type;

@@ -19,13 +19,12 @@ const ObjectType BasicPlatform::Type{
 
 BasicPlatform::BasicPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
 	: ff::GameObject(w, id, data)
-    , shape_id{ w.create_drawable<ShapeRectangle>(id, Rectf{}, platformColor) }
+    , shape_id{ w.create_drawable<ShapeRectangle>(id, Rectf{ Vec2f{}, Vec2f{ data.size } }, platformColor) }
     , collider_id{ w.create_collider<ColliderSimple>(id, Rectf{ Vec2f{}, Vec2f{ data.size } })}
+    , attach_id(w.create_attachpoint(id))
 {
     //w.at(shape_id).drawable = make_copyable_unique<Drawable, ShapeRectangle>( Rectf{}, platformColor );
     w.scene().set_config(shape_id, { 1, ff::scene_type::Object });
-
-
 
 	ObjLevelID path_id = data.getPropAsID("path");
 	max_vel = data.getPropAsFloat("max_velocity");
@@ -52,30 +51,24 @@ BasicPlatform::BasicPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& d
 		progress = 0.f;
 	}
 
-	ff::Rectf colliderRect{ Vec2f{}, Vec2f{ data.size } };
-
     auto& collider = w.at(collider_id);
+    auto& attach = w.at(attach_id);
+    Vec2f pos;
 	if (has_path) {
-		collider.teleport(waypoints_origin + ff::Vec2f(waypoints->at(waypoint_ndx)));
+        pos = waypoints_origin + ff::Vec2f(waypoints->at(waypoint_ndx));
 	}
 	else {
-		auto pos = ff::Vec2f{ data.position };
-		auto off = ff::Vec2f{ colliderRect.width / 2.f, colliderRect.height };
-		collider.teleport(pos - off);
+        pos = data.getTopLeftPos();
 	}
-
+    attach.teleport(pos);
+    w.attach().create(attach_id, collider_id, {});
+    w.attach().create(attach_id, shape_id, {});
+    w.attach().notify(w, attach_id);
 }
 
-/*
-void BasicPlatform::clean(ff::World& w)  {
-    w.erase(shape_id);
-    w.erase(collider_id);
-}
-*/
-
-void BasicPlatform::update(World& w, secs deltaTime) {
-
-    auto& collider = w.at(collider_id);
+void BasicPlatform::update(World& w, secs deltaTime)
+{
+    auto& attach = w.at(attach_id);
 	if (deltaTime > 0)
 	{
 		if (has_path)
@@ -102,27 +95,14 @@ void BasicPlatform::update(World& w, secs deltaTime) {
 			else {
 				next_pos = ff::Vec2f{ waypoints->at(waypoint_ndx) };
 			}
-			collider.setPosition(ff::Vec2f(waypoints_origin) + next_pos);
 
-			ff::Vec2f nVel = (collider.getPosition() - collider.getPrevPosition()) / deltaTime;
-
-			collider.delta_velocity = nVel - collider.velocity;
-			collider.velocity = nVel;
-
+            attach.set_pos(Vec2f(waypoints_origin) + next_pos);
+            attach.set_vel((attach.curr_pos() - attach.prev_pos()) / deltaTime);
 		}
 		else if (!has_path) {
-
-			collider.setPosition(collider.getPosition());
-			collider.delta_velocity = Vec2f{};
-			collider.velocity = Vec2f{};
+            attach.set_pos(attach.curr_pos());
+            attach.set_vel({});
 		}
 	}
-}
-
-void BasicPlatform::predraw(World& w, float interp, bool updated)
-{
-    auto& shape = w.at(shape_id);
-    auto& collider = w.at(collider_id);
-    shape.setPosition(math::lerp(collider.getPrevPosition(), collider.getPosition() + collider_offset, interp));
-    shape.setSize(ff::Vec2f{ collider.getBoundingBox().getSize() });
+    w.attach().notify(w, attach_id);
 }

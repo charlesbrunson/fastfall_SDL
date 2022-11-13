@@ -118,9 +118,3 @@ void JetPlatform::update(ff::World& w, secs deltaTime)
         w.attach().notify(w, attach_id);
     }
 }
-
-void JetPlatform::predraw(ff::World& w, float interp, bool updated) {
-    // auto [attach, sprite] = w.at(attach_id, sprite_id);
-    // sprite.set_pos(attach.interpolate(interp));
-    // sprite.predraw(interp);
-}
