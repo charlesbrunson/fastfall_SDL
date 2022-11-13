@@ -38,16 +38,19 @@ const EmitterStrategy jet_emitter_str = {
 JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     : ff::GameObject(w, id, data)
 {
+    base_position = data.getTopLeftPos();
     tile_width = (int)data.size.x / TILESIZE;
     assert(platform_width_min <= tile_width && tile_width <= platform_width_max);
 
-    base_position = data.getTopLeftPos();
     collider_id = w.create_collider<ColliderTileMap>(id, Vec2i{tile_width, 1});
     auto& collider = w.at(collider_id);
     collider.fill("oneway"_ts);
     collider.applyChanges();
-    collider.set_on_postcontact(
-    [id = id_cast<JetPlatform>(getID()), cid = collider_id](World& w, const AppliedContact& c)
+    collider.set_on_postcontact([
+        id = id_cast<JetPlatform>(getID()),
+        cid = collider_id
+    ]
+        (World& w, const AppliedContact& c)
     {
         if (c.has_contact_with(cid))
         {
@@ -92,8 +95,8 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
 
 void JetPlatform::update(ff::World& w, secs deltaTime)
 {
-    constexpr Vec2f spring{30.f, 50.f};
-    constexpr Vec2f damping{8.f, 3.f};
+    constexpr Vec2f spring{ 30.f, 50.f };
+    constexpr Vec2f damping{ 8.f, 3.f };
 
     if (deltaTime > 0.0) {
         auto& attach = w.at(attach_id);
