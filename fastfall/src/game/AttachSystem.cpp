@@ -51,8 +51,21 @@ namespace ff {
             // ???
         }
         else if constexpr (std::same_as<T, Drawable>) {
-            Drawable& t = w.at(id);
+            // Drawable& t = w.at(id);
             // ???
+            //auto& cfg = w.scene().config(id);
+            //cfg.rstate.transform = Transform(cpos);
+
+        }
+    }
+
+    template<class T>
+    void interp_attachment(World& w, ID<T> id, Vec2f ipos) {
+        if constexpr (std::same_as<T, Drawable>) {
+            // Drawable& t = w.at(id);
+            // ???
+            auto& cfg = w.scene().config(id);
+            cfg.rstate.transform = Transform(ipos);
         }
     }
 
@@ -60,6 +73,19 @@ namespace ff {
         for (auto [id, ap] : world.all<AttachPoint>())
         {
             ap.update_prev();
+        }
+    }
+
+    void AttachSystem::predraw(World& world, float interp, bool updated) {
+        for (auto [aid, ap] : world.all<AttachPoint>())
+        {
+            auto ipos = ap.interpolate(interp);
+            for (auto attach : get_attachments(aid))
+            {
+                std::visit(
+                        [&](auto id) { interp_attachment(world, id, ipos + attach.offset); },
+                        attach.id);
+            }
         }
     }
 
@@ -73,6 +99,22 @@ namespace ff {
             erase(at.id);
         }
         attachments.erase(id);
+    }
+
+    void AttachSystem::notify_created(World& world, ID<Collidable> id) {
+        auto ent = world.get_entity_of(id);
+        auto attachid = world.create_attachpoint(ent);
+        auto& col = world.at(id);
+        col.set_attach_id(attachid);
+        auto& attach = world.at(attachid);
+        attach.teleport(col.getPrevPosition());
+        attach.set_pos(col.getPosition());
+        attach.set_vel(col.get_vel());
+    }
+
+    void AttachSystem::notify_erased(World& world, ID<Collidable> id) {
+        auto& col = world.at(id);
+        world.erase(col.get_attach_id());
     }
 
     void AttachSystem::notify(World& world, ID<AttachPoint> id) {

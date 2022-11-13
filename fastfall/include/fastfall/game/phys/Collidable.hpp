@@ -6,6 +6,8 @@
 
 #include "fastfall/game/phys/collision/Contact.hpp"
 #include "fastfall/game/phys/collidable/SurfaceTracker.hpp"
+#include "fastfall/game/attach/AttachPoint.hpp"
+#include "fastfall/util/id.hpp"
 
 #include <assert.h>
 #include <vector>
@@ -150,7 +152,12 @@ public:
         std::function<void(World&)> onPostCollision;
     } callbacks;
 
+    void set_attach_id(ID<AttachPoint> id) { attachpoint = id; }
+    ID<AttachPoint> get_attach_id() const { return attachpoint; }
+
 private:
+
+    ID<AttachPoint> attachpoint;
 
 	collision_state_t col_state;
 

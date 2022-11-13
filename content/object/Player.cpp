@@ -55,6 +55,8 @@ Player::Player(World& w, ID<GameObject> id, ObjectLevelData& data)
         hitbox.set_area(colbox.getBox());
         plr.manage_state(w, plr.get_state().post_collision(w, plr));
     };
+
+    w.attach().create(box.get_attach_id(), sprite_id, {});
 };
 
 
@@ -112,9 +114,9 @@ objcfg::dresult Player::message(World& w, const objcfg::dmessage& msg) {
 };
 
 void Player::predraw(World& w, float interp, bool updated) {
-    auto [spr, box] = w.at(sprite_id, collidable_id);
-	spr.set_pos(math::lerp(box.getPrevPosition(), box.getPosition(), interp));
-	spr.predraw(interp);
+    //auto [spr, box] = w.at(sprite_id, collidable_id);
+	//spr.set_pos(math::lerp(box.getPrevPosition(), box.getPosition(), interp));
+	//spr.predraw(interp);
 }
 
 /*

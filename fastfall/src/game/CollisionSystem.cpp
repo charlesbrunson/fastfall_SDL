@@ -40,6 +40,15 @@ void CollisionSystem::update(World& world, secs deltaTime)
 			arb.gather_and_solve_collisions(world, deltaTime, dump_ptr);
 			ndx++;
 		}
+
+        // update attachments
+        for (auto [id, col] : collidables) {
+            auto& attach = world.at(col.get_attach_id());
+            attach.teleport(col.getPrevPosition());
+            attach.set_pos(col.getPosition());
+            attach.set_vel(col.get_vel());
+            world.attach().notify(world, attach.id());
+        }
 	}
 
 	for (auto [id, col] : collidables) {
