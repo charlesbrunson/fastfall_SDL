@@ -23,7 +23,7 @@ struct ID {
 
 	template<class Base>
 		requires std::derived_from<T, Base>
-	operator ID<Base>() {
+	operator ID<Base>() const {
 		return { value };
 	}
 
@@ -33,7 +33,6 @@ struct ID {
 };
 
 template<class Other, class Base>
-//requires std::derived_from<Derived, Base>
 ID<Other> id_cast(ID<Base> id) {
 	return { id.value };
 }

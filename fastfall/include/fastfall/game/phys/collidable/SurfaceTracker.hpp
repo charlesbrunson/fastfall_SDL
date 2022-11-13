@@ -39,6 +39,7 @@ public:
             std::vector<AppliedContact>& contacts);
 
 	bool has_contact() const noexcept;
+    bool has_contact_with(ID<ColliderRegion> collider) const noexcept;
 
 	// applies velocity/acceleration accounting for gravity (for movement consistency)
 	// if !has_contact, no op

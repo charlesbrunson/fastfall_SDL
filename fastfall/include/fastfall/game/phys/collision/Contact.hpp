@@ -52,6 +52,10 @@ struct DiscreteContact {
     const SurfaceMaterial *material = nullptr;
     std::optional<CollisionID> id;
 
+    bool has_contact_with(ID<ColliderRegion> cid) const {
+        return hasContact && id.has_value() && id->collider == cid;
+    }
+
     bool is_resolvable() const noexcept {
         return ortho_n != Vec2f();
     }

@@ -10,11 +10,11 @@ AnimIDRef anim_platform[] = {
         {"jet_platform.sax", "platform_5"},
 };
 
-const ObjectType JetPlatform::Type{
-        .type = { "JetPlatform" },
+const ObjectType JetPlatform::Type = {
+        .type       = { "JetPlatform" },
         .allow_as_level_data = true,
-        .anim = std::nullopt,
-        .tile_size = {0, 1},
+        .anim       = std::nullopt,
+        .tile_size  = {0, 1},
         .group_tags = {	"platform" },
         .properties = {}
 };
@@ -41,8 +41,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     tile_width = (int)data.size.x / TILESIZE;
     assert(platform_width_min <= tile_width && tile_width <= platform_width_max);
 
-    base_position = Vec2f{ data.position } - Vec2f{ (float)data.size.x / 2.f, (float)data.size.y };
-
+    base_position = data.getTopLeftPos();
     collider_id = w.create_collider<ColliderTileMap>(id, Vec2i{tile_width, 1});
     auto& collider = w.at(collider_id);
     collider.fill("oneway"_ts);
@@ -50,19 +49,17 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     collider.set_on_postcontact(
     [id = id_cast<JetPlatform>(getID()), cid = collider_id](World& w, const AppliedContact& c)
     {
-        if (c.hasContact && c.id && c.id->collider == id_cast<ColliderRegion>(cid))
+        if (c.has_contact_with(cid))
         {
             auto [jetpl, collider, collidable] = w.at(id, cid, c.id->collidable);
             jetpl.push_vel.y += (c.collidable_precontact_velocity - collider.velocity).y * 0.9f;
 
             if (auto* track = collidable.get_tracker();
-                track && track->has_contact())
+                track && track->has_contact_with(cid))
             {
                 auto& contact = track->get_contact();
-                if (contact->id && contact->id->collider == id_cast<ColliderRegion>(cid)) {
-                    jetpl.push_vel.x += collidable.get_friction().x;
-                    jetpl.push_accel.x -= collidable.get_acc().x * 0.5f;
-                }
+                jetpl.push_vel.x += collidable.get_friction().x;
+                jetpl.push_accel.x -= collidable.get_acc().x * 0.5f;
             }
         }
     });
@@ -99,7 +96,7 @@ void JetPlatform::update(ff::World& w, secs deltaTime)
     constexpr Vec2f damping{8.f, 3.f};
 
     if (deltaTime > 0.0) {
-        auto [attach, sprite, collider, emitter] = w.at(attach_id, sprite_id, collider_id, emitter_id);
+        auto& attach = w.at(attach_id);
         lifetime += deltaTime;
 
         // apply accumulated push to velocity

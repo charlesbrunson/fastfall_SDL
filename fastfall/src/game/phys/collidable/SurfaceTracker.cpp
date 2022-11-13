@@ -17,6 +17,10 @@ bool SurfaceTracker::has_contact() const noexcept {
 	return currentContact && currentContact->hasContact;
 };
 
+bool SurfaceTracker::has_contact_with(ID<ColliderRegion> collider) const noexcept {
+   return has_contact() && currentContact->id.has_value() && currentContact->id->collider == collider;
+}
+
 
 bool SurfaceTracker::can_make_contact_with(const AppliedContact& contact) const noexcept
 {
