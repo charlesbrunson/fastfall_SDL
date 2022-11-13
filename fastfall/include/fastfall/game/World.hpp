@@ -27,65 +27,29 @@ class World : public Drawable
 private:
     template<class T>
     constexpr auto& container() const {
-        if constexpr (std::same_as<T, Collidable>) {
-            return _collidables;
-        }
-        else if constexpr (std::same_as<T, Trigger>) {
-            return _triggers;
-        }
-        else if constexpr (std::same_as<T, Emitter>) {
-            return _emitters;
-        }
-        else if constexpr (std::same_as<T, AttachPoint>) {
-            return _attachpoints;
-        }
-        else if constexpr (std::same_as<T, Level>) {
-            return _levels;
-        }
-        else if constexpr (std::derived_from<T, ColliderRegion>) {
-            return _colliders;
-        }
-        else if constexpr (std::derived_from<T, CameraTarget>) {
-            return _camera_targets;
-        }
-        else if constexpr (std::derived_from<T, Drawable>) {
-            return _drawables;
-        }
-        else if constexpr (std::derived_from<T, GameObject>) {
-            return _objects;
-        }
+        if      constexpr (std::same_as<T, Collidable>)          { return _collidables; }
+        else if constexpr (std::same_as<T, Trigger>)             { return _triggers; }
+        else if constexpr (std::same_as<T, Emitter>)             { return _emitters; }
+        else if constexpr (std::same_as<T, AttachPoint>)         { return _attachpoints; }
+        else if constexpr (std::same_as<T, Level>)               { return _levels; }
+        else if constexpr (std::derived_from<T, ColliderRegion>) { return _colliders; }
+        else if constexpr (std::derived_from<T, CameraTarget>)   { return _camera_targets; }
+        else if constexpr (std::derived_from<T, Drawable>)       { return _drawables; }
+        else if constexpr (std::derived_from<T, GameObject>)     { return _objects; }
         else { throw std::exception{}; }
     }
 
     template<class T>
     constexpr auto& container() {
-        if constexpr (std::same_as<T, Collidable>) {
-            return _collidables;
-        }
-        else if constexpr (std::same_as<T, Trigger>) {
-            return _triggers;
-        }
-        else if constexpr (std::same_as<T, Emitter>) {
-            return _emitters;
-        }
-        else if constexpr (std::same_as<T, AttachPoint>) {
-            return _attachpoints;
-        }
-        else if constexpr (std::same_as<T, Level>) {
-            return _levels;
-        }
-        else if constexpr (std::derived_from<T, ColliderRegion>) {
-            return _colliders;
-        }
-        else if constexpr (std::derived_from<T, CameraTarget>) {
-            return _camera_targets;
-        }
-        else if constexpr (std::derived_from<T, Drawable>) {
-            return _drawables;
-        }
-        else if constexpr (std::derived_from<T, GameObject>) {
-            return _objects;
-        }
+        if      constexpr (std::same_as<T, Collidable>)          { return _collidables; }
+        else if constexpr (std::same_as<T, Trigger>)             { return _triggers; }
+        else if constexpr (std::same_as<T, Emitter>)             { return _emitters; }
+        else if constexpr (std::same_as<T, AttachPoint>)         { return _attachpoints; }
+        else if constexpr (std::same_as<T, Level>)               { return _levels; }
+        else if constexpr (std::derived_from<T, ColliderRegion>) { return _colliders; }
+        else if constexpr (std::derived_from<T, CameraTarget>)   { return _camera_targets; }
+        else if constexpr (std::derived_from<T, Drawable>)       { return _drawables; }
+        else if constexpr (std::derived_from<T, GameObject>)     { return _objects; }
         else { throw std::exception{}; }
     }
 
@@ -129,9 +93,7 @@ public:
 
 	// access component
     template<class T>
-    T& at(ID<T> id) {
-        return container<T>().at(id);
-    }
+    T& at(ID<T> id) { return container<T>().at(id); }
 
     template<class T>
     const T& at(ID<T> id) const { return container<T>().at(id); }
