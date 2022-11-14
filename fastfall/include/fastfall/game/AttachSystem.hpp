@@ -13,6 +13,7 @@ namespace ff {
 
     class AttachSystem {
     public:
+        /*
         struct ConstraintOut {
             Vec2f attachmentPos;
             Vec2f attachmentVel;
@@ -26,12 +27,13 @@ namespace ff {
         };
 
         using ConstraintFn = std::function<ConstraintOut(const ConstraintIn&)>;
+        */
 
     private:
         struct Attachment {
             ComponentID id;
             Vec2f offset;
-            ConstraintFn constraint;
+            //ConstraintFn constraint;
 
             bool operator==(const Attachment& other) const {
                 return id == other.id;
@@ -48,7 +50,6 @@ namespace ff {
 
     public:
         void update(World& world, secs deltaTime);
-        void update_attachments(World& world, secs deltaTime);
         void predraw(World& world, float interp, bool updated);
 
         void notify_created(World& world, ID<AttachPoint> id);
@@ -57,9 +58,9 @@ namespace ff {
         void notify_created(World& world, ID<Collidable> id);
         void notify_erased(World& world, ID<Collidable> id);
 
-        //void notify(World& world, ID<AttachPoint> id);
+        void notify(World& world, ID<AttachPoint> id);
 
-        void create(ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset, AttachSystem::ConstraintFn fn);
+        void create(ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset = {});
         void erase(ComponentID cmp_id);
 
         bool is_attached(ComponentID cmp_id) const;
@@ -68,10 +69,14 @@ namespace ff {
         bool has_attachments(ID<AttachPoint> id) const;
         const std::set<Attachment>& get_attachments(ID<AttachPoint> id) const;
 
+        bool is_attachpoint_root(ID<AttachPoint> id) const;
+
     private:
+        void update_attachments(World& world, ID<AttachPoint> id, std::set<ID<AttachPoint>>& visited);
+
         std::map<ID<AttachPoint>, std::set<Attachment>> attachments;
         std::map<ComponentID, ID<AttachPoint>> cmp_lookup;
     };
 
-    AttachSystem::ConstraintFn makeSpringConstraint(Vec2f springF, Vec2f dampingF);
+    //AttachSystem::ConstraintFn makeSpringConstraint(Vec2f springF, Vec2f dampingF);
 }

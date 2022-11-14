@@ -8,6 +8,7 @@
 namespace ff {
 
 
+    /*
     AttachSystem::ConstraintFn makeSpringConstraint(Vec2f springF, Vec2f dampingF) {
         return [spr = springF, damp = dampingF](AttachSystem::ConstraintIn in)
         {
@@ -23,8 +24,9 @@ namespace ff {
             };
         };
     }
+    */
 
-
+    /*
     template<class T>
     Vec2f get_attach_pos(World& w, ID<T> id) {
 
@@ -125,11 +127,8 @@ namespace ff {
             if (cpos != t.curr_pos()
              || vel != t.vel())
             {
-                //t.teleport(ppos);
                 t.set_pos(cpos);
                 t.set_vel(vel);
-                t.notify();
-                //w.attach().notify(w, id);
             }
         }
         else if constexpr (std::same_as<T, ColliderRegion>) {
@@ -143,12 +142,11 @@ namespace ff {
             // ???
         }
     }
+    */
 
     template<class T>
     void interp_attachment(World& w, ID<T> id, Vec2f ipos) {
         if constexpr (std::same_as<T, Drawable>) {
-            // Drawable& t = w.at(id);
-            // ???
             auto& cfg = w.scene().config(id);
             cfg.rstate.transform = Transform(ipos);
         }
@@ -161,50 +159,30 @@ namespace ff {
         }
     }
 
-    void AttachSystem::update_attachments(World& world, secs deltaTime)
-    {
-        bool any_updates;
-        do {
-            any_updates = false;
-            for (auto &[apid, ats]: attachments) {
-                auto &ap = world.at(apid);
+    void AttachSystem::notify(World& world, ID<AttachPoint> id) {
+        std::set<ID<AttachPoint>> visited;
+        LOG_INFO("------------");
+        update_attachments(world, id, visited);
+    }
 
-                if (!ap.has_moved()) {
-                    continue;
-                }
+    void AttachSystem::update_attachments(World& world, ID<AttachPoint> id, std::set<ID<AttachPoint>>& visited) {
+        if (visited.contains(id))
+            return;
 
-                any_updates = true;
-                for (auto &at: ats) {
-                    auto ppos = ap.prev_pos() + at.offset;
-                    auto cpos = ap.curr_pos() + at.offset;
-                    std::visit(
-                        [&](auto id) {
+        visited.insert(id);
+        LOG_INFO("{} visit: {}", visited.size(), id.value.raw());
 
-                            Vec2f p = get_attach_pos(world, id);
-                            Vec2f v = get_attach_vel(world, id);
+        size_t attndx = 0;
+        for (auto at : attachments.at(id))
+        {
+            // update attachment
+            LOG_INFO("attachment {}: {}", attndx, at.id.index());
 
-                            ConstraintOut out{
-                                .attachmentPos = cpos,
-                                .attachmentVel = ap.vel()
-                            };
-
-                            if (at.constraint) {
-                                out = at.constraint(ConstraintIn{
-                                    .attachmentPos = p,
-                                    .attachmentVel = v,
-                                    .attachpointPos = cpos,
-                                    .deltaTime = deltaTime
-                                });
-                            }
-
-                            update_attachment(world, id, out.attachmentPos, out.attachmentVel);
-                        },
-                        at.id
-                    );
-                }
-                ap.reset_has_moved();
+            if (holds_alternative<ID<AttachPoint>>(at.id)) {
+                update_attachments(world, std::get<ID<AttachPoint>>(at.id), visited);
             }
-        } while (any_updates);
+            attndx++;
+        }
     }
 
     void AttachSystem::predraw(World& world, float interp, bool updated) {
@@ -218,6 +196,10 @@ namespace ff {
                         attach.id);
             }
         }
+    }
+
+    bool AttachSystem::is_attachpoint_root(ID<AttachPoint> id) const {
+        return !cmp_lookup.contains(id);
     }
 
     void AttachSystem::notify_created(World& world, ID<AttachPoint> id){
@@ -260,9 +242,9 @@ namespace ff {
     }
         */
 
-    void AttachSystem::create(ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset, ConstraintFn fn)
+    void AttachSystem::create(ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset)
     {
-        attachments.at(id).insert(Attachment{ cmp_id, offset, std::move(fn) });
+        attachments.at(id).insert(Attachment{ cmp_id, offset });
     }
 
     void AttachSystem::erase(ComponentID cmp_id) {

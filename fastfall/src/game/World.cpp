@@ -169,12 +169,9 @@ void World::update(secs deltaTime) {
         active->update(*this, deltaTime);
         _trigger_system.update(*this, deltaTime);
         _object_system.update(*this, deltaTime);
-        _attach_system.update_attachments(*this, deltaTime);
         _collision_system.update(*this, deltaTime);
-        _attach_system.update_attachments(*this, deltaTime);
         _camera_system.update(*this, deltaTime);
         _emitter_system.update(*this, deltaTime);
-        _attach_system.update_attachments(*this, deltaTime);
 
         if (deltaTime > 0.0)
             update_counter++;
