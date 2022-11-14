@@ -38,6 +38,8 @@ Player::Player(World& w, ID<GameObject> id, Vec2f position, bool faceleft)
         hitbox.set_area(box.getBox());
         player.manage_state(w, player.get_state().post_collision(w, player));
     };
+
+    w.attach().create(box.get_attach_id(), sprite_id, {});
 };
 
 Player::Player(World& w, ID<GameObject> id, ObjectLevelData& data)
@@ -56,7 +58,8 @@ Player::Player(World& w, ID<GameObject> id, ObjectLevelData& data)
         plr.manage_state(w, plr.get_state().post_collision(w, plr));
     };
 
-    w.attach().create(box.get_attach_id(), sprite_id, {});
+    auto attachid = box.get_attach_id();
+    w.attach().create(attachid, sprite_id, {});
 };
 
 

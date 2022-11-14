@@ -100,10 +100,6 @@ void Trigger::trigger(World& w, const TriggerPull& confirm) {
 	}
 }
 
-GameObject* Trigger::get_owner(World& w) const {
-    return owner ? w.get(*owner) : nullptr;
-}
-
 const TriggerTag ttag_generic = "generic";
 const TriggerTag ttag_hitbox  = "hitbox";
 const TriggerTag ttag_hurtbox = "hurtbox";

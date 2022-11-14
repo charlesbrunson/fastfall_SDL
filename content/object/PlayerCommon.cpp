@@ -1,7 +1,6 @@
 #include "PlayerCommon.hpp"
 
 #include "fastfall/engine/InputConfig.hpp"
-//#include "Player.hpp"
 
 using namespace ff;
 
@@ -39,6 +38,7 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     , hurtbox_id(w.create_trigger(plr.getID()))
 {
     auto& box = w.at(collidable_id);
+    auto attachid = box.get_attach_id();
     box.set_tracker(
         Angle::Degree(-135.f),
         Angle::Degree( -45.f)
@@ -65,29 +65,30 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
 
     auto& hitbox = w.at(hitbox_id);
     hitbox.set_area(box.getBox());
-    hitbox.set_owning_object(plr.getID());
     hitbox.self_flags = {"hitbox"};
+    w.attach().create(attachid, hitbox_id, { -box.getBox().width / 2.f, -box.getBox().height });
 
     auto& hurtbox = w.at(hurtbox_id);
     hurtbox.set_area(box.getBox());
-    hurtbox.set_owning_object(plr.getID());
     hurtbox.self_flags = {"hurtbox"};
     hurtbox.filter_flags = {"hitbox"};
     hurtbox.set_trigger_callback(
     [](World& w, const TriggerPull& pull) {
-        auto* owner = pull.source->get_owner(w);
-        if (owner
-            && owner->type().group_tags.contains("player")
+        auto ownerid = w.get_entity_of(pull.source->id());
+        if (auto* obj = w.get(as_object(ownerid));
+            obj && obj->type().group_tags.contains("player")
             && pull.state == Trigger::State::Entry)
         {
-            objHurt.send(*owner, w, 100.f);
+            objHurt.send(*obj, w, 100.f);
         }
     });
 
     auto& sprite = w.at(sprite_id);
     sprite.set_anim(plr::anim::idle);
-    //sprite.set_pos(box.getPosition());
     sprite.set_hflip(face_dir);
+    w.attach().create(attachid, sprite_id, {});
+
+
 }
 
 namespace plr::anim {
