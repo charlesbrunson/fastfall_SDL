@@ -8,9 +8,10 @@ namespace ff {
     template<class T>
     void update_attachment(World& w, ID<T> id, Vec2f ppos, Vec2f cpos, Vec2f vel) {
         if constexpr (std::same_as<T, Collidable>) {
-            // dunno how this'll work
+            // dunno how this'll work lmao
             Collidable& t = w.at(id);
-            t.setPosition(cpos, true);
+            t.teleport(ppos);
+            t.setPosition(cpos);
         }
         else if constexpr (std::same_as<T, Trigger>) {
             Trigger& t = w.at(id);
@@ -38,7 +39,6 @@ namespace ff {
                 t.set_vel(vel);
                 w.attach().notify(w, id);
             }
-
         }
         else if constexpr (std::same_as<T, ColliderRegion>) {
             ColliderRegion& t = w.at(id);
@@ -49,13 +49,6 @@ namespace ff {
         else if constexpr (std::same_as<T, CameraTarget>) {
             CameraTarget& t = w.at(id);
             // ???
-        }
-        else if constexpr (std::same_as<T, Drawable>) {
-            // Drawable& t = w.at(id);
-            // ???
-            //auto& cfg = w.scene().config(id);
-            //cfg.rstate.transform = Transform(cpos);
-
         }
     }
 

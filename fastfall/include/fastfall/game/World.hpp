@@ -112,6 +112,12 @@ public:
     template<class T>
     const T* get(ID<T> id) const { return container<T>().get(id); }
 
+    template<class T>
+    T* get(std::optional<ID<T>> id) { return id ? container<T>().get(*id) : nullptr; }
+
+    template<class T>
+    const T* get(std::optional<ID<T>> id) const { return id ? container<T>().get(*id) : nullptr; }
+
     template<class... IDs>
     requires (sizeof...(IDs) > 1)
     auto get(IDs... ids) { return std::forward_as_tuple(get(ids)...); }

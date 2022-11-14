@@ -47,8 +47,6 @@ public:
 
     Trigger(ID<Trigger> t_id);
 
-    //void set_id(ID<Trigger> t_id) { m_id = t_id; }
-	void set_owning_object(std::optional<ID<GameObject>> id) { owner = id; }
 	void set_trigger_callback(TriggerFn&& trigger_fn);
 
 	std::optional<TriggerPull> triggerable_by(Trigger& trigger, secs delta_time);
@@ -68,10 +66,9 @@ public:
 	void set_enable(bool t_enabled) { enabled = t_enabled; };
 	bool is_enabled() const { return enabled; };
 
-	std::map<ID<Trigger>, TriggerData> drivers;
+    ID<Trigger> id() const { return m_id; };
 
-    std::optional<ID<GameObject>> get_owner_id() const { return owner; }
-    GameObject* get_owner(World& w) const;
+	std::map<ID<Trigger>, TriggerData> drivers;
 
 private:
 	bool enabled = true;
