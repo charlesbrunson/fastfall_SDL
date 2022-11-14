@@ -7,7 +7,7 @@ AttachPoint::AttachPoint(ID<AttachPoint> t_id)
 {
 }
 
-void AttachPoint::update(secs deltaTime) {
+void AttachPoint::apply_vel(secs deltaTime) {
     _curr_pos += _vel * deltaTime;
 }
 

@@ -14,7 +14,7 @@ public:
     AttachPoint(ID<AttachPoint> t_id);
 
     // apply vel to position
-    void update(secs deltaTime);
+    void apply_vel(secs deltaTime);
 
     // set position to next_pos
     void set_pos(Vec2f next_pos);
