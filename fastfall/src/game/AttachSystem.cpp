@@ -7,139 +7,55 @@
 
 namespace ff {
 
-
-    /*
-    AttachSystem::ConstraintFn makeSpringConstraint(Vec2f springF, Vec2f dampingF) {
-        return [spr = springF, damp = dampingF](AttachSystem::ConstraintIn in)
-        {
-            Vec2f accel;
-            auto offset = (in.attachmentPos - in.attachpointPos);
-            accel += offset.unit() * (-spr * offset.magnitude()); // spring
-            accel += in.attachmentVel.unit() * (-damp * in.attachmentVel.magnitude()); // damping
-            in.attachmentVel += accel * in.deltaTime;
-
-            return AttachSystem::ConstraintOut {
-                in.attachmentPos,
-                in.attachmentVel
-            };
-        };
-    }
-    */
-
-    /*
     template<class T>
-    Vec2f get_attach_pos(World& w, ID<T> id) {
+    void update_attachment(World& w, const AttachPoint& attachpoint, ID<T> attachment_id, Vec2f offset, secs deltaTime) {
+
+        Vec2f cpos = attachpoint.curr_pos() + offset;
+        Vec2f vel = attachpoint.vel();
 
         if constexpr (std::same_as<T, Collidable>) {
             // dunno how this'll work lmao
-            Collidable& t = w.at(id);
-            return t.getPosition();
-        }
-        else if constexpr (std::same_as<T, Trigger>) {
-            Trigger& t = w.at(id);
-            return t.get_area().getPosition();
-        }
-        else if constexpr (std::same_as<T, Emitter>) {
-            Emitter& t = w.at(id);
-            return t.position;
-        }
-        else if constexpr (std::same_as<T, AttachPoint>) {
-            // or this
-            AttachPoint& t = w.at(id);
-            return t.curr_pos();
-        }
-        else if constexpr (std::same_as<T, ColliderRegion>) {
-            ColliderRegion& t = w.at(id);
-            return t.getPosition();
-        }
-        else if constexpr (std::same_as<T, Drawable>) {
-            SceneConfig& t = w.scene().config(id);
-            return t.rstate.transform.getPosition();
-        }
-        else if constexpr (std::same_as<T, CameraTarget>) {
-            CameraTarget& t = w.at(id);
-            // ???
-        }
-        return {};
-    }
-
-    template<class T>
-    Vec2f get_attach_vel(World& w, ID<T> id) {
-
-        if constexpr (std::same_as<T, Collidable>) {
-            // dunno how this'll work lmao
-            Collidable& t = w.at(id);
-            return t.get_vel();
-        }
-        else if constexpr (std::same_as<T, Trigger>) {
-            Trigger& t = w.at(id);
-            return {};
-        }
-        else if constexpr (std::same_as<T, Emitter>) {
-            Emitter& t = w.at(id);
-            return t.velocity;
-        }
-        else if constexpr (std::same_as<T, AttachPoint>) {
-            // or this
-            AttachPoint& t = w.at(id);
-            return t.vel();
-        }
-        else if constexpr (std::same_as<T, ColliderRegion>) {
-            ColliderRegion& t = w.at(id);
-            return t.velocity;
-        }
-        else if constexpr (std::same_as<T, Drawable>) {
-            SceneConfig& t = w.scene().config(id);
-            return {};
-        }
-        else if constexpr (std::same_as<T, CameraTarget>) {
-            CameraTarget& t = w.at(id);
-            // ???
-        }
-        return {};
-    }
-    */
-
-    template<class T>
-    void update_attachment(World& w, ID<T> id, Vec2f cpos, Vec2f vel) {
-        if constexpr (std::same_as<T, Collidable>) {
-            // dunno how this'll work lmao
-            Collidable& t = w.at(id);
+            Collidable& t = w.at(attachment_id);
             //t.teleport(ppos);
             t.setPosition(cpos);
         }
         else if constexpr (std::same_as<T, Trigger>) {
-            Trigger& t = w.at(id);
+            Trigger& t = w.at(attachment_id);
             auto area = t.get_area();
             area.setPosition(cpos);
             t.set_area(area);
         }
         else if constexpr (std::same_as<T, Emitter>) {
-            Emitter& t = w.at(id);
+            Emitter& t = w.at(attachment_id);
             t.velocity = vel;
             //t.prev_position = ppos;
             t.position = cpos;
         }
         else if constexpr (std::same_as<T, AttachPoint>) {
             // or this
-            AttachPoint& t = w.at(id);
+            AttachPoint& t = w.at(attachment_id);
 
             // TODO hopefully no stack overflow???
             if (cpos != t.curr_pos()
              || vel != t.vel())
             {
-                t.set_pos(cpos);
-                t.set_vel(vel);
+                if (t.constraint) {
+                    t.constraint(t, attachpoint, offset, deltaTime);
+                }
+                else {
+                    t.set_pos(cpos);
+                    t.set_vel(vel);
+                }
             }
         }
         else if constexpr (std::same_as<T, ColliderRegion>) {
-            ColliderRegion& t = w.at(id);
+            ColliderRegion& t = w.at(attachment_id);
             t.delta_velocity = vel - t.velocity;
             t.velocity = vel;
             t.setPosition(cpos);
         }
         else if constexpr (std::same_as<T, CameraTarget>) {
-            CameraTarget& t = w.at(id);
+            CameraTarget& t = w.at(attachment_id);
             // ???
         }
     }
@@ -153,6 +69,7 @@ namespace ff {
     }
 
     void AttachSystem::update(World& world, secs deltaTime) {
+        curr_delta = deltaTime;
         for (auto [id, ap] : world.all<AttachPoint>())
         {
             ap.update_prev();
@@ -161,7 +78,7 @@ namespace ff {
 
     void AttachSystem::notify(World& world, ID<AttachPoint> id) {
         std::set<ID<AttachPoint>> visited;
-        LOG_INFO("------------");
+        //LOG_INFO("------------");
 
         auto& ap = world.at(id);
         if (is_attachpoint_root(id) && ap.get_tick() != world.tick_count()) {
@@ -175,7 +92,7 @@ namespace ff {
             return;
 
         visited.insert(id);
-        LOG_INFO("{} visit: {}", visited.size(), id.value.raw());
+        //LOG_INFO("{} visit: {}", visited.size(), id.value.raw());
 
         auto& ap = world.at(id);
 
@@ -183,9 +100,9 @@ namespace ff {
         for (auto at : attachments.at(id))
         {
             // update attachment
-            LOG_INFO("attachment {}: {}", attndx, at.id.index());
+            //LOG_INFO("attachment {}: {}", attndx, at.id.index());
             std::visit(
-                [&]<class T>(ID<T> c_id) { update_attachment(world, c_id, ap.curr_pos() + at.offset, ap.vel()); },
+                [&]<class T>(ID<T> c_id) { update_attachment(world, ap, c_id, at.offset, curr_delta); },
                         at.id);
 
             if (holds_alternative<ID<AttachPoint>>(at.id)) {
@@ -239,18 +156,6 @@ namespace ff {
         auto& col = world.at(id);
         world.erase(col.get_attach_id());
     }
-
-    /*
-    void AttachSystem::notify(World& world, ID<AttachPoint> id)
-    {
-        /*
-        if (auto ap = world.get(id);
-            ap &&  attachments.contains(id))
-        {
-
-        }
-    }
-        */
 
     void AttachSystem::create(ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset)
     {

@@ -76,6 +76,7 @@ namespace ff {
 
         std::map<ID<AttachPoint>, std::set<Attachment>> attachments;
         std::map<ComponentID, ID<AttachPoint>> cmp_lookup;
+        secs curr_delta;
     };
 
     //AttachSystem::ConstraintFn makeSpringConstraint(Vec2f springF, Vec2f dampingF);

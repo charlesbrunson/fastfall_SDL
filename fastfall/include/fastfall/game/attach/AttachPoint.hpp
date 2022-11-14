@@ -42,6 +42,8 @@ public:
     void set_tick(size_t t) { _tick = t; }
     size_t get_tick() const { return _tick; }
 
+    std::function<void(AttachPoint&, const AttachPoint&, Vec2f, secs)> constraint;
+
 private:
     Vec2f _curr_pos;
     Vec2f _prev_pos;
