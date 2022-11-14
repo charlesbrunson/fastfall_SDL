@@ -66,7 +66,7 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     auto& hitbox = w.at(hitbox_id);
     hitbox.set_area(box.getBox());
     hitbox.self_flags = {"hitbox"};
-    w.attach().create(attachid, hitbox_id, { -box.getBox().width / 2.f, -box.getBox().height });
+    w.attach().create(attachid, hitbox_id, { -box.getBox().width / 2.f, -box.getBox().height }, {});
 
     auto& hurtbox = w.at(hurtbox_id);
     hurtbox.set_area(box.getBox());
@@ -86,7 +86,7 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     auto& sprite = w.at(sprite_id);
     sprite.set_anim(plr::anim::idle);
     sprite.set_hflip(face_dir);
-    w.attach().create(attachid, sprite_id, {});
+    w.attach().create(attachid, sprite_id, {}, {});
 
 }
 

@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "fastfall/game/AttachSystem.hpp"
 
 
@@ -5,12 +7,102 @@
 
 namespace ff {
 
+
+    AttachSystem::ConstraintFn makeSpringConstraint(Vec2f springF, Vec2f dampingF) {
+        return [spr = springF, damp = dampingF](AttachSystem::ConstraintIn in)
+        {
+            Vec2f accel;
+            auto offset = (in.attachmentPos - in.attachpointPos);
+            accel += offset.unit() * (-spr * offset.magnitude()); // spring
+            accel += in.attachmentVel.unit() * (-damp * in.attachmentVel.magnitude()); // damping
+            in.attachmentVel += accel * in.deltaTime;
+
+            return AttachSystem::ConstraintOut {
+                in.attachmentPos,
+                in.attachmentVel
+            };
+        };
+    }
+
+
     template<class T>
-    void update_attachment(World& w, ID<T> id, Vec2f ppos, Vec2f cpos, Vec2f vel) {
+    Vec2f get_attach_pos(World& w, ID<T> id) {
+
         if constexpr (std::same_as<T, Collidable>) {
             // dunno how this'll work lmao
             Collidable& t = w.at(id);
-            t.teleport(ppos);
+            return t.getPosition();
+        }
+        else if constexpr (std::same_as<T, Trigger>) {
+            Trigger& t = w.at(id);
+            return t.get_area().getPosition();
+        }
+        else if constexpr (std::same_as<T, Emitter>) {
+            Emitter& t = w.at(id);
+            return t.position;
+        }
+        else if constexpr (std::same_as<T, AttachPoint>) {
+            // or this
+            AttachPoint& t = w.at(id);
+            return t.curr_pos();
+        }
+        else if constexpr (std::same_as<T, ColliderRegion>) {
+            ColliderRegion& t = w.at(id);
+            return t.getPosition();
+        }
+        else if constexpr (std::same_as<T, Drawable>) {
+            SceneConfig& t = w.scene().config(id);
+            return t.rstate.transform.getPosition();
+        }
+        else if constexpr (std::same_as<T, CameraTarget>) {
+            CameraTarget& t = w.at(id);
+            // ???
+        }
+        return {};
+    }
+
+    template<class T>
+    Vec2f get_attach_vel(World& w, ID<T> id) {
+
+        if constexpr (std::same_as<T, Collidable>) {
+            // dunno how this'll work lmao
+            Collidable& t = w.at(id);
+            return t.get_vel();
+        }
+        else if constexpr (std::same_as<T, Trigger>) {
+            Trigger& t = w.at(id);
+            return {};
+        }
+        else if constexpr (std::same_as<T, Emitter>) {
+            Emitter& t = w.at(id);
+            return t.velocity;
+        }
+        else if constexpr (std::same_as<T, AttachPoint>) {
+            // or this
+            AttachPoint& t = w.at(id);
+            return t.vel();
+        }
+        else if constexpr (std::same_as<T, ColliderRegion>) {
+            ColliderRegion& t = w.at(id);
+            return t.velocity;
+        }
+        else if constexpr (std::same_as<T, Drawable>) {
+            SceneConfig& t = w.scene().config(id);
+            return {};
+        }
+        else if constexpr (std::same_as<T, CameraTarget>) {
+            CameraTarget& t = w.at(id);
+            // ???
+        }
+        return {};
+    }
+
+    template<class T>
+    void update_attachment(World& w, ID<T> id, Vec2f cpos, Vec2f vel) {
+        if constexpr (std::same_as<T, Collidable>) {
+            // dunno how this'll work lmao
+            Collidable& t = w.at(id);
+            //t.teleport(ppos);
             t.setPosition(cpos);
         }
         else if constexpr (std::same_as<T, Trigger>) {
@@ -22,7 +114,7 @@ namespace ff {
         else if constexpr (std::same_as<T, Emitter>) {
             Emitter& t = w.at(id);
             t.velocity = vel;
-            t.prev_position = ppos;
+            //t.prev_position = ppos;
             t.position = cpos;
         }
         else if constexpr (std::same_as<T, AttachPoint>) {
@@ -30,14 +122,14 @@ namespace ff {
             AttachPoint& t = w.at(id);
 
             // TODO hopefully no stack overflow???
-            if (ppos != t.prev_pos()
-            || cpos != t.curr_pos()
-            || vel != t.vel())
+            if (cpos != t.curr_pos()
+             || vel != t.vel())
             {
-                t.teleport(ppos);
+                //t.teleport(ppos);
                 t.set_pos(cpos);
                 t.set_vel(vel);
-                w.attach().notify(w, id);
+                t.notify();
+                //w.attach().notify(w, id);
             }
         }
         else if constexpr (std::same_as<T, ColliderRegion>) {
@@ -67,6 +159,52 @@ namespace ff {
         {
             ap.update_prev();
         }
+    }
+
+    void AttachSystem::update_attachments(World& world, secs deltaTime)
+    {
+        bool any_updates;
+        do {
+            any_updates = false;
+            for (auto &[apid, ats]: attachments) {
+                auto &ap = world.at(apid);
+
+                if (!ap.has_moved()) {
+                    continue;
+                }
+
+                any_updates = true;
+                for (auto &at: ats) {
+                    auto ppos = ap.prev_pos() + at.offset;
+                    auto cpos = ap.curr_pos() + at.offset;
+                    std::visit(
+                        [&](auto id) {
+
+                            Vec2f p = get_attach_pos(world, id);
+                            Vec2f v = get_attach_vel(world, id);
+
+                            ConstraintOut out{
+                                .attachmentPos = cpos,
+                                .attachmentVel = ap.vel()
+                            };
+
+                            if (at.constraint) {
+                                out = at.constraint(ConstraintIn{
+                                    .attachmentPos = p,
+                                    .attachmentVel = v,
+                                    .attachpointPos = cpos,
+                                    .deltaTime = deltaTime
+                                });
+                            }
+
+                            update_attachment(world, id, out.attachmentPos, out.attachmentVel);
+                        },
+                        at.id
+                    );
+                }
+                ap.reset_has_moved();
+            }
+        } while (any_updates);
     }
 
     void AttachSystem::predraw(World& world, float interp, bool updated) {
@@ -110,27 +248,21 @@ namespace ff {
         world.erase(col.get_attach_id());
     }
 
-    void AttachSystem::notify(World& world, ID<AttachPoint> id) {
+    /*
+    void AttachSystem::notify(World& world, ID<AttachPoint> id)
+    {
+        /*
         if (auto ap = world.get(id);
             ap &&  attachments.contains(id))
         {
-            auto& ats = attachments.at(id);
 
-            for (auto& at : ats)
-            {
-                auto ppos = ap->prev_pos() + at.offset;
-                auto cpos = ap->curr_pos() + at.offset;
-                std::visit(
-                    [&](auto id) { update_attachment(world, id, ppos, cpos, ap->vel()); },
-                    at.id
-                );
-            }
         }
     }
+        */
 
-    void AttachSystem::create(ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset)
+    void AttachSystem::create(ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset, ConstraintFn fn)
     {
-        attachments.at(id).insert(Attachment{ cmp_id, offset });
+        attachments.at(id).insert(Attachment{ cmp_id, offset, std::move(fn) });
     }
 
     void AttachSystem::erase(ComponentID cmp_id) {

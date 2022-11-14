@@ -38,7 +38,7 @@ const EmitterStrategy jet_emitter_str = {
 JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     : ff::GameObject(w, id, data)
 {
-    base_position = data.getTopLeftPos();
+    Vec2f base_position = data.getTopLeftPos();
     tile_width = (int)data.size.x / TILESIZE;
     assert(platform_width_min <= tile_width && tile_width <= platform_width_max);
 
@@ -87,10 +87,17 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
 
     attach_id = w.create_attachpoint(id);
     auto& attach = w.at(attach_id);
-    w.attach().create(attach_id, sprite_id, {});
-    w.attach().create(attach_id, collider_id, {});
-    w.attach().create(attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
+    w.attach().create(attach_id, sprite_id, {}, {});
+    w.attach().create(attach_id, collider_id, {}, {});
+    w.attach().create(attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f }, {});
+
+    base_attach_id = w.create_attachpoint(id);
+    w.attach().create(base_attach_id, attach_id, {}, makeSpringConstraint({ 30.f, 50.f }, { 8.f, 3.f }));
+    w.at(base_attach_id).teleport(base_position);
     attach.teleport(base_position);
+
+    attach.notify();
+    w.at(base_attach_id).notify();
 }
 
 void JetPlatform::update(ff::World& w, secs deltaTime)
@@ -100,21 +107,13 @@ void JetPlatform::update(ff::World& w, secs deltaTime)
 
     if (deltaTime > 0.0) {
         auto& attach = w.at(attach_id);
-        lifetime += deltaTime;
 
         // apply accumulated push to velocity
         attach.add_vel(push_vel + (push_accel * (float)deltaTime));
         push_accel = Vec2f{};
         push_vel = Vec2f{};
 
-        // apply forces
-        Vec2f accel{};
-        Vec2f offset = (attach.curr_pos() - base_position);
-        accel += offset.unit() * (-spring * offset.magnitude()); // spring
-        accel += attach.vel().unit() * (-damping * attach.vel().magnitude()); // damping
-
-        attach.add_vel(accel * deltaTime);
-        attach.update(deltaTime);
-        w.attach().notify(w, attach_id);
+        w.at(base_attach_id).notify();
+        attach.notify();
     }
 }
