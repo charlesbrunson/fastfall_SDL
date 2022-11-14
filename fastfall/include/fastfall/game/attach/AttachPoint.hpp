@@ -39,17 +39,11 @@ public:
 
     ID<AttachPoint> id() const;
 
-    void notify() { _has_moved = true; }
-
-    bool has_moved() const { return _has_moved; }
-    void reset_has_moved() { _has_moved = false; }
-
 private:
     Vec2f _curr_pos;
     Vec2f _prev_pos;
     Vec2f _vel;
     ID<AttachPoint> _id;
-    bool _has_moved = false;
 
 };
 

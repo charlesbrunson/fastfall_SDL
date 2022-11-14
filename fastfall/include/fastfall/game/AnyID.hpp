@@ -17,13 +17,13 @@ class GameObject;
 class Level;
 
 using ComponentID = std::variant<
-    ID<Collidable>,
-    ID<ColliderRegion>,
-    ID<Trigger>,
-    ID<CameraTarget>,
-    ID<Drawable>,
-    ID<Emitter>,
-    ID<AttachPoint>
+    ID<Collidable>,         // 0
+    ID<ColliderRegion>,     // 1
+    ID<Trigger>,            // 2
+    ID<CameraTarget>,       // 3
+    ID<Drawable>,           // 4
+    ID<Emitter>,            // 5
+    ID<AttachPoint>         // 6
 >;
 
 using EntityID = std::variant<

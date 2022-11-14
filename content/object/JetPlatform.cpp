@@ -87,17 +87,19 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
 
     attach_id = w.create_attachpoint(id);
     auto& attach = w.at(attach_id);
-    w.attach().create(attach_id, sprite_id, {}, {});
-    w.attach().create(attach_id, collider_id, {}, {});
-    w.attach().create(attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f }, {});
+    w.attach().create(attach_id, sprite_id);
+    w.attach().create(attach_id, collider_id);
+    w.attach().create(attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
 
     base_attach_id = w.create_attachpoint(id);
-    w.attach().create(base_attach_id, attach_id, {}, makeSpringConstraint({ 30.f, 50.f }, { 8.f, 3.f }));
+    w.attach().create(base_attach_id, attach_id);
     w.at(base_attach_id).teleport(base_position);
     attach.teleport(base_position);
 
-    attach.notify();
-    w.at(base_attach_id).notify();
+    w.attach().notify(w, base_attach_id);
+
+    //attach.notify();
+    //w.at(base_attach_id).notify();
 }
 
 void JetPlatform::update(ff::World& w, secs deltaTime)
@@ -113,7 +115,7 @@ void JetPlatform::update(ff::World& w, secs deltaTime)
         push_accel = Vec2f{};
         push_vel = Vec2f{};
 
-        w.at(base_attach_id).notify();
-        attach.notify();
+        w.attach().notify(w, base_attach_id);
+        //attach.notify();
     }
 }
