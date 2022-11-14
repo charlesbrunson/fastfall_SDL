@@ -24,7 +24,7 @@ public:
 			nlohmann::ordered_json* dump_ptr = nullptr)
 	{
 		gather_collisions(world, deltaTime, dump_ptr);
-		solve_collisions(world, dump_ptr);
+		solve_collisions(world, deltaTime, dump_ptr);
 	};
 	void erase_region(ID<ColliderRegion> region);
 
@@ -38,6 +38,7 @@ private:
 
 	void solve_collisions(
             World& world,
+            secs deltaTime,
             nlohmann::ordered_json* dump_ptr = nullptr);
 
 	void update_region_arbiters(

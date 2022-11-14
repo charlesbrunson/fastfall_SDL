@@ -20,14 +20,14 @@ public:
 	void get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, QuadID>>& out_buffer) const override;
 
 	void set_on_precontact(std::function<bool(World&, const ContinuousContact&, secs)> func);
-	void set_on_postcontact(std::function<void(World&, const AppliedContact&)> func);
+	void set_on_postcontact(std::function<void(World&, const AppliedContact&, secs)> func);
 
 	bool on_precontact(World& w, const ContinuousContact& contact, secs duration) const override;
-	void on_postcontact(World& w, const AppliedContact& contact) const override;
+	void on_postcontact(World& w, const AppliedContact& contact, secs deltaTime) const override;
 
 private:
 	std::function<bool(World&, const ContinuousContact&, secs)> callback_on_precontact;
-	std::function<void(World&, const AppliedContact&)> callback_on_postcontact;
+	std::function<void(World&, const AppliedContact&, secs)> callback_on_postcontact;
 
 	ColliderQuad quad;
 };

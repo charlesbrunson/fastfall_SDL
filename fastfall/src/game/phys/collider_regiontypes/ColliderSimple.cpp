@@ -35,7 +35,7 @@ namespace ff {
 	void ColliderSimple::set_on_precontact(std::function<bool(World&, const ContinuousContact&, secs)> func) {
 		callback_on_precontact = func;
 	}
-	void ColliderSimple::set_on_postcontact(std::function<void(World&, const AppliedContact&)> func) {
+	void ColliderSimple::set_on_postcontact(std::function<void(World&, const AppliedContact&, secs)> func) {
 		callback_on_postcontact = func;
 	}
 
@@ -45,8 +45,8 @@ namespace ff {
 
 		return true;
 	}
-	void ColliderSimple::on_postcontact(World& w, const AppliedContact& contact) const {
+	void ColliderSimple::on_postcontact(World& w, const AppliedContact& contact, secs deltaTime) const {
 		if (callback_on_postcontact)
-			callback_on_postcontact(w, contact);
+			callback_on_postcontact(w, contact, deltaTime);
 	}
 }
