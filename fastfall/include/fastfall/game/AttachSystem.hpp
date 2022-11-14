@@ -12,10 +12,26 @@ namespace ff {
     class World;
 
     class AttachSystem {
+    public:
+        struct ConstraintOut {
+            Vec2f attachmentPos;
+            Vec2f attachmentVel;
+        };
+
+        struct ConstraintIn {
+            Vec2f attachmentPos;
+            Vec2f attachmentVel;
+            Vec2f attachpointPos;
+            secs deltaTime;
+        };
+
+        using ConstraintFn = std::function<ConstraintOut(const ConstraintIn&)>;
+
     private:
         struct Attachment {
             ComponentID id;
             Vec2f offset;
+            ConstraintFn constraint;
 
             bool operator==(const Attachment& other) const {
                 return id == other.id;
@@ -32,6 +48,7 @@ namespace ff {
 
     public:
         void update(World& world, secs deltaTime);
+        void update_attachments(World& world, secs deltaTime);
         void predraw(World& world, float interp, bool updated);
 
         void notify_created(World& world, ID<AttachPoint> id);
@@ -40,9 +57,9 @@ namespace ff {
         void notify_created(World& world, ID<Collidable> id);
         void notify_erased(World& world, ID<Collidable> id);
 
-        void notify(World& world, ID<AttachPoint> id);
+        //void notify(World& world, ID<AttachPoint> id);
 
-        void create(ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset);
+        void create(ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset, AttachSystem::ConstraintFn fn);
         void erase(ComponentID cmp_id);
 
         bool is_attached(ComponentID cmp_id) const;
@@ -56,4 +73,5 @@ namespace ff {
         std::map<ComponentID, ID<AttachPoint>> cmp_lookup;
     };
 
+    AttachSystem::ConstraintFn makeSpringConstraint(Vec2f springF, Vec2f dampingF);
 }
