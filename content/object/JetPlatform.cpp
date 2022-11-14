@@ -92,14 +92,13 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     w.attach().create(attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
 
     base_attach_id = w.create_attachpoint(id);
-    w.attach().create(base_attach_id, attach_id);
+    w.attach().create(base_attach_id, attach_id, {});
+
     w.at(base_attach_id).teleport(base_position);
     attach.teleport(base_position);
 
     w.attach().notify(w, base_attach_id);
 
-    //attach.notify();
-    //w.at(base_attach_id).notify();
 }
 
 void JetPlatform::update(ff::World& w, secs deltaTime)
@@ -116,6 +115,5 @@ void JetPlatform::update(ff::World& w, secs deltaTime)
         push_vel = Vec2f{};
 
         w.attach().notify(w, base_attach_id);
-        //attach.notify();
     }
 }

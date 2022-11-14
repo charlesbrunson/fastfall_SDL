@@ -39,11 +39,15 @@ public:
 
     ID<AttachPoint> id() const;
 
+    void set_tick(size_t t) { _tick = t; }
+    size_t get_tick() const { return _tick; }
+
 private:
     Vec2f _curr_pos;
     Vec2f _prev_pos;
     Vec2f _vel;
     ID<AttachPoint> _id;
+    size_t _tick = 0;
 
 };
 

@@ -98,6 +98,7 @@ namespace ff {
         }
         return {};
     }
+    */
 
     template<class T>
     void update_attachment(World& w, ID<T> id, Vec2f cpos, Vec2f vel) {
@@ -142,7 +143,6 @@ namespace ff {
             // ???
         }
     }
-    */
 
     template<class T>
     void interp_attachment(World& w, ID<T> id, Vec2f ipos) {
@@ -162,7 +162,12 @@ namespace ff {
     void AttachSystem::notify(World& world, ID<AttachPoint> id) {
         std::set<ID<AttachPoint>> visited;
         LOG_INFO("------------");
-        update_attachments(world, id, visited);
+
+        auto& ap = world.at(id);
+        if (is_attachpoint_root(id) && ap.get_tick() != world.tick_count()) {
+            ap.set_tick(world.tick_count());
+            update_attachments(world, id, visited);
+        }
     }
 
     void AttachSystem::update_attachments(World& world, ID<AttachPoint> id, std::set<ID<AttachPoint>>& visited) {
@@ -172,11 +177,16 @@ namespace ff {
         visited.insert(id);
         LOG_INFO("{} visit: {}", visited.size(), id.value.raw());
 
+        auto& ap = world.at(id);
+
         size_t attndx = 0;
         for (auto at : attachments.at(id))
         {
             // update attachment
             LOG_INFO("attachment {}: {}", attndx, at.id.index());
+            std::visit(
+                [&]<class T>(ID<T> c_id) { update_attachment(world, c_id, ap.curr_pos() + at.offset, ap.vel()); },
+                        at.id);
 
             if (holds_alternative<ID<AttachPoint>>(at.id)) {
                 update_attachments(world, std::get<ID<AttachPoint>>(at.id), visited);
