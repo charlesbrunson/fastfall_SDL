@@ -31,11 +31,11 @@ using EntityID = std::variant<
     ID<Level>
 >;
 
-std::optional<ID<Level>> as_level(EntityID id) {
+inline std::optional<ID<Level>> as_level(EntityID id) {
     return std::holds_alternative<ID<Level>>(id) ? std::make_optional(std::get<ID<Level>>(id)) : std::nullopt;
 }
 
-std::optional<ID<GameObject>> as_object(EntityID id) {
+inline std::optional<ID<GameObject>> as_object(EntityID id) {
     return std::holds_alternative<ID<GameObject>>(id) ? std::make_optional(std::get<ID<GameObject>>(id)) : std::nullopt;
 }
 
