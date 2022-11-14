@@ -26,20 +26,11 @@ Player::Player(World& w, ID<GameObject> id, Vec2f position, bool faceleft)
 	, plr::members{ w, *this, position, faceleft}
 {
     auto& box = w.at(collidable_id);
-    box.callbacks.onPostCollision = [
-            id = getID(),
-            collidable_id = collidable_id,
-            hitbox_id = hitbox_id
-    ] (World& w)
-    {
-        auto& player = (Player&)w.at(id);
-        auto& box = w.at(collidable_id);
-        auto& hitbox = w.at(hitbox_id);
-        hitbox.set_area(box.getBox());
-        player.manage_state(w, player.get_state().post_collision(w, player));
+    box.callbacks.onPostCollision = [plr_id = id_cast<Player>(getID())] (World& w) {
+        auto& plr = w.at(plr_id);
+        plr.manage_state(w, plr.get_state().post_collision(w, plr));
     };
 
-    w.attach().create(box.get_attach_id(), sprite_id, {});
 };
 
 Player::Player(World& w, ID<GameObject> id, ObjectLevelData& data)
@@ -47,19 +38,11 @@ Player::Player(World& w, ID<GameObject> id, ObjectLevelData& data)
 	, plr::members{ w, *this, Vec2f{ data.position }, data.getPropAsBool("faceleft")}
 {
     auto& box = w.at(collidable_id);
-    box.callbacks.onPostCollision = [
-        plr_id = id_cast<Player>(getID()),
-        col_id = collidable_id,
-        hit_id = hitbox_id
-    ] (World& w)
-    {
-        auto [plr, colbox, hitbox] = w.at(plr_id, col_id, hit_id);
-        hitbox.set_area(colbox.getBox());
+    box.callbacks.onPostCollision = [plr_id = id_cast<Player>(getID())] (World& w) {
+        auto& plr = w.at(plr_id);
         plr.manage_state(w, plr.get_state().post_collision(w, plr));
     };
 
-    auto attachid = box.get_attach_id();
-    w.attach().create(attachid, sprite_id, {});
 };
 
 
