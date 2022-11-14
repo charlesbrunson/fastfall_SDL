@@ -88,7 +88,6 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     sprite.set_hflip(face_dir);
     w.attach().create(attachid, sprite_id, {});
 
-
 }
 
 namespace plr::anim {
