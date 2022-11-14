@@ -67,19 +67,26 @@ namespace ff {
     }
 
     void AttachSystem::update(World& world, secs deltaTime) {
-        curr_delta = deltaTime;
-        for (auto [id, ap] : world.all<AttachPoint>())
-        {
-            ap.update_prev();
+        if (deltaTime > 0.0) {
+            curr_delta = deltaTime;
+            for (auto [id, ap]: world.all<AttachPoint>()) {
+                ap.update_prev();
+            }
         }
     }
 
-    void AttachSystem::notify(World& world, ID<AttachPoint> id) {
-        std::set<ID<AttachPoint>> visited;
-        auto& ap = world.at(id);
-        if (is_attachpoint_root(id) && ap.get_tick() != world.tick_count()) {
-            ap.set_tick(world.tick_count());
-            update_attachments(world, id, visited);
+    void AttachSystem::update_attachpoints(World& world, secs deltaTime, AttachPoint::Schedule sched) {
+        if (deltaTime > 0.0) {
+            for (auto [aid, ap]: world.all<AttachPoint>()) {
+                if (is_attachpoint_root(aid)
+                    && ap.get_tick() != world.tick_count()
+                    && ap.sched == sched)
+                {
+                    std::set<ID<AttachPoint>> visited;
+                    ap.set_tick(world.tick_count());
+                    update_attachments(world, aid, visited);
+                }
+            }
         }
     }
 
@@ -141,6 +148,7 @@ namespace ff {
         attach.teleport(col.getPrevPosition());
         attach.set_pos(col.getPosition());
         attach.set_vel(col.get_vel());
+        attach.sched = AttachPoint::Schedule::PostCollision;
     }
 
     void AttachSystem::notify_erased(World& world, ID<Collidable> id) {
@@ -151,6 +159,7 @@ namespace ff {
     void AttachSystem::create(World& world, ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset)
     {
         attachments.at(id).insert(Attachment{ cmp_id, offset });
+        cmp_lookup.emplace(cmp_id, id);
     }
 
     void AttachSystem::erase(ComponentID cmp_id) {

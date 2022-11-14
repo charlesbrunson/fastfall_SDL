@@ -52,13 +52,13 @@ namespace ff {
         void update(World& world, secs deltaTime);
         void predraw(World& world, float interp, bool updated);
 
+        void update_attachpoints(World& world, secs deltaTime, AttachPoint::Schedule sched);
+
         void notify_created(World& world, ID<AttachPoint> id);
         void notify_erased(World& world, ID<AttachPoint> id);
 
         void notify_created(World& world, ID<Collidable> id);
         void notify_erased(World& world, ID<Collidable> id);
-
-        void notify(World& world, ID<AttachPoint> id);
 
         void create(World& world, ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset = {});
         void erase(ComponentID cmp_id);

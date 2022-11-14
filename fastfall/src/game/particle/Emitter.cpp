@@ -54,14 +54,15 @@ Emitter::Emitter(EmitterStrategy str)
 }
 
 void Emitter::update(secs deltaTime) {
-    //prev_position = position;
-    lifetime += deltaTime;
-    if (strategy.emitter_transform)
-        strategy.emitter_transform(*this, deltaTime);
+    if (deltaTime > 0.0) {
+        lifetime += deltaTime;
+        if (strategy.emitter_transform)
+            strategy.emitter_transform(*this, deltaTime);
 
-    update_particles(deltaTime);
-    destroy_dead_particles();
-    spawn_particles(deltaTime);
+        update_particles(deltaTime);
+        destroy_dead_particles();
+        spawn_particles(deltaTime);
+    }
 }
 
 void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, float interp, bool updated)

@@ -63,7 +63,6 @@ BasicPlatform::BasicPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& d
     attach.teleport(pos);
     w.attach().create(w, attach_id, collider_id);
     w.attach().create(w, attach_id, shape_id);
-    w.attach().notify(w, attach_id);
 }
 
 void BasicPlatform::update(World& w, secs deltaTime)
@@ -103,6 +102,5 @@ void BasicPlatform::update(World& w, secs deltaTime)
             attach.set_pos(attach.curr_pos());
             attach.set_vel({});
 		}
-        w.attach().notify(w, attach_id);
 	}
 }

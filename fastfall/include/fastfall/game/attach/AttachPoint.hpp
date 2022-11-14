@@ -46,6 +46,14 @@ public:
 
     AttachConstraint constraint;
 
+
+    enum class Schedule {
+        PostUpdate,
+        PostCollision
+    };
+    Schedule sched = Schedule::PostUpdate;
+
+
 private:
     Vec2f _curr_pos;
     Vec2f _prev_pos;
