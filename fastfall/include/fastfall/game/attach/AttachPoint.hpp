@@ -4,6 +4,8 @@
 #include "fastfall/util/id.hpp"
 #include "fastfall/engine/time/time.hpp"
 
+#include "fastfall/game/attach/AttachConstraint.hpp"
+
 namespace ff {
 
 class AttachPoint {
@@ -42,7 +44,7 @@ public:
     void set_tick(size_t t) { _tick = t; }
     size_t get_tick() const { return _tick; }
 
-    std::function<void(AttachPoint&, const AttachPoint&, Vec2f, secs)> constraint;
+    AttachConstraint constraint;
 
 private:
     Vec2f _curr_pos;
