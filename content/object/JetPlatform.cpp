@@ -106,7 +106,6 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     auto& base_attach = w.at(base_attach_id);
     base_attach.teleport(base_position);
     w.attach().create(w, base_attach_id, attach_id);
-    w.attach().notify(w, base_attach_id);
 }
 
 void JetPlatform::update(ff::World& w, secs deltaTime)
@@ -122,7 +121,6 @@ void JetPlatform::update(ff::World& w, secs deltaTime)
         // apply accumulated push to velocity
         auto& attach = w.at(attach_id);
         attach.add_vel(push_vel + (push_accel * (float)deltaTime));
-        w.attach().notify(w, base_attach_id);
 
         push_accel = Vec2f{};
         push_vel = Vec2f{};

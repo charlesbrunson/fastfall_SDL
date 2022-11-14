@@ -6,9 +6,10 @@ namespace ff {
 
 
 void EmitterSystem::update(World& world, secs deltaTime) {
-    for (auto [eid, e] : world.all<Emitter>())
-    {
-        e.update(deltaTime);
+    if (deltaTime > 0.0) {
+        for (auto [eid, e]: world.all<Emitter>()) {
+            e.update(deltaTime);
+        }
     }
 }
 
