@@ -27,6 +27,7 @@ namespace ff {
         else if constexpr (std::same_as<T, Emitter>) {
             Emitter& t = w.at(attachment_id);
             t.velocity = vel;
+            t.prev_position = ppos;
             t.position = cpos;
         }
         else if constexpr (std::same_as<T, AttachPoint>) {
@@ -64,6 +65,13 @@ namespace ff {
             auto& cfg = w.scene().config(id);
             cfg.rstate.transform = Transform(ipos);
         }
+        /*
+        if constexpr (std::same_as<T, Emitter>) {
+            Emitter& e = w.at(id);
+            auto& cfg = w.scene().config(e.get_drawid());
+            cfg.rstate.transform = Transform(ipos);
+        }
+        */
     }
 
     void AttachSystem::update(World& world, secs deltaTime) {
@@ -109,7 +117,7 @@ namespace ff {
     }
 
     void AttachSystem::predraw(World& world, float interp, bool updated) {
-        /*
+
         for (auto [aid, ap] : world.all<AttachPoint>())
         {
             auto ipos = ap.interpolate(interp);
@@ -120,12 +128,6 @@ namespace ff {
                         attach.id);
             }
         }
-        */
-
-        std::set<ID<AttachPoint>> visited;
-
-        // redo this
-
     }
 
     bool AttachSystem::is_attachpoint_root(ID<AttachPoint> id) const {
