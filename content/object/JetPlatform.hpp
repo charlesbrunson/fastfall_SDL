@@ -22,7 +22,7 @@ protected:
     ff::ID<ff::AnimatedSprite> sprite_id;
     ff::ID<ff::Emitter> emitter_id;
     //ff::Vec2f base_position;
-    //secs lifetime = 0.0;
+    secs lifetime = 0.0;
 
     ff::Vec2f push_vel;
     ff::Vec2f push_accel;

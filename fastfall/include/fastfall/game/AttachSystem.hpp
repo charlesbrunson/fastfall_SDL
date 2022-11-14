@@ -60,7 +60,7 @@ namespace ff {
 
         void notify(World& world, ID<AttachPoint> id);
 
-        void create(ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset = {});
+        void create(World& world, ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset = {});
         void erase(ComponentID cmp_id);
 
         bool is_attached(ComponentID cmp_id) const;
