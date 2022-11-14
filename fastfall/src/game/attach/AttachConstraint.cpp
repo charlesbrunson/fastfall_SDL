@@ -11,7 +11,7 @@ namespace ff {
                 accel += diff.unit() * (-spr * diff.magnitude()); // spring
                 accel += self.vel().unit() * (-damp * self.vel().magnitude()); // damping
                 self.add_vel(accel * delta);
-                self.update(delta);
+                self.apply_vel(delta);
             };
     }
 }

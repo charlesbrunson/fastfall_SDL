@@ -115,8 +115,8 @@ void JetPlatform::update(ff::World& w, secs deltaTime)
         lifetime += deltaTime;
 
         auto& base = w.at(base_attach_id);
-        base.set_pos(base.curr_pos() + Vec2f{ sinf((float)lifetime) * 50.f, 0.f } * deltaTime);
-        base.update(deltaTime);
+        base.set_vel(Vec2f{ sinf((float)lifetime) * 50.f, 0.f });
+        base.apply_vel(deltaTime);
 
         // apply accumulated push to velocity
         auto& attach = w.at(attach_id);
