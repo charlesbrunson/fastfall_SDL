@@ -49,13 +49,16 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     collider.applyChanges();
     collider.set_on_postcontact([
         id = id_cast<JetPlatform>(getID()),
-        cid = collider_id
+        cid = collider_id,
+        aid = attach_id
     ]
         (World& w, const AppliedContact& c)
     {
         if (c.has_contact_with(cid))
         {
             auto [jetpl, collider, collidable] = w.at(id, cid, c.id->collidable);
+
+
             jetpl.push_vel.y += (c.collidable_precontact_velocity - collider.velocity).y * 0.9f;
 
             if (auto* track = collidable.get_tracker();
@@ -65,6 +68,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
                 jetpl.push_vel.x += collidable.get_friction().x;
                 jetpl.push_accel.x -= collidable.get_acc().x * 0.5f;
             }
+
         }
     });
 
@@ -92,17 +96,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     attach_id = w.create_attachpoint(id);
     auto& attach = w.at(attach_id);
     attach.teleport(base_position);
-    attach.constraint =
-        [spr = Vec2f{30, 50}, damp = Vec2f{8, 3 }]
-        (AttachPoint& self, const AttachPoint& attached, Vec2f offset, secs delta)
-        {
-            Vec2f accel;
-            auto diff = (self.curr_pos() - (attached.curr_pos() + offset));
-            accel += diff.unit() * (-spr * diff.magnitude()); // spring
-            accel += self.vel().unit() * (-damp * self.vel().magnitude()); // damping
-            self.add_vel(accel * delta);
-            self.update(delta);
-        };
+    attach.constraint = makeSpringConstraint({30, 50}, {8, 3});
     w.attach().create(attach_id, sprite_id);
     w.attach().create(attach_id, collider_id);
     w.attach().create(attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
@@ -111,7 +105,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     base_attach_id = w.create_attachpoint(id);
     auto& base_attach = w.at(base_attach_id);
     base_attach.teleport(base_position);
-    w.attach().create(base_attach_id, attach_id, {});
+    w.attach().create(base_attach_id, attach_id);
     w.attach().notify(w, base_attach_id);
 }
 
