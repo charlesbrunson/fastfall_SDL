@@ -42,6 +42,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     tile_width = (int)data.size.x / TILESIZE;
     assert(platform_width_min <= tile_width && tile_width <= platform_width_max);
 
+    // collider
     collider_id = w.create_collider<ColliderTileMap>(id, Vec2i{tile_width, 1});
     auto& collider = w.at(collider_id);
     collider.fill("oneway"_ts);
@@ -67,6 +68,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
         }
     });
 
+    // sprite
     sprite_id = w.create_drawable<AnimatedSprite>(id);
     auto& sprite = w.at(sprite_id);
     sprite.set_anim(anim_platform[tile_width - platform_width_min]);
@@ -76,6 +78,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
         .priority = scene_priority::Low,
     };
 
+    // emitter
     emitter_id = w.create_emitter(id);
     auto& emitter = w.at(emitter_id);
     emitter.strategy = jet_emitter_str;
@@ -85,35 +88,42 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
         .priority = scene_priority::Lowest,
     };
 
+    // spring attachpoint
     attach_id = w.create_attachpoint(id);
     auto& attach = w.at(attach_id);
+    attach.teleport(base_position);
+    attach.constraint =
+        [spr = Vec2f{30, 50}, damp = Vec2f{8, 3 }]
+        (AttachPoint& self, const AttachPoint& attached, Vec2f offset, secs delta)
+        {
+            Vec2f accel;
+            auto diff = (self.curr_pos() - (attached.curr_pos() + offset));
+            accel += diff.unit() * (-spr * diff.magnitude()); // spring
+            accel += self.vel().unit() * (-damp * self.vel().magnitude()); // damping
+            self.add_vel(accel * delta);
+            self.update(delta);
+        };
     w.attach().create(attach_id, sprite_id);
     w.attach().create(attach_id, collider_id);
     w.attach().create(attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
 
+    // base attachpoint
     base_attach_id = w.create_attachpoint(id);
+    auto& base_attach = w.at(base_attach_id);
+    base_attach.teleport(base_position);
     w.attach().create(base_attach_id, attach_id, {});
-
-    w.at(base_attach_id).teleport(base_position);
-    attach.teleport(base_position);
-
     w.attach().notify(w, base_attach_id);
-
 }
 
 void JetPlatform::update(ff::World& w, secs deltaTime)
 {
-    constexpr Vec2f spring{ 30.f, 50.f };
-    constexpr Vec2f damping{ 8.f, 3.f };
-
     if (deltaTime > 0.0) {
-        auto& attach = w.at(attach_id);
-
         // apply accumulated push to velocity
+        auto& attach = w.at(attach_id);
         attach.add_vel(push_vel + (push_accel * (float)deltaTime));
+        w.attach().notify(w, base_attach_id);
+
         push_accel = Vec2f{};
         push_vel = Vec2f{};
-
-        w.attach().notify(w, base_attach_id);
     }
 }
