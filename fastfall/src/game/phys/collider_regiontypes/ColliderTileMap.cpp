@@ -70,9 +70,9 @@ namespace ff {
 		return true;
 	}
 
-	void ColliderTileMap::on_postcontact(World& w, const AppliedContact& contact) const {
+	void ColliderTileMap::on_postcontact(World& w, const AppliedContact& contact, secs deltaTime) const {
 		if (validPosition(contact.id->quad) && callback_on_postcontact) {
-			callback_on_postcontact(w, contact);
+			callback_on_postcontact(w, contact, deltaTime);
 		}
 	}
 

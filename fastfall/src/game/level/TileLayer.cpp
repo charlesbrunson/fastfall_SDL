@@ -218,7 +218,7 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 			);
 			collider->set_on_postcontact(
                 [level_id = level_id, layer_id = layer_data.getID()]
-                (World& w, const AppliedContact& contact)
+                (World& w, const AppliedContact& contact, secs deltaTime)
                 {
                     auto& lvl = w.at(level_id);
                     auto& tile_layer = lvl.get_tile_layer(layer_id);
@@ -234,7 +234,7 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 
                     //unsigned ndx = pos.y * getLevelSize().x + pos.x;
                     if (tiles_dyn[pos].logic_id != TILEDATA_NONE) {
-                        tile_layer.dyn.tile_logic.at(tiles_dyn[pos].logic_id)->on_postcontact(w, contact);
+                        tile_layer.dyn.tile_logic.at(tiles_dyn[pos].logic_id)->on_postcontact(w, contact, deltaTime);
                     }
                 }
 			);

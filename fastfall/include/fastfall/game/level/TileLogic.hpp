@@ -77,7 +77,7 @@ public:
 		return true;
 	};
 
-	virtual void on_postcontact(World& w, const AppliedContact& contact) const {};
+	virtual void on_postcontact(World& w, const AppliedContact& contact, secs deltaTime) const {};
 
 	inline std::string_view getName() const {
 		return m_name;

@@ -39,41 +39,17 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     : ff::GameObject(w, id, data)
 {
     Vec2f base_position = data.getTopLeftPos();
-    tile_width = (int)data.size.x / TILESIZE;
+    int tile_width = (int)data.size.x / TILESIZE;
     assert(platform_width_min <= tile_width && tile_width <= platform_width_max);
 
     // collider
-    collider_id = w.create_collider<ColliderTileMap>(id, Vec2i{tile_width, 1});
+    auto collider_id = w.create_collider<ColliderTileMap>(id, Vec2i{tile_width, 1});
     auto& collider = w.at(collider_id);
     collider.fill("oneway"_ts);
     collider.applyChanges();
-    collider.set_on_postcontact([
-        id = id_cast<JetPlatform>(getID()),
-        cid = collider_id,
-        aid = attach_id
-    ]
-        (World& w, const AppliedContact& c)
-    {
-        if (c.has_contact_with(cid))
-        {
-            auto [jetpl, collider, collidable] = w.at(id, cid, c.id->collidable);
-
-
-            jetpl.push_vel.y += (c.collidable_precontact_velocity - collider.velocity).y * 0.9f;
-
-            if (auto* track = collidable.get_tracker();
-                track && track->has_contact_with(cid))
-            {
-                auto& contact = track->get_contact();
-                jetpl.push_vel.x += collidable.get_friction().x;
-                jetpl.push_accel.x -= collidable.get_acc().x * 0.5f;
-            }
-
-        }
-    });
 
     // sprite
-    sprite_id = w.create_drawable<AnimatedSprite>(id);
+    auto sprite_id = w.create_drawable<AnimatedSprite>(id);
     auto& sprite = w.at(sprite_id);
     sprite.set_anim(anim_platform[tile_width - platform_width_min]);
     w.scene().config(sprite_id) = {
@@ -83,7 +59,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     };
 
     // emitter
-    emitter_id = w.create_emitter(id);
+    auto emitter_id = w.create_emitter(id);
     auto& emitter = w.at(emitter_id);
     emitter.strategy = jet_emitter_str;
     w.scene().config(emitter.get_drawid()) = {
@@ -93,36 +69,50 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     };
 
     // spring attachpoint
-    attach_id = w.create_attachpoint(id);
+    auto attach_id = w.create_attachpoint(id);
     auto& attach = w.at(attach_id);
     attach.teleport(base_position);
     attach.constraint = makeSpringConstraint({30, 50}, {8, 3});
     w.attach().create(w, attach_id, sprite_id);
     w.attach().create(w, attach_id, collider_id);
     w.attach().create(w, attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
+    attach.sched = AttachPoint::Schedule::PostCollision;
 
     // base attachpoint
-    base_attach_id = w.create_attachpoint(id);
+    auto base_attach_id = w.create_attachpoint(id);
     auto& base_attach = w.at(base_attach_id);
     base_attach.teleport(base_position);
     w.attach().create(w, base_attach_id, attach_id);
+
+    collider.set_on_postcontact(
+    [
+        id      = id_cast<JetPlatform>(getID()),
+        cid  = collider_id,
+        aid     = attach_id
+    ]
+        (World& w, const AppliedContact& c, secs deltaTime)
+    {
+        if (c.has_contact_with(cid))
+        {
+            auto [attach, collider, collidable] = w.at(aid, cid, c.id->collidable);
+
+            Vec2f push_vel{};
+            Vec2f push_acc{};
+            push_vel.y += (c.collidable_precontact_velocity - collider.velocity).y * 0.9f;
+
+            if (auto* track = collidable.get_tracker();
+                track && track->has_contact_with(cid))
+            {
+                auto& contact = track->get_contact();
+                push_vel.x += collidable.get_friction().x;
+                push_acc.x -= collidable.get_acc().x * 0.5f;
+            }
+
+            attach.add_vel(push_vel + (push_acc * (float)deltaTime));
+        }
+    });
 }
 
 void JetPlatform::update(ff::World& w, secs deltaTime)
 {
-    if (deltaTime > 0.0) {
-
-        lifetime += deltaTime;
-
-        auto& base = w.at(base_attach_id);
-        base.set_vel(Vec2f{ sinf((float)lifetime) * 50.f, 0.f });
-        base.apply_vel(deltaTime);
-
-        // apply accumulated push to velocity
-        auto& attach = w.at(attach_id);
-        attach.add_vel(push_vel + (push_accel * (float)deltaTime));
-
-        push_accel = Vec2f{};
-        push_vel = Vec2f{};
-    }
 }

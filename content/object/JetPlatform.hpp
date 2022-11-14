@@ -16,16 +16,9 @@ public:
     void update(ff::World& w, secs deltaTime) override;
 
 protected:
-    ff::ID<ff::AttachPoint> base_attach_id;
-    ff::ID<ff::AttachPoint> attach_id;
-    ff::ID<ff::ColliderTileMap> collider_id;
-    ff::ID<ff::AnimatedSprite> sprite_id;
-    ff::ID<ff::Emitter> emitter_id;
-    //ff::Vec2f base_position;
-    secs lifetime = 0.0;
-
-    ff::Vec2f push_vel;
-    ff::Vec2f push_accel;
-    ff::Vec2f offset = {};
-    int tile_width = 3;
+    //ff::ID<ff::AttachPoint> base_attach_id;
+    //ff::ID<ff::AttachPoint> attach_id;
+    //ff::ID<ff::ColliderTileMap> collider_id;
+    //ff::ID<ff::AnimatedSprite> sprite_id;
+    //ff::ID<ff::Emitter> emitter_id;
 };

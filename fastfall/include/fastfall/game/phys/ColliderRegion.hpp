@@ -39,7 +39,7 @@ public:
 	Vec2f delta_velocity;
 
 	virtual bool on_precontact(World& w, const ContinuousContact& contact, secs duration) const { return true; };
-	virtual void on_postcontact(World& w, const AppliedContact& contact) const {};
+	virtual void on_postcontact(World& w, const AppliedContact& contact, secs deltaTime) const {};
 
 protected:
 	Rectf boundingBox;

@@ -158,6 +158,7 @@ namespace ff {
 
 	void CollidableArbiter::solve_collisions(
             World& world,
+            secs deltaTime,
             nlohmann::ordered_json* dump_ptr)
 	{
         auto& colliders = world.all<ColliderRegion>();
@@ -186,7 +187,7 @@ namespace ff {
         for (auto& fr : frame) {
             if (fr.id) {
                 if (auto* collider = world.get(fr.id->collider)) {
-                    collider->on_postcontact(world, fr);
+                    collider->on_postcontact(world, fr, deltaTime);
                 }
             }
         }
