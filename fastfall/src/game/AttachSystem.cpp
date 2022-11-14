@@ -96,7 +96,6 @@ namespace ff {
 
         visited.insert(id);
         auto& ap = world.at(id);
-        size_t attndx = 0;
         for (auto at : attachments.at(id))
         {
             std::visit(
@@ -106,11 +105,11 @@ namespace ff {
             if (holds_alternative<ID<AttachPoint>>(at.id)) {
                 update_attachments(world, std::get<ID<AttachPoint>>(at.id), visited);
             }
-            attndx++;
         }
     }
 
     void AttachSystem::predraw(World& world, float interp, bool updated) {
+        /*
         for (auto [aid, ap] : world.all<AttachPoint>())
         {
             auto ipos = ap.interpolate(interp);
@@ -121,6 +120,12 @@ namespace ff {
                         attach.id);
             }
         }
+        */
+
+        std::set<ID<AttachPoint>> visited;
+
+        // redo this
+
     }
 
     bool AttachSystem::is_attachpoint_root(ID<AttachPoint> id) const {
