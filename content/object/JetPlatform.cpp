@@ -79,7 +79,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     w.scene().config(sprite_id) = {
         .layer_id = 0,
         .type = scene_type::Object,
-        .priority = scene_priority::Low,
+        .priority = scene_priority::Low
     };
 
     // emitter
@@ -97,21 +97,28 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     auto& attach = w.at(attach_id);
     attach.teleport(base_position);
     attach.constraint = makeSpringConstraint({30, 50}, {8, 3});
-    w.attach().create(attach_id, sprite_id);
-    w.attach().create(attach_id, collider_id);
-    w.attach().create(attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
+    w.attach().create(w, attach_id, sprite_id);
+    w.attach().create(w, attach_id, collider_id);
+    w.attach().create(w, attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
 
     // base attachpoint
     base_attach_id = w.create_attachpoint(id);
     auto& base_attach = w.at(base_attach_id);
     base_attach.teleport(base_position);
-    w.attach().create(base_attach_id, attach_id);
+    w.attach().create(w, base_attach_id, attach_id);
     w.attach().notify(w, base_attach_id);
 }
 
 void JetPlatform::update(ff::World& w, secs deltaTime)
 {
     if (deltaTime > 0.0) {
+
+        lifetime += deltaTime;
+
+        auto& base = w.at(base_attach_id);
+        base.set_pos(base.curr_pos() + Vec2f{ sinf((float)lifetime) * 50.f, 0.f } * deltaTime);
+        base.update(deltaTime);
+
         // apply accumulated push to velocity
         auto& attach = w.at(attach_id);
         attach.add_vel(push_vel + (push_accel * (float)deltaTime));

@@ -10,6 +10,7 @@ namespace ff {
     template<class T>
     void update_attachment(World& w, const AttachPoint& attachpoint, ID<T> attachment_id, Vec2f offset, secs deltaTime) {
 
+        Vec2f ppos = attachpoint.prev_pos() + offset;
         Vec2f cpos = attachpoint.curr_pos() + offset;
         Vec2f vel = attachpoint.vel();
 
@@ -46,6 +47,7 @@ namespace ff {
                     t.set_pos(cpos);
                     t.set_vel(vel);
                 }
+                t.set_tick(w.tick_count());
             }
         }
         else if constexpr (std::same_as<T, ColliderRegion>) {
@@ -116,6 +118,7 @@ namespace ff {
         for (auto [aid, ap] : world.all<AttachPoint>())
         {
             auto ipos = ap.interpolate(interp);
+            //LOG_INFO("{}, {} -> {} = {}", aid.raw(), ap.prev_pos(), ap.curr_pos(), ipos);
             for (auto attach : get_attachments(aid))
             {
                 std::visit(
@@ -157,9 +160,15 @@ namespace ff {
         world.erase(col.get_attach_id());
     }
 
-    void AttachSystem::create(ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset)
+    void AttachSystem::create(World& world, ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset)
     {
         attachments.at(id).insert(Attachment{ cmp_id, offset });
+
+        /*
+        std::visit(
+                [&]<class T>(ID<T> c_id) { update_attachment(world, id, c_id, offset, 0.0); },
+                cmp_id);
+        */
     }
 
     void AttachSystem::erase(ComponentID cmp_id) {

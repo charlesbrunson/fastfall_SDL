@@ -61,8 +61,8 @@ BasicPlatform::BasicPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& d
         pos = data.getTopLeftPos();
 	}
     attach.teleport(pos);
-    w.attach().create(attach_id, collider_id);
-    w.attach().create(attach_id, shape_id);
+    w.attach().create(w, attach_id, collider_id);
+    w.attach().create(w, attach_id, shape_id);
     w.attach().notify(w, attach_id);
 }
 
