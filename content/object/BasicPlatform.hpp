@@ -17,8 +17,7 @@ public:
 protected:
 	bool has_path = false;
 
-	float max_vel = 0.f;
-	float accel = 0.f;
+	float speed = 0.f;
 	ff::Vec2f waypoints_origin;
 	const std::vector<ff::Vec2i>* waypoints = nullptr;
 	float totalDistance = 0.f;

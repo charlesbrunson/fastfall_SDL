@@ -11,8 +11,7 @@ const ObjectType BasicPlatform::Type{
 	.tile_size = {0, 0},
 	.group_tags = {	"platform" },
 	.properties = {
-		{"acceleration", ObjectPropertyType::Float},
-		{"max_velocity", ObjectPropertyType::Float},
+		{"speed", ObjectPropertyType::Float},
 		{"path",		 ObjLevelID{}}
 	}
 };
@@ -27,8 +26,7 @@ BasicPlatform::BasicPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& d
     w.scene().set_config(shape_id, { 1, ff::scene_type::Object });
 
 	ObjLevelID path_id = data.getPropAsID("path");
-	max_vel = data.getPropAsFloat("max_velocity");
-	accel = data.getPropAsFloat("acceleration");
+	speed = data.getPropAsFloat("speed");
 
 	if (auto path_ptr = data.get_sibling(path_id)) {
 		waypoints_origin = ff::Vec2f{ path_ptr->position };
@@ -75,8 +73,8 @@ void BasicPlatform::update(World& w, secs deltaTime)
 			ff::Vec2f next_pos;
 			if (waypoints->size() > 1) {
 				progress += deltaTime;
-				if (progress > (totalDistance / max_vel)) {
-					progress -= (totalDistance / max_vel);
+				if (progress > (totalDistance / speed)) {
+					progress -= (totalDistance / speed);
 					reverser = !reverser;
 				}
 				if (!reverser) {
@@ -88,7 +86,7 @@ void BasicPlatform::update(World& w, secs deltaTime)
 					to = ff::Vec2f{ waypoints->at(0u) };
 				}
 
-				next_pos = from + ((to - from) * (progress * max_vel / totalDistance));
+				next_pos = from + ((to - from) * (progress * speed / totalDistance));
 
 			}
 			else {
