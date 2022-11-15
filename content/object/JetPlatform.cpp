@@ -79,7 +79,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     attach.sched = AttachPoint::Schedule::PostCollision;
 
     // base attachpoint
-    auto base_attach_id = w.create_attachpoint(id);
+    base_attach_id = w.create_attachpoint(id);
     auto& base_attach = w.at(base_attach_id);
     base_attach.teleport(base_position);
     w.attach().create(w, base_attach_id, attach_id);
@@ -111,8 +111,20 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
             attach.add_vel(push_vel + (push_acc * (float)deltaTime));
         }
     });
+
+    path_follower = PathFollower{
+        Path{
+            data.getTopLeftPos(),
+            {{0,0}, {128, 0}, {128, -128}}
+        }
+    };
+    path_follower.wait_on_end = 2.0;
+    path_follower.wait_on_way = 1.0;
+    path_follower.on_complete = PathOnComplete::Reverse;
+    path_follower.speed = 50.f;
 }
 
 void JetPlatform::update(ff::World& w, secs deltaTime)
 {
+    path_follower.update(w.at(base_attach_id), deltaTime);
 }

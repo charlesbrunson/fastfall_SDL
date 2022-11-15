@@ -11,9 +11,10 @@ namespace ff {
 struct Path {
     Path(Vec2f t_origin, std::vector<Vec2f> t_waypoints);
     Path(const ObjectLevelData* data);
+    Path() = default;
 
-    Vec2f origin;
-    std::vector<Vec2f> waypoints;
+    Vec2f origin{};
+    std::vector<Vec2f> waypoints{};
 };
 
 }

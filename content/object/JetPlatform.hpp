@@ -5,6 +5,7 @@
 #include "fastfall/render/AnimatedSprite.hpp"
 #include "fastfall/game/particle/Emitter.hpp"
 #include "fastfall/game/World.hpp"
+#include "fastfall/game/path/PathFollower.hpp"
 
 class JetPlatform : public ff::GameObject {
 public:
@@ -16,7 +17,8 @@ public:
     void update(ff::World& w, secs deltaTime) override;
 
 protected:
-    //ff::ID<ff::AttachPoint> base_attach_id;
+    ff::PathFollower path_follower;
+    ff::ID<ff::AttachPoint> base_attach_id;
     //ff::ID<ff::AttachPoint> attach_id;
     //ff::ID<ff::ColliderTileMap> collider_id;
     //ff::ID<ff::AnimatedSprite> sprite_id;

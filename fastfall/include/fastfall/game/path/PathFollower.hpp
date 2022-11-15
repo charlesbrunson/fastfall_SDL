@@ -9,12 +9,12 @@ namespace ff {
 
 enum class PathOnComplete {
     Reverse,
-    Restart,
-    Stop
+    Restart
 };
 
 class PathFollower {
 public:
+    PathFollower() = default;
     PathFollower(Path p);
     void reset(Path p);
 
@@ -30,9 +30,11 @@ public:
     Vec2f get_vel() const;
 
     float speed = 0.f;
-    PathOnComplete on_complete = PathOnComplete::Stop;
-    secs wait_on_complete = 0.0;
-    secs wait_on_waypoint = 0.0;
+    bool stopped = false;
+    PathOnComplete on_complete = PathOnComplete::Reverse;
+    bool stop_on_complete = false;
+    secs wait_on_way   = 0.0;
+    secs wait_on_end   = 0.0;
 
 private:
     ID<AttachPoint> _attach_id;
