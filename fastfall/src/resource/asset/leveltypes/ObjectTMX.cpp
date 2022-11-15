@@ -78,7 +78,7 @@ void parseObjectRefs(xml_node<>* objectNode, ObjectLayerData& objLayer) {
 
 		objdata.level_id.id = atoi(objectNode->first_attribute("id")->value());
 
-		auto* type = objectNode->first_attribute("type");
+		auto* type = objectNode->first_attribute("class");
 		if (type && type->value()) {
 			objdata.typehash = std::hash<std::string_view>{}(type->value());
 		}

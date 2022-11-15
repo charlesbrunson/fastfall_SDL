@@ -12,7 +12,7 @@ const ObjectType BasicPlatform::Type{
 	.group_tags = {	"platform" },
 	.properties = {
 		{"speed", ObjectPropertyType::Float},
-		{"path",		 ObjLevelID{}}
+		{"path",  ObjLevelID{}}
 	}
 };
 
