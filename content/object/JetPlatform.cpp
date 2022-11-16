@@ -112,16 +112,22 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
         }
     });
 
-    path_follower = PathFollower{
-        Path{
-            data.getTopLeftPos(),
-            {{0,0}, {128, 0}, {128, -128}}
+
+    path_follower.wait_on_start = 0.0;
+    path_follower.wait_on_way = 0.0;
+    path_follower.wait_on_end = 0.0;
+    path_follower.on_complete = PathOnComplete::Restart;
+    path_follower.speed = 100.f;
+    path_follower.reset(Path{
+        data.getTopLeftPos(),
+        {
+            {0,0},
+            {128, 0},
+            {128, -128},
+            {0, -128},
+            {0,0},
         }
-    };
-    path_follower.wait_on_end = 2.0;
-    path_follower.wait_on_way = 1.0;
-    path_follower.on_complete = PathOnComplete::Reverse;
-    path_follower.speed = 50.f;
+    });
 }
 
 void JetPlatform::update(ff::World& w, secs deltaTime)
