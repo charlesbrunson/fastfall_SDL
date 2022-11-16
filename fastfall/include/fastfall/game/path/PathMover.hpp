@@ -12,11 +12,13 @@ enum class PathOnComplete {
     Restart
 };
 
-class PathFollower {
+class PathMover {
 public:
-    PathFollower() = default;
-    PathFollower(Path p);
-    void reset(Path p);
+    PathMover() = default;
+    PathMover(Path p);
+
+    void reset();
+    void reset(const Path& p);
 
     void update(AttachPoint& attach, secs deltaTime);
 
@@ -50,6 +52,7 @@ private:
     float progress = 0.f;
     Vec2f vel;
     bool at_waypoint = true;
+    bool reversed = false;
 };
 
 }

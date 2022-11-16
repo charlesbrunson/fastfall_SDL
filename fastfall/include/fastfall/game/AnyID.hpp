@@ -13,6 +13,7 @@ class Drawable;
 class Emitter;
 class CameraTarget;
 class AttachPoint;
+class PathMover;
 class GameObject;
 class Level;
 
@@ -23,7 +24,8 @@ using ComponentID = std::variant<
     ID<CameraTarget>,       // 3
     ID<Drawable>,           // 4
     ID<Emitter>,            // 5
-    ID<AttachPoint>         // 6
+    ID<AttachPoint>,        // 6
+    ID<PathMover>           // 7
 >;
 
 using EntityID = std::variant<

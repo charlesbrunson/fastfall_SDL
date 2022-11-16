@@ -22,6 +22,8 @@ World::World(const World& other)
     _camera_targets = other._camera_targets;
     _drawables = other._drawables;
     _attachpoints = other._attachpoints;
+    _pathmovers = other._pathmovers;
+
     _level_system = other._level_system;
     _object_system = other._object_system;
     _collision_system = other._collision_system;
@@ -30,6 +32,8 @@ World::World(const World& other)
     _scene_system = other._scene_system;
     _emitter_system = other._emitter_system;
     _attach_system = other._attach_system;
+    _path_system = other._path_system;
+
     ent_to_comp = other.ent_to_comp;
     comp_to_ent = other.comp_to_ent;
     update_counter = other.update_counter;
@@ -49,6 +53,8 @@ World::World(World&& other) noexcept
     _camera_targets = std::move(other._camera_targets);
     _drawables = std::move(other._drawables);
     _attachpoints = std::move(other._attachpoints);
+    _pathmovers = std::move(other._pathmovers);
+
     _level_system = std::move(other._level_system);
     _object_system = std::move(other._object_system);
     _collision_system = std::move(other._collision_system);
@@ -57,6 +63,8 @@ World::World(World&& other) noexcept
     _scene_system = std::move(other._scene_system);
     _emitter_system = std::move(other._emitter_system);
     _attach_system = std::move(other._attach_system);
+    _path_system = std::move(other._path_system);
+
     ent_to_comp = std::move(other.ent_to_comp);
     comp_to_ent = std::move(other.comp_to_ent);
     update_counter = other.update_counter;
@@ -75,6 +83,8 @@ World& World::operator=(const World& other) {
     _camera_targets = other._camera_targets;
     _drawables = other._drawables;
     _attachpoints = other._attachpoints;
+    _pathmovers = other._pathmovers;
+
     _level_system = other._level_system;
     _object_system = other._object_system;
     _collision_system = other._collision_system;
@@ -83,6 +93,8 @@ World& World::operator=(const World& other) {
     _scene_system = other._scene_system;
     _emitter_system = other._emitter_system;
     _attach_system = other._attach_system;
+    _path_system = other._path_system;
+
     ent_to_comp = other.ent_to_comp;
     comp_to_ent = other.comp_to_ent;
     update_counter = other.update_counter;
@@ -102,6 +114,8 @@ World& World::operator=(World&& other) noexcept {
     _camera_targets = std::move(other._camera_targets);
     _drawables = std::move(other._drawables);
     _attachpoints = std::move(other._attachpoints);
+    _pathmovers = std::move(other._pathmovers);
+
     _level_system = std::move(other._level_system);
     _object_system = std::move(other._object_system);
     _collision_system = std::move(other._collision_system);
@@ -110,6 +124,8 @@ World& World::operator=(World&& other) noexcept {
     _scene_system = std::move(other._scene_system);
     _emitter_system = std::move(other._emitter_system);
     _attach_system = std::move(other._attach_system);
+    _path_system = std::move(other._path_system);
+
     ent_to_comp = std::move(other.ent_to_comp);
     comp_to_ent = std::move(other.comp_to_ent);
     update_counter = other.update_counter;
@@ -161,6 +177,16 @@ ID<AttachPoint> World::create_attachpoint(EntityID ent) {
     return id;
 }
 
+ID<PathMover> World::create_pathmover(EntityID ent, const Path& path) {
+    auto tmp_id = _pathmovers.peek_next_id();
+    ent_to_comp.at(ent).insert(tmp_id);
+    comp_to_ent.emplace(tmp_id, ent);
+    auto id = notify_created_all(
+            create_tmpl(_pathmovers, path),
+            _path_system, _attach_system);
+    return id;
+}
+
 void World::update(secs deltaTime) {
     if (Level* active = _level_system.get_active(*this))
     {
@@ -169,6 +195,7 @@ void World::update(secs deltaTime) {
         active->update(*this, deltaTime);
         _trigger_system.update(*this, deltaTime);
         _object_system.update(*this, deltaTime);
+        _path_system.update(*this, deltaTime);
         _attach_system.update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostUpdate);
         _collision_system.update(*this, deltaTime);
         _attach_system.update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostCollision);
@@ -274,6 +301,7 @@ bool World::erase_impl(ID<Drawable> id)         { return erase_tmpl(id, _drawabl
 bool World::erase_impl(ID<Trigger> id)          { return erase_tmpl(id, _triggers, _trigger_system); }
 bool World::erase_impl(ID<CameraTarget> id)     { return erase_tmpl(id, _camera_targets, _camera_system); }
 bool World::erase_impl(ID<AttachPoint> id)      { return erase_tmpl(id, _attachpoints, _attach_system); }
+bool World::erase_impl(ID<PathMover> id)        { return erase_tmpl(id, _pathmovers, _path_system); }
 
 const std::set<ComponentID>& World::get_components_of(EntityID id) const {
     return ent_to_comp.at(id);

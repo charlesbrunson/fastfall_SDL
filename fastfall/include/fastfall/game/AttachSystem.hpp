@@ -60,6 +60,9 @@ namespace ff {
         void notify_created(World& world, ID<Collidable> id);
         void notify_erased(World& world, ID<Collidable> id);
 
+        void notify_created(World& world, ID<PathMover> id);
+        void notify_erased(World& world, ID<PathMover> id);
+
         void create(World& world, ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset = {});
         void erase(ComponentID cmp_id);
 

@@ -20,85 +20,23 @@ BasicPlatform::BasicPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& d
 	: ff::GameObject(w, id, data)
     , shape_id{ w.create_drawable<ShapeRectangle>(id, Rectf{ Vec2f{}, Vec2f{ data.size } }, platformColor) }
     , collider_id{ w.create_collider<ColliderSimple>(id, Rectf{ Vec2f{}, Vec2f{ data.size } })}
-    , attach_id(w.create_attachpoint(id))
 {
-    //w.at(shape_id).drawable = make_copyable_unique<Drawable, ShapeRectangle>( Rectf{}, platformColor );
     w.scene().set_config(shape_id, { 1, ff::scene_type::Object });
 
 	ObjLevelID path_id = data.getPropAsID("path");
-	speed = data.getPropAsFloat("speed");
 
-	if (auto path_ptr = data.get_sibling(path_id)) {
-		waypoints_origin = ff::Vec2f{ path_ptr->position };
-		waypoints = &path_ptr->points;
-	}
+    auto path = data.get_sibling(path_id);
 
-	has_path = (waypoints);
+    mover_id = w.create_pathmover(id, Path{path});
 
-	if (has_path) {
-		if (waypoints->size() > 1) {
-			totalDistance = 0.f;
-			auto from = waypoints->cbegin();
-			for (auto to = from + 1; to != waypoints->cend(); to++) {
-				totalDistance += (ff::Vec2f{ *to } - ff::Vec2f{ *from }).magnitude();
-				from = to;
-			}
-		}
-
-		waypoint_ndx = 0u;
-		progress = 0.f;
-	}
+    auto& mover = w.at(mover_id);
+    mover.speed = data.getPropAsFloat("speed");
 
     auto& collider = w.at(collider_id);
-    auto& attach = w.at(attach_id);
-    Vec2f pos;
-	if (has_path) {
-        pos = waypoints_origin + ff::Vec2f(waypoints->at(waypoint_ndx));
-	}
-	else {
-        pos = data.getTopLeftPos();
-	}
-    attach.teleport(pos);
-    w.attach().create(w, attach_id, collider_id);
-    w.attach().create(w, attach_id, shape_id);
+    w.attach().create(w, mover.get_attach_id(), collider_id);
+    w.attach().create(w, mover.get_attach_id(), shape_id);
 }
 
 void BasicPlatform::update(World& w, secs deltaTime)
 {
-    auto& attach = w.at(attach_id);
-	if (deltaTime > 0)
-	{
-		if (has_path)
-		{
-			ff::Vec2f next_pos;
-			if (waypoints->size() > 1) {
-				progress += deltaTime;
-				if (progress > (totalDistance / speed)) {
-					progress -= (totalDistance / speed);
-					reverser = !reverser;
-				}
-				if (!reverser) {
-					from = ff::Vec2f{ waypoints->at(0u) };
-					to = ff::Vec2f{ waypoints->at(1u) };
-				}
-				else {
-					from = ff::Vec2f{ waypoints->at(1u) };
-					to = ff::Vec2f{ waypoints->at(0u) };
-				}
-
-				next_pos = from + ((to - from) * (progress * speed / totalDistance));
-
-			}
-			else {
-				next_pos = ff::Vec2f{ waypoints->at(waypoint_ndx) };
-			}
-
-            attach.set_pos(Vec2f(waypoints_origin) + next_pos);
-            attach.set_vel((attach.curr_pos() - attach.prev_pos()) / deltaTime);
-		}
-		else if (!has_path) {
-            attach.set_pos(attach.curr_pos());
-            attach.set_vel({});
-		}
-	}
 }

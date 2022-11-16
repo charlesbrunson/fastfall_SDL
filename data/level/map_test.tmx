@@ -57,28 +57,11 @@
     <property name="speed" type="float" value="200"/>
    </properties>
   </object>
-  <object id="18" class="BasicPlatform" x="2176" y="352" width="32" height="32">
-   <properties>
-    <property name="path" type="object" value="19"/>
-    <property name="speed" type="float" value="250"/>
-   </properties>
-  </object>
   <object id="19" x="2221" y="355.111">
    <polyline points="-301,-3.11111 179,-3.11111"/>
   </object>
-  <object id="20" class="BasicPlatform" x="1408" y="96" width="256" height="16">
-   <properties>
-    <property name="path" type="object" value="21"/>
-    <property name="speed" type="float" value="50"/>
-   </properties>
-  </object>
   <object id="21" x="1988" y="228">
    <polyline points="-580,-132 -404,-68"/>
-  </object>
-  <object id="22" class="BasicPlatform" x="1504" y="368" width="48" height="16">
-   <properties>
-    <property name="speed" type="float" value="50"/>
-   </properties>
   </object>
   <object id="24" class="JetPlatform" x="480" y="192" width="80" height="16"/>
   <object id="25" class="JetPlatform" x="400" y="176" width="48" height="16"/>
