@@ -163,6 +163,22 @@ namespace ff {
         world.erase(col.get_attach_id());
     }
 
+    void AttachSystem::notify_created(World& world, ID<PathMover> id) {
+        auto ent = world.get_entity_of(id);
+        auto attachid = world.create_attachpoint(ent);
+        auto& pathmover = world.at(id);
+        pathmover.set_attach_id(attachid);
+        auto& attach = world.at(attachid);
+        attach.teleport(pathmover.get_pos());
+        attach.set_pos(pathmover.get_pos());
+        attach.set_vel(pathmover.get_vel());
+    }
+
+    void AttachSystem::notify_erased(World& world, ID<PathMover> id) {
+        auto& col = world.at(id);
+        world.erase(col.get_attach_id());
+    }
+
     void AttachSystem::create(World& world, ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset)
     {
         attachments.at(id).insert(Attachment{ cmp_id, offset });

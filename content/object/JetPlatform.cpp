@@ -31,7 +31,7 @@ const EmitterStrategy jet_emitter_str = {
     .particle_speed_min = 400.f,
     .particle_speed_max = 600.f,
     .scatter_max_radius = 0.f,
-    .inherits_vel       = false,
+    .inherits_vel       = true,
     .animation          = AnimIDRef{ "jet_platform.sax", "effect" },
 };
 
@@ -113,8 +113,8 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     });
 
 
-    path_follower.wait_on_start = 0.0;
-    path_follower.wait_on_way = 0.0;
+    path_follower.wait_on_start = 3.0;
+    path_follower.wait_on_way = 1.0;
     path_follower.wait_on_end = 0.0;
     path_follower.on_complete = PathOnComplete::Restart;
     path_follower.speed = 100.f;

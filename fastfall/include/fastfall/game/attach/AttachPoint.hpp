@@ -46,7 +46,6 @@ public:
 
     AttachConstraint constraint;
 
-
     enum class Schedule {
         PostUpdate,
         PostCollision

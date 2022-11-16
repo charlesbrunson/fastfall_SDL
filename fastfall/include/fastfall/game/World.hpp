@@ -13,6 +13,7 @@
 #include "fastfall/game/LevelSystem.hpp"
 #include "fastfall/game/EmitterSystem.hpp"
 #include "fastfall/game/AttachSystem.hpp"
+#include "fastfall/game/PathSystem.hpp"
 #include "fastfall/engine/input/InputState.hpp"
 
 #include <optional>
@@ -32,6 +33,7 @@ private:
         else if constexpr (std::same_as<T, Emitter>)             { return _emitters; }
         else if constexpr (std::same_as<T, AttachPoint>)         { return _attachpoints; }
         else if constexpr (std::same_as<T, Level>)               { return _levels; }
+        else if constexpr (std::same_as<T, PathMover>)           { return _pathmovers; }
         else if constexpr (std::derived_from<T, ColliderRegion>) { return _colliders; }
         else if constexpr (std::derived_from<T, CameraTarget>)   { return _camera_targets; }
         else if constexpr (std::derived_from<T, Drawable>)       { return _drawables; }
@@ -46,6 +48,7 @@ private:
         else if constexpr (std::same_as<T, Emitter>)             { return _emitters; }
         else if constexpr (std::same_as<T, AttachPoint>)         { return _attachpoints; }
         else if constexpr (std::same_as<T, Level>)               { return _levels; }
+        else if constexpr (std::same_as<T, PathMover>)           { return _pathmovers; }
         else if constexpr (std::derived_from<T, ColliderRegion>) { return _colliders; }
         else if constexpr (std::derived_from<T, CameraTarget>)   { return _camera_targets; }
         else if constexpr (std::derived_from<T, Drawable>)       { return _drawables; }
@@ -145,6 +148,7 @@ public:
     ID<Trigger> create_trigger(EntityID ent);
     ID<AttachPoint> create_attachpoint(EntityID ent);
     ID<Emitter> create_emitter(EntityID ent, EmitterStrategy strat = {});
+    ID<PathMover> create_pathmover(EntityID ent, const Path& path);
 
     template<class T, class... Args> requires std::derived_from<T, ColliderRegion>
 	ID<T> create_collider(EntityID ent, Args&&... args) {
@@ -216,6 +220,7 @@ private:
     bool erase_impl(ID<Trigger> id);
     bool erase_impl(ID<CameraTarget> id);
     bool erase_impl(ID<AttachPoint> id);
+    bool erase_impl(ID<PathMover> id);
 
 	// entities
 	poly_id_map<GameObject> _objects;
@@ -229,6 +234,7 @@ private:
     poly_id_map<Drawable>       _drawables;
     id_map<Emitter>             _emitters;
     id_map<AttachPoint>         _attachpoints;
+    id_map<PathMover> 			_pathmovers;
 
     // entity to component lookup
     std::unordered_map<EntityID, std::set<ComponentID>> ent_to_comp;
@@ -243,6 +249,7 @@ private:
     AttachSystem	_attach_system;
 	CameraSystem	_camera_system;
 	SceneSystem		_scene_system;
+    PathSystem      _path_system;
     InputState      _input;
 
     size_t update_counter = 0;
