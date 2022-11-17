@@ -11,8 +11,7 @@ const ObjectType BasicPlatform::Type{
 	.tile_size = {0, 0},
 	.group_tags = {	"platform" },
 	.properties = {
-		{"speed", ObjectPropertyType::Float},
-		{"path",  ObjLevelID{}}
+		{ "path",  ObjLevelID{ ObjLevelID::NO_ID } }
 	}
 };
 
@@ -25,16 +24,16 @@ BasicPlatform::BasicPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& d
 
 	ObjLevelID path_id = data.getPropAsID("path");
 
-    auto path = data.get_sibling(path_id);
+    ID<AttachPoint> attach_id;
+    if (path_id) {
+        mover_id = w.create_pathmover(id, Path{data.get_sibling(path_id)});
+        attach_id = w.at(mover_id).get_attach_id();
+    } else {
+        attach_id = w.create_attachpoint(id, data.getTopLeftPos());
+    }
 
-    mover_id = w.create_pathmover(id, Path{path});
-
-    auto& mover = w.at(mover_id);
-    mover.speed = data.getPropAsFloat("speed");
-
-    auto& collider = w.at(collider_id);
-    w.attach().create(w, mover.get_attach_id(), collider_id);
-    w.attach().create(w, mover.get_attach_id(), shape_id);
+    w.attach().create(w, attach_id, collider_id);
+    w.attach().create(w, attach_id, shape_id);
 }
 
 void BasicPlatform::update(World& w, secs deltaTime)

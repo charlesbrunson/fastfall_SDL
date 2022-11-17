@@ -7,10 +7,6 @@
 
 namespace ff {
 
-enum class PathOnComplete {
-    Reverse,
-    Restart
-};
 
 class PathMover {
 public:
@@ -27,19 +23,16 @@ public:
 
     bool at_start() const;
     bool at_end() const;
+
     Vec2f prev_waypoint_pos() const;
     Vec2f next_waypoint_pos() const;
+
     Vec2f get_pos() const;
     Vec2f get_vel() const;
 
-    float speed = 0.f;
-    bool stopped = false;
-    PathOnComplete on_complete = PathOnComplete::Reverse;
-    bool stop_on_complete = false;
 
-    secs wait_on_start = 0.0;
-    secs wait_on_way   = 0.0;
-    secs wait_on_end   = 0.0;
+    bool is_stopped() const { return stopped; }
+    void set_stopped(bool stop) { stopped = stop; }
 
 private:
     ID<AttachPoint> _attach_id;
@@ -51,8 +44,8 @@ private:
     float dist_to_next_waypoint = 0.f;
     float progress = 0.f;
     Vec2f vel;
-    bool at_waypoint = true;
     bool reversed = false;
+    bool stopped = false;
 };
 
 }

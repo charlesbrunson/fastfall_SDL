@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 #include <variant>
+#include <string_view>
 
 namespace ff {
 
@@ -51,15 +52,27 @@ struct ObjectData {
         return Vec2f{ position } - Vec2f{ (float)size.x / 2.f, (float)size.y };
     }
 
+    bool hasProp(const std::string& key) const {
+        return properties.contains(key);
+    }
+
 	const std::string& getPropAsString(const std::string& key) const
 	{
 		return properties.at(key);
 	}
 
+    std::optional<std::string> optPropAsString(const std::string& key) const {
+        return properties.contains(key) ? std::make_optional(getPropAsString(key)) : std::nullopt;
+    }
+
 	int getPropAsInt(const std::string& key) const
 	{
 		return std::atoi(properties.at(key).c_str());
 	}
+
+    std::optional<int> optPropAsInt(const std::string& key) const {
+        return properties.contains(key) ? std::make_optional(getPropAsInt(key)) : std::nullopt;
+    }
 
 	bool getPropAsBool(const std::string& key) const
 	{
@@ -75,14 +88,26 @@ struct ObjectData {
 		}
 	}
 
+    std::optional<bool> optPropAsBool(const std::string& key) const {
+        return properties.contains(key) ? std::make_optional(getPropAsBool(key)) : std::nullopt;
+    }
+
 	float getPropAsFloat(const std::string& key) const
 	{
 		return std::atof(properties.at(key).c_str());
 	}
 
+    std::optional<float> optPropAsFloat(const std::string& key) const {
+        return properties.contains(key) ? std::make_optional(getPropAsFloat(key)) : std::nullopt;
+    }
+
 	ObjLevelID getPropAsID(const std::string& key) const {
 		return ObjLevelID{ (unsigned)std::atol(properties.at(key).c_str()) };
 	}
+
+    std::optional<ObjLevelID> optPropAsID(const std::string& key) const {
+        return properties.contains(key) ? std::make_optional(getPropAsID(key)) : std::nullopt;
+    }
 };
 
 struct ObjectLevelData : public ObjectData {
