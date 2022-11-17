@@ -146,7 +146,7 @@ public:
     // create component
 	ID<Collidable> create_collidable(EntityID ent, Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
     ID<Trigger> create_trigger(EntityID ent);
-    ID<AttachPoint> create_attachpoint(EntityID ent);
+    ID<AttachPoint> create_attachpoint(EntityID ent, Vec2f init_pos = {}, Vec2f init_vel = {});
     ID<Emitter> create_emitter(EntityID ent, EmitterStrategy strat = {});
     ID<PathMover> create_pathmover(EntityID ent, const Path& path);
 

@@ -167,13 +167,16 @@ ID<Emitter> World::create_emitter(EntityID ent, EmitterStrategy strat) {
         _emitter_system);
     return id;
 }
-ID<AttachPoint> World::create_attachpoint(EntityID ent) {
+ID<AttachPoint> World::create_attachpoint(EntityID ent, Vec2f init_pos, Vec2f init_vel) {
     auto tmp_id = _attachpoints.peek_next_id();
     ent_to_comp.at(ent).insert(tmp_id);
     comp_to_ent.emplace(tmp_id, ent);
     auto id = notify_created_all(
             create_tmpl(_attachpoints, tmp_id),
             _attach_system);
+
+    at(id).teleport(init_pos);
+    at(id).set_vel(init_vel);
     return id;
 }
 

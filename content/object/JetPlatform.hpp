@@ -16,11 +16,4 @@ public:
 
     void update(ff::World& w, secs deltaTime) override;
 
-protected:
-    ff::PathMover path_follower;
-    ff::ID<ff::AttachPoint> base_attach_id;
-    //ff::ID<ff::AttachPoint> attach_id;
-    //ff::ID<ff::ColliderTileMap> collider_id;
-    //ff::ID<ff::AnimatedSprite> sprite_id;
-    //ff::ID<ff::Emitter> emitter_id;
 };

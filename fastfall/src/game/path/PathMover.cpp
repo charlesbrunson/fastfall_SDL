@@ -8,12 +8,12 @@ namespace ff {
 PathMover::PathMover(Path p)
     : _path(std::move(p))
 {
-    timer = wait_on_start;
+    timer = _path.wait_on_start;
 }
 
 void PathMover::reset(const Path& p) {
     _path = p;
-    timer = wait_on_start;
+    timer = _path.wait_on_start;
     curr_ndx = 0;
     prev_ndx = 0;
     dist_to_next_waypoint = 0.f;
@@ -27,7 +27,7 @@ void PathMover::reset() {
         reversed = false;
     }
 
-    timer = wait_on_start;
+    timer = _path.wait_on_start;
     curr_ndx = 0;
     prev_ndx = 0;
     dist_to_next_waypoint = 0.f;
@@ -42,14 +42,14 @@ void PathMover::update(AttachPoint& attach, secs deltaTime)
         auto next_segment = [&, this]() {
             // are we at the end? do something
             if (curr_ndx == _path.waypoints.size() - 1) {
-                if (stop_on_complete) {
+                if (_path.stop_on_complete) {
                     stopped = true;
                 } else {
                     curr_ndx = 0;
                     prev_ndx = 0;
-                    timer = wait_on_start;
+                    timer = _path.wait_on_start;
 
-                    switch (on_complete) {
+                    switch (_path.on_complete) {
                         case PathOnComplete::Restart:
                             prev_pos = get_pos();
                             attach.teleport(prev_pos);
@@ -77,14 +77,14 @@ void PathMover::update(AttachPoint& attach, secs deltaTime)
                 next_segment();
             }
         } else if (!stopped) {
-            progress += speed * (float) deltaTime;
+            progress += _path.speed * (float) deltaTime;
             if (progress >= dist_to_next_waypoint) {
                 ++prev_ndx;
                 progress -= dist_to_next_waypoint;
 
-                if (at_start()) { timer = wait_on_start; }
-                else if (at_end()) { timer = wait_on_end; }
-                else { timer = wait_on_way; }
+                if (at_start()) { timer = _path.wait_on_start; }
+                else if (at_end()) { timer = _path.wait_on_end; }
+                else { timer = _path.wait_on_way; }
 
                 progress = 0.f;
                 cancel_v = true;
