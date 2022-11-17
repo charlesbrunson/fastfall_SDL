@@ -24,9 +24,6 @@ T pick_random(T min, T max, std::default_random_engine& engine)
     }
 }
 
-
-
-
 Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::default_random_engine& rand) const
 {
     Particle p;
@@ -67,24 +64,19 @@ void Emitter::update(secs deltaTime) {
 
 void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, float interp, bool updated)
 {
-    //auto& varr = world.at(varr_id);
     if (varr.size() < particles.size() * 6) {
-        //varr = VertexArray{Primitive::POINT, particles.capacity()};
         size_t add_count = (particles.size() * 6) - varr.size();
         varr.insert(varr.size(), add_count, {});
     }
 
     auto* anim = Resources::get_animation(strategy.animation);
-    //auto& cfg = world.scene().config(varr_id);
     if (anim) {
         cfg.rstate.texture = anim->get_sprite_texture();
         auto invSize = cfg.rstate.texture.get()->inverseSize();
 
         Vec2f spr_size = Vec2f{ anim->area.getSize() } * 0.5f;
 
-        float int_part;
         Vec2f inter_pos = prev_position + (position - prev_position) * interp;
-        //Vec2f subpixel = { std::modf(inter_pos.x, &int_part), std::modf(inter_pos.y, &int_part) };
 
         Vec2f subpixel = {
             floorf(inter_pos.x + 0.5f) - inter_pos.x,
@@ -150,6 +142,7 @@ void Emitter::seed(size_t s) {
 
 Particle Emitter::update_particle(const Emitter& e, Particle p, secs deltaTime) {
     if (p.is_alive) {
+        p.lifetime += deltaTime;
         if (e.strategy.max_lifetime >= 0 && p.lifetime >= e.strategy.max_lifetime) {
             p.is_alive = false;
         } else {
@@ -158,7 +151,6 @@ Particle Emitter::update_particle(const Emitter& e, Particle p, secs deltaTime) 
 
             p.prev_position = p.position;
             p.position += p.velocity * deltaTime;
-            p.lifetime += deltaTime;
         }
     }
     return p;
@@ -185,14 +177,6 @@ void Emitter::destroy_dead_particles() {
     auto it = std::remove_if(particles.begin(), particles.end(), [](Particle& p) {
         return !p.is_alive;
     });
-    /*
-    if (listener && it != particles.end())
-    {
-        listener->notify_particles_destroy(
-                std::distance(particles.begin(), it),
-                std::distance(it, particles.end()));
-    }
-    */
     particles.erase(it, particles.end());
 }
 
@@ -202,7 +186,6 @@ void Emitter::spawn_particles(secs deltaTime) {
     {
         secs time = 1.f / pick_random(strategy.emit_rate_min, strategy.emit_rate_max, rand);
         buffer += time;
-        size_t init_size = particles.size();
         size_t created = 0;
         unsigned emit_count = pick_random(strategy.emit_count_min, strategy.emit_count_max, rand);
         for(auto i = emit_count; i > 0; --i)
@@ -222,12 +205,6 @@ void Emitter::spawn_particles(secs deltaTime) {
                 }
             }
         }
-
-        /*
-        if (listener && created) {
-            listener->notify_particles_pushed(init_size, created);
-        }
-        */
     }
 }
 
@@ -243,15 +220,5 @@ void Emitter::reset_strategy() {
 void Emitter::backup_strategy() {
     strategy_backup = strategy;
 }
-
-/*
-void Emitter::draw(RenderTarget& target, RenderState states) const {
-    if (states.texture.exists()) {
-        states.texture = texture;
-    }
-
-    target.draw(varr, states);
-}
-*/
 
 }
