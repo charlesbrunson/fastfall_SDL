@@ -5,6 +5,34 @@
 #include "fastfall/util/base64.hpp"
 #include "fastfall/resource/Resources.hpp"
 
+#include "zlib.h"
+
+std::string decompress_string(const std::string& str)
+{
+    z_stream zs;
+    memset(&zs, 0, sizeof(zs));
+    inflateInit(&zs);
+    zs.next_in = (Bytef*)str.data();
+    zs.avail_in = str.size();
+
+    int ret;
+    char outbuffer[32768];
+    std::string outstring;
+    do
+    {
+        zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
+        zs.avail_out = sizeof(outbuffer);
+        ret = inflate(&zs, 0);
+        if (outstring.size() < zs.total_out)
+        {
+            outstring.append(outbuffer, zs.total_out - outstring.size());
+        }
+    }
+    while (ret == Z_OK);
+    inflateEnd(&zs);
+    return outstring;
+}
+
 namespace ff {
 
 
@@ -358,14 +386,22 @@ TileLayerData TileLayerData::loadFromTMX(xml_node<>* layerNode, const TilesetMap
 		// flip flags set by TMX filetype
 		static constexpr unsigned FLIPPED_FLAGS = 0xE000'0000;
 
-		//assert this is encoded as base64
-		assert(dataNode&& strcmp("base64", dataNode->first_attribute("encoding")->value()) == 0);
+		// ensure this is encoded as base64
+        if (strcmp("base64", dataNode->first_attribute("encoding")->value()) != 0) {
+            LOG_ERR_("TMX must be formatted base64, zlib compressed");
+            return layer;
+        }
+
+        if (strcmp("zlib", dataNode->first_attribute("compression")->value()) != 0) {
+            LOG_ERR_("TMX must be formatted base64, zlib compressed");
+            return layer;
+        }
 
 		// decode
 		std::string dataStr(dataNode->value());
 		dataStr.erase(std::remove_if(dataStr.begin(), dataStr.end(), ::isspace), dataStr.end());
-
-		std::vector<uint8_t> data = base64_decode(dataStr);
+        dataStr = decompress_string(base64_decode(dataStr)) ;
+        std::vector<uint8_t> data = { dataStr.begin(), dataStr.end() };
 		size_t dataSize = data.size();
 
 		Vec2u tilepos(0u, 0u);
