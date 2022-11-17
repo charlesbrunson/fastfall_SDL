@@ -13,8 +13,11 @@ namespace ff {
                 if (diff.magnitude() > rad) {
 
                     diff = du * rad;
+                    auto local_vel = self.vel() - attached.vel();
                     self.set_pos(attached.curr_pos() + offset + diff);
-                    self.set_vel(math::projection(self.vel(), du.lefthand(), true));
+                    if (math::dot(local_vel, du) > 0) {
+                        self.set_vel(math::projection(local_vel, du.lefthand(), true) + attached.vel());
+                    }
                 }
 
                 accel += diff.unit() * (-spr * diff.magnitude()); // spring

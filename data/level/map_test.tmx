@@ -71,7 +71,7 @@
    </properties>
   </object>
   <object id="26" class="JetPlatform" x="832" y="240" width="48" height="16"/>
-  <object id="27" class="JetPlatform" x="1552" y="272" width="48" height="16">
+  <object id="27" class="JetPlatform" x="1552" y="272" width="80" height="16">
    <properties>
     <property name="path" type="object" value="28"/>
    </properties>
