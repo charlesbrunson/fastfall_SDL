@@ -5,7 +5,11 @@
 #include "fastfall/resource/Resources.hpp"
 
 #include <algorithm>
+
+#if __cpp_lib_parallel_algorithm
 #include <execution>
+#endif
+
 #include <cmath>
 
 namespace ff {
@@ -158,6 +162,7 @@ Particle Emitter::update_particle(const Emitter& e, Particle p, secs deltaTime) 
 
 void Emitter::update_particles(secs deltaTime)
 {
+#if __cpp_lib_parallel_algorithm
     if (parallelize) {
         std::transform(
                 std::execution::par,
@@ -171,6 +176,11 @@ void Emitter::update_particles(secs deltaTime)
             p = update_particle(*this, p, deltaTime);
         }
     }
+#else
+    for (auto &p: particles) {
+        p = update_particle(*this, p, deltaTime);
+    }
+#endif
 }
 
 void Emitter::destroy_dead_particles() {
