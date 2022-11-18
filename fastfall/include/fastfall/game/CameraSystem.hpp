@@ -13,6 +13,15 @@
 
 namespace ff {
 
+
+/*
+struct camtarget_id {
+	slot_key value;
+	bool operator==(const camtarget_id& other) const { return value == other.value; };
+	bool operator!=(const camtarget_id& other) const { return value != other.value; };
+};
+*/
+
 class CameraSystem {
 public:
 
@@ -23,6 +32,7 @@ public:
 	CameraSystem& operator=(const CameraSystem&);
 
 	void update(secs deltaTime);
+
 
 	Vec2f getPosition(float interpolation);
 
@@ -35,17 +45,16 @@ public:
 
 	ComponentList<CameraTarget, true> targets;
 
-	bool has_active_target() const { return m_active_target.has_value(); }
-	CameraTarget* active_target() { return m_active_target ? &targets.at(*m_active_target) : nullptr; }
-	const CameraTarget* active_target() const { return m_active_target ? &targets.at(*m_active_target) : nullptr; }
+	CameraTarget* get_active_target() { return active_target ? &targets.at(*active_target) : nullptr; }
+	const CameraTarget* get_active_target() const { return active_target ? &targets.at(*active_target) : nullptr; }
 
 private:
 
 	void set_component_callbacks();
 	void add_to_ordered(ID<CameraTarget> id);
 
-	std::optional<ID<CameraTarget>> m_active_target;
-	std::vector<ID<CameraTarget>> m_ordered_targets;
+	std::optional<ID<CameraTarget>> active_target;
+	std::vector<ID<CameraTarget>> ordered_targets;
 };
 
 

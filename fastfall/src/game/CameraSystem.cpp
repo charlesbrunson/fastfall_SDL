@@ -43,8 +43,8 @@ CameraSystem::CameraSystem(const CameraSystem& other)
 	currentPosition = other.currentPosition;
 
 	targets = other.targets;
-	m_active_target = other.m_active_target;
-	m_ordered_targets = other.m_ordered_targets;
+	active_target = other.active_target;
+	ordered_targets = other.ordered_targets;
 
 	set_component_callbacks();
 }
@@ -59,8 +59,8 @@ CameraSystem& CameraSystem::operator=(const CameraSystem& other)
 	currentPosition = other.currentPosition;
 
 	targets = other.targets;
-	m_active_target = other.m_active_target;
-	m_ordered_targets = other.m_ordered_targets;
+	active_target = other.active_target;
+	ordered_targets = other.ordered_targets;
 
 	set_component_callbacks();
 	return *this;
@@ -75,7 +75,7 @@ void CameraSystem::set_component_callbacks()
 
 	targets.on_erase = [this](ID<CameraTarget> id) 
 	{
-		std::erase(m_ordered_targets, id);
+		std::erase(ordered_targets, id);
 	};
 }
 
@@ -86,26 +86,26 @@ void CameraSystem::update(secs deltaTime) {
 		prevPosition = currentPosition;
 		deltaPosition = Vec2f{};
 
-		for (auto& target : m_ordered_targets) {
+		for (auto& target : ordered_targets) {
 			targets.at(target).update(deltaTime);
 		}
 
-		if (has_active_target() && *m_active_target != m_ordered_targets.back()) {
+		if (active_target && *active_target != ordered_targets.back()) {
 
-			active_target()->m_state = CamTargetState::Inactive;
-			targets.at(m_ordered_targets.back()).m_state = CamTargetState::Active;
-			m_active_target = m_ordered_targets.back();
+			get_active_target()->m_state = CamTargetState::Inactive;
+			targets.at(ordered_targets.back()).m_state = CamTargetState::Active;
+			active_target = ordered_targets.back();
 		}
-		else if (!has_active_target() && m_ordered_targets.size() > 0) {
-			targets.at(m_ordered_targets.back()).m_state = CamTargetState::Active;
-			m_active_target = m_ordered_targets.back();
+		else if (!active_target && ordered_targets.size() > 0) {
+			targets.at(ordered_targets.back()).m_state = CamTargetState::Active;
+			active_target = ordered_targets.back();
 		}
-		else if (m_ordered_targets.empty()) {
-			m_active_target = {};
+		else if (ordered_targets.empty()) {
+			active_target = {};
 		}
 
-		if (m_active_target && !lockPosition) {
-			auto pos = active_target()->get_target_pos();
+		if (active_target && !lockPosition) {
+			auto pos = get_active_target()->get_target_pos();
 			deltaPosition = pos - currentPosition;
 			currentPosition = pos;
 		}
@@ -154,7 +154,7 @@ void CameraSystem::update(secs deltaTime) {
 
 		}
 
-		for (auto& target_id : m_ordered_targets) 
+		for (auto& target_id : ordered_targets) 
 		{
 
 			auto& camtarget = targets.at(target_id);
@@ -187,21 +187,21 @@ void CameraSystem::update(secs deltaTime) {
 void CameraSystem::add_to_ordered(ID<CameraTarget> id)
 {
 	auto iter_pair = std::equal_range(
-		m_ordered_targets.begin(), m_ordered_targets.end(), id,
+		ordered_targets.begin(), ordered_targets.end(), id,
 		[this](ID<CameraTarget> lhs, ID<CameraTarget> rhs) {
 			const CameraTarget& lhs_ptr = targets.at(lhs);
 			const CameraTarget& rhs_ptr = targets.at(rhs);
 			return lhs_ptr.get_priority() < rhs_ptr.get_priority();
 		});
 
-	bool first_target = m_ordered_targets.empty();
+	bool first_target = ordered_targets.empty();
 
-	m_ordered_targets.insert(iter_pair.second, id);
+	ordered_targets.insert(iter_pair.second, id);
 
 	if (first_target) {
-		auto& target = targets.at(m_ordered_targets.back());
+		auto& target = targets.at(ordered_targets.back());
 		target.m_state = CamTargetState::Active;
-		m_active_target = m_ordered_targets.back();
+		active_target = ordered_targets.back();
 
 		currentPosition = target.get_target_pos();
 		prevPosition = currentPosition;

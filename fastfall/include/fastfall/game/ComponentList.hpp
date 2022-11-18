@@ -7,41 +7,37 @@
 #include <vector>
 #include <memory>
 #include <concepts>
-#include <functional>
 
 namespace ff {
 
-template<class T, bool Polymorphic>
+
+
+template<class T, bool Polymorphic = false>
 class ComponentList
 {
 private:
-	using storage_type = std::conditional_t<Polymorphic, copyable_unique_ptr<T>, T>;
-	slot_map<storage_type> components;
+	using base_type = T;
+	using value_type = std::conditional_t<Polymorphic, copyable_unique_ptr<T>, T>;
 
-	static inline size_t type_hash = typeid(T).hash_code();
+	slot_map<value_type> components;
 
 public:
-	using type = T;
 
 	// non-polymorphic
 	template<class... Args, class = std::enable_if_t<!Polymorphic>>
 	ID<T> create(Args&&... args) {
-		auto key = components.emplace_back(std::forward<Args>(args)...);
-		ID<T> id{ type_hash, key };
-		on_create(id);
-		return id;
+		auto id = components.emplace_back(std::forward<Args>(args)...);
+		on_create({ id });
+		return { id };
 	}
 
 	template<class = std::enable_if_t<!Polymorphic>>
 	T& at(ID<T> id) {
-		assert(id.type_hash == type_hash);
 		return components.at(id.value);
-
 	}
 
 	template<class = std::enable_if_t<!Polymorphic>>
 	const T& at(ID<T> id) const {
-		assert(id.type_hash == type_hash);
 		return components.at(id.value);
 	}
 
@@ -58,27 +54,24 @@ public:
 	template<class = std::enable_if_t<!Polymorphic>>
 	bool exists(ID<T> id)
 	{
-		return id.type_hash == type_hash && components.exists(id.value);
+		return components.exists(id.value);
 	}
 
 	// polymorphic
 	template<std::derived_from<T> Type, class... Args, class = std::enable_if_t<Polymorphic>>
 	ID<Type> create(Args&&... args) {
-		auto key = components.emplace_back(std::make_unique<Type>(std::forward<Args>(args)...));
-		ID<Type> id{ type_hash, key };
-		on_create(id);
-		return id;
+		auto id = components.emplace_back(std::make_unique<Type>(std::forward<Args>(args)...));
+		on_create({ id });
+		return { id };
 	}
 
 	template<std::derived_from<T> Type, class = std::enable_if_t<Polymorphic>>
 	Type& at(ID<Type> id) {
-		assert(id.type_hash == type_hash);
 		return *reinterpret_cast<Type*>(components.at(id.value).get());
 	}
 
 	template<std::derived_from<T> Type, class = std::enable_if_t<Polymorphic>>
 	const Type& at(ID<Type> id) const {
-		assert(id.type_hash == type_hash);
 		return *reinterpret_cast<const Type*>(components.at(id.value).get());
 	}
 
@@ -87,7 +80,7 @@ public:
 		bool removed = exists(id);
 		if (removed) {
 			components.erase(id.value);
-			on_erase(id);
+			on_erase({ id.value });
 		}
 		return removed;
 	}
@@ -95,7 +88,7 @@ public:
 	template<std::derived_from<T> Type>
 	bool exists(ID<Type> id)
 	{
-		return id.type_hash == type_hash && components.exists(id.value);
+		return components.exists(id.value);
 	}
 
 	inline auto begin() { return components.begin(); }
