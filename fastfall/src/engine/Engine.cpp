@@ -1009,6 +1009,7 @@ void DebugDrawImgui::ImGui_getContent() {
 
     constexpr std::string_view names[] = {
         "NONE",
+        "DARKEN_SCREEN",
         "COLLISION_COLLIDER",
         "COLLISION_COLLIDABLE",
         "COLLISION_CONTACT",
@@ -1018,6 +1019,8 @@ void DebugDrawImgui::ImGui_getContent() {
         "CAMERA_VISIBLE",
         "CAMERA_TARGET",
         "TRIGGER_AREA",
+        "PATHS",
+        "ATTACH"
     };
     static_assert((sizeof(names) / sizeof(names[0])) == static_cast<unsigned>(debug_draw::Type::LAST), "fix me");
 

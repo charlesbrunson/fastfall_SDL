@@ -1,4 +1,5 @@
 #include "fastfall/render/DebugDraw.hpp"
+#include "fastfall/util/log.hpp"
 
 #include <set>
 #include <deque>
@@ -40,6 +41,7 @@ Vec2f current_offset;
 
 bool typeEnable[] = {
 	false,	// NONE
+    false, // DARKEN
 	true,	// COLLISION_COLLIDER
 	true,	// COLLISION_COLLIDABLE
 	true,	// COLLISION_CONTACT
@@ -49,6 +51,8 @@ bool typeEnable[] = {
 	false,	// CAMERA_VISIBLE
 	false,	// CAMERA_TARGET
 	false,	// TRIGGER_AREA
+    true,	// PATHS
+    true,   // ATTACH
 };
 constexpr unsigned typeEnableCount = (sizeof(typeEnable) / sizeof(typeEnable[0]));
 static_assert(typeEnableCount == static_cast<unsigned>(debug_draw::Type::LAST), "debug draw type enum and type enable array count mismatch");
@@ -107,11 +111,12 @@ bool debug_draw::repeat(const void* signature, Vec2f offset) {
 
 void debug_draw::swapDrawLists() {
 
+    std::deque<DebugDrawable> tmp;
+
 	for (auto& debug : *activeList) {
 		if (debug.signature) {
-			if (const auto it = repeatList.find(Repeat{ debug.signature }); 
-				it != repeatList.end()
-				)
+			if (const auto it = repeatList.find(Repeat{ debug.signature });
+				it != repeatList.end())
 			{
 				debug.offset = it->offset;
 				inactiveList->push_front(std::move(debug));
@@ -125,7 +130,9 @@ void debug_draw::swapDrawLists() {
 }
 
 void debug_draw::draw(RenderTarget& target, RenderState states) {
+    LOG_INFO("--------");
 	for (auto& debug : *activeList) {
+        LOG_INFO("{}", debug.type);
 		RenderState state = states;
 		state.transform = Transform::combine(states.transform, Transform(debug.offset));
 		if (debug.drawable) {

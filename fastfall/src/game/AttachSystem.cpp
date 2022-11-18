@@ -2,13 +2,14 @@
 
 #include "fastfall/game/AttachSystem.hpp"
 
+#include "fastfall/render/DebugDraw.hpp"
 
 #include "fastfall/game/World.hpp"
 
 namespace ff {
 
     template<class T>
-    void update_attachment(World& w, const AttachPoint& attachpoint, ID<T> attachment_id, Vec2f offset, secs deltaTime) {
+    Vec2f update_attachment(World& w, const AttachPoint& attachpoint, ID<T> attachment_id, Vec2f offset, secs deltaTime) {
 
         Vec2f ppos = attachpoint.prev_pos() + offset;
         Vec2f cpos = attachpoint.curr_pos() + offset;
@@ -17,18 +18,21 @@ namespace ff {
         if constexpr (std::same_as<T, Collidable>) {
             Collidable& t = w.at(attachment_id);
             t.setPosition(cpos);
+            return t.getPosition();
         }
         else if constexpr (std::same_as<T, Trigger>) {
             Trigger& t = w.at(attachment_id);
             auto area = t.get_area();
             area.setPosition(cpos);
             t.set_area(area);
+            return area.getPosition();
         }
         else if constexpr (std::same_as<T, Emitter>) {
             Emitter& t = w.at(attachment_id);
             t.velocity = vel;
             t.prev_position = ppos;
             t.position = cpos;
+            return t.position;
         }
         else if constexpr (std::same_as<T, AttachPoint>) {
             // or this
@@ -47,16 +51,24 @@ namespace ff {
                 }
                 t.set_tick(w.tick_count());
             }
+            return t.curr_pos();
         }
         else if constexpr (std::same_as<T, ColliderRegion>) {
             ColliderRegion& t = w.at(attachment_id);
             t.delta_velocity = vel - t.velocity;
             t.velocity = vel;
             t.setPosition(cpos);
+            return t.getPosition();
         }
         else if constexpr (std::same_as<T, CameraTarget>) {
             // TODO ???
+            return {};
         }
+        else if constexpr (std::same_as<T, Drawable>) {
+            //SceneConfig& cfg = w.scene().config(attachment_id);
+            return cpos + offset;
+        }
+        return {};
     }
 
     template<class T>
@@ -86,6 +98,7 @@ namespace ff {
     void AttachSystem::update_attachpoints(World& world, secs deltaTime, AttachPoint::Schedule sched) {
         if (deltaTime > 0.0) {
             for (auto [aid, ap]: world.all<AttachPoint>()) {
+
                 if (is_attachpoint_root(aid)
                     && ap.get_tick() != world.tick_count()
                     && ap.sched == sched)
@@ -106,13 +119,34 @@ namespace ff {
         auto& ap = world.at(id);
         for (auto at : attachments.at(id))
         {
+            Vec2f p;
             std::visit(
-                [&]<class T>(ID<T> c_id) { update_attachment(world, ap, c_id, at.offset, curr_delta); },
+                [&]<class T>(ID<T> c_id) { p = update_attachment(world, ap, c_id, at.offset, curr_delta); },
                         at.id);
 
             if (holds_alternative<ID<AttachPoint>>(at.id)) {
                 update_attachments(world, std::get<ID<AttachPoint>>(at.id), visited);
             }
+
+            if (debug_draw::hasTypeEnabled(debug_draw::Type::ATTACH)  /*&& !debug_draw::repeat((void *) &at, p) */ ) {
+
+                //debug_draw::set_offset(p);
+                auto &attach = createDebugDrawable<VertexArray, debug_draw::Type::ATTACH>(
+                        (const void *) &at, Primitive::LINES, 6);
+
+                for (auto ndx = 0; ndx < attach.size(); ++ndx) {
+                    attach[ndx].color = Color::Green;
+                }
+
+                attach[0].pos = ap.curr_pos() + Vec2f{-2, -2};
+                attach[1].pos = ap.curr_pos() + Vec2f{ 2,  2};
+                attach[2].pos = ap.curr_pos() + Vec2f{-2,  2};
+                attach[3].pos = ap.curr_pos() + Vec2f{ 2, -2};
+                attach[4].pos = ap.curr_pos();
+                attach[5].pos = p;
+                //debug_draw::set_offset();
+            }
+
         }
     }
 

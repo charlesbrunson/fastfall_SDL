@@ -30,6 +30,7 @@ public:
     Vec2f get_pos() const;
     Vec2f get_vel() const;
 
+    const Path& get_path() const { return _path; }
 
     bool is_stopped() const { return stopped; }
     void set_stopped(bool stop) { stopped = stop; }

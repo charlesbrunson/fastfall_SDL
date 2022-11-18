@@ -16,6 +16,8 @@ namespace debug_draw {
 	enum class Type {
 		NONE,
 
+        DARKEN,
+
 		COLLISION_COLLIDER,
 		COLLISION_COLLIDABLE,
 		COLLISION_CONTACT,
@@ -28,6 +30,10 @@ namespace debug_draw {
 		CAMERA_TARGET,
 
 		TRIGGER_AREA,
+
+        PATHS,
+
+        ATTACH,
 
 		LAST
 	};
