@@ -26,6 +26,8 @@
 
 #if defined(__EMSCRIPTEN__)
 #define FF_HAS_EMSCRIPTEN 1
+#include <emscripten.h>
+#include <emscripten/html5.h>
 #else
 #define FF_HAS_EMSCRIPTEN 0
 #endif

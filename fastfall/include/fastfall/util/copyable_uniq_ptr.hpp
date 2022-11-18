@@ -61,7 +61,7 @@ struct copyable_unique_ptr {
 		return *this;
 	}
 
-	copyable_unique_ptr<Base>& operator=(nullptr_t) {
+	copyable_unique_ptr<Base>& operator=(std::nullptr_t) {
 		clone = nullptr;
 		ptr = nullptr;
 		return *this;

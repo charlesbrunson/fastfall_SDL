@@ -75,9 +75,7 @@ public:
 
 private:
 
-	//void update_sprite();
-
-	void draw(RenderTarget& target, RenderState states = RenderState{}) const;
+	void draw(RenderTarget& target, RenderState states = RenderState{}) const override;
 
 	Vec2f position;
 

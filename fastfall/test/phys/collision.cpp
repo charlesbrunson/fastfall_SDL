@@ -62,14 +62,8 @@ protected:
 
 	void update()
 	{
-		if (collider) {
-			collider->update(one_frame);
-		} 
-		//box->update(one_frame);
-
 		colMan->dumpCollisionDataThisFrame(&data[colMan->getFrameCount()]);
 		colMan->update(world, one_frame);
-
 	}
 
 	void initTileMap(grid_vector<std::string_view> tiles)
