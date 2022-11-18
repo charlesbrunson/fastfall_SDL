@@ -154,7 +154,7 @@ public:
         std::tuple<Params...>
         unwrap(const dmessage &msg) const {
             if (msg.hash() == type_hash) {
-                return [&]<uint64_t...Is>(std::index_sequence<Is...>) {
+                return [&]<size_t...Is>(std::index_sequence<Is...>) {
                     return std::make_tuple(
                             std::get<Params>(msg.params()[Is])...);
                 }(std::make_index_sequence<sizeof...(Params)>{});
@@ -167,7 +167,7 @@ public:
         constexpr U
         unwrap_as(const dmessage &msg) const {
             if (msg.hash() == type_hash) {
-                return [&]<uint64_t...Is>(std::index_sequence<Is...>) {
+                return [&]<size_t...Is>(std::index_sequence<Is...>) {
                     return U{std::get<Params>(msg.params()[Is])...};
                 }(std::make_index_sequence<sizeof...(Params)>{});
             } else {
