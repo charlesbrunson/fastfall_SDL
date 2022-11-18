@@ -194,6 +194,9 @@ if (NOT EMSCRIPTEN)
 
 	set(SDL2_LIBRARY SDL2-static)
 	set(SDL2_INCLUDE_DIR "${sdl_SOURCE_DIR}/include")
+else()
+	set(SDL2_LIBRARY SDL2)
+	set(SDL2_INCLUDE_DIR "${sdl_SOURCE_DIR}/include")
 endif()
 
 # soloud
