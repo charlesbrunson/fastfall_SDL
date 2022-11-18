@@ -92,7 +92,7 @@ public:
 
     // manage state
     void update(secs deltaTime);
-    void predraw(float interp, bool updated);
+    void predraw(float interp, bool updated) override;
 
 	// access component
     template<class T>

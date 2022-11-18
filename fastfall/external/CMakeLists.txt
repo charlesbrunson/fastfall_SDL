@@ -12,7 +12,7 @@ set(OpenGL_GL_PREFERENCE "GLVND" CACHE INTERNAL "")
 FetchContent_Declare(
 	glm
 	GIT_REPOSITORY https://github.com/g-truc/glm.git
-	GIT_TAG        6ad79aae3eb5bf809c30bf1168171e9e55857e45
+	#GIT_TAG        6ad79aae3eb5bf809c30bf1168171e9e55857e45
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glm
 )
 
