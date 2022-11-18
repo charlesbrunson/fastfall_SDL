@@ -101,7 +101,7 @@ struct ContinuousContact : public DiscreteContact {
     void transpose() noexcept {
         if (!is_transposed) {
             Vec2f alt_ortho_normal = (collider_n.x < 0.f ? Vec2f(-1.f, 0.f) : Vec2f(1.f, 0.f));
-            float alt_separation = abs((collider_n.y * separation) / collider_n.x);
+            float alt_separation = std::abs((collider_n.y * separation) / collider_n.x);
             ortho_n = alt_ortho_normal;
             separation = alt_separation;
             is_transposed = true;

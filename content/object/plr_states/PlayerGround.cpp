@@ -28,7 +28,8 @@ PlayerStateID PlayerGroundState::update(ff::World& w, plr::members& plr, secs de
 	if (deltaTime <= 0.0) 
 		return PlayerStateID::Continue;
 
-    auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
+    auto& sprite = w.at(plr.sprite_id);
+    auto& box = w.at(plr.collidable_id);
     auto& ground = box.at_tracker();
 
 	sprite.set_playback(1.f);
