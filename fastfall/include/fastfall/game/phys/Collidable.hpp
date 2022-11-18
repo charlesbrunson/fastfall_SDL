@@ -6,18 +6,19 @@
 
 #include "fastfall/game/phys/collision/Contact.hpp"
 #include "fastfall/game/phys/collidable/SurfaceTracker.hpp"
-#include "fastfall/game/phys/RegionArbiter.hpp"
+
+//#include <SFML/Graphics.hpp>
 
 #include <assert.h>
 #include <vector>
 #include <optional>
 #include <memory>
 
+#include "fastfall/game/phys/Identity.hpp"
+
 namespace ff {
 
-class WorldState;
-
-struct collision_flags {
+struct collision_state_t {
 	enum class flags : unsigned {
 		None = 0,
 		Floor = 1,
@@ -52,56 +53,6 @@ private:
 	unsigned flags = 0u;
 };
 
-struct collision_slip {
-	enum class state {
-		SlipHorizontal,
-		SlipVertical
-	};
-
-	state state = state::SlipHorizontal;
-	float leeway = 0.f;
-};
-
-class Collidable
-{
-public:
-	const Vec2f pos() const;
-	const Vec2f prev_pos() const;
-
-	Rectf bounds() const;
-
-	void set_pos(Vec2f p);
-	void move(Vec2f p);
-	void shift(Vec2f p);
-	void teleport(Vec2f p);
-
-	collision_flags flags;
-	collision_slip slip;
-
-	Rectf curRect;
-	Rectf prevRect;
-
-	Vec2f vel;
-	Vec2f precollision_vel;
-
-	Vec2f friction;
-
-	Vec2f accel;
-	Vec2f gravity;
-	Vec2f accel_accum;
-	Vec2f decel_accum;
-
-	std::vector<PersistantContact> currContacts;
-	std::vector<ID<SurfaceTracker>> trackers;
-	std::vector<RegionArbiter> collisions;
-
-	struct callbacks_t {
-		std::function<void()> onPostCollision;
-	} callbacks;
-};
-
-
-/*
 class Collidable {
 public:
 	enum class SlipState {
@@ -126,7 +77,7 @@ public:
 	Collidable& operator=(const Collidable& rhs);
 	Collidable& operator=(Collidable&& rhs) noexcept;
 
-	void update(WorldState& st, secs deltaTime);
+	void update(secs deltaTime);
 
 	Rectf getBoundingBox();
 
@@ -167,12 +118,12 @@ public:
 
 	// -----------------------------------------
 
-	//inline std::vector<std::unique_ptr<SurfaceTracker>>& get_trackers() noexcept { return trackers; };
-	//inline const std::vector<std::unique_ptr<SurfaceTracker>>& get_trackers() const noexcept { return trackers; };
-	
-	void add_tracker(ID<SurfaceTracker> tracker);
-	bool remove_tracker(ID<SurfaceTracker> tracker);
-	bool has_tracker(ID<SurfaceTracker> tracker);
+	inline std::vector<std::unique_ptr<SurfaceTracker>>& get_trackers() noexcept { return trackers; };
+	inline const std::vector<std::unique_ptr<SurfaceTracker>>& get_trackers() const noexcept { return trackers; };
+
+	SurfaceTracker& create_tracker(Angle ang_min, Angle ang_max, bool inclusive = true);
+	SurfaceTracker& create_tracker(Angle ang_min, Angle ang_max, SurfaceTracker::Settings settings, bool inclusive = true);
+	bool remove_tracker(SurfaceTracker& tracker);
 
 	// -----------------------------------------
 
@@ -186,7 +137,7 @@ public:
 
 	void set_frame(std::vector<PersistantContact>&& frame);
 
-	//inline CollidableID get_ID() const noexcept { return id; };
+	inline CollidableID get_ID() const noexcept { return id; };
 
 	void setSlip(slip_t set) { slip = set; };
 
@@ -210,7 +161,7 @@ private:
 
 	void process_current_frame();
 
-	//CollidableID id;
+	CollidableID id;
 
 	Vec2f pos;
 	Vec2f prevPos;
@@ -228,13 +179,8 @@ private:
 	Vec2f accel_accum;
 	Vec2f decel_accum;
 
-
 	std::vector<PersistantContact> currContacts;
-	std::vector<ID<SurfaceTracker>> trackers;
-
-
-
+	std::vector<std::unique_ptr<SurfaceTracker>> trackers;
 };
-*/
 
 }

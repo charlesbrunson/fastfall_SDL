@@ -49,13 +49,13 @@ namespace ff {
 		}
 	}
 
-	const ColliderQuad* ColliderTileMap::get_quad(QuadID quad_id) const noexcept
+	const ColliderQuad* ColliderTileMap::get_quad(int quad_id) const noexcept
 	{
 		return tileShapeMap[quad_id].hasTile ? &tileCollisionMap[quad_id] : nullptr;
 	}
 
 
-	bool ColliderTileMap::on_precontact(QuadID quad_id, const Contact& contact, secs duration) const {
+	bool ColliderTileMap::on_precontact(int quad_id, const Contact& contact, secs duration) const {
 
 		if (validPosition(quad_id) && callback_on_precontact) {
 			Vec2i position;
@@ -71,8 +71,8 @@ namespace ff {
 	void ColliderTileMap::on_postcontact(const PersistantContact& contact) const {
 		if (validPosition(contact.quad_id) && callback_on_precontact) {
 			Vec2i position;
-			position.y = contact.quad_id.value / (size_max.x);
-			position.x = contact.quad_id.value - (position.y * (size_max.x - size_min.x));
+			position.y = contact.quad_id / (size_max.x);
+			position.x = contact.quad_id - (position.y * (size_max.x - size_min.x));
 			position += size_min;
 
 			callback_on_postcontact(position, contact);
@@ -124,7 +124,7 @@ namespace ff {
 
 		int i = 0;
 		for (auto& col : tileCollisionMap) {
-			col.quad_id = { i++ };
+			col.setID(i++);
 		}
 		validCollisionSize = 0;
 	}
@@ -199,7 +199,7 @@ namespace ff {
 		for_adjacent_touching_quads(*tile,
 			[&](ColliderQuad& quad_adj, const ColliderTile& tile_adj, Cardinal dir)
 			{
-				ColliderQuad original = tile_adj.toQuad(quad_adj.quad_id);
+				ColliderQuad original = tile_adj.toQuad(quad_adj.getID());
 				Cardinal other_dir = direction::opposite(dir);
 
 				const ColliderSurface* originalSurf = original.getSurface(other_dir);
@@ -281,7 +281,7 @@ namespace ff {
 
 		size_t ndx = getTileIndex(change.position);
 		ColliderTile nTile(change.position, change.toShape, change.material, change.matFacing);
-		ColliderQuad nQuad = nTile.toQuad({ (int)ndx });
+		ColliderQuad nQuad = nTile.toQuad(ndx);
 
 		// tile exists at this position
 		if (auto [quad, tile] = get_tile(change.position); quad) {
@@ -346,11 +346,6 @@ namespace ff {
 		return at.x >= size_min.x && at.x < size_max.x
 			&& at.y >= size_min.y && at.y < size_max.y;
 	}
-
-	bool ColliderTileMap::validPosition(QuadID id) const noexcept {
-		return id.value >= minIndex && id.value < maxIndex;
-	}
-
 	bool ColliderTileMap::validPosition(size_t ndx) const noexcept {
 		return ndx >= minIndex && ndx < maxIndex;
 	}
@@ -448,6 +443,15 @@ namespace ff {
 			x = 0;
 		}
 
+		struct Ghosts {
+			const ColliderSurface* next = nullptr;
+			const ColliderSurface* prev = nullptr;
+			Vec2f g0;
+			Vec2f g3;
+			bool g0virtual = true;
+			bool g3virtual = true;
+		};
+
 		//for (auto& surface : tile->getSurfaces()) {
 		for (auto dir : direction::cardinals) {
 			if (ColliderSurface* surf_ptr = quad->getSurface(dir)) {
@@ -457,8 +461,8 @@ namespace ff {
 				auto ghosts = getGhosts(nearbyTiles, surf_ptr->surface, quad->hasOneWay);
 				surf.ghostp0 = ghosts.g0;
 				surf.ghostp3 = ghosts.g3;
-				//surf.g0virtual = ghosts.g0virtual;
-				//surf.g3virtual = ghosts.g3virtual;
+				surf.g0virtual = ghosts.g0virtual;
+				surf.g3virtual = ghosts.g3virtual;
 				surf.next = ghosts.next;
 				surf.prev = ghosts.prev;
 				quad->setSurface(dir, surf);

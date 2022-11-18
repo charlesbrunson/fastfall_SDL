@@ -10,10 +10,10 @@ TileLogicType::TileLogicType(std::string_view type, FactoryFunction builder) :
 
 }
 
-std::unique_ptr<TileLogic> TileLogic::create(WorldState& st, std::string_view typeName) {
+std::unique_ptr<TileLogic> TileLogic::create(GameContext context, std::string_view typeName) {
 	auto iter = getMap().find(typeName);
 	if (iter != getMap().end()) {
-		return iter->second.fn_create(st);
+		return iter->second.fn_create(context);
 	}
 	return nullptr;
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-/*
-
 //#include "util/Updatable.hpp"
 #include "fastfall/resource/asset/LevelAssetTypes.hpp"
 #include "fastfall/game/phys/Collidable.hpp"
@@ -16,7 +14,7 @@
 #include "imgui.h"
 
 //#include "fastfall/game/InstanceID.hpp"
-//#include "fastfall/game/GameContext.hpp"
+#include "fastfall/game/GameContext.hpp"
 
 #include "fastfall/render/Drawable.hpp"
 #include "fastfall/util/log.hpp"
@@ -216,6 +214,6 @@ protected:
 	ObjectLevelData* const m_data = nullptr;
 };
 
-*/
+
 
 }

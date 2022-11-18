@@ -2,9 +2,9 @@
 
 #include "fastfall/util/math.hpp"
 #include "fastfall/engine/time/time.hpp"
-//#include "fastfall/game/phys/Identity.hpp"
+#include "fastfall/game/phys/Identity.hpp"
 #include "fastfall/game/phys/collision/Contact.hpp"
-//#include "fastfall/game/GameContext.hpp"
+#include "fastfall/game/GameContext.hpp"
 
 #include <optional>
 #include <functional>
@@ -14,20 +14,19 @@ namespace ff {
 class Collidable;
 
 struct Friction {
-	float stationary	= 0.f;
-	float kinetic		= 0.f;
+	float stationary = 0.f;
+	float kinetic = 0.f;
 };
 
 struct CollidableOffsets {
-	Vec2f position		= { 0.f, 0.f };
-	Vec2f velocity		= { 0.f, 0.f };
-	Vec2f acceleration	= { 0.f, 0.f };
+	Vec2f position = { 0.f, 0.f };
+	Vec2f velocity = { 0.f, 0.f };
+	Vec2f acceleration = { 0.f, 0.f };
 };
 
 // track contact duration for surfaces between the given angle ranges
 class SurfaceTracker {
 public:
-	/*
 	SurfaceTracker(Angle ang_min, Angle ang_max, bool inclusive = true);
 
 	CollidableOffsets premove_update(secs deltaTime);
@@ -43,7 +42,7 @@ public:
 	void traverse_add_accel(float accel);
 	void traverse_add_decel(float decel);
 
-	inline ID<Collidable> get_collidable() { return owner; };
+	inline Collidable* get_collidable() { return owner; };
 
 	bool can_make_contact_with(const Contact& contact) const noexcept;
 
@@ -53,9 +52,12 @@ public:
 	void end_touch(PersistantContact& contact);
 
 	void firstCollisionWith(const Contact& contact);
-	*/
 
-	ID<Collidable> owner;
+	// time in contact
+	// this will propogate across different surfaces
+	// as long as they're within the angle range
+	secs contact_time = 0.0;
+	secs air_time = 0.0;
 
 	struct callbacks_t {
 		std::function<void(PersistantContact&)> on_start_touch;
@@ -63,7 +65,7 @@ public:
 		std::function<void(const ColliderSurface&)> on_stick;
 	} callbacks;
 
-	struct settings_t {
+	struct Settings {
 		bool move_with_platforms = false;
 		bool slope_sticking = false;
 		bool slope_wall_stop = false;
@@ -92,35 +94,26 @@ public:
 		};
 	} angle_range;
 
+private:
+	friend class Collidable;
+
+	// the best suited contact for this recorder
+	// from the current contact frame
+	// based on angle and contact duration
 	std::optional<PersistantContact> currentContact = std::nullopt;
 	std::optional<PersistantContact> wallContact = std::nullopt;
 
-
-	// time in contact
-	// this will propogate across different surfaces
-	// as long as they're within the angle range
-	secs contact_time = 0.0;
-	secs air_time = 0.0;
-
-
-	bool has_contact() const noexcept {	return currentContact && currentContact->hasContact; };
-
-	std::optional<float> traverse_get_speed(Vec2f owner_speed) const;
-
-
-
-/*
-private:
 
 	bool do_slope_wall_stop(bool had_wall) noexcept;
 	CollidableOffsets do_move_with_platform(CollidableOffsets in) noexcept;
 	CollidableOffsets do_max_speed(CollidableOffsets in, secs deltaTime) noexcept;
 
+	// returns position offset
 	Vec2f do_slope_stick(Vec2f wish_pos, Vec2f prev_pos, float left, float right, const PersistantContact& contact) const noexcept;
 
 	Vec2f calc_friction(Vec2f prevVel);
-*/
 
+	Collidable* owner = nullptr;
 };
 
 }

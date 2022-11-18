@@ -21,7 +21,7 @@ public:
 	LevelEditor(Level& lvl, bool show_imgui);
 
 	// create a new level
-	LevelEditor(bool show_imgui, std::string name = "New Level", Vec2u tile_size = MIN_LEVEL_SIZE);
+	LevelEditor(GameContext context, bool show_imgui, std::string name = "New Level", Vec2u tile_size = MIN_LEVEL_SIZE);
 
 
 

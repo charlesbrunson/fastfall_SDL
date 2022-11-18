@@ -8,11 +8,14 @@ namespace ff {
 
 // LEVEL
 
-Level::Level()
+Level::Level(GameContext context) :
+	context(context)
 {
+
 }
 
-Level::Level(const LevelAsset& levelData)
+Level::Level(GameContext context, const LevelAsset& levelData) :
+	context(context)
 {
 	init(levelData);
 }
@@ -45,10 +48,10 @@ void Level::init(const LevelAsset& levelData)
 	for (auto& layerRef : levelData.getLayerRefs().get_tile_layers())
 	{
 		if (layerRef.position < 0) {
-			layers.push_bg_front(TileLayer{ layerRef.tilelayer });
+			layers.push_bg_front(TileLayer{ context, layerRef.tilelayer });
 		}
 		else {
-			layers.push_fg_front(TileLayer{ layerRef.tilelayer });
+			layers.push_fg_front(TileLayer{ context, layerRef.tilelayer });
 		}
 		//layers.get_tile_layer_at(layerRef.position)->tilelayer.set_layer(layerRef.position);
 	}
@@ -59,6 +62,7 @@ void Level::init(const LevelAsset& levelData)
 	}
 
 	layers.get_obj_layer().initFromAsset(
+		context,
 		levelData.getLayerRefs().get_obj_layer()
 	);
 }
@@ -77,7 +81,7 @@ void Level::resize(Vec2u n_size)
 			std::min(n_size.y, layer.getParallaxSize().y)
 		};
 
-		TileLayer n_layer{ layer.getID(), n_size };
+		TileLayer n_layer{ context, layer.getID(), n_size };
 		n_layer.set_layer(layer.get_layer());
 		n_layer.set_collision(layer.hasCollision(), layer.getCollisionBorders());
 		n_layer.set_scroll(layer.hasScrolling(), layer.getScrollRate());

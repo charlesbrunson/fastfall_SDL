@@ -13,7 +13,7 @@
 #include "fastfall/game/SceneSystem.hpp"
 #include "fastfall/render/ChunkVertexArray.hpp"
 
-//#include "fastfall/game/GameContext.hpp"
+#include "fastfall/game/GameContext.hpp"
 
 #include "fastfall/game/level/TileLogic.hpp"
 #include "fastfall/game/level/Tile.hpp"
@@ -57,13 +57,13 @@ private:
 		std::vector<scene_id> chunks;
 	} dyn;
 
-	//GameContext m_context;
+	GameContext m_context;
 	Vec2f offset;
 
 public:
 
-	TileLayer(unsigned id, Vec2u levelsize);
-	TileLayer(const TileLayerData& layerData);
+	TileLayer(GameContext context, unsigned id, Vec2u levelsize);
+	TileLayer(GameContext context, const TileLayerData& layerData);
 
 	TileLayer(const TileLayer& tile);
 	TileLayer& operator=(const TileLayer& tile);

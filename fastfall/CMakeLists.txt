@@ -118,8 +118,6 @@ set(FF_HEADERS
 )
 
 add_library(fastfall STATIC ${FF_SOURCES} ${FF_HEADERS})
-add_library(fastfall_s SHARED ${FF_SOURCES} ${FF_HEADERS})
-
 set_target_properties(fastfall PROPERTIES
 	CXX_STANDARD 20
 	CXX_STANDARD_REQUIRED YES
@@ -177,26 +175,22 @@ endif()
 
 # depends on compiled flatbuffers headers
 add_dependencies(fastfall fbs_compiled)
-add_dependencies(fastfall_s fbs_compiled)
 
 # includes
 target_include_directories(fastfall PUBLIC ${FF_INCLUDES})
-target_include_directories(fastfall_s PUBLIC ${FF_INCLUDES})
 
 # libraries
 target_link_libraries(fastfall PRIVATE ${FF_LIBRARIES})
-target_link_libraries(fastfall_s PRIVATE ${FF_LIBRARIES})
 
 # compile definitions
 target_compile_definitions(fastfall PUBLIC
 	IMGUI_IMPL_OPENGL_LOADER_GLEW
+)
+
+target_compile_definitions(fastfall PUBLIC
 	DEBUG
 )
 
-target_compile_definitions(fastfall_s PUBLIC
-	IMGUI_IMPL_OPENGL_LOADER_GLEW
-	DEBUG
-)
 
 if(EMSCRIPTEN)
 	target_compile_definitions(fastfall PUBLIC
@@ -210,14 +204,8 @@ else()
 		target_compile_definitions(fastfall PUBLIC
 			FF_DATA_DIR=""
 		)
-		target_compile_definitions(fastfall_s PUBLIC
-			FF_DATA_DIR=""
-		)
 	else()
 		target_compile_definitions(fastfall PUBLIC
-			FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
-		)
-		target_compile_definitions(fastfall_s PUBLIC
 			FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
 		)
 	endif()

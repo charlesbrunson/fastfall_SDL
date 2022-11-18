@@ -1,15 +1,8 @@
 #pragma once
 
 #include "fastfall/util/math.hpp"
-#include "QuadID.hpp"
 
 namespace ff {
-
-struct ColliderSurfaceID
-{
-	QuadID quad;
-	Cardinal dir;
-};
 
 class ColliderSurface {
 public:
@@ -17,13 +10,11 @@ public:
 	Vec2f ghostp0;
 	Vec2f ghostp3;
 
-	ColliderSurfaceID id;
+	bool g0virtual = true;
+	bool g3virtual = true;
 
-	std::optional<ColliderSurfaceID> prev;
-	std::optional<ColliderSurfaceID> next;
-
-	//const ColliderSurface* prev = nullptr;
-	//const ColliderSurface* next = nullptr;
+	const ColliderSurface* prev = nullptr;
+	const ColliderSurface* next = nullptr;
 
 	Linef getGhostPrev() const {
 		return { ghostp0, surface.p1 };
@@ -40,8 +31,8 @@ public:
 		r.ghostp0 = ghostp3;
 		r.ghostp3 = ghostp0;
 
-		//r.g0virtual = g3virtual;
-		//r.g3virtual = g0virtual;
+		r.g0virtual = g3virtual;
+		r.g3virtual = g0virtual;
 
 		r.prev = next;
 		r.next = prev;

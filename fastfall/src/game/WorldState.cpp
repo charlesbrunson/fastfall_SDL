@@ -1,7 +1,5 @@
 #include "fastfall/game/WorldState.hpp"
 
-#include "fastfall/game/WorldStateListener.hpp"
-
 namespace ff {
 
 void WorldState::adopt(ID<Entity> id, GenericID component)
@@ -14,6 +12,10 @@ ID<Entity> WorldState::make_entity() {
 	static const size_t ent_hash = typeid(Entity).hash_code();
 	ID<Entity> id = { ent_hash, entities.emplace_back() };
 
+	for (auto& sub : subscribers)
+	{
+		sub->notify_entity_created(id);
+	}
 	return id;
 }
 
@@ -33,18 +35,18 @@ bool WorldState::erase_entity(ID<Entity> id)
 	return false;
 }
 
-void WorldState::push_listener(WorldStateListener* sub)
+void WorldState::push_subscriber(WorldStateSubcriber* sub)
 {
-	if (std::find(listeners.begin(), listeners.end(), sub)
-		== listeners.end())
+	if (std::find(subscribers.begin(), subscribers.end(), sub)
+		== subscribers.end())
 	{
-		listeners.push_back(sub);
+		subscribers.push_back(sub);
 	}
 }
 
-void WorldState::remove_listener(WorldStateListener* sub)
+void WorldState::remove_subscriber(WorldStateSubcriber* sub)
 {
-	std::erase(listeners, sub);
+	std::erase(subscribers, sub);
 }
 
 }

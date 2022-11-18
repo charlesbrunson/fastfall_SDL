@@ -12,7 +12,7 @@
 
 namespace ff {
 
-//class Arbiter;
+class Arbiter;
 
 class CollisionDiscrete {
 public:
@@ -46,14 +46,20 @@ public:
 		return cTile && cTile->hasAnySurface();
 	};
 
-	//const ColliderRegion* region;
-	//const ColliderQuad* cTile;
-	//const Collidable* cAble;
-	ID<Collidable> collidable;
-	ID<ColliderRegion> collider;
-	QuadID quad;
+	const ColliderRegion* region;
+	const ColliderQuad* cTile;
+	const Collidable* cAble;
 
 	int getChosenAxis() const { return chosen_axis; };
+
+	void setArbiter(Arbiter* arb) { 
+		arbiter = arb; 
+		contact.arbiter = arb; 
+		for (int i = 0; i < axis_count; i++) {
+			axes[i].contact.arbiter = arb;
+		}
+	}
+	inline Arbiter* getArbiter() { return arbiter; }
 
 protected:
 
@@ -103,6 +109,9 @@ protected:
 
 	std::array<CollisionAxis, 5> axes; // 5 axes in worst case
 	unsigned axis_count = 0;
+
+
+	Arbiter* arbiter = nullptr;
 };
 
 }

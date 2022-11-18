@@ -2,11 +2,10 @@
 
 #include "fastfall/game/level/Tile.hpp"
 #include "fastfall/engine/time/time.hpp"
-#include "fastfall/game/ID.hpp"
 #include "fastfall/util/math.hpp"
 #include "fastfall/game/phys/collider_coretypes/ColliderSurface.hpp"
 
-//#include "fastfall/game/phys/Identity.hpp"
+#include "fastfall/game/phys/Identity.hpp"
 
 #include <string>
 
@@ -74,7 +73,7 @@ struct Contact
 
 
 	const SurfaceMaterial* material = nullptr;
-	//Arbiter* arbiter = nullptr;
+	Arbiter* arbiter = nullptr;
 
 
 	bool is_transposed = false;
@@ -91,8 +90,9 @@ struct PersistantContact : public Contact {
 	secs touchDuration = 0.0;
 	ContactType type = ContactType::NO_SOLUTION;
 
-	ID<ColliderRegion> collider_id;
-	QuadID quad_id;
+	ColliderID collider_id = ColliderID{ ColliderID::NO_ID };
+	const ColliderRegion* region = nullptr;
+	int quad_id = 0u;
 };
 
 bool ContactCompare(const Contact* lhs, const Contact* rhs);

@@ -2,41 +2,46 @@
 
 #include "fastfall/game/ComponentList.hpp"
 
-#include "fastfall/game/Entity.hpp"
-#include "fastfall/game/WorldStateListener.hpp"
-
 #include "fastfall/game/camera/CameraTarget.hpp"
 #include "fastfall/game/phys/Collidable.hpp"
+#include "fastfall/render/Drawable.hpp"
+#include "fastfall/game/trigger/Trigger.hpp"
 #include "fastfall/game/phys/ColliderRegion.hpp"
-//#include "fastfall/render/Drawable.hpp"
-//#include "fastfall/game/trigger/Trigger.hpp"
 
 #include <span>
 
 namespace ff {
 
-using CamTargetList		= ComponentList<CameraTarget, true>;
-using CollidableList	= ComponentList<Collidable, false>;
-using ColliderList		= ComponentList<ColliderRegion, true>;
-using SurfaceTrackerList = ComponentList<SurfaceTracker, false>;
-//using DrawableList		= ComponentList<Drawable, true>;
-//using TriggerList		= ComponentList<Trigger, false>;
+struct Entity {
+	ID<Entity> m_id;
+	std::vector<GenericID> components;
+};
+
+class WorldStateSubcriber
+{
+public:
+	virtual void notify_component_created(GenericID id) {};
+	virtual void notify_component_destroyed(GenericID id) {};
+
+	virtual void notify_entity_created(ID<Entity> id) {};
+	virtual void notify_entity_destroyed(ID<Entity> id) {};
+};
+
 
 class WorldState
 {
 private:
 
-	CamTargetList		camtargets;
-	CollidableList		collidables;
-	ColliderList		colliders;
-	SurfaceTrackerList	trackers;
-	//DrawableList		drawables;
-	//TriggerList		triggers;
+	ComponentList<CameraTarget, true>	camtargets;
+	ComponentList<Collidable, false>	collidables;
+	ComponentList<ColliderRegion, true>	colliders;
+	ComponentList<Drawable, true>		drawables;
+	ComponentList<Trigger, false>		triggers;
 
 	std::vector<GenericID> orphan_components;
 	slot_map<Entity> entities;
 
-	std::vector<WorldStateListener*> listeners;
+	std::vector<WorldStateSubcriber*> subscribers;
 
 public:
 
@@ -44,93 +49,108 @@ public:
 	ID<Entity> make_entity();
 	bool erase_entity(ID<Entity> id);
 
+	// components
+	// camtarget
+	template<class T, class... Args>
+	auto create_camtarget(ID<Entity> entity, Args&&... args) { return create<T>(camtargets, entity, std::forward<Args>(args)...); }
+
 	template<class T>
-	auto list() {  
-		return get_list_for<T>();
-	};
+	auto erase_camtarget(ID<T> id) { return erase(camtargets, id); }
+
+	// collidables
+	template<class... Args>
+	auto create_collidable(ID<Entity> entity, Args&&... args) { return create<Collidable>(collidables, entity, std::forward<Args>(args)...); }
+
+	auto erase_collidable(ID<Collidable> id) { return erase(collidables, id); }
+
+	// colliders
+	template<class T, class... Args>
+	auto create_collider(ID<Entity> entity, Args&&... args) { return create<T>(colliders, entity, std::forward<Args>(args)...); }
+
+	template<class T>
+	auto erase_collider(ID<T> id) { return erase(colliders, id); }
+
+	// drawables
+	template<class T, class... Args>
+	auto create_drawable(ID<Entity> entity, Args&&... args) { return create<T>(drawables, entity, std::forward<Args>(args)...); }
+
+	template<class T>
+	auto erase_drawable(ID<T> id) { return erase(drawables, id); }
+
+	// triggers
+	template<class... Args>
+	auto create_trigger(ID<Entity> entity, Args&&... args) { return create<Trigger>(triggers, entity, std::forward<Args>(args)...); }
+
+	auto erase_trigger(ID<Trigger> id) { return erase(triggers, id); }
+
+	// component spans
+	auto span_camtargets() { return std::span{ camtargets.begin(), camtargets.end() }; };
+	auto span_collidables() { return std::span{ collidables.begin(), collidables.end() }; };
+	auto span_colliders() { return std::span{ colliders.begin(), colliders.end() }; };
+	auto span_drawables() { return std::span{ drawables.begin(), drawables.end() }; };
+	auto span_triggers() { return std::span{ triggers.begin(), triggers.end() }; };
 
 	// subscribers
-	void push_listener(WorldStateListener* sub);
-	void remove_listener(WorldStateListener* sub);
+	void push_subscriber(WorldStateSubcriber* sub);
+	void remove_subscriber(WorldStateSubcriber* sub);
 
 	// cleanup orphan components
 	void destroy_orphans();
 
-	template<class T, class... Args>
-	ID<T> create(ID<Entity> entity, Args&&... args) 
-	{
-		if constexpr (decltype(get_list_for<T>())::is_poly) {
-			return get_list_for<T>().create<T>(std::forward<Args>(args)...);
-		}
-		else {
-			return get_list_for<T>().create(std::forward<Args>(args)...);
-		}
-	}
-
-	template<class T>
-	T& get(ID<T> id)
-	{
-		return get_list_for<T>().at(id);
-	}
-
-	template<class T>
-	bool erase(ID<T> id) 
-	{
-		return get_list_for<T>().erase(id);
-	}
-
-	template<class T>
-	bool exists(ID<T> id) 
-	{
-		return get_list_for<T>().exists(id);
-	}
-
-	template<class T>
-	ID<T> id(const T& component)
-	{
-		return get_list_for<T>().id(component);
-	}
-
-
 private:
 	void adopt(ID<Entity> id, GenericID component);
+	//void orphan(ID<Entity> id, GenericID component);
 
-	template<class T>
-	constexpr auto& get_list_for() 
+	template<class T, class Base, bool IsPoly, class... Args>
+		requires std::derived_from<T, Base>
+	ID<T> create(ComponentList<Base, IsPoly>& components, ID<Entity> entity, Args&&... args)
 	{
-		if constexpr (std::derived_from<T, CamTargetList::type>)
-		{
-			return camtargets;
+		ID<T> id;
+		if constexpr (IsPoly) {
+			id = components.create<T>(std::forward<Args>(args)...);
 		}
-		else if constexpr (std::derived_from<T, CollidableList::type>)
-		{
-			return collidables;
+		else {
+			id = components.create(std::forward<Args>(args)...);
 		}
-		else if constexpr (std::derived_from<T, ColliderList::type>)
+
+		GenericID gid = id;
+		adopt(entity, gid);
+		for (auto& sub : subscribers)
 		{
-			return colliders;
+			sub->notify_component_created(gid);
 		}
-		else if constexpr (std::derived_from<T, SurfaceTrackerList::type>)
-		{
-			return trackers;
-		}
-		/*
-		else if constexpr (std::derived_from<T, DrawableList::type>)
-		{
-			return drawables;
-		}
-		else if constexpr (std::derived_from<T, TriggerList::type>)
-		{
-			return triggers;
-		}
-		*/
-		else
-		{
-			[failed = true]() -> void {
-				static_assert(failed, "whoops");
-			}();
-		}
+		return id;
 	}
+
+	template<class T, class Base, class... Args, bool IsPoly>
+		requires std::derived_from<T, Base>
+	bool erase(ComponentList<Base, IsPoly>& components, ID<T> id)
+	{
+		bool erased = components.erase(id);
+		if (erased) {
+			GenericID gid = id;
+			for (auto& sub : subscribers)
+			{
+				sub->notify_component_destroyed(gid);
+			}
+		}
+		return erased;
+	}
+
+	template<class T, class Base, bool IsPoly>
+		requires std::derived_from<T, Base>
+	bool exists(ComponentList<Base, IsPoly>& components, ID<T> id)
+	{
+		return components.exists(id);
+	}
+
+	template<class T, class Base, bool IsPoly>
+		requires std::derived_from<T, Base>
+	T& at(ComponentList<Base, IsPoly>& components, ID<T> id)
+	{
+		return components.at(id);
+	}
+
 };
 
 

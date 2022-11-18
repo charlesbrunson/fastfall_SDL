@@ -1,34 +1,12 @@
 #include "fastfall/game/phys/collidable/SurfaceTracker.hpp"
 
+#include "fastfall/game/InstanceInterface.hpp"
 #include "fastfall/render/DebugDraw.hpp"
 
 #include "fastfall/game/phys/ColliderRegion.hpp"
 
 namespace ff {
 
-
-std::optional<float> SurfaceTracker::traverse_get_speed(Vec2f owner_speed) const {
-	std::optional<float> speed;
-	if (has_contact()) {
-		Vec2f surfVel = (settings.use_surf_vel ? currentContact->getSurfaceVel() : Vec2f{});
-		Vec2f surf = currentContact->collider_n.righthand();
-		Vec2f proj = math::projection(owner_speed, surf, true) - surfVel;
-
-		if (proj.x == 0.f) {
-			speed = 0.f;
-		}
-		else if (proj.x < 0.f != surf.x < 0.f) {
-			speed = -proj.magnitude();
-		}
-		else {
-			speed = proj.magnitude();
-		}
-	}
-	return speed;
-}
-
-
-/*
 SurfaceTracker::SurfaceTracker(Angle ang_min, Angle ang_max, bool inclusive) 
 	: angle_range{ang_min, ang_max, inclusive}
 {
@@ -505,7 +483,5 @@ void SurfaceTracker::firstCollisionWith(const Contact& contact)
 
 	}
 }
-
-*/
 
 }

@@ -22,7 +22,6 @@ private:
 
 public:
 	using type = T;
-	using is_poly = std::bool_constant<Polymorphic>;
 
 	// non-polymorphic
 	template<class... Args, class = std::enable_if_t<!Polymorphic>>
@@ -37,6 +36,7 @@ public:
 	T& at(ID<T> id) {
 		assert(id.type_hash == type_hash);
 		return components.at(id.value);
+
 	}
 
 	template<class = std::enable_if_t<!Polymorphic>>
@@ -59,12 +59,6 @@ public:
 	bool exists(ID<T> id)
 	{
 		return id.type_hash == type_hash && components.exists(id.value);
-	}
-
-	template<class = std::enable_if_t<!Polymorphic>>
-	ID<T> id(const T& component)
-	{
-		return { type_hash, *components.key_of(component) };
 	}
 
 	// polymorphic
@@ -104,16 +98,6 @@ public:
 		return id.type_hash == type_hash && components.exists(id.value);
 	}
 
-	template<std::derived_from<T> Type, class = std::enable_if_t<Polymorphic>>
-	ID<Type> id(const Type& component)
-	{
-		auto it = std::find_if(components.begin(), components.end(), [&](const storage_type& st) {
-			return &component == st.get();
-		});
-
-		return { type_hash, *components.key_of(it) };
-	}
-
 	inline auto begin() { return components.begin(); }
 	inline auto begin() const { return components.begin(); }
 	inline auto cbegin() const { return components.begin(); }
@@ -121,7 +105,9 @@ public:
 	inline auto end() { return components.end(); }
 	inline auto end() const { return components.end(); }
 	inline auto cend() const { return components.cend(); }
-	
+
+	std::function<void(ID<T>)> on_create;
+	std::function<void(ID<T>)> on_erase;
 };
 
 
