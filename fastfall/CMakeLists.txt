@@ -72,6 +72,7 @@ if(NOT EMSCRIPTEN)
 		${CMAKE_CURRENT_SOURCE_DIR}/external/glew/include
 		${CMAKE_CURRENT_SOURCE_DIR}/external/sdl_image
 		${CMAKE_CURRENT_SOURCE_DIR}/external/sdl/include
+		${CMAKE_CURRENT_SOURCE_DIR}/external/zlib
 	)
 
 	set(FF_LIBRARIES 
