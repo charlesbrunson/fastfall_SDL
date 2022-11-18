@@ -77,8 +77,6 @@ protected:
 
 	void TearDown() override 
 	{
-        world.erase(collidable_obj_id);
-        world.erase(collider_obj_id);
         box = nullptr;
         ground = nullptr;
         collider = nullptr;
@@ -86,11 +84,6 @@ protected:
 
 	void update() 
 	{
-		if (collider) {
-			collider->update(one_frame);
-		}
-		//box->update(one_frame);
-
 		colMan->dumpCollisionDataThisFrame(&data[colMan->getFrameCount()]);
 		colMan->update(world, one_frame);
 	}
