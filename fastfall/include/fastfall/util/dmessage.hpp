@@ -154,19 +154,22 @@ public:
         std::tuple<Params...>
         unwrap(const dmessage &msg) const {
             if (msg.hash() == type_hash) {
-                size_t ndx = 0;
-                return std::make_tuple(std::get<Params>(msg.params()[ndx++])...);
+                return [&]<uint64_t...Is>(std::index_sequence<Is...>) {
+                    return std::make_tuple(
+                            std::get<Params>(msg.params()[Is])...);
+                }(std::make_index_sequence<sizeof...(Params)>{});
             } else {
                 throw std::invalid_argument{"message hash doesn't match format hash"};
             }
         }
 
-        template<class U>
+        template<class U, size_t... I>
         constexpr U
         unwrap_as(const dmessage &msg) const {
             if (msg.hash() == type_hash) {
-                size_t ndx = 0;
-                return U{ std::get<Params>(msg.params()[ndx++])... };
+                return [&]<uint64_t...Is>(std::index_sequence<Is...>) {
+                    return U{std::get<Params>(msg.params()[Is])...};
+                }(std::make_index_sequence<sizeof...(Params)>{});
             } else {
                 throw std::invalid_argument{"message hash doesn't match format hash"};
             }
