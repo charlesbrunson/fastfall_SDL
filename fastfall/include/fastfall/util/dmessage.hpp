@@ -51,16 +51,12 @@ class dconfig {
 public:
     class dmessage {
     public:
-        constexpr dmessage
-                (
-                        uint64_t t_hash,
-                        std::array<Variant, 4> t_params,
-                        unsigned t_count
-                )
-                : type_hash(t_hash), param_data(t_params), param_count(t_count) {
+        constexpr dmessage (uint64_t t_hash, std::array<Variant, 4> t_params, unsigned t_count)
+            : type_hash(t_hash), param_data(t_params), param_count(t_count)
+        {
         }
 
-        constexpr operator size_t() const { return type_hash; }
+        constexpr operator uint64_t() const { return type_hash; }
 
         constexpr uint64_t hash() const { return type_hash; }
 
@@ -158,10 +154,8 @@ public:
         std::tuple<Params...>
         unwrap(const dmessage &msg) const {
             if (msg.hash() == type_hash) {
-                return [&]<uint64_t...Is>(std::index_sequence<Is...>) {
-                    return std::make_tuple(
-                            std::get<Params>(msg.params()[Is])...);
-                }(std::make_index_sequence<sizeof...(Params)>{});
+                size_t ndx = 0;
+                return std::make_tuple(std::get<Params>(msg.params()[ndx++])...);
             } else {
                 throw std::invalid_argument{"message hash doesn't match format hash"};
             }
@@ -171,9 +165,8 @@ public:
         constexpr U
         unwrap_as(const dmessage &msg) const {
             if (msg.hash() == type_hash) {
-                return [&]<uint64_t...Is>(std::index_sequence<Is...>) {
-                    return U{std::get<Params>(msg.params()[Is])...};
-                }(std::make_index_sequence<sizeof...(Params)>{});
+                size_t ndx = 0;
+                return U{ std::get<Params>(msg.params()[ndx++])... };
             } else {
                 throw std::invalid_argument{"message hash doesn't match format hash"};
             }
