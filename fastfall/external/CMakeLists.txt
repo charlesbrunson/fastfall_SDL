@@ -192,21 +192,22 @@ if (NOT EMSCRIPTEN)
 	target_link_libraries(SDL2image PUBLIC png_static)
 	target_compile_definitions(SDL2image PRIVATE LOAD_PNG LOAD_BMP)
 
-	# soloud
-	set(SDL2_LIBRARY SDL2-static)
-	set(SDL2_INCLUDE_DIR "${sdl_SOURCE_DIR}/include")
-	set(SOLOUD_STATIC 		ON  CACHE INTERNAL "")
-	set(SOLOUD_BACKEND_SDL2 ON  CACHE INTERNAL "")
-	FetchContent_Declare(
+endif()
+
+# soloud
+set(SDL2_LIBRARY SDL2-static)
+set(SDL2_INCLUDE_DIR "${sdl_SOURCE_DIR}/include")
+set(SOLOUD_STATIC 		ON  CACHE INTERNAL "")
+set(SOLOUD_BACKEND_SDL2 ON  CACHE INTERNAL "")
+FetchContent_Declare(
 		soloud
 		URL			http://solhsa.com/soloud/soloud_20200207.zip
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/soloud
 		SOURCE_SUBDIR  contrib
-	)
-	FetchContent_MakeAvailable(
+)
+FetchContent_MakeAvailable(
 		soloud
-	)
-endif()
+)
 
 # compile soloud as static lib
 #file(GLOB_RECURSE SOLOUD_HEADERS ${soloud_SOURCE_DIR}/include/*.h)
