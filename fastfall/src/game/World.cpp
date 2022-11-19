@@ -213,16 +213,6 @@ void World::update(secs deltaTime) {
 
         update_time += deltaTime;
 
-        if (debug_draw::hasTypeEnabled(debug_draw::Type::DARKEN) && !debug_draw::repeat((const void*)this, _camera_system.getPosition(1.0)))
-        {
-            debug_draw::set_offset(_camera_system.getPosition(1.0));
-            auto &screen_darken = createDebugDrawable<ShapeRectangle, debug_draw::Type::DARKEN>(
-                    (const void*)this,
-                    Rectf{-GAME_W_F, -GAME_H_F, GAME_W_F* 2, GAME_H_F * 2},
-                    Color::Black().alpha(128));
-            debug_draw::set_offset();
-        }
-
     }
 }
 

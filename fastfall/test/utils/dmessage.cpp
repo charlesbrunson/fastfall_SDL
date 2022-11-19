@@ -7,7 +7,7 @@ using namespace ff;
 
 // declare valid parameter types ( up to 16 for now )
 using dvar = std::variant<
-    std::monostate, // <- std::monostate is required at index zero
+    dvoid, // <- dvoid is required at index zero
     bool,
     int,
     float,

@@ -30,6 +30,9 @@ public:
     Vec2f get_pos() const;
     Vec2f get_vel() const;
 
+    void set_path_offset(Vec2f t_off) { path_offset = t_off; }
+    Vec2f get_path_offset() const { return path_offset; }
+
     const Path& get_path() const { return _path; }
 
     bool is_stopped() const { return stopped; }
@@ -45,6 +48,7 @@ private:
     float dist_to_next_waypoint = 0.f;
     float progress = 0.f;
     Vec2f vel;
+    Vec2f path_offset;
     bool reversed = false;
     bool stopped = false;
 };

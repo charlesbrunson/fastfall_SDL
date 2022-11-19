@@ -8,67 +8,138 @@
 
 namespace ff {
 
-    template<class T>
-    Vec2f update_attachment(World& w, const AttachPoint& attachpoint, ID<T> attachment_id, Vec2f offset, secs deltaTime) {
+    struct AttachState {
+        const AttachPoint& parent;
+        Vec2f ppos;
+        Vec2f cpos;
+        Vec2f offset;
+        Vec2f vel;
+        secs deltaTime;
+        size_t tick;
+    };
 
-        Vec2f ppos = attachpoint.prev_pos() + offset;
-        Vec2f cpos = attachpoint.curr_pos() + offset;
-        Vec2f vel = attachpoint.vel();
+    namespace detail {
 
-        if constexpr (std::same_as<T, Collidable>) {
-            Collidable& t = w.at(attachment_id);
-            t.setPosition(cpos);
-            return t.getPosition();
+        // UPDATES -----------------------------
+        // trigger
+        void attach_update(Trigger& cmp, const AttachState& st) {
+            auto area = cmp.get_area();
+            area.setPosition(st.cpos);
+            cmp.set_area(area);
         }
-        else if constexpr (std::same_as<T, Trigger>) {
-            Trigger& t = w.at(attachment_id);
-            auto area = t.get_area();
-            area.setPosition(cpos);
-            t.set_area(area);
-            return area.getPosition();
-        }
-        else if constexpr (std::same_as<T, Emitter>) {
-            Emitter& t = w.at(attachment_id);
-            t.velocity = vel;
-            t.prev_position = ppos;
-            t.position = cpos;
-            return t.position;
-        }
-        else if constexpr (std::same_as<T, AttachPoint>) {
-            // or this
-            AttachPoint& t = w.at(attachment_id);
 
-            // TODO hopefully no stack overflow???
-            if (cpos != t.curr_pos()
-             || vel != t.vel())
+        // Collidable
+        void attach_update(Collidable& cmp, const AttachState& st) {
+            cmp.teleport(st.ppos);
+            cmp.setPosition(st.cpos);
+            cmp.set_vel(st.vel);
+        }
+
+        // Emitter
+        void attach_update(Emitter& cmp, const AttachState& st) {
+            cmp.velocity = st.vel;
+            cmp.prev_position = st.ppos;
+            cmp.position = st.cpos;
+        }
+
+        // AttachPoint
+        void attach_update(AttachPoint& cmp, const AttachState& st) {
+            if (st.cpos != cmp.curr_pos()
+                || st.vel != cmp.vel())
             {
-                if (t.constraint) {
-                    t.constraint(t, attachpoint, offset, deltaTime);
+                if (cmp.constraint) {
+                    cmp.constraint(cmp, st.parent, st.offset, st.deltaTime);
                 }
                 else {
-                    t.set_pos(cpos);
-                    t.set_vel(vel);
+                    cmp.set_pos(st.cpos);
+                    cmp.set_vel(st.vel);
                 }
-                t.set_tick(w.tick_count());
+                cmp.set_tick(st.tick);
             }
-            return t.curr_pos();
         }
-        else if constexpr (std::same_as<T, ColliderRegion>) {
-            ColliderRegion& t = w.at(attachment_id);
-            t.delta_velocity = vel - t.velocity;
-            t.velocity = vel;
-            t.setPosition(cpos);
-            return t.getPosition();
+
+        // ColliderRegion
+        void attach_update(ColliderRegion& cmp, const AttachState& st) {
+            cmp.delta_velocity = (st.vel - cmp.velocity); // + cmp.delta_velocity;
+            cmp.velocity = st.vel;
+            cmp.teleport(st.ppos);
+            cmp.setPosition(st.cpos);
         }
-        else if constexpr (std::same_as<T, CameraTarget>) {
-            // TODO ???
-            return {};
+
+        // CameraTarget
+        void attach_update(CameraTarget& cmp, const AttachState& st) {
+            // ???
         }
-        else if constexpr (std::same_as<T, Drawable>) {
-            //SceneConfig& cfg = w.scene().config(attachment_id);
-            return cpos + offset;
+
+        // Drawable
+        void attach_update(Drawable& cmp, const AttachState& st) {
+            // ???
+            // handled in predraw???
         }
-        return {};
+
+        // PathMover
+        void attach_update(PathMover& cmp, const AttachState& st) {
+            cmp.set_path_offset(st.cpos);
+        }
+
+        // POSITION -----------------------------
+        // Trigger
+        Vec2f attach_get_pos(World& w, ID<Trigger> id, Trigger& cmp) {
+            return cmp.get_area().getPosition();
+        }
+
+        // Collidable
+        Vec2f attach_get_pos(World& w, ID<Collidable> id, Collidable& cmp) {
+            return cmp.getPosition();
+        }
+
+        // Emitter
+        Vec2f attach_get_pos(World& w, ID<Emitter> id, Emitter& cmp) {
+            return cmp.position;
+        }
+
+        // AttachPoint
+        Vec2f attach_get_pos(World& w, ID<AttachPoint> id, AttachPoint& cmp) {
+            return cmp.curr_pos();
+        }
+
+        // ColliderRegion
+        Vec2f attach_get_pos(World& w, ID<ColliderRegion> id, ColliderRegion& cmp) {
+            return cmp.getPosition();
+        }
+
+        // CameraTarget
+        Vec2f attach_get_pos(World& w, ID<CameraTarget> id, CameraTarget& cmp) {
+            return cmp.get_target_pos();
+        }
+
+        // Drawable
+        Vec2f attach_get_pos(World& w, ID<Drawable> id, Drawable& cmp) {
+            return w.scene().config(id).rstate.transform.getPosition();
+        }
+
+        // PathMover
+        Vec2f attach_get_pos(World& w, ID<PathMover> id, PathMover& cmp) {
+            return cmp.get_path_offset();
+        }
+    }
+
+    template<class T>
+    Vec2f update_attachment(World& w, const AttachPoint& attachpoint, ID<T> attachment_id, Vec2f offset, secs deltaTime)
+    {
+        auto& component = w.at(attachment_id);
+        AttachState state {
+            .parent = attachpoint,
+            .ppos = attachpoint.prev_pos() + offset,
+            .cpos = attachpoint.curr_pos() + offset,
+            .offset = offset,
+            .vel = attachpoint.vel(),
+            .deltaTime = deltaTime,
+            .tick = w.tick_count()
+        };
+
+        detail::attach_update(component, state);
+        return detail::attach_get_pos(w, attachment_id, component);
     }
 
     template<class T>
@@ -77,13 +148,6 @@ namespace ff {
             auto& cfg = w.scene().config(id);
             cfg.rstate.transform = Transform(ipos);
         }
-        /*
-        if constexpr (std::same_as<T, Emitter>) {
-            Emitter& e = w.at(id);
-            auto& cfg = w.scene().config(e.get_drawid());
-            cfg.rstate.transform = Transform(ipos);
-        }
-        */
     }
 
     void AttachSystem::update(World& world, secs deltaTime) {

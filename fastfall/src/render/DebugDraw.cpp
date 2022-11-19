@@ -1,6 +1,8 @@
 #include "fastfall/render/DebugDraw.hpp"
 #include "fastfall/util/log.hpp"
 
+#include "fastfall/render/ShapeRectangle.hpp"
+
 #include <set>
 #include <deque>
 
@@ -16,6 +18,7 @@ struct DebugDrawable {
 };
 
 bool isEnabled = false;
+bool isDark = false;
 
 std::deque<DebugDrawable> debugDrawListA;
 std::deque<DebugDrawable> debugDrawListB;
@@ -41,7 +44,6 @@ Vec2f current_offset;
 
 bool typeEnable[] = {
 	false,	// NONE
-    false, // DARKEN
 	true,	// COLLISION_COLLIDER
 	true,	// COLLISION_COLLIDABLE
 	true,	// COLLISION_CONTACT
@@ -88,6 +90,15 @@ void debug_draw::add(std::unique_ptr<Drawable>&& drawable, Type type, const void
 		inactiveList->push_back(DebugDrawable{ current_offset, std::move(drawable), type, signature });
 }
 
+
+bool debug_draw::is_darken() {
+    return isDark;
+}
+
+void debug_draw::set_darken(bool dark) {
+    isDark = dark;
+}
+
 void debug_draw::clear() {
 	inactiveList->clear();
 	activeList->clear();
@@ -130,9 +141,14 @@ void debug_draw::swapDrawLists() {
 }
 
 void debug_draw::draw(RenderTarget& target, RenderState states) {
-    LOG_INFO("--------");
+    if (isDark)
+    {
+        ShapeRectangle sh{Rectf{ Vec2f{target.coordToWorldPos({})}, target.getSize() }, Color::Black().alpha(128) };
+        target.draw(sh, states);
+    }
+
 	for (auto& debug : *activeList) {
-        LOG_INFO("{}", debug.type);
+
 		RenderState state = states;
 		state.transform = Transform::combine(states.transform, Transform(debug.offset));
 		if (debug.drawable) {

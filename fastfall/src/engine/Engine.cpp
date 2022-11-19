@@ -682,7 +682,6 @@ void Engine::handleEvents(bool* timeWasted)
             Vec2i g_mpos;
             SDL_GetGlobalMouseState(&g_mpos.x, &g_mpos.y);
             Mouse::set_window_pos(g_mpos - Vec2i{ window->getPosition() });
-            LOG_INFO("{}", Mouse::window_pos());
         }
 
         Mouse::update_view(window->getView());
@@ -1009,7 +1008,6 @@ void DebugDrawImgui::ImGui_getContent() {
 
     constexpr std::string_view names[] = {
         "NONE",
-        "DARKEN_SCREEN",
         "COLLISION_COLLIDER",
         "COLLISION_COLLIDABLE",
         "COLLISION_CONTACT",
@@ -1023,6 +1021,11 @@ void DebugDrawImgui::ImGui_getContent() {
         "ATTACH"
     };
     static_assert((sizeof(names) / sizeof(names[0])) == static_cast<unsigned>(debug_draw::Type::LAST), "fix me");
+
+    bool dark = debug_draw::is_darken();
+    if (ImGui::Checkbox("Darken", &dark)) {
+        debug_draw::set_darken(dark);
+    }
 
     for (int i = 0; i < static_cast<unsigned>(debug_draw::Type::LAST); i++) {
         debug_draw::Type type = static_cast<debug_draw::Type>(i);

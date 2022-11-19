@@ -43,10 +43,11 @@ namespace detail {
     };
 }
 
+struct dvoid {};
 
 template<class Variant, class... Binds>
     requires (std::variant_size_v<Variant> <= 16)
-        && (std::same_as<std::variant_alternative_t<0, Variant>, std::monostate>)
+        && (std::same_as<std::variant_alternative_t<0, Variant>, dvoid>)
 class dconfig {
 public:
     class dmessage {
@@ -78,7 +79,7 @@ public:
 
     static constexpr dresult reject = { false, {} };
 
-    template<detail::StringLiteral Name, class RType = std::monostate, class... Params>
+    template<detail::StringLiteral Name, class RType = dvoid, class... Params>
         requires (sizeof...(Params) <= 4)
     class dformat {
     private:

@@ -4,6 +4,7 @@
 #include "fastfall/util.hpp"
 #include "fastfall/util/tag.hpp"
 #include "fastfall/util/id.hpp"
+#include "fastfall/game/attach/Attachable.hpp"
 
 #include <functional>
 #include <optional>
@@ -48,27 +49,23 @@ public:
     Trigger(ID<Trigger> t_id);
 
 	void set_trigger_callback(TriggerFn&& trigger_fn);
-
 	std::optional<TriggerPull> triggerable_by(Trigger& trigger, secs delta_time);
 	void trigger(World& w, const TriggerPull& confirm);
 
 	void update();
 
-	Overlap overlap = Overlap::Partial;
-
-	std::unordered_set<TriggerTag> self_flags;
-	std::unordered_set<TriggerTag> filter_flags;
-
-	bool is_activated() const { return activated; };
-	Rectf get_area() const { return area; };
 	void set_area(Rectf area_) { area = area_; };
-
-	void set_enable(bool t_enabled) { enabled = t_enabled; };
-	bool is_enabled() const { return enabled; };
+    void set_enable(bool t_enabled) { enabled = t_enabled; };
 
     ID<Trigger> id() const { return m_id; };
+	bool  is_enabled() const { return enabled; };
+    bool  is_activated() const { return activated; };
+    Rectf get_area() const { return area; };
 
+    Overlap overlap = Overlap::Partial;
 	std::map<ID<Trigger>, TriggerData> drivers;
+    std::unordered_set<TriggerTag> self_flags;
+    std::unordered_set<TriggerTag> filter_flags;
 
 private:
 	bool enabled = true;
@@ -86,6 +83,8 @@ struct TriggerPull {
     Trigger::State state = Trigger::State::None;
     Trigger::Duration duration;
 };
+
+
 
 extern const TriggerTag ttag_generic;
 extern const TriggerTag ttag_hitbox;

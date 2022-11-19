@@ -44,7 +44,6 @@ std::optional<TriggerPull> Trigger::triggerable_by(Trigger& trigger, secs delta_
 
 	std::optional<TriggerPull> pull = std::nullopt;
 	if (result && is_enabled()) {
-        bool is_end = driver_iter == drivers.end();
 		if (driver_iter != drivers.end()) {
 
 			driver_iter->second.duration.delta = delta_time;

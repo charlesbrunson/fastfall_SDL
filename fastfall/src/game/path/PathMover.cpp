@@ -115,17 +115,17 @@ bool PathMover::at_end() const {
 
 Vec2f PathMover::prev_waypoint_pos() const {
     if (!_path.waypoints.empty()) {
-        return _path.origin + _path.waypoints.at(prev_ndx);
+        return path_offset + _path.origin + _path.waypoints.at(prev_ndx);
     } else {
-        return _path.origin;
+        return path_offset + _path.origin;
     }
 }
 
 Vec2f PathMover::next_waypoint_pos() const {
     if (!_path.waypoints.empty()) {
-        return _path.origin + _path.waypoints.at(curr_ndx);
+        return path_offset + _path.origin + _path.waypoints.at(curr_ndx);
     } else {
-        return _path.origin;
+        return path_offset + _path.origin;
     }
 }
 

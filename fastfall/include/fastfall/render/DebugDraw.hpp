@@ -16,8 +16,6 @@ namespace debug_draw {
 	enum class Type {
 		NONE,
 
-        DARKEN,
-
 		COLLISION_COLLIDER,
 		COLLISION_COLLIDABLE,
 		COLLISION_CONTACT,
@@ -54,6 +52,9 @@ namespace debug_draw {
 	void set_offset(Vec2f offset = Vec2f{});
 
 	bool repeat(const void* signature, Vec2f offset);
+
+    bool is_darken();
+    void set_darken(bool dark = true);
 
 	void clear();
 };
