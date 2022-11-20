@@ -30,6 +30,13 @@ void CollisionDiscrete::reset(CollisionContext ctx, ColliderQuad quad, Type coll
 	contact = {};
     contact.id = id;
 
+    if (collision_time == Type::CurrFrame) {
+        collider_deltap = ctx.collider ? ctx.collider->getDeltaPosition() : Vec2f{};
+    }
+    else {
+        collider_deltap = Vec2f{};
+    }
+
 	Vec2f topLeft(FLT_MAX, FLT_MAX);
 	Vec2f botRight(-FLT_MAX, -FLT_MAX);
 
@@ -421,33 +428,32 @@ void CollisionDiscrete::evalContact() noexcept {
 
 	CollisionAxis* bestPick = nullptr;
 	CollisionAxis* secondPick = nullptr; // determine best orthogonal movement to touch
+    CollisionAxis* onewayPick = nullptr;
 
-	if (noContactCounter == 0u) {
-		for (int i = 0; i < axis_count; i++)
-		{
-			auto& axis = axes[i];
+    for (int i = 0; i < axis_count; i++)
+    {
+        auto& axis = axes[i];
 
-			bool is_valid_pick = axis.is_collider_valid();
-			bool is_better_pick = !bestPick || (axis.contact.separation < bestPick->contact.separation);
+        if (noContactCounter == 0u) {
+            bool is_valid_pick = axis.is_collider_valid();
+            bool is_better_pick = !bestPick || (axis.contact.separation < bestPick->contact.separation);
+            if (is_valid_pick && is_better_pick) {
+                bestPick = &axis;
+                chosen_axis = i;
+            }
+        }
+        else if (noContactCounter == 1u) {
+            if (axis.is_collider_valid() &&
+                !axis.is_intersecting())
+            {
+                secondPick = &axis;
+            }
 
-			if (is_valid_pick && is_better_pick) 
-			{
-				bestPick = &axis;
-				chosen_axis = i;
-			}
-		}
-	}
-	else if (noContactCounter == 1u) {
-		for (unsigned i = 0; i < axis_count; i++)
-		{
-			auto& axis = axes[i];
-			if (axis.is_collider_valid() &&
-				!axis.is_intersecting()) 
-			{
-				secondPick = &axis;
-			}
-		}
-	}
+            if (cQuad.isOneWay(axis.dir)) {
+                onewayPick = &axis;
+            }
+        }
+    }
 
 	if (bestPick && bestPick->contact.separation == FLT_MAX)
 		LOG_ERR_("bestPick = FLT_MAX");
@@ -465,6 +471,10 @@ void CollisionDiscrete::evalContact() noexcept {
 		chosen_axis = -1;
 		//contact.hasContact = false;
 	}
+    else if (onewayPick) {
+        contact = onewayPick->contact;
+        chosen_axis = -1;
+    }
 
 	contact.hasContact = hasContact;
     contact.id = id;
@@ -488,12 +498,12 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
 
 		Linef line;
 		bool valid_ghost = true;
-		if (cpMid.x < axis.contact.collider.surface.p1.x)
+		if (cpMid.x < axis.contact.collider.surface.p1.x - collider_deltap.x)
 		{
 			valid_ghost = !axis.contact.collider.g0virtual;
 			line = axis.contact.collider.getGhostPrev();
 		}
-		else if (cpMid.x > axis.contact.collider.surface.p2.x)
+		else if (cpMid.x > axis.contact.collider.surface.p2.x - collider_deltap.x)
 		{
 			valid_ghost = !axis.contact.collider.g3virtual;
 			line = axis.contact.collider.getGhostNext();
@@ -502,9 +512,15 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
 		{
 			line = axis.contact.collider.surface;
 		}
-		axis.axisValid = !math::is_vertical(line) 
-			&& valid_ghost 
-			&& getYforX(line, cpMid.x) >= cpMid.y + cpSize.y;
+
+        line = math::shift(line, -collider_deltap);
+        float Y = getYforX(line, cpMid.x);
+        float gY = cpMid.y + cpSize.y;
+        bool infront = Y >= gY;
+
+		axis.axisValid = !math::is_vertical(line)
+			&& valid_ghost
+			&& infront;
 
 	}
 
@@ -543,6 +559,7 @@ CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcep
 		{
 			line = axis.contact.collider.surface;
 		}
+        line = math::shift(line, -collider_deltap);
 		axis.axisValid = !math::is_vertical(line)
 			&& valid_ghost
 			&& getYforX(line, cpMid.x) <= cpMid.y - cpSize.y;

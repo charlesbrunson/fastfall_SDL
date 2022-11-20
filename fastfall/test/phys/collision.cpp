@@ -391,7 +391,7 @@ TEST_F(collision, wedge_against_floor_right)
 		wedge->setPosition(wedge->getPosition() + (vel * one_frame));
 		wedge->delta_velocity = vel - wedge->velocity;
 		wedge->velocity = vel;
-		wedge->update(one_frame);
+		//wedge->update(one_frame);
 
 		Vec2f vel2{ 0.f, -10.f };
 		collider->setPosition(collider->getPosition() + (vel2 * one_frame));
@@ -446,7 +446,7 @@ TEST_F(collision, floor_into_wedge_left)
 		floor->setPosition(floor->getPosition() + (vel * one_frame));
 		floor->delta_velocity = vel - floor->velocity;
 		floor->velocity = vel;
-		floor->update(one_frame);
+		//floor->update(one_frame);
 
 		update();
 		render.draw();
@@ -589,3 +589,104 @@ TEST_F(collision, into_shallow_corner_w_oneway)
 		EXPECT_FALSE(has_wall);
 	}
 }
+
+TEST_F(collision, oneway_into_wall)
+{
+    initTileMap({
+        {"",	"",		"", 	"",	    ""},
+        {"",	"",		"", 	"solid", ""},
+        {"",	"",		"", 	"", 	""},
+        {"",	"",		"", 	"", 	""},
+    });
+
+    grid_vector<std::string_view> floor_tiles{
+        { "oneway", "oneway"},
+    };
+    auto floor = world.get(world.create_collider<ColliderTileMap>(
+            world.create_object<EmptyObject>(),
+            Vec2i{ (int)floor_tiles.column_count(), (int)floor_tiles.row_count() }
+    ));
+    initTileMap(floor, floor_tiles);
+    floor->teleport(Vec2f{ 0.f, 64.f });
+
+    box->setSize({ 16, 32 });
+    box->teleport({ 24, 64 });
+    box->set_vel(Vec2f{});
+    box->set_gravity({ 200, 400 });
+
+    TestPhysRenderer render(world, collider->getBoundingBox());
+    render.frame_delay = 2;
+    render.draw();
+
+    Vec2f vel{ 20.f, -20.f };
+
+    while (render.curr_frame < 120) {
+        floor->setPosition(floor->getPosition() + (vel * one_frame));
+        floor->delta_velocity = vel - floor->velocity;
+        floor->velocity = vel;
+        //floor->update(one_frame);
+
+        bool badframe = colMan->getFrameCount() == 71;
+
+        update();
+        render.draw();
+
+        EXPECT_EQ(box->getPosition().y, floor->getPosition().y);
+    }
+}
+
+TEST_F(collision, up_thru_oneway)
+{
+    initTileMap({
+        {"",	"",		""},
+        {"",	"",		""},
+        {"",	"oneway",		""},
+        {"",	"",		""},
+    });
+
+    box->setSize({ 16, 32 });
+    box->teleport({ 24, 64 });
+    box->set_vel({0.f, -170 });
+    box->set_gravity({ 0, 400 });
+
+    TestPhysRenderer render(world, collider->getBoundingBox());
+    render.frame_delay = 2;
+    render.draw();
+
+    while (render.curr_frame < 60) {
+        bool can_collide = box->get_vel().y >= 0;
+
+        update();
+        render.draw();
+
+        if (!can_collide) {
+            EXPECT_EQ(box->get_contacts().size(), 0);
+        }
+    }
+}
+
+TEST_F(collision, across_oneway) {
+
+    initTileMap({
+        {"",	""},
+        {"",	""},
+        {"oneway",	"oneway"},
+    });
+
+    box->setSize({ 16, 32 });
+    box->teleport({ 8, 32 });
+    box->set_vel({ 1.f, 0.f });
+    box->set_gravity({ 0, 400 });
+
+    TestPhysRenderer render(world, collider->getBoundingBox());
+    render.frame_delay = 2;
+    render.draw();
+
+    while (render.curr_frame < 600) {
+        update();
+        render.draw();
+        EXPECT_EQ(box->get_contacts().size(), 1);
+    }
+}
+
+

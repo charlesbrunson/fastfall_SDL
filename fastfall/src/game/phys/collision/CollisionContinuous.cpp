@@ -204,7 +204,6 @@ void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
 		}
 		else {
 			// otherwise resort use current discrete contact
-
 			contact = currCollision.getContact();
 			lastAxisCollided = currCollision.getChosenAxis();
 		}

@@ -83,6 +83,8 @@ protected:
 	Vec2f cMid;
 	Vec2f cHalf;
 
+    Vec2f collider_deltap;
+
 	ordinal_array<bool> valleys = { false, false, false, false };
 
 	std::array<CollisionAxis, 5> axes; // 5 axes in worst case
