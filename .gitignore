@@ -4,8 +4,11 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 fastfall/external/*/
+fastfall/external/*/*
 fastfall/test/googletest
 fastfall/test/googletest/*
+cmake-*/
+cmake-*/*
 compile_commands.json
 
 # User-specific files
