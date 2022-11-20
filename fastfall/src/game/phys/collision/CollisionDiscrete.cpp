@@ -514,13 +514,9 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
 		}
 
         line = math::shift(line, -collider_deltap);
-        float Y = getYforX(line, cpMid.x);
-        float gY = cpMid.y + cpSize.y;
-        bool infront = Y >= gY;
-
 		axis.axisValid = !math::is_vertical(line)
 			&& valid_ghost
-			&& infront;
+			&& getYforX(line, cpMid.x) >= cpMid.y + cpSize.y;
 
 	}
 
