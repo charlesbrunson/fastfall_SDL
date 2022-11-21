@@ -13,7 +13,7 @@
 namespace ff {
 
 
-template<class T>
+template<class T, class UnderID = T>
 class id_iterator
 {
 public:
@@ -22,7 +22,7 @@ public:
     using base_type         = std::remove_const_t<T>;
     using pair_type         = std::pair<slot_key, base_type>;
     using value_type        = std::conditional_t<std::is_const_v<T>, const pair_type*, pair_type*>;
-    using id_type           = ID<base_type>;
+    using id_type           = ID<UnderID>;
 
     id_iterator() = default;
     explicit id_iterator(value_type ptr) : m_ptr(ptr) {}
@@ -146,8 +146,8 @@ private:
 	slot_map<value_type> components;
 
 public:
-    using iterator = id_iterator<value_type>;
-    using const_iterator = id_iterator<const value_type>;
+    using iterator = id_iterator<value_type, base_type>;
+    using const_iterator = id_iterator<const value_type, base_type>;
 
 	// polymorphic
 	template<std::derived_from<T> Type, class... Args>
@@ -198,13 +198,13 @@ public:
 
     size_t size() const { return components.size(); }
 
-	inline auto begin() { return components.begin(); }
-	inline auto begin() const { return components.begin(); }
-	inline auto cbegin() const { return components.begin(); }
+    inline auto begin() { return iterator{ components.data() }; }
+    inline auto begin() const { return const_iterator{ components.data() }; }
+    inline auto cbegin() const { return const_iterator{ components.data() }; }
 
-	inline auto end() { return components.end(); }
-	inline auto end() const { return components.end(); }
-	inline auto cend() const { return components.cend(); }
+    inline auto end() { return iterator{ components.data() + components.size() }; }
+    inline auto end() const { return const_iterator{ components.data() + components.size() }; }
+    inline auto cend() const { return const_iterator{ components.data() + components.size() }; }
 
     ID<T> id_of(const value_type& value) const {
         return { *components.key_of(value) };

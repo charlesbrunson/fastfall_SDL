@@ -196,14 +196,18 @@ void World::update(secs deltaTime) {
     if (Level* active = _level_system.get_active(*this))
     {
 
+        _scene_system.update(*this, deltaTime);
         _attach_system.update(*this, deltaTime);
         _input.update(deltaTime);
         active->update(*this, deltaTime);
         _trigger_system.update(*this, deltaTime);
+
         _object_system.update(*this, deltaTime);
         _path_system.update(*this, deltaTime);
         _attach_system.update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostUpdate);
+
         _collision_system.update(*this, deltaTime);
+
         _attach_system.update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostCollision);
         _camera_system.update(*this, deltaTime);
         _emitter_system.update(*this, deltaTime);
@@ -221,7 +225,6 @@ void World::predraw(float interp, bool updated) {
     {
         _scene_system.set_bg_color(active->getBGColor());
         _scene_system.set_size(active->size());
-        _attach_system.predraw(*this, interp, updated);
         _object_system.predraw(*this, interp, updated);
         active->predraw(*this, interp, updated);
         _emitter_system.predraw(*this, interp, updated);

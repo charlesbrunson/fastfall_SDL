@@ -5,6 +5,7 @@
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/slot_map.hpp"
 #include "fastfall/util/id.hpp"
+#include "fastfall/engine/time/time.hpp"
 #include "fastfall/game/scene/SceneConfig.hpp"
 
 #include <unordered_set>
@@ -35,6 +36,7 @@ public:
 
     void set_config(ID<Drawable> id, SceneConfig cfg);
 
+    void update(World& world, secs deltaTime);
     void predraw(World& world, float interp, bool updated);
 
     void draw(const World& world, RenderTarget& target, RenderState state = RenderState()) const;

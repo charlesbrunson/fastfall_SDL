@@ -25,7 +25,7 @@ void CollisionSystem::update(World& world, secs deltaTime)
 
 	if (deltaTime > 0.0) 
 	{
-        for(auto& [id, collider] : colliders) {
+        for(auto [id, collider] : colliders) {
             collider->update(deltaTime);
         }
 

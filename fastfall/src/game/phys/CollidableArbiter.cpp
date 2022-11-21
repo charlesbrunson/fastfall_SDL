@@ -102,7 +102,7 @@ namespace ff {
 	void CollidableArbiter::update_region_arbiters(World& world, Rectf bounds)
 	{
         auto& collidable = world.at(collidable_id);
-		for (auto& [cid, region] : world.all<ColliderRegion>()) {
+		for (auto [cid, region] : world.all<ColliderRegion>()) {
 
             auto collider_id = ID<ColliderRegion>{cid};
             auto rarb_iter = region_arbiters.find(collider_id);

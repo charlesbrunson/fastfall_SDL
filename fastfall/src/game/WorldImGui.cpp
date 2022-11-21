@@ -195,8 +195,8 @@ void imgui_collidables(World* w) {
 }
 
 void imgui_colliders(World* w) {
-    for (auto& [id, col] : w->all<ColliderRegion>()) {
-        if (ImGui::TreeNode((void *) (&col), "Collider %d", id.sparse_index)) {
+    for (auto [id, col] : w->all<ColliderRegion>()) {
+        if (ImGui::TreeNode((void *) (&col), "Collider %d", id.value.sparse_index)) {
 
             ImGui::Text("Curr Position: %3.2f, %3.2f", col->getPosition().x, col->getPosition().y);
             ImGui::Text("Prev Position: %3.2f, %3.2f", col->getPrevPosition().x, col->getPrevPosition().y);
@@ -253,8 +253,8 @@ void imgui_triggers(World* w) {
 
 void imgui_camera(World* w) {
 
-    for (auto& [id, cam] : w->all<CameraTarget>()) {
-        if (ImGui::TreeNode((void *) (&cam), "Camera Target %d", id.sparse_index)) {
+    for (auto [id, cam] : w->all<CameraTarget>()) {
+        if (ImGui::TreeNode((void *) (&cam), "Camera Target %d", id.value.sparse_index)) {
             cam->get_priority();
 
             static std::string_view priority[] = {
@@ -307,12 +307,12 @@ void imgui_levels(World* w) {
 
 void imgui_objects(World* w) {
 
-    for(auto& [id, obj] : w->all<GameObject>())
+    for(auto [id, obj] : w->all<GameObject>())
     {
         auto& type = obj->type();
         auto* lvldata = obj->level_data();
 
-        if (ImGui::TreeNode((void *) (&obj), "%s %d", type.type.name.c_str(), id.sparse_index)) {
+        if (ImGui::TreeNode((void *) (&obj), "%s %d", type.type.name.c_str(), id.value.sparse_index)) {
             if (ImGui::Button("Inspect"))
                 obj->m_show_inspect = !obj->m_show_inspect;
 
@@ -626,7 +626,7 @@ void WorldImGui::ImGui_getContent()
 void WorldImGui::ImGui_getExtraContent() {
 
     if (curr_world) {
-        for (auto& [id, obj] : curr_world->all<GameObject>()) {
+        for (auto [id, obj] : curr_world->all<GameObject>()) {
             if (obj->m_show_inspect
                 && ImGui::Begin(obj->type().type.name.c_str(), &obj->m_show_inspect))
             {

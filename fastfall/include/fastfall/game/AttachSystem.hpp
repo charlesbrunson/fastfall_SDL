@@ -50,7 +50,6 @@ namespace ff {
 
     public:
         void update(World& world, secs deltaTime);
-        void predraw(World& world, float interp, bool updated);
 
         void update_attachpoints(World& world, secs deltaTime, AttachPoint::Schedule sched);
 

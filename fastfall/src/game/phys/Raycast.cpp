@@ -156,7 +156,7 @@ std::optional<RaycastHit> raycast(World& world, const Vec2f& origin, Cardinal di
 
 	std::optional<RaycastHit> result{};
 
-	for (auto& [id, region_ptr] : world.all<ColliderRegion>()) {
+	for (auto [id, region_ptr] : world.all<ColliderRegion>()) {
 		result = compareHits(result, raycastRegion(region_ptr.get(), raycastArea, raycastLine, backoff_));
 	}
 

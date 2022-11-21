@@ -36,6 +36,8 @@ struct SceneConfig {
     //std::optional<TextureRef> texture;
     bool            render_enable = true;
     bool            resort_flag   = false;
+    Vec2f           curr_pos;
+    Vec2f           prev_pos;
 };
 
 }

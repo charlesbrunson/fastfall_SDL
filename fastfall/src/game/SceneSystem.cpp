@@ -16,14 +16,28 @@ void SceneSystem::set_config(ID<Drawable> id, SceneConfig cfg) {
     }
 }
 
+void SceneSystem::update(World& world, secs deltaTime) {
+    for (auto [did, drawable] : world.all<Drawable>()) {
+        auto id = id_cast<Drawable>(did);
+        auto& cfg = config(id);
+        cfg.prev_pos = cfg.curr_pos;
+    }
+}
+
 void SceneSystem::predraw(World& world, float interp, bool updated)
 {
     if (updated) {
         add_to_scene(world);
     }
 
-    for (auto& drawable : world.all<Drawable>()) {
-        drawable.second->predraw(interp, updated);
+    for (auto [did, drawable] : world.all<Drawable>()) {
+        drawable->predraw(interp, updated);
+
+        auto id = id_cast<Drawable>(did);
+        auto& cfg = config(id);
+        Vec2f prev = cfg.prev_pos;
+        Vec2f curr = cfg.curr_pos;
+        config(id).rstate.transform.setPosition( prev + (curr - prev) * interp );
     }
 }
 

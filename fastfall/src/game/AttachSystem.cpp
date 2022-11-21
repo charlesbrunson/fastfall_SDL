@@ -22,28 +22,28 @@ namespace ff {
 
         // UPDATES -----------------------------
         // trigger
-        void attach_update(Trigger& cmp, const AttachState& st) {
+        void attach_update(World& w, ID<Trigger> id, Trigger& cmp, const AttachState& st) {
             auto area = cmp.get_area();
             area.setPosition(st.cpos);
             cmp.set_area(area);
         }
 
         // Collidable
-        void attach_update(Collidable& cmp, const AttachState& st) {
+        void attach_update(World& w, ID<Collidable> id, Collidable& cmp, const AttachState& st) {
             cmp.teleport(st.ppos);
             cmp.setPosition(st.cpos);
             cmp.set_vel(st.vel);
         }
 
         // Emitter
-        void attach_update(Emitter& cmp, const AttachState& st) {
+        void attach_update(World& w, ID<Emitter> id, Emitter& cmp, const AttachState& st) {
             cmp.velocity = st.vel;
             cmp.prev_position = st.ppos;
             cmp.position = st.cpos;
         }
 
         // AttachPoint
-        void attach_update(AttachPoint& cmp, const AttachState& st) {
+        void attach_update(World& w, ID<AttachPoint> id, AttachPoint& cmp, const AttachState& st) {
             if (st.cpos != cmp.curr_pos()
                 || st.vel != cmp.vel())
             {
@@ -59,7 +59,7 @@ namespace ff {
         }
 
         // ColliderRegion
-        void attach_update(ColliderRegion& cmp, const AttachState& st) {
+        void attach_update(World& w, ID<ColliderRegion> id, ColliderRegion& cmp, const AttachState& st) {
             cmp.delta_velocity = (st.vel - cmp.velocity); // + cmp.delta_velocity;
             cmp.velocity = st.vel;
             cmp.teleport(st.ppos);
@@ -67,18 +67,18 @@ namespace ff {
         }
 
         // CameraTarget
-        void attach_update(CameraTarget& cmp, const AttachState& st) {
+        void attach_update(World& w, ID<CameraTarget> id, CameraTarget& cmp, const AttachState& st) {
             // ???
         }
 
         // Drawable
-        void attach_update(Drawable& cmp, const AttachState& st) {
-            // ???
-            // handled in predraw???
+        void attach_update(World& w, ID<Drawable> id, Drawable& cmp, const AttachState& st) {
+            w.scene().config(id).prev_pos = st.ppos;
+            w.scene().config(id).curr_pos = st.cpos;
         }
 
         // PathMover
-        void attach_update(PathMover& cmp, const AttachState& st) {
+        void attach_update(World& w, ID<PathMover> id, PathMover& cmp, const AttachState& st) {
             cmp.set_path_offset(st.cpos);
         }
 
@@ -115,7 +115,7 @@ namespace ff {
 
         // Drawable
         Vec2f attach_get_pos(World& w, ID<Drawable> id, Drawable& cmp) {
-            return w.scene().config(id).rstate.transform.getPosition();
+            return w.scene().config(id).curr_pos;
         }
 
         // PathMover
@@ -138,16 +138,8 @@ namespace ff {
             .tick = w.tick_count()
         };
 
-        detail::attach_update(component, state);
+        detail::attach_update(w, attachment_id, component, state);
         return detail::attach_get_pos(w, attachment_id, component);
-    }
-
-    template<class T>
-    void interp_attachment(World& w, ID<T> id, Vec2f ipos) {
-        if constexpr (std::same_as<T, Drawable>) {
-            auto& cfg = w.scene().config(id);
-            cfg.rstate.transform = Transform(ipos);
-        }
     }
 
     void AttachSystem::update(World& world, secs deltaTime) {
@@ -211,20 +203,6 @@ namespace ff {
                 //debug_draw::set_offset();
             }
 
-        }
-    }
-
-    void AttachSystem::predraw(World& world, float interp, bool updated) {
-
-        for (auto [aid, ap] : world.all<AttachPoint>())
-        {
-            auto ipos = ap.interpolate(interp);
-            for (auto attach : get_attachments(aid))
-            {
-                std::visit(
-                        [&](auto id) { interp_attachment(world, id, ipos + attach.offset); },
-                        attach.id);
-            }
         }
     }
 
