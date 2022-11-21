@@ -60,7 +60,7 @@ namespace ff {
 
         // ColliderRegion
         void attach_update(World& w, ID<ColliderRegion> id, ColliderRegion& cmp, const AttachState& st) {
-            cmp.delta_velocity = (st.vel - cmp.velocity); // + cmp.delta_velocity;
+            cmp.delta_velocity = (st.vel - cmp.velocity);
             cmp.velocity = st.vel;
             cmp.teleport(st.ppos);
             cmp.setPosition(st.cpos);

@@ -19,7 +19,6 @@ namespace ff {
                         self.set_vel(math::projection(local_vel, du.lefthand(), true) + attached.vel());
                     }
                 }
-
                 accel += diff.unit() * (-spr * diff.magnitude()); // spring
                 accel += self.vel().unit() * (-damp * self.vel().magnitude()); // damping
                 self.add_vel(accel * delta);

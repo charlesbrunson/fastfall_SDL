@@ -36,6 +36,7 @@ public:
     void set_vel(Vec2f v);
     void add_vel(Vec2f v);
     Vec2f vel() const;
+    Vec2f delta_vel() const { return _vel - _prev_vel; }
 
     void update_prev();
 
@@ -57,6 +58,7 @@ private:
     Vec2f _curr_pos;
     Vec2f _prev_pos;
     Vec2f _vel;
+    Vec2f _prev_vel;
     ID<AttachPoint> _id;
     size_t _tick = 0;
 
