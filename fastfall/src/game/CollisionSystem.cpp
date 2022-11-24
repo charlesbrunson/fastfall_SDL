@@ -44,9 +44,9 @@ void CollisionSystem::update(World& world, secs deltaTime)
         // update attachments
         for (auto [id, col] : collidables) {
             auto& attach = world.at(col.get_attach_id());
-            attach.teleport(col.getPrevPosition());
-            attach.set_pos(col.getPosition());
-            attach.set_vel(col.get_vel());
+            //attach.teleport(col.getPrevPosition());
+            attach.set_pos(col.getPosition() + col.get_attach_origin());
+            attach.set_parent_vel(col.get_vel());
         }
 	}
 

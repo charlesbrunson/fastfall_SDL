@@ -8,7 +8,7 @@ AttachPoint::AttachPoint(ID<AttachPoint> t_id)
 }
 
 void AttachPoint::apply_vel(secs deltaTime) {
-    _curr_pos += _vel * deltaTime;
+    _curr_pos += global_vel() * deltaTime;
 }
 
 void AttachPoint::set_pos(Vec2f next_pos) {
@@ -41,21 +41,8 @@ Vec2f AttachPoint::prev_pos() const {
     return _prev_pos;
 }
 
-void AttachPoint::set_vel(Vec2f v) {
-    _vel = v;
-}
-
-void AttachPoint::add_vel(Vec2f v) {
-    _vel += v;
-}
-
-Vec2f AttachPoint::vel() const {
-    return _vel;
-}
-
 void AttachPoint::update_prev() {
     _prev_pos = _curr_pos;
-    _prev_vel = _vel;
 }
 
 ID<AttachPoint> AttachPoint::id() const {

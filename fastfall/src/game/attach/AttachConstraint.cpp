@@ -13,15 +13,16 @@ namespace ff {
                 if (diff.magnitude() > rad) {
 
                     diff = du * rad;
-                    auto local_vel = self.vel() - attached.vel();
                     self.set_pos(attached.curr_pos() + offset + diff);
-                    if (math::dot(local_vel, du) > 0) {
-                        self.set_vel(math::projection(local_vel, du.lefthand(), true) + attached.vel());
+                    if (math::dot(self.local_vel(), du) > 0) {
+                        self.set_local_vel(math::projection(self.local_vel(), du.lefthand(), true));
                     }
                 }
+                self.set_parent_vel(attached.global_vel());
+
                 accel += diff.unit() * (-spr * diff.magnitude()); // spring
-                accel += self.vel().unit() * (-damp * self.vel().magnitude()); // damping
-                self.add_vel(accel * delta);
+                accel += self.local_vel().unit() * (-damp * self.local_vel().magnitude()); // damping
+                self.set_local_vel(self.local_vel() + accel * delta);
                 self.apply_vel(delta);
             };
     }

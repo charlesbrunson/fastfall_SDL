@@ -33,7 +33,7 @@ const EmitterStrategy jet_emitter_str = {
     .particle_speed_min = 400.f,
     .particle_speed_max = 600.f,
     .scatter_max_radius = 0.f,
-    .inherits_vel       = true,
+    .inherits_vel       = false,
     .animation          = AnimIDRef{ "jet_platform.sax", "effect" },
 };
 
@@ -108,7 +108,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
 
             Vec2f push_vel{};
             Vec2f push_acc{};
-            push_vel.y += (c.collidable_precontact_velocity - collider.velocity).y * 0.9f;
+            push_vel.y += (c.collidable_precontact_velocity - attach.global_vel()).y * 0.9f;
 
             if (auto* track = collidable.get_tracker();
                 track && track->has_contact_with(cid))
@@ -118,7 +118,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
                 push_acc.x -= collidable.get_acc().x * 0.5f;
             }
 
-            attach.add_vel(push_vel + (push_acc * (float)deltaTime));
+            attach.set_local_vel(attach.local_vel() + push_vel + (push_acc * (float)deltaTime));
         }
     });
 }

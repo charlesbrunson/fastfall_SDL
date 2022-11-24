@@ -177,8 +177,10 @@ ID<AttachPoint> World::create_attachpoint(EntityID ent, Vec2f init_pos, Vec2f in
             create_tmpl(_attachpoints, tmp_id),
             _attach_system);
 
-    at(id).teleport(init_pos);
-    at(id).set_vel(init_vel);
+    auto& attch = at(id);
+    attch.teleport(init_pos);
+    attch.set_parent_vel(init_vel);
+    attch.set_local_vel({});
     return id;
 }
 

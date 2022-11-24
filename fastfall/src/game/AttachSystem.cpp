@@ -13,7 +13,7 @@ namespace ff {
         Vec2f ppos;
         Vec2f cpos;
         Vec2f offset;
-        Vec2f vel;
+        //Vec2f vel;
         secs deltaTime;
         size_t tick;
     };
@@ -32,27 +32,25 @@ namespace ff {
         void attach_update(World& w, ID<Collidable> id, Collidable& cmp, const AttachState& st) {
             cmp.teleport(st.ppos);
             cmp.setPosition(st.cpos);
-            cmp.set_vel(st.vel);
+            cmp.set_vel(st.parent.global_vel());
         }
 
         // Emitter
         void attach_update(World& w, ID<Emitter> id, Emitter& cmp, const AttachState& st) {
-            cmp.velocity = st.vel;
+            cmp.velocity = st.parent.global_vel();
             cmp.prev_position = st.ppos;
             cmp.position = st.cpos;
         }
 
         // AttachPoint
         void attach_update(World& w, ID<AttachPoint> id, AttachPoint& cmp, const AttachState& st) {
-            if (st.cpos != cmp.curr_pos()
-                || st.vel != cmp.vel())
-            {
+            if (cmp.get_tick() != st.tick) {
                 if (cmp.constraint) {
                     cmp.constraint(cmp, st.parent, st.offset, st.deltaTime);
-                }
-                else {
+                } else {
                     cmp.set_pos(st.cpos);
-                    cmp.set_vel(st.vel);
+                    cmp.set_parent_vel(st.parent.global_vel());
+                    cmp.set_local_vel({});
                 }
                 cmp.set_tick(st.tick);
             }
@@ -60,8 +58,8 @@ namespace ff {
 
         // ColliderRegion
         void attach_update(World& w, ID<ColliderRegion> id, ColliderRegion& cmp, const AttachState& st) {
-            cmp.delta_velocity = (st.vel - cmp.velocity);
-            cmp.velocity = st.vel;
+            cmp.delta_velocity = (st.parent.global_vel() - cmp.velocity);
+            cmp.velocity = st.parent.global_vel();
             cmp.teleport(st.ppos);
             cmp.setPosition(st.cpos);
         }
@@ -133,7 +131,7 @@ namespace ff {
             .ppos = attachpoint.prev_pos() + offset,
             .cpos = attachpoint.curr_pos() + offset,
             .offset = offset,
-            .vel = attachpoint.vel(),
+            //.vel = attachpoint.vel(),
             .deltaTime = deltaTime,
             .tick = w.tick_count()
         };
@@ -230,7 +228,8 @@ namespace ff {
         auto& attach = world.at(attachid);
         attach.teleport(col.getPrevPosition());
         attach.set_pos(col.getPosition());
-        attach.set_vel(col.get_vel());
+        attach.set_parent_vel(col.get_vel());
+        attach.set_local_vel({});
         attach.sched = AttachPoint::Schedule::PostCollision;
     }
 
@@ -247,7 +246,8 @@ namespace ff {
         auto& attach = world.at(attachid);
         attach.teleport(pathmover.get_pos());
         attach.set_pos(pathmover.get_pos());
-        attach.set_vel(pathmover.get_vel());
+        attach.set_parent_vel(pathmover.get_vel());
+        attach.set_local_vel({});
     }
 
     void AttachSystem::notify_erased(World& world, ID<PathMover> id) {

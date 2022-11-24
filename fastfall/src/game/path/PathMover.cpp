@@ -65,11 +65,10 @@ void PathMover::update(AttachPoint& attach, secs deltaTime)
             if (curr_ndx < _path.waypoints.size() - 1) {
                 ++curr_ndx;
                 dist_to_next_waypoint = (next_waypoint_pos() - prev_waypoint_pos()).magnitude();
-                progress = 0.f;
+                //progress = 0.f;
             }
         };
 
-        bool cancel_v = false;
         if (curr_ndx == prev_ndx) {
             if (timer > 0.0) {
                 timer = std::max(0.0, timer - deltaTime);
@@ -86,22 +85,20 @@ void PathMover::update(AttachPoint& attach, secs deltaTime)
                 else if (at_end()) { timer = _path.wait_on_end; }
                 else { timer = _path.wait_on_way; }
 
-                progress = 0.f;
-                cancel_v = true;
                 if (timer == 0.0) {
                     next_segment();
+                }
+                else {
+                    progress = 0.f;
                 }
             }
         }
 
         attach.set_pos(get_pos());
 
-        if (cancel_v)
-            vel = Vec2f{};
-        else
-            vel = (get_pos() - prev_pos) / deltaTime;
+        vel = (get_pos() - prev_pos) / deltaTime;
 
-        attach.set_vel(vel);
+        attach.set_parent_vel(vel);
     }
 }
 

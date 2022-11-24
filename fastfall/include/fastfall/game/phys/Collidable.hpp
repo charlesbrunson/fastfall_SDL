@@ -154,10 +154,13 @@ public:
 
     void set_attach_id(ID<AttachPoint> id) { attachpoint = id; }
     ID<AttachPoint> get_attach_id() const { return attachpoint; }
+    void set_attach_origin(Vec2f offset) { attachpoint_origin = offset; }
+    Vec2f get_attach_origin() const { return attachpoint_origin; }
 
 private:
 
     ID<AttachPoint> attachpoint;
+    Vec2f attachpoint_origin;
 
 	collision_state_t col_state;
 

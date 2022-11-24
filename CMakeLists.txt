@@ -65,7 +65,6 @@ if(EMSCRIPTEN)
 	#	)
 	#endif()
 
-
 	# create test_project.data file
 	target_link_options(test_project PRIVATE 
 		"SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/data@/data" 
