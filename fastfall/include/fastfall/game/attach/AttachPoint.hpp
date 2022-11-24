@@ -40,6 +40,10 @@ public:
     Vec2f parent_vel() const { return _pvel; }
     Vec2f global_vel() const { return _lvel + _pvel; }
 
+    Vec2f prev_local_vel() const { return _prev_lvel; }
+    Vec2f prev_parent_vel() const { return _prev_pvel; }
+    Vec2f prev_global_vel() const { return _prev_pvel + _prev_lvel; }
+
     void update_prev();
 
     ID<AttachPoint> id() const;
@@ -59,8 +63,13 @@ public:
 private:
     Vec2f _curr_pos;
     Vec2f _prev_pos;
+
     Vec2f _lvel;
     Vec2f _pvel;
+
+    Vec2f _prev_lvel;
+    Vec2f _prev_pvel;
+
     ID<AttachPoint> _id;
     size_t _tick = 0;
 

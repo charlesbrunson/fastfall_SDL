@@ -43,6 +43,8 @@ Vec2f AttachPoint::prev_pos() const {
 
 void AttachPoint::update_prev() {
     _prev_pos = _curr_pos;
+    _prev_lvel = _lvel;
+    _prev_pvel = _pvel;
 }
 
 ID<AttachPoint> AttachPoint::id() const {
