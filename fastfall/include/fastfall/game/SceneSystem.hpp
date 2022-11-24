@@ -9,6 +9,7 @@
 #include "fastfall/game/scene/SceneConfig.hpp"
 
 #include <unordered_set>
+#include <unordered_map>
 
 // manager of drawable for the instance
 

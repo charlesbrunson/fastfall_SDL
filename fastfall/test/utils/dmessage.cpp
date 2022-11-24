@@ -23,7 +23,7 @@ using my_config = dconfig<dvar, ExampleAddtlArg>;
 
 // define some message formats: message name, return type, message parameters... (up to 4 for now)
 constexpr auto dGetPosition  = my_config::dformat<"getpos",    Vec2i>{};
-constexpr auto dSetPosition  = my_config::dformat<"setpos",    std::monostate, Vec2i>{};
+constexpr auto dSetPosition  = my_config::dformat<"setpos",    dvoid, Vec2i>{};
 constexpr auto dHasHPBetween = my_config::dformat<"hpbetween", bool, float, float>{};
 constexpr auto dUnhandled    = my_config::dformat<"unhandled">{};
 

@@ -59,11 +59,11 @@ if(EMSCRIPTEN)
 		--emrun
 	)
 	
-	if (${CMAKE_BUILD_TYPE} MATCHES "Release")
-		target_link_options(test_project PRIVATE
-			--shell-file "${CMAKE_CURRENT_SOURCE_DIR}/html/min-shell.html"
-		)
-	endif()
+	#if (${CMAKE_BUILD_TYPE} MATCHES "Release")
+	#	target_link_options(test_project PRIVATE
+	#		--shell-file "${CMAKE_CURRENT_SOURCE_DIR}/html/min-shell.html"
+	#	)
+	#endif()
 
 
 	# create test_project.data file

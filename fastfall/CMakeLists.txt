@@ -133,8 +133,9 @@ if(EMSCRIPTEN)
 	#set(CMAKE_EXECUTABLE_SUFFIX .html CACHE INTERNAL "set executable suffix for emscripten build")
 
 	if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
-		target_compile_options(fastfall PUBLIC -g)
-		target_link_options(fastfall PUBLIC -g)
+		message(STATUS "EMSCRIPTEN DEBUG")
+		target_compile_options(fastfall PUBLIC -g -O0)
+		target_link_options(fastfall PUBLIC -g -O0 -sDEMANGLE_SUPPORT=1)
 	endif()
 
 	target_compile_options(fastfall PUBLIC 
@@ -193,7 +194,6 @@ target_compile_definitions(fastfall PUBLIC
 target_compile_definitions(fastfall PUBLIC
 	DEBUG
 )
-
 
 if(EMSCRIPTEN)
 	target_compile_definitions(fastfall PUBLIC

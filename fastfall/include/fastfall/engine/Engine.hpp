@@ -48,7 +48,12 @@ struct EngineSettings {
 	bool showDebug = false;
 
 	// run style
-	EngineRunStyle runstyle = EngineRunStyle::DoubleThread;
+	EngineRunStyle runstyle =
+#if defined(__EMSCRIPTEN__)
+            EngineRunStyle::Emscripten;
+#else
+            EngineRunStyle::DoubleThread;
+#endif
 };
 
 class DebugDrawImgui : public ImGuiContent {
@@ -174,8 +179,8 @@ private:
 	void resizeWindow(Vec2u size);
 	bool setFullscreen(bool fullscreen);
 
-	void ImGui_getContent();
-	void ImGui_getExtraContent();
+	void ImGui_getContent() override;
+	void ImGui_getExtraContent() override;
 };
 
 }

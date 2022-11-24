@@ -14,22 +14,26 @@ int main(int argc, char* argv[])
     ff::Init();
 
     // create an opengl context
-    ff::Window window;
+    auto window = new ff::Window();
 
     // load resources from file
     ff::Load_Resources();
 
     // create the engine
-    ff::Engine engine{ &window };
+    auto engine = new ff::Engine( window );
 
     // give it something to run
-    engine.make_runnable<TestState>();
+    engine->make_runnable<TestState>();
 
     // run it
-    engine.run();
+    engine->run();
 
     // clean up
+#if !defined(__EMSCRIPTEN__)
     ff::Quit();
+    delete engine;
+    delete window;
+#endif
 
 	return EXIT_SUCCESS;
 }

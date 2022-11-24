@@ -132,9 +132,15 @@ bool Engine::run() {
         return false;
 
     switch (settings.runstyle) {
-    case EngineRunStyle::SingleThread:  return run_singleThread();
-    case EngineRunStyle::DoubleThread:  return run_doubleThread();
-    case EngineRunStyle::Emscripten:    return run_emscripten();
+    case EngineRunStyle::SingleThread:
+        LOG_INFO("Engine loop config: single thread");
+        return run_singleThread();
+    case EngineRunStyle::DoubleThread:
+        LOG_INFO("Engine loop config: double thread");
+        return run_doubleThread();
+    case EngineRunStyle::Emscripten:
+        LOG_INFO("Engine loop config: emscripten");
+        return run_emscripten();
     default: return false;
     }
 }

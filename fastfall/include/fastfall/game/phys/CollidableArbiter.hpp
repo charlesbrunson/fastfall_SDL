@@ -8,6 +8,7 @@
 #include "fastfall/util/id_map.hpp"
 
 #include <span>
+#include <unordered_map>
 
 namespace ff {
 
