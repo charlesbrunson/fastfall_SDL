@@ -237,19 +237,53 @@ TEST_F(collision, slip_v)
 	render.frame_delay = 20;
 	render.draw();
 
+	while (render.curr_frame < 4) {
+		update();
+		render.draw();
+	}
+	ASSERT_EQ(box->getPosition().y, 32.f);
+
+	box->teleport(Vec2f{ 40, 32 + 5.01f });
+
 	while (render.curr_frame < 8) {
 		update();
 		render.draw();
 	}
-	ASSERT_LT(box->getPosition().x, 0.f);
+	ASSERT_GT(box->getPosition().y, 32.f);
 
-	box->teleport(Vec2f{ 40, 32 + 5.01f });
+}
 
-	while (render.curr_frame < 16) {
-		update();
-		render.draw();
-	}
-	ASSERT_EQ(box->getPosition().x, 24.f);
+TEST_F(collision, slip_v_oneway)
+{
+    initTileMap({
+    /*          x:0         x:16		x:32		x:48		x:64 */
+    /* y:0  */ {"", 		"",			""},
+    /* y:16 */ {"", 		"",			""},
+    /* y:32 */ {"oneway", 	"",			""},
+    });
+
+    box->teleport(Vec2f{ 40, 32 + 5 });
+    box->set_vel(Vec2f{ -400.f, 0.f  });
+    box->set_gravity(Vec2f{ 0.f, 0.f  });
+    box->setSlip({Collidable::SlipState::SlipVertical, 5.f});
+
+    TestPhysRenderer render(world, collider->getBoundingBox());
+    render.frame_delay = 20;
+    render.draw();
+
+    while (render.curr_frame < 4) {
+        update();
+        render.draw();
+    }
+    ASSERT_EQ(box->getPosition().y, 32.f);
+
+    box->teleport(Vec2f{ 40, 32 + 5.01f });
+
+    while (render.curr_frame < 8) {
+        update();
+        render.draw();
+    }
+    ASSERT_GT(box->getPosition().y, 32.f);
 
 }
 

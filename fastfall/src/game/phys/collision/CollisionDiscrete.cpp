@@ -514,10 +514,10 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
 		}
 
         line = math::shift(line, -collider_deltap);
+        float slipv = (cSlip.state == Collidable::SlipState::SlipVertical && cVel.y >= 0.f) ? cSlip.leeway : 0.f;
 		axis.axisValid = !math::is_vertical(line)
-			&& valid_ghost
-			&& getYforX(line, cpMid.x) >= cpMid.y + cpSize.y;
-
+			&& (valid_ghost || slipv != 0)
+			&& getYforX(line, cpMid.x) >= cpMid.y + cpSize.y - slipv;
 	}
 
 	return axis;
@@ -556,9 +556,10 @@ CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcep
 			line = axis.contact.collider.surface;
 		}
         line = math::shift(line, -collider_deltap);
+        float slipv = (cSlip.state == Collidable::SlipState::SlipVertical && cVel.y <= 0.f) ? cSlip.leeway : 0.f;
 		axis.axisValid = !math::is_vertical(line)
-			&& valid_ghost
-			&& getYforX(line, cpMid.x) <= cpMid.y - cpSize.y;
+           && (valid_ghost || slipv != 0)
+			&& getYforX(line, cpMid.x) <= cpMid.y - cpSize.y + slipv;
 	}
 
 	return axis;
@@ -655,6 +656,7 @@ bool wallCanExtend(
 
 			if (!math::is_vertical(next)
 				&& pMid.y > tMid.y
+                && still_passing
 				&& (next.p1.x < next.p2.x) == (line.p1.x < line.p2.x))
 			{
 				prev_below = true;
@@ -777,14 +779,17 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 
 void CollisionDiscrete::initCollidableData(CollisionContext ctx) {
     if (collision_time == Type::CurrFrame) {
-        cBox  = ctx.collidable->getBox();
+        cBox = ctx.collidable->getBox();
+        cVel = ctx.collidable->get_vel();
     }
     else {
-        cBox  = ctx.collidable->getPrevBox();
+        cBox = ctx.collidable->getPrevBox();
+        cVel = Vec2f{};
     }
     cPrev = ctx.collidable->getPrevBox();
-    cMid = math::rect_mid(cBox);
+    cMid  = math::rect_mid(cBox);
     cHalf = cBox.getSize() / 2.f;
+    cSlip = ctx.collidable->getSlip();
 }
 
 }
