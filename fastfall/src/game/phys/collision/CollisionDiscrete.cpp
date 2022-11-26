@@ -747,7 +747,8 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 
 	// if this is a oneway, invalidate it if the collider's previous position is not left of it
 	if (collision_time == Type::CurrFrame && cQuad.isOneWay(Cardinal::E)) {
-		axis.axisValid = math::rect_topleft(cPrev).x >= tPos.x + tArea.width;
+        float sliph = (cSlip.state == Collidable::SlipState::SlipHorizontal && cVel.x <= 0.f) ? cSlip.leeway : 0.f;
+		axis.axisValid = math::rect_topleft(cPrev).x >= tPos.x + tArea.width - sliph;
 	}
 
 	axis.separationOffset = (extend ? cHalf.x : 0.f) + (has_valley ? VALLEY_FLATTEN_THRESH : 0.f);
@@ -770,7 +771,8 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 
 	// if this is a oneway, invalidate it if the collider's previous position is not left of it
 	if (collision_time == Type::CurrFrame && cQuad.isOneWay(Cardinal::W)) {
-		axis.axisValid = math::rect_topright(cPrev).x <= tArea.left;
+        float sliph = (cSlip.state == Collidable::SlipState::SlipHorizontal && cVel.x >= 0.f) ? cSlip.leeway : 0.f;
+		axis.axisValid = math::rect_topright(cPrev).x <= tArea.left + sliph;
 	}
 
 	axis.separationOffset = (extend ? cHalf.x : 0.f) + (has_valley ? VALLEY_FLATTEN_THRESH : 0.f);
