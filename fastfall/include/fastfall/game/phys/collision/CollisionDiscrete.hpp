@@ -67,6 +67,8 @@ protected:
 
 	ColliderQuad cQuad;
 
+    Collidable::slip_t cSlip;
+
 	DiscreteContact contact;
 	int chosen_axis = -1;
 
@@ -82,6 +84,7 @@ protected:
 	Rectf cPrev;
 	Vec2f cMid;
 	Vec2f cHalf;
+    Vec2f cVel;
 
     Vec2f collider_deltap;
 

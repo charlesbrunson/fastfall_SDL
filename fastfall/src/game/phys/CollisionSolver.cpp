@@ -36,7 +36,7 @@ nlohmann::ordered_json to_json(const ContinuousContact* contact)
 		{"is_transposed",	contact->is_transposed},
         {"collidable",		id ? id->collidable.raw() : 0u },
 		{"region",			id ? id->collider.raw() : 0u },
-		{"quad",			id ? id->quad.value : 0u }
+		{"quad",			id ? id->quad.value : 0u },
 	};
 }
 
