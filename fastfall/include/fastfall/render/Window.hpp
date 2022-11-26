@@ -21,9 +21,9 @@ public:
 		WINDOWED
 	};
 
-	Window();
-	Window(const char* title, unsigned initWidth, unsigned initHeight);
-	Window(std::string_view title, unsigned initWidth, unsigned initHeight);
+	Window(bool start_hidden = true);
+	Window(const char* title, unsigned initWidth, unsigned initHeight, bool start_hidden = true);
+	Window(std::string_view title, unsigned initWidth, unsigned initHeight, bool start_hidden = true);
 	~Window();
 
 	// window controls

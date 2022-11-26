@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
     ff::Init();
 
     // create an opengl context
-    auto window = new ff::Window();
+    auto window = new ff::Window(false);
 
     // load resources from file
     ff::Load_Resources();

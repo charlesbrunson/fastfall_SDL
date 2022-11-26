@@ -7,7 +7,7 @@
 
 namespace ff {
 
-Window::Window()
+Window::Window(bool start_hidden)
 	: RenderTarget(),
 	m_window{ SDL_CreateWindow(
 		"",
@@ -15,7 +15,7 @@ Window::Window()
 		SDL_WINDOWPOS_UNDEFINED,
 		480,
 		360,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE
+		SDL_WINDOW_OPENGL | (start_hidden ? SDL_WINDOW_HIDDEN : SDL_WINDOW_SHOWN) | SDL_WINDOW_RESIZABLE
 	) }
 {
 	init();
@@ -23,7 +23,7 @@ Window::Window()
 		m_id = SDL_GetWindowID(m_window);
 }
 
-Window::Window(const char* title, unsigned initWidth, unsigned initHeight)
+Window::Window(const char* title, unsigned initWidth, unsigned initHeight, bool start_hidden)
 	: RenderTarget(),
 	m_window{ SDL_CreateWindow(
 		title,
@@ -31,7 +31,7 @@ Window::Window(const char* title, unsigned initWidth, unsigned initHeight)
 		SDL_WINDOWPOS_UNDEFINED,
 		initWidth,
 		initHeight,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE
+		SDL_WINDOW_OPENGL | (start_hidden ? SDL_WINDOW_HIDDEN : SDL_WINDOW_SHOWN) | SDL_WINDOW_RESIZABLE
 	) }
 {	
 	init();
@@ -40,7 +40,7 @@ Window::Window(const char* title, unsigned initWidth, unsigned initHeight)
 }
 
 
-Window::Window(std::string_view title, unsigned initWidth, unsigned initHeight)
+Window::Window(std::string_view title, unsigned initWidth, unsigned initHeight, bool start_hidden)
 	: RenderTarget(),
 	m_window{ SDL_CreateWindow(
 		title.data(),
@@ -48,7 +48,7 @@ Window::Window(std::string_view title, unsigned initWidth, unsigned initHeight)
 		SDL_WINDOWPOS_UNDEFINED,
 		initWidth,
 		initHeight,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE
+		SDL_WINDOW_OPENGL | (start_hidden ? SDL_WINDOW_HIDDEN : SDL_WINDOW_SHOWN) | SDL_WINDOW_RESIZABLE
 	)}
 {
 	init();

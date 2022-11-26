@@ -310,6 +310,17 @@ void Engine::runUpdate(std::barrier<>* bar) {
 
 // -------------------------------------------
 
+#if defined(__EMSCRIPTEN__)
+EM_BOOL emscripten_resize(int event_type, const EmscriptenUiEvent* ui_event, void* user_data) {
+    Engine* engine = (Engine*)user_data;
+    double _width, _height;
+    emscripten_get_element_css_size("#canvas", &_width, &_height);
+
+    engine->resizeWindow(Vec2u{ (unsigned)_width, (unsigned)_height }, false);
+    return true;
+}
+#endif
+
 bool Engine::run_emscripten() {
 #if defined(__EMSCRIPTEN__)
 
@@ -319,6 +330,15 @@ bool Engine::run_emscripten() {
 
 	clock.reset();
 
+    // inform window of canvas size
+    double _width, _height;
+    emscripten_get_element_css_size("#canvas", &_width, &_height);
+    resizeWindow(Vec2u{ (unsigned)_width, (unsigned)_height });
+    window->setWindowSize( (unsigned)_width, (unsigned)_height );
+
+    // canvas resize callback
+    emscripten_set_resize_callback("#canvas", (void*)this, false, emscripten_resize);
+
 	emscripten_set_main_loop_arg(Engine::emscripten_loop, (void*)this, 0, false);
 #endif
     return true;
@@ -326,6 +346,7 @@ bool Engine::run_emscripten() {
 }
 
 void Engine::emscripten_loop(void* engine_ptr) {
+#if defined(__EMSCRIPTEN__)
 	Engine* engine = (Engine*)engine_ptr;
 
 	if(!engine->is_running() || engine->runnables.empty())
@@ -365,6 +386,7 @@ void Engine::emscripten_loop(void* engine_ptr) {
     profiler::curr_duration.curr_uptime = engine->upTime;
     profiler::curr_duration.curr_frame = engine->clock.getTickCount();
     profiler::duration_buffer.add_time();
+#endif
 }
 
 // -------------------------------------------
@@ -589,6 +611,7 @@ void Engine::handleEvents(bool* timeWasted)
                 break;
             case SDL_WINDOWEVENT_RESIZED:
                 if (!settings.fullscreen) {
+                    //LOG_INFO("resize: {}", Vec2u(window->getSize()));
                     resizeWindow(Vec2u(window->getSize()));
                     *timeWasted = true;
                 }
@@ -687,7 +710,11 @@ void Engine::handleEvents(bool* timeWasted)
         {
             Vec2i g_mpos;
             SDL_GetGlobalMouseState(&g_mpos.x, &g_mpos.y);
+#if !defined(__EMSCRIPTEN__)
             Mouse::set_window_pos(g_mpos - Vec2i{ window->getPosition() });
+#else
+            Mouse::set_window_pos(g_mpos);
+#endif
         }
 
         Mouse::update_view(window->getView());
@@ -730,7 +757,10 @@ void Engine::initRenderTarget(bool fullscreen)
 
     unsigned scale = settings.showDebug ? 2 : 1;
     IF_N_EMSCRIPTEN(SDL_SetWindowMinimumSize(window->getSDL_Window(), GAME_W * scale, GAME_H * scale));
+
+#if !defined(__EMSCRIPTEN__)
     resizeWindow(Vec2u(window->getSize()));
+#endif
 }
 
 bool Engine::setFullscreen(bool fullscreen) {
@@ -767,11 +797,12 @@ bool Engine::setFullscreen(bool fullscreen) {
     return true;
 }
 
-void Engine::resizeWindow(Vec2u size)
+void Engine::resizeWindow(Vec2u size, bool force_size)
 {
     if (!window)
         return;
 
+    //LOG_INFO("RESIZE {} {}", size, force_size);
 
     bool expandMargins = settings.showDebug && settings.allowMargins;
     ImGuiFrame::getInstance().setDisplay(expandMargins);
@@ -779,10 +810,11 @@ void Engine::resizeWindow(Vec2u size)
     Vec2u minSize{ expandMargins ? Vec2u{ GAME_W * 2, GAME_H * 2 } : Vec2u{ GAME_W, GAME_H } };
 
 
-    Vec2u finalSize;
-    finalSize.x = std::max(size.x, minSize.x);
-    finalSize.y = std::max(size.y, minSize.y);
-
+    Vec2u finalSize{ size };
+    if (!force_size) {
+        finalSize.x = std::max(size.x, minSize.x);
+        finalSize.y = std::max(size.y, minSize.y);
+    }
 
     int scale = static_cast<int>(std::min(floor((float)finalSize.x / GAME_W), floor((float)finalSize.y / GAME_H)));
 
@@ -791,11 +823,13 @@ void Engine::resizeWindow(Vec2u size)
 
     if (window) {
         if (finalSize.x != size.x || finalSize.y != size.y) {
+            LOG_INFO("AAAAA");
             window->setWindowSize(finalSize);
         }
         if (!settings.allowMargins && !settings.fullscreen) {
             finalSize.x = GAME_W * scale;
             finalSize.y = GAME_H * scale;
+            LOG_INFO("BBBBB");
             window->setWindowSize(finalSize);
         }
     }
@@ -830,7 +864,7 @@ void Engine::resizeWindow(Vec2u size)
         (int)(vp[2]),
         (int)(vp[3])
     };
-    Recti windowSize(0, 0, window->getSize().x, window->getSize().y);
+    Recti windowSize(0, 0, finalSize.x, finalSize.y);
 
     Rectf vpf {viewport};
     Rectf wsf {windowSize};
@@ -847,13 +881,12 @@ void Engine::resizeWindow(Vec2u size)
     margin[8] = { math::rect_topleft(wsf)  };
     margin[9] = { math::rect_topleft(vpf)  };
 
-    marginView = View{ { 0.f, 0.f }, window->getSize() };
-    marginView.setCenter(glm::fvec2{ window->getSize() } / 2.f);
+    marginView = View{ { 0.f, 0.f }, Vec2f{ finalSize } };
+    marginView.setCenter(Vec2f{ finalSize } / 2.f);
     
     if (ImGuiFrame::getInstance().isDisplay()) {
         ImGuiFrame::getInstance().resize(windowSize, Vec2u(viewport.getSize().x, viewport.getSize().y));
     }
-    
 }
 
 bool showImGuiDemo = false;
