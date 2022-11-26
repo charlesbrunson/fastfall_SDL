@@ -101,6 +101,7 @@ public:
     const FixedEngineClock& get_clock() const { return clock; }
     secs get_uptime() const { return upTime; }
 
+    void resizeWindow(Vec2u size, bool force_size = false);
 private:
 	void freeze();
 	void freezeStepOnce();
@@ -176,7 +177,6 @@ private:
 	void close();
 
 	void handleEvents(bool* timeWasted);
-	void resizeWindow(Vec2u size);
 	bool setFullscreen(bool fullscreen);
 
 	void ImGui_getContent() override;
