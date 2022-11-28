@@ -46,7 +46,9 @@ add_executable(test_project
 	"content/camera/SimpleCamTarget.hpp"
 	"content/camera/SimpleCamTarget.cpp" 
 	"content/object/SimpleEffect.hpp" 
-	"content/object/SimpleEffect.cpp")
+	"content/object/SimpleEffect.cpp"
+	"content/object/TilePlatform.hpp"
+	"content/object/TilePlatform.cpp")
 
 target_link_libraries(test_project PRIVATE 
 	fastfall
