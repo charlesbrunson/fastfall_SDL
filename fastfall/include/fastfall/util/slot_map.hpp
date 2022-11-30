@@ -23,6 +23,30 @@ namespace ff {
 				|| other.sparse_index != sparse_index;
 		}
 
+        constexpr bool operator<(const slot_key& other) const {
+            return other.generation == generation
+                ? other.sparse_index < sparse_index
+               : other.generation < generation;
+        }
+
+        constexpr bool operator<=(const slot_key& other) const {
+            return other.generation == generation
+                   ? other.sparse_index <= sparse_index
+                   : other.generation <= generation;
+        }
+
+        constexpr bool operator>(const slot_key& other) const {
+            return other.generation == generation
+                   ? other.sparse_index > sparse_index
+                   : other.generation > generation;
+        }
+
+        constexpr bool operator>=(const slot_key& other) const {
+            return other.generation == generation
+                   ? other.sparse_index >= sparse_index
+                   : other.generation >= generation;
+        }
+
 		constexpr size_t raw() const {
 			return *((size_t*)this);
 		}
