@@ -306,6 +306,7 @@ private:
         std::apply([&, this](auto&... system) {
             ([&, this]<typename System>(System& sys){
                 if constexpr (requires(System s, ID<T> i, World& w) { s.notify_created(w, i); }) {
+                    LOG_INFO("notify create! {} {} {}", typeid(T).name(), t_id.value.sparse_index, typeid(sys).name());
                     sys.notify_created(*this, t_id);
                 }
             }(system), ...);
@@ -317,6 +318,7 @@ private:
         std::apply([&, this](auto&... system) {
             ([&, this]<typename System>(System& sys){
                 if constexpr (requires(System s, ID<T> i, World& w) { s.notify_erased(w, i); }) {
+                    LOG_INFO("notify erase! {} {} {}", typeid(T).name(), t_id.value.sparse_index, typeid(sys).name());
                     sys.notify_erased(*this, t_id);
                 }
             }(system), ...);
