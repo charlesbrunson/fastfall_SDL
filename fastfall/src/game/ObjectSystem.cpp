@@ -15,11 +15,16 @@ void ObjectSystem::update(World& world, secs deltaTime)
 
 void ObjectSystem::predraw(World& world, float interp, bool updated)
 {
+    std::vector<ID<Entity>> to_erase;
     for (auto& id : update_order) {
         auto& obj = world.at(id);
         if (obj.should_delete()) {
-            world.erase(id);
+            auto ent_id = world.get_entity_of(id);
+            to_erase.push_back(ent_id);
         }
+    }
+    for (auto ent : to_erase) {
+        world.erase(ent);
     }
 }
 

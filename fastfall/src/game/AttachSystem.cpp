@@ -136,11 +136,11 @@ namespace ff {
             .tick = w.tick_count()
         };
 
-        if constexpr (requires(ID<T> x_id, T& x) { detail::attach_update(std::declval<World>(), x_id, x, std::declval<AttachState>()); }) {
+        if constexpr (requires(ID<T> x_id, T& x, World& x_w, const AttachState& st) { detail::attach_update(x_w, x_id, x, st); }) {
             detail::attach_update(w, attachment_id, component, state);
         }
 
-        if constexpr (requires(ID<T> x_id, T& x) { detail::attach_get_pos(std::declval<World>(), x_id, x); }) {
+        if constexpr (requires(ID<T> x_id, T& x, World& x_w) { detail::attach_get_pos(x_w, x_id, x); }) {
             return detail::attach_get_pos(w, attachment_id, component);
         }
         else {

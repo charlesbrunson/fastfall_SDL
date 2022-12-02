@@ -217,8 +217,17 @@ void ImGuiRender() {
 namespace {
 
     std::mutex stale_lock;
-    std::vector<GLuint> staleVAO;
-    std::vector<GLuint> staleVBO;
+
+    auto& get_stale_VAO() {
+       static std::vector<GLuint> staleVAO;
+       return staleVAO;
+    }
+
+    auto& get_stale_VBO() {
+        static std::vector<GLuint> staleVBO;
+        return staleVBO;
+    }
+
 
 }
 
@@ -226,7 +235,7 @@ void glStaleVertexArrays(size_t count, const GLuint* vao) {
     std::lock_guard<std::mutex> guard(stale_lock);
 
     std::vector<GLuint> in(vao, vao + count);
-    staleVAO.insert(staleVAO.end(), in.begin(), in.end());
+    get_stale_VAO().insert(get_stale_VAO().end(), in.begin(), in.end());
 
 }
 
@@ -234,29 +243,29 @@ void glStaleVertexBuffers(size_t count, const GLuint* vbo) {
     std::lock_guard<std::mutex> guard(stale_lock);
 
     std::vector<GLuint> in(vbo, vbo + count);
-    staleVBO.insert(staleVBO.end(), in.begin(), in.end());
+    get_stale_VBO().insert(get_stale_VBO().end(), in.begin(), in.end());
 }
 
 void glStaleVertexArrays(const GLuint vao) {
     std::lock_guard<std::mutex> guard(stale_lock);
-    staleVAO.push_back(vao);
+    get_stale_VAO().push_back(vao);
 }
 
 void glStaleVertexBuffers(const GLuint vbo) {
     std::lock_guard<std::mutex> guard(stale_lock);
-    staleVBO.push_back(vbo);
+    get_stale_VBO().push_back(vbo);
 }
 
 void glDeleteStale() {
     std::lock_guard<std::mutex> guard(stale_lock);
 
-    if (!staleVAO.empty()) {
-        glDeleteVertexArrays(staleVAO.size(), &staleVAO[0]);
-        staleVAO.clear();
+    if (!get_stale_VAO().empty()) {
+        glDeleteVertexArrays(get_stale_VAO().size(), &get_stale_VAO()[0]);
+        get_stale_VAO().clear();
     }
-    if (!staleVBO.empty()) {
-        glDeleteBuffers(staleVBO.size(), &staleVBO[0]);
-        staleVBO.clear();
+    if (!get_stale_VBO().empty()) {
+        glDeleteBuffers(get_stale_VBO().size(), &get_stale_VBO()[0]);
+        get_stale_VBO().clear();
     }
 }
 
