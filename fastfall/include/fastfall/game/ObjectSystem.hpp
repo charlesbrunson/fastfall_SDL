@@ -29,8 +29,6 @@ protected:
             created_objects.clear();
         }
     }
-
-
     std::vector<ID<GameObject>> update_order;
     std::vector<ID<GameObject>> created_objects;
 };

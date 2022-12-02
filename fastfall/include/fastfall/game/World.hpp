@@ -249,27 +249,12 @@ public:
     auto get(IDs... ids) const { return std::forward_as_tuple(get(ids)...); }
 
     // create entity
-    ID<Entity> create_entity() { return state._entities.create(); }
-    ID<GameObject> create_object_from_data(ObjectLevelData& data) {
-        auto id = create_entity();
-        // TODO
-        ID<GameObject> tmp;
-        return tmp;
-    };
-    ID<Level> create_level(const LevelAsset& levelData, bool create_objects) {
-        auto id = create_entity();
-        auto lvl_id = create<Level>(id, *this, id_placeholder, levelData);
-        if (create_objects) {
-            at(lvl_id).get_layers().get_obj_layer().createObjectsFromData(*this);
-        }
-        return lvl_id;
-    }
+    ID<Entity> create_entity();
 
-    ID<Level> create_level() {
-        auto id = create_entity();
-        auto lvl_id = create<Level>(id, *this, id_placeholder);
-        return lvl_id;
-    }
+    std::optional<ID<GameObject>> create_object_from_data(ObjectLevelData& data);
+
+    ID<Level> create_level(const LevelAsset& levelData, bool create_objects);
+    ID<Level> create_level();
 
     // create component
     template<typename T>
@@ -278,8 +263,7 @@ public:
         using container_t = std::remove_cvref_t<decltype(list)>;
         using base_type = typename container_t::base_type;
         ID<T> tmp_id = id_cast<T>(list.peek_next_id());
-        state._entities.at(ent).components.insert(tmp_id);
-        state._comp_to_ent.emplace(tmp_id, ent);
+        tie_component_entity(tmp_id, ent);
         if constexpr (container_t::is_poly) {
             tmp_id = list.template create<T>(std::forward<swap_id_t<decltype(args), ID<T>>>(
                     set_placeholder_id(std::forward<decltype(args)>(args), tmp_id))...);
@@ -321,7 +305,8 @@ private:
     void system_notify_created(ID<T> t_id) {
         std::apply([&, this](auto&... system) {
             ([&, this]<typename System>(System& sys){
-                if constexpr (requires(System s, ID<T> i) { s.notify_created(std::declval<World>(), i); }) {
+                if constexpr (requires(System s, ID<T> i, World& w) { s.notify_created(w, i); }) {
+                    LOG_INFO("notify create! {} {} {}", typeid(T).name(), t_id.value.sparse_index, typeid(sys).name());
                     sys.notify_created(*this, t_id);
                 }
             }(system), ...);
@@ -332,12 +317,16 @@ private:
     void system_notify_erased(ID<T> t_id) {
         std::apply([&, this](auto&... system) {
             ([&, this]<typename System>(System& sys){
-                if constexpr (requires(System s, ID<T> i) { s.notify_erased(std::declval<World>(), i); }) {
+                if constexpr (requires(System s, ID<T> i, World& w) { s.notify_erased(w, i); }) {
+                    LOG_INFO("notify erase! {} {} {}", typeid(T).name(), t_id.value.sparse_index, typeid(sys).name());
                     sys.notify_erased(*this, t_id);
                 }
             }(system), ...);
         }, state.all_systems());
     }
+
+    void tie_component_entity(ComponentID cmp, ID<Entity> ent);
+    void untie_component_entity(ComponentID cmp, ID<Entity> ent);
 };
 
 }
