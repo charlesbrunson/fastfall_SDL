@@ -39,6 +39,22 @@ ID<Other> id_cast(ID<Base> id) {
 
 }
 
+struct id_placeholder_t {};
+static id_placeholder_t id_placeholder;
+
+auto&& set_placeholder_id(auto&& arg, auto&& id) {
+    if constexpr (std::same_as<id_placeholder_t, std::remove_cvref_t<decltype(arg)>>)
+    {
+        return std::forward<decltype(id)>(id);
+    }
+    else {
+        return std::forward<decltype(arg)>(arg);
+    }
+}
+
+template<typename T, typename ID>
+using swap_id_t = std::conditional_t<std::same_as<std::remove_cvref_t<T>, id_placeholder_t>, ID, T>;
+
 namespace std {
 
 template<class T>

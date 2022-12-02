@@ -31,11 +31,11 @@ plr::move_t::move_t(World& w, const plr::members& plr)
 
 
 plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
-    : sprite_id(w.create_drawable<AnimatedSprite>(plr.getID()))
-    , collidable_id(w.create_collidable(plr.getID(), position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
+    : sprite_id(w.create<AnimatedSprite>(w.get_entity_of(plr.getID())))
+    , collidable_id(w.create<Collidable>(w.get_entity_of(plr.getID()), position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
     , cameratarget_id()
-    , hitbox_id(w.create_trigger(plr.getID()))
-    , hurtbox_id(w.create_trigger(plr.getID()))
+    , hitbox_id(w.create<Trigger>(w.get_entity_of(plr.getID()), id_placeholder))
+    , hurtbox_id(w.create<Trigger>(w.get_entity_of(plr.getID()), id_placeholder))
 {
     auto& box = w.at(collidable_id);
     auto attachid = box.get_attach_id();
@@ -55,8 +55,8 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
         .slope_stick_speed_factor = 0.f,
     };
 
-    cameratarget_id = w.create_camera_target<SimpleCamTarget>(
-        plr.getID(),
+    cameratarget_id = w.create<SimpleCamTarget>(
+        w.get_entity_of(plr.getID()),
         ff::CamTargetPriority::Medium,
         [id = collidable_id](World& w) {
             return w.at(id).getPosition() - Vec2f{0.f, 16.f};
@@ -66,7 +66,7 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     auto& hitbox = w.at(hitbox_id);
     hitbox.set_area(box.getBox());
     hitbox.self_flags = {"hitbox"};
-    w.attach().create(w, attachid, hitbox_id, { -box.getBox().width / 2.f, -box.getBox().height });
+    w.system<AttachSystem>().create(w, attachid, hitbox_id, { -box.getBox().width / 2.f, -box.getBox().height });
 
     auto& hurtbox = w.at(hurtbox_id);
     hurtbox.set_area(box.getBox());
@@ -74,6 +74,8 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     hurtbox.filter_flags = {"hitbox"};
     hurtbox.set_trigger_callback(
     [](World& w, const TriggerPull& pull) {
+        // TODO
+        /*
         auto ownerid = w.get_entity_of(pull.source->id());
         if (auto* obj = w.get(as_object(ownerid));
             obj && obj->type().group_tags.contains("player")
@@ -81,12 +83,13 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
         {
             objHurt.send(*obj, w, 100.f);
         }
+        */
     });
 
     auto& sprite = w.at(sprite_id);
     sprite.set_anim(plr::anim::idle);
     sprite.set_hflip(face_dir);
-    w.attach().create(w, attachid, sprite_id);
+    w.system<AttachSystem>().create(w, attachid, sprite_id);
 
 }
 

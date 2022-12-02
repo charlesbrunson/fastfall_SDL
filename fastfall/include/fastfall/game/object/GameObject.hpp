@@ -20,6 +20,7 @@
 #include "fastfall/util/copyable_uniq_ptr.hpp"
 //#include "fastfall/util/commandable.hpp"
 #include "fastfall/game/object/objmessage.hpp"
+#include "fastfall/game/Entity.hpp"
 
 namespace ff {
 
@@ -208,6 +209,9 @@ public:
     [[nodiscard]]
     ID<GameObject> getID() const { return m_id; };
 
+    [[nodiscard]]
+    ID<Entity> entityID() const { return entity_id; };
+
     virtual objcfg::dresult message(World&, const objcfg::dmessage&) { return objcfg::reject; }
 
 protected:
@@ -224,6 +228,7 @@ protected:
 
     friend class ObjectSystem;
 private:
+    ID<Entity>     entity_id;
     ID<GameObject> m_id;
     bool m_should_delete = false;
 };

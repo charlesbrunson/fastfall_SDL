@@ -271,8 +271,8 @@ void imgui_camera(World* w) {
 }
 
 void imgui_scene(World* w) {
-    for (auto id : w->scene().get_scene_order()) {
-        auto& scene = w->scene().config(id);
+    for (auto id : w->system<SceneSystem>().get_scene_order()) {
+        auto& scene = w->system<SceneSystem>().config(id);
 
         if (ImGui::TreeNode((void *) (&scene), "Scene Object %d", id.value.sparse_index)) {
             static std::string_view priority_str[] = {
@@ -495,16 +495,16 @@ void imgui_status(World* w) {
     ImGui::Text("Tick Count: %zu", w->tick_count());
     ImGui::Text("Uptime: %f", w->uptime());
 
-    ImGui::Checkbox("Lock Camera", &w->camera().lockPosition);
+    ImGui::Checkbox("Lock Camera", &w->system<CameraSystem>().lockPosition);
 
     //const char* label, float v[2], float v_speed, float v_min, float v_max, const char* format, ImGuiSliderFlags flags
     float v[2] = {
-            w->camera().currentPosition.x,
-            w->camera().currentPosition.y,
+            w->system<CameraSystem>().currentPosition.x,
+            w->system<CameraSystem>().currentPosition.y,
     };
     if (ImGui::DragFloat2("Cam Pos", v)) {
-        w->camera().currentPosition.x = floor(v[0]);
-        w->camera().currentPosition.y = floor(v[1]);
+        w->system<CameraSystem>().currentPosition.x = floor(v[0]);
+        w->system<CameraSystem>().currentPosition.y = floor(v[1]);
     }
 
 }

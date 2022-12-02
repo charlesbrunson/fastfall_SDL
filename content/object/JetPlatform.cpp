@@ -45,54 +45,54 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     assert(platform_width_min <= tile_width && tile_width <= platform_width_max);
 
     // collider
-    auto collider_id = w.create_collider<ColliderTileMap>(id, Vec2i{tile_width, 1});
+    auto collider_id = w.create<ColliderTileMap>(entityID(), Vec2i{tile_width, 1});
     auto& collider = w.at(collider_id);
     collider.fill("oneway"_ts);
     collider.applyChanges();
 
     // sprite
-    auto sprite_id = w.create_drawable<AnimatedSprite>(id);
+    auto sprite_id = w.create<AnimatedSprite>(entityID());
     auto& sprite = w.at(sprite_id);
     sprite.set_anim(anim_platform[tile_width - platform_width_min]);
-    w.scene().config(sprite_id) = {
+    w.system<SceneSystem>().config(sprite_id) = {
         .layer_id = 0,
         .type = scene_type::Object,
         .priority = scene_priority::Low
     };
 
     // emitter
-    auto emitter_id = w.create_emitter(id);
+    auto emitter_id = w.create<Emitter>(entityID());
     auto& emitter = w.at(emitter_id);
     emitter.strategy = jet_emitter_str;
-    w.scene().config(emitter.get_drawid()) = {
+    w.system<SceneSystem>().config(emitter.get_drawid()) = {
         .layer_id = 0,
         .type = scene_type::Object,
         .priority = scene_priority::Lowest,
     };
 
     // spring attachpoint
-    auto attach_id = w.create_attachpoint(id);
+    auto attach_id = w.create<AttachPoint>(entityID(), id_placeholder);
     auto& attach = w.at(attach_id);
     attach.teleport(base_position);
     attach.constraint = makeSpringConstraint({30, 50}, {8, 3}, 48.f);
-    w.attach().create(w, attach_id, sprite_id);
-    w.attach().create(w, attach_id, collider_id);
-    w.attach().create(w, attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
+    w.system<AttachSystem>().create(w, attach_id, sprite_id);
+    w.system<AttachSystem>().create(w, attach_id, collider_id);
+    w.system<AttachSystem>().create(w, attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
     attach.sched = AttachPoint::Schedule::PostCollision;
 
     // base attachpoint
     ObjLevelID path_id = data.getPropAsID("path");
     ID<AttachPoint> base_attach_id;
     if (path_id) {
-        auto mover_id = w.create_pathmover(id, Path{data.get_sibling(path_id)});
+        auto mover_id = w.create<PathMover>(entityID(), Path{data.get_sibling(path_id)});
         base_attach_id = w.at(mover_id).get_attach_id();
     } else {
-        base_attach_id = w.create_attachpoint(id, data.getTopLeftPos());
+        base_attach_id = w.create<AttachPoint>(entityID(), id_placeholder, data.getTopLeftPos());
     }
 
     auto& base_attach = w.at(base_attach_id);
     base_attach.teleport(base_position);
-    w.attach().create(w, base_attach_id, attach_id);
+    w.system<AttachSystem>().create(w, base_attach_id, attach_id);
 
     collider.set_on_postcontact(
     [

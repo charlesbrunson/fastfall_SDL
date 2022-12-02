@@ -19,15 +19,15 @@
 namespace ff {
 
 
-TileLayer::TileLayer(ID<Level> lvl_id, unsigned id, Vec2u levelsize)
-	: level_id(lvl_id)
+TileLayer::TileLayer(ID<TileLayer> t_id, unsigned id, Vec2u levelsize)
+	: m_id(t_id)
     , layer_data(id, levelsize)
 	, tiles_dyn(levelsize)
 {
 }
 
-TileLayer::TileLayer(World& world, ID<Level> lvl_id, const TileLayerData& layerData)
-    : level_id(lvl_id)
+TileLayer::TileLayer(World& world, ID<TileLayer> t_id, const TileLayerData& layerData)
+    : m_id(t_id)
 {
 	initFromAsset(world, layerData);
 }
@@ -36,7 +36,7 @@ void TileLayer::set_layer(World& world, scene_layer lyr) {
 	layer = lyr;
 	for (auto chunk_id : dyn.chunks)
 	{
-        auto& scene_obj = world.scene().config(chunk_id);
+        auto& scene_obj = world.system<SceneSystem>().config(chunk_id);
         scene_obj.layer_id = layer;
         scene_obj.resort_flag = true;
 	}
@@ -55,8 +55,8 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 	// init chunks
 	for (auto& [tileset, _] : layer_data.getTilesets())
 	{
-        auto chunk_id = world.create_drawable<ChunkVertexArray>(level_id, getSize(), kChunkSize);
-        world.scene().set_config(chunk_id, {layer, scene_type::Level});
+        auto chunk_id = world.create<ChunkVertexArray>(world.get_entity_of(m_id), getSize(), kChunkSize);
+        world.system<SceneSystem>().set_config(chunk_id, {layer, scene_type::Level});
         dyn.chunks.push_back(chunk_id);
 
         auto& cvr = world.at(chunk_id);
@@ -168,7 +168,7 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 	{
 		if (!dyn.collision.collider) {
 
-            dyn.collision.collider = world.create_collider<ColliderTileMap>(level_id, Vec2i{ getLevelSize() }, true);
+            dyn.collision.collider = world.create<ColliderTileMap>(world.get_entity_of(m_id), Vec2i{ getLevelSize() }, true);
             auto* collider = get_collider(world);
 
 			layer_data.setCollision(true, border);
@@ -195,11 +195,10 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 			collider->applyChanges();
 
             collider->set_on_precontact(
-                [level_id = level_id, layer_id = layer_data.getID()]
+                [id = m_id, layer_id = layer_data.getID()]
                 (World& w, const ContinuousContact& contact, secs duration)
                 {
-                    auto& lvl = w.at(level_id);
-                    auto& tile_layer = lvl.get_tile_layer(layer_id);
+                    auto& tile_layer = w.at(id);
                     auto size = tile_layer.getLevelSize();
                     Vec2i pos = contact.id->quad.to_pos(size, true);
 
@@ -217,11 +216,10 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
                 }
 			);
 			collider->set_on_postcontact(
-                [level_id = level_id, layer_id = layer_data.getID()]
+                [id = m_id, layer_id = layer_data.getID()]
                 (World& w, const AppliedContact& contact, secs deltaTime)
                 {
-                    auto& lvl = w.at(level_id);
-                    auto& tile_layer = lvl.get_tile_layer(layer_id);
+                    auto& tile_layer = w.at(id);
                     auto size = tile_layer.getLevelSize();
                     Vec2i pos = contact.id->quad.to_pos(size, true);
 
@@ -341,8 +339,8 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
 
     // calc visible area
 	Rectf visible;
-	Vec2f cam_pos = world.camera().getPosition(interp); //instance::cam_get_interpolated_pos(m_context, interp);
-	float cam_zoom = world.camera().zoomFactor; //instance::cam_get_zoom(m_context);
+	Vec2f cam_pos = world.system<CameraSystem>().getPosition(interp); //instance::cam_get_interpolated_pos(m_context, interp);
+	float cam_zoom = world.system<CameraSystem>().zoomFactor; //instance::cam_get_zoom(m_context);
 	visible.width = GAME_W_F * cam_zoom;
 	visible.height = GAME_H_F * cam_zoom;
 	visible.left = cam_pos.x - (visible.width / 2.f);
@@ -488,8 +486,8 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 	if (tile.tileset_ndx == dyn.chunks.size())
 	{
         // TODO buffer changes?
-        auto chunk_id = world.create_drawable<ChunkVertexArray>(level_id, getSize(), kChunkSize);
-        world.scene().set_config(chunk_id, { layer, scene_type::Level });
+        auto chunk_id = world.create<ChunkVertexArray>(world.get_entity_of(m_id), getSize(), kChunkSize);
+        world.system<SceneSystem>().set_config(chunk_id, { layer, scene_type::Level });
 
         auto& cvr = world.at(chunk_id);
         cvr.setTexture(next_tileset->getTexture());

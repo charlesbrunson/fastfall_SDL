@@ -18,14 +18,14 @@ void EmitterSystem::predraw(World& world, float interp, bool updated) {
     {
         e.predraw(
                 world.at(e.get_drawid()),
-                world.scene().config(e.get_drawid()),
+                world.system<SceneSystem>().config(e.get_drawid()),
                 interp,
                 updated);
     }
 }
 
 void EmitterSystem::notify_created(World &world, ID<Emitter> id) {
-    auto varr_id = world.create_drawable<VertexArray>(
+    auto varr_id = world.create<VertexArray>(
             world.get_entity_of(id),
             ff::Primitive::TRIANGLES);
 

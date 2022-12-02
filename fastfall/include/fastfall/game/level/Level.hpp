@@ -20,16 +20,18 @@ class LevelEditor;
 
 class Level  {
 public:
-	using Layers = LevelLayerContainer<TileLayer, ObjectLayer>;
+    struct TileLayerProxy {
+        ID<TileLayer> cmp_id;
+        unsigned layer_id;
+        unsigned getID() const { return layer_id; }
+    };
+
+	using Layers = LevelLayerContainer<TileLayerProxy, ObjectLayer>;
 
 	Level(World& w, ID<Level> t_id);
 	Level(World& w, ID<Level> t_id, const LevelAsset& levelData);
 
-    //void init(World& world, ID<Level> t_id);
     void initFromAsset(World& world, const LevelAsset& levelData);
-
-    // removes all layers, resets name, bg color and size
-    // void clean(World& w);
 
 	void update(World& world, secs deltaTime);
 	void predraw(World& world, float interp, bool updated);
@@ -48,8 +50,8 @@ public:
     ObjectLayer& get_obj_layer() { return layers.get_obj_layer(); }
     const ObjectLayer& get_obj_layer() const { return layers.get_obj_layer(); }
 
-    TileLayer& get_tile_layer(unsigned id) { return layers.get_tile_layers().at(id).tilelayer; }
-    const TileLayer& get_tile_layer(unsigned id) const { return layers.get_tile_layers().at(id).tilelayer; }
+    TileLayerProxy& get_tile_layer(unsigned id) { return layers.get_tile_layers().at(id).tilelayer; }
+    const TileLayerProxy& get_tile_layer(unsigned id) const { return layers.get_tile_layers().at(id).tilelayer; }
 
 	bool hasEditorHooked = false;
 

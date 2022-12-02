@@ -45,9 +45,13 @@ bool LevelEditor::create_layer(int layer_pos)
 		&& layer_pos >= -bg_count - 1
 		&& layer_pos <= fg_count + 1)
 	{
+        auto ent = world->get_entity_of(level->getID());
 		level->get_layers().insert(
 			layer_pos,
-			TileLayer{ level->getID(), 0, level->size() }
+            Level::TileLayerProxy{
+                .cmp_id = world->create<TileLayer>( ent, id_placeholder, 0, level->size() ),
+                .layer_id = 0
+            }
 		);
 	}
 	return false;
@@ -144,21 +148,24 @@ bool LevelEditor::erase_layer()
 bool LevelEditor::layer_set_collision(bool enabled, unsigned borderBits)
 {
 	if (level && curr_layer) {
-		return curr_layer->tilelayer.set_collision(*world, enabled, borderBits);
+        auto& layer = world->at(curr_layer->tilelayer.cmp_id);
+		return layer.set_collision(*world, enabled, borderBits);
 	}
 	return false;
 }
 bool LevelEditor::layer_set_scroll(bool enabled, Vec2f scroll_rate)
 {
 	if (level && curr_layer) {
-		return curr_layer->tilelayer.set_scroll(*world, enabled, scroll_rate);
+        auto& layer = world->at(curr_layer->tilelayer.cmp_id);
+		return layer.set_scroll(*world, enabled, scroll_rate);
 	}
 	return false;
 }
 bool LevelEditor::layer_set_parallax(bool enabled, Vec2u parallax_size)
 {
 	if (level && curr_layer) {
-		return curr_layer->tilelayer.set_parallax(*world, enabled, parallax_size);
+        auto& layer = world->at(curr_layer->tilelayer.cmp_id);
+		return layer.set_parallax(*world, enabled, parallax_size);
 	}
 	return false;
 }
@@ -171,13 +178,13 @@ bool LevelEditor::paint_tile(Vec2u pos)
 	if (!level) return false;
 
 	if (curr_layer && curr_tileset && tileset_pos) {
-		Vec2u size = curr_layer->tilelayer.getLevelSize();
+        auto& layer = world->at(curr_layer->tilelayer.cmp_id);
+		Vec2u size = layer.getLevelSize();
 
 		if (pos.x < size.x && pos.y < size.y) 
 		{
-			curr_layer->tilelayer.setTile(*world, pos, *tileset_pos, *curr_tileset);
+            layer.setTile(*world, pos, *tileset_pos, *curr_tileset);
 			return true;
-
 		}
 	}
 	return false;
@@ -189,11 +196,12 @@ bool LevelEditor::erase_tile(Vec2u pos)
 	if (!level) return false;
 
 	if (curr_layer) {
-		Vec2u size = curr_layer->tilelayer.getLevelSize();
+        auto& layer = world->at(curr_layer->tilelayer.cmp_id);
+		Vec2u size = layer.getLevelSize();
 
 		if (pos.x < size.x && pos.y < size.y)
 		{
-			curr_layer->tilelayer.removeTile(*world, pos);
+            layer.removeTile(*world, pos);
 			return true;
 		}
 	}
@@ -334,7 +342,13 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		);
 		if (not_in_lvl)
 		{
-			lvl_layers.push_fg_front(TileLayer{ *world, level->getID(), layer_ref.tilelayer });
+            auto ent = world->get_entity_of(level->getID());
+			lvl_layers.push_fg_front(
+                Level::TileLayerProxy{
+                    .cmp_id   = world->create<TileLayer>(ent, *world, id_placeholder, layer_ref.tilelayer ),
+                    .layer_id = layer_ref.tilelayer.getID()
+                }
+            );
 			nLayers.insert(layer_ref.tilelayer.getID());
 		}
 	}
@@ -359,39 +373,40 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		select_layer(layer.position);
 
 		// disable layer properties
-		if (layer.tilelayer.hasCollision() && !tile_ref.hasCollision())
+        auto& tlayer = world->at(layer.tilelayer.cmp_id);
+		if (tlayer.hasCollision() && !tile_ref.hasCollision())
 		{
-			layer.tilelayer.set_collision(*world, false);
+            tlayer.set_collision(*world, false);
 			LOG_INFO("disable collision");
 		}
-		if (layer.tilelayer.hasScrolling() && !tile_ref.hasScrolling())
+		if (tlayer.hasScrolling() && !tile_ref.hasScrolling())
 		{
-			layer.tilelayer.set_scroll(*world, false);
+            tlayer.set_scroll(*world, false);
 			LOG_INFO("disable scroll");
 		}
-		if (layer.tilelayer.hasParallax() && !tile_ref.hasParallax())
+		if (tlayer.hasParallax() && !tile_ref.hasParallax())
 		{
-			layer.tilelayer.set_parallax(*world, false);
+            tlayer.set_parallax(*world, false);
 			LOG_INFO("disable parallax");
 		}
 
 		// enable or update layer properties
-		if ((!layer.tilelayer.hasCollision() && tile_ref.hasCollision()) ||
-			(tile_ref.hasCollision() && (layer.tilelayer.getCollisionBorders() != tile_ref.getCollisionBorders())))
+		if ((!tlayer.hasCollision() && tile_ref.hasCollision()) ||
+			(tile_ref.hasCollision() && (tlayer.getCollisionBorders() != tile_ref.getCollisionBorders())))
 		{
-			layer.tilelayer.set_collision(*world, true, tile_ref.getCollisionBorders());
+            tlayer.set_collision(*world, true, tile_ref.getCollisionBorders());
 			LOG_INFO("enable collision");
 		}
-		if ((!layer.tilelayer.hasScrolling() && tile_ref.hasScrolling()) ||
-			(tile_ref.hasScrolling() && (layer.tilelayer.getScrollRate() != tile_ref.getScrollRate())))
+		if ((!tlayer.hasScrolling() && tile_ref.hasScrolling()) ||
+			(tile_ref.hasScrolling() && (tlayer.getScrollRate() != tile_ref.getScrollRate())))
 		{
-			layer.tilelayer.set_scroll(*world, true, tile_ref.getScrollRate());
+            tlayer.set_scroll(*world, true, tile_ref.getScrollRate());
 			LOG_INFO("enable scroll");
 		}
-		if ((!layer.tilelayer.hasParallax() && tile_ref.hasParallax()) ||
-			(tile_ref.hasParallax() && (layer.tilelayer.getParallaxSize() != tile_ref.getParallaxSize())))
+		if ((!tlayer.hasParallax() && tile_ref.hasParallax()) ||
+			(tile_ref.hasParallax() && (tlayer.getParallaxSize() != tile_ref.getParallaxSize())))
 		{
-			layer.tilelayer.set_parallax(*world, true, tile_ref.getParallaxSize());
+            tlayer.set_parallax(*world, true, tile_ref.getParallaxSize());
 			LOG_INFO("enable parallax");
 		}
 
@@ -411,9 +426,9 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 				auto tile_id = tile_it->base_id;
 				auto tileset = tile_ref.getTilesetFromNdx(tile_it->tileset_ndx);
 
-				if (   (!tilelayer.hasTileAt(pos))
-					|| (tilelayer.getTileBaseID(pos).value() != tile_id)
-					|| (tilelayer.getTileTileset(pos) != tileset))
+				if (   (!tlayer.hasTileAt(pos))
+					|| (tlayer.getTileBaseID(pos).value() != tile_id)
+					|| (tlayer.getTileTileset(pos) != tileset))
 				{
 					paint_count++;
 					select_tileset(tileset);
@@ -421,14 +436,14 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 					paint_tile(pos);
 				}
 			}
-			else if (tilelayer.hasTileAt(pos)) {
+			else if (tlayer.hasTileAt(pos)) {
 				erase_count++;
 				erase_tile(pos);
 			}
 		}
 
 		// predraw to apply changes
-		layer.tilelayer.predraw(*world, 0.0, true);
+        tlayer.predraw(*world, 0.0, true);
 
 		// increment to next tilelayer ref
 		it++; 

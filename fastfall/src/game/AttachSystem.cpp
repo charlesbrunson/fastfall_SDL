@@ -71,8 +71,8 @@ namespace ff {
 
         // Drawable
         void attach_update(World& w, ID<Drawable> id, Drawable& cmp, const AttachState& st) {
-            w.scene().config(id).prev_pos = st.ppos;
-            w.scene().config(id).curr_pos = st.cpos;
+            w.system<SceneSystem>().config(id).prev_pos = st.ppos;
+            w.system<SceneSystem>().config(id).curr_pos = st.cpos;
         }
 
         // PathMover
@@ -113,7 +113,7 @@ namespace ff {
 
         // Drawable
         Vec2f attach_get_pos(World& w, ID<Drawable> id, Drawable& cmp) {
-            return w.scene().config(id).curr_pos;
+            return w.system<SceneSystem>().config(id).curr_pos;
         }
 
         // PathMover
@@ -136,8 +136,16 @@ namespace ff {
             .tick = w.tick_count()
         };
 
-        detail::attach_update(w, attachment_id, component, state);
-        return detail::attach_get_pos(w, attachment_id, component);
+        if constexpr (requires(ID<T> x_id, T& x) { detail::attach_update(std::declval<World>(), x_id, x, std::declval<AttachState>()); }) {
+            detail::attach_update(w, attachment_id, component, state);
+        }
+
+        if constexpr (requires(ID<T> x_id, T& x) { detail::attach_get_pos(std::declval<World>(), x_id, x); }) {
+            return detail::attach_get_pos(w, attachment_id, component);
+        }
+        else {
+            return {};
+        }
     }
 
     void AttachSystem::update(World& world, secs deltaTime) {
@@ -222,7 +230,7 @@ namespace ff {
 
     void AttachSystem::notify_created(World& world, ID<Collidable> id) {
         auto ent = world.get_entity_of(id);
-        auto attachid = world.create_attachpoint(ent);
+        auto attachid = world.create<AttachPoint>(ent, id_placeholder);
         auto& col = world.at(id);
         col.set_attach_id(attachid);
         auto& attach = world.at(attachid);
@@ -240,7 +248,7 @@ namespace ff {
 
     void AttachSystem::notify_created(World& world, ID<PathMover> id) {
         auto ent = world.get_entity_of(id);
-        auto attachid = world.create_attachpoint(ent);
+        auto attachid = world.create<AttachPoint>(ent, id_placeholder);
         auto& pathmover = world.at(id);
         pathmover.set_attach_id(attachid);
         auto& attach = world.at(attachid);

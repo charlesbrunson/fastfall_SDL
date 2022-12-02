@@ -27,25 +27,154 @@ namespace ff {
 class World : public Drawable
 {
 private:
-    template<class T>
-    constexpr auto& container() const {
-        if      constexpr (std::same_as<T, Collidable>)          { return _collidables; }
-        else if constexpr (std::same_as<T, Trigger>)             { return _triggers; }
-        else if constexpr (std::same_as<T, Emitter>)             { return _emitters; }
-        else if constexpr (std::same_as<T, AttachPoint>)         { return _attachpoints; }
-        else if constexpr (std::same_as<T, Level>)               { return _levels; }
-        else if constexpr (std::same_as<T, PathMover>)           { return _pathmovers; }
-        else if constexpr (std::derived_from<T, ColliderRegion>) { return _colliders; }
-        else if constexpr (std::derived_from<T, CameraTarget>)   { return _camera_targets; }
-        else if constexpr (std::derived_from<T, Drawable>)       { return _drawables; }
-        else if constexpr (std::derived_from<T, GameObject>)     { return _objects; }
-        else { throw std::exception{}; }
+    struct state_t
+    {
+        // entity
+        id_map<Entity> _entities;
+        std::unordered_map<ComponentID, ID<Entity>> _comp_to_ent;
+
+        // components
+        poly_id_map<GameObject> _objects;
+        id_map<Level> _levels;
+        id_map<Collidable> _collidables;
+        poly_id_map<ColliderRegion> _colliders;
+        id_map<Trigger> _triggers;
+        poly_id_map<CameraTarget> _camera_targets;
+        poly_id_map<Drawable> _drawables;
+        id_map<Emitter> _emitters;
+        id_map<AttachPoint> _attachpoints;
+        id_map<PathMover> _pathmovers;
+        id_map<TileLayer> _tilelayer;
+
+        constexpr auto all_component_lists()  {
+            return std::tie(
+                _objects,
+                _levels,
+                _collidables,
+                _colliders,
+                _triggers,
+                _camera_targets,
+                _drawables,
+                _emitters,
+                _attachpoints,
+                _pathmovers,
+                _tilelayer
+            );
+        }
+
+        constexpr auto all_component_lists() const {
+            return std::tie(
+                _objects,
+                _levels,
+                _collidables,
+                _colliders,
+                _triggers,
+                _camera_targets,
+                _drawables,
+                _emitters,
+                _attachpoints,
+                _pathmovers,
+                _tilelayer
+            );
+        }
+
+        // systems
+        LevelSystem _level_system;
+        ObjectSystem _object_system;
+        CollisionSystem _collision_system;
+        TriggerSystem _trigger_system;
+        EmitterSystem _emitter_system;
+        AttachSystem _attach_system;
+        CameraSystem _camera_system;
+        SceneSystem _scene_system;
+        PathSystem _path_system;
+
+        constexpr auto all_systems()  {
+            return std::tie(
+                _level_system,
+                _object_system,
+                _collision_system,
+                _trigger_system,
+                _emitter_system,
+                _attach_system,
+                _camera_system,
+                _scene_system,
+                _path_system
+            );
+        }
+
+        constexpr auto all_systems() const {
+            return std::tie(
+                _level_system,
+                _object_system,
+                _collision_system,
+                _trigger_system,
+                _emitter_system,
+                _attach_system,
+                _camera_system,
+                _scene_system,
+                _path_system
+            );
+        }
+
+        // input
+        InputState _input;
+
+        size_t update_counter = 0;
+        secs update_time = 0.0;
+
+        InputSourceNull input_null;
+    };
+    state_t state;
+
+private:
+
+    template<typename T>
+    static constexpr auto& impl_get_best_component_list(auto& first) {
+        using Container = std::remove_cvref_t<decltype(first)>;
+        using Item      = typename Container::base_type;
+
+        if constexpr (std::same_as<id_map<T>, Container>
+                      || std::same_as<poly_id_map<Item>, Container> && std::derived_from<Item, T>)
+        {
+            return first;
+        }
+        else {
+            []<bool flag = false>()
+            { static_assert(flag, "no match component list"); }();
+            return id_map<T>{};
+        }
+    }
+
+    template<typename T>
+    static constexpr auto& impl_get_best_component_list(auto& first, auto&... rest) {
+        using Container = std::remove_cvref_t<decltype(first)>;
+        using Item      = typename Container::base_type;
+
+        if constexpr (std::same_as<id_map<T>, Container>
+                   || std::same_as<poly_id_map<Item>, Container> && std::derived_from<T, Item>)
+        {
+            return first;
+        }
+        else {
+            return impl_get_best_component_list<T>(rest...);
+        }
+    }
+
+    template<typename T>
+    constexpr auto& list_for() const {
+        return std::apply(
+                [](auto&... lists) -> auto& { return impl_get_best_component_list<T>(lists...); },
+                state.all_component_lists());
     }
 
     template<class T>
-    constexpr auto& container() {
-        return const_cast<const World*>(this)->container<T>();
+    constexpr auto& list_for() {
+        return std::apply(
+                [](auto&... lists) -> auto& { return impl_get_best_component_list<T>(lists...); },
+                state.all_component_lists());
     }
+
 
     auto span(auto& components) { return std::span{components.begin(), components.end()}; };
 
@@ -79,7 +208,6 @@ public:
     World& operator=(World&&) noexcept;
     ~World();
 
-    std::string name;
 
     // manage state
     void update(secs deltaTime);
@@ -87,10 +215,10 @@ public:
 
 	// access component
     template<class T>
-    T& at(ID<T> id) { return container<T>().at(id); }
+    T& at(ID<T> id) { return list_for<T>().at(id); }
 
     template<class T>
-    const T& at(ID<T> id) const { return container<T>().at(id); }
+    const T& at(ID<T> id) const { return list_for<T>().at(id); }
 
     template<class... IDs>
     requires (sizeof...(IDs) > 1)
@@ -101,16 +229,16 @@ public:
     auto at(IDs... ids) const { return std::forward_as_tuple(at(ids)...); }
 
     template<class T>
-    T* get(ID<T> id) { return container<T>().get(id); }
+    T* get(ID<T> id) { return list_for<T>().get(id); }
 
     template<class T>
-    const T* get(ID<T> id) const { return container<T>().get(id); }
+    const T* get(ID<T> id) const { return list_for<T>().get(id); }
 
     template<class T>
-    T* get(std::optional<ID<T>> id) { return id ? container<T>().get(*id) : nullptr; }
+    T* get(std::optional<ID<T>> id) { return id ? list_for<T>().get(*id) : nullptr; }
 
     template<class T>
-    const T* get(std::optional<ID<T>> id) const { return id ? container<T>().get(*id) : nullptr; }
+    const T* get(std::optional<ID<T>> id) const { return id ? list_for<T>().get(*id) : nullptr; }
 
     template<class... IDs>
     requires (sizeof...(IDs) > 1)
@@ -121,62 +249,47 @@ public:
     auto get(IDs... ids) const { return std::forward_as_tuple(get(ids)...); }
 
     // create entity
-    ID<Entity> create_entity() {
-        return _entities.create();
+    ID<Entity> create_entity() { return state._entities.create(); }
+    ID<GameObject> create_object_from_data(ObjectLevelData& data) {
+        auto id = create_entity();
+        // TODO
+        ID<GameObject> tmp;
+        return tmp;
+    };
+    ID<Level> create_level(const LevelAsset& levelData, bool create_objects) {
+        auto id = create_entity();
+        auto lvl_id = create<Level>(id, *this, id_placeholder, levelData);
+        if (create_objects) {
+            at(lvl_id).get_layers().get_obj_layer().createObjectsFromData(*this);
+        }
+        return lvl_id;
     }
 
-    template<class T, class... Args> requires std::derived_from<T, GameObject>
-    ID<T> create_object(Args&&... args) {
-        auto ent_id = create_entity();
-        _entities.at(ent_id).components.emplace(_objects.peek_next_id(), std::set<ComponentID>{});
-        auto id = notify_created_all(
-                poly_create_tmpl<T>(_objects, *this, _objects.peek_next_id(), std::forward<Args>(args)...),
-                _object_system);
-        return id;
+    ID<Level> create_level() {
+        auto id = create_entity();
+        auto lvl_id = create<Level>(id, *this, id_placeholder);
+        return lvl_id;
     }
-
-    ID<Level> create_level(const LevelAsset& lvl_asset, bool create_objects);
-    ID<Level> create_level();
 
     // create component
-	ID<Collidable> create_collidable(ID<Entity> ent, Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
-    ID<Trigger> create_trigger(ID<Entity> ent);
-    ID<AttachPoint> create_attachpoint(ID<Entity> ent, Vec2f init_pos = {}, Vec2f init_vel = {});
-    ID<Emitter> create_emitter(ID<Entity> ent, EmitterStrategy strat = {});
-    ID<PathMover> create_pathmover(ID<Entity> ent, const Path& path);
-
-    template<class T, class... Args> requires std::derived_from<T, ColliderRegion>
-	ID<T> create_collider(ID<Entity> ent, Args&&... args) {
-        auto tmp_id = _colliders.peek_next_id();
-        //ent_to_comp.at(ent).insert(tmp_id);
-        _entities.at(ent).components.insert(tmp_id);
-        _comp_to_ent.emplace(tmp_id, ent);
-        auto id = notify_created_all(
-                poly_create_tmpl<T>(_colliders, std::forward<Args>(args)...),
-                _collision_system);
-        return id;
-    }
-
-	template<class T, class... Args> requires std::derived_from<T, CameraTarget>
-	ID<T> create_camera_target(ID<Entity> ent, Args&&... args) {
-        auto tmp_id = _camera_targets.peek_next_id();
-        _entities.at(ent).components.insert(tmp_id);
-        _comp_to_ent.emplace(tmp_id, ent);
-        auto id = notify_created_all(
-                poly_create_tmpl<T>(_camera_targets, std::forward<Args>(args)...),
-                _camera_system) ;
-        return id;
-    }
-
-    template<class T, class... Args> requires std::derived_from<T, Drawable>
-    ID<T> create_drawable(ID<Entity> ent, Args&&... args) {
-        auto tmp_id = _drawables.peek_next_id();
-        _entities.at(ent).components.insert(tmp_id);
-        _comp_to_ent.emplace(tmp_id, ent);
-        auto id = notify_created_all(
-                poly_create_tmpl<T>(_drawables, std::forward<Args>(args)...),
-                _scene_system);
-        return id;
+    template<typename T>
+    ID<T> create(ID<Entity> ent, auto&&... args) {
+        auto& list = list_for<T>();
+        using container_t = std::remove_cvref_t<decltype(list)>;
+        using base_type = typename container_t::base_type;
+        ID<T> tmp_id = id_cast<T>(list.peek_next_id());
+        state._entities.at(ent).components.insert(tmp_id);
+        state._comp_to_ent.emplace(tmp_id, ent);
+        if constexpr (container_t::is_poly) {
+            tmp_id = list.template create<T>(std::forward<swap_id_t<decltype(args), ID<T>>>(
+                    set_placeholder_id(std::forward<decltype(args)>(args), tmp_id))...);
+        }
+        else {
+            tmp_id = list.create(std::forward<swap_id_t<decltype(args), ID<T>>>(
+                    set_placeholder_id(std::forward<decltype(args)>(args), tmp_id))...);
+        }
+        system_notify_created<base_type>(tmp_id);
+        return tmp_id;
     }
 
 	// erase component
@@ -185,92 +298,46 @@ public:
 
     // span components
     template<class T>
-    inline auto& all() { return container<T>(); }
+    inline auto& all() { return list_for<T>(); }
 
 	// access system
-	inline CollisionSystem& collision() { return _collision_system; }
-	inline TriggerSystem&   trigger()   { return _trigger_system; }
-	inline CameraSystem&    camera()    { return _camera_system; }
-	inline SceneSystem&     scene()     { return _scene_system; }
-    inline AttachSystem&    attach()    { return _attach_system; }
-    inline InputState&      input()     { return _input; }
-    inline ObjectSystem&    objects() 	{ return _object_system; }
-    inline LevelSystem&     levels()    { return _level_system; }
+    template<class T>
+    inline constexpr T& system() { return std::get<T&>(state.all_systems()); }
 
-    size_t tick_count() const { return update_counter; }
-    secs uptime() const { return update_time; }
-
+    // entity helpers
     const std::set<ComponentID>& get_components_of(ID<Entity> id) const;
     ID<Entity> get_entity_of(ComponentID id) const;
+
+    // misc
+    std::string name;
+    inline size_t tick_count() const { return state.update_counter; }
+    inline secs uptime() const { return state.update_time; }
+    inline InputState& input() { return state._input; }
 
 private:
     void draw(RenderTarget& target, RenderState state = RenderState()) const override;
 
-    // entity
-    id_map<Entity> _entities;
-    std::unordered_map<ComponentID, ID<Entity>> _comp_to_ent;
-
-	// components
-    poly_id_map<GameObject>     _objects;
-    id_map<Level> 			    _levels;
-	id_map<Collidable> 			_collidables;
-	poly_id_map<ColliderRegion> _colliders;
-	id_map<Trigger> 			_triggers;
-	poly_id_map<CameraTarget> 	_camera_targets;
-    poly_id_map<Drawable>       _drawables;
-    id_map<Emitter>             _emitters;
-    id_map<AttachPoint>         _attachpoints;
-    id_map<PathMover> 			_pathmovers;
-    id_map<TileLayer>           _tilelayer;
-
-    auto all_component_lists() {
-        return std::tie(
-            _objects,
-            _levels,
-            _collidables,
-            _colliders,
-            _triggers,
-            _camera_targets,
-            _drawables,
-            _emitters,
-            _attachpoints,
-            _pathmovers,
-            _tilelayer
-        );
+    template<typename T>
+    void system_notify_created(ID<T> t_id) {
+        std::apply([&, this](auto&... system) {
+            ([&, this]<typename System>(System& sys){
+                if constexpr (requires(System s, ID<T> i) { s.notify_created(std::declval<World>(), i); }) {
+                    sys.notify_created(*this, t_id);
+                }
+            }(system), ...);
+        }, state.all_systems());
     }
 
-	// systems
-	LevelSystem	    _level_system;
-	ObjectSystem	_object_system;
-	CollisionSystem _collision_system;
-	TriggerSystem	_trigger_system;
-    EmitterSystem	_emitter_system;
-    AttachSystem	_attach_system;
-	CameraSystem	_camera_system;
-	SceneSystem		_scene_system;
-    PathSystem      _path_system;
-
-    auto all_systems() {
-        return std::tie(
-            _level_system,
-            _object_system,
-            _collision_system,
-            _trigger_system,
-            _emitter_system,
-            _attach_system,
-            _camera_system,
-            _scene_system,
-            _path_system
-        );
+    template<typename T>
+    void system_notify_erased(ID<T> t_id) {
+        std::apply([&, this](auto&... system) {
+            ([&, this]<typename System>(System& sys){
+                if constexpr (requires(System s, ID<T> i) { s.notify_erased(std::declval<World>(), i); }) {
+                    sys.notify_erased(*this, t_id);
+                }
+            }(system), ...);
+        }, state.all_systems());
     }
-
-    // input
-    InputState      _input;
-
-    size_t update_counter = 0;
-    secs update_time = 0.0;
-
-    InputSourceNull input_null;
 };
 
 }

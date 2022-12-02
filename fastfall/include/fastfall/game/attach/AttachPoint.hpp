@@ -11,7 +11,7 @@ namespace ff {
 class AttachPoint {
 public:
 
-    AttachPoint(ID<AttachPoint> t_id);
+    AttachPoint(ID<AttachPoint> t_id, Vec2f init_pos = {}, Vec2f init_vel = {});
 
     // apply vel to position
     void apply_vel(secs deltaTime);

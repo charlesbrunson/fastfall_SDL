@@ -2,9 +2,12 @@
 
 namespace ff {
 
-AttachPoint::AttachPoint(ID<AttachPoint> t_id)
+AttachPoint::AttachPoint(ID<AttachPoint> t_id, Vec2f init_pos, Vec2f init_vel)
     : _id(t_id)
 {
+    teleport(init_pos);
+    set_parent_vel(init_vel);
+    set_local_vel({});
 }
 
 void AttachPoint::apply_vel(secs deltaTime) {

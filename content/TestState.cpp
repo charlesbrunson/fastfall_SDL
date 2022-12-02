@@ -27,9 +27,9 @@ TestState::TestState()
 	if (auto* lvlptr = ff::Resources::get<ff::LevelAsset>("map_test.tmx"))
 	{
         auto lvl_id = world->create_level(*lvlptr, true);
-        world->levels().set_active(lvl_id);
+        world->system<LevelSystem>().set_active(lvl_id);
 	}
-    Level* lvl = world->levels().get_active(*world);
+    Level* lvl = world->system<LevelSystem>().get_active(*world);
     assert(lvl);
 
 	edit = std::make_unique<LevelEditor>( *world, *lvl, false );
@@ -55,7 +55,7 @@ void TestState::update(secs deltaTime) {
 	if (edit)
 	{
         currKeys = SDL_GetKeyboardState(&key_count);
-		const TileLayer& tilelayer = edit->get_tile_layer()->tilelayer;
+		const TileLayer& tilelayer = world->at(edit->get_tile_layer()->tilelayer.cmp_id);
 
 		mpos = Mouse::world_pos();
 		tpos = tilelayer.getTileFromWorldPos(mpos).value_or(Vec2i{});
@@ -115,10 +115,10 @@ void TestState::update(secs deltaTime) {
 				Vec2u tile_pos = Vec2u{ tpos };
 
 				if (tilelayer
-					&& tilelayer->tilelayer.hasTileAt(tile_pos))
+					&& world->at(tilelayer->tilelayer.cmp_id).hasTileAt(tile_pos))
 				{
-					const TilesetAsset* tileset = tilelayer->tilelayer.getTileTileset(tile_pos);
-					TileID id = tilelayer->tilelayer.getTileBaseID(tile_pos).value_or(TileID{});
+					const TilesetAsset* tileset = world->at(tilelayer->tilelayer.cmp_id).getTileTileset(tile_pos);
+					TileID id = world->at(tilelayer->tilelayer.cmp_id).getTileBaseID(tile_pos).value_or(TileID{});
 
 					if (tileset && id.valid())
 					{
@@ -164,7 +164,7 @@ void TestState::update(secs deltaTime) {
 
 		if (Mouse::in_view() && (Mouse::m1.is_held() || Mouse::m2.is_held()))
 		{
-            Level* lvl = world->levels().get_active(*world);
+            Level* lvl = world->system<LevelSystem>().get_active(*world);
 			if (Rectf{ Vec2f{}, Vec2f{lvl->size()} * TILESIZE_F }.contains(mpos)
 				&& (!painting || (last_paint != tpos)))
 			{
@@ -190,7 +190,7 @@ void TestState::update(secs deltaTime) {
 
 			std::string_view tileset_name = tileset->getAssetName();
 
-			std::string_view layer_name = edit->get_tile_layer()->tilelayer.getName();
+			std::string_view layer_name = world->at(edit->get_tile_layer()->tilelayer.cmp_id).getName();
 			unsigned layer_id = edit->get_tile_layer()->tilelayer.getID();
 			int layer_pos = layer;
 
@@ -258,8 +258,8 @@ void TestState::predraw(float interp, bool updated, const WindowState* win_state
         LOG_INFO("loaded state");
     }
     world->predraw(interp, updated);
-	viewPos = world->camera().getPosition(interp);
-	viewZoom = world->camera().zoomFactor;
+	viewPos = world->system<CameraSystem>().getPosition(interp);
+	viewZoom = world->system<CameraSystem>().zoomFactor;
 
 	tile_text.predraw();
 
@@ -273,7 +273,7 @@ void TestState::predraw(float interp, bool updated, const WindowState* win_state
 		if (tileset && tile) 
 		{
 
-			const TileLayer& tilelayer = edit->get_tile_layer()->tilelayer;
+			const TileLayer& tilelayer = world->at(edit->get_tile_layer()->tilelayer.cmp_id);
 			ghost_pos = tilelayer.getWorldPosFromTilePos(tpos);
 
 			tile_ghost.setPosition(ghost_pos.real);
@@ -331,9 +331,9 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const
 		target.draw(tile_ghost, state);
 		target.draw(tile_text, state);
 
-		Vec2f offset = -1.f * Vec2f{ edit->get_tile_layer()->tilelayer.getSize() } * TILESIZE_F;
+		Vec2f offset = -1.f * Vec2f{ world->at(edit->get_tile_layer()->tilelayer.cmp_id).getSize() } * TILESIZE_F;
 
-		if (edit->get_tile_layer()->tilelayer.hasScrolling()) 
+		if (world->at(edit->get_tile_layer()->tilelayer.cmp_id).hasScrolling())
 		{
 			if (ghost_pos.mirrorx)
 			{

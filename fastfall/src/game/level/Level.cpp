@@ -14,33 +14,61 @@ namespace ff {
 Level::Level(World& world, ID<Level> t_id)
     : m_id(t_id)
 {
+    auto ent = world.get_entity_of(t_id);
+    auto cmps = world.get_components_of(ent);
+    for (auto& c : cmps) {
+        if (std::holds_alternative<ID<Level>>(c) && c != ComponentID{ t_id })
+        {
+            LOG_ERR_("Entity {} has multiple instances of Level component!", ent.value.sparse_index);
+        }
+        if (std::holds_alternative<ID<GameObject>>(c) && c != ComponentID{ t_id })
+        {
+            LOG_ERR_("Entity {} has both a Level and GameObject component!", ent.value.sparse_index);
+        }
+    }
 }
 
 Level::Level(World& world, ID<Level> t_id, const LevelAsset& levelData)
     : m_id(t_id)
 {
+    auto ent = world.get_entity_of(t_id);
+    auto cmps = world.get_components_of(ent);
+    for (auto& c : cmps) {
+        if (std::holds_alternative<ID<Level>>(c) && c != ComponentID{ t_id })
+        {
+            LOG_ERR_("Entity {} has multiple instances of Level component!", ent.value.sparse_index);
+        }
+        if (std::holds_alternative<ID<GameObject>>(c) && c != ComponentID{ t_id })
+        {
+            LOG_ERR_("Entity {} has both a Level and GameObject component!", ent.value.sparse_index);
+        }
+    }
+
     initFromAsset(world, levelData);
 }
 
 void Level::update(World& world, secs deltaTime) {
 	for (auto& [pos, layer] : layers.get_tile_layers()) {
-		layer.update(world, deltaTime);
+		world.at(layer.cmp_id).update(world, deltaTime);
 	}	
 }
 
 void Level::predraw(World& world, float interp, bool updated) {
 
 	for (auto& [pos, layer] : layers.get_tile_layers()) {
-		layer.predraw(world, interp, updated);
+        world.at(layer.cmp_id).predraw(world, interp, updated);
 	}
 }
 
 void Level::initFromAsset(World& world, const LevelAsset& levelData)
 {
     // remove existing components and layers
-    auto components = world.get_components_of(getID());
+    auto entity = world.get_entity_of(getID());
+    auto components = world.get_components_of(entity);
     for (auto c : components) {
-        world.erase(c);
+        if (c != ComponentID{ getID() }) {
+            world.erase(c);
+        }
     }
     layers.clear_all();
 
@@ -50,17 +78,24 @@ void Level::initFromAsset(World& world, const LevelAsset& levelData)
 
 	for (auto& layerRef : levelData.getLayerRefs().get_tile_layers())
 	{
+        auto ent = world.get_entity_of(m_id);
 		if (layerRef.position < 0) {
-			layers.push_bg_front(TileLayer{ world, m_id, layerRef.tilelayer });
+            layers.push_bg_front(TileLayerProxy{
+                .cmp_id   = world.create<TileLayer>(ent, world, id_placeholder, layerRef.tilelayer),
+                .layer_id = layerRef.tilelayer.getID()
+            });
 		}
 		else {
-			layers.push_fg_front(TileLayer{ world, m_id, layerRef.tilelayer });
+            layers.push_fg_front(TileLayerProxy{
+                .cmp_id   = world.create<TileLayer>(ent, world, id_placeholder, layerRef.tilelayer),
+                .layer_id = layerRef.tilelayer.getID()
+            });
 		}
 	}
 
 	for (auto& layer : layers.get_tile_layers())
 	{
-		layer.tilelayer.set_layer(world, layer.position);
+		world.at(layer.tilelayer.cmp_id).set_layer(world, layer.position);
 	}
 
 	layers.get_obj_layer().initFromAsset(
@@ -70,8 +105,9 @@ void Level::initFromAsset(World& world, const LevelAsset& levelData)
 
 void Level::resize(World& world, Vec2u n_size)
 {
-	for (auto& [pos, layer] : layers.get_tile_layers())
+	for (auto& [pos, layerproxy] : layers.get_tile_layers())
 	{
+        auto& layer = world.at(layerproxy.cmp_id);
 		Vec2u layer_size{
 			std::min(n_size.x, layer.getLevelSize().x),
 			std::min(n_size.y, layer.getLevelSize().y)
@@ -82,16 +118,20 @@ void Level::resize(World& world, Vec2u n_size)
 			std::min(n_size.y, layer.getParallaxSize().y)
 		};
 
-		TileLayer n_layer{ m_id, layer.getID(), n_size };
-		n_layer.set_layer(world, layer.get_layer());
-		n_layer.set_collision(world, layer.hasCollision(), layer.getCollisionBorders());
-		n_layer.set_scroll(world, layer.hasScrolling(), layer.getScrollRate());
-		n_layer.set_parallax(world, layer.hasParallax(), parallax_size);
-		n_layer.shallow_copy(world, layer, Rectu{ Vec2u{}, Vec2u{layer_size} }, {0, 0});
-		layer = std::move(n_layer);
+        auto ent = world.get_entity_of(m_id);
+        auto n_id = world.create<TileLayer>(ent, id_placeholder, layer.getID(), n_size);
+        TileLayer& n_layer = world.at(n_id);
+
+        n_layer.set_layer(world, layer.get_layer());
+        n_layer.set_collision(world, layer.hasCollision(), layer.getCollisionBorders());
+        n_layer.set_scroll(world, layer.hasScrolling(), layer.getScrollRate());
+        n_layer.set_parallax(world, layer.hasParallax(), parallax_size);
+        n_layer.shallow_copy(world, layer, Rectu{ Vec2u{}, Vec2u{layer_size} }, {0, 0});
+
+        world.erase(layerproxy.cmp_id);
+        layerproxy.cmp_id = n_id;
 	}
 	levelSize = n_size;
-	return;
 }
 
 }

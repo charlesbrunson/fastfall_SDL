@@ -13,7 +13,7 @@ public:
 
 	SimpleEffect(ff::World& world, ff::ID<ff::GameObject> id, const ff::AnimID& anim, ff::Vec2f position, bool hflip)
 		: ff::GameObject(world, id)
-        , anim_spr_id(world.create_drawable<ff::AnimatedSprite>(id))
+        , anim_spr_id(world.create<ff::AnimatedSprite>(world.get_entity_of(id)))
 	{
         auto& spr = world.at(anim_spr_id);
 		spr.set_pos(position);

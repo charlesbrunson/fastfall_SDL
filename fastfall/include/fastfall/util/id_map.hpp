@@ -62,11 +62,13 @@ private:
 template<class T>
 class id_map
 {
-private:
+public:
 	using base_type = T;
 	using value_type = T;
+    constexpr static bool is_poly = false;
 
-	slot_map<value_type> components;
+private:
+    slot_map<value_type> components;
 
 public:
     using span = std::span<value_type>;
@@ -141,6 +143,7 @@ public:
     using base_type = T;
     using value_type = copyable_unique_ptr<T>;
     using span = std::span<value_type>;
+    constexpr static bool is_poly = true;
 
 private:
 	slot_map<value_type> components;

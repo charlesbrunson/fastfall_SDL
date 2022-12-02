@@ -2,6 +2,7 @@
 
 #include "fastfall/util/log.hpp"
 #include "fastfall/engine/config.hpp"
+#include "fastfall/game/World.hpp"
 
 #include <assert.h>
 #include <functional>
@@ -169,13 +170,37 @@ const ObjectType* ObjectFactory::getType(std::string_view name) {
 
 GameObject::GameObject(World& w, ID<GameObject> id)
     : m_id(id)
+    , entity_id(w.get_entity_of(id))
 {
+    auto cmps = w.get_components_of(entityID());
+    for (auto& c : cmps) {
+        if (std::holds_alternative<ID<GameObject>>(c) && c != ComponentID{ id })
+        {
+            LOG_ERR_("Entity {} has multiple instances of GameObject component!", entityID().value.sparse_index);
+        }
+        if (std::holds_alternative<ID<Level>>(c) && c != ComponentID{ id })
+        {
+            LOG_ERR_("Entity {} has both a Level and GameObject component!", entityID().value.sparse_index);
+        }
+    }
 }
 
 GameObject::GameObject(World& w, ID<GameObject> id, ObjectLevelData& data)
     : m_id(id)
+    , entity_id(w.get_entity_of(id))
 	, m_data(&data)
 {
+    auto cmps = w.get_components_of(entityID());
+    for (auto& c : cmps) {
+        if (std::holds_alternative<ID<GameObject>>(c) && c != ComponentID{ id })
+        {
+            LOG_ERR_("Entity {} has multiple instances of GameObject component!", entityID().value.sparse_index);
+        }
+        if (std::holds_alternative<ID<Level>>(c) && c != ComponentID{ id })
+        {
+            LOG_ERR_("Entity {} has both a Level and GameObject component!", entityID().value.sparse_index);
+        }
+    }
 }
 
 const ObjectType EmptyObject::_type = {

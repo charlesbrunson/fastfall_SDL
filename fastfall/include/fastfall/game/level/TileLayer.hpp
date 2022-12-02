@@ -57,8 +57,8 @@ private:
     //bool is_clean = true;
 
 public:
-	TileLayer(ID<Level> lvl_id, unsigned id, Vec2u levelsize);
-	TileLayer(World& world, ID<Level> lvl_id, const TileLayerData& layerData);
+	TileLayer(ID<TileLayer> t_id, unsigned id, Vec2u levelsize);
+	TileLayer(World& world, ID<TileLayer> t_id, const TileLayerData& layerData);
 
 	void initFromAsset(World& world, const TileLayerData& layerData);
 	void update(World& world, secs deltaTime);
@@ -127,7 +127,7 @@ public:
 	scene_layer get_layer() const { return layer; }
 
 protected:
-    ID<Level> level_id;
+    ID<TileLayer> m_id;
 	scene_layer layer;
     ColliderTileMap* get_collider(World& world);
 	//ChunkVertexArray* get_chunk(World& world, ID<Drawable> id);
