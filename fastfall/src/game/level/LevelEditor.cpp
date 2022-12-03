@@ -49,7 +49,7 @@ bool LevelEditor::create_layer(int layer_pos)
 		level->get_layers().insert(
 			layer_pos,
             Level::TileLayerProxy{
-                .cmp_id = world->create<TileLayer>( ent, id_placeholder, 0, level->size() ),
+                .cmp_id = world->create<TileLayer>( ent, *world, id_placeholder, 0, level->size() ),
                 .layer_id = 0
             }
 		);

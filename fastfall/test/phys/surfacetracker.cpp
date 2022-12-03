@@ -524,7 +524,38 @@ TEST_F(surfacetracker, into_moving_plat_wall)
         update();
         render.draw();
 
-        EXPECT_TRUE(ground->has_contact());
+        EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Wall_L));
     }
 }
 
+TEST_F(surfacetracker, on_moving_slope)
+{
+    initTileMap({
+        {"",		"",			"", "", "", "", "", ""},
+        {"",	    "",			"", "", "", "", "", ""},
+        {"shallow1","shallow2",	"", "", "", "", "", ""},
+        {"solid",	"solid",	"", "", "", "", "", ""},
+    });
+    box->teleport({ 16, 40 });
+    box->set_gravity({ 0, 200 });
+    box->set_vel(Vec2f{1 / one_frame, 0.f});
+    ground->settings.surface_friction.kinetic = 100.0f;
+    ground->settings.surface_friction.stationary = 100.0f;
+
+    TestPhysRenderer render(world, collider->getBoundingBox());
+    render.draw();
+
+    Vec2f dir = Vec2f{ 1.f, 0.f };
+    while (render.curr_frame < 60)
+    {
+        collider->setPosition(collider->getPosition() + dir);
+        ff::Vec2f nVel = (collider->getPosition() - collider->getPrevPosition()) / one_frame;
+        collider->delta_velocity = nVel - collider->velocity;
+        collider->velocity = nVel;
+
+        update();
+        render.draw();
+
+        //EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
+    }
+}

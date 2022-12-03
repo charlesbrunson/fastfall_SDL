@@ -19,15 +19,17 @@
 namespace ff {
 
 
-TileLayer::TileLayer(ID<TileLayer> t_id, unsigned id, Vec2u levelsize)
+TileLayer::TileLayer(World& world, ID<TileLayer> t_id, unsigned id, Vec2u levelsize)
 	: m_id(t_id)
     , layer_data(id, levelsize)
 	, tiles_dyn(levelsize)
+    , attach_id(world.create<AttachPoint>(world.entity_of(t_id), id_placeholder))
 {
 }
 
 TileLayer::TileLayer(World& world, ID<TileLayer> t_id, const TileLayerData& layerData)
     : m_id(t_id)
+    , attach_id(world.create<AttachPoint>(world.entity_of(t_id), id_placeholder))
 {
 	initFromAsset(world, layerData);
 }
@@ -62,6 +64,7 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
         auto& cvr = world.at(chunk_id);
         cvr.setTexture(tileset->getTexture());
         cvr.use_visible_rect = true;
+        world.system<AttachSystem>().create(world, attach_id, chunk_id);
 	}
 
 	// init tiles
@@ -120,6 +123,7 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 }
 
 void TileLayer::update(World& world, secs deltaTime) {
+    /*
 	if (hasCollision() && deltaTime > 0.0) {
         auto* collider = get_collider(world);
 		collider->setPosition(position);
@@ -133,6 +137,7 @@ void TileLayer::update(World& world, secs deltaTime) {
         //cfg.prev_pos = cfg.curr_pos;
         cfg.curr_pos = position;
     }
+    */
 
 
 	if (hasScrolling()) {
@@ -245,6 +250,7 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
                 }
 			);
 
+            world.system<AttachSystem>().create(world, attach_id, *dyn.collision.collider);
 		}
 	}
 	else if (!enabled)
@@ -349,10 +355,11 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
 	Rectf visible;
 	Vec2f cam_pos = world.system<CameraSystem>().getPosition(interp); //instance::cam_get_interpolated_pos(m_context, interp);
 	float cam_zoom = world.system<CameraSystem>().zoomFactor; //instance::cam_get_zoom(m_context);
-	visible.width = GAME_W_F * cam_zoom;
-	visible.height = GAME_H_F * cam_zoom;
-	visible.left = cam_pos.x - (visible.width / 2.f);
-	visible.top = cam_pos.y - (visible.height / 2.f);
+    Vec2f attach_pos = world.at(attach_id).interpolate(interp);
+    visible.width  = GAME_W_F * cam_zoom;
+    visible.height = GAME_H_F * cam_zoom;
+	visible.left   = -attach_pos.x + cam_pos.x - (visible.width  / 2.f);
+    visible.top    = -attach_pos.y + cam_pos.y - (visible.height / 2.f);
 
     // update parallax offset
 	if (hasParallax()) {
@@ -500,9 +507,10 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
         auto& cvr = world.at(chunk_id);
         cvr.setTexture(next_tileset->getTexture());
         cvr.setTile(at, tile.tile_id);
-        cvr.use_visible_rect = false;
+        cvr.use_visible_rect = true;
 
         dyn.chunks.push_back(chunk_id);
+        world.system<AttachSystem>().create(world, attach_id, chunk_id);
 	}
 	else {
         // TODO buffer changes?

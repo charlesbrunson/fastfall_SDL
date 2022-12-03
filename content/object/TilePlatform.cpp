@@ -34,7 +34,7 @@ TilePlatform::TilePlatform(World& w, ID<GameObject> id, ObjectLevelData& data)
         attach_id = w.create<AttachPoint>(entityID(), id_placeholder, data.getTopLeftPos());
     }
 
-    tl_id = w.create<TileLayer>(entityID(), id_placeholder, 0, area.getSize());
+    tl_id = w.create<TileLayer>(entityID(), w, id_placeholder, 0, area.getSize());
     auto& tl = w.at(tl_id);
     tl.set_layer(w, 0);
 
@@ -59,7 +59,7 @@ TilePlatform::TilePlatform(World& w, ID<GameObject> id, ObjectLevelData& data)
         }
     }
 
-    w.system<AttachSystem>().create(w, attach_id, tl_id, {});
+    w.system<AttachSystem>().create(w, attach_id, tl.get_attach_id(), {});
     //tl.setOffset(w.at(attach_id).curr_pos());
 
 };

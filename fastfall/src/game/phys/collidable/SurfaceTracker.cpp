@@ -208,8 +208,8 @@ CollidableOffsets SurfaceTracker::do_move_with_platform(poly_id_map<ColliderRegi
 		if (const ColliderRegion* region = colliders->get(currentContact->id->collider);
 			region && region->hasMoved()) 
 		{
-			in.position += math::projection(region->getDeltaPosition(), contact.collider_n.lefthand(), true);
-			in.velocity += math::projection(region->delta_velocity, 	contact.collider_n, 			true);
+            in.position += math::projection(region->getDeltaPosition(), contact.collider_n.lefthand(), true);
+			in.velocity += math::projection(region->delta_velocity, contact.collider_n, true);
 		}
 	}
 	return in;

@@ -57,7 +57,7 @@ private:
     //bool is_clean = true;
 
 public:
-	TileLayer(ID<TileLayer> t_id, unsigned id, Vec2u levelsize);
+	TileLayer(World& world, ID<TileLayer> t_id, unsigned id, Vec2u levelsize);
 	TileLayer(World& world, ID<TileLayer> t_id, const TileLayerData& layerData);
 
 	void initFromAsset(World& world, const TileLayerData& layerData);
@@ -126,17 +126,14 @@ public:
 	void set_layer(World& world, scene_layer lyr);
 	scene_layer get_layer() const { return layer; }
 
-    void set_pos(Vec2f pos) {
-        position = pos;
-    }
-    Vec2f get_pos() const {
-        return position;
+    ID<AttachPoint> get_attach_id() const {
+        return attach_id;
     }
 
 protected:
     ID<TileLayer> m_id;
 	scene_layer layer;
-    Vec2f position;
+    ID<AttachPoint> attach_id;
     ColliderTileMap* get_collider(World& world);
 	//ChunkVertexArray* get_chunk(World& world, ID<Drawable> id);
 

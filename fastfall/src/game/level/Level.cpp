@@ -122,7 +122,7 @@ void Level::resize(World& world, Vec2u n_size)
 		};
 
         auto ent = world.entity_of(m_id);
-        auto n_id = world.create<TileLayer>(ent, id_placeholder, layer.getID(), n_size);
+        auto n_id = world.create<TileLayer>(ent, world, id_placeholder, layer.getID(), n_size);
         TileLayer& n_layer = world.at(n_id);
 
         n_layer.set_layer(world, layer.get_layer());

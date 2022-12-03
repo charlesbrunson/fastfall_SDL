@@ -81,10 +81,9 @@ namespace ff {
         }
 
         // TileLayer
-        void attach_update(World& w, ID<TileLayer> id, TileLayer& cmp, const AttachState& st) {
-            //cmp.setOffset(st.cpos);
-            cmp.set_pos(st.cpos);
-        }
+        //void attach_update(World& w, ID<TileLayer> id, TileLayer& cmp, const AttachState& st) {
+        //    auto& attch = w.at(cmp.get_attach_id())
+        //}
 
         // POSITION -----------------------------
         // Trigger
@@ -128,10 +127,9 @@ namespace ff {
         }
 
         // TileLayer
-        Vec2f attach_get_pos(World& w, ID<TileLayer> id, TileLayer& cmp) {
-            //return cmp.getOffset();
-            return cmp.get_pos();
-        }
+        //Vec2f attach_get_pos(World& w, ID<TileLayer> id, TileLayer& cmp) {
+        //    //return cmp.getOffset();
+        //}
     }
 
     template<class T>
