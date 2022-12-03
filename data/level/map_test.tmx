@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="160" height="30" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#a2a2a2" nextlayerid="11" nextobjectid="29">
+<map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="160" height="30" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#a2a2a2" nextlayerid="11" nextobjectid="31">
  <tileset firstgid="1" source="tileset/tile_test.tsx"/>
  <tileset firstgid="257" source="tileset/tile_basic_purple.tsx"/>
  <tileset firstgid="321" source="tileset/autotile_test.tsx"/>
@@ -38,7 +38,7 @@
    <property name="collision_border" value="NESW"/>
   </properties>
   <data encoding="base64" compression="zlib">
-   eJztmk1PwjAYx9uRGBEwIRr04Dvc9GL0YvAComj0hG8YEw7q9/8MttkaHuvWbqVb2+X5Jf8DI+m67beuTzdKCYIgCIIgFUPpMghSNRGNg/4hLoD+8Ryih0iFCP+4d0foHlIxwr9BinsHHo2Hk4iQW5ZRkrfIdY8QGwj/zjzxDPKUuLYArvHfz+hebYDzvzaJ4wvzxD+I/BsJG+ifzfnfhaWaegSeuZxH9C9IaEbk+leVIgwtr+kI/z7RvyDR+VfGOuCF5TnlAt0LljL8a5HlnBGmk/w/9LCmQdzgYvwzYRz9nfNl5QbHwqDw1T/hkby+lycP6GAw5PGvIdUb6+z/Zko2LPariG9yPtC/YND5x93bC2i+NpOewxOFi/isdk+e9ZfQmIGxUPU+DueL7rHtn6729QF5TgkdHGuchPOQHZbdwO7PkWf9reP4J2NSw9yxTDVj4z6Nv8WAyE7maadKuH/3nlzTNVJ//xYr1DF5PYTITr4atlMGUxr7N/fkmvZIcf9U9a8uNutjW7xES0d0HtrYh8pDVa1kg/fEP54vxw42SLZ7dRv/8qDz0Ma3XXAf8j3M780yv13cYtexLa4pidNnGZS3y1SOWU6I2r06+VeUNA+he6fJObkM6LxA96B/Pqcu/nVZ/7cNjkF4KI97Yn53Hch5kd0Lzb9zmv4NvgkmHqxKN7mHytp3n/6vedO2uSDNvdD8u6L2vsEv04MsxPNSF9N+wfaFc2nbqibLvdD8E8/gVb1xsW6rugZyWgbHKLffYdnM2FbVMX+zffxojtu1Wyb+CW+ahskad1ZpU5Ve0n4e90wcLOI29FC8H+Lvg2w6KbwT6yuqvrh2K09+AW9WQhI=
+   eJztmrtOwzAUhu0iIQoUCYGAgTtssKCyIFha7hJTubQsDMD7PwO2kqMeGcdOHCe2o/NJ/9BUSpzki+PjmHNGEARBEETLcD4PQbRNj2ch/4gQYP9kDshDokXAP+ndYQLu3fUYuxd5EHnshW4NURfw71Tj3n5E/SF4N0J5Jf+SB/w7j8QzzEvu2Rd51lnw+G+VZYmFWe4f0V2wfz7Hf0MPNfVEed9K8O8PcjMZeEHU+teUKlx7mtOZaPyT3k3JvaSw+dfEPODQ85iSxoHp0oR/K2w+ZsQZ5P9fR1jTEGEI0f+5MFbGfEW5pb4wKWL1DzzSze/Z8kwOJkMZ/xaUemNJ/N/XZNlju6r4puaT/EsGm3/Svd2ExmtQF+P+swh6V4enzPxLauC5GdNcII0Xw+PbP1vtGwPqmBI7OLY4icch2yI7iT2fo8ja28X+T8WlhimzjmaPZ2sxMKqTsa3Hkf49RXJPF1n3/fuqUceU9RCjOvnuuJ8meOSZf7NI7ukWq+6fqf61xWd97Iu33twRm4c+jmHy0FQr+WCa+yfzHdjBBVbsXtf6vzLYPPSxphAfQ32G5bPZ5LqJDXEfV+GesiwnIqfNHVLLkcgxM7vXJf+qovMQu3eWX5PLhK4Ldg/7F3O64t+6aP+mwzmAh2q/B+O7m0Sui+peav5dcP0afBdcPKjLev4MNXXsE/6/5tVtC4HOvdT8u+L+1uA36UER8L60xbVdeP/gnG5b2xS5l5p/8A6u602IeVvTPVCz4nCO6v4HImsF29o65x9xjF/LeYd2y8U/8KbvmKJ+p84+TdnK91/GPRcHq7iNPYTvQ/J7kE8nwTuYXzG1JbRbZfIHWO9E6w==
   </data>
  </layer>
  <objectgroup id="4" name="OBJ">
@@ -82,6 +82,18 @@
     <property name="speed" type="float" value="100"/>
    </properties>
    <polyline points="-542.233,-53.9038 -542.233,-21.9038 -510.233,10.0962 -350,10 -318,-22 -318,-54 -350,-86 -510.233,-85.9038 -542,-54"/>
+  </object>
+  <object id="29" class="TilePlatform" x="624" y="96" width="144" height="112">
+   <properties>
+    <property name="layer" type="int" value="2"/>
+    <property name="path" type="object" value="30"/>
+   </properties>
+  </object>
+  <object id="30" x="1072" y="256">
+   <properties>
+    <property name="speed" type="float" value="50"/>
+   </properties>
+   <polyline points="-560,-160 -288,-160"/>
   </object>
  </objectgroup>
 </map>

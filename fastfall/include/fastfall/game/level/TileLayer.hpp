@@ -53,7 +53,7 @@ private:
 		std::vector<ID<ChunkVertexArray>> chunks;
 	} dyn;
 
-	Vec2f offset;
+	//Vec2f offset;
     //bool is_clean = true;
 
 public:
@@ -76,8 +76,8 @@ public:
 	bool set_parallax(World& world, bool enabled, Vec2u parallax_size = Vec2u{});
 	bool set_scroll(World& world, bool enabled, Vec2f rate = Vec2f{});
 
-	inline Vec2f getOffset() const noexcept { return offset; };
-	inline void  setOffset(Vec2f off) noexcept { offset = off; };
+	//inline Vec2f getOffset() const noexcept { return offset; };
+	//inline void  setOffset(Vec2f off) noexcept { offset = off; };
 
 	// TileLayerData passthrough
 	inline bool			hasParallax()			const { return layer_data.hasParallax();		};
@@ -126,9 +126,17 @@ public:
 	void set_layer(World& world, scene_layer lyr);
 	scene_layer get_layer() const { return layer; }
 
+    void set_pos(Vec2f pos) {
+        position = pos;
+    }
+    Vec2f get_pos() const {
+        return position;
+    }
+
 protected:
     ID<TileLayer> m_id;
 	scene_layer layer;
+    Vec2f position;
     ColliderTileMap* get_collider(World& world);
 	//ChunkVertexArray* get_chunk(World& world, ID<Drawable> id);
 

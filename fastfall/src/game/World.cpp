@@ -46,7 +46,8 @@ void World::update(secs deltaTime) {
         state._scene_system.update(*this, deltaTime);
         state._attach_system.update(*this, deltaTime);
         state._input.update(deltaTime);
-        active->update(*this, deltaTime);
+        //active->update(*this, deltaTime);
+        state._level_system.update(*this, deltaTime);
         state._trigger_system.update(*this, deltaTime);
 
         state._object_system.update(*this, deltaTime);
@@ -72,7 +73,8 @@ void World::predraw(float interp, bool updated) {
         state._scene_system.set_bg_color(active->getBGColor());
         state._scene_system.set_size(active->size());
         state._object_system.predraw(*this, interp, updated);
-        active->predraw(*this, interp, updated);
+        //active->predraw(*this, interp, updated);
+        state._level_system.predraw(*this, interp, updated);
         state._emitter_system.predraw(*this, interp, updated);
         state._scene_system.set_cam_pos(state._camera_system.getPosition(interp));
         state._scene_system.predraw(*this, interp, updated);
@@ -134,7 +136,7 @@ bool World::erase(ID<Entity> entity) {
     return true;
 }
 bool World::erase(ComponentID component) {
-    auto ent = get_entity_of(component);
+    auto ent = entity_of(component);
     std::visit([&, this]<typename T>(ID<T> id) {
             system_notify_erased(id);
             untie_component_entity(id, ent);
@@ -143,14 +145,13 @@ bool World::erase(ComponentID component) {
     return true;
 }
 
-const std::set<ComponentID>& World::get_components_of(ID<Entity> id) const {
+const std::set<ComponentID>& World::components_of(ID<Entity> id) const {
     return state._entities.at(id).components;
 }
 
-ID<Entity> World::get_entity_of(ComponentID id) const {
+ID<Entity> World::entity_of(ComponentID id) const {
     return state._comp_to_ent.at(id);
 }
-
 
 void World::tie_component_entity(ComponentID cmp, ID<Entity> ent) {
     state._entities.at(ent).components.emplace(cmp);

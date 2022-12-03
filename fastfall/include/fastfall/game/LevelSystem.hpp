@@ -9,7 +9,8 @@ class World;
 
 class LevelSystem {
 public:
-    inline void set_world(World* w) { world = w; }
+    void update(World& world, secs deltaTime);
+    void predraw(World& world, float interp, bool updated);
 
     void notify_created(World& world, ID<Level> id);
     void notify_erased(World& world, ID<Level> id);
@@ -20,7 +21,6 @@ public:
 
 private:
     std::optional<ID<Level>> active_level;
-    World* world;
 };
 
 }

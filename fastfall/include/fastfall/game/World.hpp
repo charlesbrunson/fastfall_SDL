@@ -46,35 +46,17 @@ private:
         id_map<PathMover> _pathmovers;
         id_map<TileLayer> _tilelayer;
 
-        constexpr auto all_component_lists()  {
+        constexpr auto all_component_lists() const {
             return std::tie(
-                _objects,
-                _levels,
-                _collidables,
-                _colliders,
-                _triggers,
-                _camera_targets,
-                _drawables,
-                _emitters,
-                _attachpoints,
-                _pathmovers,
-                _tilelayer
+                _objects, _levels, _collidables, _colliders, _triggers, _camera_targets,
+                _drawables, _emitters, _attachpoints, _pathmovers, _tilelayer
             );
         }
 
-        constexpr auto all_component_lists() const {
+        constexpr auto all_component_lists()  {
             return std::tie(
-                _objects,
-                _levels,
-                _collidables,
-                _colliders,
-                _triggers,
-                _camera_targets,
-                _drawables,
-                _emitters,
-                _attachpoints,
-                _pathmovers,
-                _tilelayer
+                _objects, _levels, _collidables, _colliders, _triggers, _camera_targets,
+                _drawables, _emitters, _attachpoints, _pathmovers, _tilelayer
             );
         }
 
@@ -89,46 +71,31 @@ private:
         SceneSystem _scene_system;
         PathSystem _path_system;
 
-        constexpr auto all_systems()  {
-            return std::tie(
-                _level_system,
-                _object_system,
-                _collision_system,
-                _trigger_system,
-                _emitter_system,
-                _attach_system,
-                _camera_system,
-                _scene_system,
-                _path_system
-            );
-        }
-
         constexpr auto all_systems() const {
             return std::tie(
-                _level_system,
-                _object_system,
-                _collision_system,
-                _trigger_system,
-                _emitter_system,
-                _attach_system,
-                _camera_system,
-                _scene_system,
-                _path_system
+                _level_system, _object_system, _collision_system, _trigger_system, _emitter_system,
+                _attach_system, _camera_system, _scene_system, _path_system
             );
         }
 
-        // input
-        InputState _input;
+        constexpr auto all_systems()  {
+            return std::tie(
+                _level_system, _object_system, _collision_system, _trigger_system, _emitter_system,
+                _attach_system, _camera_system, _scene_system, _path_system
+            );
+        }
 
+        // misc
         size_t update_counter = 0;
         secs update_time = 0.0;
 
+        // input
+        InputState _input;
         InputSourceNull input_null;
     };
     state_t state;
 
 private:
-
     template<typename T>
     static constexpr auto& impl_get_best_component_list(auto& first) {
         using Container = std::remove_cvref_t<decltype(first)>;
@@ -175,30 +142,7 @@ private:
                 state.all_component_lists());
     }
 
-
     auto span(auto& components) { return std::span{components.begin(), components.end()}; };
-
-    auto create_tmpl(auto& container, auto&&... args) {
-        return container.create(std::forward<decltype(args)>(args)...);
-    }
-
-    template<class T>
-    auto poly_create_tmpl(auto& container, auto&&... args) {
-        return container.template create<T>(std::forward<decltype(args)>(args)...);
-    }
-
-    auto notify_created_all(auto id, auto&... systems) {
-        (systems.notify_created(*this, id), ...);
-        return id;
-    }
-
-    bool erase_tmpl(auto id, auto& components, auto&... systems) {
-        bool exists = components.exists(id);
-        if (exists) {
-            (systems.notify_erased(*this, id), ...);
-        }
-        return components.erase(id);
-    }
 
 public:
     World();
@@ -289,8 +233,8 @@ public:
     inline constexpr T& system() { return std::get<T&>(state.all_systems()); }
 
     // entity helpers
-    const std::set<ComponentID>& get_components_of(ID<Entity> id) const;
-    ID<Entity> get_entity_of(ComponentID id) const;
+    const std::set<ComponentID>& components_of(ID<Entity> id) const;
+    ID<Entity> entity_of(ComponentID id) const;
 
     // misc
     std::string name;

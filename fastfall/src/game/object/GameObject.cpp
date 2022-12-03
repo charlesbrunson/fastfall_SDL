@@ -170,9 +170,9 @@ const ObjectType* ObjectFactory::getType(std::string_view name) {
 
 GameObject::GameObject(World& w, ID<GameObject> id)
     : m_id(id)
-    , entity_id(w.get_entity_of(id))
+    , entity_id(w.entity_of(id))
 {
-    auto cmps = w.get_components_of(entityID());
+    auto cmps = w.components_of(entityID());
     for (auto& c : cmps) {
         if (std::holds_alternative<ID<GameObject>>(c) && c != ComponentID{ id })
         {
@@ -187,10 +187,10 @@ GameObject::GameObject(World& w, ID<GameObject> id)
 
 GameObject::GameObject(World& w, ID<GameObject> id, ObjectLevelData& data)
     : m_id(id)
-    , entity_id(w.get_entity_of(id))
+    , entity_id(w.entity_of(id))
 	, m_data(&data)
 {
-    auto cmps = w.get_components_of(entityID());
+    auto cmps = w.components_of(entityID());
     for (auto& c : cmps) {
         if (std::holds_alternative<ID<GameObject>>(c) && c != ComponentID{ id })
         {

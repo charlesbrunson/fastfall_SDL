@@ -55,7 +55,7 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 	// init chunks
 	for (auto& [tileset, _] : layer_data.getTilesets())
 	{
-        auto chunk_id = world.create<ChunkVertexArray>(world.get_entity_of(m_id), getSize(), kChunkSize);
+        auto chunk_id = world.create<ChunkVertexArray>(world.entity_of(m_id), getSize(), kChunkSize);
         world.system<SceneSystem>().set_config(chunk_id, {layer, scene_type::Level});
         dyn.chunks.push_back(chunk_id);
 
@@ -120,12 +120,20 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 }
 
 void TileLayer::update(World& world, secs deltaTime) {
-	if (hasCollision()) {
+	if (hasCollision() && deltaTime > 0.0) {
         auto* collider = get_collider(world);
-		collider->setPosition(collider->getPosition());
-		collider->delta_velocity = Vec2f{};
-		collider->velocity = Vec2f{};
+		collider->setPosition(position);
+        Vec2f nV = collider->getDeltaPosition() / deltaTime;
+		collider->delta_velocity = nV - collider->velocity;
+		collider->velocity = nV;
 	}
+
+    for (auto chunk_id : dyn.chunks) {
+        auto& cfg = world.system<SceneSystem>().config(chunk_id);
+        //cfg.prev_pos = cfg.curr_pos;
+        cfg.curr_pos = position;
+    }
+
 
 	if (hasScrolling()) {
 		dyn.scroll.prev_offset = dyn.scroll.offset;
@@ -168,7 +176,7 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 	{
 		if (!dyn.collision.collider) {
 
-            dyn.collision.collider = world.create<ColliderTileMap>(world.get_entity_of(m_id), Vec2i{ getLevelSize() }, true);
+            dyn.collision.collider = world.create<ColliderTileMap>(world.entity_of(m_id), Vec2i{getLevelSize() }, true);
             auto* collider = get_collider(world);
 
 			layer_data.setCollision(true, border);
@@ -486,13 +494,13 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 	if (tile.tileset_ndx == dyn.chunks.size())
 	{
         // TODO buffer changes?
-        auto chunk_id = world.create<ChunkVertexArray>(world.get_entity_of(m_id), getSize(), kChunkSize);
+        auto chunk_id = world.create<ChunkVertexArray>(world.entity_of(m_id), getSize(), kChunkSize);
         world.system<SceneSystem>().set_config(chunk_id, { layer, scene_type::Level });
 
         auto& cvr = world.at(chunk_id);
         cvr.setTexture(next_tileset->getTexture());
         cvr.setTile(at, tile.tile_id);
-        cvr.use_visible_rect = true;
+        cvr.use_visible_rect = false;
 
         dyn.chunks.push_back(chunk_id);
 	}

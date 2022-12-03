@@ -33,8 +33,8 @@ public:
 
     void initFromAsset(World& world, const LevelAsset& levelData);
 
-	void update(World& world, secs deltaTime);
-	void predraw(World& world, float interp, bool updated);
+	//void update(World& world, secs deltaTime);
+	//void predraw(World& world, float interp, bool updated);
 
 	inline const Color& getBGColor() const { return bgColor; };
 	inline const Vec2u& size() const { return levelSize; };

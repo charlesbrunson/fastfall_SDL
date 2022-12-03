@@ -9,6 +9,7 @@
 #include "object/BasicPlatform.hpp"
 #include "object/JetPlatform.hpp"
 #include "object/SimpleEffect.hpp"
+#include "object/TilePlatform.hpp"
 
 
 using namespace ff;
@@ -55,4 +56,5 @@ void game_InitTypes() {
 	ObjectFactory::register_object<BasicPlatform>();
     ObjectFactory::register_object<JetPlatform>();
 	ObjectFactory::register_object<SimpleEffect>();
+    ObjectFactory::register_object<TilePlatform>();
 }

@@ -11,11 +11,11 @@ public:
     static const ff::ObjectType Type;
     const ff::ObjectType& type() const override { return Type; };
 
-    TilePlatform(ff::World& world, ff::ID<ff::GameObject> id);
+    TilePlatform(ff::World& w, ff::ID<ff::GameObject> id, ff::ObjectLevelData& data);
 
     void update(ff::World& w, secs deltaTime) override;
 
 private:
-
+    ff::ID<ff::TileLayer> tl_id;
 };
 

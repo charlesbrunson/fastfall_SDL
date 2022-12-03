@@ -14,8 +14,8 @@ namespace ff {
 Level::Level(World& world, ID<Level> t_id)
     : m_id(t_id)
 {
-    auto ent = world.get_entity_of(t_id);
-    auto cmps = world.get_components_of(ent);
+    auto ent = world.entity_of(t_id);
+    auto cmps = world.components_of(ent);
     for (auto& c : cmps) {
         if (std::holds_alternative<ID<Level>>(c) && c != ComponentID{ t_id })
         {
@@ -31,8 +31,8 @@ Level::Level(World& world, ID<Level> t_id)
 Level::Level(World& world, ID<Level> t_id, const LevelAsset& levelData)
     : m_id(t_id)
 {
-    auto ent = world.get_entity_of(t_id);
-    auto cmps = world.get_components_of(ent);
+    auto ent = world.entity_of(t_id);
+    auto cmps = world.components_of(ent);
     for (auto& c : cmps) {
         if (std::holds_alternative<ID<Level>>(c) && c != ComponentID{ t_id })
         {
@@ -47,24 +47,27 @@ Level::Level(World& world, ID<Level> t_id, const LevelAsset& levelData)
     initFromAsset(world, levelData);
 }
 
+/*
 void Level::update(World& world, secs deltaTime) {
-	for (auto& [pos, layer] : layers.get_tile_layers()) {
-		world.at(layer.cmp_id).update(world, deltaTime);
-	}	
+    for (auto& [pos, layer] : layers.get_tile_layers()) {
+        world.at(layer.cmp_id).update(world, deltaTime);
+    }
 }
+*/
 
+/*
 void Level::predraw(World& world, float interp, bool updated) {
-
-	for (auto& [pos, layer] : layers.get_tile_layers()) {
+    for (auto& [pos, layer] : layers.get_tile_layers()) {
         world.at(layer.cmp_id).predraw(world, interp, updated);
-	}
+    }
 }
+*/
 
 void Level::initFromAsset(World& world, const LevelAsset& levelData)
 {
     // remove existing components and layers
-    auto entity = world.get_entity_of(getID());
-    auto components = world.get_components_of(entity);
+    auto entity = world.entity_of(getID());
+    auto components = world.components_of(entity);
     for (auto c : components) {
         if (c != ComponentID{ getID() }) {
             world.erase(c);
@@ -78,7 +81,7 @@ void Level::initFromAsset(World& world, const LevelAsset& levelData)
 
 	for (auto& layerRef : levelData.getLayerRefs().get_tile_layers())
 	{
-        auto ent = world.get_entity_of(m_id);
+        auto ent = world.entity_of(m_id);
 		if (layerRef.position < 0) {
             layers.push_bg_front(TileLayerProxy{
                 .cmp_id   = world.create<TileLayer>(ent, world, id_placeholder, layerRef.tilelayer),
@@ -118,7 +121,7 @@ void Level::resize(World& world, Vec2u n_size)
 			std::min(n_size.y, layer.getParallaxSize().y)
 		};
 
-        auto ent = world.get_entity_of(m_id);
+        auto ent = world.entity_of(m_id);
         auto n_id = world.create<TileLayer>(ent, id_placeholder, layer.getID(), n_size);
         TileLayer& n_layer = world.at(n_id);
 

@@ -69,6 +69,7 @@ Engine::Engine(Window* window, const Vec2u init_window_size, EngineSettings sett
 
 Engine::~Engine() {
     LOG_INFO("Shutting down engine");
+    debug_draw::clear();
 }
 
 void Engine::push_runnable(EngineRunnable&& toRun) {

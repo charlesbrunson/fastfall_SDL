@@ -19,7 +19,7 @@ void ObjectSystem::predraw(World& world, float interp, bool updated)
     for (auto& id : update_order) {
         auto& obj = world.at(id);
         if (obj.should_delete()) {
-            auto ent_id = world.get_entity_of(id);
+            auto ent_id = world.entity_of(id);
             to_erase.push_back(ent_id);
         }
     }

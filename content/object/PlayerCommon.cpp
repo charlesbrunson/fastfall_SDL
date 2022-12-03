@@ -31,11 +31,11 @@ plr::move_t::move_t(World& w, const plr::members& plr)
 
 
 plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
-    : sprite_id(w.create<AnimatedSprite>(w.get_entity_of(plr.getID())))
-    , collidable_id(w.create<Collidable>(w.get_entity_of(plr.getID()), position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
+    : sprite_id(w.create<AnimatedSprite>(w.entity_of(plr.getID())))
+    , collidable_id(w.create<Collidable>(w.entity_of(plr.getID()), position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
     , cameratarget_id()
-    , hitbox_id(w.create<Trigger>(w.get_entity_of(plr.getID()), id_placeholder))
-    , hurtbox_id(w.create<Trigger>(w.get_entity_of(plr.getID()), id_placeholder))
+    , hitbox_id(w.create<Trigger>(w.entity_of(plr.getID()), id_placeholder))
+    , hurtbox_id(w.create<Trigger>(w.entity_of(plr.getID()), id_placeholder))
 {
     auto& box = w.at(collidable_id);
     auto attachid = box.get_attach_id();
@@ -56,7 +56,7 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     };
 
     cameratarget_id = w.create<SimpleCamTarget>(
-        w.get_entity_of(plr.getID()),
+            w.entity_of(plr.getID()),
         ff::CamTargetPriority::Medium,
         [id = collidable_id](World& w) {
             return w.at(id).getPosition() - Vec2f{0.f, 16.f};
@@ -76,7 +76,7 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     [](World& w, const TriggerPull& pull) {
         // TODO
         /*
-        auto ownerid = w.get_entity_of(pull.source->id());
+        auto ownerid = w.entity_of(pull.source->id());
         if (auto* obj = w.get(as_object(ownerid));
             obj && obj->type().group_tags.contains("player")
             && pull.state == Trigger::State::Entry)

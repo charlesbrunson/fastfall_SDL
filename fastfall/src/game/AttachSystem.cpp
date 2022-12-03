@@ -80,6 +80,12 @@ namespace ff {
             cmp.set_path_offset(st.cpos);
         }
 
+        // TileLayer
+        void attach_update(World& w, ID<TileLayer> id, TileLayer& cmp, const AttachState& st) {
+            //cmp.setOffset(st.cpos);
+            cmp.set_pos(st.cpos);
+        }
+
         // POSITION -----------------------------
         // Trigger
         Vec2f attach_get_pos(World& w, ID<Trigger> id, Trigger& cmp) {
@@ -119,6 +125,12 @@ namespace ff {
         // PathMover
         Vec2f attach_get_pos(World& w, ID<PathMover> id, PathMover& cmp) {
             return cmp.get_path_offset();
+        }
+
+        // TileLayer
+        Vec2f attach_get_pos(World& w, ID<TileLayer> id, TileLayer& cmp) {
+            //return cmp.getOffset();
+            return cmp.get_pos();
         }
     }
 
@@ -229,7 +241,7 @@ namespace ff {
     }
 
     void AttachSystem::notify_created(World& world, ID<Collidable> id) {
-        auto ent = world.get_entity_of(id);
+        auto ent = world.entity_of(id);
         auto attachid = world.create<AttachPoint>(ent, id_placeholder);
         auto& col = world.at(id);
         col.set_attach_id(attachid);
@@ -247,7 +259,7 @@ namespace ff {
     }
 
     void AttachSystem::notify_created(World& world, ID<PathMover> id) {
-        auto ent = world.get_entity_of(id);
+        auto ent = world.entity_of(id);
         auto attachid = world.create<AttachPoint>(ent, id_placeholder);
         auto& pathmover = world.at(id);
         pathmover.set_attach_id(attachid);
