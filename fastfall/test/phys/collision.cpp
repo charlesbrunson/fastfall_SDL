@@ -17,8 +17,8 @@ class collision : public ::testing::Test {
 protected:
 	CollisionSystem* colMan;
     World world;
-    ID<EmptyObject> collider_obj_id;
-    ID<EmptyObject> collidable_obj_id;
+    ID<Entity> collider_obj_id;
+    ID<Entity> collidable_obj_id;
 	Collidable* box = nullptr;
 	ColliderTileMap* collider = nullptr;
 	std::fstream log;
@@ -50,10 +50,11 @@ protected:
 		Vec2f pos = { 0, 0 };
 		Vec2f size = { 16, 32 };
 		Vec2f grav = { 0, 0 };
-        collidable_obj_id = world.create_object<EmptyObject>();
-        collider_obj_id = world.create_object<EmptyObject>();
-		box = world.get(world.create_collidable(collidable_obj_id, pos, size, grav));
-        colMan = &world.collision();
+        //auto id = world.create_entity();
+        collidable_obj_id = world.create_entity();
+        collider_obj_id = world.create_entity();
+		box = world.get(world.create<Collidable>(collidable_obj_id, pos, size, grav));
+        colMan = &world.system<CollisionSystem>();
 	}
 
 	void TearDown() override
@@ -69,7 +70,7 @@ protected:
 	void initTileMap(grid_vector<std::string_view> tiles)
 	{
 		collider = world.get(
-                world.create_collider<ColliderTileMap>(collider_obj_id, Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() })
+                world.create<ColliderTileMap>(collider_obj_id, Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() })
                 );
 		for (auto it = tiles.begin(); it != tiles.end(); it++) {
 			if (!it->empty()) {
@@ -405,8 +406,8 @@ TEST_F(collision, wedge_against_floor_right)
 	};
 
 	auto wedge = world.get(
-            world.create_collider<ColliderTileMap>(
-                world.create_object<EmptyObject>(),
+                world.create<ColliderTileMap>(
+                world.create_entity(),
 			    Vec2i{ (int)wedge_tiles.column_count(), (int)wedge_tiles.row_count() }
 		    ));
 	initTileMap(wedge, wedge_tiles);
@@ -458,8 +459,9 @@ TEST_F(collision, floor_into_wedge_left)
 		{ "solid", 		"solid"},
 	};
 
-	auto floor = world.get(world.create_collider<ColliderTileMap>(
-        world.create_object<EmptyObject>(),
+	auto floor = world.get(
+        world.create<ColliderTileMap>(
+            world.create_entity(),
 		Vec2i{ (int)floor_tiles.column_count(), (int)floor_tiles.row_count() }
 	));
 	initTileMap(floor, floor_tiles);
@@ -636,10 +638,11 @@ TEST_F(collision, oneway_into_wall)
     grid_vector<std::string_view> floor_tiles{
         { "oneway", "oneway"},
     };
-    auto floor = world.get(world.create_collider<ColliderTileMap>(
-            world.create_object<EmptyObject>(),
-            Vec2i{ (int)floor_tiles.column_count(), (int)floor_tiles.row_count() }
-    ));
+    auto floor = world.get(
+            world.create<ColliderTileMap>(
+                world.create_entity(),
+                Vec2i{ (int)floor_tiles.column_count(), (int)floor_tiles.row_count() }
+            ));
     initTileMap(floor, floor_tiles);
     floor->teleport(Vec2f{ 0.f, 64.f });
 

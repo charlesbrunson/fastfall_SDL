@@ -19,8 +19,8 @@ protected:
     World world;
 	CollisionSystem* colMan;
 
-    ID<EmptyObject> collider_obj_id;
-    ID<EmptyObject> collidable_obj_id;
+    ID<Entity> collider_obj_id;
+    ID<Entity> collidable_obj_id;
 	Collidable* box = nullptr;
 	SurfaceTracker* ground = nullptr;
 
@@ -56,9 +56,9 @@ protected:
 		Vec2f size = { 16, 32 };
 		Vec2f grav = { 0, 0 };
 
-        collidable_obj_id = world.create_object<EmptyObject>();
-        collider_obj_id = world.create_object<EmptyObject>();
-        auto box_id = world.create_collidable(collidable_obj_id, pos, size, grav);
+        collidable_obj_id = world.create_entity();
+        collider_obj_id = world.create_entity();
+        auto box_id = world.create<Collidable>(collidable_obj_id, pos, size, grav);
 		box = world.get(box_id);
 
         box->set_tracker(
@@ -72,7 +72,7 @@ protected:
 				.stick_angle_max = Angle::Degree(90)
 			};
 
-        colMan = &world.collision();
+        colMan = &world.system<CollisionSystem>();
 	}
 
 	void TearDown() override 
@@ -91,7 +91,7 @@ protected:
 	void initTileMap(grid_vector<std::string_view> tiles) 
 	{
 		collider = world.get(
-                world.create_collider<ColliderTileMap>(collider_obj_id, Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() })
+                world.create<ColliderTileMap>(collider_obj_id, Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() })
                 );
 		for (auto it = tiles.begin(); it != tiles.end(); it++) {
 			if (!it->empty()) {
@@ -478,7 +478,6 @@ TEST_F(surfacetracker, peak_of_slope_to_slope)
 
 	box->teleport({ 9, 32 });
 	box->set_gravity({ 0, 200 });
-	//ground->traverse_set_speed(300.f);
 	ground->traverse_add_accel(500.f);
 
 	TestPhysRenderer render(world, collider->getBoundingBox());
@@ -494,3 +493,38 @@ TEST_F(surfacetracker, peak_of_slope_to_slope)
 		EXPECT_TRUE(ground->has_contact());
 	}
 }
+
+TEST_F(surfacetracker, into_moving_plat_wall)
+{
+    initTileMap({
+        {"",		"",			"", "", "", "", "", ""},
+        {"solid",	"",			"", "", "", "", "", ""},
+        {"solid",	"",	        "", "", "", "", "", ""},
+        {"solid",	"solid",	"", "", "", "", "", ""},
+    });
+
+    box->teleport({ 24, 48 });
+    box->set_gravity({ 0, 200 });
+    ground->traverse_add_accel(-500.f);
+    ground->traverse_set_speed(-100);
+
+    TestPhysRenderer render(world, collider->getBoundingBox());
+    render.draw();
+
+    Vec2f dir = Vec2f{ 1.f, 0.f };
+    while (render.curr_frame < 60)
+    {
+        collider->setPosition(collider->getPosition() + dir);
+        ff::Vec2f nVel = (collider->getPosition() - collider->getPrevPosition()) / one_frame;
+        collider->delta_velocity = nVel - collider->velocity;
+        collider->velocity = nVel;
+
+        ground->traverse_add_accel(-500.f);
+        ground->traverse_set_speed(-100);
+        update();
+        render.draw();
+
+        EXPECT_TRUE(ground->has_contact());
+    }
+}
+
