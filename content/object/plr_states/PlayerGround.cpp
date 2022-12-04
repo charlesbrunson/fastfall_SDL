@@ -127,7 +127,7 @@ PlayerStateID PlayerGroundState::update(ff::World& w, plr::members& plr, secs de
 				else
 				{
 					if (move.speed < 25.f) {
-						ground.traverse_set_speed(move.wishx * 25.f);
+						//ground.traverse_set_speed(move.wishx * 25.f);
 					}
 					brake(true);
 				}

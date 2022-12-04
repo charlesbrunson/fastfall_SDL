@@ -363,8 +363,9 @@ void Collidable::applyContact(const AppliedContact& contact, ContactType type)
 	}
 	else if (math::dot(get_vel() - contact.velocity, contact.collider_n) <= 0.f) {
 
-		set_vel(phys_resp::get(*this, contact));
-		
+        Vec2f resp = phys_resp::get(*this, contact);
+        set_vel(resp);
+
 	}
 
 	if (contact.hasImpactTime && tracker) {

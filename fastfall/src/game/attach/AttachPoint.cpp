@@ -2,8 +2,9 @@
 
 namespace ff {
 
-AttachPoint::AttachPoint(ID<AttachPoint> t_id, Vec2f init_pos, Vec2f init_vel)
+AttachPoint::AttachPoint(ID<AttachPoint> t_id, Vec2f init_pos, Vec2f init_vel, Schedule sch)
     : _id(t_id)
+    , sched(sch)
 {
     teleport(init_pos);
     set_parent_vel(init_vel);

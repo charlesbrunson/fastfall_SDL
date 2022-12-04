@@ -153,8 +153,11 @@ void imgui_collidables(World* w) {
                         ImGui::Text("Separation"); ImGui::NextColumn();
                         ImGui::Text("%s%3.3f", (c.separation == 0 ? " " : (c.separation > 0 ? "+" : "-")), c.separation); ImGui::NextColumn();
 
-                        ImGui::Text("Surface Velocity"); ImGui::NextColumn();
+                        ImGui::Text("Velocity"); ImGui::NextColumn();
                         ImGui::Text("(%3.2f, %3.2f)", c.velocity.x, c.velocity.y); ImGui::NextColumn();
+
+                        ImGui::Text("Surface Velocity"); ImGui::NextColumn();
+                        ImGui::Text("(%3.2f, %3.2f)", c.surface_vel().x, c.surface_vel().y); ImGui::NextColumn();
 
                         ImGui::Text("Has Contact"); ImGui::NextColumn();
                         ImGui::Text("%s", c.hasContact ? "true" : "false"); ImGui::NextColumn();
@@ -200,7 +203,9 @@ void imgui_colliders(World* w) {
 
             ImGui::Text("Curr Position: %3.2f, %3.2f", col->getPosition().x, col->getPosition().y);
             ImGui::Text("Prev Position: %3.2f, %3.2f", col->getPrevPosition().x, col->getPrevPosition().y);
+            ImGui::Text("Delta Position: %3.2f, %3.2f", col->getDeltaPosition().x, col->getDeltaPosition().y);
             ImGui::Text("Velocity:      %3.2f, %3.2f", col->velocity.x, col->velocity.y);
+            ImGui::Text("Delta Vel:      %3.2f, %3.2f", col->delta_velocity.x, col->delta_velocity.y);
 
             float pos[2] = {col->getPosition().x, col->getPosition().y};
 

@@ -122,24 +122,8 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 
 }
 
-void TileLayer::update(World& world, secs deltaTime) {
-    /*
-	if (hasCollision() && deltaTime > 0.0) {
-        auto* collider = get_collider(world);
-		collider->setPosition(position);
-        Vec2f nV = collider->getDeltaPosition() / deltaTime;
-		collider->delta_velocity = nV - collider->velocity;
-		collider->velocity = nV;
-	}
-
-    for (auto chunk_id : dyn.chunks) {
-        auto& cfg = world.system<SceneSystem>().config(chunk_id);
-        //cfg.prev_pos = cfg.curr_pos;
-        cfg.curr_pos = position;
-    }
-    */
-
-
+void TileLayer::update(World& world, secs deltaTime)
+{
 	if (hasScrolling()) {
 		dyn.scroll.prev_offset = dyn.scroll.offset;
 		dyn.scroll.offset += getScrollRate() * deltaTime;

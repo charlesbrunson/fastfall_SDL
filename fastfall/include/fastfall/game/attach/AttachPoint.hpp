@@ -11,7 +11,12 @@ namespace ff {
 class AttachPoint {
 public:
 
-    AttachPoint(ID<AttachPoint> t_id, Vec2f init_pos = {}, Vec2f init_vel = {});
+    enum class Schedule {
+        PostUpdate,
+        PostCollision
+    };
+
+    AttachPoint(ID<AttachPoint> t_id, Vec2f init_pos = {}, Vec2f init_vel = {}, Schedule sch = Schedule::PostUpdate);
 
     // apply vel to position
     void apply_vel(secs deltaTime);
@@ -53,10 +58,6 @@ public:
 
     AttachConstraint constraint;
 
-    enum class Schedule {
-        PostUpdate,
-        PostCollision
-    };
     Schedule sched = Schedule::PostUpdate;
 
 
