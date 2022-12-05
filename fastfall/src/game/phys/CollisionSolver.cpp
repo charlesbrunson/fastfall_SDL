@@ -731,6 +731,7 @@ bool CollisionSolver::apply(const ContinuousContact& contact, ContactType type)
 
 		AppliedContact applied{contact};
         applied.collidable_precontact_velocity = prevel;
+        //LOG_INFO("{}", applied.collidable_precontact_velocity);
 		applied.type = type;
 
         auto arb = contact.id ? arbiters.find(*contact.id) : arbiters.end();

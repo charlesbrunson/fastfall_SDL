@@ -108,6 +108,8 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
 
             Vec2f push_vel{};
             Vec2f push_acc{};
+            //LOG_INFO("AAAA: {} {}", c.collidable_precontact_velocity, attach.global_vel());
+
             push_vel.y += (c.collidable_precontact_velocity - attach.global_vel()).y * 0.9f;
 
             if (auto* track = collidable.get_tracker();
