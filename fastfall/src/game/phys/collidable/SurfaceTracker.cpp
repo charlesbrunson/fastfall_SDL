@@ -104,10 +104,6 @@ Vec2f SurfaceTracker::calc_friction(Vec2f prevVel) {
 		&& (!currentContact->hasImpactTime || contact_time > 0.0)
 		&& settings.has_friction) 
 	{
-		//Vec2f sVel = settings.use_surf_vel ? currentContact->surface_vel() : Vec2f{};
-		//Vec2f tangent = math::projection(prevVel - sVel, currentContact->collider_n.righthand(), true);
-		//Vec2f normal = math::projection(prevVel - sVel - currentContact->velocity, currentContact->collider_n, true);
-
         Vec2f tangent = math::projection(prevVel, currentContact->collider_n.righthand(), true);
         Vec2f normal = math::projection(prevVel, currentContact->collider_n, true);
 		float Ft = tangent.magnitude();
