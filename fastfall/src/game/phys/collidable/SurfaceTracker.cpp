@@ -51,7 +51,7 @@ void SurfaceTracker::process_contacts(
 		auto& contact = *rit;
 
 		// we are moving away from the contact
-		if (contact.isSlip && math::dot(owner->get_local_vel(), contact.collider_n) > 0)
+		if (contact.isSlip && math::dot(owner->get_global_vel(), contact.collider_n) > 0)
 			continue;
 
 		if (!found && can_make_contact_with(contact))
@@ -388,9 +388,13 @@ void SurfaceTracker::start_touch(AppliedContact& contact) {
 
 	if (settings.move_with_platforms) {
         Vec2f pvel = owner->get_parent_vel();
+        LOG_INFO("pvel: {}", pvel);
+        LOG_INFO("contact.velocity: {}", pvel);
         owner->set_parent_vel(contact.velocity);
         owner->set_last_parent_vel(contact.velocity);
+        LOG_INFO("local: {}", owner->get_local_vel());
         owner->set_local_vel(owner->get_local_vel() - (contact.velocity - pvel));
+        LOG_INFO("after local: {}", owner->get_local_vel());
 	}
 
 	if (callbacks.on_start_touch)
@@ -411,9 +415,10 @@ void SurfaceTracker::end_touch(AppliedContact& contact) {
 			}
 		}
 		if (!still_touching) {
-            owner->set_last_parent_vel(owner->get_parent_vel());
+            Vec2f pvel = owner->get_parent_vel();
             owner->set_parent_vel(Vec2f{});
-            owner->set_local_vel(owner->get_local_vel() + contact.velocity);
+            //owner->set_last_parent_vel(Vec2f{});
+            owner->set_local_vel(owner->get_local_vel() + pvel);
 			//owner->set_vel(owner->get_vel() + math::projection(contact.velocity, contact.collider_n.lefthand(), true));
 		}
 	}

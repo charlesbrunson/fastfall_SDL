@@ -209,11 +209,15 @@ void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
 		}
 	}
 
+    /*
 	if (deltaTime > 0.0) {
 		velocity = ctx.collider->velocity;
 	}
+    */
 
-	contact.velocity = velocity;
+    velocity = ctx.collider->velocity;
+	contact.velocity = ctx.collider->velocity;
+    LOG_INFO("VEL: {}", contact.velocity);
 
     auto& curr_quad = *ctx.collider->get_quad(id.quad);
     contact.quad_valid = curr_quad.hasAnySurface();
