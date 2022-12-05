@@ -33,6 +33,7 @@ void imgui_collidables(World* w) {
             ImGui::Text("Local  Vel:   %3.2f, %3.2f", col.get_local_vel().x, col.get_local_vel().y);
             ImGui::Text("Parent Vel:   %3.2f, %3.2f", col.get_parent_vel().x, col.get_parent_vel().y);
             ImGui::Text("Global Vel:   %3.2f, %3.2f", col.get_global_vel().x, col.get_global_vel().y);
+            ImGui::Text("Last Parent Vel:   %3.2f, %3.2f", col.get_last_parent_vel().x, col.get_last_parent_vel().y);
             ImGui::NewLine();
             ImGui::Text("Accel:        %3.2f, %3.2f", col.get_acc().x, col.get_acc().y);
             ImGui::Text("Friction:     %3.2f, %3.2f", col.get_friction().x, col.get_friction().y);

@@ -68,9 +68,9 @@ protected:
         ground = box->get_tracker();
 
         ground->settings = {
-				.slope_sticking = true,
-				.stick_angle_max = Angle::Degree(90)
-			};
+            .slope_sticking = true,
+            .stick_angle_max = Angle::Degree(90)
+        };
 
         colMan = &world.system<CollisionSystem>();
 	}
@@ -101,6 +101,72 @@ protected:
 		collider->applyChanges();
 	}
 };
+
+TEST_F(surfacetracker, moving_first_contact_horizontal)
+{
+    initTileMap({
+    /*          x:0
+    /* y:0 _*/ {""},
+    /* y:16_*/ {""},
+    /* y:32_*/ {"solid"},
+    });
+
+    collider->velocity = Vec2f{50.f, 0.f};
+
+    box->teleport(Vec2f{ 8, 32 });
+    box->set_local_vel(Vec2f{ 0.f, 0.f });
+    box->set_gravity(Vec2f{ 0.f, 500.f });
+
+    ground->settings.move_with_platforms = true;
+    ground->settings.has_friction = true;
+    ground->settings.surface_friction.kinetic = 0.6f;
+    ground->settings.surface_friction.stationary = 0.9f;
+
+    TestPhysRenderer render(world, { 0, 0, 16, 48 });
+    render.frame_delay = 2;
+    render.draw();
+
+    update();
+    render.draw();
+
+    EXPECT_EQ(box->get_local_vel().x, -50.f);
+    EXPECT_EQ(box->get_local_vel().y, 0.f);
+    EXPECT_EQ(box->get_parent_vel().x, 50.f);
+    EXPECT_EQ(box->get_parent_vel().y, 0.f);
+}
+
+TEST_F(surfacetracker, moving_first_contact_vertical)
+{
+    initTileMap({
+    /*          x:0
+    /* y:0 _*/ {""},
+    /* y:16_*/ {""},
+    /* y:32_*/ {"solid"},
+    });
+
+    collider->velocity = Vec2f{0.f, 50.f};
+
+    box->teleport(Vec2f{ 8, 32 });
+    box->set_local_vel(Vec2f{ 0.f, 0.f });
+    box->set_gravity(Vec2f{ 0.f, 500.f });
+
+    ground->settings.move_with_platforms = true;
+    ground->settings.has_friction = true;
+    ground->settings.surface_friction.kinetic = 0.6f;
+    ground->settings.surface_friction.stationary = 0.9f;
+
+    TestPhysRenderer render(world, { 0, 0, 16, 48 });
+    render.frame_delay = 2;
+    render.draw();
+
+    update();
+    render.draw();
+
+    EXPECT_EQ(box->get_local_vel().x, 0.f);
+    EXPECT_EQ(box->get_local_vel().y, 0.f);
+    EXPECT_EQ(box->get_parent_vel().x, 0.f);
+    EXPECT_EQ(box->get_parent_vel().y, 50.f);
+}
 
 TEST_F(surfacetracker, stick_slope_down)
 {

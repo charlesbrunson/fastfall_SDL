@@ -107,6 +107,9 @@ public:
 
     inline void set_parent_vel(Vec2f pvel) noexcept { parent_vel = pvel; }
 
+    inline Vec2f get_last_parent_vel() const noexcept { return last_parent_vel; }
+    inline void set_last_parent_vel(Vec2f pvel) noexcept { last_parent_vel = pvel; }
+
 	inline void add_accel(Vec2f acceleration) { accel_accum += acceleration; };
 	inline void add_decel(Vec2f deceleration) { decel_accum += deceleration; };
 
@@ -169,6 +172,7 @@ private:
 	Rectf currRect;
 	Rectf prevRect;
 
+    Vec2f last_parent_vel;
     Vec2f parent_vel;
 	Vec2f local_vel;
 	Vec2f local_precollision_vel; // velocity saved before collision, used for friction calculation

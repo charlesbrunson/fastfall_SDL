@@ -12,8 +12,6 @@ namespace phys_resp {
 
 			Vec2f normal = math::projection(contact.velocity, contact.collider_n, true);
 			Vec2f tangent = math::projection(curr_vel, contact.collider_n.righthand(), true);
-
-            LOG_INFO("normal:{} tangent:{}", normal, tangent);
 			return std::make_pair(normal, tangent);
 		}
 
@@ -36,7 +34,7 @@ namespace phys_resp {
 		default: return body.get_global_vel();
 		}
 
-		auto [normal, tangent] = response(body.get_local_vel(), contact);
+		auto [normal, tangent] = response(body.get_global_vel(), contact);
 
 		return normal + tangent;
 	}

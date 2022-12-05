@@ -274,22 +274,25 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
 		local_vel -= friction;
 		acc = accel_accum;
 
-        Vec2f surfaceVel;
+        //Vec2f surfaceVel;
 		if (tracker) {
 			CollidableOffsets offsets = tracker->premove_update(colliders, deltaTime);
 			next_pos += offsets.position;
             local_vel += offsets.velocity;
-            parent_vel += offsets.parent_velocity;
+            parent_vel = offsets.parent_velocity;
 			acc += offsets.acceleration;
 
             if (tracker->has_contact()) {
-                surfaceVel += tracker->get_contact()->surface_vel();
+                last_parent_vel = parent_vel;
+                //surfaceVel += tracker->get_contact()->surface_vel();
             }
 		}
 
+        Vec2f zero_vel = tracker->has_contact() ? Vec2f{} : last_parent_vel;
+
         local_vel += acc * deltaTime;
-        local_vel.x = math::reduce(local_vel.x, decel_accum.x * (float)deltaTime, surfaceVel.x);
-        local_vel.y = math::reduce(local_vel.y, decel_accum.y * (float)deltaTime, surfaceVel.y);
+        local_vel.x = math::reduce(local_vel.x, decel_accum.x * (float)deltaTime, zero_vel.x);
+        local_vel.y = math::reduce(local_vel.y, decel_accum.y * (float)deltaTime, zero_vel.y);
 
 		next_pos += get_global_vel() * deltaTime;
 
@@ -375,18 +378,14 @@ void Collidable::applyContact(const AppliedContact& contact, ContactType type)
 
 	move(offset, false);
 
-	if ((type == ContactType::CRUSH_VERTICAL) || (type == ContactType::CRUSH_HORIZONTAL)) {
-
+	if ((type == ContactType::CRUSH_VERTICAL) || (type == ContactType::CRUSH_HORIZONTAL) || (type == ContactType::WEDGE))
+    {
 		set_local_vel(Vec2f{});
-
 	}
-	else if (type == ContactType::WEDGE) {
-        set_local_vel(Vec2f{});
-	}
-	else if (math::dot(get_local_vel() - contact.velocity, contact.collider_n) <= 0.f) {
-
+	else if (math::dot(get_global_vel(), contact.collider_n) <= 0.f)
+    {
         Vec2f resp = phys_resp::get(*this, contact);
-        set_local_vel(resp);
+        set_local_vel(resp - get_parent_vel());
 	}
 
 	if (contact.hasImpactTime && tracker) {
