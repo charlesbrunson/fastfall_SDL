@@ -288,7 +288,7 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
             }
 		}
 
-        Vec2f zero_vel = tracker->has_contact() ? Vec2f{} : last_parent_vel;
+        Vec2f zero_vel = tracker && tracker->has_contact() ? Vec2f{} : last_parent_vel;
 
         local_vel += acc * deltaTime;
         local_vel.x = math::reduce(local_vel.x, decel_accum.x * (float)deltaTime, zero_vel.x);
