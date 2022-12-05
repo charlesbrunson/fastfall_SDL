@@ -32,7 +32,8 @@ namespace ff {
         void attach_update(World& w, ID<Collidable> id, Collidable& cmp, const AttachState& st) {
             cmp.teleport(st.ppos);
             cmp.setPosition(st.cpos);
-            cmp.set_vel(st.parent.global_vel());
+            cmp.set_parent_vel(st.parent.global_vel());
+            cmp.set_local_vel(Vec2f{});
         }
 
         // Emitter
@@ -246,7 +247,7 @@ namespace ff {
         auto& attach = world.at(attachid);
         attach.teleport(col.getPrevPosition());
         attach.set_pos(col.getPosition());
-        attach.set_parent_vel(col.get_vel());
+        attach.set_parent_vel(col.get_global_vel());
         attach.set_local_vel({});
         attach.sched = AttachPoint::Schedule::PostCollision;
     }

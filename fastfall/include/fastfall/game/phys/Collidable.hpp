@@ -77,10 +77,10 @@ public:
 
 	Rectf getBoundingBox();
 
-	inline Rectf getBox() const noexcept { return curRect; };
+	inline Rectf getBox() const noexcept { return currRect; };
 	inline Rectf getPrevBox() const noexcept { return prevRect; };
 
-	inline Vec2f getPosition() const noexcept { return pos; };
+	inline Vec2f getPosition() const noexcept { return currPos; };
 	inline Vec2f getPrevPosition() const noexcept { return prevPos; };
 
 	void setPosition(Vec2f position, bool swapPrev = true) noexcept;
@@ -93,15 +93,19 @@ public:
 	void teleport(Vec2f position) noexcept;
 
 	inline Vec2f get_gravity() const noexcept { return gravity_acc; };
-	inline void set_gravity(Vec2f grav) noexcept { gravity_acc = grav; };
+	inline void  set_gravity(Vec2f grav) noexcept { gravity_acc = grav; };
 
-	inline Vec2f get_vel()   const noexcept { return vel; };
+	inline Vec2f get_local_vel()   const noexcept { return local_vel; };
+    inline Vec2f get_parent_vel()   const noexcept { return parent_vel; };
+    inline Vec2f get_global_vel()   const noexcept { return local_vel + parent_vel; };
 
-	inline void  set_vel(Vec2f velocity) noexcept { vel = velocity; };
-	inline void  set_vel(std::optional<float> X, std::optional<float> Y) noexcept { 
-		if (X) { vel.x = *X; }
-		if (Y) { vel.y = *Y; }
+	inline void  set_local_vel(Vec2f velocity) noexcept { local_vel = velocity; };
+	inline void  set_local_vel(std::optional<float> X, std::optional<float> Y) noexcept {
+		if (X) { local_vel.x = *X; }
+		if (Y) { local_vel.y = *Y; }
 	}
+
+    inline void set_parent_vel(Vec2f pvel) noexcept { parent_vel = pvel; }
 
 	inline void add_accel(Vec2f acceleration) { accel_accum += acceleration; };
 	inline void add_decel(Vec2f deceleration) { decel_accum += deceleration; };
@@ -123,8 +127,7 @@ public:
 
 	void set_frame(poly_id_map<ColliderRegion>* colliders, std::vector<AppliedContact>&& frame);
 
-	void setSlip(slip_t set) { slip = set; };
-
+	void    setSlip(slip_t set) noexcept { slip = set; };
 	bool    hasSlip()   const noexcept { return slip.leeway != 0.f; };
 	bool    hasSlipH()  const noexcept { return hasSlip() && slip.state == SlipState::SlipHorizontal; };
 	bool    hasSlipV()  const noexcept { return hasSlip() && slip.state == SlipState::SlipVertical; };
@@ -135,12 +138,6 @@ public:
 
     void set_tracker(Angle ang_min, Angle ang_max, bool inclusive = true);
     bool erase_tracker();
-
-    //SurfaceTracker* get_tracker(ID<SurfaceTracker> id) { return trackers.get(id); };
-    //const SurfaceTracker* get_tracker(ID<SurfaceTracker> id) const { return trackers.get(id); };
-
-    //id_map<SurfaceTracker>& get_trackers() { return trackers; };
-    //const id_map<SurfaceTracker>& get_trackers() const { return trackers; };
 
     SurfaceTracker* get_tracker() { return tracker ? &*tracker : nullptr; }
     const SurfaceTracker* get_tracker() const { return tracker ? &*tracker : nullptr; }
@@ -166,14 +163,15 @@ private:
 
 	slip_t slip;
 
-	Vec2f pos;
+	Vec2f currPos;
 	Vec2f prevPos;
 
-	Rectf curRect;
+	Rectf currRect;
 	Rectf prevRect;
 
-	Vec2f vel;
-	Vec2f precollision_vel; // velocity saved before collision, used for friction calculation
+    Vec2f parent_vel;
+	Vec2f local_vel;
+	Vec2f local_precollision_vel; // velocity saved before collision, used for friction calculation
 
 	Vec2f friction;
 

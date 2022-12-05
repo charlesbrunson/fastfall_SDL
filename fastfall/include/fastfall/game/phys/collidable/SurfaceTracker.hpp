@@ -22,6 +22,7 @@ struct CollidableOffsets {
 	Vec2f position = { 0.f, 0.f };
 	Vec2f velocity = { 0.f, 0.f };
 	Vec2f acceleration = { 0.f, 0.f };
+    Vec2f parent_velocity = {0.f, 0.f};
 };
 
 // track contact duration for surfaces between the given angle ranges

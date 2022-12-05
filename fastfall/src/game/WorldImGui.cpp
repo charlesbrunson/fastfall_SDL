@@ -22,19 +22,26 @@ void imgui_collidables(World* w) {
         if (ImGui::TreeNode((void*)(&col), "Collidable %d##1", cid.value.sparse_index)) {
 
             ImGui::Text("Curr Pos: %3.2f, %3.2f", col.getPosition().x, col.getPosition().y);
-
+            ImGui::Text("Prev Pos: %3.2f, %3.2f", col.getPrevPosition().x, col.getPrevPosition().y);
+            ImGui::NewLine();
             ImGui::Text("Curr Center: %3.2f, %3.2f", math::rect_mid(col.getBox()).x, math::rect_mid(col.getBox()).y);
             ImGui::Text("Prev Center: %3.2f, %3.2f", math::rect_mid(col.getPrevBox()).x, math::rect_mid(col.getPrevBox()).y);
-
+            ImGui::NewLine();
             ImGui::Text("Curr Size: %3.2f, %3.2f", col.getBox().getSize().x, col.getBox().getSize().y);
             ImGui::Text("Prev Size: %3.2f, %3.2f", col.getPrevBox().getSize().x, col.getPrevBox().getSize().y);
-
-
-            ImGui::Text("Velocity:     %3.2f, %3.2f", col.get_vel().x, col.get_vel().y);
+            ImGui::NewLine();
+            ImGui::Text("Local  Vel:   %3.2f, %3.2f", col.get_local_vel().x, col.get_local_vel().y);
+            ImGui::Text("Parent Vel:   %3.2f, %3.2f", col.get_parent_vel().x, col.get_parent_vel().y);
+            ImGui::Text("Global Vel:   %3.2f, %3.2f", col.get_global_vel().x, col.get_global_vel().y);
+            ImGui::NewLine();
             ImGui::Text("Accel:        %3.2f, %3.2f", col.get_acc().x, col.get_acc().y);
             ImGui::Text("Friction:     %3.2f, %3.2f", col.get_friction().x, col.get_friction().y);
-            ImGui::Text("Speed:        %3.2f", col.get_vel().magnitude());
             ImGui::Text("Gravity:      %3.2f, %3.2f", col.get_gravity().x, col.get_gravity().y);
+            ImGui::NewLine();
+            ImGui::Text("Local  Speed: %3.2f", col.get_local_vel().magnitude());
+            ImGui::Text("Parent Speed: %3.2f", col.get_parent_vel().magnitude());
+            ImGui::Text("Global Speed: %3.2f", col.get_global_vel().magnitude());
+            ImGui::NewLine();
 
             if (ImGui::TreeNode((void*)(&col), "Tracker##2")) {
 

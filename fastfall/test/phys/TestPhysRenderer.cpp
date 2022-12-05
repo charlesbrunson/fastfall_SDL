@@ -146,7 +146,7 @@ void TestPhysRenderer::draw() {
 		{
 			SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
 			Vec2f p1 = off + math::rect_mid(box);
-			Vec2f p2 = off + p1 + collidable.get_vel() * (1.f / 60.f);
+			Vec2f p2 = off + p1 + collidable.get_global_vel() * (1.f / 60.f);
 			p1 *= scale;
 			p2 *= scale;
 			SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);

@@ -33,10 +33,10 @@ namespace phys_resp {
 		switch (response_type) {
 		case type::STANDARD: response = resp_standard; break;
 		case type::FLATTEN: response = resp_flatten; break;
-		default: return body.get_vel();
+		default: return body.get_global_vel();
 		}
 
-		auto [normal, tangent] = response(body.get_vel(), contact);
+		auto [normal, tangent] = response(body.get_local_vel(), contact);
 
 		return normal + tangent;
 	}

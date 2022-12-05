@@ -726,7 +726,7 @@ bool CollisionSolver::apply(const ContinuousContact& contact, ContactType type)
 			(*json_dump)["apply"].back()["type"] = type;
 		}
 
-        Vec2f prevel = collidable->get_vel();
+        Vec2f prevel = collidable->get_global_vel();
 		collidable->applyContact(contact, type);
 
 		AppliedContact applied{contact};

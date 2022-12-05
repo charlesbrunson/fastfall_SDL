@@ -27,7 +27,7 @@ void apply_dash_vel(ff::World& w, plr::members& plr, float min_vel) {
 	float vel = min_vel;
 	float speed = ground.has_contact()
 		? *ground.traverse_get_speed()
-		: box.get_vel().x;
+		: box.get_local_vel().x;
 
 	if (speed == 0 || speed < 0 == sprite.get_hflip())
 	{
@@ -38,7 +38,7 @@ void apply_dash_vel(ff::World& w, plr::members& plr, float min_vel) {
 		ground.traverse_set_speed(vel * (sprite.get_hflip() ? -1.f : 1.f));
 	}
 	else {
-		box.set_vel(vel, {});
+		box.set_local_vel(vel, {});
 	}
 
 }

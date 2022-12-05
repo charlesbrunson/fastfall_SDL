@@ -46,7 +46,7 @@ void CollisionSystem::update(World& world, secs deltaTime)
             auto& attach = world.at(col.get_attach_id());
             //attach.teleport(col.getPrevPosition());
             attach.set_pos(col.getPosition() + col.get_attach_origin());
-            attach.set_parent_vel(col.get_vel());
+            attach.set_parent_vel(col.get_global_vel());
         }
 	}
 

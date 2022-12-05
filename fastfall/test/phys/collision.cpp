@@ -101,7 +101,7 @@ TEST_F(collision, minimal)
     });
 
     box->teleport(Vec2f{ 8, 32 });
-    box->set_vel(Vec2f{ 0.f, 0.f });
+    box->set_local_vel(Vec2f{ 0.f, 0.f });
     box->set_gravity(Vec2f{ 0.f, 500.f });
 
     TestPhysRenderer render(world, { 0, 0, 16, 48 });
@@ -128,7 +128,7 @@ TEST_F(collision, wall_to_ceil_clip)
 		});
 
 	box->teleport(Vec2f{ 40, 32 });
-	box->set_vel(Vec2f{ -800.f, 0.f });
+	box->set_local_vel(Vec2f{ -800.f, 0.f });
 	box->set_gravity(Vec2f{ 0.f, 500.f });
 
 	TestPhysRenderer render(world, { 0, 0, 80, 80 });
@@ -139,7 +139,7 @@ TEST_F(collision, wall_to_ceil_clip)
 
 	while (render.curr_frame < 20) {
 
-		box->set_vel(Vec2f{ -800.f, 0.f });
+		box->set_local_vel(Vec2f{ -800.f, 0.f });
 		update();
 		render.draw();
 
@@ -166,7 +166,7 @@ TEST_F(collision, ghostcheck_slopedceil_to_wall)
 		});
 
 	box->teleport(Vec2f{ 20, 48 });
-	box->set_vel(Vec2f{ 0.f, -8.f  } / one_frame);
+	box->set_local_vel(Vec2f{ 0.f, -8.f  } / one_frame);
 
 	TestPhysRenderer render(world, { 0, 0, 80, 80 });
 	render.frame_delay = 20;
@@ -205,7 +205,7 @@ TEST_F(collision, half_pipe)
 		});
 
 	box->teleport(Vec2f{ 8, 88 });
-	box->set_vel(Vec2f{ 400.f, 0.f  });
+	box->set_local_vel(Vec2f{ 400.f, 0.f  });
 	box->set_gravity(Vec2f{ 0.f, 500.f  });
 
 	TestPhysRenderer render(world, collider->getBoundingBox());
@@ -230,7 +230,7 @@ TEST_F(collision, slip_v)
 		});
 
 	box->teleport(Vec2f{ 40, 32 + 5 });
-	box->set_vel(Vec2f{ -400.f, 0.f  });
+	box->set_local_vel(Vec2f{ -400.f, 0.f  });
 	box->set_gravity(Vec2f{ 0.f, 0.f  });
 	box->setSlip({Collidable::SlipState::SlipVertical, 5.f});
 
@@ -264,7 +264,7 @@ TEST_F(collision, slip_v_oneway)
     });
 
     box->teleport(Vec2f{ 40, 32 + 5 });
-    box->set_vel(Vec2f{ -400.f, 0.f  });
+    box->set_local_vel(Vec2f{ -400.f, 0.f  });
     box->set_gravity(Vec2f{ 0.f, 0.f  });
     box->setSlip({Collidable::SlipState::SlipVertical, 5.f});
 
@@ -299,7 +299,7 @@ TEST_F(collision, floor_to_steep)
 		});
 
 	box->teleport(Vec2f{ 15.9f, 32 });
-	box->set_vel(Vec2f{ 50.f, 0.f });
+	box->set_local_vel(Vec2f{ 50.f, 0.f });
 	box->set_gravity(Vec2f{ 0.f, 500.f });
 
 	TestPhysRenderer render(world, collider->getBoundingBox());
@@ -324,7 +324,7 @@ TEST_F(collision, tunneling_static)
 		});
 
 	box->teleport(Vec2f{ 8, 40 });
-	box->set_vel(Vec2f{ 5000.f, 0.f }); // very fast
+	box->set_local_vel(Vec2f{ 5000.f, 0.f }); // very fast
 
 
 	TestPhysRenderer render(world, collider->getBoundingBox());
@@ -333,7 +333,7 @@ TEST_F(collision, tunneling_static)
 
 	while (render.curr_frame < 8) {
 
-		box->set_vel(Vec2f{ 5000.f, 0.f });
+		box->set_local_vel(Vec2f{ 5000.f, 0.f });
 		update();
 		render.draw();
 
@@ -358,7 +358,7 @@ TEST_F(collision, tunneling_moving)
 		});
 
 	box->teleport(Vec2f{ 8, 40 });
-	box->set_vel(Vec2f{ 5000.f, 0.f });
+	box->set_local_vel(Vec2f{ 5000.f, 0.f });
 
 	TestPhysRenderer render(world, math::rect_extend(collider->getBoundingBox(), Cardinal::W, 64.f));
 	render.frame_delay = 20;
@@ -371,7 +371,7 @@ TEST_F(collision, tunneling_moving)
 		collider->delta_velocity = nVel - collider->velocity;
 		collider->velocity = nVel;
 
-		box->set_vel(Vec2f{ 5000.f, 0.f });
+		box->set_local_vel(Vec2f{ 5000.f, 0.f });
 		update();
 		render.draw();
 
@@ -437,7 +437,7 @@ TEST_F(collision, wedge_against_floor_right)
 		render.draw();
 
 		if (render.curr_frame > 24 && box->getPosition().x < 32) {
-			EXPECT_GT(box->get_vel().x, 0.f);
+			EXPECT_GT(box->get_local_vel().x, 0.f);
 			EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
 		}
 	}
@@ -488,7 +488,7 @@ TEST_F(collision, floor_into_wedge_left)
 		render.draw();
 
 		if (render.curr_frame > 24 && box->getPosition().x > 0) {
-			EXPECT_LT(box->get_vel().x, 0.f);
+			EXPECT_LT(box->get_local_vel().x, 0.f);
 		}
 	}
 }
@@ -503,7 +503,7 @@ TEST_F(collision, wedge_with_oneway_floor) {
 
 	box->setSize({ 16, 24 });
 	box->teleport({ 32, 32 });
-	box->set_vel({ -100, -100 });
+	box->set_local_vel({ -100, -100 });
 	box->set_gravity({ 0, 500 });
 
 	TestPhysRenderer render(world, collider->getBoundingBox());
@@ -527,7 +527,7 @@ TEST_F(collision, wedge_with_oneway_ceil) {
 
 	box->setSize({ 16, 24 });
 	box->teleport({ 0, 48 });
-	box->set_vel({ 500, 0 });
+	box->set_local_vel({ 500, 0 });
 	box->set_gravity({ 0, 500 });
 
 	TestPhysRenderer render(world, collider->getBoundingBox());
@@ -535,7 +535,7 @@ TEST_F(collision, wedge_with_oneway_ceil) {
 	render.draw();
 
 	while (render.curr_frame < 20) {
-		box->set_vel({ 500, 0 });
+		box->set_local_vel({ 500, 0 });
 		update();
 		render.draw();
 
@@ -559,7 +559,7 @@ TEST_F(collision, into_steep_slope)
 
 	box->setSize({ 16, 32 });
 	box->teleport({ 8, 80 });
-	box->set_vel({ 200, 0 });
+	box->set_local_vel({ 200, 0 });
 	box->set_gravity({ 0, 50 });
 
 	TestPhysRenderer render(world, collider->getBoundingBox());
@@ -600,7 +600,7 @@ TEST_F(collision, into_shallow_corner_w_oneway)
 
 	box->setSize({ 16, 32 });
 	box->teleport({ 52, 64 });
-	box->set_vel({ -1, -200 });
+	box->set_local_vel({ -1, -200 });
 	box->set_gravity({ 0, 0 });
 
 	TestPhysRenderer render(world, collider->getBoundingBox());
@@ -648,7 +648,7 @@ TEST_F(collision, oneway_into_wall)
 
     box->setSize({ 16, 32 });
     box->teleport({ 24, 64 });
-    box->set_vel(Vec2f{});
+    box->set_local_vel(Vec2f{});
     box->set_gravity({ 200, 400 });
 
     TestPhysRenderer render(world, collider->getBoundingBox());
@@ -683,7 +683,7 @@ TEST_F(collision, up_thru_oneway)
 
     box->setSize({ 16, 32 });
     box->teleport({ 24, 64 });
-    box->set_vel({0.f, -170 });
+    box->set_local_vel({0.f, -170 });
     box->set_gravity({ 0, 400 });
 
     TestPhysRenderer render(world, collider->getBoundingBox());
@@ -691,7 +691,7 @@ TEST_F(collision, up_thru_oneway)
     render.draw();
 
     while (render.curr_frame < 60) {
-        bool can_collide = box->get_vel().y >= 0;
+        bool can_collide = box->get_local_vel().y >= 0;
 
         update();
         render.draw();
@@ -712,7 +712,7 @@ TEST_F(collision, across_oneway) {
 
     box->setSize({ 16, 32 });
     box->teleport({ 8, 32 });
-    box->set_vel({ 1.f, 0.f });
+    box->set_local_vel({ 1.f, 0.f });
     box->set_gravity({ 0, 400 });
 
     TestPhysRenderer render(world, collider->getBoundingBox());

@@ -17,7 +17,7 @@ plr::move_t::move_t(World& w, const plr::members& plr)
 	int flipper = (sprite.get_hflip() ? -1 : 1);
 
 	auto gspeed = ground.traverse_get_speed();
-	speed = gspeed ? *gspeed : box.get_vel().x;
+	speed = gspeed ? *gspeed : box.get_local_vel().x;
 	rel_speed = speed * flipper;
 
 	movex = (speed == 0.f ? 0 : (speed < 0.f ? -1 : 1));
@@ -204,7 +204,7 @@ namespace plr::action {
 					ground.traverse_set_speed(*ground.traverse_get_speed() + 50.f * move.wishx);
 				}
 				else {
-					box.set_vel(box.get_vel().x + 50.f * move.wishx, {});
+					box.set_local_vel(box.get_local_vel().x + 50.f * move.wishx, {});
 				}
 			}
 			sprite.set_anim(anim::jump);
@@ -225,7 +225,7 @@ namespace plr::action {
 		ground.settings.slope_sticking = false;
 		ground.settings.slope_wall_stop = false;
 
-		Vec2f jumpVel = Vec2f{ box.get_vel().x, constants::jumpVelY };
+		Vec2f jumpVel = Vec2f{ box.get_local_vel().x, constants::jumpVelY };
 		Angle jump_ang = math::angle(jumpVel) - math::angle(contact_normal);
 
 		// from perpendicular to the ground
@@ -237,7 +237,7 @@ namespace plr::action {
 		else if (jump_ang > min_jump_ang) {
 			jumpVel = math::rotate(jumpVel, -jump_ang + min_jump_ang);
 		}
-		box.set_vel(jumpVel + Vec2f{ 0.f, contact_velocity.y });
+		box.set_local_vel(jumpVel + Vec2f{ 0.f, contact_velocity.y });
 
 		return PlayerStateID::Air;
 	}

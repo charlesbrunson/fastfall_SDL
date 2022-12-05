@@ -26,7 +26,9 @@ namespace ff {
 				{ "id",			collidable_id.raw() },
 				{ "pos",		fmt::format("{}", collidable.getPosition()) },
 				{ "delta_pos",	fmt::format("{}", collidable.getPosition() - collidable.getPrevPosition()) },
-				{ "vel",		fmt::format("{}", collidable.get_vel()) },
+				{ "localvel",		fmt::format("{}", collidable.get_local_vel()) },
+                { "parentvel",		fmt::format("{}", collidable.get_parent_vel()) },
+                { "globalvel",		fmt::format("{}", collidable.get_global_vel()) },
 				{ "size",		fmt::format("{}", Vec2f{collidable.getBox().getSize()}) }
 			};
 		}

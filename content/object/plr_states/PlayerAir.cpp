@@ -9,7 +9,7 @@ using namespace plr;
 void PlayerAirState::enter(ff::World& w, plr::members& plr, PlayerState* from)
 {
     auto& box = w.at(plr.collidable_id);
-	prevVelY = box.get_vel().y;
+	prevVelY = box.get_local_vel().y;
 }
 
 PlayerStateID PlayerAirState::update(ff::World& w, plr::members& plr, secs deltaTime)
@@ -28,20 +28,20 @@ PlayerStateID PlayerAirState::update(ff::World& w, plr::members& plr, secs delta
 
 	if (!ground.has_contact()) {
 
-		ground.settings.slope_sticking = box.get_vel().y > -50.f;
+		ground.settings.slope_sticking = box.get_local_vel().y > -50.f;
 
 
-		if (box.get_vel().y > -100.f) 
+		if (box.get_local_vel().y > -100.f)
 		{
 			box.setSlip({Collidable::SlipState::SlipVertical, 6.f});
 		}
 
-		if (abs(box.get_vel().y) < 50.f) {
+		if (abs(box.get_local_vel().y) < 50.f) {
 			box.set_gravity(constants::grav_light);
 		}
-		else if (box.get_vel().y > 50.f)
+		else if (box.get_local_vel().y > 50.f)
 		{
-			float f  = std::min((box.get_vel().y - 50) / 100.f, 1.f);
+			float f  = std::min((box.get_local_vel().y - 50) / 100.f, 1.f);
 			float nf = 1 - f;
 
 
@@ -59,13 +59,13 @@ PlayerStateID PlayerAirState::update(ff::World& w, plr::members& plr, secs delta
 				sprite.set_anim(anim::fall);
 				sprite.set_frame(2);
 			}
-			else if (box.get_vel().y > -100.f
+			else if (box.get_local_vel().y > -100.f
 				&& sprite.is_playing(anim::jump)
 				) 
 			{
 				sprite.set_anim(anim::fall);
 			}
-			else if (box.get_vel().y > -100.f
+			else if (box.get_local_vel().y > -100.f
 				&& sprite.is_playing(anim::jump_f)
 				) 
 			{
@@ -74,7 +74,7 @@ PlayerStateID PlayerAirState::update(ff::World& w, plr::members& plr, secs delta
 
 			// idle jump turn around at apex
 			if (sprite.is_playing(anim::fall)
-				&& box.get_vel().y > -100.f
+				&& box.get_local_vel().y > -100.f
 				&& prevVelY <= -100.f
 				&& move.rel_movex < 0
 				&& move.rel_wishx < 0)
@@ -88,8 +88,8 @@ PlayerStateID PlayerAirState::update(ff::World& w, plr::members& plr, secs delta
 		// air control
 		if (move.rel_wishx != 0)
 		{
-			float air_control_hi = box.get_vel().y < 100.f && box.get_vel().y > -100.f ? 500.f : 300.f;
-			float air_control_lo = box.get_vel().y < 100.f && box.get_vel().y > -100.f ? 400.f : 250.f;
+			float air_control_hi = box.get_local_vel().y < 100.f && box.get_local_vel().y > -100.f ? 500.f : 300.f;
+			float air_control_lo = box.get_local_vel().y < 100.f && box.get_local_vel().y > -100.f ? 400.f : 250.f;
 
 			if (move.speed < 150.f)
 			{
@@ -103,7 +103,7 @@ PlayerStateID PlayerAirState::update(ff::World& w, plr::members& plr, secs delta
 		else {
 			box.add_decel({50.f, 0.f});
 		}
-		prevVelY = box.get_vel().y;
+		prevVelY = box.get_local_vel().y;
 	}
 	else {
 		if (prevVelY > 150.f + ground.get_contact()->velocity.y) {

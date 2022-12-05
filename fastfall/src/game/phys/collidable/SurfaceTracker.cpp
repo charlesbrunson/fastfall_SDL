@@ -51,7 +51,7 @@ void SurfaceTracker::process_contacts(
 		auto& contact = *rit;
 
 		// we are moving away from the contact
-		if (contact.isSlip && math::dot(owner->get_vel(), contact.collider_n) > 0)
+		if (contact.isSlip && math::dot(owner->get_local_vel(), contact.collider_n) > 0)
 			continue;
 
 		if (!found && can_make_contact_with(contact))
@@ -164,12 +164,12 @@ bool SurfaceTracker::do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, 
 		&& wallContact.has_value()
 		&& !math::is_vertical(currentContact->collider_n)
 		&& ((currentContact->collider_n.x < 0) == (wallContact->collider_n.x < 0))
-		&& (math::dot(owner->get_vel(), currentContact->ortho_n) > 0);
+		&& (math::dot(owner->get_local_vel(), currentContact->ortho_n) > 0);
 
 	if (can_stop) {
 
 		// correct velocity and position so we're still grounded
-		owner->set_vel(Vec2f{});
+		owner->set_local_vel(Vec2f{});
 
 		const ColliderRegion* region = currentContact && currentContact->id
                 ? colliders->get(currentContact->id->collider)
@@ -178,7 +178,7 @@ bool SurfaceTracker::do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, 
 		if (settings.move_with_platforms && region
 			&& region->hasMoved())
 		{
-			owner->set_vel(owner->get_vel() + math::projection(region->delta_velocity, currentContact->collider_n, true));
+			owner->set_local_vel(owner->get_local_vel() + math::projection(region->delta_velocity, currentContact->collider_n, true));
 		}
 
 		float X = owner->getPosition().x;
@@ -209,7 +209,7 @@ CollidableOffsets SurfaceTracker::do_move_with_platform(poly_id_map<ColliderRegi
 			region && region->hasMoved()) 
 		{
             in.position += math::projection(region->getDeltaPosition(), contact.collider_n.lefthand(), true);
-			in.velocity += math::projection(region->delta_velocity, contact.collider_n, true);
+			in.parent_velocity += region->delta_velocity;
 		}
 	}
 	return in;
@@ -334,11 +334,11 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
 
 			float slow = 1.f - settings.slope_stick_speed_factor * abs(diff.degrees() / settings.stick_angle_max.degrees());
 
-			float vel_mag = owner->get_vel().magnitude() * slow;
+			float vel_mag = owner->get_local_vel().magnitude() * slow;
 			nVel.x = cosf(gAng.radians()) * vel_mag;
 			nVel.y = sinf(gAng.radians()) * vel_mag;
 
-			owner->set_vel(nVel);
+			owner->set_local_vel(nVel);
 
 			if (theta.degrees() < 0.f && abs(diff.degrees()) < abs(settings.stick_angle_max.degrees())) {
 
@@ -382,7 +382,11 @@ CollidableOffsets SurfaceTracker::postmove_update(
 void SurfaceTracker::start_touch(AppliedContact& contact) {
 
 	if (settings.move_with_platforms) {
-		owner->set_vel(owner->get_vel() - math::projection(contact.velocity, contact.collider_n.lefthand(), true));
+
+        Vec2f pvel = owner->get_parent_vel();
+        owner->set_parent_vel(contact.velocity);
+        owner->set_local_vel(owner->get_local_vel() + (contact.velocity - pvel));
+		//owner->set_vel(owner->get_vel() - math::projection(contact.velocity, contact.collider_n.lefthand(), true));
 	}
 
 	if (callbacks.on_start_touch)
@@ -403,7 +407,9 @@ void SurfaceTracker::end_touch(AppliedContact& contact) {
 			}
 		}
 		if (!still_touching) {
-			owner->set_vel(owner->get_vel() + math::projection(contact.velocity, contact.collider_n.lefthand(), true));
+            owner->set_parent_vel(Vec2f{});
+            owner->set_local_vel(owner->get_local_vel() - contact.velocity);
+			//owner->set_vel(owner->get_vel() + math::projection(contact.velocity, contact.collider_n.lefthand(), true));
 		}
 	}
 
@@ -416,19 +422,24 @@ void SurfaceTracker::traverse_set_speed(float speed) {
 	if (has_contact()) 
 	{
 		Vec2f surf_unit = currentContact->collider_n.righthand();
+        Vec2f cVel = currentContact->velocity;
 
+        /*
 		float surface_mag = 0.f;
 		if (settings.use_surf_vel) {
 			Vec2f surfaceVel = currentContact->surface_vel();
 			surface_mag = surfaceVel.x > 0 ? surfaceVel.magnitude() : -surfaceVel.magnitude();
 		}
+        */
 
 		Vec2f surfNV;
-		if (settings.move_with_platforms && currentContact->velocity != Vec2f{})
+		if (settings.move_with_platforms && cVel != Vec2f{})
 		{
-            surfNV = math::projection(currentContact->velocity, currentContact->collider_n, true);
+            surfNV = math::projection(cVel, currentContact->collider_n, true);
 		}
-		owner->set_vel(surf_unit * (speed + surface_mag) + surfNV);
+
+		//owner->set_local_vel(surf_unit * (speed + surface_mag) + surfNV);
+        owner->set_local_vel(surf_unit * speed);
 	}
 }
 
@@ -449,9 +460,9 @@ void SurfaceTracker::traverse_add_decel(float decel) {
 std::optional<float> SurfaceTracker::traverse_get_speed() const {
 	std::optional<float> speed;
 	if (has_contact()) {
-		Vec2f surfVel = (settings.use_surf_vel ? currentContact->surface_vel() : Vec2f{});
+		//Vec2f surfVel = (settings.use_surf_vel ? currentContact->surface_vel() : Vec2f{});
 		Vec2f surf = currentContact->collider_n.righthand();
-		Vec2f proj = math::projection(owner->get_vel(), surf, true) - surfVel;
+		Vec2f proj = math::projection(owner->get_local_vel(), surf, true) /* - surfVel */;
 
 		if (proj.x == 0.f) {
 			speed = 0.f;
@@ -479,8 +490,8 @@ void SurfaceTracker::firstCollisionWith(const AppliedContact& contact)
 
 		owner->setPosition(owner->getPosition() + (contact.ortho_n * contact.stickOffset), false);
 
-		float vmag = owner->get_vel().magnitude();
-		owner->set_vel(vmag * math::projection(owner->get_vel(), math::vector(contact.stickLine)).unit());
+		float vmag = owner->get_local_vel().magnitude();
+        owner->set_local_vel(vmag * math::projection(owner->get_local_vel(), math::vector(contact.stickLine)).unit());
 
 	}
 }

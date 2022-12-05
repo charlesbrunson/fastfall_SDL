@@ -116,7 +116,7 @@ TEST_F(surfacetracker, stick_slope_down)
 	});
 
 	box->teleport({ 8, 32 });
-	box->set_vel({ 100.f, 0.f });
+	box->set_local_vel({ 100.f, 0.f });
 	box->set_gravity({ 0, 400 });
 
 	TestPhysRenderer render(world, collider->getBoundingBox());
@@ -142,7 +142,7 @@ TEST_F(surfacetracker, broken_slope)
 
 	box->teleport({ 48.1, 32 });
     box->setPosition({ 47.9, 32.3  });
-	box->set_vel({ -150.f, 150.f });
+	box->set_local_vel({ -150.f, 150.f });
 	box->set_gravity({ 0, 400 });
 
 	TestPhysRenderer render(world, collider->getBoundingBox());
@@ -171,7 +171,7 @@ TEST_F(surfacetracker, stick_on_touch)
 	});
 
 	box->teleport({ 32 - 5, 31 });
-	box->set_vel(Vec2f{ 6.f, 6.f } / one_frame);
+	box->set_local_vel(Vec2f{ 6.f, 6.f } / one_frame);
 	box->set_gravity({ 0, 400 });
 
 	TestPhysRenderer render(world, {0, 0, 80, 80});
@@ -199,7 +199,7 @@ TEST_F(surfacetracker, friction_slide_to_stop)
 	});
 
 	box->teleport({ 8, 32 });
-	box->set_vel({0, 200});
+	box->set_local_vel({0, 200});
 	box->set_gravity({ 0, 400 });
 
 	ground->settings.has_friction = true;
@@ -211,7 +211,7 @@ TEST_F(surfacetracker, friction_slide_to_stop)
 
 	bool contact = false;
 
-	while (render.curr_frame < 120 && (!contact || box->get_vel().x != 0.f))
+	while (render.curr_frame < 120 && (!contact || box->get_local_vel().x != 0.f))
 	{
 		update();
 		render.draw();
@@ -240,7 +240,7 @@ TEST_F(surfacetracker, move_platform_lateral)
 	});
 
 	box->teleport({ 32, 32 });
-	box->set_vel({ 0, 0 });
+	box->set_local_vel({ 0, 0 });
 	box->set_gravity({ 0, 400 });
 
 	ground->settings.move_with_platforms = true;
@@ -277,7 +277,7 @@ TEST_F(surfacetracker, move_platform_lateral)
 		}
 		else {
 			EXPECT_TRUE(ground->has_contact());
-			if (!rest_offset && box->get_vel().x == 0.f)
+			if (!rest_offset && box->get_local_vel().x == 0.f)
 			{
 				rest_offset = box->getPosition() - collider->getPosition();
 			}
@@ -310,7 +310,7 @@ TEST_F(surfacetracker, move_platform_vertical)
 	});
 
 	box->teleport({ 24, 32 });
-	box->set_vel({ 0, 0 });
+	box->set_local_vel({ 0, 0 });
 	box->set_gravity({ 0, 400 });
 
 	ground->settings.move_with_platforms = true;
@@ -350,7 +350,7 @@ TEST_F(surfacetracker, move_platform_vertical)
 		}
 		else {
 			EXPECT_TRUE(ground->has_contact());
-			if (!rest_offset && box->get_vel().x == 0.f)
+			if (!rest_offset && box->get_local_vel().x == 0.f)
 			{
 				rest_offset = box->getPosition() - collider->getPosition();
 			}
@@ -538,7 +538,7 @@ TEST_F(surfacetracker, on_moving_slope)
     });
     box->teleport({ 16, 40 });
     box->set_gravity({ 0, 200 });
-    box->set_vel(Vec2f{1 / one_frame, 0.f});
+    box->set_local_vel(Vec2f{1 / one_frame, 0.f});
     ground->settings.surface_friction.kinetic = 100.0f;
     ground->settings.surface_friction.stationary = 100.0f;
 

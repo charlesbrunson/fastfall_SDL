@@ -782,7 +782,7 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 void CollisionDiscrete::initCollidableData(CollisionContext ctx) {
     if (collision_time == Type::CurrFrame) {
         cBox = ctx.collidable->getBox();
-        cVel = ctx.collidable->get_vel();
+        cVel = ctx.collidable->get_local_vel();
     }
     else {
         cBox = ctx.collidable->getPrevBox();
