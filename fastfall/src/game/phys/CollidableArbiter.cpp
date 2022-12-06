@@ -33,8 +33,11 @@ namespace ff {
 			};
 
             if (auto* track = collidable.get_tracker()) {
+                bool has_id = track->has_contact() && track->get_contact()->id;
                 (*dump_ptr)["collidable"]["tracker"] = {
-                    {"has_contact", track->has_contact()},
+                    { "has_contact", track->has_contact() },
+                    { "collider_id", (has_id ? track->get_contact()->id->collider.raw() : 0) },
+                    { "quad_id",     (has_id ? track->get_contact()->id->quad.value : 0) }
                 };
             }
             else {
@@ -100,8 +103,9 @@ namespace ff {
 			for (auto& [rid, rarb] : region_arbiters) {
                 ColliderRegion* region = world.get(rid);
 				(*dump_ptr)["broad_phase"]["colliders"][region_count] = {
-					{ "id",				rid.raw()},
-					{ "vel",			fmt::format("{}", region->velocity)},
+					{ "id",				rid.raw() },
+					{ "vel",			fmt::format("{}", region->velocity) },
+                    { "position",       fmt::format("{}", region->getPosition()) },
 					{ "delta_pos",		fmt::format("{}", region->getPosition() - region->getPrevPosition()) },
 					{ "arbiter_count",	rarb.getQuadArbiters().size()},
 				};
