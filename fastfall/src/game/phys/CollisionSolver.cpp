@@ -37,7 +37,9 @@ nlohmann::ordered_json to_json(const ContinuousContact* contact)
         {"collidable",		id ? id->collidable.raw() : 0u },
 		{"region",			id ? id->collider.raw() : 0u },
 		{"quad",			id ? id->quad.value : 0u },
-	};
+        {"stick_offset",    contact->stickOffset},
+        {"stick_line",      fmt::format("{} -> {}", contact->stickLine.p1, contact->stickLine.p2)},
+    };
 }
 
 template<typename Container>

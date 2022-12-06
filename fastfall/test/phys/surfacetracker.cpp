@@ -625,3 +625,45 @@ TEST_F(surfacetracker, on_moving_slope)
         //EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
     }
 }
+
+TEST_F(surfacetracker, move_stick_slope)
+{
+    initTileMap({
+        {"",        "",         "",         "",         "",         "",     "",     "",     ""},
+        {"",        "",         "",         "",         "",         "",     "",     "",     ""},
+        {"",        "slope",    "solid",    "slope-h",  "",         "",     "",     "",     ""},
+        {"solid",   "solid",    "solid",    "solid",    "solid",    "",     "",     "",     ""}
+    });
+
+    box->teleport({ 8, 48 });
+    box->set_gravity({ 0, 500 });
+    box->set_local_vel(Vec2f{3.f, 0.f} / one_frame);
+
+    ground->settings.move_with_platforms = true;
+
+    TestPhysRenderer render(world, collider->getBoundingBox());
+    render.draw();
+
+    Vec2f dir = Vec2f{ 1.f, 0.f };
+    float mdir = 3.f;
+    while (render.curr_frame < 60)
+    {
+        if (box->getPosition().x > collider->getPosition().x + (16 * 4) + 8) {
+            mdir *= -1.f;
+        }
+        else if (box->getPosition().x < collider->getPosition().x + 8) {
+            mdir *= -1.f;
+        }
+        box->at_tracker().traverse_set_speed(mdir / one_frame);
+
+        collider->setPosition(collider->getPosition() + dir);
+        ff::Vec2f nVel = (collider->getPosition() - collider->getPrevPosition()) / one_frame;
+        collider->delta_velocity = nVel - collider->velocity;
+        collider->velocity = nVel;
+
+        update();
+        render.draw();
+
+        EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
+    }
+}

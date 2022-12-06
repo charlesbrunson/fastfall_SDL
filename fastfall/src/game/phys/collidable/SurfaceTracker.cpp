@@ -494,10 +494,10 @@ void SurfaceTracker::firstCollisionWith(const AppliedContact& contact)
 		AppliedContact pc{contact};
 		start_touch(pc);
 
-		//owner->setPosition(owner->getPosition() + (contact.ortho_n * contact.stickOffset), false);
+		owner->setPosition(owner->getPosition() + (contact.ortho_n * contact.stickOffset), false);
 
-		//float vmag = owner->get_local_vel().magnitude();
-        //owner->set_local_vel(vmag * math::projection(owner->get_local_vel(), math::vector(contact.stickLine)).unit());
+		float vmag = owner->get_local_vel().magnitude();
+        owner->set_local_vel(vmag * math::projection(owner->get_local_vel(), math::vector(contact.stickLine)).unit());
 
 	}
 }
