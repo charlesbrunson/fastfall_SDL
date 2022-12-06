@@ -384,13 +384,9 @@ void SurfaceTracker::start_touch(AppliedContact& contact) {
 
 	if (settings.move_with_platforms) {
         Vec2f pvel = owner->get_parent_vel();
-        LOG_INFO("pvel: {}", pvel);
-        LOG_INFO("contact.velocity: {}", pvel);
         owner->set_parent_vel(contact.velocity);
         owner->set_last_parent_vel(contact.velocity);
-        LOG_INFO("local: {}", owner->get_local_vel());
         owner->set_local_vel(owner->get_local_vel() - (contact.velocity - pvel));
-        LOG_INFO("after local: {}", owner->get_local_vel());
 	}
 
 	if (callbacks.on_start_touch)
