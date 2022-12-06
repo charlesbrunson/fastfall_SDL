@@ -629,13 +629,12 @@ TEST_F(surfacetracker, on_moving_slope)
 TEST_F(surfacetracker, move_stick_slope)
 {
     initTileMap({
-        {"",        "",         "",         "",         "",         "",     "",     "",     ""},
-        {"",        "",         "",         "",         "",         "",     "",     "",     ""},
-        {"",        "slope",    "solid",    "slope-h",  "",         "",     "",     "",     ""},
-        {"solid",   "solid",    "solid",    "solid",    "solid",    "",     "",     "",     ""}
+        {"",   "",         "",         ""},
+        {"",   "",         "",         ""},
+        {"",   "slope",    "solid",    ""},
     });
 
-    box->teleport({ 8, 48 });
+    box->teleport({ 38, 32 });
     box->set_gravity({ 0, 500 });
     box->set_local_vel(Vec2f{3.f, 0.f} / one_frame);
 
@@ -645,8 +644,8 @@ TEST_F(surfacetracker, move_stick_slope)
     render.draw();
 
     Vec2f dir = Vec2f{ 1.f, 0.f };
-    float mdir = 3.f;
-    while (render.curr_frame < 60)
+    float mdir = -3.f;
+    while (render.curr_frame < 10) // error on 5
     {
         if (box->getPosition().x > collider->getPosition().x + (16 * 4) + 8) {
             mdir *= -1.f;

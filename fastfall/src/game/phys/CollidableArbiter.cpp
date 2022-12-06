@@ -29,8 +29,17 @@ namespace ff {
 				{ "localvel",		fmt::format("{}", collidable.get_local_vel()) },
                 { "parentvel",		fmt::format("{}", collidable.get_parent_vel()) },
                 { "globalvel",		fmt::format("{}", collidable.get_global_vel()) },
-				{ "size",		fmt::format("{}", Vec2f{collidable.getBox().getSize()}) }
+				{ "size",		fmt::format("{}", Vec2f{collidable.getBox().getSize()}) },
 			};
+
+            if (auto* track = collidable.get_tracker()) {
+                (*dump_ptr)["collidable"]["tracker"] = {
+                    {"has_contact", track->has_contact()},
+                };
+            }
+            else {
+                (*dump_ptr)["collidable"]["tracker"];
+            }
 		}
 
 		std::set<const Arbiter*> updatedBuffer;
