@@ -294,24 +294,32 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
 	bool goingLeft = false;
 	bool goingRight = false;
 
-	if (wish_pos.x >= right && prev_pos.x < right) {
+	if (wish_pos.x >= right && prev_pos.x + regionDelta.x < right) {
 		goingRight = true;
 		next = goRight(region, currentContact->collider);
 	}
-	else if (wish_pos.x <= left && prev_pos.x > left) {
+	else if (wish_pos.x <= left && prev_pos.x + regionDelta.x > left) {
 		goingLeft = true;
 		next = goLeft(region, currentContact->collider);
 	}
-	else if (wish_pos.x >= left && prev_pos.x < left)
+	else if (wish_pos.x >= left && prev_pos.x + regionDelta.x < left)
 	{
 		goingRight = true;
 		next = &currentContact->collider;
 	}
-	else if (wish_pos.x <= right && prev_pos.x > right)
+	else if (wish_pos.x <= right && prev_pos.x + regionDelta.x > right)
 	{
 		goingLeft = true;
 		next = &currentContact->collider;
 	}
+
+    /*
+    LOG_INFO("left = {}", left)
+    LOG_INFO("wish.x = {}", wish_pos.x);
+    LOG_INFO("prev_pos.x = {}", prev_pos.x);
+    LOG_INFO("next = {}", fmt::ptr(next));
+    LOG_INFO("collider delta = {}", regionDelta);
+    */
 
 	if (next) {
 
@@ -368,8 +376,18 @@ CollidableOffsets SurfaceTracker::postmove_update(
 
 	if (has_contact()) {
 
-		float left = std::min(currentContact->collider.surface.p1.x, currentContact->collider.surface.p2.x);
-		float right = std::max(currentContact->collider.surface.p1.x, currentContact->collider.surface.p2.x);
+        float left, right;
+        if (currentContact->id) {
+            auto* region = colliders->get(currentContact->id->collider);
+            auto surf = *region->get_quad(currentContact->id->quad)->getSurface(*direction::from_vector(currentContact->ortho_n));
+            Linef line = math::shift(surf.surface, region->getPosition());
+            left = std::min(line.p1.x, line.p2.x);
+            right = std::max(line.p1.x, line.p2.x);
+        }
+        else {
+            left = std::min(currentContact->collider.surface.p1.x, currentContact->collider.surface.p2.x);
+            right = std::max(currentContact->collider.surface.p1.x, currentContact->collider.surface.p2.x);
+        }
 
 		if (settings.slope_sticking && left < right) {
 			position += do_slope_stick(colliders, wish_pos, prev_pos, left, right);
