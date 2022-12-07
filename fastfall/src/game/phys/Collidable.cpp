@@ -382,7 +382,7 @@ void Collidable::applyContact(const AppliedContact& contact, ContactType type)
     {
 		set_local_vel(Vec2f{});
 	}
-	else if (math::dot(get_global_vel(), contact.collider_n) <= 0.f)
+	else if (math::dot(get_global_vel() - contact.velocity, contact.collider_n) <= 0.f)
     {
         Vec2f resp = phys_resp::get(*this, contact);
         set_local_vel(resp - get_parent_vel());
