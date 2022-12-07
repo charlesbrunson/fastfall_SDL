@@ -197,8 +197,7 @@ CollidableOffsets SurfaceTracker::do_move_with_platform(poly_id_map<ColliderRegi
         && settings.move_with_platforms)
 	{
 		AppliedContact& contact = currentContact.value();
-		if (const ColliderRegion* region = colliders->get(currentContact->id->collider);
-			region /*&& region->hasMoved()*/)
+		if (const ColliderRegion* region = colliders->get(currentContact->id->collider))
 		{
 			in.parent_velocity = region->velocity + contact.surface_vel();
 		}
@@ -429,13 +428,6 @@ void SurfaceTracker::traverse_set_speed(float speed) {
 	{
 		Vec2f surf_unit = currentContact->collider_n.righthand();
         Vec2f cVel = currentContact->velocity;
-
-		Vec2f surfNV;
-		if (settings.move_with_platforms && cVel != Vec2f{})
-		{
-            surfNV = math::projection(cVel, currentContact->collider_n, true);
-		}
-
         owner->set_local_vel(surf_unit * speed);
 	}
 }
