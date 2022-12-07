@@ -179,11 +179,11 @@ namespace plr::action {
         auto& ground = box.at_tracker();
 
 		Vec2f contact_normal = Vec2f{0.f, -1.f};
-		Vec2f contact_velocity = Vec2f{};
+		//Vec2f contact_velocity = Vec2f{};
 
 		if (ground.has_contact()) {
 			contact_normal = ground.get_contact()->collider_n;
-			contact_velocity = ground.get_contact()->velocity;
+			//contact_velocity = ground.get_contact()->velocity;
 		}
 
 
@@ -237,7 +237,7 @@ namespace plr::action {
 		else if (jump_ang > min_jump_ang) {
 			jumpVel = math::rotate(jumpVel, -jump_ang + min_jump_ang);
 		}
-		box.set_local_vel(jumpVel + Vec2f{ 0.f, contact_velocity.y });
+		box.set_local_vel(jumpVel);
 
 		return PlayerStateID::Air;
 	}
