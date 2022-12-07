@@ -74,7 +74,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     auto attach_id = w.create<AttachPoint>(entityID(), id_placeholder);
     auto& attach = w.at(attach_id);
     attach.teleport(base_position);
-    attach.constraint = makeSpringConstraint({30, 50}, {8, 3}, 48.f);
+    attach.constraint = makeSpringConstraint({30, 50}, {8, 6}, 48.f);
     w.system<AttachSystem>().create(w, attach_id, sprite_id);
     w.system<AttachSystem>().create(w, attach_id, collider_id);
     w.system<AttachSystem>().create(w, attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });

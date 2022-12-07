@@ -376,13 +376,19 @@ CollidableOffsets SurfaceTracker::postmove_update(
 
 	if (has_contact()) {
 
-        float left, right;
-        if (currentContact->id) {
-            auto* region = colliders->get(currentContact->id->collider);
-            auto surf = *region->get_quad(currentContact->id->quad)->getSurface(*direction::from_vector(currentContact->ortho_n));
-            Linef line = math::shift(surf.surface, region->getPosition());
-            left = std::min(line.p1.x, line.p2.x);
-            right = std::max(line.p1.x, line.p2.x);
+        float left = 0.f;
+        float right = 0.f;
+        if (currentContact->id)
+        {
+            // lmao even
+            auto region = colliders->get(currentContact->id->collider);
+            if (auto quad = region->get_quad(currentContact->id->quad)) {
+                if (auto surf = quad->getSurface(*direction::from_vector(currentContact->ortho_n))) {
+                    Linef line = math::shift(surf->surface, region->getPosition());
+                    left = std::min(line.p1.x, line.p2.x);
+                    right = std::max(line.p1.x, line.p2.x);
+                }
+            }
         }
         else {
             left = std::min(currentContact->collider.surface.p1.x, currentContact->collider.surface.p2.x);
