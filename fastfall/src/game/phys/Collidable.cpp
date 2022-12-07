@@ -294,7 +294,7 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
         local_vel.x = math::reduce(local_vel.x, decel_accum.x * (float)deltaTime, zero_vel.x);
         local_vel.y = math::reduce(local_vel.y, decel_accum.y * (float)deltaTime, zero_vel.y);
 
-		next_pos += get_global_vel() * (float)deltaTime;
+        next_pos += get_global_vel() * (float)deltaTime;
 
 		// perform post move before applying gravity
         if (tracker) {

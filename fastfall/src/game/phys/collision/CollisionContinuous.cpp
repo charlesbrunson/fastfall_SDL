@@ -53,7 +53,6 @@ void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
 
 	unsigned pCount = prevCollision.getAxisCount();
 	unsigned cCount = currCollision.getAxisCount();
-
 	assert(pCount == cCount);
 
 	float firstExit = 1.f;
@@ -83,29 +82,18 @@ void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
 		}
 	};
 
+    bool alwaysColliding = true;
+    bool noCollision = false;
 
-	bool alwaysColliding = true;
-	bool noCollision = false;
-
-	const CollisionAxis* pAxis;
-	const CollisionAxis* cAxis;
-
+    const CollisionAxis* pAxis;
+    const CollisionAxis* cAxis;
 	bool pIntersects;
 	bool cIntersects;
 
-	float prev_min_valid_sep = FLT_MAX;
-	float curr_min_valid_sep = FLT_MAX;
-
-	for (unsigned i = 0; i < cCount; i++) {
+	for (unsigned i = 0; i < cCount; i++)
+    {
 		pAxis = &prevCollision.getCollisionAxis(i);
 		cAxis = &currCollision.getCollisionAxis(i);
-
-		if (pAxis->axisValid) {
-			prev_min_valid_sep = std::min(pAxis->contact.separation, prev_min_valid_sep);
-		}
-		if (cAxis->axisValid) {
-			curr_min_valid_sep = std::min(cAxis->contact.separation, curr_min_valid_sep);
-		}
 
 		pIntersects = pAxis->is_intersecting();
 		cIntersects = cAxis->is_intersecting();
@@ -137,12 +125,9 @@ void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
 	}
 
 	bool hasTouchAxis = touchingAxis != nullptr;
-
-	bool isDeparting = firstExit < 1.f;
+	bool isDeparting  = firstExit < 1.f;
 	bool hasIntersect = firstExit >= lastEntry;
-
 	bool lastAxisRepeatable = lastAxisCollided >= 0 && currCollision.getCollisionAxis(lastAxisCollided).applied;
-
 
 	if (noCollision) 
 	{
@@ -153,7 +138,6 @@ void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
 	else if (hasTouchAxis && hasIntersect) 
 	{
 		// collision occured on a valid collision axis
-
 		contact = touchingAxis->contact;
 		contact.hasContact = touchingAxis->is_intersecting();
 
@@ -184,7 +168,6 @@ void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
 				contact.hasContact &= currCollision.getContact().hasContact;
 			}
 		}
-		
 
 		contact.hasImpactTime = lastEntry > 0;
 		contact.impactTime = lastEntry;
@@ -209,19 +192,10 @@ void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
 		}
 	}
 
-    /*
-	if (deltaTime > 0.0) {
-		velocity = ctx.collider->velocity;
-	}
-    */
-
-    velocity = ctx.collider->velocity;
-	contact.velocity = ctx.collider->velocity;
-    //LOG_INFO("VEL: {}", contact.velocity);
-
     auto& curr_quad = *ctx.collider->get_quad(id.quad);
     contact.quad_valid = curr_quad.hasAnySurface();
     contact.id = id;
+    contact.velocity = ctx.collider->velocity;
 
 	evaluated = true;
 

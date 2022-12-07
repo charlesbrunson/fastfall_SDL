@@ -40,7 +40,9 @@ void CollisionDiscrete::reset(CollisionContext ctx, ColliderQuad quad, Type coll
 	Vec2f topLeft(FLT_MAX, FLT_MAX);
 	Vec2f botRight(-FLT_MAX, -FLT_MAX);
 
-	cQuad.translate(collision_time == Type::PrevFrame ? ctx.collider->getPrevPosition() : ctx.collider->getPosition());
+	cQuad.translate(collision_time == Type::PrevFrame
+        ? ctx.collider->getPrevPosition()
+        : ctx.collider->getPosition());
 
 	for (auto& surface : cQuad.surfaces) {
 		topLeft.x  = std::min(surface.collider.surface.p1.x, topLeft.x);
@@ -306,8 +308,8 @@ void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
 			}
 			else if (right.p1.x < right.p2.x
 				&& cMid.x > tArea.left + tArea.width
-				&& pMid.x <= tArea.left + tArea.width) 
-			{
+				&& pMid.x <= tArea.left + tArea.width)
+            {
 				float stickY = getYforX(right, cMid.x);
 				axis.contact.stickOffset = -stickY + (cMid.y + cHalf.y) - axis.contact.separation;
 				axis.contact.stickLine = right;

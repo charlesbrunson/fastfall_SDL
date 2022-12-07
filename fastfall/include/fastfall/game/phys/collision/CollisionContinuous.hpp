@@ -18,7 +18,6 @@ private:
 	ContinuousContact contact;
 	bool evaluated = false;
 	int lastAxisCollided = -1;
-	Vec2f velocity;
 
 	void evalContact(CollisionContext ctx, secs deltaTime);
 	void slipUpdate(CollisionContext ctx);
