@@ -634,18 +634,20 @@ TEST_F(surfacetracker, move_stick_slope)
         {"",   "slope",    "solid",    ""},
     });
 
-    box->teleport({ 38, 32 });
+    box->teleport({ 40.1, 32 });
     box->set_gravity({ 0, 500 });
-    box->set_local_vel(Vec2f{3.f, 0.f} / one_frame);
+    box->set_local_vel(Vec2f{1.f, 0.f} / one_frame);
 
     ground->settings.move_with_platforms = true;
 
-    TestPhysRenderer render(world, collider->getBoundingBox());
+    Rectf area = collider->getBoundingBox();
+    area.width *= 2.f;
+    TestPhysRenderer render(world, area);
     render.draw();
 
-    Vec2f dir = Vec2f{ 1.f, 0.f };
-    float mdir = -3.f;
-    while (render.curr_frame < 10) // error on 5
+    Vec2f dir = Vec2f{ 2.f, 0.f };
+    float mdir = -1.f;
+    while (render.curr_frame < 60) // error on 5
     {
         if (box->getPosition().x > collider->getPosition().x + (16 * 4) + 8) {
             mdir *= -1.f;
@@ -664,6 +666,6 @@ TEST_F(surfacetracker, move_stick_slope)
         update();
         render.draw();
 
-        ASSERT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
+        EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
     }
 }
