@@ -660,9 +660,10 @@ TEST_F(surfacetracker, move_stick_slope)
         collider->delta_velocity = nVel - collider->velocity;
         collider->velocity = nVel;
 
+        LOG_INFO("{}", colMan->getFrameCount());
         update();
         render.draw();
 
-        EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
+        ASSERT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
     }
 }

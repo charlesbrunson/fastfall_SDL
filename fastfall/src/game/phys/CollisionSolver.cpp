@@ -28,6 +28,7 @@ nlohmann::ordered_json to_json(const ContinuousContact* contact)
 		{"contact",			fmt::format("{}", fmt::ptr(contact)) },
 		{"hasContact",		contact->hasContact},
 		{"separation",		contact->separation},
+        {"surface",	        fmt::format("{} -> {}", contact->collider.surface.p1, contact->collider.surface.p2)},
 		{"ortho_n",			fmt::format("{}", contact->ortho_n)},
 		{"collider_n",		fmt::format("{}", contact->collider_n)},
 		{"hasImpactTime",	contact->hasImpactTime},

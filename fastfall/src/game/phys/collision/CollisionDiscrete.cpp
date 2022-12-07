@@ -543,12 +543,12 @@ CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcep
 
 		Linef line;
 		bool valid_ghost = true;
-		if (cpMid.x < axis.contact.collider.surface.p2.x)
+		if (cpMid.x < axis.contact.collider.surface.p2.x - collider_deltap.x)
 		{
 			valid_ghost = !axis.contact.collider.g3virtual;
 			line = axis.contact.collider.getGhostNext();
 		}
-		else if (cpMid.x > axis.contact.collider.surface.p1.x)
+		else if (cpMid.x > axis.contact.collider.surface.p1.x - collider_deltap.x)
 		{
 			valid_ghost = !axis.contact.collider.g0virtual;
 			line = axis.contact.collider.getGhostPrev();

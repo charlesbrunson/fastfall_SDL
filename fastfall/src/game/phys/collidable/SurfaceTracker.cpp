@@ -294,20 +294,20 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
 	bool goingLeft = false;
 	bool goingRight = false;
 
-	if (wish_pos.x > right && prev_pos.x <= right) {
+	if (wish_pos.x >= right && prev_pos.x < right) {
 		goingRight = true;
 		next = goRight(region, currentContact->collider);
 	}
-	else if (wish_pos.x < left && prev_pos.x >= left) {
+	else if (wish_pos.x <= left && prev_pos.x > left) {
 		goingLeft = true;
 		next = goLeft(region, currentContact->collider);
 	}
-	else if (wish_pos.x > left && prev_pos.x <= left)
+	else if (wish_pos.x >= left && prev_pos.x < left)
 	{
 		goingRight = true;
 		next = &currentContact->collider;
 	}
-	else if (wish_pos.x < right && prev_pos.x >= right)
+	else if (wish_pos.x <= right && prev_pos.x > right)
 	{
 		goingLeft = true;
 		next = &currentContact->collider;
@@ -490,11 +490,10 @@ void SurfaceTracker::firstCollisionWith(const AppliedContact& contact)
 		AppliedContact pc{contact};
 		start_touch(pc);
 
-		//owner->setPosition(owner->getPosition() + (contact.ortho_n * contact.stickOffset), false);
-
-		//float vmag = owner->get_local_vel().magnitude();
-        //owner->set_local_vel(vmag * math::projection(owner->get_local_vel(), math::vector(contact.stickLine)).unit());
-
+		owner->setPosition(owner->getPosition() + (contact.ortho_n * contact.stickOffset), false);
+		float vmag = owner->get_local_vel().magnitude();
+        Vec2f vproj = math::projection(owner->get_local_vel(), math::vector(contact.stickLine)).unit();
+        owner->set_local_vel(vmag * vproj);
 	}
 }
 
