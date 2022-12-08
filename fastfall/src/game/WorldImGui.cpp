@@ -19,7 +19,7 @@ bool WorldImGui::update_labels = false;
 
 void imgui_collidables(World* w) {
     for (auto [cid, col] : w->all<Collidable>()) {
-        if (ImGui::TreeNode((void*)(&col), "Collidable %d##1", cid.value.sparse_index)) {
+        if (ImGui::TreeNode((void*)(&col), "Collidable %d", cid.value.sparse_index)) {
 
             ImGui::Text("Curr Pos: %3.2f, %3.2f", col.getPosition().x, col.getPosition().y);
             ImGui::Text("Prev Pos: %3.2f, %3.2f", col.getPrevPosition().x, col.getPrevPosition().y);
@@ -32,6 +32,7 @@ void imgui_collidables(World* w) {
             ImGui::NewLine();
             ImGui::Text("Local  Vel:   %3.2f, %3.2f", col.get_local_vel().x, col.get_local_vel().y);
             ImGui::Text("Parent Vel:   %3.2f, %3.2f", col.get_parent_vel().x, col.get_parent_vel().y);
+            ImGui::Text("Surface Vel:  %3.2f, %3.2f", col.get_surface_vel().x, col.get_surface_vel().y);
             ImGui::Text("Global Vel:   %3.2f, %3.2f", col.get_global_vel().x, col.get_global_vel().y);
             ImGui::Text("Last Parent Vel:   %3.2f, %3.2f", col.get_last_parent_vel().x, col.get_last_parent_vel().y);
             ImGui::NewLine();
@@ -44,13 +45,13 @@ void imgui_collidables(World* w) {
             ImGui::Text("Global Speed: %3.2f", col.get_global_vel().magnitude());
             ImGui::NewLine();
 
-            if (ImGui::TreeNode((void*)(&col), "Tracker##2")) {
+            if (ImGui::TreeNode((void*)(&col), "Tracker")) {
 
-                if (!col.get_tracker()) {
+                if (!col.tracker()) {
                     ImGui::Text("No trackers!");
                 }
                 else {
-                    auto& tracker = col.at_tracker();
+                    auto& tracker = *col.tracker();
 
                     static char labelbuf[32];
                     sprintf(labelbuf, "Friction (%d)", tracker.settings.has_friction);

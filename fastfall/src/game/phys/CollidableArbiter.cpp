@@ -32,7 +32,7 @@ namespace ff {
 				{ "size",		fmt::format("{}", Vec2f{collidable.getBox().getSize()}) },
 			};
 
-            if (auto* track = collidable.get_tracker()) {
+            if (auto& track = collidable.tracker()) {
                 bool has_id = track->has_contact() && track->get_contact()->id;
                 (*dump_ptr)["collidable"]["tracker"] = {
                     { "has_contact", track->has_contact() },

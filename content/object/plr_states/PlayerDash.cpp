@@ -22,7 +22,7 @@ float get_dash_vel(float min_speed) {
 void apply_dash_vel(ff::World& w, plr::members& plr, float min_vel) {
 
     auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
-    auto& ground = box.at_tracker();
+    auto& ground = *box.tracker();
 
 	float vel = min_vel;
 	float speed = ground.has_contact()
@@ -57,7 +57,7 @@ dash_anims select_dash_anim(ff::World& w, const plr::members& plr)
 	dash_anims anims{ &anim::dash_0, &anim::fx::dash_0 };
 
     auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
-    auto& ground = box.at_tracker();
+    auto& ground = *box.tracker();
 
 	if (ground.has_contact()) {
 		Vec2f cNorm = ground.get_contact()->collider_n;
@@ -95,7 +95,7 @@ dash_anims select_dash_anim(ff::World& w, const plr::members& plr)
 void PlayerDashState::enter(ff::World& w, plr::members& plr, PlayerState* from)
 {
     auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
-    auto& ground = box.at_tracker();
+    auto& ground = *box.tracker();
 
 	ground_flag = ground.has_contact();
 	
@@ -120,7 +120,7 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
 		return PlayerStateID::Continue;
 
     auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
-    auto& ground = box.at_tracker();
+    auto& ground = *box.tracker();
 
 	if (ground.has_contact()) {
 		box.setSlip({});
@@ -178,7 +178,7 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
 void PlayerDashState::exit(ff::World& w, plr::members& plr, PlayerState* to)
 {
     auto& box = w.at(plr.collidable_id);
-    auto& ground = box.at_tracker();
+    auto& ground = *box.tracker();
 
 	box.set_gravity(constants::grav_normal);
 

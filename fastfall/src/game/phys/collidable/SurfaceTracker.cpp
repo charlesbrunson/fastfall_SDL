@@ -129,11 +129,10 @@ Vec2f SurfaceTracker::calc_friction(Vec2f prevVel) {
 	return friction;
 }
 
-CollidableOffsets SurfaceTracker::premove_update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) {
+CollidablePreMove SurfaceTracker::premove_update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) {
 
-	CollidableOffsets out;
-
-	if (deltaTime > 0.0 
+	CollidablePreMove out;
+	if (deltaTime > 0.0
 		&& has_contact()) 
 	{
 		out = do_move_with_platform(colliders, out);
@@ -188,7 +187,7 @@ bool SurfaceTracker::do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, 
 
 }
 
-CollidableOffsets SurfaceTracker::do_move_with_platform(poly_id_map<ColliderRegion>* colliders, CollidableOffsets in) noexcept
+CollidablePreMove SurfaceTracker::do_move_with_platform(poly_id_map<ColliderRegion>* colliders, CollidablePreMove in) noexcept
 {
 	if (currentContact
         && currentContact->id
@@ -197,13 +196,14 @@ CollidableOffsets SurfaceTracker::do_move_with_platform(poly_id_map<ColliderRegi
 		AppliedContact& contact = currentContact.value();
 		if (const ColliderRegion* region = colliders->get(currentContact->id->collider))
 		{
-			in.parent_velocity = region->velocity + contact.surface_vel();
+			in.parent_velocity = region->velocity;
+            in.surface_velocity = contact.surface_vel();
 		}
 	}
 	return in;
 }
 
-CollidableOffsets SurfaceTracker::do_max_speed(CollidableOffsets in, secs deltaTime) noexcept {
+CollidablePreMove SurfaceTracker::do_max_speed(CollidablePreMove in, secs deltaTime) noexcept {
 
 	if (deltaTime > 0.0 
 		&& has_contact() 
@@ -220,7 +220,7 @@ CollidableOffsets SurfaceTracker::do_max_speed(CollidableOffsets in, secs deltaT
 
 		if (abs(speed + (acc_mag * deltaTime)) > settings.max_speed) {
 			traverse_set_speed(settings.max_speed * (speed < 0.f ? -1.f : 1.f));
-			in.acceleration -= acc_vec;
+			in.acc_offset -= acc_vec;
 		}
 	}
 	return in;
@@ -344,13 +344,13 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
 	return Vec2f{};
 }
 
-CollidableOffsets SurfaceTracker::postmove_update(
+CollidablePostMove SurfaceTracker::postmove_update(
         poly_id_map<ColliderRegion>* colliders,
         Vec2f wish_pos,
         Vec2f prev_pos
     ) const
 {
-	CollidableOffsets out;
+	CollidablePostMove out;
 	Vec2f position = wish_pos;
 
 	if (has_contact()) {
@@ -378,7 +378,7 @@ CollidableOffsets SurfaceTracker::postmove_update(
 			position += do_slope_stick(colliders, wish_pos, prev_pos, left, right);
 		}
 	}
-	out.position = position - wish_pos;
+	out.pos_offset = position - wish_pos;
 	return out;
 	
 }
@@ -386,7 +386,7 @@ CollidableOffsets SurfaceTracker::postmove_update(
 void SurfaceTracker::start_touch(AppliedContact& contact) {
 
 	if (settings.move_with_platforms) {
-        Vec2f pvel_diff = (contact.velocity + contact.surface_vel()) - owner->get_parent_vel();
+        Vec2f pvel_diff = (contact.velocity) - owner->get_parent_vel();
         owner->set_parent_vel(contact.velocity);
         owner->set_last_parent_vel(contact.velocity);
         owner->set_local_vel(owner->get_local_vel() - pvel_diff);

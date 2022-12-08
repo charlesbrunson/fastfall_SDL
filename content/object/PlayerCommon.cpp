@@ -8,7 +8,7 @@ plr::move_t::move_t(World& w, const plr::members& plr)
 {
     auto& sprite = w.at(plr.sprite_id);
     auto& box = w.at(plr.collidable_id);
-    auto& ground = box.at_tracker();
+    auto& ground = *box.tracker();
 
 	wishx = 0;
     if (w.input()[InputType::RIGHT].is_held()) wishx++;
@@ -39,12 +39,12 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
 {
     auto& box = w.at(collidable_id);
     auto attachid = box.get_attach_id();
-    box.set_tracker(
+    box.create_tracker(
         Angle::Degree(-135.f),
         Angle::Degree( -45.f)
     );
 
-    box.at_tracker().settings = {
+    box.tracker()->settings = {
         .move_with_platforms = true,
         .slope_sticking      = true,
         .slope_wall_stop     = true,
@@ -176,7 +176,7 @@ namespace plr::action {
 	{
         auto& sprite = w.at(plr.sprite_id);
         auto& box = w.at(plr.collidable_id);
-        auto& ground = box.at_tracker();
+        auto& ground = *box.tracker();
 
 		Vec2f contact_normal = Vec2f{0.f, -1.f};
 		//Vec2f contact_velocity = Vec2f{};

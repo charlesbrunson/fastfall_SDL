@@ -18,11 +18,26 @@ struct Friction {
 	float kinetic = 0.f;
 };
 
+/*
 struct CollidableOffsets {
 	Vec2f position = { 0.f, 0.f };
 	Vec2f velocity = { 0.f, 0.f };
 	Vec2f acceleration = { 0.f, 0.f };
     Vec2f parent_velocity = {0.f, 0.f};
+};
+*/
+
+struct CollidablePreMove {
+    Vec2f pos_offset;
+    Vec2f vel_offset;
+    Vec2f acc_offset;
+
+    Vec2f parent_velocity;
+    Vec2f surface_velocity;
+};
+
+struct CollidablePostMove {
+    Vec2f pos_offset;
 };
 
 // track contact duration for surfaces between the given angle ranges
@@ -30,8 +45,8 @@ class SurfaceTracker {
 public:
 	SurfaceTracker(Collidable* t_owner, Angle ang_min, Angle ang_max, bool inclusive = true);
 
-	CollidableOffsets premove_update(poly_id_map<ColliderRegion>* colliders, secs deltaTime);
-	CollidableOffsets postmove_update(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos) const;
+	CollidablePreMove  premove_update(poly_id_map<ColliderRegion>* colliders, secs deltaTime);
+	CollidablePostMove postmove_update(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos) const;
 
     void update_collidable_ptr(Collidable* t_owner) { owner = t_owner; }
 
@@ -115,8 +130,8 @@ private:
 	std::optional<AppliedContact> wallContact = std::nullopt;
 
 	bool do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, bool had_wall) noexcept;
-	CollidableOffsets do_move_with_platform(poly_id_map<ColliderRegion>* colliders, CollidableOffsets in) noexcept;
-	CollidableOffsets do_max_speed(CollidableOffsets in, secs deltaTime) noexcept;
+	CollidablePreMove do_move_with_platform(poly_id_map<ColliderRegion>* colliders, CollidablePreMove in) noexcept;
+	CollidablePreMove do_max_speed(CollidablePreMove in, secs deltaTime) noexcept;
 
 	// returns position offset
 	Vec2f do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos, float left, float right) const noexcept;

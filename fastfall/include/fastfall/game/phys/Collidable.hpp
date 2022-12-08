@@ -92,29 +92,27 @@ public:
 	void setSize(Vec2f size) noexcept;
 	void teleport(Vec2f position) noexcept;
 
-	inline Vec2f get_gravity() const noexcept { return gravity_acc; };
-	inline void  set_gravity(Vec2f grav) noexcept { gravity_acc = grav; };
+	Vec2f get_gravity() const noexcept;
+	void  set_gravity(Vec2f grav) noexcept;
 
-	inline Vec2f get_local_vel()   const noexcept { return local_vel; };
-    inline Vec2f get_parent_vel()   const noexcept { return parent_vel; };
-    inline Vec2f get_global_vel()   const noexcept { return local_vel + parent_vel; };
+	Vec2f get_local_vel()   const noexcept;
+    Vec2f get_parent_vel()  const noexcept;
+    Vec2f get_surface_vel() const noexcept;
+    Vec2f get_global_vel()  const noexcept;
 
-	inline void  set_local_vel(Vec2f velocity) noexcept { local_vel = velocity; };
-	inline void  set_local_vel(std::optional<float> X, std::optional<float> Y) noexcept {
-		if (X) { local_vel.x = *X; }
-		if (Y) { local_vel.y = *Y; }
-	}
+	void set_local_vel(Vec2f velocity) noexcept;
+	void set_local_vel(std::optional<float> X, std::optional<float> Y) noexcept;
+    void set_parent_vel(Vec2f pvel) noexcept;
+    void set_surface_vel(Vec2f svel) noexcept;
 
-    inline void set_parent_vel(Vec2f pvel) noexcept { parent_vel = pvel; }
+    Vec2f get_last_parent_vel() const noexcept;
+    void set_last_parent_vel(Vec2f pvel) noexcept;
 
-    inline Vec2f get_last_parent_vel() const noexcept { return last_parent_vel; }
-    inline void set_last_parent_vel(Vec2f pvel) noexcept { last_parent_vel = pvel; }
+	void add_accel(Vec2f acceleration);
+	void add_decel(Vec2f deceleration);
 
-	inline void add_accel(Vec2f acceleration) { accel_accum += acceleration; };
-	inline void add_decel(Vec2f deceleration) { decel_accum += deceleration; };
-
-	inline Vec2f get_friction()   const noexcept { return friction; };
-	inline Vec2f get_acc() const noexcept { return acc; };
+	Vec2f get_friction() const noexcept;
+	Vec2f get_acc() const noexcept;
 
 	void applyContact(const AppliedContact& contact, ContactType type);
 
@@ -139,14 +137,11 @@ public:
 
 	const collision_state_t& get_state_flags() const { return col_state; }
 
-    void set_tracker(Angle ang_min, Angle ang_max, bool inclusive = true);
+    std::optional<SurfaceTracker>& tracker() { return _tracker; }
+    const std::optional<SurfaceTracker>& tracker() const { return _tracker; }
+    void create_tracker(Angle ang_min, Angle ang_max, bool inclusive = true);
     bool erase_tracker();
 
-    SurfaceTracker* get_tracker() { return tracker ? &*tracker : nullptr; }
-    const SurfaceTracker* get_tracker() const { return tracker ? &*tracker : nullptr; }
-
-    SurfaceTracker& at_tracker() { return *tracker; }
-    const SurfaceTracker& at_tracker() const { return *tracker; }
 
     struct callbacks_t {
         std::function<void(World&)> onPostCollision;
@@ -154,7 +149,7 @@ public:
 
     void set_attach_id(ID<AttachPoint> id) { attachpoint = id; }
     ID<AttachPoint> get_attach_id() const { return attachpoint; }
-    void set_attach_origin(Vec2f offset) { attachpoint_origin = offset; }
+    void  set_attach_origin(Vec2f offset) { attachpoint_origin = offset; }
     Vec2f get_attach_origin() const { return attachpoint_origin; }
 
 private:
@@ -174,6 +169,7 @@ private:
 
     Vec2f last_parent_vel;
     Vec2f parent_vel;
+    Vec2f surface_vel;
 	Vec2f local_vel;
 	Vec2f local_precollision_vel; // velocity saved before collision, used for friction calculation
 
@@ -184,9 +180,8 @@ private:
 	Vec2f accel_accum;
 	Vec2f decel_accum;
 
+    std::optional<SurfaceTracker> _tracker;
 	std::vector<AppliedContact> currContacts;
-    //id_map<SurfaceTracker> trackers;
-    std::optional<SurfaceTracker> tracker;
 };
 
 }

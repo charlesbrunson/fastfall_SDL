@@ -9,7 +9,7 @@ using namespace plr;
 void PlayerGroundState::enter(ff::World& w, plr::members& plr, PlayerState* from)
 {
     auto& box = w.at(plr.collidable_id);
-    auto& ground = box.at_tracker();
+    auto& ground = *box.tracker();
 	ground.settings.slope_sticking = true;
 	ground.settings.slope_wall_stop = true;
 
@@ -30,7 +30,7 @@ PlayerStateID PlayerGroundState::update(ff::World& w, plr::members& plr, secs de
 
     auto& sprite = w.at(plr.sprite_id);
     auto& box = w.at(plr.collidable_id);
-    auto& ground = box.at_tracker();
+    auto& ground = *box.tracker();
 
 	sprite.set_playback(1.f);
 	box.set_gravity(constants::grav_normal);
@@ -177,7 +177,7 @@ PlayerStateID PlayerGroundState::update(ff::World& w, plr::members& plr, secs de
 
 void PlayerGroundState::exit(ff::World& w, plr::members& plr, PlayerState* to)
 {
-    auto& ground = w.at(plr.collidable_id).at_tracker();
+    auto& ground = *w.at(plr.collidable_id).tracker();
 	ground.settings.max_speed = 0.f;
 }
 

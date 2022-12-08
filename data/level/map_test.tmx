@@ -38,11 +38,11 @@
    <property name="collision_border" value="NESW"/>
   </properties>
   <data encoding="base64" compression="zlib">
-   eJztmrtOwzAUhuNWQkBbJAQCBu6wwYJgQWVpCxQGlgItLAzA+z8DjuKjHhnHdhwnjqPzSf/QtLJz+eL4uGEsIQiCIAiiZhhbhiDqpsOykH9ECLB/aY7IQ6JGwL/Uu+MA7r10iv3+nv/+gWckYsuo8z9EeMC/c4V7hzWMh+DCRPgwFp8feabIEdk78q8dgH+XgZ67Ki/kfJErrQXP//pJljqx8Y9oL9g/n/O/6wI19czCQfAQf57zLMjPKGA5ketfXYow9LSmM1P4R97Fh8m/KtYBrz3PKWkeGC9V+NdLlnNGnIH4fkhriYQgxPjnwthyLjihsTAqmuofeJS3vqfLMzkYDTb+daV6Y5V/v6bIusf9KuKbnE/yLxpM/qXu7Uc0X4O6GI+fedCzOjw26y+xgddm5hrHaL4YHt/+mWrfJiDPKbGDY4OTeB6yy7MX2f05atj+tnH8k3GpYeT3HFQcsOxdDIzspE07dZL699SQa7qStN+/rxJ1jK2HGNnJd8d2qmDKMv8+GnJNd5Li/unqX1N81se+eOssHTF56KMPnYe6WskHC+Ffmu/ADnaTfPfaNv7ZYPLw1YMbuA/5Hk7vTV2tVJYtfh37cE2TLGc859V1qeSE5zTRu9cm/4qi8hC7dyHOyU1E5wW7h/1rctri3ybf/22HYwAP5XEP5nd3kZwX2b3Y/Lti6nfwXXDxoCyb4h6qqu8z9r/mVW0Lgcq92Py7Zf7ewa/SgzzgeWmK637h9sE51ba6yXMvNv/gGVzWmxDrtrprIKfncIxy+wOejZxtdR3zD+/j13Dcod1y8Q+8WXNM3rhTpk1ddkT7Nu65OFjEbewh/D+U/h/k00nwDtZXdPsS2i2b/AHAUE8R
+   eJztmjlPwzAYhu1WQtwSAhUG7rLBgmBBZWm5BxaOFpYOwP//DdhKrH64vuI4cRy+R3oHQmvneOL4c0MpQRAEQRCkZiidBUHqpkOzoH9IDKB/PAfoIVIjwj/u3WEE9547xT4/7PyN7/eKfBepDuHficK9/RrGQ+7BjYMLt+wzdyUcQv+aifDvLNJzF/qwRObDt0/RldYC53+rJEudqMYlHKf+D9C/kPO/iwI19YuDg8JD+PeYZYJ+JgHVRK5/TSnCINCazovCP/QuPWz+VbEOeBF4TonzwHSpwr8VMpszwqzl/x/gWiKSE2P882HkOBd0WbNBmkNT/RMe6db3THlCB5PBxb+uVG8sEvWa3HLA/Srim5xP9C8ZbP5x93YTmq+JuhiOnzrwWR0fl/WX1IBrM2ODYzhfjE9o/2y1bxOQ55TQwZHFSTgP2WbZSez+HDZsf9s4/sn41DD3LA+WsXGPZu9iQGQnXdqpE+7fY0Ou6QJpv3/TEnWMq4cQ2cl3z3aq4IFm/n005Jr2SHH/TPWvLSHr41C8dWaO2DwM0YfJQ1OtFIJJ7h/PV2QHu0TvXtvGPxdsHr4GcAP2Id/D/N401Upl2WTXcVVcU5Klz3JSXZdKjliOidm9NvlXFJWH0L3T/JxcJnReoHvQvyanLf5tsP3f8jgG4aE87on53XUi50V2LzX/zqn6HXwffDwoy0Z+D1XVd5/O17yqbTFQuZeaf1c03Dv4VXqgQzwvbfHdL9i+cE61rW507qXmn3gGl/Umxrqt6RrIWfE4Rrn9NZZ1zba6jvmb9fFjOe7Ybvn4J7xZ8oxu3CnTpim9vH0X93wcLOI29FD8PsR/DwrppPBOrK+Y9iW2Wy75BUoQTI0=
   </data>
  </layer>
  <objectgroup id="4" name="OBJ">
-  <object id="7" class="Player" x="720" y="192" width="16" height="32">
+  <object id="7" class="Player" x="64" y="112" width="16" height="32">
    <properties>
     <property name="anotherprop" value="Foo"/>
     <property name="faceleft" type="bool" value="true"/>
