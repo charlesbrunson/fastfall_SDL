@@ -173,10 +173,6 @@ bool SurfaceTracker::do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, 
 		float X = owner->getPosition().x;
 		Linef surface = currentContact->collider.surface;
 
-		if (region) {
-			surface.p1 += region->getPosition();
-			surface.p2 += region->getPosition();
-		}
 		Vec2f intersect = math::intersection(
 			surface,
 			Linef{ Vec2f{X, 0.f}, Vec2f{X, 1.f} }
