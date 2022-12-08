@@ -67,7 +67,6 @@ void SurfaceTracker::process_contacts(
 				}
 			}
 			else {
-
 				start_touch(contact);
 			}
 
@@ -89,7 +88,6 @@ void SurfaceTracker::process_contacts(
 		else {
 			currentContact = std::nullopt;
 		}
-
 	}
 
 	if (!has_contact()) {
@@ -190,8 +188,8 @@ bool SurfaceTracker::do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, 
 
 }
 
-CollidableOffsets SurfaceTracker::do_move_with_platform(poly_id_map<ColliderRegion>* colliders, CollidableOffsets in) noexcept {
-
+CollidableOffsets SurfaceTracker::do_move_with_platform(poly_id_map<ColliderRegion>* colliders, CollidableOffsets in) noexcept
+{
 	if (currentContact
         && currentContact->id
         && settings.move_with_platforms)
@@ -388,10 +386,11 @@ CollidableOffsets SurfaceTracker::postmove_update(
 void SurfaceTracker::start_touch(AppliedContact& contact) {
 
 	if (settings.move_with_platforms) {
-        Vec2f pvel = owner->get_parent_vel();
+        Vec2f pvel_diff = (contact.velocity + contact.surface_vel()) - owner->get_parent_vel();
         owner->set_parent_vel(contact.velocity);
         owner->set_last_parent_vel(contact.velocity);
-        owner->set_local_vel(owner->get_local_vel() - (contact.velocity - pvel));
+        owner->set_local_vel(owner->get_local_vel() - pvel_diff);
+        LOG_INFO("START {}", pvel_diff);
 	}
 
 	if (callbacks.on_start_touch)
@@ -401,21 +400,10 @@ void SurfaceTracker::start_touch(AppliedContact& contact) {
 void SurfaceTracker::end_touch(AppliedContact& contact) {
 
 	if (settings.move_with_platforms) {
-		// have to avoid collider velocity being double-applied
-		bool still_touching = false;
-		for (auto& contact_ : owner->get_contacts()) {
-			if (contact_.id
-                && contact.id
-                && contact.id->collider == contact_.id->collider)
-            {
-				still_touching = true;
-			}
-		}
-		if (!still_touching) {
-            Vec2f pvel = owner->get_parent_vel();
-            owner->set_parent_vel(Vec2f{});
-            owner->set_local_vel(owner->get_local_vel() + pvel);
-		}
+        Vec2f pvel_diff = Vec2f{} - owner->get_parent_vel();
+        owner->set_parent_vel(Vec2f{});
+        owner->set_local_vel(owner->get_local_vel() - pvel_diff);
+        LOG_INFO("END {}", pvel_diff);
 	}
 
 	if (callbacks.on_end_touch)
@@ -427,7 +415,6 @@ void SurfaceTracker::traverse_set_speed(float speed) {
 	if (has_contact()) 
 	{
 		Vec2f surf_unit = currentContact->collider_n.righthand();
-        Vec2f cVel = currentContact->velocity;
         owner->set_local_vel(surf_unit * speed);
 	}
 }
@@ -475,11 +462,13 @@ void SurfaceTracker::firstCollisionWith(const AppliedContact& contact)
 	{
 		AppliedContact pc{contact};
 		start_touch(pc);
+        currentContact = pc;
 
-		owner->setPosition(owner->getPosition() + (contact.ortho_n * contact.stickOffset), false);
+
 		float vmag = owner->get_local_vel().magnitude();
         Vec2f vproj = math::projection(owner->get_local_vel(), math::vector(contact.stickLine)).unit();
         owner->set_local_vel(vmag * vproj);
+        owner->setPosition(owner->getPosition() + (contact.ortho_n * contact.stickOffset), false);
 	}
 }
 

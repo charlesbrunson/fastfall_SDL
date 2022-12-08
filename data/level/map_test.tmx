@@ -38,7 +38,7 @@
    <property name="collision_border" value="NESW"/>
   </properties>
   <data encoding="base64" compression="zlib">
-   eJztmk1PwjAYx1tIjAiYEA168B1uejF4MXgBX9DEEyrghYP6/T+DXbaGJ6Vrt65b2+X5Jf8DI+m67beuTzdKCYIgCIIgFUPpJghSNQ0aB/1DXAD9i3KOHiIVwv2LvLsIwL2nBiHPLJMkWZk0toO4h/s3lLh35tF4KHqH/tUD7t+NJ55B3hNP1uhKbYHzvw6J4wsrHKdqD/TP5vxvZKGmnkuel/D3gmWJfgYBTYlY/6qSh7GlNZ25xD/0Ljx0/pWxDjiyPKfEeWC4lOFfm2zmjDDd5P+xhzUN4gYX458JU8k6iSyPOBYGha/+cY/S1vdUeUMHgyGLf02h3thl/7ck2bPYrzy+iflG/4JB51/k3klA8zVeF8PxMw18Vrsny/pLaMC1mYXCMZwvuse2f7ra1wfEOSV0cKpxEs5DjliOA7s/J571t47jn4hJDfPCMtOMjac0/hYDIjqZpZ0qifx79eSa7pD6+7cuUMdk9RAiOvll2E4ZzGjs38qTa9on+f1T1b+62KyPbfHZ2Dii89DGPlQeqmolGywT/6L8OHawSdLdq9v4lwWdhx8W3ID7EO/h6N5U1UpFOWDXscOvKYkzYBmWt0splyxXRO1enfzLi8xD6N51ck7uAjov0D3on8+pi3891v9Dg2PgHorjHp/fPQRyXkT3QvPvlsq/wTfBxIOi9JJ7qKx9D+h2zSvb5gKZe6H5d0/tfYNfpgdp8OelLqb9gu1z52TbqibNvdD848/got64WLdVXQMxbYNjFNvvsuynbKvqmH/ZPv40x+3aLRP/uDctw6SNO0XaVKWftJ/FPRMH87gNPeTvh6L3QTad5N7x9RVVX1y7lSX/Ri9HxQ==
+   eJztmrtOwzAUhuNWQkBbJAQCBu6wwYJgQWVpCxQGlgItLAzA+z8DjuKjHhnHdhwnjqPzSf/QtLJz+eL4uGEsIQiCIAiiZhhbhiDqpsOykH9ECLB/aY7IQ6JGwL/Uu+MA7r10iv3+nv/+gWckYsuo8z9EeMC/c4V7hzWMh+DCRPgwFp8feabIEdk78q8dgH+XgZ67Ki/kfJErrQXP//pJljqx8Y9oL9g/n/O/6wI19czCQfAQf57zLMjPKGA5ketfXYow9LSmM1P4R97Fh8m/KtYBrz3PKWkeGC9V+NdLlnNGnIH4fkhriYQgxPjnwthyLjihsTAqmuofeJS3vqfLMzkYDTb+daV6Y5V/v6bIusf9KuKbnE/yLxpM/qXu7Uc0X4O6GI+fedCzOjw26y+xgddm5hrHaL4YHt/+mWrfJiDPKbGDY4OTeB6yy7MX2f05atj+tnH8k3GpYeT3HFQcsOxdDIzspE07dZL699SQa7qStN+/rxJ1jK2HGNnJd8d2qmDKMv8+GnJNd5Li/unqX1N81se+eOssHTF56KMPnYe6WskHC+Ffmu/ADnaTfPfaNv7ZYPLw1YMbuA/5Hk7vTV2tVJYtfh37cE2TLGc859V1qeSE5zTRu9cm/4qi8hC7dyHOyU1E5wW7h/1rctri3ybf/22HYwAP5XEP5nd3kZwX2b3Y/Lti6nfwXXDxoCyb4h6qqu8z9r/mVW0Lgcq92Py7Zf7ewa/SgzzgeWmK637h9sE51ba6yXMvNv/gGVzWmxDrtrprIKfncIxy+wOejZxtdR3zD+/j13Dcod1y8Q+8WXNM3rhTpk1ddkT7Nu65OFjEbewh/D+U/h/k00nwDtZXdPsS2i2b/AHAUE8R
   </data>
  </layer>
  <objectgroup id="4" name="OBJ">
@@ -83,7 +83,7 @@
    </properties>
    <polyline points="-542.233,-53.9038 -542.233,-21.9038 -510.233,10.0962 -350,10 -318,-22 -318,-54 -350,-86 -510.233,-85.9038 -542,-54"/>
   </object>
-  <object id="29" class="TilePlatform" x="624" y="96" width="160" height="112">
+  <object id="29" class="TilePlatform" x="512" y="96" width="272" height="112">
    <properties>
     <property name="layer" type="int" value="2"/>
     <property name="path" type="object" value="30"/>
@@ -91,10 +91,10 @@
   </object>
   <object id="30" x="1072" y="256">
    <properties>
-    <property name="speed" type="float" value="50"/>
-    <property name="wait_on_end" type="float" value="1"/>
+    <property name="speed" type="float" value="10"/>
+    <property name="wait_on_end" type="float" value="0"/>
    </properties>
-   <polyline points="-560,-160 -288,-160"/>
+   <polyline points="-560,-160 -448,-160"/>
   </object>
  </objectgroup>
 </map>

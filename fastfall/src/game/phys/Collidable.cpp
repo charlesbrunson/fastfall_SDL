@@ -279,12 +279,13 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
 			CollidableOffsets offsets = tracker->premove_update(colliders, deltaTime);
 			next_pos += offsets.position;
             local_vel += offsets.velocity;
+            Vec2f parent_vel_diff = offsets.parent_velocity - parent_vel;
             parent_vel = offsets.parent_velocity;
 			acc += offsets.acceleration;
+            LOG_INFO("{}", parent_vel_diff);
 
             if (tracker->has_contact()) {
                 last_parent_vel = parent_vel;
-                //surfaceVel += tracker->get_contact()->surface_vel();
             }
 		}
 
