@@ -91,7 +91,7 @@
   </object>
   <object id="30" x="1072" y="256">
    <properties>
-    <property name="speed" type="float" value="10"/>
+    <property name="speed" type="float" value="25"/>
     <property name="wait_on_end" type="float" value="0"/>
    </properties>
    <polyline points="-560,-160 -448,-160"/>
