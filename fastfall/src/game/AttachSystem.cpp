@@ -20,8 +20,65 @@ namespace ff {
 
     namespace detail {
 
+        // TELEPORT ----------------------------
+        // Trigger
+        void attach_teleport(World& w, ID<Trigger> id, Trigger& cmp, const AttachPoint& attach, Vec2f offset) {
+            auto area = cmp.get_area();
+            area.setPosition(attach.curr_pos() + offset);
+            cmp.set_area(area);
+        }
+
+        // Collidable
+        void attach_teleport(World& w, ID<Collidable> id, Collidable& cmp, const AttachPoint& attach, Vec2f offset) {
+            cmp.teleport(attach.curr_pos() + offset);
+            cmp.set_parent_vel(attach.global_vel());
+            cmp.set_local_vel(Vec2f{});
+        }
+
+        // Emitter
+        void attach_teleport(World& w, ID<Emitter> id, Emitter& cmp, const AttachPoint& attach, Vec2f offset) {
+            cmp.velocity = attach.global_vel();
+            cmp.prev_position = attach.curr_pos() + offset;
+            cmp.position = attach.curr_pos() + offset;
+        }
+
+        // AttachPoint
+        void attach_teleport(World& w, ID<AttachPoint> id, AttachPoint& cmp, const AttachPoint& attach, Vec2f offset) {
+            cmp.teleport(attach.curr_pos() + offset);
+            cmp.set_parent_vel(attach.global_vel());
+            cmp.set_local_vel({});
+        }
+
+        // ColliderRegion
+        void attach_teleport(World& w, ID<ColliderRegion> id, ColliderRegion& cmp, const AttachPoint& attach, Vec2f offset) {
+            cmp.delta_velocity = Vec2f{};
+            cmp.velocity = attach.global_vel();
+            cmp.teleport(attach.curr_pos() + offset);
+            cmp.setPosition(attach.curr_pos() + offset);
+        }
+
+        // CameraTarget
+        //void attach_teleport(World& w, ID<CameraTarget> id, CameraTarget& cmp, const AttachPoint& attach) {
+        //}
+
+        // Drawable
+        void attach_teleport(World& w, ID<Drawable> id, Drawable& cmp, const AttachPoint& attach, Vec2f offset) {
+            auto& cfg = w.system<SceneSystem>().config(id);
+            cfg.prev_pos = attach.curr_pos() + offset;
+            cfg.curr_pos = attach.curr_pos() + offset;
+        }
+
+        // PathMover
+        void attach_teleport(World& w, ID<PathMover> id, PathMover& cmp, const AttachPoint& attach, Vec2f offset) {
+            cmp.set_path_offset(attach.curr_pos() + offset);
+        }
+
+        // TileLayer
+        //void attach_teleport(World& w, ID<Emitter> id, Emitter& cmp, const AttachPoint& attach) {
+        //}
+
         // UPDATES -----------------------------
-        // trigger
+        // Trigger
         void attach_update(World& w, ID<Trigger> id, Trigger& cmp, const AttachState& st) {
             auto area = cmp.get_area();
             area.setPosition(st.cpos);
@@ -66,14 +123,17 @@ namespace ff {
         }
 
         // CameraTarget
+        /*
         void attach_update(World& w, ID<CameraTarget> id, CameraTarget& cmp, const AttachState& st) {
             // ???
         }
+        */
 
         // Drawable
         void attach_update(World& w, ID<Drawable> id, Drawable& cmp, const AttachState& st) {
-            w.system<SceneSystem>().config(id).prev_pos = st.ppos;
-            w.system<SceneSystem>().config(id).curr_pos = st.cpos;
+            auto& cfg = w.system<SceneSystem>().config(id);
+            cfg.prev_pos = st.ppos;
+            cfg.curr_pos = st.cpos;
         }
 
         // PathMover
@@ -113,9 +173,11 @@ namespace ff {
         }
 
         // CameraTarget
+        /*
         Vec2f attach_get_pos(World& w, ID<CameraTarget> id, CameraTarget& cmp) {
             return cmp.get_target_pos();
         }
+        */
 
         // Drawable
         Vec2f attach_get_pos(World& w, ID<Drawable> id, Drawable& cmp) {
@@ -278,6 +340,12 @@ namespace ff {
     {
         attachments.at(id).insert(Attachment{ cmp_id, offset });
         cmp_lookup.emplace(cmp_id, id);
+        std::visit(
+        [&]<class T>(ID<T> cid) {
+            if constexpr (requires(ID<T> x_id, T& x, World& x_w, const AttachPoint& ap, Vec2f x_off) { detail::attach_teleport(x_w, x_id, x, ap, x_off); }) {
+                detail::attach_teleport(world, cid, world.at(cid), world.at(id), offset);
+            }
+        }, cmp_id);
     }
 
     void AttachSystem::erase(ComponentID cmp_id) {
