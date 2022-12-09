@@ -47,6 +47,15 @@ namespace ff {
             cmp.teleport(attach.curr_pos() + offset);
             cmp.set_parent_vel(attach.global_vel());
             cmp.set_local_vel({});
+
+            for (auto& sub_attach : w.system<AttachSystem>().get_attachments(id)) {
+                std::visit(
+                    [&]<class T>(ID<T> cid) {
+                        if constexpr (requires(ID<T> x_id, T& x, World& x_w, const AttachPoint& ap, Vec2f x_off) { detail::attach_teleport(x_w, x_id, x, ap, x_off); }) {
+                        detail::attach_teleport(w, cid, w.at(cid), w.at(id), offset);
+                    }
+                }, sub_attach.id);
+            }
         }
 
         // ColliderRegion
