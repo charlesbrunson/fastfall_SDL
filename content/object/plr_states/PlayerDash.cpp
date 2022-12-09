@@ -54,7 +54,10 @@ struct dash_anims {
 
 dash_anims select_dash_anim(ff::World& w, const plr::members& plr)
 {
-	dash_anims anims{ &anim::dash_0, &anim::fx::dash_0 };
+	dash_anims anims{
+        &anim::dash_0,
+        &anim::fx::dash_0
+    };
 
     auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
     auto& ground = *box.tracker();
@@ -67,27 +70,21 @@ dash_anims select_dash_anim(ff::World& w, const plr::members& plr)
 			ang = -ang;
 		}
 
-		//instance::obj_make<SimpleEffect>(plr.getContext(), anim::fx::dash_0.id(), Vec2f{ plr.box->getPosition() }, plr.sprite->get_hflip());
-		if (ang.degrees() > 40.f) {
-			anims.dash  = &anim::dash_n2;
-			anims.fx = &anim::fx::dash_n2;
-		}
-		else if (ang.degrees() > 20.f) {
-			anims.dash = &anim::dash_n1;
-			anims.fx = &anim::fx::dash_n1;
-		}
-		else if (ang.degrees() == 0.f) {
-			//anims.dash = &anim::dash_0;
-			//anims.fx = &anim::fx::dash_0;
-		}
-		else if (ang.degrees() < -40.f) {
-			anims.dash = &anim::dash_p2;
-			anims.fx = &anim::fx::dash_p2;
-		}
-		else if (ang.degrees() < -20.f) {
-			anims.dash = &anim::dash_p1;
-			anims.fx = &anim::fx::dash_p1;
-		}
+        if (ang.degrees() != 0.f) {
+            if (ang.degrees() > 40.f) {
+                anims.dash = &anim::dash_n2;
+                anims.fx   = &anim::fx::dash_n2;
+            } else if (ang.degrees() > 20.f) {
+                anims.dash = &anim::dash_n1;
+                anims.fx   = &anim::fx::dash_n1;
+            } else if (ang.degrees() < -40.f) {
+                anims.dash = &anim::dash_p2;
+                anims.fx   = &anim::fx::dash_p2;
+            } else if (ang.degrees() < -20.f) {
+                anims.dash = &anim::dash_p1;
+                anims.fx   = &anim::fx::dash_p1;
+            }
+        }
 	}
 	return anims;
 }
