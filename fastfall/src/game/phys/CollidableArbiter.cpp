@@ -203,6 +203,7 @@ namespace ff {
             if (fr.id) {
                 if (auto* collider = world.get(fr.id->collider)) {
                     collider->on_postcontact(world, fr, deltaTime);
+                    //fr.velocity = collider->velocity;
                 }
             }
         }

@@ -57,14 +57,18 @@ void SurfaceTracker::process_contacts(
 		if (!found && can_make_contact_with(contact))
 		{
 			found = true;
-
+            const ColliderRegion* region = contact.id ? colliders->get(contact.id->collider) : nullptr;
+            contact.velocity = region->velocity; // update vel to region vel
 			if (had_contact)
 			{
 				if (currentContact->id->collider != contact.id->collider)
 				{
-					end_touch(currentContact.value());
-					start_touch(contact);
+                    end_touch(currentContact.value());
+					start_touch( contact);
 				}
+                else {
+                    continue_touch(contact);
+                }
 			}
 			else {
 				start_touch(contact);
@@ -123,7 +127,7 @@ void SurfaceTracker::process_contacts(
 }
 
 
-Vec2f SurfaceTracker::calc_friction(Vec2f prevVel) {
+Vec2f SurfaceTracker::calc_friction(Vec2f prevVel) const {
 	Vec2f friction;
 	if (has_contact() 
 		&& (!currentContact->hasImpactTime || contact_time > 0.0)
@@ -218,11 +222,12 @@ CollidablePreMove SurfaceTracker::do_move_with_platform(poly_id_map<ColliderRegi
         && settings.move_with_platforms)
 	{
 		AppliedContact& contact = currentContact.value();
-		if (const ColliderRegion* region = colliders->get(currentContact->id->collider))
-		{
-			in.parent_velocity = region->velocity;
-            in.surface_velocity = contact.surface_vel();
-		}
+        const ColliderRegion* region = colliders->get(currentContact->id->collider);
+        in.parent_vel = (region ? region->velocity : currentContact->velocity);
+
+        /*
+        in.surface_velocity = contact.surface_vel();
+        */
 	}
 	return in;
 }
@@ -234,7 +239,7 @@ CollidablePreMove SurfaceTracker::do_max_speed(CollidablePreMove in, secs deltaT
 		&& settings.slope_sticking 
 		&& settings.max_speed > 0.f) 
 	{
-		float speed = *traverse_get_speed();
+		float speed   = *traverse_get_speed();
 		Vec2f acc_vec = math::projection(owner->get_acc(), currentContact->collider_n.righthand(), true);
 		float acc_mag = acc_vec.magnitude();
 
@@ -252,9 +257,8 @@ CollidablePreMove SurfaceTracker::do_max_speed(CollidablePreMove in, secs deltaT
 
 // ----------------------------
 
-Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos, float left, float right) const noexcept {
-
-	// TODO: REFACTOR FOR ALL SURFACE DIRECTIONS
+Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos, float left, float right) const noexcept
+{
 
 	Vec2f regionOffset;
     Vec2f regionDelta;
@@ -267,62 +271,62 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         regionDelta  = region->getDeltaPosition();
 	}
 
-	static auto goLeft = [](const ColliderRegion* region, const ColliderSurface& surface) -> const ColliderSurface* {
+    static auto goLeft = [](const ColliderRegion* region, const ColliderSurface& surface) -> const ColliderSurface* {
 
-		if (region) {
-			if (surface.surface.p1.x < surface.surface.p2.x && surface.prev_id) {
-				if (auto* r = region->get_surface_collider(*surface.prev_id)) {
-					return r->surface.p1.x < r->surface.p2.x ? r : nullptr;
-				}
-			}
-			else if (surface.surface.p1.x > surface.surface.p2.x && surface.next_id) {
-				if (auto* r = region->get_surface_collider(*surface.next_id)) {
-					return r->surface.p1.x > r->surface.p2.x ? r : nullptr;
-				}
-			}
-		}
-		return nullptr;
-	};
-	static auto goRight = [](const ColliderRegion* region, const ColliderSurface& surface) -> const ColliderSurface* {
+        if (region) {
+            if (surface.surface.p1.x < surface.surface.p2.x && surface.prev_id) {
+                if (auto* r = region->get_surface_collider(*surface.prev_id)) {
+                    return r->surface.p1.x < r->surface.p2.x ? r : nullptr;
+                }
+            }
+            else if (surface.surface.p1.x > surface.surface.p2.x && surface.next_id) {
+                if (auto* r = region->get_surface_collider(*surface.next_id)) {
+                    return r->surface.p1.x > r->surface.p2.x ? r : nullptr;
+                }
+            }
+        }
+        return nullptr;
+    };
+    static auto goRight = [](const ColliderRegion* region, const ColliderSurface& surface) -> const ColliderSurface* {
 
-		// TODO Wall support?
-		if (region) {
-			if (surface.surface.p1.x < surface.surface.p2.x && surface.next_id) {
-				if (auto* r = region->get_surface_collider(*surface.next_id)) {
-					return r->surface.p1.x < r->surface.p2.x ? r : nullptr;
-				}
-			}
-			else if (surface.surface.p1.x > surface.surface.p2.x && surface.prev_id) {
-				if (auto* r = region->get_surface_collider(*surface.prev_id)) {
-					return r->surface.p1.x > r->surface.p2.x ? r : nullptr;
-				}
-			}
-		}
-		return nullptr;
-	};
+        // TODO Wall support?
+        if (region) {
+            if (surface.surface.p1.x < surface.surface.p2.x && surface.next_id) {
+                if (auto* r = region->get_surface_collider(*surface.next_id)) {
+                    return r->surface.p1.x < r->surface.p2.x ? r : nullptr;
+                }
+            }
+            else if (surface.surface.p1.x > surface.surface.p2.x && surface.prev_id) {
+                if (auto* r = region->get_surface_collider(*surface.prev_id)) {
+                    return r->surface.p1.x > r->surface.p2.x ? r : nullptr;
+                }
+            }
+        }
+        return nullptr;
+    };
 
-	const ColliderSurface* next = nullptr;
-	bool goingLeft = false;
-	bool goingRight = false;
+    const ColliderSurface* next = nullptr;
+    bool goingLeft = false;
+    bool goingRight = false;
 
-	if (wish_pos.x >= right && prev_pos.x + regionDelta.x < right) {
-		goingRight = true;
-		next = goRight(region, currentContact->collider);
-	}
-	else if (wish_pos.x <= left && prev_pos.x + regionDelta.x > left) {
-		goingLeft = true;
-		next = goLeft(region, currentContact->collider);
-	}
-	else if (wish_pos.x >= left && prev_pos.x + regionDelta.x < left)
-	{
-		goingRight = true;
-		next = &currentContact->collider;
-	}
-	else if (wish_pos.x <= right && prev_pos.x + regionDelta.x > right)
-	{
-		goingLeft = true;
-		next = &currentContact->collider;
-	}
+    if (wish_pos.x >= right && prev_pos.x + regionDelta.x < right) {
+        goingRight = true;
+        next = goRight(region, currentContact->collider);
+    }
+    else if (wish_pos.x <= left && prev_pos.x + regionDelta.x > left) {
+        goingLeft = true;
+        next = goLeft(region, currentContact->collider);
+    }
+    else if (wish_pos.x >= left && prev_pos.x + regionDelta.x < left)
+    {
+        goingRight = true;
+        next = &currentContact->collider;
+    }
+    else if (wish_pos.x <= right && prev_pos.x + regionDelta.x > right)
+    {
+        goingLeft = true;
+        next = &currentContact->collider;
+    }
 
 	if (next) {
 
@@ -342,15 +346,14 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
 			if (goingLeft)
 				gAng += Angle::Degree(180.f);
 
-			Vec2f nVel;
-
 			float slow = 1.f - settings.slope_stick_speed_factor * abs(diff.degrees() / settings.stick_angle_max.degrees());
 
 			float vel_mag = owner->get_local_vel().magnitude() * slow;
-			nVel.x = cosf(gAng.radians()) * vel_mag;
-			nVel.y = sinf(gAng.radians()) * vel_mag;
+			owner->set_local_vel(Vec2f{
+                 cosf(gAng.radians()),
+                 sinf(gAng.radians())
+            } * vel_mag);
 
-			owner->set_local_vel(nVel);
 
 			if (theta.degrees() < 0.f && abs(diff.degrees()) < abs(settings.stick_angle_max.degrees())) {
 
@@ -407,29 +410,28 @@ CollidablePostMove SurfaceTracker::postmove_update(
 void SurfaceTracker::start_touch(AppliedContact& contact) {
 
 	if (settings.move_with_platforms) {
-        // transfer local vel to parent vel according to contact vel
-        Vec2f pvel_diff = (contact.velocity) - owner->get_parent_vel();
-        owner->set_parent_vel(contact.velocity);
-        owner->set_last_parent_vel(contact.velocity);
-        owner->set_local_vel(owner->get_local_vel() - pvel_diff);
+        owner->apply_parent_vel(contact.velocity);
+        owner->apply_surface_vel(contact.surface_vel());
 	}
-
-    LOG_INFO("start");
 
 	if (callbacks.on_start_touch)
 		callbacks.on_start_touch(contact);
 }
 
+void SurfaceTracker::continue_touch(AppliedContact& contact) {
+    if (settings.move_with_platforms) {
+        owner->apply_surface_vel(contact.surface_vel());
+        //owner->set_parent_vel(contact.velocity);
+        //owner->set_last_parent_vel(contact.velocity);
+    }
+}
+
 void SurfaceTracker::end_touch(AppliedContact& contact) {
 
 	if (settings.move_with_platforms) {
-        // transfer parent vel to local vel
-        Vec2f pvel_diff = Vec2f{} - owner->get_parent_vel();
-        owner->set_parent_vel(Vec2f{});
-        owner->set_local_vel(owner->get_local_vel() - pvel_diff);
+        owner->reset_parent_vel();
+        owner->reset_surface_vel();
 	}
-
-    LOG_INFO("stop");
 
 	if (callbacks.on_end_touch)
 		callbacks.on_end_touch(contact);

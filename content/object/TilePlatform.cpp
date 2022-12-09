@@ -61,7 +61,6 @@ TilePlatform::TilePlatform(World& w, ID<GameObject> id, ObjectLevelData& data)
 
     w.system<AttachSystem>().create(w, attach_id, tl.get_attach_id(), {});
     //tl.setOffset(w.at(attach_id).curr_pos());
-
 };
 
 void TilePlatform::update(World& w, secs deltaTime) {

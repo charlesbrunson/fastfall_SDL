@@ -274,20 +274,18 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
 		local_vel -= friction;
 		acc = accel_accum;
 
-        Vec2f tmp_surface_vel = surface_vel;
 		if (_tracker) {
 			auto offsets = _tracker->premove_update(colliders, deltaTime);
 			next_pos    += offsets.pos_offset;
             local_vel   += offsets.vel_offset;
 			acc         += offsets.acc_offset;
 
-            surface_vel = offsets.surface_velocity;
-            parent_vel  = offsets.parent_velocity;
-
             if (_tracker->has_contact()) {
-                last_parent_vel = parent_vel;
+                parent_vel = offsets.parent_vel;
+                last_parent_vel = offsets.parent_vel;
             }
 		}
+
         Vec2f zero_vel = _tracker && _tracker->has_contact() ? Vec2f{} : last_parent_vel;
 
         local_vel += acc * (float)deltaTime;
@@ -383,7 +381,7 @@ void Collidable::applyContact(const AppliedContact& contact, ContactType type)
 	else if (math::dot(get_global_vel() - contact.velocity, contact.collider_n) <= 0.f)
     {
         Vec2f resp = phys_resp::get(*this, contact);
-        set_local_vel(resp - get_parent_vel());
+        set_local_vel(resp - (get_parent_vel() + get_surface_vel()));
 	}
 
 	if (contact.hasImpactTime && _tracker) {
@@ -464,6 +462,7 @@ void Collidable::create_tracker(Angle ang_min, Angle ang_max, bool inclusive) {
 bool Collidable::erase_tracker() {
     bool exists = _tracker.has_value();
     _tracker.reset();
+    reset_parent_vel();
     return exists;
 }
 
@@ -485,16 +484,43 @@ void  Collidable::set_gravity(Vec2f grav) noexcept { gravity_acc = grav; };
 Vec2f Collidable::get_local_vel()   const noexcept { return local_vel; };
 Vec2f Collidable::get_parent_vel()  const noexcept { return parent_vel; };
 Vec2f Collidable::get_surface_vel() const noexcept { return surface_vel; };
-Vec2f Collidable::get_global_vel()  const noexcept { return local_vel + parent_vel; };
+Vec2f Collidable::get_global_vel()  const noexcept { return local_vel + parent_vel + surface_vel; };
 
-void Collidable::set_local_vel(Vec2f velocity) noexcept { local_vel = velocity; };
+void Collidable::set_local_vel(Vec2f velocity) noexcept {
+    local_vel = velocity;
+};
 void Collidable::set_local_vel(std::optional<float> X, std::optional<float> Y) noexcept {
     local_vel.x = X.value_or(local_vel.x);
     local_vel.y = Y.value_or(local_vel.y);
 }
 
+void Collidable::apply_parent_vel(Vec2f pvel) noexcept {
+    Vec2f pvel_diff = pvel - parent_vel;
+    parent_vel = pvel;
+    last_parent_vel = pvel;
+    local_vel -= pvel_diff;
+}
+
+void Collidable::reset_parent_vel() noexcept {
+    local_vel += parent_vel;
+    parent_vel = Vec2f{};
+}
+
+void Collidable::apply_surface_vel(Vec2f svel) noexcept {
+    Vec2f svel_diff = svel - surface_vel;
+    surface_vel = svel;
+    local_vel -= svel_diff;
+}
+
+void Collidable::reset_surface_vel() noexcept {
+    local_vel += surface_vel;
+    surface_vel = Vec2f{};
+}
+
 void Collidable::set_parent_vel(Vec2f pvel) noexcept { parent_vel = pvel; }
+/*
 void Collidable::set_surface_vel(Vec2f svel) noexcept { surface_vel = svel; }
+*/
 
 Vec2f Collidable::get_last_parent_vel() const noexcept { return last_parent_vel; }
 void Collidable::set_last_parent_vel(Vec2f pvel) noexcept { last_parent_vel = pvel; }

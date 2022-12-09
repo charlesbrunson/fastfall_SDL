@@ -21,7 +21,8 @@ public:
 	virtual const ColliderQuad* get_quad(QuadID quad_id) const noexcept = 0;
 
 	const ColliderSurface* get_surface_collider(ColliderSurfaceID id) const noexcept;
-	const SurfaceMaterial* get_surface_material(ColliderSurfaceID id) const noexcept;
+    const ColliderSurface* get_surface_collider(std::optional<ColliderSurfaceID> id) const noexcept;
+    const SurfaceMaterial* get_surface_material(ColliderSurfaceID id) const noexcept;
 
 	Vec2f getPrevPosition() const noexcept;
 	Vec2f getPosition() const noexcept;

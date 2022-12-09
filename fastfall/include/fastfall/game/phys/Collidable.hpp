@@ -103,7 +103,12 @@ public:
 	void set_local_vel(Vec2f velocity) noexcept;
 	void set_local_vel(std::optional<float> X, std::optional<float> Y) noexcept;
     void set_parent_vel(Vec2f pvel) noexcept;
-    void set_surface_vel(Vec2f svel) noexcept;
+
+    void apply_parent_vel(Vec2f pvel) noexcept;
+    void reset_parent_vel() noexcept;
+
+    void apply_surface_vel(Vec2f svel) noexcept;
+    void reset_surface_vel() noexcept;
 
     Vec2f get_last_parent_vel() const noexcept;
     void set_last_parent_vel(Vec2f pvel) noexcept;

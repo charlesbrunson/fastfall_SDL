@@ -19,6 +19,10 @@ const ColliderSurface* ColliderRegion::get_surface_collider(ColliderSurfaceID id
     return nullptr;
 }
 
+const ColliderSurface* ColliderRegion::get_surface_collider(std::optional<ColliderSurfaceID> id) const noexcept {
+    return id ? get_surface_collider(*id) : nullptr;
+}
+
 const SurfaceMaterial* ColliderRegion::get_surface_material(ColliderSurfaceID id) const noexcept
 {
     if (auto* q = get_quad(id.quad_id);

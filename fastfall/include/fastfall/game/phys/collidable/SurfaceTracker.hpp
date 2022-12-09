@@ -18,22 +18,11 @@ struct Friction {
 	float kinetic = 0.f;
 };
 
-/*
-struct CollidableOffsets {
-	Vec2f position = { 0.f, 0.f };
-	Vec2f velocity = { 0.f, 0.f };
-	Vec2f acceleration = { 0.f, 0.f };
-    Vec2f parent_velocity = {0.f, 0.f};
-};
-*/
-
 struct CollidablePreMove {
     Vec2f pos_offset;
     Vec2f vel_offset;
     Vec2f acc_offset;
-
-    Vec2f parent_velocity;
-    Vec2f surface_velocity;
+    Vec2f parent_vel;
 };
 
 struct CollidablePostMove {
@@ -73,8 +62,6 @@ public:
 
 	const std::optional<AppliedContact>& get_contact() const { return currentContact; };
 
-	void start_touch(AppliedContact& contact);
-	void end_touch(AppliedContact& contact);
 
 	void firstCollisionWith(const AppliedContact& contact);
 
@@ -119,7 +106,7 @@ public:
 		};
 	} angle_range;
 
-    Vec2f calc_friction(Vec2f prevVel);
+    Vec2f calc_friction(Vec2f prevVel) const;
     float accel_accum = 0.f;
 
 private:
@@ -132,6 +119,10 @@ private:
 	bool do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, bool had_wall) noexcept;
 	CollidablePreMove do_move_with_platform(poly_id_map<ColliderRegion>* colliders, CollidablePreMove in) noexcept;
 	CollidablePreMove do_max_speed(CollidablePreMove in, secs deltaTime) noexcept;
+
+    void start_touch(AppliedContact& contact);
+    void continue_touch(AppliedContact& contact);
+    void end_touch(AppliedContact& contact);
 
 	// returns position offset
 	Vec2f do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos, float left, float right) const noexcept;
