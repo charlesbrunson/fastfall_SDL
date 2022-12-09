@@ -79,8 +79,35 @@ void SurfaceTracker::process_contacts(
 	}
 
 	if (!found) {
+
 		if (had_contact) {
-			if (!do_slope_wall_stop(colliders, had_wall)) {
+            // need to update the current contact for the region's current position
+            const ColliderRegion* region =
+                    currentContact && currentContact->id
+                    ? colliders->get(currentContact->id->collider)
+                    : nullptr;
+
+            if (region) {
+                auto surf = region->get_surface_collider(currentContact->collider.id);
+                if (surf) {
+                    Vec2f rpos = region->getPosition();
+                    currentContact->collider = *surf;
+                    currentContact->collider.surface.p1 += rpos;
+                    currentContact->collider.surface.p2 += rpos;
+                    currentContact->collider.ghostp0    += rpos;
+                    currentContact->collider.ghostp3    += rpos;
+                }
+                else {
+                    // surface no longer exists
+                    currentContact = std::nullopt;
+                }
+            }
+            else {
+                // region no longer exists/contact is temporary
+                currentContact = std::nullopt;
+            }
+
+			if (currentContact && !do_slope_wall_stop(colliders, had_wall)) {
 				end_touch(currentContact.value());
 				currentContact = std::nullopt;
 			}
@@ -172,6 +199,7 @@ bool SurfaceTracker::do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, 
 
 		float X = owner->getPosition().x;
 		Linef surface = currentContact->collider.surface;
+        surface = math::shift(surface, -region->getDeltaPosition());
 
 		Vec2f intersect = math::intersection(
 			surface,
@@ -355,14 +383,11 @@ CollidablePostMove SurfaceTracker::postmove_update(
         float right = 0.f;
         if (currentContact->id)
         {
-            // lmao even
             auto region = colliders->get(currentContact->id->collider);
-            if (auto quad = region->get_quad(currentContact->id->quad)) {
-                if (auto surf = quad->getSurface(*direction::from_vector(currentContact->ortho_n))) {
-                    Linef line = math::shift(surf->surface, region->getPosition());
-                    left = std::min(line.p1.x, line.p2.x);
-                    right = std::max(line.p1.x, line.p2.x);
-                }
+            if (auto surf = region->get_surface_collider(currentContact->collider.id)) {
+                Linef line = math::shift(surf->surface, region->getPosition());
+                left = std::min(line.p1.x, line.p2.x);
+                right = std::max(line.p1.x, line.p2.x);
             }
         }
         else {
@@ -382,12 +407,14 @@ CollidablePostMove SurfaceTracker::postmove_update(
 void SurfaceTracker::start_touch(AppliedContact& contact) {
 
 	if (settings.move_with_platforms) {
+        // transfer local vel to parent vel according to contact vel
         Vec2f pvel_diff = (contact.velocity) - owner->get_parent_vel();
         owner->set_parent_vel(contact.velocity);
         owner->set_last_parent_vel(contact.velocity);
         owner->set_local_vel(owner->get_local_vel() - pvel_diff);
-        LOG_INFO("START {}", pvel_diff);
 	}
+
+    LOG_INFO("start");
 
 	if (callbacks.on_start_touch)
 		callbacks.on_start_touch(contact);
@@ -396,11 +423,13 @@ void SurfaceTracker::start_touch(AppliedContact& contact) {
 void SurfaceTracker::end_touch(AppliedContact& contact) {
 
 	if (settings.move_with_platforms) {
+        // transfer parent vel to local vel
         Vec2f pvel_diff = Vec2f{} - owner->get_parent_vel();
         owner->set_parent_vel(Vec2f{});
         owner->set_local_vel(owner->get_local_vel() - pvel_diff);
-        LOG_INFO("END {}", pvel_diff);
 	}
+
+    LOG_INFO("stop");
 
 	if (callbacks.on_end_touch)
 		callbacks.on_end_touch(contact);
@@ -460,7 +489,7 @@ void SurfaceTracker::firstCollisionWith(const AppliedContact& contact)
 		start_touch(pc);
         currentContact = pc;
 
-
+        //  project collidable velocity onto stickLine
 		float vmag = owner->get_local_vel().magnitude();
         Vec2f vproj = math::projection(owner->get_local_vel(), math::vector(contact.stickLine)).unit();
         owner->set_local_vel(vmag * vproj);
