@@ -197,13 +197,8 @@ bool SurfaceTracker::do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, 
 		// correct velocity and position so we're still grounded
 		owner->set_local_vel(Vec2f{});
 
-		const ColliderRegion* region = currentContact && currentContact->id
-                ? colliders->get(currentContact->id->collider)
-                : nullptr;
-
 		float X = owner->getPosition().x;
 		Linef surface = currentContact->collider.surface;
-        surface = math::shift(surface, -region->getDeltaPosition());
 
 		Vec2f intersect = math::intersection(
 			surface,
