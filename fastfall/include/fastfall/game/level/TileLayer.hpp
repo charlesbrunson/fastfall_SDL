@@ -130,6 +130,9 @@ public:
         return attach_id;
     }
 
+    void set_autotile_substitute(TileShape sub) noexcept { layer_data.set_autotile_substitute(sub); }
+    TileShape get_autotile_substitute() const noexcept { return layer_data.get_autotile_substitute(); }
+
 protected:
     ID<TileLayer> m_id;
 	scene_layer layer;

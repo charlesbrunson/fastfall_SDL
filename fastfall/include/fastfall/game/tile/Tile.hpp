@@ -58,11 +58,13 @@ namespace ff {
 
 	struct AUTOTILE_GRID_WRAP {};
 
+    using AutoTileOffGridSubstitute = std::variant<TileShape, AUTOTILE_GRID_WRAP>;
+
 	TileState get_autotile_state(
 		TileShape init_shape,
 		grid_view<TileShape> grid,
 		Vec2u position,
-		std::variant<TileShape, AUTOTILE_GRID_WRAP> offgrid_shape
+		AutoTileOffGridSubstitute offgrid_shape
 	);
 
 	// Tile Constraint

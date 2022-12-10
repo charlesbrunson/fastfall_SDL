@@ -37,6 +37,7 @@ TilePlatform::TilePlatform(World& w, ID<GameObject> id, ObjectLevelData& data)
     tl_id = w.create<TileLayer>(entityID(), w, id_placeholder, 0, area.getSize());
     auto& tl = w.at(tl_id);
     tl.set_layer(w, 0);
+    tl.set_autotile_substitute("empty"_ts);
 
     unsigned level_id = data.getPropAsInt("layer");
     auto lvl_lyr_id = w.system<LevelSystem>().get_active(w)->get_tile_layer(level_id).cmp_id;

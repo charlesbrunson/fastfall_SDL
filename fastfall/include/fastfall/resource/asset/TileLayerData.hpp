@@ -48,6 +48,7 @@ private:
 
 	unsigned layer_id = 0;
 	std::string layer_name;
+    TileShape autotile_substitute = "solid"_ts;
 
 public:
 
@@ -118,6 +119,9 @@ public:
 	const TilesetAsset* getTilesetFromNdx(uint8_t ndx) const {
 		return ndx < tilesets.size() ? tilesets.at(ndx).tileset : nullptr;
 	}
+
+    void set_autotile_substitute(TileShape sub) noexcept { autotile_substitute = sub; }
+    TileShape get_autotile_substitute() const noexcept { return autotile_substitute; }
 
 private:
 

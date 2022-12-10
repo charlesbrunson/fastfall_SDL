@@ -171,7 +171,7 @@ TileLayerData::TileChangeArray TileLayerData::setTile(Vec2u at, TileID tile_id, 
 			state = get_autotile_state(tile->shape, shapes_view, at, AUTOTILE_GRID_WRAP{});
 		}
 		else {
-			state = get_autotile_state(tile->shape, shapes_view, at, TileShape{ TileShape::Type::Solid });
+			state = get_autotile_state(tile->shape, shapes_view, at, autotile_substitute);
 		}
 		auto opt_tile_id = auto_best_tile(state, tileset.getConstraints(), rseed);
 		placed_tiled_id = opt_tile_id.value_or(placed_tiled_id);
@@ -265,7 +265,7 @@ void TileLayerData::setShape(Vec2u at, TileShape shape, TileChangeArray& changes
 					state = get_autotile_state(shapes_view[adj_at], shapes_view, adj_at, AUTOTILE_GRID_WRAP{});
 				}
 				else {
-					state = get_autotile_state(shapes_view[adj_at], shapes_view, adj_at, TileShape{ TileShape::Type::Solid });
+					state = get_autotile_state(shapes_view[adj_at], shapes_view, adj_at, autotile_substitute);
 				}
 
 				auto opt_tile_id = auto_best_tile(state, tileset_ptr->getConstraints(), rseed);

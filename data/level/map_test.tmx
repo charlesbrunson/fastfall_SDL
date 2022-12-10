@@ -38,11 +38,11 @@
    <property name="collision_border" value="NESW"/>
   </properties>
   <data encoding="base64" compression="zlib">
-   eJztmslOwzAQhu1WQuwSAgEHdrjBBcEFlUvLfuDC0sKFA/D+z4CtZNTBOLbjOHEc5pN+IQK1s3xxPG44ZwRBEARBNAzn0xBE0/R4FvKPiAH2T2aXPCQaBPyT3u1FcO+xV+7/h73f8f1cmc8S9QH+HWnc22lgPJQeXDm6MKrgEPnXTsC/k0jPXezDHPsbuf0jD9E98PxvkWVpEt24ROPU/wH7F3L+d1aipn5ycBA8xL+PRSbkZxLwgqj1ryllGARa03nS+EfepYfNvzrWAc8CzylpDpgudfi3wKZzRpyl/O8DWkskcmKMfz7o1lh0cV2zIdpBW/0Dj67FzxtH9yAP5GAyuPjXV+qNWaZfk5sPuF9lfFPzTv4lg80/6d5WQvM1qIvx+FkEPavj47L+khp4bWZscIzmi/EJ7Z+t9m0D6pwSOziyOInnIRsim4ndn8OW7W8Xxz8VnxrmVuTOMjZu8+xdDIzqpEs7TSL9u2/JNZ1h3ffvo0Id4+ohRnXy1bOdOrjjmX9vLbmm66y8f6b615aQ9XEoXnpTR2wehujD5KGpVgrBJPdP5jOyg31W7F7Xxj8XbB4+B3AD96Hew/LeNNVKVVkV13ERrinLcihyVF+XWvZFDpjZvS75Vxadh9i94/ycnCd0XrB72L82pyv+rYj9X/M4BvBQHfdgfneZyHlR3UvNv1OufwffBx8PqrKS30N19X3I/9a8um0x0LmXmn8XPNw7+HV6UAQ8L23x3S/cPjin29Y0Re6l5h88g6t6E2Pd1nQN1Cx4HKPa/pLIcsG2po75S/TxbTnu2G75+AfezHmmaNyp0qYp63n7Lu75OFjGbewhfD8kvw8K6SR4B+srpn2J7ZZLfgB1wEyk
+   eJztmstOxCAUhqGTGO+J0agb7+50Y+LGxI13ncTNeHfhQn3/Z5CmPZkjUqCUchnPl/wxVgdo+YYCLeeMIAiCIIjAcD4OQYSm4FXIPyIG2L8yW+QhERDwr/RuO4J790W7/z8rfsf1c20+S/QH+LevcG8zwHhYenBh6cJ5B4fIvzQB/w4j3XexDzPsb8rjH3WIyQPP/+ZZlZCoxiUap/4P2D+f879hC3dGFg5CWfj3Z5EX8jMLeEOwfz7HoXdPY9dI4R95lx8m/wru5pmOoWdHaA6YL334N8fGc0achfrv7+QLURNj/HNBtceiiu2eDZEGqfoHHl2Kn1eW7kHuyMFsaOMfZJqp9+RmPbarjW9y3si/bDD5NxB58NifsG7tCygfj59N0L06Pjb7L74Z9dzveG/mWVMXzRfj49s/09o3BeQ5JXbw3OAkfi9yTWQ9s/eCzhJrb4zxLzQua5hrkRvD2LjBq3cxMLKTNuWEpPTvNpE+nWJx/Au5lv7osI6x9RAjO/nkWE4f3PDKv9dE/Ftl7f3TrX9tksJeIuaxGDti8tBHHToPdWslH7zU/pX5jOzggDW7N0n3X9tncyYPfewB4Drk73C5d6VbK3VlWfTjPPQpq7Inst9flUp2RHaZ3r1J8q8tKg+xewf1NTnO6Lpg97B/KWdS/FsS7V9xOAfwUB73YH53msl1kd3Lzb8jrn4H3wUXD7qyVH+H+qp7j/9d86qOxUDlXm7+nXB/7+D36UETcL80xbVduHxwTnUsNE3u5eYf3IO7ehNj31bXB3LmHM5RLn9BZLHhWKhz/hJ1fBvOO7ZbLv6BNzOOaRp3upSpy2pdvo17Lg62cRt7CM+HyudBPp0E72B/RdeW2G7Z5Ad3jFTQ
   </data>
  </layer>
  <objectgroup id="4" name="OBJ">
-  <object id="7" class="Player" x="560" y="96" width="16" height="32">
+  <object id="7" class="Player" x="304" y="176" width="16" height="32">
    <properties>
     <property name="anotherprop" value="Foo"/>
     <property name="faceleft" type="bool" value="true"/>
@@ -54,8 +54,9 @@
    </properties>
    <polyline points="-240,-48 -240,-256"/>
   </object>
-  <object id="17" class="BasicPlatform" x="352" y="160" width="32" height="192">
+  <object id="17" class="TilePlatform" x="352" y="272" width="32" height="32">
    <properties>
+    <property name="layer" type="int" value="2"/>
     <property name="path" type="object" value="16"/>
    </properties>
   </object>
