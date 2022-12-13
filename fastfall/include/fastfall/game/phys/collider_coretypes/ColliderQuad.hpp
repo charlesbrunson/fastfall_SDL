@@ -100,6 +100,8 @@ protected:
 	QuadID quad_id;
 };
 
+ColliderSurface findColliderGhosts(const std::vector<const ColliderQuad*>& nearby, const ColliderSurface& surface);
+
 bool debugDrawQuad(ColliderQuad& quad, Vec2f offset = Vec2f{}, const void* sign = nullptr, bool always_redraw = false);
 bool debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset = Vec2f{}, const void* sign = nullptr, bool always_redraw = false);
 

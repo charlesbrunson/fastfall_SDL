@@ -43,21 +43,6 @@ private:
 		ColliderTile tile;
 	};
 	
-	struct SideAssociated {
-		Vec2i gridoffset;
-		Cardinal toCard;
-		Cardinal oppositeCard;
-	};
-
-	struct Ghosts {
-		const ColliderSurface* next = nullptr;
-		const ColliderSurface* prev = nullptr;
-		Vec2f g0;
-		Vec2f g3;
-		bool g0virtual = true;
-		bool g3virtual = true;
-	};
-
 public:
 	ColliderTileMap(Vec2i size, bool border = false);
 
@@ -102,11 +87,7 @@ public:
 	}
 
 private:
-
-
 	void updateGhosts(const Vec2i& position);
-
-	Ghosts getGhosts(const std::array<std::pair<Vec2i, const ColliderQuad*>, 9>& nearby, const Linef& surface, bool isOneWay);
 
 	bool applyRemoveTile(const Edit& change);
 	bool applySetTile(const Edit& change);

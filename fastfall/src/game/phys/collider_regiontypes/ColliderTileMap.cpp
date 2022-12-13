@@ -421,159 +421,23 @@ namespace ff {
 		Rectf tileArea{ Vec2f(position * TILESIZE_F), Vec2f(TILESIZE_F, TILESIZE_F) };
 		Recti adjArea{ position - Vec2i(1, 1), Vec2i(3, 3) };
 
-		int y = 0, x = 0;
+        // get adjacent collider quads
+        std::vector<const ColliderQuad*> nearbyQuads;
+        for (int y = 0; y < 3; ++y) {
+            for (int x = 0; x < 3; ++x) {
+                auto pos = Vec2i{ x, y } + Vec2i{ adjArea.getPosition() };
+                if (validPosition(pos)) {
+                    nearbyQuads.push_back(get_tile(pos).first);
+                }
+            }
+        }
 
-		std::array<std::pair<Vec2i, const ColliderQuad*>, 9> nearbyTiles;
-		for (int yy = adjArea.top; yy < adjArea.top + adjArea.height; yy++, y++) {
-			for (int xx = adjArea.left; xx < adjArea.left + adjArea.width; xx++, x++) {
-				Vec2i v(xx, yy);
-
-				if (validPosition(v)) {
-					nearbyTiles.at(x + (y * 3)).first = v;
-					nearbyTiles.at(x + (y * 3)).second = get_tile(v).first;
-
-				}
-				else {
-					nearbyTiles.at(x + (y * 3)).second = nullptr;
-				}
-			}
-			x = 0;
-		}
-
-		struct Ghosts {
-			const ColliderSurface* next = nullptr;
-			const ColliderSurface* prev = nullptr;
-			Vec2f g0;
-			Vec2f g3;
-			bool g0virtual = true;
-			bool g3virtual = true;
-		};
-
-		//for (auto& surface : tile->getSurfaces()) {
+        // connect surfaces
 		for (auto dir : direction::cardinals) {
 			if (ColliderSurface* surf_ptr = quad->getSurface(dir)) {
-
-				ColliderSurface surf = *surf_ptr;
-
-				auto ghosts = getGhosts(nearbyTiles, surf_ptr->surface, quad->hasOneWay);
-				surf.ghostp0 = ghosts.g0;
-				surf.ghostp3 = ghosts.g3;
-				surf.g0virtual = ghosts.g0virtual;
-				surf.g3virtual = ghosts.g3virtual;
-				surf.next_id = ghosts.next ? std::make_optional(ghosts.next->id) : std::nullopt;
-				surf.prev_id = ghosts.prev ? std::make_optional(ghosts.prev->id) : std::nullopt;
-				quad->setSurface(dir, surf);
+                quad->setSurface(dir, findColliderGhosts(nearbyQuads, *surf_ptr));
 			}
 		}
-	}
-
-
-	ColliderTileMap::Ghosts ColliderTileMap::getGhosts(const std::array<std::pair<Vec2i, const ColliderQuad*>, 9>& nearby, const Linef& surface, bool isOneWay) {
-
-		std::vector<const ColliderSurface*> candidatesg0;
-		std::vector<const ColliderSurface*> candidatesg3;
-
-		for (auto& tile : nearby) {
-
-			//if (!tile.second || (!isOneWay && tile.second->hasOneWay))
-			//	continue;
-			if (!tile.second)
-				continue;
-
-			for (auto& qsurf : tile.second->surfaces) {
-				if (!qsurf.hasSurface)
-					continue;
-
-				if (qsurf.collider.surface.p2 == surface.p1) {
-					//candidatesg0.push_back(surface.collider.surface.p1);
-					candidatesg0.push_back(&qsurf.collider);
-				}
-				else if (qsurf.collider.surface.p1 == surface.p2) {
-					//candidatesg3.push_back(surface.collider.surface.p2);
-					candidatesg3.push_back(&qsurf.collider);
-				}
-			}
-		}
-		//std::pair<Vec2f, Vec2f> r;
-
-		auto v = math::vector(surface);
-
-		Angle idealAng(atan2f(v.y, v.x));
-
-
-		// select ghosts based on the angle diff closest to zero
-		auto g0 = std::min_element(candidatesg0.begin(), candidatesg0.end(),
-			//[&surf, &v, idealAng](const Vec2f& lhs, const Vec2f& rhs) -> bool {
-			[&surface, &v, idealAng](const ColliderSurface* lhs, const ColliderSurface* rhs) -> bool {
-				if (lhs == rhs) return false;
-				
-				auto v1 = math::vector(Linef(lhs->surface.p1, surface.p1));
-				auto v2 = math::vector(Linef(rhs->surface.p1, surface.p1));
-
-				// if comparing floor surface to ceil surface, 
-				// favor the one that v also is floor or ceil
-
-				if (v1.x != 0.f && v2.x != 0.f && v.x != 0.f
-					&& ((v1.x < 0.f) != (v2.x < 0.f)))
-				{
-					return (v1.x < 0.f) == (v.x < 0.f);
-				}
-
-				// otherwise compare by angle
-				Angle lhsAng(atan2f(v1.y, v1.x));
-				Angle rhsAng(atan2f(v2.y, v2.x));
-				return abs((lhsAng - idealAng).radians()) < abs((rhsAng - idealAng).radians());
-
-			});
-
-		auto g3 = std::min_element(candidatesg3.begin(), candidatesg3.end(),
-			//[surf, v, idealAng](const Vec2f& lhs, const Vec2f& rhs) -> bool {
-			[&surface, &v, idealAng](const ColliderSurface* lhs, const ColliderSurface* rhs) -> bool {
-				if (lhs == rhs) return false;
-
-				auto v1 = math::vector(Linef(surface.p2, lhs->surface.p2));
-				auto v2 = math::vector(Linef(surface.p2, rhs->surface.p2));
-
-				// if comparing floor surface to ceil surface, 
-				// favor the one that v also is floor or ceil
-
-				if (v1.x != 0.f && v2.x != 0.f && v.x != 0.f
-					&& ((v1.x < 0.f) != (v2.x < 0.f)))
-				{
-					return (v1.x < 0.f) == (v.x < 0.f);
-				}
-
-				// otherwise compare by angle
-				Angle lhsAng(atan2f(v1.y, v1.x));
-				Angle rhsAng(atan2f(v2.y, v2.x));
-
-				return abs((lhsAng - idealAng).radians()) < abs((rhsAng - idealAng).radians());
-
-			});
-
-		Ghosts r;
-		r.g0virtual = (g0 == candidatesg0.end());
-		if (r.g0virtual) {
-			r.prev = nullptr;
-			r.g0 = surface.p1 - v;
-		}
-		else {
-			r.prev = *g0;
-			r.g0 = r.prev->surface.p1;
-		}
-		//r.g0 = (r.g0virtual ? surf.p1 - v : *g0);
-
-		r.g3virtual = (g3 == candidatesg3.end());
-		if (r.g3virtual) {
-			r.next = nullptr;
-			r.g3 = surface.p2 + v;
-		}
-		else {
-			r.next = *g3;
-			r.g3 = r.next->surface.p2;
-		}
-		//r.g3 = (r.g3virtual ? surf.p2 + v : *g3);
-		return r;
 	}
 
 }
