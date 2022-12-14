@@ -204,65 +204,90 @@ ColliderSurface findColliderGhosts(const std::vector<const ColliderQuad*>& nearb
             if (!qsurf.hasSurface)
                 continue;
 
-            if (qsurf.collider.surface.p2 == surface.surface.p1) {
+            if (qsurf.collider.surface.p2 == surface.surface.p1
+                && qsurf.collider.surface.reverse() != surface.surface)
+            {
                 candidatesg0.push_back(&qsurf.collider);
             }
-            else if (qsurf.collider.surface.p1 == surface.surface.p2) {
+            else if (qsurf.collider.surface.p1 == surface.surface.p2
+                 && qsurf.collider.surface.reverse() != surface.surface)
+             {
                 candidatesg3.push_back(&qsurf.collider);
             }
         }
     }
 
     auto v = math::vector(surface.surface);
+    auto vvert = math::is_vertical(v);
     Angle idealAng(atan2f(v.y, v.x));
 
     // select ghosts based on the angle diff closest to zero
     auto g0 = std::min_element(candidatesg0.begin(), candidatesg0.end(),
         [&](const ColliderSurface* lhs, const ColliderSurface* rhs) -> bool {
-            if (lhs == rhs) return false;
+            if (lhs == rhs)
+                return false;
 
             auto v1 = math::vector(Linef(lhs->surface.p1, surface.surface.p1));
             auto v2 = math::vector(Linef(rhs->surface.p1, surface.surface.p1));
 
+            auto v1vert = math::is_vertical(v1);
+            auto v2vert = math::is_vertical(v2);
+
             // if comparing floor surface to ceil surface,
             // favor the one that v also is floor or ceil
-            if (   !math::is_vertical(v1)
-                && !math::is_vertical(v2)
-                && !math::is_vertical(v)
+            if (!v1vert && !v2vert && !vvert
                 && ((v1.x < 0.f) != (v2.x < 0.f)))
             {
                 return (v1.x < 0.f) == (v.x < 0.f);
             }
 
+            // stay non vertical
+            if (!vvert && (v1vert != v2vert))
+            {
+                return !v1vert;
+            }
+
             // otherwise compare by angle
             Angle lhsAng(atan2f(v1.y, v1.x));
             Angle rhsAng(atan2f(v2.y, v2.x));
-            return abs((lhsAng - idealAng).radians()) < abs((rhsAng - idealAng).radians());
+
+            float lhsDiff = abs((lhsAng - idealAng).radians());
+            float rhsDiff = abs((rhsAng - idealAng).radians());
+            return lhsDiff < rhsDiff;
         });
 
     auto g3 = std::min_element(candidatesg3.begin(), candidatesg3.end(),
         [&](const ColliderSurface* lhs, const ColliderSurface* rhs) -> bool {
-            if (lhs == rhs) return false;
+            if (lhs == rhs)
+                return false;
 
             auto v1 = math::vector(Linef(surface.surface.p2, lhs->surface.p2));
             auto v2 = math::vector(Linef(surface.surface.p2, rhs->surface.p2));
 
+            auto v1vert = math::is_vertical(v1);
+            auto v2vert = math::is_vertical(v2);
+
             // if comparing floor surface to ceil surface,
             // favor the one that v also is floor or ceil
-            if (   !math::is_vertical(v1)
-                && !math::is_vertical(v2)
-                && !math::is_vertical(v)
+            if (!v1vert && !v2vert && !vvert
                 && ((v1.x < 0.f) != (v2.x < 0.f)))
             {
                 return (v1.x < 0.f) == (v.x < 0.f);
+            }
+
+            // stay non vertical
+            if (!vvert && (v1vert != v2vert))
+            {
+                return !v1vert;
             }
 
             // otherwise compare by angle
             Angle lhsAng(atan2f(v1.y, v1.x));
             Angle rhsAng(atan2f(v2.y, v2.x));
 
-            return abs((lhsAng - idealAng).radians()) < abs((rhsAng - idealAng).radians());
-
+            float lhsDiff = abs((lhsAng - idealAng).radians());
+            float rhsDiff = abs((rhsAng - idealAng).radians());
+            return lhsDiff < rhsDiff;
         });
 
     copy.g0virtual = (g0 == candidatesg0.end());

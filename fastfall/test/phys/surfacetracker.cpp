@@ -61,11 +61,11 @@ protected:
         auto box_id = world.create<Collidable>(collidable_obj_id, pos, size, grav);
 		box = world.get(box_id);
 
-        box->set_tracker(
+        box->create_tracker(
             Angle::Degree(-135),
             Angle::Degree(-45)
         );
-        ground = box->get_tracker();
+        ground = &*box->tracker();
 
         ground->settings = {
             .slope_sticking = true,
@@ -656,7 +656,7 @@ TEST_F(surfacetracker, move_stick_slope)
         {
             mdir *= -1.f;
         }
-        box->at_tracker().traverse_set_speed(mdir / one_frame);
+        box->tracker()->traverse_set_speed(mdir / one_frame);
 
         collider->setPosition(collider->getPosition() + dir);
         ff::Vec2f nVel = (collider->getPosition() - collider->getPrevPosition()) / one_frame;

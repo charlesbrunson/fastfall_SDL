@@ -37,6 +37,7 @@ create_ff_test(ff_test_phys
 	phys/collision.cpp
 	phys/surfacetracker.cpp
 	phys/collisionsolver.cpp
+	phys/colliderghost.cpp
 
 	phys/TestPhysRenderer.cpp
 )
