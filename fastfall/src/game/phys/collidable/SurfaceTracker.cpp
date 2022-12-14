@@ -315,12 +315,27 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
     else if (wish_pos.x >= left && prev_pos.x + regionDelta.x < left)
     {
         goingRight = true;
-        next = &currentContact->collider;
+        if (region) {
+            if (auto* r = region->get_surface_collider(currentContact->collider.id)) {
+                next = r;
+            }
+        }
+        else {
+            next = &currentContact->collider;
+        }
+
     }
     else if (wish_pos.x <= right && prev_pos.x + regionDelta.x > right)
     {
         goingLeft = true;
-        next = &currentContact->collider;
+        if (region) {
+            if (auto* r = region->get_surface_collider(currentContact->collider.id)) {
+                next = r;
+            }
+        }
+        else {
+            next = &currentContact->collider;
+        }
     }
 
 	if (next) {
@@ -333,7 +348,7 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
 			&& angle_range.within_range(next_ang - Angle::Degree(90.f))
 			&& abs(diff.degrees()) < abs(settings.stick_angle_max.degrees()))
 		{
-			Vec2f hyp = wish_pos - ((goingRight ? next->surface.p1 : next->surface.p2) + regionOffset);
+			Vec2f hyp = wish_pos - ((goingRight ? next->surface.p1 : next->surface.p2) + regionOffset + regionDelta);
 			Angle theta = math::angle(hyp) - math::angle(next->surface);
 
 			// update velocity
@@ -348,7 +363,6 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
                  cosf(gAng.radians()),
                  sinf(gAng.radians())
             } * vel_mag);
-
 
 			if (theta.degrees() < 0.f && abs(diff.degrees()) < abs(settings.stick_angle_max.degrees())) {
 

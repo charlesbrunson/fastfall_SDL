@@ -45,7 +45,7 @@ void imgui_collidables(World* w) {
             ImGui::Text("Global Speed: %3.2f", col.get_global_vel().magnitude());
             ImGui::NewLine();
 
-            if (ImGui::TreeNode((void*)(&col), "Tracker")) {
+            if (ImGui::TreeNode((void*)(&col.tracker()), "Tracker")) {
 
                 if (!col.tracker()) {
                     ImGui::Text("No trackers!");
@@ -136,7 +136,7 @@ void imgui_collidables(World* w) {
 
                 ImGui::TreePop();
             }
-            if (ImGui::TreeNode((void*)(&col), "Collisions")) {
+            if (ImGui::TreeNode((void*)(&col.get_contacts()), "Collisions")) {
                 bool has_collision = false;
                 if (!col.get_contacts().empty()) {
 
@@ -519,6 +519,11 @@ void imgui_status(World* w) {
     if (ImGui::DragFloat2("Cam Pos", v)) {
         w->system<CameraSystem>().currentPosition.x = floor(v[0]);
         w->system<CameraSystem>().currentPosition.y = floor(v[1]);
+    }
+    float zoom = w->system<CameraSystem>().zoomFactor;
+    if (ImGui::DragFloat("Cam Zoom", &zoom, 0.01f, 0.25f, 2.f))
+    {
+        w->system<CameraSystem>().zoomFactor = floorf(zoom * 4.f) / 4.f;
     }
 
 }

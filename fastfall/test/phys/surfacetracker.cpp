@@ -147,9 +147,11 @@ TEST_F(surfacetracker, moving_first_contact_vertical)
     collider->velocity = Vec2f{0.f, 50.f};
 
     box->teleport(Vec2f{ 8, 32 });
-    box->set_local_vel(Vec2f{ 0.f, 0.f });
+    box->set_local_vel(Vec2f{ 0.f, 50.f });
     box->set_gravity(Vec2f{ 0.f, 500.f });
 
+    ground->settings.slope_sticking = true;
+    ground->settings.use_surf_vel = true;
     ground->settings.move_with_platforms = true;
     ground->settings.has_friction = true;
     ground->settings.surface_friction.kinetic = 0.6f;
