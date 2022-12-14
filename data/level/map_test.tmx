@@ -42,7 +42,7 @@
   </data>
  </layer>
  <objectgroup id="4" name="OBJ">
-  <object id="7" class="Player" x="729.333" y="63.3333" width="16" height="32">
+  <object id="7" class="Player" x="780" y="64" width="16" height="32">
    <properties>
     <property name="anotherprop" value="Foo"/>
     <property name="faceleft" type="bool" value="true"/>

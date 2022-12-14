@@ -270,7 +270,7 @@ void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
 
                 float clamp = math::clamp(cMid.x, tArea.left, tArea.left + tArea.width);
                 axis.contact.collider_n = math::vector(axis.contact.collider.surface).lefthand().unit();
-				if (cPrev.top + cPrev.height <= tArea.top &&
+				if (cPrev.top + cPrev.height <= tArea.top - collider_deltap.y &&
 					Y <= tArea.top &&
 					(axis.quadIndex != 255U) &&
 					cQuad.getSurface(Cardinal(axis.quadIndex)) &&
@@ -324,7 +324,7 @@ void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
                 axis.contact.collider_n = math::vector(axis.contact.collider.surface).lefthand().unit();
                 float clamp = math::clamp(cMid.x, tArea.left, tArea.left + tArea.width);
 
-				if (cPrev.top >= tArea.top + tArea.height &&
+				if (cPrev.top >= tArea.top + tArea.height - collider_deltap.y &&
 					Y >= tArea.top + tArea.height &&
 					(axis.quadIndex != 255U) &&
 					cQuad.getSurface(Cardinal(axis.quadIndex)) &&
