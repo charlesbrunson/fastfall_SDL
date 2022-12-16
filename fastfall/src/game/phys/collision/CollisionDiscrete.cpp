@@ -622,6 +622,9 @@ bool wallCanExtend(
 		}
 		else
 		{
+            bool check1 = pMid.x >= tMid.x - tHalf.x;
+            bool check2 = cMid.x < tMid.x - tHalf.x;
+
 			passing = pMid.x >= tMid.x - tHalf.x
 					&& cMid.x < tMid.x - tHalf.x;
 		}
@@ -743,7 +746,7 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 		axis.contact.material = &cQuad.material->getSurface(Cardinal::E, cQuad.matFacing);
 	}
 
-	Vec2f pMid = math::rect_mid(cPrev);
+	Vec2f pMid = math::rect_mid(cPrev) + collider_deltap;
 	bool extend = wallCanExtend(axis, cQuad, Cardinal::E, pMid, cMid, tMid, tHalf, collision_time == Type::PrevFrame);
 	bool has_valley = wallHasValley(axis, axes, axis_count, Cardinal::E, valleys);
 
@@ -767,7 +770,7 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 		axis.contact.material = &cQuad.material->getSurface(Cardinal::W, cQuad.matFacing);
 	}
 
-	Vec2f pMid = math::rect_mid(cPrev);
+	Vec2f pMid = math::rect_mid(cPrev) + collider_deltap;
 	bool extend = wallCanExtend(axis, cQuad, Cardinal::W, pMid, cMid, tMid, tHalf, collision_time == Type::PrevFrame);
 	bool has_valley = wallHasValley(axis, axes, axis_count, Cardinal::W, valleys);
 

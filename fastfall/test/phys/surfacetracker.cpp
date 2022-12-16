@@ -665,7 +665,48 @@ TEST_F(surfacetracker, move_stick_slope)
         collider->delta_velocity = nVel - collider->velocity;
         collider->velocity = nVel;
 
-        LOG_INFO("{}", colMan->getFrameCount());
+        //LOG_INFO("{}", colMan->getFrameCount());
+        update();
+        render.draw();
+
+        EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
+    }
+}
+
+TEST_F(surfacetracker, move_up_slope_to_oneway)
+{
+
+    initTileMap({
+        {"",        "",         "",         "", "", "", ""},
+        {"",        "",         "",         "", "", "", ""},
+        {"oneway",  "slope-h",  "",         "", "", "", ""},
+        {"",        "solid",    "solid",    "", "", "", ""},
+    });
+
+    box->teleport({ 40, 48 });
+    box->set_gravity({ 0, 500 });
+    ground->settings.surface_friction.kinetic = 100.0f;
+    ground->settings.surface_friction.stationary = 100.0f;
+    ground->settings.move_with_platforms = true;
+    ground->settings.slope_sticking = true;
+
+    Rectf area = collider->getBoundingBox();
+    TestPhysRenderer render(world, area);
+    render.draw();
+
+    Vec2f dir = Vec2f{ 3.f, 0.f };
+    box->set_local_vel(dir / one_frame);
+    float mdir = -2.f;
+    while (render.curr_frame < 25) // error on 17
+    {
+        box->tracker()->traverse_set_speed(mdir / one_frame);
+
+        collider->setPosition(collider->getPosition() + dir);
+        ff::Vec2f nVel = (collider->getPosition() - collider->getPrevPosition()) / one_frame;
+        collider->delta_velocity = nVel - collider->velocity;
+        collider->velocity = nVel;
+
+        //LOG_INFO("{}", colMan->getFrameCount());
         update();
         render.draw();
 
