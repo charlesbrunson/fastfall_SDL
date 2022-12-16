@@ -38,7 +38,7 @@
    <property name="collision_border" value="NESW"/>
   </properties>
   <data encoding="base64" compression="zlib">
-   eJztmk1LwzAYx5sKos4Jokwvvm43vQheBC978QXBS31lhx3U7/8ZTGgfGmKaJmmapPX5wR9GV5J2+S1pkhKSIAiCIAjiGULKIIhvUpIH/UNCwPvHchLIw3lafp6l1ech/QL8Y96dBuwDM+rcO80bzYumfwt63p3mudP0b5DwgH8TiXvHAftDFeCdiUfoX5yAf5eRevaAnvQa/vlvO8kTEubcs9C/zSUOopv9gPfP5fPfk+YYx865F3yTZcV5OMNxtHOQivD+qdrftJ2XBv7pRHUuEj91/qXEfXs+OSxrhZ51mjb8GyTlMyOfYfH9Ep1BCkL0fyp0x13TIHGC/iEhMfEPskG/35Rky8H1oH//izr/1oj+vpcOWcs+QPmwJrNQ1CVbP0T8orP+4pqs5XbPuH7vXVFX1Ro24g/X/tXNfWNA3CcW37FROcm/F3lAcxjh/qSKaWTXG6L/843om07Y3kvdPt4Ryd/F4BGd1CnHJ8y/x0jadD0J45/P+cCq4bzF1B/RyTfLctrggeT+fUbi3ygx9081/9VJbPPR17R0pM5DF3WoPFTNlVzwUfjH8hXYwbWk2r0+jb+6+3N1HrpYA+DrEP/DbO1KNVdqyh5tx21o0yTPmGbSXpVSzmjOE7V7ffLPFJmHvHsXxW9y3aHfhXeP9y/m9MW/XXr9+xb3AB6K/R4839125HcR3euaf1dE/g6+DTYeNGW3+A+1VfeY/J3zyo6FQOZe1/y7Ie7ewW/TgypgvKyL7XXx5YNzsmO+qXKva/7BGNzUmxDrtqo2EDOwuEex/CHNTsUxX/f8Tev4qbnv0G7Z+AfebFqmqt9pUqYqo6J8HfdsHDRxm/cQ9ofYfpBLJ8E7WF9RXUtot3TyCw7hXD0=
+   eJztmk1PwjAYx9eRGBUwIRr04ivc9GLixcQLiGJIvOBrOHBQv/9nsMvW8KR2bdd1fZnPL/lfILTb+qOvIyRBEARBEMQxhGyCIK5JSR70D/EB9C/LaQs9nKR57lPfV4LwMP8y7848urdNs1NkV/M3M+rTg4ZTzD8+iH+Yf2OBeyeB9ofMO12PluhfsDD/rgL1bI6etBo4/+sleXySOffM9W+ieRu62Q6gfzbnf4sKYxw/noqyBh5OcRyNDlIS6J+s/au280rzN7xLsrpxHREvKv9SYr89FxbLWqNnUdOEf91kM2eE6Rffr9AZpMBH/ydDZ8w1CRIm6B/ikyr+scAzCRjd8wkZ6N//QuVfh+bFYvstA/IBz339o7P/YptlIO1etoeNuMO2f6q1bwjw+9rQwanCSfhe5CHNUYDnkzImgV2vj/7PNTrnKHweU/U53jHJ38WA8E7qlOOSzL+nQNp0K/Hjn8v537rmuqWqP7yTb4blNMGc5P59BuLfMKnun2z9q5PQ1qOv6cYRlYc26pB5OGv4uXwU/mX58uxgJyl3r03jr+75nMpDG3sAsA7+P5ztXb036N8+bccea9Mkz4hm3FyVQs5pLhK5e23yryoiD6F7l8UzuYnouUD3oH8hpy3+Dej1HxjcA/OQ7/fY/O4ukufCuxebf9dE/A6+CSYe1GVQ/IeaqntE/q55RZ/5QORebP7dEnvv4DfpQRlsvFTF9Lpg+cw50WeuKXMvNv/YGFzXGx/7trI24NM1uEe+/D7NXslnru75m9bxo7hv326Z+Me82TFMWb9Tp0xZhkX5Ou6ZOFjFbeghOx/KzoNsOsm8Y/srsmvx7ZZOfgEqk1lK
   </data>
  </layer>
  <objectgroup id="4" name="OBJ">
@@ -71,7 +71,7 @@
     <property name="path" type="object" value="21"/>
    </properties>
   </object>
-  <object id="26" class="JetPlatform" x="832" y="240" width="48" height="16"/>
+  <object id="26" class="JetPlatform" x="848" y="240" width="48" height="16"/>
   <object id="27" class="JetPlatform" x="1552" y="272" width="80" height="16">
    <properties>
     <property name="path" type="object" value="28"/>
