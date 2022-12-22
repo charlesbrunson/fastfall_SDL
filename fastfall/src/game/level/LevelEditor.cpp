@@ -8,34 +8,18 @@
 namespace ff {
 
 
-LevelEditor::LevelEditor(World& t_world, Level& lvl, bool show_imgui)
-    : world(&t_world)
+LevelEditor::LevelEditor(World& t_world, ID<Level> lvl)
+    : world(t_world)
+    , level_id(lvl)
 {
-	level = &lvl;
-	assert(level);
-
 }
-
-/*
-LevelEditor::LevelEditor(World& t_world, bool show_imgui, std::string name, Vec2u tile_size)
-    : world(&t_world)
-{
-	assert(tile_size.x >= LevelEditor::MIN_LEVEL_SIZE.x);
-	assert(tile_size.y >= LevelEditor::MIN_LEVEL_SIZE.y);
-
-    created_level_id = world->create_level();
-	level = world->get(*created_level_id);
-
-	assert(level);
-}
-*/
-
 
 // LAYERS
 
 // create layer at position, selects it
 bool LevelEditor::create_layer(int layer_pos)
 {
+    auto* level = world.get(level_id);
 	if (!level) return false;
 
 	int bg_count = level->get_layers().get_bg_count();
@@ -45,11 +29,11 @@ bool LevelEditor::create_layer(int layer_pos)
 		&& layer_pos >= -bg_count - 1
 		&& layer_pos <= fg_count + 1)
 	{
-        auto ent = world->entity_of(level->getID());
+        auto ent = world.entity_of(level_id);
 		level->get_layers().insert(
 			layer_pos,
             Level::TileLayerProxy{
-                .cmp_id = world->create<TileLayer>( ent, *world, id_placeholder, 0, level->size() ),
+                .cmp_id = world.create<TileLayer>( ent, world, id_placeholder, 0, level->size() ),
                 .layer_id = 0
             }
 		);
@@ -60,13 +44,15 @@ bool LevelEditor::create_layer(int layer_pos)
 // select layer at positon (start and end specify the first and last layer, respectively)
 bool LevelEditor::select_layer(int layer_pos)
 {
+    auto* level = world.get(level_id);
 	if (!level) return false;
 
 	int bg_count = level->get_layers().get_bg_count();
 	int fg_count = level->get_layers().get_fg_count();
 
 	if (layer_pos != Level::Layers::OBJECT_LAYER_POS) {
-		curr_layer = level->get_layers().get_tile_layer_at(layer_pos);
+        auto* layer = level->get_layers().get_tile_layer_at(layer_pos);
+		curr_layer = SelectedTileLayer{ *level->get_layers().get_tile_layer_at(layer_pos) };
 		obj_layer_selected = false;
 	}
 	else {
@@ -83,22 +69,21 @@ bool LevelEditor::select_layer(int layer_pos)
 void LevelEditor::select_obj_layer()
 {
 	obj_layer_selected = true;
-	curr_layer = nullptr;
+	curr_layer = std::nullopt;
 }
 
 void LevelEditor::deselect_layer()
 {
 	obj_layer_selected = false;
-	curr_layer = nullptr;
+	curr_layer = std::nullopt;
 }
 
 // move selected layer to new position
 // retains selection of moved layer
 bool LevelEditor::move_layer(int layer_pos)
 {
-
+    auto* level = world.get(level_id);
 	if (!level) return false;
-
 
 	if (obj_layer_selected)
 	{
@@ -136,6 +121,7 @@ bool LevelEditor::move_layer(int layer_pos)
 // deselects layer
 bool LevelEditor::erase_layer()
 {
+    auto* level = world.get(level_id);
 	if (level && curr_layer)
 	{
 		level->get_layers().erase(curr_layer->position);	
@@ -147,25 +133,28 @@ bool LevelEditor::erase_layer()
 
 bool LevelEditor::layer_set_collision(bool enabled, unsigned borderBits)
 {
+    auto* level = world.get(level_id);
 	if (level && curr_layer) {
-        auto& layer = world->at(curr_layer->tilelayer.cmp_id);
-		return layer.set_collision(*world, enabled, borderBits);
+        auto& layer = world.at(curr_layer->tile_layer_id);
+		return layer.set_collision(world, enabled, borderBits);
 	}
 	return false;
 }
 bool LevelEditor::layer_set_scroll(bool enabled, Vec2f scroll_rate)
 {
+    auto* level = world.get(level_id);
 	if (level && curr_layer) {
-        auto& layer = world->at(curr_layer->tilelayer.cmp_id);
-		return layer.set_scroll(*world, enabled, scroll_rate);
+        auto& layer = world.at(curr_layer->tile_layer_id);
+		return layer.set_scroll(world, enabled, scroll_rate);
 	}
 	return false;
 }
 bool LevelEditor::layer_set_parallax(bool enabled, Vec2u parallax_size)
 {
+    auto* level = world.get(level_id);
 	if (level && curr_layer) {
-        auto& layer = world->at(curr_layer->tilelayer.cmp_id);
-		return layer.set_parallax(*world, enabled, parallax_size);
+        auto& layer = world.at(curr_layer->tile_layer_id);
+		return layer.set_parallax(world, enabled, parallax_size);
 	}
 	return false;
 }
@@ -175,15 +164,16 @@ bool LevelEditor::layer_set_parallax(bool enabled, Vec2u parallax_size)
 // paints tile onto selected layer, using selected tileset and tile
 bool LevelEditor::paint_tile(Vec2u pos)
 {
+    auto* level = world.get(level_id);
 	if (!level) return false;
 
 	if (curr_layer && curr_tileset && tileset_pos) {
-        auto& layer = world->at(curr_layer->tilelayer.cmp_id);
+        auto& layer = world.at(curr_layer->tile_layer_id);
 		Vec2u size = layer.getLevelSize();
 
 		if (pos.x < size.x && pos.y < size.y) 
 		{
-            layer.setTile(*world, pos, *tileset_pos, *curr_tileset);
+            layer.setTile(world, pos, *tileset_pos, *curr_tileset);
 			return true;
 		}
 	}
@@ -193,15 +183,16 @@ bool LevelEditor::paint_tile(Vec2u pos)
 // paints tile onto selected layer
 bool LevelEditor::erase_tile(Vec2u pos)
 {
+    auto* level = world.get(level_id);
 	if (!level) return false;
 
 	if (curr_layer) {
-        auto& layer = world->at(curr_layer->tilelayer.cmp_id);
+        auto& layer = world.at(curr_layer->tile_layer_id);
 		Vec2u size = layer.getLevelSize();
 
 		if (pos.x < size.x && pos.y < size.y)
 		{
-            layer.removeTile(*world, pos);
+            layer.removeTile(world, pos);
 			return true;
 		}
 	}
@@ -213,6 +204,7 @@ bool LevelEditor::erase_tile(Vec2u pos)
 // selects tileset for painting tiles
 bool LevelEditor::select_tileset(std::string_view tileset_name)
 {
+    auto* level = world.get(level_id);
 	if (!level) return false;
 
 	if (!curr_tileset || curr_tileset->getAssetName() != tileset_name) {
@@ -224,6 +216,7 @@ bool LevelEditor::select_tileset(std::string_view tileset_name)
 
 bool LevelEditor::select_tileset(const TilesetAsset* tileset) 
 {
+    auto* level = world.get(level_id);
 	if (!level) return false;
 
 	if (!curr_tileset || curr_tileset != tileset) {
@@ -242,6 +235,7 @@ void LevelEditor::deselect_tileset()
 // selects tile from selected tileset for painting tiles
 bool LevelEditor::select_tile(TileID tile)
 {
+    auto* level = world.get(level_id);
 	if (!level) return false;
 
 	if (curr_tileset 
@@ -264,6 +258,7 @@ void LevelEditor::deselect_tile()
 // changes level's name
 bool LevelEditor::set_name(std::string name)
 {
+    auto* level = world.get(level_id);
 	if (!level) return false;
 
 	level->set_name(name);
@@ -273,6 +268,7 @@ bool LevelEditor::set_name(std::string name)
 // changes level's background color
 bool LevelEditor::set_bg_color(Color bg_color)
 {
+    auto* level = world.get(level_id);
 	if (!level) return false;
 
 	level->set_bg_color(bg_color);
@@ -282,8 +278,9 @@ bool LevelEditor::set_bg_color(Color bg_color)
 
 bool LevelEditor::set_size(Vec2u size)
 {
+    auto* level = world.get(level_id);
 	if (level && level->size() != size) {
-		level->resize(*world, size);
+		level->resize(world, size);
 		return true;
 	}
 	return false;
@@ -292,6 +289,7 @@ bool LevelEditor::set_size(Vec2u size)
 
 bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 {
+    auto* level = world.get(level_id);
 	if (!level) return false;
 
 	auto start = std::chrono::system_clock::now();
@@ -342,10 +340,10 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		);
 		if (not_in_lvl)
 		{
-            auto ent = world->entity_of(level->getID());
+            auto ent = world.entity_of(level->getID());
 			lvl_layers.push_fg_front(
                 Level::TileLayerProxy{
-                    .cmp_id   = world->create<TileLayer>(ent, *world, id_placeholder, layer_ref.tilelayer ),
+                    .cmp_id   = world.create<TileLayer>(ent, world, id_placeholder, layer_ref.tilelayer ),
                     .layer_id = layer_ref.tilelayer.getID()
                 }
             );
@@ -373,20 +371,20 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		select_layer(layer.position);
 
 		// disable layer properties
-        auto& tlayer = world->at(layer.tilelayer.cmp_id);
+        auto& tlayer = world.at(layer.tilelayer.cmp_id);
 		if (tlayer.hasCollision() && !tile_ref.hasCollision())
 		{
-            tlayer.set_collision(*world, false);
+            tlayer.set_collision(world, false);
 			LOG_INFO("disable collision");
 		}
 		if (tlayer.hasScrolling() && !tile_ref.hasScrolling())
 		{
-            tlayer.set_scroll(*world, false);
+            tlayer.set_scroll(world, false);
 			LOG_INFO("disable scroll");
 		}
 		if (tlayer.hasParallax() && !tile_ref.hasParallax())
 		{
-            tlayer.set_parallax(*world, false);
+            tlayer.set_parallax(world, false);
 			LOG_INFO("disable parallax");
 		}
 
@@ -394,19 +392,19 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		if ((!tlayer.hasCollision() && tile_ref.hasCollision()) ||
 			(tile_ref.hasCollision() && (tlayer.getCollisionBorders() != tile_ref.getCollisionBorders())))
 		{
-            tlayer.set_collision(*world, true, tile_ref.getCollisionBorders());
+            tlayer.set_collision(world, true, tile_ref.getCollisionBorders());
 			LOG_INFO("enable collision");
 		}
 		if ((!tlayer.hasScrolling() && tile_ref.hasScrolling()) ||
 			(tile_ref.hasScrolling() && (tlayer.getScrollRate() != tile_ref.getScrollRate())))
 		{
-            tlayer.set_scroll(*world, true, tile_ref.getScrollRate());
+            tlayer.set_scroll(world, true, tile_ref.getScrollRate());
 			LOG_INFO("enable scroll");
 		}
 		if ((!tlayer.hasParallax() && tile_ref.hasParallax()) ||
 			(tile_ref.hasParallax() && (tlayer.getParallaxSize() != tile_ref.getParallaxSize())))
 		{
-            tlayer.set_parallax(*world, true, tile_ref.getParallaxSize());
+            tlayer.set_parallax(world, true, tile_ref.getParallaxSize());
 			LOG_INFO("enable parallax");
 		}
 
@@ -443,7 +441,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		}
 
 		// predraw to apply changes
-        tlayer.predraw(*world, 0.0, true);
+        tlayer.predraw(world, 0.0, true);
 
 		// increment to next tilelayer ref
 		it++; 

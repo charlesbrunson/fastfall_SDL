@@ -14,35 +14,21 @@ class World;
 
 class LevelEditor {
 public:
-	constexpr static Vec2u MIN_LEVEL_SIZE = Vec2u{ GAME_TILE_W, GAME_TILE_H };
+    struct SelectedTileLayer {
+        SelectedTileLayer(const Level::Layers::TileEntry& tile_entry)
+          : position(tile_entry.position)
+          , tile_layer_id(tile_entry.tilelayer.cmp_id)
+          , layer_id(tile_entry.tilelayer.layer_id)
+        {
+        }
+
+        Level::Layers::position_t position;
+        ID<TileLayer> tile_layer_id;
+        unsigned layer_id;
+    };
 
 	// CONSTRUCTORS
-
-	// attach to existing level
-	LevelEditor(World& t_world, Level& lvl, bool show_imgui);
-
-	// create a new level
-    // disabled for now, need to figure out created level lifetime
-	//LevelEditor(World& t_world, bool show_imgui, std::string name = "New Level", Vec2u tile_size = MIN_LEVEL_SIZE);
-
-
-
-	/*
-	bool is_attached() {
-		return level && level->is_attached(this);
-	}
-
-	bool reattach() {
-		if (level) {
-			level->attach(this);
-
-			// references may be stale
-			obj_layer_selected = false;
-			curr_layer = nullptr;
-		}
-		return level;
-	}
-	*/
+	LevelEditor(World& t_world, ID<Level> lvl);
 
 	// LAYERS
 
@@ -99,40 +85,34 @@ public:
 	bool set_size(Vec2u size);
 
 	// OBJECTS - TODO LATER
-
 	/*
-	
 	// selects existing object ref
 	bool select_object(object_id id);
-
 	// adds an object ref to the level, selects it
 	bool create_object(ObjectRef ref);
-
 	// updates selected object with the passed ref data
 	bool update_object(ObjectRef ref);
-
 	// removes selected object ref
 	bool remove_object();
-
 	*/
 
 	std::optional<TileID> get_tile() const { return tileset_pos; };
 	const TilesetAsset* get_tileset() const { return curr_tileset; };
-	const Level::Layers::TileEntry* get_tile_layer() const { return curr_layer; }
+	std::optional<SelectedTileLayer> get_tile_layer() const { return curr_layer; }
 
 	bool applyLevelAsset(const LevelAsset* asset);
 
 protected:
 
-	std::optional<ID<Level>> created_level_id;
-	Level* level = nullptr;								// pointer to level being edited, may point externally or to created_level
-    World* world;
+
+    World& world;
+	ID<Level> level_id;
 
 	bool obj_layer_selected = false;
-	Level::Layers::TileEntry* curr_layer = nullptr;				// current tile layer
+    std::optional<SelectedTileLayer> curr_layer;
 
-	const TilesetAsset* curr_tileset = nullptr;			// current tileset
-	std::optional<TileID> tileset_pos = std::nullopt;	// current tile from tileset
+	const TilesetAsset*   curr_tileset = nullptr;	    // current tileset
+	std::optional<TileID> tileset_pos  = std::nullopt;	// current tile from tileset
 };
 
 

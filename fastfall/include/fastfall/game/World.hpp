@@ -198,7 +198,10 @@ public:
     std::optional<ID<GameObject>> create_object_from_data(ObjectLevelData& data);
 
     ID<Level> create_level(const LevelAsset& levelData, bool create_objects);
-    ID<Level> create_level();
+    ID<Level> create_level(
+            std::optional<std::string> name = {},
+            std::optional<Vec2u> size = {},
+            std::optional<Color> bg_color = {});
 
     // create component
     template<typename T>

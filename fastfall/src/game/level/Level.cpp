@@ -11,7 +11,12 @@ namespace ff {
 // LEVEL
 
 
-Level::Level(World& world, ID<Level> t_id)
+Level::Level(
+        World& world,
+        ID<Level> t_id,
+        std::optional<std::string>  opt_name,
+        std::optional<Vec2u>        opt_size,
+        std::optional<Color>        opt_bgColor)
     : m_id(t_id)
 {
     auto ent = world.entity_of(t_id);
@@ -26,6 +31,9 @@ Level::Level(World& world, ID<Level> t_id)
             LOG_ERR_("Entity {} has both a Level and GameObject component!", ent.value.sparse_index);
         }
     }
+    if (opt_name)    levelName = std::move(*opt_name);
+    if (opt_size)    levelSize = *opt_size;
+    if (opt_bgColor) bgColor = *opt_bgColor;
 }
 
 Level::Level(World& world, ID<Level> t_id, const LevelAsset& levelData)

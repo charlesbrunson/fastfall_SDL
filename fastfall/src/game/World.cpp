@@ -120,10 +120,11 @@ ID<Level> World::create_level(const LevelAsset& levelData, bool create_objects) 
     return lvl_id;
 }
 
-ID<Level> World::create_level() {
+ID<Level> World::create_level(std::optional<std::string> name, std::optional<Vec2u> size, std::optional<Color> bg_color) {
     auto id = create_entity();
-    auto lvl_id = create<Level>(id, *this, id_placeholder);
+    auto lvl_id = create<Level>(id, *this, id_placeholder, name, size, bg_color);
     system_notify_created(lvl_id);
+    auto& lvl = at(lvl_id);
     return lvl_id;
 }
 
