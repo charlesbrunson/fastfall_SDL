@@ -39,23 +39,24 @@ TilePlatform::TilePlatform(World& w, ID<GameObject> id, ObjectLevelData& data)
     tl.set_layer(w, 0);
     tl.set_autotile_substitute("empty"_ts);
 
-    unsigned level_id = data.getPropAsInt("layer");
-    auto lvl_lyr_id = w.system<LevelSystem>().get_active(w)->get_tile_layer(level_id).cmp_id;
-
-    LOG_INFO("TEST: {}", w.system<LevelSystem>().get_active(w)->get_tile_layer(level_id).layer_id);
-    auto& layer = w.at(lvl_lyr_id);
+    unsigned layer_id = data.getPropAsInt("layer");
+    auto level = w.system<LevelSystem>().get_active(w);
+    auto* layer_proxy = level->get_layers().get_tile_layer_by_id(layer_id);
+    auto* layer = layer_proxy ? w.get(layer_proxy->cmp_id) : nullptr;
 
     Vec2u topleft{ area.left, area.top };
 
     tl.set_collision(w, true);
 
     // pilfer tiles from level layer
-    for (auto x{area.left}; x < area.left + area.width; x++) {
-        for (auto y{area.top}; y < area.top + area.height; y++) {
-            Vec2u p{x, y};
-            if (auto tid = layer.getTileBaseID(p)) {
-                tl.setTile(w, p - topleft, *tid, *layer.getTileTileset(p), true);
-                layer.removeTile(w, p);
+    if (layer) {
+        for (auto x{area.left}; x < area.left + area.width; x++) {
+            for (auto y{area.top}; y < area.top + area.height; y++) {
+                Vec2u p{x, y};
+                if (auto tid = layer->getTileBaseID(p)) {
+                    tl.setTile(w, p - topleft, *tid, *layer->getTileTileset(p), true);
+                    layer->removeTile(w, p);
+                }
             }
         }
     }

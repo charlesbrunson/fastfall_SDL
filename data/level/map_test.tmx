@@ -56,7 +56,7 @@
   </object>
   <object id="17" class="TilePlatform" x="352" y="272" width="32" height="32">
    <properties>
-    <property name="layer" type="int" value="2"/>
+    <property name="layer" type="int" value="1"/>
     <property name="path" type="object" value="16"/>
    </properties>
   </object>
@@ -86,7 +86,7 @@
   </object>
   <object id="29" class="TilePlatform" x="512" y="128" width="272" height="80">
    <properties>
-    <property name="layer" type="int" value="2"/>
+    <property name="layer" type="int" value="1"/>
     <property name="path" type="object" value="30"/>
    </properties>
   </object>
@@ -99,13 +99,13 @@
   </object>
   <object id="31" class="TilePlatform" x="720" y="96" width="64" height="32.6667">
    <properties>
-    <property name="layer" type="int" value="2"/>
+    <property name="layer" type="int" value="1"/>
     <property name="path" type="object" value="34"/>
    </properties>
   </object>
   <object id="32" class="TilePlatform" x="512" y="96" width="96" height="16.6667">
    <properties>
-    <property name="layer" type="int" value="2"/>
+    <property name="layer" type="int" value="1"/>
     <property name="path" type="object" value="33"/>
    </properties>
   </object>
