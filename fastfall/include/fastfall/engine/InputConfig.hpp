@@ -25,6 +25,7 @@ namespace ff::InputConfig {
 	void setAxisDeadzone(short deadzone);
 	short getAxisDeadzone();
 
+    std::optional<InputType> is_waiting_for_bind();
 	void bindInput(InputType input, SDL_Keycode key);
 	void bindInput(InputType input, GamepadInput gamepad);
 

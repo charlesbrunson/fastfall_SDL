@@ -85,11 +85,23 @@ namespace InputConfig {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
+
+    std::optional<InputType> is_waiting_for_bind() {
+        return waitingForInput != InputType::NONE
+            ? std::make_optional(waitingForInput)
+            : std::nullopt;
+    }
     void bindInput(InputType input, SDL_Keycode key) {
         keyMap[key] = { input };
+        if (waitingForInput == input) {
+            waitingForInput = InputType::NONE;
+        }
     }
     void bindInput(InputType input, GamepadInput gamepad) {
         joystickMap[gamepad] = { input };
+        if (waitingForInput == input) {
+            waitingForInput = InputType::NONE;
+        }
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////

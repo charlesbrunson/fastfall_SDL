@@ -580,11 +580,28 @@ void Engine::handleEvents(bool* timeWasted)
     event_count = 0u;
 
     auto push_to_states = [this](SDL_Event event) {
+        if (auto in = InputConfig::is_waiting_for_bind()) {
+            switch (event.type) {
+            case SDL_KEYDOWN:
+                InputConfig::bindInput(*in, event.key.keysym.sym);
+                return;
+            case SDL_CONTROLLERBUTTONDOWN:
+                InputConfig::bindInput(*in, InputConfig::GamepadInput::makeButton(event.cbutton.button));
+                return;
+            case SDL_CONTROLLERAXISMOTION:
+                if (abs(event.caxis.value) > InputConfig::getAxisDeadzone()) {
+                    bool which_side = event.caxis.value > 0;
+                    InputConfig::bindInput(*in, InputConfig::GamepadInput::makeAxis(event.caxis.axis, which_side));
+                    return;
+                }
+                break;
+            }
+        }
+
         for (auto &runnable: runnables) {
             if (auto state = runnable.getStateHandle().getActiveState();
                     state && state->pushEvent(event))
             {
-                // engine state consumed the event
                 break;
             }
         }
