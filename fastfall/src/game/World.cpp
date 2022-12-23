@@ -68,15 +68,23 @@ void World::update(secs deltaTime) {
 }
 
 void World::predraw(float interp, bool updated) {
+    /*
     if (updated) {
         for (auto [id, lvl] : all<Level>()) {
             lvl.try_reload_level(*this);
         }
     }
+    */
 
 
     if (Level* active = state._level_system.get_active(*this))
     {
+        if (updated && active->try_reload_level(*this)) {
+            for (auto [id, obj] : all<GameObject>()) {
+                obj->notify_level_reloaded(*this, *active);
+            }
+        }
+
         state._scene_system.set_bg_color(active->getBGColor());
         state._scene_system.set_size(active->size());
         state._object_system.predraw(*this, interp, updated);

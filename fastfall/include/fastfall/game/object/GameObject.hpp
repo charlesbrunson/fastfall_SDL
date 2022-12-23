@@ -196,6 +196,8 @@ public:
 	virtual void update(World& world, secs deltaTime) = 0;
 	virtual const ObjectType& type() const = 0;
 
+    virtual void notify_level_reloaded(World& w, const Level& lvl) {};
+
 	virtual void ImGui_Inspect() {
 		ImGui::Text("Hello World!");
 	};
