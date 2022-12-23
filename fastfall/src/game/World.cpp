@@ -68,6 +68,13 @@ void World::update(secs deltaTime) {
 }
 
 void World::predraw(float interp, bool updated) {
+    if (updated) {
+        for (auto [id, lvl] : all<Level>()) {
+            lvl.try_reload_level(*this);
+        }
+    }
+
+
     if (Level* active = state._level_system.get_active(*this))
     {
         state._scene_system.set_bg_color(active->getBGColor());
@@ -83,6 +90,7 @@ void World::predraw(float interp, bool updated) {
     {
         state._scene_system.set_bg_color(ff::Color::Transparent);
     }
+    clean_drawables();
 }
 
 void World::draw(RenderTarget& target, RenderState t_state) const
@@ -141,9 +149,28 @@ bool World::erase(ComponentID component) {
     std::visit([&, this]<typename T>(ID<T> id) {
             system_notify_erased(id);
             untie_component_entity(id, ent);
-            list_for<T>().erase(id);
+            if constexpr (std::same_as<T, Drawable>) {
+                state.erase_drawables_deferred.insert(
+                    std::lower_bound(
+                            state.erase_drawables_deferred.begin(),
+                            state.erase_drawables_deferred.end(),
+                            id),
+                    id);
+            }
+            else {
+                list_for<T>().erase(id);
+            }
         }, component);
     return true;
+}
+void World::clean_drawables() {
+   for(auto id : state.erase_drawables_deferred) {
+       list_for<Drawable>().erase(id);
+   }
+   state.erase_drawables_deferred.clear();
+}
+bool World::due_to_erase(ID<Drawable> id) const {
+   return std::binary_search(state.erase_drawables_deferred.begin(), state.erase_drawables_deferred.end(), id);
 }
 
 const std::set<ComponentID>& World::components_of(ID<Entity> id) const {

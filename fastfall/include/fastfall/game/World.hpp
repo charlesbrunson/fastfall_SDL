@@ -41,6 +41,7 @@ private:
         id_map<Trigger> _triggers;
         poly_id_map<CameraTarget> _camera_targets;
         poly_id_map<Drawable> _drawables;
+        std::vector<ID<Drawable>> erase_drawables_deferred;
         id_map<Emitter> _emitters;
         id_map<AttachPoint> _attachpoints;
         id_map<PathMover> _pathmovers;
@@ -152,7 +153,6 @@ public:
     World& operator=(World&&) noexcept;
     ~World();
 
-
     // manage state
     void update(secs deltaTime);
     void predraw(float interp, bool updated) override;
@@ -245,6 +245,8 @@ public:
     inline secs uptime() const { return state.update_time; }
     inline InputState& input() { return state._input; }
 
+    bool due_to_erase(ID<Drawable> id) const;
+
 private:
     void draw(RenderTarget& target, RenderState state = RenderState()) const override;
 
@@ -272,6 +274,8 @@ private:
 
     void tie_component_entity(ComponentID cmp, ID<Entity> ent);
     void untie_component_entity(ComponentID cmp, ID<Entity> ent);
+
+    void clean_drawables();
 };
 
 }

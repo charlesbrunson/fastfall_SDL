@@ -34,10 +34,12 @@ void SceneSystem::predraw(World& world, float interp, bool updated)
         drawable->predraw(interp, updated);
 
         auto id = id_cast<Drawable>(did);
-        auto& cfg = config(id);
-        Vec2f prev = cfg.prev_pos;
-        Vec2f curr = cfg.curr_pos;
-        config(id).rstate.transform.setPosition( prev + (curr - prev) * interp );
+        if (!world.due_to_erase(id)) {
+            auto &cfg = config(id);
+            Vec2f prev = cfg.prev_pos;
+            Vec2f curr = cfg.curr_pos;
+            config(id).rstate.transform.setPosition(prev + (curr - prev) * interp);
+        }
     }
 }
 

@@ -3,6 +3,7 @@
 #include "fastfall/engine/time/time.hpp"
 
 #include "fastfall/resource/asset/LevelAsset.hpp"
+#include "fastfall/resource/ResourceSubscriber.hpp"
 
 #include "fastfall/render/Drawable.hpp"
 #include "fastfall/engine/config.hpp"
@@ -17,9 +18,8 @@
 namespace ff {
 
 class World;
-class LevelEditor;
 
-class Level  {
+class Level : public ResourceSubscriber {
 public:
     struct TileLayerProxy {
         ID<TileLayer> cmp_id;
@@ -33,6 +33,12 @@ public:
 	Level(World& w, ID<Level> t_id, const LevelAsset& levelData);
 
     void initFromAsset(World& world, const LevelAsset& levelData);
+
+    void notifyReloadedAsset(const Asset* asset) override {
+        if (asset == src_asset) {
+            asset_changed = true;
+        }
+    }
 
 	inline const Color& getBGColor() const { return bgColor; };
 	inline const Vec2u& size() const { return levelSize; };
@@ -53,7 +59,16 @@ public:
 
     ID<Level> getID() const { return m_id; }
 
+    inline bool has_src_asset_changed() const { return asset_changed; }
+    bool try_reload_level(World& w);
+
+    bool allow_asset_reload = true;
+
 private:
+    // asset
+    const LevelAsset* src_asset = nullptr;
+    bool asset_changed      = false;
+
     ID<Level> m_id;
 	std::string levelName = "New Level";
 	Color bgColor         = Color::Black;

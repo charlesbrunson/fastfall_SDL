@@ -1,6 +1,7 @@
 #include "fastfall/game/level/Level.hpp"
 
 #include "fastfall/game/World.hpp"
+#include "fastfall/game/level/LevelEditor.hpp"
 
 #include <assert.h>
 
@@ -9,8 +10,6 @@
 namespace ff {
 
 // LEVEL
-
-
 Level::Level(
         World& world,
         ID<Level> t_id,
@@ -55,24 +54,12 @@ Level::Level(World& world, ID<Level> t_id, const LevelAsset& levelData)
     initFromAsset(world, levelData);
 }
 
-/*
-void Level::update(World& world, secs deltaTime) {
-    for (auto& [pos, layer] : layers.get_tile_layers()) {
-        world.at(layer.cmp_id).update(world, deltaTime);
-    }
-}
-*/
-
-/*
-void Level::predraw(World& world, float interp, bool updated) {
-    for (auto& [pos, layer] : layers.get_tile_layers()) {
-        world.at(layer.cmp_id).predraw(world, interp, updated);
-    }
-}
-*/
-
 void Level::initFromAsset(World& world, const LevelAsset& levelData)
 {
+    unsubscribe_all();
+    subscribe(&levelData);
+    src_asset = &levelData;
+
     // remove existing components and layers
     auto entity = world.entity_of(getID());
     auto components = world.components_of(entity);
@@ -143,6 +130,17 @@ void Level::resize(World& world, Vec2u n_size)
         layerproxy.cmp_id = n_id;
 	}
 	levelSize = n_size;
+}
+
+bool Level::try_reload_level(World& w) {
+    if (!src_asset || !allow_asset_reload || !asset_changed)
+        return false;
+
+    LevelEditor editor{ w, m_id };
+    bool r = editor.applyLevelAsset(src_asset);
+    if (r)
+        asset_changed = false;
+    return r;
 }
 
 }

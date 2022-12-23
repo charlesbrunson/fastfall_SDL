@@ -620,7 +620,8 @@ bool Resources::reloadOutOfDateAssets()
 	reloadAssets(resource.levels, assets_changed);
 
 	for (auto asset : assets_changed) {
-		for (auto subscriber : ResourceSubscriber::getAll()) {
+        auto& all_subs = ResourceSubscriber::getAll();
+		for (auto subscriber : all_subs) {
 			if (subscriber->is_subscribed(asset)) {
 				subscriber->notifyReloadedAsset(asset);
 			}
