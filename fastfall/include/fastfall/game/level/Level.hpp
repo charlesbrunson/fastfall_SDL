@@ -65,6 +65,8 @@ public:
     bool allow_asset_reload = true;
 
 private:
+    void entity_check(World& w) const;
+
     // asset
     const LevelAsset* src_asset = nullptr;
     bool asset_changed      = false;

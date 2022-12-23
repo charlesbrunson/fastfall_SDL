@@ -11,47 +11,45 @@ namespace ff {
 
 // LEVEL
 Level::Level(
-        World& world,
-        ID<Level> t_id,
-        std::optional<std::string>  opt_name,
-        std::optional<Vec2u>        opt_size,
-        std::optional<Color>        opt_bgColor)
+    World& world,
+    ID<Level> t_id,
+    std::optional<std::string>  opt_name,
+    std::optional<Vec2u>        opt_size,
+    std::optional<Color>        opt_bgColor
+)
     : m_id(t_id)
 {
-    auto ent = world.entity_of(t_id);
-    auto cmps = world.components_of(ent);
-    for (auto& c : cmps) {
-        if (std::holds_alternative<ID<Level>>(c) && c != ComponentID{ t_id })
-        {
-            LOG_ERR_("Entity {} has multiple instances of Level component!", ent.value.sparse_index);
-        }
-        if (std::holds_alternative<ID<GameObject>>(c) && c != ComponentID{ t_id })
-        {
-            LOG_ERR_("Entity {} has both a Level and GameObject component!", ent.value.sparse_index);
-        }
-    }
+    entity_check(world);
     if (opt_name)    levelName = std::move(*opt_name);
     if (opt_size)    levelSize = *opt_size;
     if (opt_bgColor) bgColor = *opt_bgColor;
 }
 
-Level::Level(World& world, ID<Level> t_id, const LevelAsset& levelData)
+Level::Level(
+    World& world,
+    ID<Level> t_id,
+    const LevelAsset& levelData
+)
     : m_id(t_id)
 {
-    auto ent = world.entity_of(t_id);
-    auto cmps = world.components_of(ent);
+    entity_check(world);
+    initFromAsset(world, levelData);
+}
+
+void Level::entity_check(World& w) const
+{
+    auto ent = w.entity_of(m_id);
+    auto cmps = w.components_of(ent);
     for (auto& c : cmps) {
-        if (std::holds_alternative<ID<Level>>(c) && c != ComponentID{ t_id })
+        if (std::holds_alternative<ID<Level>>(c) && c != ComponentID{ m_id })
         {
             LOG_ERR_("Entity {} has multiple instances of Level component!", ent.value.sparse_index);
         }
-        if (std::holds_alternative<ID<GameObject>>(c) && c != ComponentID{ t_id })
+        if (std::holds_alternative<ID<GameObject>>(c) && c != ComponentID{ m_id })
         {
             LOG_ERR_("Entity {} has both a Level and GameObject component!", ent.value.sparse_index);
         }
     }
-
-    initFromAsset(world, levelData);
 }
 
 void Level::initFromAsset(World& world, const LevelAsset& levelData)
