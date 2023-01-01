@@ -21,11 +21,13 @@ ResourceSubscriber::ResourceSubscriber(ResourceSubscriber&& rhs) noexcept {
 ResourceSubscriber& ResourceSubscriber::operator=(const ResourceSubscriber& rhs) {
     subscribers.insert(this);
     asset_subs = rhs.asset_subs;
+    return *this;
 }
 
 ResourceSubscriber& ResourceSubscriber::operator=(ResourceSubscriber&& rhs) noexcept {
     subscribers.insert(this);
     asset_subs = std::move(rhs.asset_subs);
+    return *this;
 }
 
 ResourceSubscriber::~ResourceSubscriber() {
