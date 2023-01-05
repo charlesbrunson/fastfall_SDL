@@ -1,14 +1,18 @@
+2023 TODO:
+Serialization of game configuration (.toml)
+Rebrand GameObject and Level as Actor
+Diagonal collision raycasts
+Trigger raycasts
+Simple collision for particles
+More autotiling rules (like edge priority between different tilesets)
+Level data save/load to/from a base64 string (.lvl)
+Plan player mechanics
+Complete player mechanics
+Playing sounds
+Playing music
+Assets for shaders, particle systems, sound and music
 
-Soon:
-Expand autotiling options
-Reimplement Level serialization
-Particle system
-
-Later:
-In-game level editor
-Diagonal raycasts
-Finish player mechanics
-
-Eventually:
-lua scripting support
-actually make a game lmao
+BIG MAYBES:
+In game editors (tileset, level)
+Lua scripting
+Actually make a game lmao
