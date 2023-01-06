@@ -200,7 +200,7 @@ namespace InputConfig {
 
     constexpr std::string_view input_config_file = "input_config.json";
 
-    constexpr std::string_view inputTypeStr[INPUT_COUNT] = {
+    constexpr std::string_view inputTypeToStr[INPUT_COUNT] = {
         "up",
         "left",
         "down",
@@ -210,10 +210,20 @@ namespace InputConfig {
         "attack",
     };
 
+    const std::map<std::string_view, InputType> inputStrToType = {
+        {"up",      InputType::UP},
+        {"left",    InputType::LEFT},
+        {"down",    InputType::DOWN},
+        {"right",   InputType::RIGHT},
+        {"jump",    InputType::JUMP},
+        {"dash",    InputType::DASH},
+        {"attack",  InputType::ATTACK},
+    };
+
     bool writeConfigFile() {
         namespace nl = nlohmann;
         nl::ordered_json config_json;
-        config_json["deadzone"] = fmt::format("{:1.3f}", (float)getAxisDeadzone() / (float)std::numeric_limits<short>::max());
+        config_json["deadzone"] = (float)getAxisDeadzone() / (float)std::numeric_limits<short>::max();
         config_json["keyboard"];
         config_json["controller"];
         config_json["controller"]["axis"];
@@ -239,7 +249,7 @@ namespace InputConfig {
             if (val == InputType::NONE)
                 continue;
 
-            config_json["keyboard"][SDL_GetKeyName(key)] = inputTypeStr[(int)val];
+            config_json["keyboard"][SDL_GetKeyName(key)] = inputTypeToStr[(int)val];
         }
 
         // controller mappings
@@ -269,7 +279,7 @@ namespace InputConfig {
                 continue;
             }
 
-            config_json["controller"][type][name] = inputTypeStr[(int)val];
+            config_json["controller"][type][name] = inputTypeToStr[(int)val];
         }
 
         // write to file
@@ -289,7 +299,45 @@ namespace InputConfig {
             if (config_json.empty())
                 return false;
 
+            short n_deadzone = (short)(config_json["deadzone"].get<float>() * (float)std::numeric_limits<short>::max());
+            setAxisDeadzone(n_deadzone);
 
+            keyMap.clear();
+
+
+            for (auto& [key, val] : config_json["keyboard"].items())
+            {
+                InputType type = inputStrToType.at(val.get<std::string>());
+                auto keycode = SDL_GetKeyFromName(key.data());
+                bindInput(type, keycode);
+            }
+
+            joystickMap.clear();
+            for (auto& [key, val] : config_json["controller"]["axis"].items())
+            {
+                char dir = key.at(0);
+                bool positive = false;
+                if (dir == '+') {
+                    positive = true;
+                }
+
+                InputType type = inputStrToType.at(val.get<std::string>());
+                auto axis_input = GamepadInput::makeAxis(
+                    (JoystickAxis)SDL_GameControllerGetAxisFromString(key.substr(1).data()),
+                    positive
+                );
+
+                bindInput(type, axis_input);
+            }
+
+            for (auto& [key, val] : config_json["controller"]["button"].items())
+            {
+                InputType type = inputStrToType.at(val.get<std::string>());
+                auto button_input = GamepadInput::makeButton(
+                    (Button)SDL_GameControllerGetButtonFromString(key.data())
+                );
+                bindInput(type, button_input);
+            }
 
             return true;
         }
@@ -330,6 +378,14 @@ namespace InputConfig {
 
             if (ImGui::Button("Clear All Bindings")) {
                 clearBinds();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Load Bindings")) {
+                readConfigFile();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Save Bindings")) {
+                writeConfigFile();
             }
 
             ImGui::Separator();
