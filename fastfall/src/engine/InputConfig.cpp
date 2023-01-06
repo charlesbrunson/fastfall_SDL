@@ -299,47 +299,123 @@ namespace InputConfig {
             if (config_json.empty())
                 return false;
 
+            std::vector<std::pair<InputType, SDL_Keycode>> keys_to_bind;
+            std::vector<std::pair<InputType, GamepadInput>> joys_to_bind;
             short n_deadzone = (short)(config_json["deadzone"].get<float>() * (float)std::numeric_limits<short>::max());
-            setAxisDeadzone(n_deadzone);
-
-            keyMap.clear();
-
+            bool has_error = false;
 
             for (auto& [key, val] : config_json["keyboard"].items())
             {
-                InputType type = inputStrToType.at(val.get<std::string>());
+                InputType type;
+                if (auto it = inputStrToType.find(val.get<std::string>()); it != inputStrToType.end()) {
+                    type = it->second;
+                }
+                else {
+                    LOG_ERR_("Input config parse error: unknown input type \"{}\"", val.get<std::string>());
+                    has_error = true;
+                    continue;
+                }
+
                 auto keycode = SDL_GetKeyFromName(key.data());
-                bindInput(type, keycode);
+                if (keycode == SDLK_UNKNOWN) {
+                    LOG_ERR_("Input config parse error: unknown key \"{}\"", key.data());
+                    has_error = true;
+                    continue;
+                }
+
+                keys_to_bind.emplace_back(type, keycode);
             }
 
-            joystickMap.clear();
             for (auto& [key, val] : config_json["controller"]["axis"].items())
             {
                 char dir = key.at(0);
+                std::string axis_str = key.substr(1);
+
                 bool positive = false;
                 if (dir == '+') {
                     positive = true;
                 }
+                else if (dir == '-') {
+                    positive = false;
+                }
+                else {
+                    LOG_ERR_("Input config parse error: unexpected axis dir \"{}\", should be + or -", dir);
+                    has_error = true;
+                    continue;
+                }
 
-                InputType type = inputStrToType.at(val.get<std::string>());
+                InputType type;
+                if (auto it = inputStrToType.find(val.get<std::string>()); it != inputStrToType.end()) {
+                    type = it->second;
+                }
+                else {
+                    LOG_ERR_("Input config parse error: unknown input type \"{}\"", val.get<std::string>());
+                    has_error = true;
+                    continue;
+                }
+
+                auto axis_enum = SDL_GameControllerGetAxisFromString(axis_str.data());
+                if (axis_enum == SDL_CONTROLLER_AXIS_INVALID) {
+                    LOG_ERR_("Input config parse error: unknown axis \"{}\"", axis_str.data());
+                    has_error = true;
+                    continue;
+                }
+
                 auto axis_input = GamepadInput::makeAxis(
-                    (JoystickAxis)SDL_GameControllerGetAxisFromString(key.substr(1).data()),
+                    (JoystickAxis)axis_enum,
                     positive
                 );
 
-                bindInput(type, axis_input);
+
+                joys_to_bind.emplace_back(type, axis_input);
+                //bindInput(type, axis_input);
             }
 
             for (auto& [key, val] : config_json["controller"]["button"].items())
             {
-                InputType type = inputStrToType.at(val.get<std::string>());
+                InputType type;
+                if (auto it = inputStrToType.find(val.get<std::string>()); it != inputStrToType.end()) {
+                    type = it->second;
+                }
+                else {
+                    LOG_ERR_("Input config parse error: unknown input type \"{}\"", val.get<std::string>());
+                    has_error = true;
+                    continue;
+                }
+
+                auto button_enum = SDL_GameControllerGetButtonFromString(key.data());
+                if (button_enum == SDL_CONTROLLER_BUTTON_INVALID) {
+                    LOG_ERR_("Input config parse error: unknown button \"{}\"", key.data());
+                    has_error = true;
+                    continue;
+                }
+
                 auto button_input = GamepadInput::makeButton(
-                    (Button)SDL_GameControllerGetButtonFromString(key.data())
+                    (Button)button_enum
                 );
-                bindInput(type, button_input);
+                joys_to_bind.emplace_back(type, button_input);
             }
 
-            return true;
+            if (has_error) {
+                LOG_ERR_("Input config loading incomplete due to errors");
+                return false;
+            }
+            else {
+                // finalize
+                setAxisDeadzone(n_deadzone);
+                keyMap.clear();
+                joystickMap.clear();
+
+                for (auto& v : keys_to_bind) {
+                    bindInput(v.first, v.second);
+                }
+
+                for (auto& v : joys_to_bind) {
+                    bindInput(v.first, v.second);
+                }
+
+                return true;
+            }
         }
         catch (nl::json::parse_error& e) {
             LOG_ERR_("Input config json parse error");
