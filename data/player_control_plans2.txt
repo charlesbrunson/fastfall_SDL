@@ -1,0 +1,22 @@
+PLAYER MECHANICS v2
+
+Primary Inputs:
+			Up										???
+Left			Right			Attack			Boost
+			Down									Jump
+
+
+States
+Ground
+GroundBoost
+Ground Slide
+Air
+AirBoost
+WallSlide
+WallCling
+WallBoost
+
+Actions (transient states)
+Jump
+Wall Jump
+
