@@ -6,6 +6,7 @@
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/resource/ResourceWatcher.hpp"
 #include "fastfall/engine/imgui/ImGuiFrame.hpp"
+#include "fastfall/engine/InputConfig.hpp"
 
 namespace ff {
 
@@ -18,6 +19,12 @@ bool Init() {
     if (!audio_init()) {
         LOG_ERR_("Could not initialize audio subsystem");
         return false;
+    }
+
+    if (!InputConfig::readConfigFile()) {
+        // if input config doesn't exist, make it
+        LOG_INFO("No input configuration file, creating");
+        InputConfig::writeConfigFile();
     }
 
     LOG_INFO("fastfall initialization complete");

@@ -47,4 +47,7 @@ namespace ff::InputConfig {
 
 	void updateJoystick();
 	void closeJoystick();
+
+    bool writeConfigFile();
+    bool readConfigFile();
 }

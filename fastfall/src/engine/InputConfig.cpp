@@ -11,8 +11,12 @@
 
 #include "SDL.h"
 
+#include "nlohmann/json.hpp"
+#include <filesystem>
+#include <fstream>
+#include <sstream>
+
 #include <vector>
-#include <queue>
 
 namespace ff {
 
@@ -191,6 +195,113 @@ namespace InputConfig {
     void remove_listener(InputState& listen) {
         listening_states.erase(&listen);
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+    constexpr std::string_view input_config_file = "input_config.json";
+
+    constexpr std::string_view inputTypeStr[INPUT_COUNT] = {
+        "up",
+        "left",
+        "down",
+        "right",
+        "jump",
+        "dash",
+        "attack",
+    };
+
+    bool writeConfigFile() {
+        namespace nl = nlohmann;
+        nl::ordered_json config_json;
+        config_json["deadzone"] = fmt::format("{:1.3f}", (float)getAxisDeadzone() / (float)std::numeric_limits<short>::max());
+        config_json["keyboard"];
+        config_json["controller"];
+        config_json["controller"]["axis"];
+        config_json["controller"]["button"];
+
+        auto sort_by_second_first = [](const auto& lhs, const auto& rhs) {
+            if (lhs.second != rhs.second) {
+                return lhs.second < rhs.second;
+            }
+            else {
+                return lhs.first < rhs.first;
+            }
+        };
+
+        // keyboard mappings
+        std::vector<std::pair<SDL_Keycode, InputType>> sorted_keys{
+            keyMap.begin(),
+            keyMap.end()
+        };
+        std::sort(sorted_keys.begin(), sorted_keys.end(), sort_by_second_first);
+
+        for (auto [key, val] : sorted_keys) {
+            if (val == InputType::NONE)
+                continue;
+
+            config_json["keyboard"][SDL_GetKeyName(key)] = inputTypeStr[(int)val];
+        }
+
+        // controller mappings
+        std::vector<std::pair<GamepadInput, InputType>> sorted_joys{
+            joystickMap.begin(),
+            joystickMap.end()
+        };
+        std::sort(sorted_joys.begin(), sorted_joys.end(), sort_by_second_first);
+
+        for (auto [key, val] : sorted_joys) {
+            if (val == InputType::NONE)
+                continue;
+
+            std::string name;
+            std::string type;
+            if (key.type == GamepadInputType::AXIS) {
+                type = "axis";
+                name = fmt::format("{}{}",
+                                   (key.positiveSide ? "+" : "-"),
+                                   SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)key.axis));
+            }
+            else if (key.type == GamepadInputType::BUTTON) {
+                type = "button";
+                name = SDL_GameControllerGetStringForButton((SDL_GameControllerButton)key.button);
+            }
+            else {
+                continue;
+            }
+
+            config_json["controller"][type][name] = inputTypeStr[(int)val];
+        }
+
+        // write to file
+        std::filesystem::path file_path{input_config_file};
+        std::ofstream file_stream{ file_path };
+        file_stream << config_json.dump(2);
+        return true;
+    }
+
+    bool readConfigFile() {
+        namespace nl = nlohmann;
+        std::filesystem::path file_path{input_config_file};
+        std::ifstream file_stream{ file_path };
+        nl::json config_json;
+        try {
+            file_stream >> config_json;
+            if (config_json.empty())
+                return false;
+
+
+
+            return true;
+        }
+        catch (nl::json::parse_error& e) {
+            LOG_ERR_("Input config json parse error");
+            LOG_ERR_("\t               message: {}", e.what());
+            LOG_ERR_("\t          exception id: {}", e.id);
+            LOG_ERR_("\tbyte position of error: {}", e.byte);
+        }
+        return false;
+    }
+
 
     //////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -451,7 +562,6 @@ namespace InputConfig {
             } 
         }
     }
-
 } // namespace Input
 
 }

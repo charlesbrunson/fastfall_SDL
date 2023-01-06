@@ -1,5 +1,6 @@
 2023 TODO:
 Serialization of game configuration (.toml)
+Assets for shaders, particle systems, sound and music
 Rebrand GameObject and Level as Actor
 Diagonal collision raycasts
 Trigger raycasts
@@ -10,7 +11,6 @@ Plan player mechanics
 Complete player mechanics
 Playing sounds
 Playing music
-Assets for shaders, particle systems, sound and music
 
 BIG MAYBES:
 In game editors (tileset, level)
