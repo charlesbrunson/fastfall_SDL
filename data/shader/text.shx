@@ -1,0 +1,9 @@
+<shader>
+	<links>
+		<link file="text.vert"/>
+		<link file="text.frag"/>
+	</links>
+	<uniforms>
+		<uniform name="char_size"/>
+	</uniforms>
+</shader>
