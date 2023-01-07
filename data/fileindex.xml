@@ -1,7 +1,7 @@
 <index>
 	<shaders path="shader/">
-		<sprite name="tile.xml"/>
-		<sprite name="text.xml"/>
+		<shader name="tile.shx"/>
+		<shader name="text.shx"/>
 	</shaders>
 	<sprites path="sprite/">
 		<sprite name="player.sax"/>

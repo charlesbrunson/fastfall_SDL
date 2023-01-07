@@ -4,6 +4,7 @@
 #include "fastfall/render/VertexArray.hpp"
 #include "fastfall/render/TileArray.hpp"
 #include "fastfall/render/Text.hpp"
+#include "fastfall/resource/Resources.hpp"
 
 #include "detail/error.hpp"
 
@@ -105,7 +106,13 @@ void RenderTarget::draw(const TileArray& tarray, RenderState state) {
 
 	state.transform = Transform::combine(state.transform, Transform(tarray.offset));
 	state.texture = tarray.m_tex;
-	state.program = &ShaderProgram::getTileArrayProgram();
+    if (auto ptr = Resources::get<ShaderAsset>("tile.shx")) {
+        state.program = &ptr->getProgram();
+    }
+    else {
+        LOG_ERR_("failed to render tile array, shader does not loaded");
+        return;
+    }
 
 	tarray.glTransfer();
 
@@ -159,7 +166,13 @@ void RenderTarget::draw(const Text& text, RenderState state) {
 	}
 
 	state.texture = text.bitmap_texture;
-	state.program = &ShaderProgram::getTextProgram();
+    if (auto ptr = Resources::get<ShaderAsset>("text.shx")) {
+        state.program = &ptr->getProgram();
+    }
+    else {
+        LOG_ERR_("failed to render tile array, shader does not loaded");
+        return;
+    }
 
 	text.glTransfer();
 

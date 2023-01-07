@@ -67,12 +67,13 @@ ADDRESOURCE(SpriteAsset, resource.sprites)
 ADDRESOURCE(TilesetAsset, resource.tilesets)
 ADDRESOURCE(LevelAsset, resource.levels)
 ADDRESOURCE(FontAsset, resource.fonts)
+ADDRESOURCE(ShaderAsset, resource.shaders)
 
 #undef ADDRESOURCE
 
-	////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
-	// resource getters
+// resource getters
 #define GETRESOURCE(Type, Map)									\
 template<>														\
 Type* Resources::get<Type>(const std::string_view filename) {	\
@@ -83,12 +84,13 @@ GETRESOURCE(SpriteAsset, resource.sprites)
 GETRESOURCE(TilesetAsset, resource.tilesets)
 GETRESOURCE(LevelAsset, resource.levels)
 GETRESOURCE(FontAsset, resource.fonts)
+GETRESOURCE(ShaderAsset, resource.shaders)
 
 #undef GETRESOURCE
 
-	////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
-	const Animation* Resources::get_animation(AnimID id) {
+const Animation* Resources::get_animation(AnimID id) {
 
 	auto iter = resource.animation_table.find(id);
 
@@ -210,6 +212,7 @@ void Resources::unloadAll() {
 	resource.sprites.clear();
 	Texture::destroyNullTexture();
 	resource.levels.clear();
+    resource.shaders.clear();
 	LOG_INFO("All resources unloaded");
 }
 
@@ -381,6 +384,9 @@ bool loadFromIndex(const std::string& indexFile) {
 
 	bool r = true;
 
+    std::string shaderRelPath;
+    std::vector<std::string> shaderNames;
+
 	std::string spriteRelPath;
 	std::vector<std::string> spriteNames;
 
@@ -425,6 +431,10 @@ bool loadFromIndex(const std::string& indexFile) {
 					char* name = datatype->name();
 					datatypePath = datatype->first_attribute("path")->value();
 
+                    if (strcmp(name, "shaders") == 0) {
+                        shaderRelPath = dataPath + datatypePath;
+                        shaderNames = parseDataNodes(datatype->first_node(), "shader");
+                    }
 					if (strcmp(name, "sprites") == 0) {
 						spriteRelPath = dataPath + datatypePath;
 						spriteNames = parseDataNodes(datatype->first_node(), "sprite");
@@ -460,23 +470,11 @@ bool loadFromIndex(const std::string& indexFile) {
 	}
 
 	LOG_INFO("Loading assets");
-	//sf::Clock timer;
-
-	// load fonts
+    r &= loadAssets<ShaderAsset>(shaderRelPath, shaderNames);
 	r &= loadAssets<FontAsset>(fontRelPath, fontNames);
-
-	// load sprites
 	r &= loadAssets<SpriteAsset>(spriteRelPath, spriteNames);
-
-	//loadAnimations();
-
-	// load tilesets
 	r &= loadAssets<TilesetAsset>(tilesetRelPath, tilesetNames);
-
-	// load level, requires tilesets to be loaded first
 	r &= loadAssets<LevelAsset>(levelRelPath, levelNames);
-
-	//LOG_INFO("Loading assets complete: {}ms", timer.getElapsedTime().asMilliseconds());
 
 	return r;
 }
@@ -608,6 +606,24 @@ bool Resources::reloadOutOfDateAssets()
 	}
 
 	return assets_changed.size() > 0;
+}
+
+bool Resources::compileShaders() {
+    bool allgood = true;
+    LOG_INFO("Compiling shaders");
+    {
+        log::scope sc;
+        for (auto &[key, val]: resource.shaders) {
+            if (!val->compileShaderFromFile()) {
+                LOG_ERR_("{} ... failed to compile.", val->getAssetName());
+                allgood = false;
+            }
+            else {
+                LOG_INFO("{} ... compiled.", val->getAssetName());
+            }
+        }
+    }
+    return allgood;
 }
 
 }

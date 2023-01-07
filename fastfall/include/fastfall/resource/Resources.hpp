@@ -6,32 +6,18 @@
 #include "fastfall/resource/asset/TilesetAsset.hpp"
 #include "fastfall/resource/asset/LevelAsset.hpp"
 #include "fastfall/resource/asset/FontAsset.hpp"
+#include "fastfall/resource/asset/ShaderAsset.hpp"
 
 #include <map>
 #include <memory>
 
 namespace ff {
 
-template<class T>
-using AssetMap = std::map<std::string, std::unique_ptr<T>, std::less<>>;
-
-//prevent bad types
-
-/*
-template<class Type>
-using AssetOnly = std::enable_if<
-	std::is_same<Type, SpriteAsset>::value ||
-	std::is_same<Type, TilesetAsset>::value
->;
-*/
-
 template<typename T>
-concept is_asset = std::is_same_v<T, SpriteAsset>
-				|| std::is_same_v<T, TilesetAsset>
-				|| std::is_same_v<T, LevelAsset>
-				|| std::is_same_v<T, FontAsset>;
+concept is_asset = std::derived_from<T, Asset>;
 
-
+template<is_asset T>
+using AssetMap = std::map<std::string, std::unique_ptr<T>, std::less<>>;
 
 class Resources : public ImGuiContent {
 public:
@@ -46,10 +32,11 @@ private:
 	Resources();
 	~Resources();
 
-	AssetMap<SpriteAsset> sprites;
-	AssetMap<TilesetAsset> tilesets;
-	AssetMap<LevelAsset> levels;
-	AssetMap<FontAsset> fonts;
+	AssetMap<SpriteAsset>   sprites;
+	AssetMap<TilesetAsset>  tilesets;
+	AssetMap<LevelAsset>    levels;
+	AssetMap<FontAsset>     fonts;
+    AssetMap<ShaderAsset>   shaders;
 
 	std::map<std::pair<std::string, std::string>, AnimID> anim_lookup_table;
 	std::map<AnimID, Animation> animation_table;
@@ -86,6 +73,8 @@ public:
 	static bool loadAll(AssetSource loadType, const std::string& filename);
 	static void unloadAll();
 	static bool buildPackFile(const std::string& packFilename);
+
+    static bool compileShaders();
 
 	// attempt to reload out of date assets, returns true if needed
 	static bool reloadOutOfDateAssets();

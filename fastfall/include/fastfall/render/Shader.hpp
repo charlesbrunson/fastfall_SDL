@@ -37,8 +37,6 @@ public:
     static std::string_view getGLSLVersionString();
 
 	static const ShaderProgram& getDefaultProgram();
-	//static const ShaderProgram& getTileArrayProgram();
-	//static const ShaderProgram& getTextProgram();
 
 	bool isInitialized() const { return id != 0; };
 	unsigned int getID() const { return id; };

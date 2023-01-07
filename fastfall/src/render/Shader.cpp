@@ -117,6 +117,7 @@ void ShaderProgram::add(ShaderType type, const std::string_view shader_code) {
 
 	if (!isInitialized()) {
 		glCheck(id = glCreateProgram());
+        initialized = true;
 	}
 
 	GLint shader_id = -1;
@@ -141,7 +142,6 @@ void ShaderProgram::add(ShaderType type, const std::string_view shader_code) {
 		return;
 	}
 
-	GLint len = shader_code.length();
 	const GLchar* data = shader_code.data();
 	glCheck(glShaderSource(shaders.back(), 1, &data, NULL));
 	glCheck(glCompileShader(shaders.back()));
@@ -191,7 +191,6 @@ void ShaderProgram::link() {
 
 	mdl_loc  	= glGetUniformLocation(id, "model");
 	view_loc 	= glGetUniformLocation(id, "view");
-	//columns_loc = glGetUniformLocation(id, "columns");
 
 	m_is_linked = true;
 }
