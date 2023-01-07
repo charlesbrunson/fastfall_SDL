@@ -7,6 +7,7 @@
 #include "flatbuffers/flatbuffers.h"
 
 #include <iostream>
+#include <filesystem>
 
 namespace ff {
 
@@ -24,6 +25,8 @@ public:
 	// attempt to reload the file
 	// requires that file has been previously loaded?
 	virtual bool reloadFromFile() = 0;
+
+    virtual std::vector<std::filesystem::path> getDependencies() const = 0;
 
 public:
 

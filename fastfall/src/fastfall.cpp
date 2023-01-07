@@ -21,8 +21,9 @@ bool Init() {
         return false;
     }
 
-    if (!InputConfig::readConfigFile()) {
-        // if input config doesn't exist, make it
+    if (InputConfig::configExists()) {
+        InputConfig::readConfigFile();
+    } else {
         LOG_INFO("No input configuration file, creating");
         InputConfig::writeConfigFile();
     }

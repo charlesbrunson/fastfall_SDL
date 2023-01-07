@@ -1,4 +1,8 @@
 <index>
+	<shaders path="shader/">
+		<sprite name="tile.xml"/>
+		<sprite name="text.xml"/>
+	</shaders>
 	<sprites path="sprite/">
 		<sprite name="player.sax"/>
 		<sprite name="jet_platform.sax"/>

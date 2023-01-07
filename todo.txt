@@ -1,5 +1,5 @@
 2023 TODO:
-Serialization of game configuration (.toml)
+Serialization of game configuration (.json)
 Assets for shaders, particle systems, sound and music
 Rebrand GameObject and Level as Actor
 Diagonal collision raycasts

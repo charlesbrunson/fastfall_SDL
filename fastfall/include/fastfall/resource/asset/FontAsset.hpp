@@ -22,6 +22,10 @@ namespace ff {
 			return getFont();
 		}
 
+        std::vector<std::filesystem::path> getDependencies() const override {
+            return { getFilePath() + getAssetName() };
+        }
+
 	protected:
 		std::string fullpath;
 		Font font;

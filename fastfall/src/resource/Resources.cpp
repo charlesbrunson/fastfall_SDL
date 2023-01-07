@@ -532,40 +532,19 @@ void Resources::ImGui_getContent() {
 void Resources::addLoadedToWatcher() {
 	assert(resource.loadMethod != AssetSource::PACK_FILE);
 
-	for (auto& [key, val] : resource.fonts) {
-		ResourceWatcher::add_watch(
-			val.get(),
-			{
-				val->getFilePath() + val->getAssetName()
-			}
-		);
-	}
-	for (auto& [key, val] : resource.sprites) {
-		ResourceWatcher::add_watch(
-			val.get(),
-			{
-				val->getFilePath() + val->getAssetName(),
-				val->getTexPath()
-			}
-		);
-	}
-	for (auto& [key, val] : resource.tilesets) {
-		ResourceWatcher::add_watch(
-			val.get(),
-			{
-				val->getFilePath() + val->getAssetName(),
-				val->getTexPath()
-			}
-		);
-	}
-	for (auto& [key, val] : resource.levels) {
-		ResourceWatcher::add_watch(
-			val.get(),
-			{ 
-				val->getFilePath() + val->getAssetName()
-			}
-		);
-	}
+    auto watch_all = [](auto& asset_map) {
+        for (auto& [key, val] : asset_map) {
+            ResourceWatcher::add_watch(
+                val.get(),
+                val->getDependencies()
+            );
+        }
+    };
+
+    watch_all(resource.fonts);
+    watch_all(resource.sprites);
+    watch_all(resource.tilesets);
+    watch_all(resource.levels);
 }
 
 

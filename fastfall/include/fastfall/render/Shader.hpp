@@ -34,9 +34,11 @@ public:
 	int getOtherUniformID(std::string_view uniform_name) const;
 	void cacheUniform(std::string_view uniform_name);
 
+    static std::string_view getGLSLVersionString();
+
 	static const ShaderProgram& getDefaultProgram();
-	static const ShaderProgram& getTileArrayProgram();
-	static const ShaderProgram& getTextProgram();
+	//static const ShaderProgram& getTileArrayProgram();
+	//static const ShaderProgram& getTextProgram();
 
 	bool isInitialized() const { return id != 0; };
 	unsigned int getID() const { return id; };

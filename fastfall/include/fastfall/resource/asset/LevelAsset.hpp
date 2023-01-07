@@ -39,6 +39,12 @@ public:
 
 	void ImGui_getContent() override;
 
+    std::vector<std::filesystem::path> getDependencies() const override {
+        return {
+            getFilePath() + getAssetName()
+        };
+    }
+
 protected:
 	Color backgroundColor;
 	Vec2u lvlTileSize;

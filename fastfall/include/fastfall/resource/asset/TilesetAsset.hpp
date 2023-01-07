@@ -89,6 +89,13 @@ public:
 
 	std::optional<TileID> getAutoTileForShape(TileShape shape) const;
 
+    std::vector<std::filesystem::path> getDependencies() const override {
+        return {
+            getFilePath() + getAssetName(),
+            getTexPath()
+        };
+    }
+
 protected:
 	
 	void loadFromFile_TileProperties(rapidxml::xml_node<>* propsNode, TileData& t);

@@ -58,6 +58,13 @@ public:
 
 	//static std::map<AnimID, Animation> addAnimations(const std::vector<ParsedAnim>& allParsedAnims);
 
+    std::vector<std::filesystem::path> getDependencies() const override {
+        return {
+            getFilePath() + getAssetName(),
+            getTexPath()
+        };
+    }
+
 protected:
 	friend AnimCompiler;
 

@@ -220,6 +220,10 @@ namespace InputConfig {
         {"attack",  InputType::ATTACK},
     };
 
+    bool configExists() {
+        return std::filesystem::exists(input_config_file);
+    }
+
     bool writeConfigFile() {
         namespace nl = nlohmann;
         nl::ordered_json config_json;
