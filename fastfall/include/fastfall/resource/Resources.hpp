@@ -14,7 +14,7 @@
 namespace ff {
 
 template<typename T>
-concept is_asset = std::derived_from<T, Asset>;
+concept is_asset = (std::derived_from<T, Asset> && !std::same_as<T, Asset>);
 
 template<is_asset T>
 using AssetMap = std::map<std::string, std::unique_ptr<T>, std::less<>>;
@@ -32,11 +32,35 @@ private:
 	Resources();
 	~Resources();
 
+    AssetMap<ShaderAsset>   shaders;
 	AssetMap<SpriteAsset>   sprites;
 	AssetMap<TilesetAsset>  tilesets;
 	AssetMap<LevelAsset>    levels;
 	AssetMap<FontAsset>     fonts;
-    AssetMap<ShaderAsset>   shaders;
+
+    constexpr auto all_asset_maps() {
+        return std::tie(
+            shaders,
+            sprites,
+            tilesets,
+            levels,
+            fonts
+        );
+    }
+
+    constexpr void for_each_asset_map(auto&& fn) {
+        std::apply([&](auto&&... map) {
+            (fn(map), ...);
+        }, all_asset_maps());
+    }
+
+    constexpr void for_each_asset(auto&& fn) {
+        for_each_asset_map([&](auto& map) {
+            for (auto& it : map) {
+                fn(it.second.get());
+            }
+        });
+    }
 
 	std::map<std::pair<std::string, std::string>, AnimID> anim_lookup_table;
 	std::map<AnimID, Animation> animation_table;

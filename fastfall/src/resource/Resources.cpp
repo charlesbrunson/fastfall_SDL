@@ -530,20 +530,14 @@ void Resources::ImGui_getContent() {
 void Resources::addLoadedToWatcher() {
 	assert(resource.loadMethod != AssetSource::PACK_FILE);
 
-    auto watch_all = [](auto& asset_map) {
+    resource.for_each_asset_map([](auto& asset_map) {
         for (auto& [key, val] : asset_map) {
             ResourceWatcher::add_watch(
                 val.get(),
                 val->getDependencies()
             );
         }
-    };
-
-    watch_all(resource.fonts);
-    watch_all(resource.sprites);
-    watch_all(resource.tilesets);
-    watch_all(resource.levels);
-    watch_all(resource.shaders);
+    });
 }
 
 
@@ -568,35 +562,26 @@ bool Resources::reloadOutOfDateAssets()
 {
 	assert(resource.loadMethod != AssetSource::PACK_FILE);
 
-	constexpr auto reloadAssets = 
-		[]<typename T>(ff::AssetMap<T>& map, std::vector<const Asset*>& assets_changed)
-	{
-		for (auto& [key, val] : map) {
-			if (val->isOutOfDate() && val->isLoaded())
-			{
-				LOG_INFO("Reloading asset \"{}\"", val->getAssetName());
-
-				bool reloaded = val->reloadFromFile();
-				val->setOutOfDate(false);
-
-				log::scope sc;
-				if (reloaded) {
-					assets_changed.push_back(val.get());
-					LOG_INFO("... complete!");
-				}
-				else {
-					LOG_ERR_("... failed to reload asset");
-				}
-			}
-		}
-	};
-
 	std::vector<const Asset*> assets_changed;
-	reloadAssets(resource.fonts, assets_changed);
-	reloadAssets(resource.sprites, assets_changed);
-	reloadAssets(resource.tilesets, assets_changed);
-	reloadAssets(resource.levels, assets_changed);
-    reloadAssets(resource.shaders, assets_changed);
+
+    // reload assets
+    resource.for_each_asset([&](Asset* asset) {
+        if (asset->isOutOfDate() && asset->isLoaded())
+        {
+            LOG_INFO("Reloading asset \"{}\"", asset->getAssetName());
+            bool reloaded = asset->reloadFromFile();
+            asset->setOutOfDate(false);
+
+            log::scope sc;
+            if (reloaded) {
+                assets_changed.push_back(asset);
+                LOG_INFO("... complete!");
+            }
+            else {
+                LOG_ERR_("... failed to reload asset");
+            }
+        }
+    });
 
 	for (auto asset : assets_changed) {
         auto& all_subs = ResourceSubscriber::getAll();
