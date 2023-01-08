@@ -59,41 +59,15 @@ std::string_view ShaderProgram::getGLSLVersionString() {
 }
 
 ShaderProgram DefaultProgram;
-//ShaderProgram TileArrayProgram;
-//ShaderProgram TextProgram;
 
 const ShaderProgram& ShaderProgram::getDefaultProgram() {
 	if (!DefaultProgram.isLinked() && render_glew_is_init()) {
 		DefaultProgram.add(ff::ShaderType::VERTEX, vertex_default);
 		DefaultProgram.add(ff::ShaderType::FRAGMENT, fragment_default);
 		DefaultProgram.link();
-		//LOG_INFO("default program: {}", DefaultProgram.getID());
 	}
 	return DefaultProgram;
 }
-
-/*
-const ShaderProgram& ShaderProgram::getTileArrayProgram() {
-	if (!TileArrayProgram.isLinked() && render_glew_is_init()) {
-		TileArrayProgram.add(ff::ShaderType::VERTEX,   tilearray_vertex);
-		TileArrayProgram.add(ff::ShaderType::FRAGMENT, tilearray_fragment);
-		TileArrayProgram.link();
-		TileArrayProgram.cacheUniform("columns");
-		//LOG_INFO("tile program: {}", TileArrayProgram.getID());
-	}
-	return TileArrayProgram;
-}
-const ShaderProgram& ShaderProgram::getTextProgram() {
-	if (!TextProgram.isLinked() && render_glew_is_init()) {
-		TextProgram.add(ff::ShaderType::VERTEX, text_vertex);
-		TextProgram.add(ff::ShaderType::FRAGMENT, text_fragment);
-		TextProgram.link();
-		TextProgram.cacheUniform("char_size");
-		//LOG_INFO("text program: {}", TextProgram.getID());
-	}
-	return TextProgram;
-}
-*/
 
 ShaderProgram::ShaderProgram(ShaderProgram&& other) noexcept {
     if (initialized) {
@@ -279,9 +253,5 @@ void ShaderProgram::cacheUniform(std::string_view uniform_name) {
 		LOG_ERR_("Could not cache uniform for shader {}: {}", id, uniform_name);
 	}
 }
-
-
-
-
 
 }
