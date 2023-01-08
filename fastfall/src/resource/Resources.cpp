@@ -543,6 +543,7 @@ void Resources::addLoadedToWatcher() {
     watch_all(resource.sprites);
     watch_all(resource.tilesets);
     watch_all(resource.levels);
+    watch_all(resource.shaders);
 }
 
 
@@ -595,6 +596,7 @@ bool Resources::reloadOutOfDateAssets()
 	reloadAssets(resource.sprites, assets_changed);
 	reloadAssets(resource.tilesets, assets_changed);
 	reloadAssets(resource.levels, assets_changed);
+    reloadAssets(resource.shaders, assets_changed);
 
 	for (auto asset : assets_changed) {
         auto& all_subs = ResourceSubscriber::getAll();

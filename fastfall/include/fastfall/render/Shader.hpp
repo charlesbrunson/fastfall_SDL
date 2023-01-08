@@ -18,7 +18,11 @@ enum class ShaderType {
 class ShaderProgram {
 public:
 
-	ShaderProgram();
+	ShaderProgram() = default;
+    ShaderProgram(const ShaderProgram& other) = delete;
+    ShaderProgram(ShaderProgram&& other) noexcept;
+    ShaderProgram& operator=(const ShaderProgram& other) = delete;
+    ShaderProgram& operator=(ShaderProgram&& other) noexcept;
 	~ShaderProgram();
 
 	void add(ShaderType type, const std::string_view shader_code);
@@ -42,7 +46,6 @@ public:
 	unsigned int getID() const { return id; };
 
 private:
-
 	bool initialized = false;
 
 	unsigned int id = 0;

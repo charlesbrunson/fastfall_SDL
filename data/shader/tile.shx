@@ -4,6 +4,6 @@
 		<link file="tile.frag"/>
 	</links>
 	<uniforms>
-		<uniform name="columns"/>
+		<uniform name="columns"/> 
 	</uniforms>
-</shader>
+</shader> 

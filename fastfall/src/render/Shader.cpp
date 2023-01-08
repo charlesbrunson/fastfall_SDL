@@ -95,9 +95,61 @@ const ShaderProgram& ShaderProgram::getTextProgram() {
 }
 */
 
-ShaderProgram::ShaderProgram()
-{
+ShaderProgram::ShaderProgram(ShaderProgram&& other) noexcept {
+    if (initialized) {
+        if (!isLinked()) {
+            for (auto shader : shaders) {
+                glDetachShader(id, shader);
+                glDeleteShader(shader);
+            }
+        }
+        glDeleteProgram(id);
+    }
 
+    initialized = other.initialized;
+    id = other.id;
+    m_is_linked = other.m_is_linked;
+    view_loc = other.view_loc;
+    mdl_loc = other.mdl_loc;
+    other_locs = std::move(other.other_locs);
+    shaders = std::move(other.shaders);
+
+    other.initialized = false;
+    other.id = 0;
+    other.m_is_linked = false;
+    other.view_loc 	= -1;
+    other.mdl_loc  	= -1;
+    other.other_locs = {};
+    other.shaders = {};
+}
+
+ShaderProgram& ShaderProgram::operator=(ShaderProgram&& other) noexcept {
+    if (initialized) {
+        if (!isLinked()) {
+            for (auto shader : shaders) {
+                glDetachShader(id, shader);
+                glDeleteShader(shader);
+            }
+        }
+        glDeleteProgram(id);
+    }
+
+    initialized = other.initialized;
+    id = other.id;
+    m_is_linked = other.m_is_linked;
+    view_loc = other.view_loc;
+    mdl_loc = other.mdl_loc;
+    other_locs = std::move(other.other_locs);
+    shaders = std::move(other.shaders);
+
+    other.initialized = false;
+    other.id = 0;
+    other.m_is_linked = false;
+    other.view_loc 	= -1;
+    other.mdl_loc  	= -1;
+    other.other_locs = {};
+    other.shaders = {};
+    return *this;
 }
 
 ShaderProgram::~ShaderProgram() {

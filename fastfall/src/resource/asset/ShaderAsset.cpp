@@ -90,7 +90,18 @@ bool ShaderAsset::loadFromFile(const std::string& relpath) {
 }
 
 bool ShaderAsset::reloadFromFile() {
-    return loadFromFile(assetFilePath);
+    try {
+        ShaderAsset nasset{ assetName };
+        bool r = nasset.loadFromFile(assetFilePath) && nasset.compileShaderFromFile();
+        if (r) {
+            *this = std::move(nasset);
+        }
+        return r;
+    }
+    catch(std::exception& e) {
+
+    }
+    return false;
 }
 
 bool ShaderAsset::compileShaderFromFile() {
