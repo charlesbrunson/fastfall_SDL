@@ -106,11 +106,12 @@ void RenderTarget::draw(const TileArray& tarray, RenderState state) {
 
 	state.transform = Transform::combine(state.transform, Transform(tarray.offset));
 	state.texture = tarray.m_tex;
+    constexpr std::string_view shader = "tile.shx";
     if (auto ptr = Resources::get<ShaderAsset>("tile.shx")) {
         state.program = &ptr->getProgram();
     }
     else {
-        LOG_ERR_("failed to render tile array, shader does not loaded");
+        LOG_ERR_("failed to render, {} shader not loaded", shader);
         return;
     }
 
@@ -166,11 +167,12 @@ void RenderTarget::draw(const Text& text, RenderState state) {
 	}
 
 	state.texture = text.bitmap_texture;
-    if (auto ptr = Resources::get<ShaderAsset>("text.shx")) {
+    constexpr std::string_view shader = "text.shx";
+    if (auto ptr = Resources::get<ShaderAsset>(shader)) {
         state.program = &ptr->getProgram();
     }
     else {
-        LOG_ERR_("failed to render tile array, shader does not loaded");
+        LOG_ERR_("failed to render, {} shader not loaded", shader);
         return;
     }
 
