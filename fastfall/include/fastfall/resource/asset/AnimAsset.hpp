@@ -64,4 +64,5 @@ private:
 	const SpriteAsset* my_sprite;
 };
 
+
 }

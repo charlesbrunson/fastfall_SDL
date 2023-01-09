@@ -167,7 +167,7 @@ AnimID AnimCompiler::parseAnimation(xml_node<>* animationNode, SpriteAsset& asse
 		prop = prop->next_sibling();
 	}
 
-	return Resources::add_animation(anim);
+	return AnimDB::add_animation(anim);
 }
 void SpriteAsset::ImGui_getContent() {
 	ImGui::Text("%s", getAssetName().c_str());
@@ -210,7 +210,7 @@ void SpriteAsset::ImGui_getContent() {
 							
 						std::transform(anims.begin(), anims.end(), std::back_inserter(anims_labels), 
 							[](const AnimID& id) {
-								auto anim = Resources::get_animation(id);
+								auto anim = AnimDB::get_animation(id);
 								return anim ? anim->anim_name.data() : "";
 							});
 						anims_current = 0;
@@ -346,7 +346,7 @@ bool SpriteAsset::loadFromFlat(const flat::resources::SpriteAssetF* builder) {
 			anim.chain_frame = animT->chain_frame();
 		}
 		parsedAnims.push_back(std::move(anim));
-		Resources::add_animation(parsedAnims.back());
+		AnimDB::add_animation(parsedAnims.back());
 	}
 
 	loaded = tex.loadFromStream(builder->image()->Data(), builder->image()->size());
@@ -405,6 +405,98 @@ flatbuffers::Offset<flat::resources::SpriteAssetF> SpriteAsset::writeToFlat(flat
 	spriteBuilder.add_image(flat_texdata);
 
 	return spriteBuilder.Finish();
+}
+
+std::map<std::pair<std::string, std::string>, AnimID> AnimDB::anim_lookup_table;
+std::map<AnimID, Animation> AnimDB::animation_table;
+
+const Animation* AnimDB::get_animation(AnimID id)
+{
+    if (auto iter = animation_table.find(id);
+            iter != animation_table.end())
+    {
+        return &iter->second;
+    }
+    return nullptr;
+}
+
+AnimID AnimDB::get_animation_id(std::string_view sprite_name, std::string_view anim_name)
+{
+    std::pair<std::string, std::string> key{ sprite_name, anim_name };
+    if (auto iter = anim_lookup_table.find(key);
+            iter != anim_lookup_table.end())
+    {
+        return iter->second;
+    }
+    return AnimID::NONE;
+}
+
+AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
+
+    auto doChain = [&panim](Animation& anim) {
+
+        if (anim.chain.has_chain) {
+
+            AnimID chain_id = get_animation_id(panim.chain_spr_name, panim.chain_anim_name);
+
+            if (chain_id == AnimID::NONE) {
+                // operate under assumption that there will be an anim later on to fill this
+                anim.chain.anim_id = AnimID::reserve_id();
+                auto chain_key = std::pair<std::string, std::string>(panim.chain_spr_name, panim.chain_anim_name);
+                anim_lookup_table.insert(std::make_pair(chain_key, anim.chain.anim_id));
+            }
+            else {
+                anim.chain.anim_id = chain_id;
+            }
+
+            anim.chain.start_frame = panim.chain_frame;
+        }
+    };
+
+    log::scope scope;
+
+    AnimID existing_id = get_animation_id(panim.owner->getAssetName(), panim.name);
+
+    if (existing_id == AnimID::NONE) {
+        AnimID nID = AnimID::reserve_id();
+        auto key = std::pair<std::string, std::string>(panim.owner->getAssetName(), panim.name);
+        anim_lookup_table.insert(std::make_pair(key, nID));
+
+
+        Animation anim{ panim.owner, nID };
+        anim.anim_name = panim.name;
+        anim.area = panim.area;
+        anim.origin = panim.origin;
+        anim.loop = panim.loop;
+
+        anim.framerateMS = panim.framerateMS;
+        anim.chain.has_chain = panim.has_chain;
+        doChain(anim);
+
+        //resource.animation_table.insert(std::make_pair( anim.anim_id, anim ));
+        animation_table[anim.anim_id] = std::move(anim);
+        existing_id = anim.anim_id;
+    }
+    else {
+        Animation anim{ panim.owner, existing_id };
+        anim.anim_name = panim.name;
+        anim.area = panim.area;
+        anim.origin = panim.origin;
+        anim.loop = panim.loop;
+
+        anim.framerateMS = panim.framerateMS;
+        anim.chain.has_chain = panim.has_chain;
+        doChain(anim);
+
+        animation_table[existing_id] = std::move(anim);
+    }
+    LOG_INFO("loaded anim: {} - {}", panim.owner->getAssetName(), panim.name);
+    return existing_id;
+}
+
+void AnimDB::reset() {
+    anim_lookup_table.clear();
+    animation_table.clear();
 }
 
 }

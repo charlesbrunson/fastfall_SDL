@@ -12,7 +12,7 @@ AnimIDRef::AnimIDRef(std::string_view sprite, std::string_view anim)
 AnimID AnimIDRef::id() const
 {
 	if (m_id == AnimID::NONE && !m_sprite.empty() && !m_anim.empty()) {
-		m_id = Resources::get_animation_id(m_sprite, m_anim);
+		m_id = AnimDB::get_animation_id(m_sprite, m_anim);
 	}
 	return m_id;
 };

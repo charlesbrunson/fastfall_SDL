@@ -1,18 +1,16 @@
 #pragma once
 
-
 #include "fastfall/resource/asset/TextureAsset.hpp"
 #include "fastfall/resource/asset/AnimAsset.hpp"
 
-//#include "SFML/System.hpp"
 #include "fastfall/util/math.hpp"
 
 #include "fastfall/schema/resource-flat.hpp"
 
+#include <map>
 #include <chrono>
 using namespace std::chrono;
 
-//using AnimMap = std::map<AnimID, Animation, std::less<>>;
 
 namespace ff {
 
@@ -83,6 +81,16 @@ protected:
 	//AnimMap animations;
 };
 
+class AnimDB {
+private:
+    static std::map<std::pair<std::string, std::string>, AnimID> anim_lookup_table;
+    static std::map<AnimID, Animation> animation_table;
+public:
+    static AnimID add_animation(const SpriteAsset::ParsedAnim& panim);
+    static const Animation* get_animation(AnimID id);
+    static AnimID get_animation_id(std::string_view sprite_name, std::string_view anim_name);
+    static void reset();
+};
 
 template<>
 struct flat_type<SpriteAsset>

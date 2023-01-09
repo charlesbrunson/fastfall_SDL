@@ -18,7 +18,7 @@ bool AnimatedSprite::set_anim_if_not(AnimID id, bool reset) noexcept {
 
 bool AnimatedSprite::set_anim(AnimID id, bool reset) noexcept {
 
-	const Animation* anim = Resources::get_animation(id);
+	const Animation* anim = AnimDB::get_animation(id);
 
 	animation = anim;
 	loop_counter = 0;
@@ -176,7 +176,7 @@ bool AnimatedSprite::is_playing(AnimID id, unsigned incl_chain_anims_depth) cons
 					return true;
 				}
 				else {
-					anim = Resources::get_animation(anim->chain.anim_id);
+					anim = AnimDB::get_animation(anim->chain.anim_id);
 				}
 			}
 		}

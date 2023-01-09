@@ -25,330 +25,35 @@ using namespace rapidxml;
 #endif
 #endif
 
-// internal stuff
-////////////////////////////////////////////////////////////
-
 namespace ff {
 
 Resources Resources::resource;
-
 
 Resources::Resources() :
 	ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Resources", "System")
 {
 }
-Resources::~Resources() {
-	//unloadAll();
-}
 
-template<is_asset Type>
-Type* Resources::get(AssetMap<Type>& map, const std::string_view filename) {
-	auto r = map.find(filename);
+bool loadFromIndex(std::string_view indexFile);
 
-	if (r != map.end()) {
-		return r->second.get();
-	}
-	return nullptr;
-}
-
-////////////////////////////////////////////////////////////
-
-// resource adder
-#define ADDRESOURCE(Type, Map)															\
-template<>																				\
-const Type& Resources::add(const std::string& name, std::unique_ptr<Type>&& asset) {	\
-	static std::mutex mut;																\
-	const std::lock_guard<std::mutex> lock(mut);										\
-	auto r = Map.insert(std::make_pair(name, std::move(asset)));						\
-	return *r.first->second.get();														\
-}
-
-ADDRESOURCE(SpriteAsset, resource.sprites)
-ADDRESOURCE(TilesetAsset, resource.tilesets)
-ADDRESOURCE(LevelAsset, resource.levels)
-ADDRESOURCE(FontAsset, resource.fonts)
-ADDRESOURCE(ShaderAsset, resource.shaders)
-
-#undef ADDRESOURCE
-
-////////////////////////////////////////////////////////////
-
-// resource getters
-#define GETRESOURCE(Type, Map)									\
-template<>														\
-Type* Resources::get<Type>(const std::string_view filename) {	\
-	return resource.get(Map, filename);							\
-}
-
-GETRESOURCE(SpriteAsset, resource.sprites)
-GETRESOURCE(TilesetAsset, resource.tilesets)
-GETRESOURCE(LevelAsset, resource.levels)
-GETRESOURCE(FontAsset, resource.fonts)
-GETRESOURCE(ShaderAsset, resource.shaders)
-
-#undef GETRESOURCE
-
-////////////////////////////////////////////////////////////
-
-const Animation* Resources::get_animation(AnimID id) {
-
-	auto iter = resource.animation_table.find(id);
-
-	if (iter != resource.animation_table.end()) {
-		return &iter->second;
-	}
-	return nullptr;
-}
-
-AnimID Resources::get_animation_id(std::string_view sprite_name, std::string_view anim_name) {
-
-	auto iter = resource.anim_lookup_table.find(std::pair<std::string, std::string>(sprite_name, anim_name));
-
-	if (iter != resource.anim_lookup_table.end()) {
-		return iter->second;
-	}
-	return AnimID::NONE;
-}
-
-
-AnimID Resources::add_animation(const SpriteAsset::ParsedAnim& panim) {
-
-	auto doChain = [&panim](Animation& anim) {
-
-		if (anim.chain.has_chain) {
-
-			AnimID chain_id = get_animation_id(panim.chain_spr_name, panim.chain_anim_name);
-
-			if (chain_id == AnimID::NONE) {
-				// operate under assumption that there will be an anim later on to fill this
-				anim.chain.anim_id = AnimID::reserve_id();
-				auto chain_key = std::pair<std::string, std::string>(panim.chain_spr_name, panim.chain_anim_name);
-				resource.anim_lookup_table.insert(std::make_pair(chain_key, anim.chain.anim_id));
-			}
-			else {
-				anim.chain.anim_id = chain_id;
-			}
-
-			anim.chain.start_frame = panim.chain_frame;
-		}
-	};
-
-	log::scope scope;
-
-	AnimID existing_id = get_animation_id(panim.owner->getAssetName(), panim.name);
-
-	if (existing_id == AnimID::NONE) {
-		AnimID nID = AnimID::reserve_id();
-		auto key = std::pair<std::string, std::string>(panim.owner->getAssetName(), panim.name);
-		resource.anim_lookup_table.insert(std::make_pair(key, nID));
-
-
-		Animation anim{ panim.owner, nID };
-		anim.anim_name = panim.name;
-		anim.area = panim.area;
-		anim.origin = panim.origin;
-		anim.loop = panim.loop;
-
-		anim.framerateMS = panim.framerateMS;
-		anim.chain.has_chain = panim.has_chain;
-		doChain(anim);
-
-		//resource.animation_table.insert(std::make_pair( anim.anim_id, anim ));
-		resource.animation_table[anim.anim_id] = std::move(anim);
-		existing_id = anim.anim_id;
-	}
-	else {
-		Animation anim{ panim.owner, existing_id };
-		anim.anim_name = panim.name;
-		anim.area = panim.area;
-		anim.origin = panim.origin;
-		anim.loop = panim.loop;
-
-		anim.framerateMS = panim.framerateMS;
-		anim.chain.has_chain = panim.has_chain;
-		doChain(anim);
-
-		resource.animation_table[existing_id] = std::move(anim);
-	}
-	LOG_INFO("loaded anim: {} - {}", panim.owner->getAssetName(), panim.name);
-	return existing_id;
-}
-
-////////////////////////////////////////////////////////////
-
-bool loadFromPack(const std::string& packFile);
-bool loadFromIndex(const std::string& indexFile);
-
-bool Resources::loadAll(AssetSource loadType, const std::string& filename) {
+bool Resources::loadAll(std::string_view filename) {
 	bool result;
-
-	resource.loadMethod = loadType;
-
 	resource.ImGui_addContent();
-
-	switch (loadType) {
-	case AssetSource::INDEX_FILE:
-		LOG_INFO("Parsing assets from index file: {}", filename);
-		result = loadFromIndex(filename);
-		break;
-	case AssetSource::PACK_FILE:
-		LOG_INFO("Parsing assets from pack file: {}", filename);
-		result = loadFromPack(filename);
-		break;
-	default:
-		result = false;
-	}
+    result = loadFromIndex(filename);
 	loadControllerDB();
-
 	return result;
 }
-void Resources::unloadAll() {
-
+void Resources::unloadAll()
+{
 	resource.fonts.clear();
-	resource.anim_lookup_table.clear();
-	resource.animation_table.clear();
 	AnimID::resetCounter();
 	resource.tilesets.clear();
 	resource.sprites.clear();
 	Texture::destroyNullTexture();
 	resource.levels.clear();
     resource.shaders.clear();
+    AnimDB::reset();
 	LOG_INFO("All resources unloaded");
-}
-
-////////////////////////////////////////////////////////////
-
-template<typename  AssetType, typename  FlatType = typename flat_type<AssetType>::type>
-std::string LoadPackedAsset(const FlatType* flat) {
-	std::string filename = flat->name()->c_str();
-
-	auto ptr = std::make_unique<AssetType>(filename);
-	bool success = ptr->loadFromFlat(flat);
-	if (success) {
-		Resources::add(ptr->getAssetName(), std::move(ptr));
-		return filename;
-	}
-	else {
-		throw std::runtime_error("failed to unpack " + ptr->getAssetName());
-	}
-};
-
-
-bool loadFromPack(const std::string& packFile) {
-
-	std::string path = FF_DATAPATH + packFile;
-
-	// load pack file into memory
-	bool good = true;
-	std::vector<int8_t> packData = readFile(path.c_str());
-
-	LOG_INFO("Deserializing assets");
-
-
-	//sf::Clock timer;
-	auto res = flat::resources::GetResourcesF(packData.data());
-
-	for (auto it = res->sprites()->begin(); it != res->sprites()->end(); it++) {
-		log::scope scope;
-		try {
-			std::string filename = LoadPackedAsset<SpriteAsset>(*it);
-			LOG_INFO("{} ... complete", filename);
-		}
-		catch (std::exception err) {
-			LOG_ERR_("failure to load asset: {}", err.what());
-			good = false;
-		}
-	}
-
-	for (auto it = res->tilesets()->begin(); it != res->tilesets()->end(); it++) {
-		log::scope scope;
-		try {
-			std::string filename = LoadPackedAsset<TilesetAsset>(*it);
-			LOG_INFO("{} ... complete", filename);
-		}
-		catch (std::exception err) {
-			LOG_ERR_("failure to load asset: {}", err.what());
-			good = false;
-		}
-	}
-	for (auto it = res->levels()->begin(); it != res->levels()->end(); it++) {
-		log::scope scope;
-		try {
-			std::string filename = LoadPackedAsset<LevelAsset>(*it);
-			LOG_INFO("{} ... complete", filename);
-		}
-		catch (std::exception err) {
-			LOG_ERR_("failure to load asset: {}", err.what());
-			good = false;
-		}
-	}
-
-	//LOG_INFO("Deserializing complete: {}ms", timer.getElapsedTime().asMilliseconds());
-	return good;
-}
-
-////////////////////////////////////////////////////////////
-
-template <typename  AssetType, typename  FlatType = typename flat_type<AssetType>::type>
-auto buildPackAssets(flatbuffers::FlatBufferBuilder& builder, AssetMap<AssetType>& map) {
-	std::vector<flatbuffers::Offset<FlatType>> assetVec;
-	for (auto& asset : map) {
-		log::scope scope;
-		try {
-			assetVec.push_back(asset.second->writeToFlat(builder));
-			LOG_INFO("{} ... complete", asset.second->getAssetName());
-		}
-		catch (std::exception err) {
-			LOG_ERR_("{} ...  pack failed: {}", asset.second->getAssetName(), err.what());
-		}
-	}
-	return builder.CreateVector(assetVec);
-}
-
-bool Resources::buildPackFile(const std::string& packFilename) {
-
-	LOG_INFO("Serializing resource assets");
-	//sf::Clock timer;
-	flatbuffers::FlatBufferBuilder builder;
-
-	using namespace flat::resources;
-
-	auto sprvec  = buildPackAssets<SpriteAsset >(builder, resource.sprites);
-	auto tilevec = buildPackAssets<TilesetAsset>(builder, resource.tilesets);
-	auto lvlvec  = buildPackAssets<LevelAsset  >(builder, resource.levels);
-
-	ResourcesFBuilder resBuilder(builder);
-	resBuilder.add_sprites(sprvec);
-	resBuilder.add_tilesets(tilevec);
-	resBuilder.add_levels(lvlvec);
-
-	auto res = resBuilder.Finish();
-	builder.Finish(res);
-	//LOG_INFO("Serializing complete: {}ms", timer.getElapsedTime().asMilliseconds());
-
-	LOG_INFO("Writing serialized data to file: {}", packFilename);
-	std::fstream file(FF_DATAPATH + packFilename, std::ios::binary | std::ios_base::out);
-	if (file) {
-
-		uint8_t* data = builder.GetBufferPointer();
-		uint8_t* end = builder.GetBufferPointer() + builder.GetSize();
-
-		while (data < end) {
-
-			file.write(
-				(char*)data,
-				std::min(
-					(ptrdiff_t)(128),
-					(ptrdiff_t)(end - data)
-				)
-			);
-			data += 128;
-		}
-		file.close();
-	}
-	LOG_INFO("Writing complete");
-
-	return true;
 }
 
 ////////////////////////////////////////////////////////////
@@ -356,17 +61,21 @@ bool Resources::buildPackFile(const std::string& packFilename) {
 // indexfile parsing
 std::vector<std::string> parseDataNodes(xml_node<>* first_node, const char* type);
 
-template<is_asset Type>
-bool loadAssets(const std::string& path, std::vector<std::string>& names) {
+struct AssetInfo {
+    std::string path;
+    std::vector<std::string> asset_names;
+};
 
-	for (const auto& asset : names) 
+template<is_asset Type>
+bool loadAssets(const AssetInfo& info) {
+
+	for (const auto& asset : info.asset_names)
 	{
-		//std::string info = "\t" + path + asset + " ... ";
 		std::unique_ptr<Type> ptr = std::make_unique<Type>(asset);
-		std::string small_path = path.substr(path.rfind("data/") + 5);
+		std::string small_path = info.path.substr(info.path.rfind("data/") + 5);
 
 		log::scope scope;
-		if (ptr->loadFromFile(path)) {
+		if (ptr->loadFromFile(info.path)) {
 			Resources::add(asset, std::move(ptr));
 			LOG_INFO("{}{} ... complete", small_path, asset);
 		}
@@ -379,30 +88,27 @@ bool loadAssets(const std::string& path, std::vector<std::string>& names) {
 }
 
 
-bool loadFromIndex(const std::string& indexFile) {
-	//using namespace rapidxml;
-
+bool loadFromIndex(std::string_view indexFile)
+{
 	bool r = true;
+    AssetInfo shader_info;
+    AssetInfo sprite_info;
+    AssetInfo tileset_info;
+    AssetInfo level_info;
+    AssetInfo font_info;
 
-    std::string shaderRelPath;
-    std::vector<std::string> shaderNames;
+    std::map<std::string, std::pair<std::string, AssetInfo*>> all_info{
+        { "shaders",  { "shader",  &shader_info  } },
+        { "sprites",  { "sprite",  &sprite_info  } },
+        { "tilesets", { "tileset", &tileset_info } },
+        { "levels",   { "level",   &level_info   } },
+        { "fonts",    { "font",    &font_info    } },
+    };
 
-	std::string spriteRelPath;
-	std::vector<std::string> spriteNames;
-
-	std::string tilesetRelPath;
-	std::vector<std::string> tilesetNames;
-
-	std::string levelRelPath;
-	std::vector<std::string> levelNames;
-
-	std::string fontRelPath;
-	std::vector<std::string> fontNames;
-
-	std::string dataPath = std::string(FF_DATAPATH) + "data/";
+    std::string dataPath = std::string(FF_DATAPATH) + "data/";
 
 	// try to open the index file
-	std::ifstream ndxStream(dataPath + indexFile, std::ios::binary | std::ios::ate);
+	std::ifstream ndxStream(dataPath + std::string{indexFile}, std::ios::binary | std::ios::ate);
 	if (ndxStream.is_open()) {
 		char* datatypePath;
 
@@ -417,40 +123,25 @@ bool loadFromIndex(const std::string& indexFile) {
 		ndxStream.close();
 
 		auto doc = std::make_unique<xml_document<>>();
-
 		try {
 			doc->parse<0>(&indexContent[0]);
-
 			xml_node<>* index = doc->first_node("index");
-
 			if (index) {
-
 				xml_node<>* datatype = index->first_node();
-
 				while (datatype) {
 					char* name = datatype->name();
 					datatypePath = datatype->first_attribute("path")->value();
 
-                    if (strcmp(name, "shaders") == 0) {
-                        shaderRelPath = dataPath + datatypePath;
-                        shaderNames = parseDataNodes(datatype->first_node(), "shader");
+                    if (auto it = all_info.find(name);
+                        it != all_info.end())
+                    {
+                        auto& [xml_type, info] = it->second;
+                        info->path = dataPath + datatypePath;
+                        info->asset_names = parseDataNodes(datatype->first_node(), xml_type.c_str());
                     }
-					if (strcmp(name, "sprites") == 0) {
-						spriteRelPath = dataPath + datatypePath;
-						spriteNames = parseDataNodes(datatype->first_node(), "sprite");
-					}
-					else if (strcmp(name, "tilesets") == 0) {
-						tilesetRelPath = dataPath + datatypePath;
-						tilesetNames = parseDataNodes(datatype->first_node(), "tileset");
-					}
-					else if (strcmp(name, "levels") == 0) {
-						levelRelPath = dataPath + datatypePath;
-						levelNames = parseDataNodes(datatype->first_node(), "level");
-					}
-					else if (strcmp(name, "fonts") == 0) {
-						fontRelPath = dataPath + datatypePath;
-						fontNames = parseDataNodes(datatype->first_node(), "font");
-					}
+                    else {
+                        LOG_WARN("error parsing index file: unknown asset type {}", name);
+                    }
 					datatype = datatype->next_sibling();
 				}
 			}
@@ -462,20 +153,17 @@ bool loadFromIndex(const std::string& indexFile) {
 			LOG_ERR_(err.what());
 			r = false;
 		}
-
-		//LOG_INFO("Index file closed");
 	}
 	else {
 		r = false;
 	}
 
 	LOG_INFO("Loading assets");
-    r &= loadAssets<ShaderAsset>(shaderRelPath, shaderNames);
-	r &= loadAssets<FontAsset>(fontRelPath, fontNames);
-	r &= loadAssets<SpriteAsset>(spriteRelPath, spriteNames);
-	r &= loadAssets<TilesetAsset>(tilesetRelPath, tilesetNames);
-	r &= loadAssets<LevelAsset>(levelRelPath, levelNames);
-
+    r &= loadAssets<ShaderAsset >(shader_info);
+	r &= loadAssets<FontAsset   >(font_info);
+	r &= loadAssets<SpriteAsset >(sprite_info);
+	r &= loadAssets<TilesetAsset>(tileset_info);
+	r &= loadAssets<LevelAsset  >(level_info);
 	return r;
 }
 
@@ -499,7 +187,6 @@ std::vector<std::string> parseDataNodes(xml_node<>* first_node, const char* type
 }
 
 void Resources::ImGui_getContent() {
-
 	if (ImGui::CollapsingHeader("Sprites", ImGuiTreeNodeFlags_DefaultOpen)) {
 		for (auto& asset : sprites) {
 			if (ImGui::BeginChild(asset.second.get()->getAssetName().c_str(), ImVec2(0, 100), true)) {
@@ -528,8 +215,6 @@ void Resources::ImGui_getContent() {
 
 
 void Resources::addLoadedToWatcher() {
-	assert(resource.loadMethod != AssetSource::PACK_FILE);
-
     resource.for_each_asset_map([](auto& asset_map) {
         for (auto& [key, val] : asset_map) {
             ResourceWatcher::add_watch(
@@ -545,9 +230,7 @@ void Resources::loadControllerDB() {
 	static bool loadedControllerDB = false;
 	if (!loadedControllerDB) {
 		std::string path = FF_DATAPATH + std::string("gamecontrollerdb.txt");
-		int r = SDL_GameControllerAddMappingsFromFile(path.c_str());
-
-		if (r >= 0) {
+		if (SDL_GameControllerAddMappingsFromFile(path.c_str()) >= 0) {
 			LOG_INFO("Loaded gamecontrollerdb.txt");
 		}
 		else {
@@ -560,8 +243,6 @@ void Resources::loadControllerDB() {
 
 bool Resources::reloadOutOfDateAssets()
 {
-	assert(resource.loadMethod != AssetSource::PACK_FILE);
-
 	std::vector<const Asset*> assets_changed;
 
     // reload assets

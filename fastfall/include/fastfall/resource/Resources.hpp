@@ -20,17 +20,10 @@ template<is_asset T>
 using AssetMap = std::map<std::string, std::unique_ptr<T>, std::less<>>;
 
 class Resources : public ImGuiContent {
-public:
-	enum class AssetSource {
-		INDEX_FILE,
-		PACK_FILE
-	};
-
 private:
 	static Resources resource;
 
 	Resources();
-	~Resources();
 
     AssetMap<ShaderAsset>   shaders;
 	AssetMap<SpriteAsset>   sprites;
@@ -62,45 +55,36 @@ private:
         });
     }
 
-	std::map<std::pair<std::string, std::string>, AnimID> anim_lookup_table;
-	std::map<AnimID, Animation> animation_table;
-
-	void loadAnimations();
-
-	template<is_asset Type>
-	Type* get(AssetMap<Type>& map, const std::string_view filename);
-
-	AssetSource loadMethod;
+    template<is_asset T>
+    constexpr AssetMap<T>& asset_map_for() {
+        return std::get<AssetMap<T>&>(all_asset_maps());
+    }
 
 public:
-
 	static void loadControllerDB();
-
 	static void addLoadedToWatcher();
 
-	static inline AssetSource lastLoadMethod() noexcept { return resource.loadMethod; };
-
-	// function defined via macro
 	template<is_asset Type>
-	static Type* get(const std::string_view filename);
+	static Type* get(std::string_view filename) {
+        auto& map = resource.asset_map_for<Type>();
+        auto it = map.find(filename);
+        if (it != map.end()) {
+            return it->second.get();
+        }
+        return nullptr;
+    }
 
-	// function defined via macro
 	template<is_asset Type>
-	static const Type& add(const std::string& name, std::unique_ptr<Type>&& sprite);
+	static const Type& add(std::string_view filename, std::unique_ptr<Type>&& asset) {
+        static std::mutex mut;
+        const std::lock_guard<std::mutex> lock(mut);
+        auto r = resource.asset_map_for<Type>().emplace(filename, std::move(asset));
+        return *r.first->second.get();
+    }
 
-	static AnimID add_animation(const SpriteAsset::ParsedAnim& panim);
-
-	static const Animation* get_animation(AnimID id);
-	static AnimID get_animation_id(std::string_view sprite_name, std::string_view anim_name);
-
-	// specify all assets
-	static bool loadAll(AssetSource loadType, const std::string& filename);
-	static void unloadAll();
-	static bool buildPackFile(const std::string& packFilename);
-
+    static bool loadAll(std::string_view filename);
+    static void unloadAll();
     static bool compileShaders();
-
-	// attempt to reload out of date assets, returns true if needed
 	static bool reloadOutOfDateAssets();
 
 	void ImGui_getContent();

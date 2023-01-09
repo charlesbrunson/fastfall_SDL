@@ -73,7 +73,7 @@ void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, float interp, bool up
         varr.insert(varr.size(), add_count, {});
     }
 
-    auto* anim = Resources::get_animation(strategy.animation);
+    auto* anim = AnimDB::get_animation(strategy.animation);
     if (anim) {
         cfg.rstate.texture = anim->get_sprite_texture();
         auto invSize = cfg.rstate.texture.get()->inverseSize();
