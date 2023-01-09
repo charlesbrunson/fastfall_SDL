@@ -32,6 +32,8 @@ protected:
 		PlayerDashState
 	> state = PlayerGroundState{};
 
+    //ff::ID<ff::AnimatedSprite> test_spr;
+
 	template<typename Callable>
 	requires std::is_invocable_v<Callable, PlayerState&>
 	auto visit_state(Callable&& callable)

@@ -198,11 +198,12 @@ namespace ff {
 			auto r = dense_.erase(dense_.begin() + d_ndx);
 			sparse_[s_ndx].valid = false;
             // update dense index for sparse entries that pointed past this one
-            for (auto& sp : sparse_)
+            while (d_ndx < dense_.size())
             {
-                if (sp.valid && sp.dense_index > d_ndx)
-                    --sp.dense_index;
+                sparse_[dense_[d_ndx].first.sparse_index].dense_index = d_ndx;
+                ++d_ndx;
             }
+
 			push_empty(k.sparse_index);
 			return r;
 		}

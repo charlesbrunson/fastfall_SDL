@@ -31,6 +31,7 @@ Player::Player(World& w, ID<GameObject> id, Vec2f position, bool faceleft)
         plr.manage_state(w, plr.get_state().post_collision(w, plr));
     };
 
+    //test_spr = w.create<AnimatedSprite>(w.entity_of(id));
 };
 
 Player::Player(World& w, ID<GameObject> id, ObjectLevelData& data)
@@ -43,6 +44,7 @@ Player::Player(World& w, ID<GameObject> id, ObjectLevelData& data)
         plr.manage_state(w, plr.get_state().post_collision(w, plr));
     };
 
+    //test_spr = w.create<AnimatedSprite>(w.entity_of(id));
 };
 
 
@@ -74,6 +76,9 @@ void Player::manage_state(World& w, PlayerStateID n_id)
 void Player::update(World& w, secs deltaTime) {
 	manage_state(w, get_state().update(w, *this, deltaTime));
     w.at(sprite_id).update(deltaTime);
+
+    //w.erase(test_spr);
+    //test_spr = w.create<AnimatedSprite>(w.entity_of(getID()));
 }
 
 objcfg::dresult Player::message(World& w, const objcfg::dmessage& msg) {
