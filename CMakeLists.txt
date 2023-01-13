@@ -21,9 +21,8 @@ endif()
 add_subdirectory ("fastfall")
 
 add_executable(test_project	
-	"main.cpp" 
-	"EmptyState.hpp"
-	"content/object/Player.cpp" 
+	"main.cpp"
+	"content/object/Player.cpp"
 	"content/object/Player.hpp" 
 	"content/object/PlayerCommon.hpp" 
 	"content/object/PlayerCommon.cpp" 
