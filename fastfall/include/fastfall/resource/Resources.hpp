@@ -26,7 +26,7 @@ template<is_asset T>
 struct asset_type {
     using map = std::map<std::string, std::unique_ptr<T>, std::less<>>;
 
-    const std::type_index type = typeid(T);
+    //const std::type_index type = typeid(T);
     std::filesystem::path extension;
     map assets;
 };

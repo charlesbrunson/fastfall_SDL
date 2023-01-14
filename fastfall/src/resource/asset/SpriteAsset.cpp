@@ -359,11 +359,11 @@ AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
 
     log::scope scope;
 
-    AnimID existing_id = get_animation_id(panim.owner->get_path().c_str(), panim.name);
+    AnimID existing_id = get_animation_id(panim.owner->get_name(), panim.name);
 
     if (existing_id == AnimID::NONE) {
         AnimID nID = AnimID::reserve_id();
-        auto key = std::pair<std::string, std::string>(panim.owner->get_path().c_str(), panim.name);
+        auto key = std::pair<std::string, std::string>(panim.owner->get_name(), panim.name);
         anim_lookup_table.insert(std::make_pair(key, nID));
 
 
