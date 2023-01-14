@@ -207,7 +207,7 @@ bool LevelEditor::select_tileset(std::string_view tileset_name)
     auto* level = world.get(level_id);
 	if (!level) return false;
 
-	if (!curr_tileset || curr_tileset->getAssetName() != tileset_name) {
+	if (!curr_tileset || curr_tileset->get_name() != tileset_name) {
 		curr_tileset = Resources::get<TilesetAsset>(tileset_name);
 		deselect_tile();
 	}
@@ -256,7 +256,7 @@ void LevelEditor::deselect_tile()
 // LEVEL PROPERTIES
 
 // changes level's name
-bool LevelEditor::set_name(std::string name)
+bool LevelEditor::set_name(std::string_view name)
 {
     auto* level = world.get(level_id);
 	if (!level) return false;
@@ -295,7 +295,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 	auto start = std::chrono::system_clock::now();
 
 	// step 1: level properties
-	if (level->name()		!= asset->getAssetName())		set_name(asset->getAssetName());
+	if (level->name()		!= asset->get_name())		    set_name(asset->get_name());
 	if (level->size()		!= asset->getTileDimensions())	set_size(asset->getTileDimensions());
 	if (level->getBGColor() != asset->getBGColor())			set_bg_color(asset->getBGColor());
 

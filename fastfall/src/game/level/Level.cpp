@@ -68,7 +68,7 @@ void Level::initFromAsset(World& world, const LevelAsset& levelData)
     }
     layers.clear_all();
 
-	levelName = levelData.getAssetName();
+	levelName = levelData.get_name();
 	bgColor = levelData.getBGColor();
 	levelSize = levelData.getTileDimensions();
 

@@ -76,7 +76,7 @@ public:
 	// LEVEL PROPERTIES
 
 	// changes level's name
-	bool set_name(std::string name);
+	bool set_name(std::string_view name);
 
 	// changes level's background color
 	bool set_bg_color(Color bg_color);

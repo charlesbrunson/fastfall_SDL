@@ -325,7 +325,7 @@ void TilesetAsset::loadFromFile_Header(xml_node<>* tileset_node)
 		throw parse_error("no image node", nullptr);
 
 	std::string source = imgNode->first_attribute("source")->value();
-    set_texture_path(asset_path.parent_path().concat(source));
+    set_texture_path(asset_path.parent_path() / source);
 	if (!TextureAsset::loadFromFile())
 		throw parse_error("could not load sprite source", nullptr);
 

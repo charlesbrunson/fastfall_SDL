@@ -129,9 +129,16 @@ namespace ff {
 			return false;
 		}
 
-		auto it = std::find_if(caches.begin(), caches.end(), [&](auto& cache) {
-			return cache->px_size == pixel_size;
-		});
+        caches.begin();
+        caches.end();
+
+		auto it = std::find_if(
+            caches.begin(),
+            caches.end(),
+           [&](auto& cache) {
+                return cache->px_size == pixel_size;
+            }
+        );
 
 		if (it != caches.end())
 		{

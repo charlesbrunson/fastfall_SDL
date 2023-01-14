@@ -40,12 +40,12 @@ bool ShaderAsset::loadFromFile() {
                     xml_node<>* link = node->first_node("link");
                     while(link) {
                         if (auto* ptr = link->first_attribute("file")) {
-                            std::string_view file = ptr->value();
-                            if (file.ends_with(".vert")) {
-                                vertex_path = asset_path.parent_path().concat(file);
+                            std::filesystem::path file = ptr->value();
+                            if (file.extension() == ".vert") {
+                                vertex_path = asset_path.parent_path() / file;
                             }
-                            else if (file.ends_with(".frag")) {
-                                vertex_path = asset_path.parent_path().concat(file);
+                            else if (file.extension() == ".frag") {
+                                fragment_path = asset_path.parent_path() / file;
                             }
                             else {
                                 throw parse_error("unable to determine shader link type", nullptr);

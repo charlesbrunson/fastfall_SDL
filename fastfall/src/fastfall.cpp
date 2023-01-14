@@ -38,7 +38,7 @@ bool Load_Resources() {
         return false;
     }
 
-    bool result = Resources::loadAll("fileindex.xml")
+    bool result = Resources::loadAll()
                && Resources::compileShaders();
     if (!result) {
         LOG_ERR_("Could not load assets");

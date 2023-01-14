@@ -189,8 +189,7 @@ void TestState::update(secs deltaTime) {
 		{
 			auto tile = tileset->getTile(*tile_id);
 
-			std::string_view tileset_name = tileset->getAssetName();
-
+			std::string_view tileset_name = tileset->get_name();
 			std::string_view layer_name = world->at(edit->get_tile_layer()->tile_layer_id).getName();
 			unsigned layer_id = edit->get_tile_layer()->layer_id;
 			int layer_pos = layer;

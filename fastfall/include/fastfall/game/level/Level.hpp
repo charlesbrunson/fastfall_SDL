@@ -45,7 +45,7 @@ public:
 	inline const std::string& name() const { return levelName; };
 
 	void resize(World& world, Vec2u n_size);
-	void set_name(std::string name) { levelName = name; };
+	void set_name(std::string_view name) { levelName = name; };
 	void set_bg_color(Color color) { bgColor = color; };
 
 	Layers& get_layers() { return layers; };

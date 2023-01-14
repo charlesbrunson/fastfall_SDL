@@ -29,18 +29,15 @@ public:
 
 	inline bool isLoaded() { return loaded; };
 	inline std::filesystem::path get_path() const { return asset_path; };
+    inline std::string_view get_name() const { return asset_name; }
 
 protected:
 	bool out_of_date = false;
     std::filesystem::path asset_path;
+    std::string asset_name;
 	bool loaded = false;
 };
 
-template<typename T>
-struct flat_type
-{
-};
-
-std::vector<int8_t> readFile(const char* filename);
+std::vector<int8_t> readFile(const std::filesystem::path& filename);
 
 }

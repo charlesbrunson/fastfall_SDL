@@ -66,7 +66,7 @@ bool SpriteAsset::loadFromFile() {
 					if (texLoaded)
 						throw parse_error("too many sprite sources", nullptr);
 
-                    set_texture_path(asset_path.parent_path().concat(source_attr->value()));
+                    set_texture_path(asset_path.parent_path() / source_attr->value());
 					if (!TextureAsset::loadFromFile())
 						throw parse_error("could not load sprite source", nullptr);
 
@@ -394,7 +394,7 @@ AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
 
         animation_table[existing_id] = std::move(anim);
     }
-    LOG_INFO("loaded anim: {} - {}", panim.owner->get_path().c_str(), panim.name);
+    LOG_INFO("added anim: {} - {}", panim.owner->get_name().data(), panim.name);
     return existing_id;
 }
 

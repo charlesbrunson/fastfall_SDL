@@ -27,7 +27,7 @@ struct asset_type {
     using map = std::map<std::string, std::unique_ptr<T>, std::less<>>;
 
     const std::type_index type = typeid(T);
-    std::string_view extension;
+    std::filesystem::path extension;
     map assets;
 };
 
@@ -62,6 +62,12 @@ private:
         }, all_asset_types());
     }
 
+    constexpr void for_each_asset_type(auto&& fn) {
+        std::apply([&](auto&&... type) {
+            (fn(type), ...);
+        }, all_asset_types());
+    }
+
     constexpr void for_each_asset(auto&& fn) {
         for_each_asset_map([&](auto& map) {
             for (auto& it : map) {
@@ -75,6 +81,8 @@ private:
         return std::get<asset_type<T>&>(all_asset_types()).assets;
     }
 
+    bool loadAssetsFromDirectory(const std::filesystem::path& asset_dir);
+
 public:
 	static void loadControllerDB();
 	static void addLoadedToWatcher();
@@ -85,6 +93,9 @@ public:
         auto it = map.find(filename);
         if (it != map.end()) {
             return it->second.get();
+        }
+        else {
+            LOG_ERR_("Asset {} not found", filename);
         }
         return nullptr;
     }
@@ -97,7 +108,7 @@ public:
         return *r.first->second.get();
     }
 
-    static bool loadAll(std::string_view filename);
+    static bool loadAll();
     static void unloadAll();
     static bool compileShaders();
 	static bool reloadOutOfDateAssets();

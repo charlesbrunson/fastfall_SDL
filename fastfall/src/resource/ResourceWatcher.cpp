@@ -49,7 +49,7 @@ void ResourceWatcher::add_watch(Asset* asset, const std::vector<std::filesystem:
 
 			std::string relative_pathstr = path.generic_string().substr(root.generic_string().length() + 1);
 
-			LOG_INFO("{:20} watching file \"{}\"", asset->getAssetName(), relative_pathstr);
+			LOG_INFO("{:20} watching file \"{}\"", asset->get_name(), relative_pathstr);
 			return File{ path };
 		}
 	);
@@ -119,7 +119,7 @@ void ResourceWatcher::routine_watch() {
 			}
 			if (is_modified) {
 				to_update.insert(watchable.asset);
-				LOG_INFO("Asset \"{}\" is outdated", watchable.asset->getAssetName());
+				LOG_INFO("Asset \"{}\" is outdated", watchable.asset->get_name());
 			}
 		}
 		for (Asset* asset : to_update) {
