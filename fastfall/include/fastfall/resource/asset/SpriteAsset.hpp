@@ -5,7 +5,7 @@
 
 #include "fastfall/util/math.hpp"
 
-#include "fastfall/schema/resource-flat.hpp"
+//#include "fastfall/schema/resource-flat.hpp"
 
 #include <map>
 #include <chrono>
@@ -35,12 +35,12 @@ public:
 	};
 
 
-	SpriteAsset(const std::string& filename);
+	SpriteAsset(const std::filesystem::path& t_asset_path);
 	~SpriteAsset();
 
-	bool loadFromFile(const std::string& relpath) override;
-	bool loadFromFlat(const flat::resources::SpriteAssetF* builder);
-	flatbuffers::Offset<flat::resources::SpriteAssetF> writeToFlat(flatbuffers::FlatBufferBuilder& builder) const;
+	bool loadFromFile() override;
+	//bool loadFromFlat(const flat::resources::SpriteAssetF* builder);
+	//flatbuffers::Offset<flat::resources::SpriteAssetF> writeToFlat(flatbuffers::FlatBufferBuilder& builder) const;
 
 	bool reloadFromFile() override;
 
@@ -58,8 +58,8 @@ public:
 
     std::vector<std::filesystem::path> getDependencies() const override {
         return {
-            getFilePath() + getAssetName(),
-            getTexPath()
+            get_path(),
+            get_texture_path()
         };
     }
 
@@ -92,10 +92,10 @@ public:
     static void reset();
 };
 
-template<>
-struct flat_type<SpriteAsset>
-{
-	using type = flat::resources::SpriteAssetF;
-};
+//template<>
+//struct flat_type<SpriteAsset>
+//{
+//	using type = flat::resources::SpriteAssetF;
+//};
 
 }

@@ -40,7 +40,7 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 		}
 		else 
 		{
-			LOG_ERR_("Tileset: {}, unknown logic type for args at {}", asset.getAssetName(), state.tile.id.to_vec().to_string());
+			LOG_ERR_("Tileset: {}, unknown logic type for args at {}", asset.asset_path.c_str(), state.tile.id.to_vec().to_string());
 		}
 	}},
 	{"next_x", [](TilesetAsset& asset, TileData& state, char* value)
@@ -67,7 +67,7 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 	}},
 	{"next_tileset", [](TilesetAsset& asset, TileData& state, char* value)
 	{
-		if (strlen(value) > 0 && strcmp(asset.getAssetName().c_str(), value) != 0) {
+		if (strlen(value) > 0 && strcmp(asset.asset_path.c_str(), value) != 0) {
 
 			state.tile.next_tileset = asset.getTilesetRefIndex(value);
 		}
@@ -206,8 +206,8 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 };
 
 
-TilesetAsset::TilesetAsset(const std::string& filename) :
-	TextureAsset(filename)
+TilesetAsset::TilesetAsset(const std::filesystem::path& t_asset_path) :
+	TextureAsset(t_asset_path)
 {
 }
 
@@ -314,7 +314,7 @@ void TilesetAsset::loadFromFile_TileProperties(xml_node<>* propsNode, TileData& 
 }
 
 
-void TilesetAsset::loadFromFile_Header(xml_node<>* tileset_node, const std::string_view& relpath)
+void TilesetAsset::loadFromFile_Header(xml_node<>* tileset_node)
 {
 	int columns = atoi(tileset_node->first_attribute("columns")->value());
 	if (columns == 0)
@@ -325,8 +325,8 @@ void TilesetAsset::loadFromFile_Header(xml_node<>* tileset_node, const std::stri
 		throw parse_error("no image node", nullptr);
 
 	std::string source = imgNode->first_attribute("source")->value();
-	fullpath = std::string(relpath) + source;
-	if (!tex.loadFromFile(fullpath))
+    set_texture_path(asset_path.parent_path().concat(source));
+	if (!TextureAsset::loadFromFile())
 		throw parse_error("could not load sprite source", nullptr);
 
 	texTileSize = Vec2u(tex.size()) / TILESIZE;
@@ -354,12 +354,10 @@ void TilesetAsset::loadFromFile_Tile(xml_node<>* tile_node)
 	}
 }
 
-bool TilesetAsset::loadFromFile(const std::string& relpath) {
+bool TilesetAsset::loadFromFile() {
 
 	bool texLoaded = false;
 
-	assetFilePath = relpath;
-	
 	tiles.clear();
 	tilesetRef.clear();
 	tileLogic.clear();
@@ -370,7 +368,7 @@ bool TilesetAsset::loadFromFile(const std::string& relpath) {
 	texTileSize = Vec2u{};
 
 	bool r = true;
-	std::unique_ptr<char[]> charPtr = readXML(assetFilePath + assetName);
+	std::unique_ptr<char[]> charPtr = readXML(asset_path);
 
 	if (charPtr) {
 		char* xmlContent = charPtr.get();
@@ -381,7 +379,7 @@ bool TilesetAsset::loadFromFile(const std::string& relpath) {
 			doc->parse<0>(xmlContent);
 
 			xml_node<>* tilesetNode = doc->first_node("tileset");
-			loadFromFile_Header(tilesetNode, relpath);
+			loadFromFile_Header(tilesetNode);
 
 			tiles = grid_vector<TileData>(texTileSize);
 
@@ -394,12 +392,12 @@ bool TilesetAsset::loadFromFile(const std::string& relpath) {
 			}
 		}
 		catch (parse_error& err) {
-			std::cout << assetName << ": " << err.what() << std::endl;
+			std::cout << asset_path << ": " << err.what() << std::endl;
 			r = false;
 		}
 	}
 	else {
-		std::cout << "Could not open file: " << relpath + assetName << std::endl;
+		std::cout << "Could not open file: " << asset_path << std::endl;
 		r = false;
 	}
 
@@ -410,9 +408,9 @@ bool TilesetAsset::loadFromFile(const std::string& relpath) {
 bool TilesetAsset::reloadFromFile() {
 	bool loaded = false;
 	try {
-		TilesetAsset n_tile{getAssetName()};
+		TilesetAsset n_tile{ asset_path };
 		
-		if (n_tile.loadFromFile(assetFilePath)) {
+		if (n_tile.loadFromFile()) {
 			*this = std::move(n_tile);
 			for (auto& tile_data : tiles)
 			{
@@ -425,153 +423,6 @@ bool TilesetAsset::reloadFromFile() {
 	{
 	}
 	return loaded;
-}
-
-bool TilesetAsset::loadFromFlat(const flat::resources::TilesetAssetF* builder) 
-{
-	// TODO
-
-	assetName = builder->name()->c_str();
-	texTileSize = Vec2u{ builder->tile_size()->x(), builder->tile_size()->y() };
-
-	tiles.clear();
-	tilesetRef.clear();
-	tileLogic.clear();
-	tileMat.clear();
-	constraints.clear();
-	auto_shape_cache.clear();
-
-	//tiles = std::make_unique<TileData[]>((size_t)texTileSize.x * texTileSize.y);
-	tiles = grid_vector<TileData>(texTileSize);
-
-	// load tilesets
-	for (auto tileset : *builder->tilesets()) {
-		tilesetRef.push_back(tileset->str());
-	}
-
-	// load materials
-	for (auto material : *builder->materials()) {
-		tileMat.push_back(material->str());
-	}
-
-	// load logics
-	for (auto logic : *builder->logics()) {
-		tileLogic.push_back(TilesetLogic{
-			.logicType = logic->logic()->str()
-			});
-		for (auto arg : *logic->logic_arg()) {
-			tileLogic.back().logicArg.push_back(arg->str());
-		}
-	}
-
-	// load tile data
-	size_t ndx = 0;
-	for (auto tile_data : *builder->tile_data()) {
-		TileData& t = tiles[ndx++];
-
-		// shape
-		t.tile.shape.type			= static_cast<TileShape::Type>(tile_data->tile().shape().type());
-		//t.tile.shape.shapeTouches	= tile_data->tile().shape().shape_touches();
-		t.tile.shape.flip_h		= tile_data->tile().shape().hflip();
-		t.tile.shape.flip_v		= tile_data->tile().shape().vflip();
-
-		// tile
-		t.tile.id.value				= tile_data->tile().pos();
-		t.tile.matFacing			= static_cast<Cardinal>(tile_data->tile().facing());
-		t.tile.next_offset.value	= tile_data->tile().next_offset();
-		t.tile.next_tileset			= tile_data->tile().next_tileset_ndx();
-		t.tile.origin = this;
-
-		// tile data
-		t.has_prop_bits		= tile_data->has_prop_bits();
-		t.tileLogicNdx		= tile_data->logic_ndx();
-		t.tileLogicParamNdx = tile_data->logic_arg_ndx();
-		t.tileMatNdx		= tile_data->material_ndx();
-	}
-
-	loaded = tex.loadFromStream(builder->image()->Data(), builder->image()->size());
-	return loaded;
-}
-
-flatbuffers::Offset<flat::resources::TilesetAssetF> TilesetAsset::writeToFlat(flatbuffers::FlatBufferBuilder& builder) const 
-{
-	using namespace flat::resources;
-	using namespace flat::math;
-
-	// write name
-	auto flat_assetName = builder.CreateString(assetName);
-
-	// write tile size
-	Vec2Fu flat_tileSize{ texTileSize.x, texTileSize.y };
-
-	// write tiles
-	std::vector<TileDataF> tiledata_vec;
-
-	for (const auto& tile_data : tiles)
-	{
-		TileShapeF flat_shape{
-			static_cast<uint32_t>(tile_data.tile.shape.type),
-			tile_data.tile.shape.flip_h,
-			tile_data.tile.shape.flip_v
-		};
-
-		TileF flat_tile{
-			tile_data.tile.id.value,
-			flat_shape,
-			static_cast<CardinalF>(tile_data.tile.matFacing),
-			tile_data.tile.next_offset.value,
-			tile_data.tile.has_next_tileset(),
-			(tile_data.tile.next_tileset ? *tile_data.tile.next_tileset : 0u)
-		};
-
-		TileDataF tiledata{
-			flat_tile,
-			tile_data.has_prop_bits,
-			tile_data.tileLogicNdx,
-			tile_data.tileLogicParamNdx,
-			tile_data.tileMatNdx
-		};
-		tiledata_vec.push_back(tiledata);
-	}
-
-	auto flat_tiledata = builder.CreateVectorOfStructs(tiledata_vec);
-
-	// write tilesets
-	auto flat_tilesets	= builder.CreateVectorOfStrings(tilesetRef);
-
-	// write materials
-	auto flat_materials = builder.CreateVectorOfStrings(tileMat);
-
-	// write logic
-	std::vector<flatbuffers::Offset<TilesetLogicF>> logic_vec;
-	for (auto& logic : tileLogic)
-	{
-		auto flat_type = builder.CreateString(logic.logicType);
-		auto flat_args = builder.CreateVectorOfStrings(logic.logicArg);
-
-		TilesetLogicFBuilder flat_logic_builder(builder);
-		flat_logic_builder.add_logic(flat_type);
-		flat_logic_builder.add_logic_arg(flat_args);
-		logic_vec.push_back(flat_logic_builder.Finish());
-	}
-	auto flat_logic = builder.CreateVector(logic_vec);
-
-	// write image data
-	assert(!fullpath.empty());
-	std::vector<int8_t> texData = readFile(fullpath.c_str());
-	auto flat_texdata = builder.CreateVector(texData);
-
-	// finish
-	TilesetAssetFBuilder tileBuilder(builder);
-	tileBuilder.add_name(flat_assetName);
-	tileBuilder.add_image(flat_texdata);
-	tileBuilder.add_tile_size(&flat_tileSize);
-	tileBuilder.add_tile_data(flat_tiledata);
-	tileBuilder.add_tilesets(flat_tilesets);
-	tileBuilder.add_materials(flat_materials);
-	tileBuilder.add_logics(flat_logic);
-	return tileBuilder.Finish();
-
 }
 
 std::optional<Tile> TilesetAsset::getTile(TileID tile_id) const {

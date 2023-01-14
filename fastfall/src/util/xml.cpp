@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-std::unique_ptr<char[]> ff::readXML(std::string path) {
+std::unique_ptr<char[]> ff::readXML(std::filesystem::path path) {
 
 	std::ifstream ndxStream = std::ifstream(path, std::ios::binary | std::ios::ate);
 	std::unique_ptr<char[]> xmlContent;

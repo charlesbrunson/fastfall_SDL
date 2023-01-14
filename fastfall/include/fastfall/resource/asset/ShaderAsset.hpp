@@ -7,9 +7,9 @@ namespace ff {
 
 class ShaderAsset : public Asset {
 public:
-    ShaderAsset(const std::string& assetName);
+    ShaderAsset(const std::filesystem::path& t_asset_path);
 
-    bool loadFromFile(const std::string& relpath) override;
+    bool loadFromFile() override;
     bool reloadFromFile() override;
 
     ShaderProgram& getProgram() { return program; }
@@ -18,9 +18,9 @@ public:
 
     std::vector<std::filesystem::path> getDependencies() const override {
         return {
-            getFilePath() + getAssetName(),
-            getFilePath() + vertex_file,
-            getFilePath() + fragment_file,
+            asset_path,
+            vertex_path,
+            fragment_path,
         };
     }
 
@@ -29,8 +29,8 @@ public:
 
 private:
     ShaderProgram program;
-    std::string vertex_file;
-    std::string fragment_file;
+    std::filesystem::path vertex_path;
+    std::filesystem::path fragment_path;
     std::vector<std::string> uniforms;
 };
 

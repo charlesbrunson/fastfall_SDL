@@ -31,17 +31,16 @@ sf::Int64 AssetStream::getSize()
 
 namespace ff {
 
-Asset::Asset(const std::string& filename) :
-    assetName(filename),
-    ImGuiContent(ImGuiContentType::NONE, filename)
+Asset::Asset(std::filesystem::path t_asset_path) :
+    asset_path(t_asset_path),
+    ImGuiContent(ImGuiContentType::NONE, t_asset_path.generic_string())
 {
-
 };
 
-std::vector<int8_t> readFile(const char* filename) {
+std::vector<int8_t> readFile(std::filesystem::path asset_path) {
 
     // open the file:
-    std::ifstream file(filename, std::ios::binary);
+    std::ifstream file(asset_path, std::ios::binary);
 
     assert(file.is_open());
 

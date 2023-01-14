@@ -84,6 +84,11 @@ namespace ff {
 		return true;
 	}
 
+    bool Font::loadFromFile(std::filesystem::path font_path)
+    {
+        return loadFromFile(std::string_view{ font_path.c_str() });
+    }
+
 	bool Font::loadFromStream(const void* font_data, short length)
 	{
 		unload();

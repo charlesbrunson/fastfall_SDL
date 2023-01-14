@@ -75,7 +75,7 @@ Texture& Texture::operator=(Texture&& tex) noexcept
 	return *this;
 }
 
-bool Texture::loadFromFile(const std::string_view filename) {
+bool Texture::loadFromFile(std::string_view filename) {
 
 	SDL_Surface* surf = IMG_Load(filename.data());
 	checkSDL(surf);
@@ -84,6 +84,17 @@ bool Texture::loadFromFile(const std::string_view filename) {
 	SDL_FreeSurface(surf);
 
 	return exists();
+}
+
+bool Texture::loadFromFile(std::filesystem::path filename) {
+
+    SDL_Surface* surf = IMG_Load(filename.c_str());
+    checkSDL(surf);
+
+    loadFromSurface(surf);
+    SDL_FreeSurface(surf);
+
+    return exists();
 }
 
 

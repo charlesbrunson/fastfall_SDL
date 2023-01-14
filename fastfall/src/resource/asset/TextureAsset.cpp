@@ -12,25 +12,26 @@
 
 namespace ff {
 
-TextureAsset::TextureAsset(const std::string& filename) :
-	Asset(filename)
+TextureAsset::TextureAsset(const std::filesystem::path& t_asset_path) :
+	Asset(t_asset_path)
 {
 	imgui_title = "Texture Preview" + ImGui_ContentTag();
 }
 
+void TextureAsset::set_texture_path(const std::filesystem::path& t_tex_path) {
+    texture_path = t_tex_path;
+}
 
-bool TextureAsset::loadFromFile(const std::string& path_to_image) {
-	fullpath = path_to_image;
-
+bool TextureAsset::loadFromFile() {
 	if (loaded) {
 		ff::Texture n_tex;
-		bool n_loaded = n_tex.loadFromFile(fullpath);
+		bool n_loaded = n_tex.loadFromFile(texture_path);
 		if (n_loaded) {
 			tex = std::move(n_tex);
 		}
 	}
 	else {
-		loaded = tex.loadFromFile(fullpath);
+		loaded = tex.loadFromFile(texture_path);
 	}
 
 	return loaded;
@@ -39,7 +40,7 @@ bool TextureAsset::loadFromFile(const std::string& path_to_image) {
 bool TextureAsset::reloadFromFile() {
 
 	ff::Texture n_tex;
-	bool n_loaded = n_tex.loadFromFile(fullpath);
+	bool n_loaded = n_tex.loadFromFile(texture_path);
 	if (n_loaded) {
 		tex = std::move(n_tex);
 	}
@@ -47,7 +48,7 @@ bool TextureAsset::reloadFromFile() {
 }
 
 void TextureAsset::ImGui_getContent() {
-	ImGui::Text("%s", getAssetName().c_str());
+	ImGui::Text("%s", texture_path.c_str());
 	ImGui::SameLine(ImGui::GetWindowWidth() - 100);
 	if (ImGui::Button("Show Texture")) {
 		imgui_showTex = true;

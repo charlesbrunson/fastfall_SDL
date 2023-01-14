@@ -7,9 +7,9 @@ namespace ff {
 
 	class FontAsset : public Asset {
 	public:
-		FontAsset(const std::string& filename);
+		FontAsset(const std::filesystem::path& t_asset_path);
 
-		bool loadFromFile(const std::string& path_to_image) override;
+		bool loadFromFile() override;
 
 		bool reloadFromFile() override;
 
@@ -17,13 +17,12 @@ namespace ff {
 
 		void ImGui_getContent() override;
 
-		operator const Font&() const
-		{
+		operator const Font&() const {
 			return getFont();
 		}
 
         std::vector<std::filesystem::path> getDependencies() const override {
-            return { getFilePath() + getAssetName() };
+            return { asset_path };
         }
 
 	protected:

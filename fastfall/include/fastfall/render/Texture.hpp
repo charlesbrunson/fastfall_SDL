@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string_view>
+#include <filesystem>
 
 #include "glm/glm.hpp"
 
@@ -46,7 +47,8 @@ public:
 	Texture(Texture&& tex) noexcept;
 	Texture& operator=(Texture&& tex) noexcept;
 
-	bool loadFromFile(const std::string_view filename);
+	bool loadFromFile(std::string_view filename);
+    bool loadFromFile(std::filesystem::path filename);
 	bool loadFromStream(const void* data, short length);
 	bool loadFromSurface(const SDL_Surface* surface);
 

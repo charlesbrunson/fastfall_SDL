@@ -2,25 +2,23 @@
 namespace ff
 {
 
-	FontAsset::FontAsset(const std::string& filename) 
-		: Asset(filename)
+	FontAsset::FontAsset(const std::filesystem::path& t_asset_path)
+		: Asset(t_asset_path)
 	{
 		imgui_title = "Font Preview" + ImGui_ContentTag();
 	}
 
-	bool FontAsset::loadFromFile(const std::string& path_to_image) 
+	bool FontAsset::loadFromFile()
 	{
-		assetFilePath = path_to_image;
-
 		if (loaded) {
 			Font n_font;
-			bool n_loaded = n_font.loadFromFile(assetFilePath + assetName);
+			bool n_loaded = n_font.loadFromFile(asset_path);
 			if (n_loaded) {
 				font = std::move(n_font);
 			}
 		}
 		else {
-			loaded = font.loadFromFile(assetFilePath + assetName);
+			loaded = font.loadFromFile(asset_path);
 		}
 
 		return loaded;
@@ -28,11 +26,11 @@ namespace ff
 
 	bool FontAsset::reloadFromFile() 
 	{
-		return loadFromFile(assetFilePath);
+		return loadFromFile();
 	}
 
 	void FontAsset::ImGui_getContent() {
-		ImGui::Text("%s", getAssetName().c_str());
+		ImGui::Text("%s", asset_path.c_str());
 		/*
 		ImGui::SameLine(ImGui::GetWindowWidth() - 100);
 		if (ImGui::Button("Show Texture")) {

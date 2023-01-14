@@ -9,7 +9,7 @@
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/grid_vector.hpp"
 
-#include "fastfall/schema/resource-flat.hpp"
+//#include "fastfall/schema/resource-flat.hpp"
 #include <map>
 #include <optional>
 
@@ -60,11 +60,11 @@ protected:
 
 public:
 
-	TilesetAsset(const std::string& filename);
+	TilesetAsset(const std::filesystem::path& t_asset_path);
 
-	bool loadFromFile(const std::string& relpath) override;
-	bool loadFromFlat(const flat::resources::TilesetAssetF* builder);
-	flatbuffers::Offset<flat::resources::TilesetAssetF> writeToFlat(flatbuffers::FlatBufferBuilder& builder) const;
+	bool loadFromFile() override;
+	//bool loadFromFlat(const flat::resources::TilesetAssetF* builder);
+	//flatbuffers::Offset<flat::resources::TilesetAssetF> writeToFlat(flatbuffers::FlatBufferBuilder& builder) const;
 
 	bool reloadFromFile() override;
 
@@ -91,15 +91,15 @@ public:
 
     std::vector<std::filesystem::path> getDependencies() const override {
         return {
-            getFilePath() + getAssetName(),
-            getTexPath()
+            get_path(),
+            get_texture_path()
         };
     }
 
 protected:
 	
 	void loadFromFile_TileProperties(rapidxml::xml_node<>* propsNode, TileData& t);
-	void loadFromFile_Header(rapidxml::xml_node<>* tileset_node, const std::string_view& relpath);
+	void loadFromFile_Header(rapidxml::xml_node<>* tileset_node);
 	void loadFromFile_Tile(rapidxml::xml_node<>* tile_node);
 
 	constexpr size_t get_ndx(Vec2u pos) const {
@@ -111,10 +111,10 @@ protected:
 
 };
 
-template<>
-struct flat_type<TilesetAsset>
-{
-	using type = flat::resources::TilesetAssetF;
-};
+//template<>
+//struct flat_type<TilesetAsset>
+//{
+//	using type = flat::resources::TilesetAssetF;
+//};
 
 }

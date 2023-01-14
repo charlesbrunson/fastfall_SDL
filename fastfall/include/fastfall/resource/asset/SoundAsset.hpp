@@ -8,9 +8,9 @@ namespace ff {
 
 class SoundAsset : public Asset {
 public:
-    SoundAsset(const std::string& filename);
+    SoundAsset(const std::filesystem::path& t_asset_path);
 
-    bool loadFromFile(const std::string& relpath) override;
+    bool loadFromFile() override;
     bool reloadFromFile() override;
 
     std::vector<std::filesystem::path> getDependencies() const override;

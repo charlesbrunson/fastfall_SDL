@@ -2,24 +2,23 @@
 
 namespace ff {
 
-SoundAsset::SoundAsset(const std::string& filename)
-    : Asset(filename)
+SoundAsset::SoundAsset(const std::filesystem::path& t_asset_path)
+    : Asset(t_asset_path)
 {
 }
 
-bool SoundAsset::loadFromFile(const std::string& relpath) {
-    assetFilePath = relpath;
-    loaded = sound.load((assetFilePath + assetName).c_str()) == SoLoud::SO_NO_ERROR;
+bool SoundAsset::loadFromFile() {
+    loaded = sound.load(asset_path.c_str()) == SoLoud::SO_NO_ERROR;
     return loaded;
 }
 
 bool SoundAsset::reloadFromFile() {
-    return loadFromFile(assetFilePath);
+    return loadFromFile();
 }
 
 std::vector<std::filesystem::path> SoundAsset::getDependencies() const {
     return {
-        { assetFilePath + assetName }
+        asset_path
     };
 }
 

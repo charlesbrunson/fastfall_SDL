@@ -5,10 +5,10 @@
 using namespace rapidxml;
 
 #include <memory>
-#include <string>
+#include <filesystem>
 
 namespace ff {
 
-std::unique_ptr<char[]> readXML(std::string path);
+std::unique_ptr<char[]> readXML(std::filesystem::path path);
 
 }

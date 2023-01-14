@@ -65,28 +65,26 @@ void Resources::unloadAll()
 ////////////////////////////////////////////////////////////
 
 // indexfile parsing
-std::vector<std::string> parseDataNodes(xml_node<>* first_node, const char* type);
+std::vector<std::filesystem::path> parseDataNodes(xml_node<>* first_node, const char* type);
 
 struct AssetInfo {
-    std::string path;
-    std::vector<std::string> asset_names;
+    std::vector<std::filesystem::path> files;
 };
 
 template<is_asset Type>
 bool loadAssets(const AssetInfo& info) {
 
-	for (const auto& asset : info.asset_names)
+	for (const auto& asset_path : info.files)
 	{
-		std::unique_ptr<Type> ptr = std::make_unique<Type>(asset);
-		std::string small_path = info.path.substr(info.path.rfind("data/") + 5);
+		std::unique_ptr<Type> ptr = std::make_unique<Type>(asset_path);
 
 		log::scope scope;
-		if (ptr->loadFromFile(info.path)) {
-			Resources::add(asset, std::move(ptr));
-			LOG_INFO("{}{} ... complete", small_path, asset);
+		if (ptr->loadFromFile()) {
+			Resources::add(asset_path.c_str(), std::move(ptr));
+			LOG_INFO("{} ... complete", asset_path.c_str());
 		}
 		else {
-			LOG_ERR_("{0}{1} ... failed to load: {2}, {1}", small_path, asset, typeid(*ptr.get()).name());
+			LOG_ERR_("{} ... failed to load: {}", asset_path.c_str(), typeid(Type).name());
 			return false;
 		}
 	}
@@ -110,7 +108,7 @@ bool loadFromIndex(std::string_view indexFile)
         { "tilesets", { "tileset", &tileset_info } },
         { "levels",   { "level",   &level_info   } },
         { "fonts",    { "font",    &font_info    } },
-        { "sounds",    { "sound",    &sound_info    } },
+        { "sounds",   { "sound",   &sound_info   } },
     };
 
     std::string dataPath = std::string(FF_DATAPATH) + "data/";
@@ -144,8 +142,7 @@ bool loadFromIndex(std::string_view indexFile)
                         it != all_info.end())
                     {
                         auto& [xml_type, info] = it->second;
-                        info->path = dataPath + datatypePath;
-                        info->asset_names = parseDataNodes(datatype->first_node(), xml_type.c_str());
+                        info->files = parseDataNodes(datatype->first_node(), xml_type.c_str());
                     }
                     else {
                         LOG_WARN("error parsing index file: unknown asset type {}", name);
@@ -176,14 +173,14 @@ bool loadFromIndex(std::string_view indexFile)
 	return r;
 }
 
-std::vector<std::string> parseDataNodes(xml_node<>* first_node, const char* type) {
+std::vector<std::filesystem::path> parseDataNodes(xml_node<>* first_node, std::string_view type) {
 
 	xml_node<>* node = first_node;
-	std::vector<std::string> names;
+	std::vector<std::filesystem::path> names;
 
 	while (node) {
 		if (auto name_attr = node->first_attribute("name");
-			strcmp(node->name(), type) == 0	&& name_attr)
+			strcmp(node->name(), type.data()) == 0	&& name_attr)
 		{
 			names.push_back(name_attr->value());
 		}
@@ -260,7 +257,7 @@ bool Resources::reloadOutOfDateAssets()
     resource.for_each_asset([&](Asset* asset) {
         if (asset->isOutOfDate() && asset->isLoaded())
         {
-            LOG_INFO("Reloading asset \"{}\"", asset->getAssetName());
+            LOG_INFO("Reloading asset \"{}\"", asset->get_path().c_str());
             bool reloaded = asset->reloadFromFile();
             asset->setOutOfDate(false);
 

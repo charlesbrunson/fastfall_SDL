@@ -12,7 +12,7 @@
 #include "fastfall/render/Color.hpp"
 
 //#include <SFML/Graphics.hpp>
-#include "fastfall/schema/resource-flat.hpp"
+//#include "fastfall/schema/resource-flat.hpp"
 
 namespace ff {
 
@@ -24,11 +24,11 @@ class LevelAsset : public Asset {
 public:
 	using Layers = LevelLayerContainer<TileLayerData, ObjectLayerData>;
 
-	LevelAsset(const std::string& filename);
+	LevelAsset(const std::filesystem::path& t_asset_path);
 
-	bool loadFromFile(const std::string& relpath) override;
-	bool loadFromFlat(const flat::resources::LevelAssetF* builder);
-	flatbuffers::Offset<flat::resources::LevelAssetF> writeToFlat(flatbuffers::FlatBufferBuilder& builder) const;
+	bool loadFromFile() override;
+	//bool loadFromFlat(const flat::resources::LevelAssetF* builder);
+	//flatbuffers::Offset<flat::resources::LevelAssetF> writeToFlat(flatbuffers::FlatBufferBuilder& builder) const;
 
 	bool reloadFromFile() override;
 
@@ -40,9 +40,7 @@ public:
 	void ImGui_getContent() override;
 
     std::vector<std::filesystem::path> getDependencies() const override {
-        return {
-            getFilePath() + getAssetName()
-        };
+        return { asset_path };
     }
 
 protected:
@@ -53,10 +51,10 @@ protected:
 
 };
 
-template<>
-struct flat_type<LevelAsset>
-{
-	using type = flat::resources::LevelAssetF;
-};
+//template<>
+//struct flat_type<LevelAsset>
+//{
+//	using type = flat::resources::LevelAssetF;
+//};
 
 }

@@ -17,10 +17,9 @@ public:
 	static AnimID parseAnimation(xml_node<>* animationNode, SpriteAsset& asset);
 };
 
-SpriteAsset::SpriteAsset(const std::string& filename) :
-	TextureAsset(filename)
+SpriteAsset::SpriteAsset(const std::filesystem::path& t_asset_path) :
+	TextureAsset(t_asset_path)
 {
-
 }
 
 SpriteAsset::~SpriteAsset() {
@@ -32,13 +31,12 @@ SpriteAsset::~SpriteAsset() {
 const std::vector<SpriteAsset::ParsedAnim>& SpriteAsset::getParsedAnims() {
 	return parsedAnims;
 }
-bool SpriteAsset::loadFromFile(const std::string& relpath) {
+bool SpriteAsset::loadFromFile() {
 
 	bool texLoaded = false;
 	bool r = true;
 
-	assetFilePath = relpath;
-	std::unique_ptr<char[]> charPtr = readXML(assetFilePath + assetName);
+	std::unique_ptr<char[]> charPtr = readXML(asset_path);
 
 	parsedAnims.clear();
 	anims.clear();
@@ -68,7 +66,8 @@ bool SpriteAsset::loadFromFile(const std::string& relpath) {
 					if (texLoaded)
 						throw parse_error("too many sprite sources", nullptr);
 
-					if (!TextureAsset::loadFromFile(relpath + std::string(source_attr->value())))
+                    set_texture_path(asset_path.parent_path().concat(source_attr->value()));
+					if (!TextureAsset::loadFromFile())
 						throw parse_error("could not load sprite source", nullptr);
 
 					texLoaded = true;
@@ -85,12 +84,12 @@ bool SpriteAsset::loadFromFile(const std::string& relpath) {
 				throw parse_error("no image", nullptr);
 		}
 		catch (parse_error& err) {
-			std::cout << assetName << ": " << err.what() << std::endl;
+			std::cout << asset_path << ": " << err.what() << std::endl;
 			r = false;
 		}
 	}
 	else {
-		std::cout << "Could not open file: " << relpath + assetName << std::endl;
+		std::cout << "Could not open file: " << asset_path << std::endl;
 		r = false;
 	}
 
@@ -100,7 +99,7 @@ bool SpriteAsset::loadFromFile(const std::string& relpath) {
 
 
 bool SpriteAsset::reloadFromFile() {
-	return loadFromFile(assetFilePath);
+	return loadFromFile();
 }
 
 AnimID AnimCompiler::parseAnimation(xml_node<>* animationNode, SpriteAsset& asset)
@@ -170,7 +169,7 @@ AnimID AnimCompiler::parseAnimation(xml_node<>* animationNode, SpriteAsset& asse
 	return AnimDB::add_animation(anim);
 }
 void SpriteAsset::ImGui_getContent() {
-	ImGui::Text("%s", getAssetName().c_str());
+	ImGui::Text("%s", asset_path.c_str());
 	ImGui::SameLine(ImGui::GetWindowWidth() - 100);
 	if (ImGui::Button("Show Sprite")) {
 		imgui_showTex = true;
@@ -312,101 +311,6 @@ void SpriteAsset::ImGui_getContent() {
 	}
 }
 
-bool SpriteAsset::loadFromFlat(const flat::resources::SpriteAssetF* builder) {
-	//auto t = std::unique_ptr<flat::resources::SpriteAssetT>(builder->UnPack());
-
-	assetName = builder->name()->string_view();
-
-	parsedAnims.clear();
-
-	//for (auto& animT : builder->animations) {
-	for (auto animT = builder->animations()->begin(); animT != builder->animations()->end(); animT++) {
-		ParsedAnim anim;
-
-		anim.owner = this;
-
-		anim.name = animT->name()->string_view();
-		anim.area = Recti(
-			animT->area()->left(),
-			animT->area()->top(),
-			animT->area()->width(),
-			animT->area()->height()
-		);
-		anim.origin = Vec2i(
-			animT->origin()->x(),
-			animT->origin()->y()
-		);
-		anim.framerateMS.insert(anim.framerateMS.end(), animT->framerate_ms()->begin(), animT->framerate_ms()->end());
-
-		anim.loop = animT->loop();
-		anim.has_chain = animT->has_chain();
-		if (anim.has_chain) {
-			anim.chain_anim_name = animT->chain_anim_name()->string_view();
-			anim.chain_spr_name = animT->chain_spr_name()->string_view();
-			anim.chain_frame = animT->chain_frame();
-		}
-		parsedAnims.push_back(std::move(anim));
-		AnimDB::add_animation(parsedAnims.back());
-	}
-
-	loaded = tex.loadFromStream(builder->image()->Data(), builder->image()->size());
-	return loaded;
-}
-
-flatbuffers::Offset<flat::resources::SpriteAssetF> SpriteAsset::writeToFlat(flatbuffers::FlatBufferBuilder& builder) const {
-
-	using namespace flat::resources;
-	using namespace flat::math;
-
-	// animations
-	std::vector<flatbuffers::Offset<AnimationAssetF>> anims;
-	for (const ParsedAnim& anim : parsedAnims) {
-		//const Animation* anim = &animpair.second;
-
-		//auto assetName = builder.CreateString(anim.owner->assetName());
-		auto animName = builder.CreateString(anim.name);
-		RectFi area(anim.area.left, anim.area.top, anim.area.width, anim.area.height);
-		Vec2Fi origin(anim.origin.x, anim.origin.y);
-		auto framerate = builder.CreateVector(anim.framerateMS);
-
-		auto chain_spr_str = builder.CreateString(anim.chain_spr_name);
-		auto chain_name_str = builder.CreateString(anim.chain_anim_name);
-
-		AnimationAssetFBuilder animBuilder(builder);
-		animBuilder.add_name(animName);
-		//animBuilder.add_spr_name(assetName);
-		animBuilder.add_area(&area);
-		animBuilder.add_origin(&origin);
-		animBuilder.add_framerate_ms(framerate);
-		animBuilder.add_loop(anim.loop);
-		animBuilder.add_has_chain(anim.has_chain);
-		if (anim.has_chain) {
-			animBuilder.add_chain_spr_name(chain_spr_str);
-			animBuilder.add_chain_anim_name(chain_name_str);
-			animBuilder.add_chain_frame(anim.chain_frame);
-		}
-		anims.push_back(animBuilder.Finish());
-	}
-
-	auto flat_assetName = builder.CreateString(assetName);
-	auto flat_anims = builder.CreateVector(anims);
-
-	// texture data
-	assert(!fullpath.empty());
-	std::vector<int8_t> texData = readFile(fullpath.c_str());
-	auto flat_texdata = builder.CreateVector(texData);
-
-	SpriteAssetFBuilder spriteBuilder(builder);
-
-	// sprite name
-	assert(!assetName.empty());
-	spriteBuilder.add_name(flat_assetName);
-	spriteBuilder.add_animations(flat_anims);
-	spriteBuilder.add_image(flat_texdata);
-
-	return spriteBuilder.Finish();
-}
-
 std::map<std::pair<std::string, std::string>, AnimID> AnimDB::anim_lookup_table;
 std::map<AnimID, Animation> AnimDB::animation_table;
 
@@ -455,11 +359,11 @@ AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
 
     log::scope scope;
 
-    AnimID existing_id = get_animation_id(panim.owner->getAssetName(), panim.name);
+    AnimID existing_id = get_animation_id(panim.owner->get_path().c_str(), panim.name);
 
     if (existing_id == AnimID::NONE) {
         AnimID nID = AnimID::reserve_id();
-        auto key = std::pair<std::string, std::string>(panim.owner->getAssetName(), panim.name);
+        auto key = std::pair<std::string, std::string>(panim.owner->get_path().c_str(), panim.name);
         anim_lookup_table.insert(std::make_pair(key, nID));
 
 
@@ -490,7 +394,7 @@ AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
 
         animation_table[existing_id] = std::move(anim);
     }
-    LOG_INFO("loaded anim: {} - {}", panim.owner->getAssetName(), panim.name);
+    LOG_INFO("loaded anim: {} - {}", panim.owner->get_path().c_str(), panim.name);
     return existing_id;
 }
 

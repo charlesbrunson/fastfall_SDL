@@ -9,23 +9,25 @@ namespace ff {
 
 class TextureAsset : public Asset {
 public:
-	TextureAsset(const std::string& filename);
+	TextureAsset(const std::filesystem::path& t_asset_path);
 
 	inline const Texture& getTexture() const noexcept {
 		return tex;
 	}
 
-	bool loadFromFile(const std::string& path_to_image) override;
+    void set_texture_path(const std::filesystem::path& t_tex_path);
+
+	bool loadFromFile() override;
 
 	bool reloadFromFile() override;
 
 	void ImGui_getContent() override;
 
-	inline std::string getTexPath() const noexcept { return fullpath; };
+	inline auto get_texture_path() const noexcept { return texture_path; };
 
 protected:
 
-	std::string fullpath;
+    std::filesystem::path texture_path;
 
 	std::string imgui_title;
 	bool imgui_showTex = false;

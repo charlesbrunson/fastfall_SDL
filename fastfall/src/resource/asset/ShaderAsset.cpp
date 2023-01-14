@@ -9,21 +9,20 @@ using namespace rapidxml;
 
 namespace ff {
 
-ShaderAsset::ShaderAsset(const std::string& assetName)
-    : Asset(assetName)
+ShaderAsset::ShaderAsset(const std::filesystem::path& t_asset_path)
+    : Asset(t_asset_path)
 {
 }
 
-bool ShaderAsset::loadFromFile(const std::string& relpath) {
+bool ShaderAsset::loadFromFile() {
 
     program = {};
     uniforms.clear();
-    vertex_file.clear();
-    fragment_file.clear();
+    vertex_path.clear();
+    fragment_path.clear();
 
     bool r = true;
-    assetFilePath = relpath;
-    std::unique_ptr<char[]> charPtr = readXML(assetFilePath + assetName);
+    std::unique_ptr<char[]> charPtr = readXML(asset_path);
     if (charPtr) {
         char *xmlContent = charPtr.get();
         auto doc = std::make_unique<xml_document<>>();
@@ -43,10 +42,10 @@ bool ShaderAsset::loadFromFile(const std::string& relpath) {
                         if (auto* ptr = link->first_attribute("file")) {
                             std::string_view file = ptr->value();
                             if (file.ends_with(".vert")) {
-                                vertex_file = file;
+                                vertex_path = asset_path.parent_path().concat(file);
                             }
                             else if (file.ends_with(".frag")) {
-                                fragment_file = file;
+                                vertex_path = asset_path.parent_path().concat(file);
                             }
                             else {
                                 throw parse_error("unable to determine shader link type", nullptr);
@@ -74,25 +73,25 @@ bool ShaderAsset::loadFromFile(const std::string& relpath) {
             }
         }
         catch (parse_error& err) {
-            std::cout << assetName << ": " << err.what() << std::endl;
+            std::cout << asset_path << ": " << err.what() << std::endl;
             r = false;
         }
     }
     else {
-        std::cout << "Could not open file: " << relpath + assetName << std::endl;
+        std::cout << "Could not open file: " << asset_path << std::endl;
         r = false;
     }
 
-    r &= !vertex_file.empty();
-    r &= !fragment_file.empty();
+    r &= !vertex_path.empty();
+    r &= !fragment_path.empty();
     loaded = r;
     return r;
 }
 
 bool ShaderAsset::reloadFromFile() {
     try {
-        ShaderAsset nasset{ assetName };
-        bool r = nasset.loadFromFile(assetFilePath) && nasset.compileShaderFromFile();
+        ShaderAsset nasset{ asset_path };
+        bool r = nasset.loadFromFile() && nasset.compileShaderFromFile();
         if (r) {
             *this = std::move(nasset);
         }
@@ -105,34 +104,26 @@ bool ShaderAsset::reloadFromFile() {
 }
 
 bool ShaderAsset::compileShaderFromFile() {
-    program = ShaderProgram{};
-    {
-        std::stringstream stream;
-        std::ifstream file{assetFilePath + vertex_file};
-        if (file.is_open()) {
-            stream << ShaderProgram::getGLSLVersionString();
-            stream << file.rdbuf();
-            program.add(ShaderType::VERTEX, stream.str());
-        } else {
-            LOG_ERR_("{}: unable to compile, {} not found", assetFilePath + assetName, assetFilePath + vertex_file);
-            program = ShaderProgram{};
-            return false;
-        }
-    }
 
-    {
+    program = ShaderProgram{};
+
+    auto load_shader = [&](const std::filesystem::path& file_path, ShaderType type) {
         std::stringstream stream;
-        std::ifstream file{assetFilePath + fragment_file};
+        std::ifstream file{ file_path };
         if (file.is_open()) {
             stream << ShaderProgram::getGLSLVersionString();
             stream << file.rdbuf();
-            program.add(ShaderType::FRAGMENT, stream.str());
+            program.add(type, stream.str());
+            return true;
         } else {
-            LOG_ERR_("{}: unable to compile, {} not found", assetFilePath + assetName, assetFilePath + vertex_file);
+            LOG_ERR_("{}: unable to compile, {} not found", asset_path.c_str(), file_path.c_str());
             program = ShaderProgram{};
             return false;
         }
-    }
+    };
+
+    if (!load_shader(vertex_path, ShaderType::VERTEX)) { return false; }
+    if (!load_shader(fragment_path, ShaderType::FRAGMENT)) { return false; }
 
     if (program.isInitialized()) {
         program.link();
