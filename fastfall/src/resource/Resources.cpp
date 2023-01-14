@@ -32,6 +32,16 @@ Resources Resources::resource;
 Resources::Resources() :
 	ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Resources", "System")
 {
+    init_asset_types();
+}
+
+void Resources::init_asset_types() {
+    shaders.extension  = "shx";
+    sprites.extension  = "sax";
+    tilesets.extension = "tsx";
+    levels.extension   = "tmx";
+    fonts.extension    = "tff";
+    sounds.extension   = "wav";
 }
 
 bool loadFromIndex(std::string_view indexFile);
@@ -45,14 +55,10 @@ bool Resources::loadAll(std::string_view filename) {
 }
 void Resources::unloadAll()
 {
-	resource.fonts.clear();
 	AnimID::resetCounter();
-	resource.tilesets.clear();
-	resource.sprites.clear();
 	Texture::destroyNullTexture();
-	resource.levels.clear();
-    resource.shaders.clear();
     AnimDB::reset();
+    resource.init_asset_types();
 	LOG_INFO("All resources unloaded");
 }
 
@@ -96,6 +102,7 @@ bool loadFromIndex(std::string_view indexFile)
     AssetInfo tileset_info;
     AssetInfo level_info;
     AssetInfo font_info;
+    AssetInfo sound_info;
 
     std::map<std::string, std::pair<std::string, AssetInfo*>> all_info{
         { "shaders",  { "shader",  &shader_info  } },
@@ -103,6 +110,7 @@ bool loadFromIndex(std::string_view indexFile)
         { "tilesets", { "tileset", &tileset_info } },
         { "levels",   { "level",   &level_info   } },
         { "fonts",    { "font",    &font_info    } },
+        { "sounds",    { "sound",    &sound_info    } },
     };
 
     std::string dataPath = std::string(FF_DATAPATH) + "data/";
@@ -164,6 +172,7 @@ bool loadFromIndex(std::string_view indexFile)
 	r &= loadAssets<SpriteAsset >(sprite_info);
 	r &= loadAssets<TilesetAsset>(tileset_info);
 	r &= loadAssets<LevelAsset  >(level_info);
+    r &= loadAssets<SoundAsset  >(sound_info);
 	return r;
 }
 
@@ -187,6 +196,7 @@ std::vector<std::string> parseDataNodes(xml_node<>* first_node, const char* type
 }
 
 void Resources::ImGui_getContent() {
+    /*
 	if (ImGui::CollapsingHeader("Sprites", ImGuiTreeNodeFlags_DefaultOpen)) {
 		for (auto& asset : sprites) {
 			if (ImGui::BeginChild(asset.second.get()->getAssetName().c_str(), ImVec2(0, 100), true)) {
@@ -211,6 +221,7 @@ void Resources::ImGui_getContent() {
 			ImGui::EndChild();
 		}
 	}
+    */
 }
 
 
@@ -281,13 +292,13 @@ bool Resources::compileShaders() {
     LOG_INFO("Compiling shaders");
     {
         log::scope sc;
-        for (auto &[key, val]: resource.shaders) {
-            if (!val->compileShaderFromFile()) {
-                LOG_ERR_("{} ... failed to compile.", val->getAssetName());
+        for (auto& [name, shader] : resource.shaders.assets) {
+            if (!shader->compileShaderFromFile()) {
+                LOG_ERR_("{} ... failed to compile.", name);
                 allgood = false;
             }
             else {
-                LOG_INFO("{} ... compiled.", val->getAssetName());
+                LOG_INFO("{} ... compiled.", name);
             }
         }
     }

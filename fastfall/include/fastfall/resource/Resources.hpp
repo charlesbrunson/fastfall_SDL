@@ -7,44 +7,59 @@
 #include "fastfall/resource/asset/LevelAsset.hpp"
 #include "fastfall/resource/asset/FontAsset.hpp"
 #include "fastfall/resource/asset/ShaderAsset.hpp"
+#include "fastfall/resource/asset/SoundAsset.hpp"
 
 #include <map>
 #include <memory>
+#include <typeindex>
 
 namespace ff {
+
 
 template<typename T>
 concept is_asset = (std::derived_from<T, Asset> && !std::same_as<T, Asset>);
 
+//template<is_asset T>
+//using AssetMap = std::map<std::string, std::unique_ptr<T>, std::less<>>;
+
 template<is_asset T>
-using AssetMap = std::map<std::string, std::unique_ptr<T>, std::less<>>;
+struct asset_type {
+    using map = std::map<std::string, std::unique_ptr<T>, std::less<>>;
+
+    const std::type_index type = typeid(T);
+    std::string_view extension;
+    map assets;
+};
 
 class Resources : public ImGuiContent {
 private:
 	static Resources resource;
 
 	Resources();
+    void init_asset_types();
 
-    AssetMap<ShaderAsset>   shaders;
-	AssetMap<SpriteAsset>   sprites;
-	AssetMap<TilesetAsset>  tilesets;
-	AssetMap<LevelAsset>    levels;
-	AssetMap<FontAsset>     fonts;
+    asset_type<ShaderAsset>  shaders;
+    asset_type<SpriteAsset>  sprites;
+    asset_type<TilesetAsset> tilesets;
+    asset_type<LevelAsset>   levels;
+    asset_type<FontAsset>    fonts;
+    asset_type<SoundAsset>   sounds;
 
-    constexpr auto all_asset_maps() {
+    constexpr auto all_asset_types() {
         return std::tie(
             shaders,
             sprites,
             tilesets,
             levels,
-            fonts
+            fonts,
+            sounds
         );
     }
 
     constexpr void for_each_asset_map(auto&& fn) {
-        std::apply([&](auto&&... map) {
-            (fn(map), ...);
-        }, all_asset_maps());
+        std::apply([&](auto&&... type) {
+            (fn(type.assets), ...);
+        }, all_asset_types());
     }
 
     constexpr void for_each_asset(auto&& fn) {
@@ -56,8 +71,8 @@ private:
     }
 
     template<is_asset T>
-    constexpr AssetMap<T>& asset_map_for() {
-        return std::get<AssetMap<T>&>(all_asset_maps());
+    constexpr typename asset_type<T>::map& asset_map_for() {
+        return std::get<asset_type<T>&>(all_asset_types()).assets;
     }
 
 public:
