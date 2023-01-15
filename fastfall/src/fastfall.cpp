@@ -38,8 +38,7 @@ bool Load_Resources() {
         return false;
     }
 
-    bool result = Resources::loadAll()
-               && Resources::compileShaders();
+    bool result = Resources::loadAll();
     if (!result) {
         LOG_ERR_("Could not load assets");
     } else {

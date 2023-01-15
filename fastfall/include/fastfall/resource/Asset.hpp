@@ -21,6 +21,8 @@ public:
 	void setOutOfDate(bool is_OOD) { out_of_date = is_OOD; };
 	bool isOutOfDate() const { return out_of_date; };
 
+    virtual bool postLoad() { return true; };
+
 	virtual bool reloadFromFile() = 0;
 
     virtual std::vector<std::filesystem::path> getDependencies() const = 0;

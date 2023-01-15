@@ -35,6 +35,13 @@ Resources::Resources() :
 
 void Resources::init_asset_types() {
 
+    shaders.type_name  = "Shaders";
+    sprites.type_name  = "Sprites";
+    tilesets.type_name = "Tilesets";
+    levels.type_name   = "Levels";
+    fonts.type_name    = "Fonts";
+    sounds.type_name   = "Sound Effects";
+
     shaders.extension  = ".shx";
     sprites.extension  = ".sax";
     tilesets.extension = ".tsx";
@@ -94,18 +101,47 @@ bool Resources::loadAssetsFromDirectory(const std::filesystem::path& asset_dir)
     }
 
 	LOG_INFO("Loading assets");
+    LOG_INFO("");
     bool r = true;
+
+    for_each_asset_type([&]<is_asset T>(asset_type<T>& type) {
+        if (type.assets.empty())
+            return;
+
+        LOG_INFO("+-{:-<20}----------------------------------------+", type.type_name);
+        {
+            log::scope sc;
+            for (auto &[name, asset]: type.assets) {
+                bool success = asset->loadFromFile();
+                r &= success;
+                if (success) {
+                    LOG_INFO("{:40} ...       complete", asset->get_name());
+                    asset->postLoad();
+                } else {
+                    LOG_ERR_("{:40} ... failed to load", asset->get_name());
+                }
+            }
+        }
+        LOG_INFO("+-------------------------------------------------------------+");
+        LOG_INFO("");
+    });
+
+
+
+    /*
     for_each_asset([&](Asset* asset) {
         bool success = asset->loadFromFile();
         r &= success;
         log::scope scope;
         if (success) {
-            LOG_INFO("{} ... complete", asset->get_name());
+            LOG_INFO("{:40} ...       complete", asset->get_name());
+            asset->postLoad();
         }
         else {
-            LOG_ERR_("{} ... failed to load", asset->get_name());
+            LOG_ERR_("{:40} ... failed to load", asset->get_name());
         }
     });
+    */
 	return r;
 }
 
@@ -138,6 +174,8 @@ void Resources::ImGui_getContent() {
 
 
 void Resources::addLoadedToWatcher() {
+    LOG_INFO("Watching asset files:");
+    log::scope sc;
     resource.for_each_asset_map([](auto& asset_map) {
         for (auto& [key, val] : asset_map) {
             ResourceWatcher::add_watch(
@@ -178,6 +216,7 @@ bool Resources::reloadOutOfDateAssets()
 
             log::scope sc;
             if (reloaded) {
+                asset->postLoad();
                 assets_changed.push_back(asset);
                 LOG_INFO("... complete!");
             }
@@ -199,6 +238,7 @@ bool Resources::reloadOutOfDateAssets()
 	return assets_changed.size() > 0;
 }
 
+/*
 bool Resources::compileShaders() {
     bool allgood = true;
     LOG_INFO("Compiling shaders");
@@ -216,5 +256,6 @@ bool Resources::compileShaders() {
     }
     return allgood;
 }
+*/
 
 }

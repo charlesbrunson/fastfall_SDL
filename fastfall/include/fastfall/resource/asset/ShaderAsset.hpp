@@ -14,6 +14,8 @@ public:
 
     ShaderProgram& getProgram() { return program; }
 
+    bool postLoad() override { return compileShaderFromFile(); };
+
     bool compileShaderFromFile();
 
     std::vector<std::filesystem::path> getDependencies() const override {

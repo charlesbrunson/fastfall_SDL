@@ -34,27 +34,17 @@ public:
 		unsigned chain_frame;
 	};
 
-
-	SpriteAsset(const std::filesystem::path& t_asset_path);
-	~SpriteAsset();
+	explicit SpriteAsset(const std::filesystem::path& t_asset_path);
+	~SpriteAsset() override;
 
 	bool loadFromFile() override;
-	//bool loadFromFlat(const flat::resources::SpriteAssetF* builder);
-	//flatbuffers::Offset<flat::resources::SpriteAssetF> writeToFlat(flatbuffers::FlatBufferBuilder& builder) const;
-
 	bool reloadFromFile() override;
 
-	// returns a pointer to the animation, or nullptr if not found
-	//const Animation* getAnimation(const std::string_view animName) const;
+    bool postLoad() override { addParsedAnimsToDB(); return true; };
 
-	[[nodiscard]]
-	const std::vector<ParsedAnim>& getParsedAnims();
-
-	void set_anim_IDs(std::vector<AnimID>&& anim_ids);
+    void addParsedAnimsToDB();
 
 	void ImGui_getContent() override;
-
-	//static std::map<AnimID, Animation> addAnimations(const std::vector<ParsedAnim>& allParsedAnims);
 
     std::vector<std::filesystem::path> getDependencies() const override {
         return {
@@ -66,19 +56,12 @@ public:
 protected:
 	friend AnimCompiler;
 
-	std::vector<ParsedAnim> parsedAnims;
-
-	bool imgui_showAnim = false;
-
-	//std::unique_ptr<AnimatedSprite> imgui_anim;
-
 	AnimatedSprite* imgui_anim = nullptr;
 
+    std::vector<ParsedAnim> parsedAnims;
 	std::vector<AnimID> anims;
 	std::vector<const char*> anims_labels;
 	int anims_current = 0;
-
-	//AnimMap animations;
 };
 
 class AnimDB {
@@ -91,11 +74,5 @@ public:
     static AnimID get_animation_id(std::string_view sprite_name, std::string_view anim_name);
     static void reset();
 };
-
-//template<>
-//struct flat_type<SpriteAsset>
-//{
-//	using type = flat::resources::SpriteAssetF;
-//};
 
 }

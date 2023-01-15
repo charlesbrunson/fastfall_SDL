@@ -5,6 +5,8 @@
 
 #include "fastfall/util/xml.hpp"
 #include "rapidxml.hpp"
+#include "../../render/detail/error.hpp"
+
 using namespace rapidxml;
 
 namespace ff {
@@ -91,7 +93,7 @@ bool ShaderAsset::loadFromFile() {
 bool ShaderAsset::reloadFromFile() {
     try {
         ShaderAsset nasset{ asset_path };
-        bool r = nasset.loadFromFile() && nasset.compileShaderFromFile();
+        bool r = nasset.loadFromFile();
         if (r) {
             *this = std::move(nasset);
         }
@@ -107,6 +109,7 @@ bool ShaderAsset::compileShaderFromFile() {
 
     program = ShaderProgram{};
 
+    log::scope sc;
     auto load_shader = [&](const std::filesystem::path& file_path, ShaderType type) {
         std::stringstream stream;
         std::ifstream file{ file_path };
@@ -116,8 +119,8 @@ bool ShaderAsset::compileShaderFromFile() {
             program.add(type, stream.str());
             return true;
         } else {
-            LOG_ERR_("{}: unable to compile, {} not found", asset_path.c_str(), file_path.c_str());
             program = ShaderProgram{};
+            LOG_ERR_("{}: unable to compile, {} not found", asset_name, file_path.c_str());
             return false;
         }
     };
@@ -126,12 +129,27 @@ bool ShaderAsset::compileShaderFromFile() {
     if (!load_shader(fragment_path, ShaderType::FRAGMENT)) { return false; }
 
     if (program.isInitialized()) {
-        program.link();
+        try {
+            program.link();
+        }
+        catch (Error& e) {
+            LOG_ERR_("{}", e.what())
+        }
 
         for (auto &uniform: uniforms) {
             program.cacheUniform(uniform);
         }
+
+        log::scope sc;
+        if (program.isLinked()) {
+            LOG_INFO("shader compiled", asset_name);
+        }
     }
+    else {
+        LOG_ERR_("failed to initialize", asset_name);
+    }
+
+
     return program.isLinked();
 }
 

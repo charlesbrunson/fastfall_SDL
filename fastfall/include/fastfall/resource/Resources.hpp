@@ -28,6 +28,7 @@ struct asset_type {
 
     //const std::type_index type = typeid(T);
     std::filesystem::path extension;
+    std::string_view type_name;
     map assets;
 };
 
@@ -110,7 +111,7 @@ public:
 
     static bool loadAll();
     static void unloadAll();
-    static bool compileShaders();
+    //static bool compileShaders();
 	static bool reloadOutOfDateAssets();
 
 	void ImGui_getContent();

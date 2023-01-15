@@ -14,7 +14,7 @@ namespace ff {
 
 class AnimCompiler {
 public:
-	static AnimID parseAnimation(xml_node<>* animationNode, SpriteAsset& asset);
+	static SpriteAsset::ParsedAnim parseAnimation(xml_node<>* animationNode, SpriteAsset& asset);
 };
 
 SpriteAsset::SpriteAsset(const std::filesystem::path& t_asset_path) :
@@ -28,9 +28,6 @@ SpriteAsset::~SpriteAsset() {
 	}
 }
 
-const std::vector<SpriteAsset::ParsedAnim>& SpriteAsset::getParsedAnims() {
-	return parsedAnims;
-}
 bool SpriteAsset::loadFromFile() {
 
 	bool texLoaded = false;
@@ -75,7 +72,8 @@ bool SpriteAsset::loadFromFile() {
 				}
 				// parse animation
 				else if (strcmp("animation", node->name()) == 0) {
-					anims.push_back(AnimCompiler::parseAnimation(node, *this));
+					//anims.push_back(AnimCompiler::parseAnimation(node, *this));
+                    parsedAnims.push_back(AnimCompiler::parseAnimation(node, *this));
 				}
 				node = node->next_sibling();
 			}
@@ -97,14 +95,13 @@ bool SpriteAsset::loadFromFile() {
 	return r;
 }
 
-
 bool SpriteAsset::reloadFromFile() {
 	return loadFromFile();
 }
 
-AnimID AnimCompiler::parseAnimation(xml_node<>* animationNode, SpriteAsset& asset)
+SpriteAsset::ParsedAnim AnimCompiler::parseAnimation(xml_node<>* animationNode, SpriteAsset& asset)
 {
-	SpriteAsset::ParsedAnim& anim = asset.parsedAnims.emplace_back(SpriteAsset::ParsedAnim{});
+	SpriteAsset::ParsedAnim anim{};
 
 	if (!animationNode->first_attribute("name"))
 		throw parse_error("animation has no name", nullptr);
@@ -166,8 +163,17 @@ AnimID AnimCompiler::parseAnimation(xml_node<>* animationNode, SpriteAsset& asse
 		prop = prop->next_sibling();
 	}
 
-	return AnimDB::add_animation(anim);
+    return anim;
+
+	//return AnimDB::add_animation(anim);
 }
+
+void SpriteAsset::addParsedAnimsToDB() {
+    for (const auto& panim : parsedAnims) {
+        anims.push_back(AnimDB::add_animation(panim));
+    }
+}
+
 void SpriteAsset::ImGui_getContent() {
 	ImGui::Text("%s", asset_name.c_str());
 	ImGui::SameLine(ImGui::GetWindowWidth() - 100);
@@ -203,7 +209,6 @@ void SpriteAsset::ImGui_getContent() {
 					ImGui::Text("This is for animations!");
 					if (!imgui_anim || anims_labels.empty())
 					{
-						//imgui_anim = std::make_unique<AnimatedSprite>();
 						imgui_anim = new AnimatedSprite();
 						anims_labels.clear();
 							
@@ -299,7 +304,6 @@ void SpriteAsset::ImGui_getContent() {
 			}
 		}
 		else {
-			//imgui_anim.reset();
 			if (imgui_anim) {
 				delete imgui_anim;
 			}
@@ -362,8 +366,8 @@ AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
     AnimID existing_id = get_animation_id(panim.owner->get_name(), panim.name);
 
     if (existing_id == AnimID::NONE) {
-        AnimID nID = AnimID::reserve_id();
-        auto key = std::pair<std::string, std::string>(panim.owner->get_name(), panim.name);
+        auto nID = AnimID::reserve_id();
+        std::pair<std::string, std::string> key{panim.owner->get_name(), panim.name};
         anim_lookup_table.insert(std::make_pair(key, nID));
 
 
@@ -377,7 +381,6 @@ AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
         anim.chain.has_chain = panim.has_chain;
         doChain(anim);
 
-        //resource.animation_table.insert(std::make_pair( anim.anim_id, anim ));
         animation_table[anim.anim_id] = std::move(anim);
         existing_id = anim.anim_id;
     }
@@ -395,7 +398,7 @@ AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
         animation_table[existing_id] = std::move(anim);
     }
     log::scope sc;
-    LOG_INFO("added anim: {} - {}", panim.owner->get_name().data(), panim.name);
+    LOG_INFO("loaded anim \"{}\', \"{}\"", panim.owner->get_name().data(), panim.name);
     return existing_id;
 }
 
