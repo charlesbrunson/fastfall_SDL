@@ -5,8 +5,6 @@
 #include "rapidxml.hpp"
 using namespace rapidxml;
 
-#include <fstream>
-#include <assert.h>
 #include <mutex>
 #include <future>
 
@@ -45,8 +43,6 @@ void Resources::init_asset_types() {
     sounds.extension   = ".wav";
 }
 
-//bool loadFromIndex(std::string_view indexFile);
-
 bool Resources::loadAll() {
 	bool result;
 	resource.ImGui_addContent();
@@ -68,38 +64,6 @@ void Resources::unloadAll()
 	LOG_INFO("All resources unloaded");
 }
 
-////////////////////////////////////////////////////////////
-
-// indexfile parsing
-//std::vector<std::filesystem::path> parseDataNodes(xml_node<>* first_node, const char* type);
-//
-//struct AssetInfo {
-//    std::vector<std::filesystem::path> files;
-//};
-
-/*
-template<is_asset Type>
-bool loadAssets(const AssetInfo& info) {
-
-	for (const auto& asset_path : info.files)
-	{
-		std::unique_ptr<Type> ptr = std::make_unique<Type>(asset_path);
-
-		log::scope scope;
-		if (ptr->loadFromFile()) {
-			Resources::add(asset_path.c_str(), std::move(ptr));
-			LOG_INFO("{} ... complete", asset_path.c_str());
-		}
-		else {
-			LOG_ERR_("{} ... failed to load: {}", asset_path.c_str(), typeid(Type).name());
-			return false;
-		}
-	}
-	return true;
-}
-*/
-
-
 bool Resources::loadAssetsFromDirectory(const std::filesystem::path& asset_dir)
 {
     for_each_asset_type([&]<is_asset T>(asset_type<T>& type) {
@@ -113,9 +77,17 @@ bool Resources::loadAssetsFromDirectory(const std::filesystem::path& asset_dir)
             bool added = false;
             for_each_asset_type([&]<is_asset T>(asset_type<T>& type) {
                 if (!added && type.extension == path.extension()) {
+                    added = true;
+                    if (type.assets.contains(path.filename().generic_string())) {
+                        LOG_WARN("Asset name conflict detected, skipping:", path.generic_string());
+                        log::scope sc;
+                        Asset* existing = type.assets.at(path.filename().generic_string()).get();
+                        LOG_WARN("Existing: {}", existing->get_path().generic_string());
+                        LOG_WARN("Skipped:  {}", path.generic_string());
+                        return;
+                    }
                     auto ptr = std::make_unique<T>(path);
                     type.assets.emplace(ptr->get_name(), std::move(ptr));
-                    added = true;
                 }
             });
         }
@@ -137,54 +109,31 @@ bool Resources::loadAssetsFromDirectory(const std::filesystem::path& asset_dir)
 	return r;
 }
 
-/*
-std::vector<std::filesystem::path> parseDataNodes(xml_node<>* first_node, std::string_view type) {
-
-	xml_node<>* node = first_node;
-	std::vector<std::filesystem::path> names;
-
-	while (node) {
-		if (auto name_attr = node->first_attribute("name");
-			strcmp(node->name(), type.data()) == 0	&& name_attr)
-		{
-			names.emplace_back(name_attr->value());
-		}
-		else {
-			throw parse_error("incorrect type", node->name());
-		}
-		node = node->next_sibling();
-	}
-	return std::move(names);
-}
-*/
-
 void Resources::ImGui_getContent() {
-    /*
 	if (ImGui::CollapsingHeader("Sprites", ImGuiTreeNodeFlags_DefaultOpen)) {
-		for (auto& asset : sprites) {
-			if (ImGui::BeginChild(asset.second.get()->getAssetName().c_str(), ImVec2(0, 100), true)) {
-				asset.second.get()->ImGui_getContent();
+		for (auto& [name, asset] : sprites.assets) {
+			if (ImGui::BeginChild(name.c_str(), ImVec2(0, 100), true)) {
+				asset->ImGui_getContent();
 			}
 			ImGui::EndChild();
 		}
 	}
 	if (ImGui::CollapsingHeader("Tilesets", ImGuiTreeNodeFlags_DefaultOpen)) {
-		for (auto& asset : tilesets) {
-			if (ImGui::BeginChild(asset.second.get()->getAssetName().c_str(), ImVec2(0, 100), true)) {
-				asset.second.get()->ImGui_getContent();
-			}
+		for (auto& [name, asset] : tilesets.assets) {
+            if (ImGui::BeginChild(name.c_str(), ImVec2(0, 100), true)) {
+                asset->ImGui_getContent();
+            }
 			ImGui::EndChild();
 		}
 	}
 	if (ImGui::CollapsingHeader("Levels", ImGuiTreeNodeFlags_DefaultOpen)) {
-		for (auto& asset : levels) {
-			if (ImGui::BeginChild(asset.second.get()->getAssetName().c_str(), ImVec2(0, 100), true)) {
-				asset.second.get()->ImGui_getContent();
-			}
+		for (auto& [name, asset] : levels.assets) {
+            if (ImGui::BeginChild(name.c_str(), ImVec2(0, 100), true)) {
+                asset->ImGui_getContent();
+            }
 			ImGui::EndChild();
 		}
 	}
-    */
 }
 
 

@@ -111,10 +111,4 @@ protected:
 
 };
 
-//template<>
-//struct flat_type<TilesetAsset>
-//{
-//	using type = flat::resources::TilesetAssetF;
-//};
-
 }

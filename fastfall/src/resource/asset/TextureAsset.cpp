@@ -48,7 +48,7 @@ bool TextureAsset::reloadFromFile() {
 }
 
 void TextureAsset::ImGui_getContent() {
-	ImGui::Text("%s", texture_path.c_str());
+	ImGui::Text("%s", asset_name.c_str());
 	ImGui::SameLine(ImGui::GetWindowWidth() - 100);
 	if (ImGui::Button("Show Texture")) {
 		imgui_showTex = true;

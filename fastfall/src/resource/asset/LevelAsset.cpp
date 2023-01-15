@@ -191,7 +191,7 @@ bool LevelAsset::reloadFromFile() {
 }
 
 void LevelAsset::ImGui_getContent() {
-	ImGui::Text("[%3u, %3u] %s", lvlTileSize.x, lvlTileSize.y, asset_path.c_str());
+	ImGui::Text("[%3u, %3u] %s", lvlTileSize.x, lvlTileSize.y, asset_name.c_str());
 }
 
 

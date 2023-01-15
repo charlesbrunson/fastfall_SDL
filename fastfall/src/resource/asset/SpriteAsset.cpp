@@ -169,7 +169,7 @@ AnimID AnimCompiler::parseAnimation(xml_node<>* animationNode, SpriteAsset& asse
 	return AnimDB::add_animation(anim);
 }
 void SpriteAsset::ImGui_getContent() {
-	ImGui::Text("%s", asset_path.c_str());
+	ImGui::Text("%s", asset_name.c_str());
 	ImGui::SameLine(ImGui::GetWindowWidth() - 100);
 	if (ImGui::Button("Show Sprite")) {
 		imgui_showTex = true;
@@ -394,6 +394,7 @@ AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
 
         animation_table[existing_id] = std::move(anim);
     }
+    log::scope sc;
     LOG_INFO("added anim: {} - {}", panim.owner->get_name().data(), panim.name);
     return existing_id;
 }
