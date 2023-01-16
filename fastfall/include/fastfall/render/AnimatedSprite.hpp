@@ -10,6 +10,7 @@
 
 #include <string_view>
 #include <array>
+#include <algorithm>
 
 namespace ff {
 
@@ -62,7 +63,7 @@ public:
 
 
 	inline void set_playback(float rate) noexcept {
-		playback_speed = std::max(0.f, rate);
+		playback_speed = (std::max)(0.f, rate);
 	}
 	inline float get_playback() noexcept {
 		return playback_speed;

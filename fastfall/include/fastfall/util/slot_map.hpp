@@ -81,7 +81,7 @@ namespace ff {
 		using dense_vector = std::vector<std::pair<slot_key, T>>;
 
 		// sentinal value for the empty list
-		static constexpr size_t EmptyLast = std::numeric_limits<uint32_t>::max();
+		static constexpr size_t EmptyLast = (std::numeric_limits<uint32_t>::max)();
 
 		static constexpr uint32_t sparse_init = 16; // initial size of sparse when constructed
 		static constexpr uint32_t sparse_max = 64; // max size diff of sparse to dense

@@ -20,7 +20,7 @@ T pick_random(T min, T max, std::default_random_engine& engine)
     std::uniform_int_distribution<> rdist{};
     if (max != min) {
         // [0.0, 1.0]
-        double roll = (double)(rdist(engine)) / rdist.max();
+        double roll = (double)(rdist(engine)) / (rdist.max)();
         return min + (roll * (max - min));
     }
     else {

@@ -16,7 +16,7 @@ float get_dash_vel(float min_speed) {
 
 	//float ratio = dash_time / dash_duration;
 	//float velx = (start_velx * (1 - ratio)) + (end_velx * (ratio));
-	return std::max(min_speed, plr::constants::dash_speed.get());
+	return (std::max)(min_speed, plr::constants::dash_speed.get());
 }
 
 void apply_dash_vel(ff::World& w, plr::members& plr, float min_vel) {
@@ -31,7 +31,7 @@ void apply_dash_vel(ff::World& w, plr::members& plr, float min_vel) {
 
 	if (speed == 0 || speed < 0 == sprite.get_hflip())
 	{
-		vel = std::max(min_vel, abs(speed));
+		vel = (std::max)(min_vel, abs(speed));
 	}
 
 	if (ground.has_contact()) {

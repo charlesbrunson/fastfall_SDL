@@ -40,7 +40,7 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 		}
 		else 
 		{
-			LOG_ERR_("Tileset: {}, unknown logic type for args at {}", asset.asset_path.c_str(), state.tile.id.to_vec().to_string());
+			LOG_ERR_("Tileset: {}, unknown logic type for args at {}", asset.asset_path.generic_string(), state.tile.id.to_vec().to_string());
 		}
 	}},
 	{"next_x", [](TilesetAsset& asset, TileData& state, char* value)
@@ -67,7 +67,8 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 	}},
 	{"next_tileset", [](TilesetAsset& asset, TileData& state, char* value)
 	{
-		if (strlen(value) > 0 && strcmp(asset.asset_path.c_str(), value) != 0) {
+        auto str = asset.asset_path.generic_string();
+		if (strlen(value) > 0 && strcmp(str.c_str(), value) != 0) {
 
 			state.tile.next_tileset = asset.getTilesetRefIndex(value);
 		}

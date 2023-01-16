@@ -42,7 +42,7 @@ public:
 
 public:
 	inline void setTargetFPS(unsigned fps)  noexcept { target_fps = fps; }
-	inline void setTargetUPS(unsigned ups)  noexcept { target_ups = std::max(ups, MIN_UPS); }
+	inline void setTargetUPS(unsigned ups)  noexcept { target_ups = (std::max)(ups, MIN_UPS); }
 
 	inline unsigned getTargetFPS()  const noexcept { return target_fps; }
 	inline unsigned getTargetUPS()  const noexcept { return target_ups; }

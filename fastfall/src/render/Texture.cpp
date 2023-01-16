@@ -86,9 +86,10 @@ bool Texture::loadFromFile(std::string_view filename) {
 	return exists();
 }
 
-bool Texture::loadFromFile(std::filesystem::path filename) {
+bool Texture::loadFromFile(const std::filesystem::path& filename) {
 
-    SDL_Surface* surf = IMG_Load(filename.c_str());
+    std::string str{ filename.generic_string() };
+    SDL_Surface* surf = IMG_Load(str.data());
     checkSDL(surf);
 
     loadFromSurface(surf);

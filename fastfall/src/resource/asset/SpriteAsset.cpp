@@ -270,9 +270,9 @@ void SpriteAsset::ImGui_getContent() {
 							imgui_anim->set_anim(anims[anims_current]);
 						}
 
-						if (ImGui::Button("-")) { scale = std::max(1u, scale - 1); }
+						if (ImGui::Button("-")) { scale = (std::max)(1u, scale - 1); }
 						ImGui::SameLine();
-						if (ImGui::Button("+")) { scale = std::min(16u, scale + 1); }
+						if (ImGui::Button("+")) { scale = (std::min)(16u, scale + 1); }
 						ImGui::SameLine();
 						ImGui::Text("%2dx", scale);
 

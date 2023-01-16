@@ -210,7 +210,7 @@ bool Resources::reloadOutOfDateAssets()
     resource.for_each_asset([&](Asset* asset) {
         if (asset->isOutOfDate() && asset->isLoaded())
         {
-            LOG_INFO("Reloading asset \"{}\"", asset->get_path().c_str());
+            LOG_INFO("Reloading asset \"{}\"", asset->get_path().generic_string());
             bool reloaded = asset->reloadFromFile();
             asset->setOutOfDate(false);
 

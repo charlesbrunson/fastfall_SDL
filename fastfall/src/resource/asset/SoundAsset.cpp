@@ -8,7 +8,8 @@ SoundAsset::SoundAsset(const std::filesystem::path& t_asset_path)
 }
 
 bool SoundAsset::loadFromFile() {
-    loaded = sound.load(asset_path.c_str()) == SoLoud::SO_NO_ERROR;
+    auto str = asset_path.generic_string();
+    loaded = sound.load(str.data()) == SoLoud::SO_NO_ERROR;
     return loaded;
 }
 

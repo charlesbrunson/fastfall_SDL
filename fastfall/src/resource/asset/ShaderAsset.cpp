@@ -14,7 +14,7 @@ namespace ff {
 ShaderAsset::ShaderAsset(const std::filesystem::path& t_asset_path)
     : Asset(t_asset_path)
 {
-    asset_name = t_asset_path.stem().concat(".glsl");
+    asset_name = t_asset_path.stem().concat(".glsl").generic_string();
 }
 
 bool ShaderAsset::loadFromFile()
@@ -63,7 +63,7 @@ bool ShaderAsset::compileShaderFromFile()
             return true;
         } else {
             program = ShaderProgram{};
-            LOG_ERR_("{}: unable to compile, {} not found", asset_name, file_path.c_str());
+            LOG_ERR_("{}: unable to compile, {} not found", asset_name, file_path.generic_string());
             return false;
         }
     };

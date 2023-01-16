@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <bitset>
+#include <string_view>
 
 long get22_6p(long value)
 {
@@ -75,7 +76,6 @@ namespace ff {
 	bool Font::loadFromFile(std::string_view font_file)
 	{
 		unload();
-
 		if (FT_New_Face(freetype_get_library(), font_file.data(), 0, &m_face))
 		{
 			LOG_ERR_("Failed to load face: {}", font_file);
@@ -84,9 +84,16 @@ namespace ff {
 		return true;
 	}
 
-    bool Font::loadFromFile(std::filesystem::path font_path)
+    bool Font::loadFromFile(const std::filesystem::path& font_path)
     {
-        return loadFromFile(std::string_view{ font_path.c_str() });
+        unload();
+        std::string str{ font_path.generic_string() };
+        if (FT_New_Face(freetype_get_library(), str.data(), 0, &m_face))
+        {
+            LOG_ERR_("Failed to load face: {}", str.data());
+            return false;
+        }
+        return true;
     }
 
 	bool Font::loadFromStream(const void* font_data, short length)
@@ -129,8 +136,8 @@ namespace ff {
 			return false;
 		}
 
-        caches.begin();
-        caches.end();
+        //caches.begin();
+        //caches.end();
 
 		auto it = std::find_if(
             caches.begin(),

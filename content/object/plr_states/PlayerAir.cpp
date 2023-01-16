@@ -41,7 +41,7 @@ PlayerStateID PlayerAirState::update(ff::World& w, plr::members& plr, secs delta
 		}
 		else if (box.get_local_vel().y > 50.f)
 		{
-			float f  = std::min((box.get_local_vel().y - 50) / 100.f, 1.f);
+			float f  = (std::min)((box.get_local_vel().y - 50) / 100.f, 1.f);
 			float nf = 1 - f;
 
 

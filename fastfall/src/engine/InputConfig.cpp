@@ -227,7 +227,7 @@ namespace InputConfig {
     bool writeConfigFile() {
         namespace nl = nlohmann;
         nl::ordered_json config_json;
-        config_json["deadzone"] = (float)getAxisDeadzone() / (float)std::numeric_limits<short>::max();
+        config_json["deadzone"] = (float)getAxisDeadzone() / (float)(std::numeric_limits<short>::max)();
         config_json["keyboard"];
         config_json["controller"];
         config_json["controller"]["axis"];
@@ -305,7 +305,7 @@ namespace InputConfig {
 
             std::vector<std::pair<InputType, SDL_Keycode>> keys_to_bind;
             std::vector<std::pair<InputType, GamepadInput>> joys_to_bind;
-            short n_deadzone = (short)(config_json["deadzone"].get<float>() * (float)std::numeric_limits<short>::max());
+            short n_deadzone = (short)(config_json["deadzone"].get<float>() * (float)(std::numeric_limits<short>::max)());
             bool has_error = false;
 
             for (auto& [key, val] : config_json["keyboard"].items())

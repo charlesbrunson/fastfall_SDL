@@ -48,7 +48,7 @@ public:
 	Texture& operator=(Texture&& tex) noexcept;
 
 	bool loadFromFile(std::string_view filename);
-    bool loadFromFile(std::filesystem::path filename);
+    bool loadFromFile(const std::filesystem::path& filename);
 	bool loadFromStream(const void* data, short length);
 	bool loadFromSurface(const SDL_Surface* surface);
 

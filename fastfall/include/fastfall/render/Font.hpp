@@ -32,7 +32,7 @@ public:
 	Font& operator=(Font&&) = default;
 
 	bool loadFromFile(std::string_view font_file);
-    bool loadFromFile(std::filesystem::path font_path);
+    bool loadFromFile(const std::filesystem::path& font_path);
 	bool loadFromStream(const void* font_data, short length);
 
 	void unload();

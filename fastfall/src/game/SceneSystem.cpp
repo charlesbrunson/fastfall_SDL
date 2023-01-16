@@ -169,14 +169,14 @@ bool SceneSystem::enableScissor(const RenderTarget& target, Vec2f viewPos) const
 		glm::fvec2 lvlbotleft2cam{ campos.x, levelsize.y - campos.y };
 		glm::fvec2 levelbotleft2window = campos2window - (lvlbotleft2cam * zoom);
 
-		scissor[0] = roundf(std::max(scissor[0], levelbotleft2window.x));
-		scissor[1] = roundf(std::max(scissor[1], levelbotleft2window.y));
+		scissor[0] = roundf((std::max)(scissor[0], levelbotleft2window.x));
+		scissor[1] = roundf((std::max)(scissor[1], levelbotleft2window.y));
 
-		scissor[2] = std::min(vpOff.x + vpSize.x, levelbotleft2window.x + (levelsize.x * zoom)) - scissor[0];
-		scissor[3] = std::min(vpOff.y + vpSize.y, levelbotleft2window.y + (levelsize.y * zoom)) - scissor[1];
+		scissor[2] = (std::min)(vpOff.x + vpSize.x, levelbotleft2window.x + (levelsize.x * zoom)) - scissor[0];
+		scissor[3] = (std::min)(vpOff.y + vpSize.y, levelbotleft2window.y + (levelsize.y * zoom)) - scissor[1];
 
-		scissor[2] = roundf(std::max(scissor[2], 0.f));
-		scissor[3] = roundf(std::max(scissor[3], 0.f));
+		scissor[2] = roundf((std::max)(scissor[2], 0.f));
+		scissor[3] = roundf((std::max)(scissor[3], 0.f));
 	}
 
 	if (scissor[2] > 0.f && scissor[3] > 0.f) {

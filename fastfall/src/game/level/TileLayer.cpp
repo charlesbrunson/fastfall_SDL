@@ -262,8 +262,8 @@ bool TileLayer::set_parallax(World& world, bool enabled, Vec2u parallax_size)
 
 	layer_data.setParallax(enabled, parallax_size);
 	if (hasParallax()) {
-		dyn.parallax.init_offset.x = (float)(std::min(getLevelSize().x, GAME_TILE_W) * TILESIZE) / 2.f;
-		dyn.parallax.init_offset.y = (float)(std::min(getLevelSize().y, GAME_TILE_H) * TILESIZE) / 2.f;
+		dyn.parallax.init_offset.x = (float)((std::min)(getLevelSize().x, GAME_TILE_W) * TILESIZE) / 2.f;
+		dyn.parallax.init_offset.y = (float)((std::min)(getLevelSize().y, GAME_TILE_H) * TILESIZE) / 2.f;
 		dyn.parallax.cam_factor = Vec2f{ 1.f, 1.f };
 		if (getLevelSize().x > GAME_TILE_W) {
 			dyn.parallax.cam_factor.x = 1.f - ((float)(getParallaxSize().x - GAME_TILE_W) / (float)getLevelSize().x);

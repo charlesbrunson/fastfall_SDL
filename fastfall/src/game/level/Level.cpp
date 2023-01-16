@@ -4,6 +4,7 @@
 #include "fastfall/game/level/LevelEditor.hpp"
 
 #include <assert.h>
+#include <algorithm>
 
 #include "imgui.h"
 
@@ -105,13 +106,13 @@ void Level::resize(World& world, Vec2u n_size)
 	{
         auto& layer = world.at(layerproxy.cmp_id);
 		Vec2u layer_size{
-			std::min(n_size.x, layer.getLevelSize().x),
-			std::min(n_size.y, layer.getLevelSize().y)
+            (std::min)(n_size.x, layer.getLevelSize().x),
+            (std::min)(n_size.y, layer.getLevelSize().y)
 		};
 
 		Vec2u parallax_size{
-			std::min(n_size.x, layer.getParallaxSize().x),
-			std::min(n_size.y, layer.getParallaxSize().y)
+            (std::min)(n_size.x, layer.getParallaxSize().x),
+            (std::min)(n_size.y, layer.getParallaxSize().y)
 		};
 
         auto ent = world.entity_of(m_id);

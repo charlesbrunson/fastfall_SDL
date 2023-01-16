@@ -830,14 +830,14 @@ void Engine::resizeWindow(Vec2u size, bool force_size)
 
     Vec2u finalSize{ size };
     if (!force_size) {
-        finalSize.x = std::max(size.x, minSize.x);
-        finalSize.y = std::max(size.y, minSize.y);
+        finalSize.x = (std::max)(size.x, minSize.x);
+        finalSize.y = (std::max)(size.y, minSize.y);
     }
 
-    int scale = static_cast<int>(std::min(floor((float)finalSize.x / GAME_W), floor((float)finalSize.y / GAME_H)));
+    int scale = static_cast<int>((std::min)(floor((float)finalSize.x / GAME_W), floor((float)finalSize.y / GAME_H)));
 
     if (expandMargins)
-        scale = std::max(1, scale - 1);
+        scale = (std::max)(1, scale - 1);
 
     if (window) {
         if (finalSize.x != size.x || finalSize.y != size.y) {

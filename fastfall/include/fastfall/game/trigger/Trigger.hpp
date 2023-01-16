@@ -84,13 +84,9 @@ struct TriggerPull {
     Trigger::Duration duration;
 };
 
-
-
 extern const TriggerTag ttag_generic;
 extern const TriggerTag ttag_hitbox;
 extern const TriggerTag ttag_hurtbox;
 extern const TriggerTag ttag_pushbox;
-
-
 
 }
