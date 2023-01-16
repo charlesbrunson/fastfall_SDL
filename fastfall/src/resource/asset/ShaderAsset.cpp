@@ -84,12 +84,12 @@ bool ShaderAsset::compileShaderFromFile()
             LOG_INFO("Attributes:");
             for (const auto& attr : program.all_attributes()) {
                 log::scope sc1;
-                LOG_INFO("{:2} - {:20} \"{}\"", attr.id, uniformTypeEnumToString(attr.type), attr.name);
+                LOG_INFO("id:{:2} loc:{:2} - {:20} \"{}\"", attr.id, attr.loc, uniformTypeEnumToString(attr.type), attr.name);
             }
             LOG_INFO("Uniforms:");
             for (const auto& uni : program.all_uniforms()) {
                 log::scope sc1;
-                LOG_INFO("{:2} - {:20} \"{}\"", uni.id, uniformTypeEnumToString(uni.type), uni.name);
+                LOG_INFO("id:{:2} loc:{:2} - {:20} \"{}\"", uni.id, uni.loc, uniformTypeEnumToString(uni.type), uni.name);
             }
         }
     }

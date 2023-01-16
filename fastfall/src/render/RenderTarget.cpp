@@ -55,7 +55,7 @@ void RenderTarget::setView(const View& view) {
 }
 
 void RenderTarget::draw(const Drawable& drawable, const RenderState& state) {
-	if (drawable.visible) {
+ 	if (drawable.visible) {
 		drawable.draw(*this, state);
 	}
 }
@@ -138,7 +138,7 @@ void RenderTarget::draw(const TileArray& tarray, RenderState state) {
 		applyUniforms(Transform::combine(tarray.getTransform(), state.transform), state);
 		auto columns = state.program->getUniform("columns");
 		if (columns) {
-			glCheck(glUniform1ui(columns->id, tarray.m_size.x));
+			glCheck(glUniform1ui(columns->loc, tarray.m_size.x));
 		}
 	}
 
@@ -197,7 +197,7 @@ void RenderTarget::draw(const Text& text, RenderState state) {
 		auto char_size_uni = state.program->getUniform("char_size");
 		if (char_size_uni) {
 			Vec2f size { text.getFont()->getGlyphSize() };
-			glCheck(glUniform2f(char_size_uni->id, size.x, size.y));
+			glCheck(glUniform2f(char_size_uni->loc, size.x, size.y));
 		}
 	}
 
@@ -313,10 +313,11 @@ void RenderTarget::applyShader(const ShaderProgram* shader) const {
 
 void RenderTarget::applyUniforms(const Transform& transform, const RenderState& state) const {
 	if (auto uni = state.program->getUniform("model")) {
-		glCheck(glUniformMatrix3fv(uni->id, 1, GL_FALSE, glm::value_ptr(transform.getMatrix())));
+		glCheck(glUniformMatrix3fv(uni->loc, 1, GL_FALSE, glm::value_ptr(transform.getMatrix())));
 	}
 	if (auto uni = state.program->getUniform("view")) {
-		glCheck(glUniformMatrix3fv(uni->id, 1, GL_FALSE, glm::value_ptr(m_view.getMatrix())));
+        auto mat = m_view.getMatrix();
+		glCheck(glUniformMatrix3fv(uni->loc, 1, GL_FALSE, glm::value_ptr(mat)));
 	}
 }
 

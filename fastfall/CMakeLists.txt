@@ -212,6 +212,12 @@ else()
 			FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
 		)
 	endif()
+
+	if (WIN32)
+		target_compile_definitions(fastfall PUBLIC
+			NOMINMAX
+		)
+	endif()
 endif()
 
 add_subdirectory("test")

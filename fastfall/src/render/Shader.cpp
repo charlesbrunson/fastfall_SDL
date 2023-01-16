@@ -218,16 +218,20 @@ void ShaderProgram::link() {
     GLchar name[bufSize];
     GLsizei length;
 
+    GLint location;
+
     glGetProgramiv(id, GL_ACTIVE_ATTRIBUTES, &count);
     for (i = 0; i < count; i++) {
         glGetActiveAttrib(id, (GLuint)i, bufSize, &length, &size, &type, name);
-        attributes.push_back({ i, type, name });
+        location = glGetAttribLocation(id, name);
+        attributes.push_back({ i, location, type, name });
     }
 
     glGetProgramiv(id, GL_ACTIVE_UNIFORMS, &count);
     for (i = 0; i < count; i++) {
         glGetActiveUniform(id, (GLuint)i, bufSize, &length, &size, &type, name);
-        uniforms.push_back({ i, type, name });
+        location = glGetUniformLocation(id, name);
+        uniforms.push_back({ i, location, type, name });
     }
 
 	m_is_linked = true;

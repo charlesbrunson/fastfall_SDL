@@ -22,11 +22,13 @@ class ShaderProgram {
 public:
     struct gl_attribute {
         GLint       id;
+        GLint       loc;
         GLenum      type;
         std::string name;
     };
     struct gl_uniform {
         GLint       id;
+        GLint       loc;
         GLenum      type;
         std::string name;
     };
