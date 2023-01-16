@@ -42,7 +42,7 @@ void Resources::init_asset_types() {
     fonts.type_name    = "Fonts";
     sounds.type_name   = "Sound Effects";
 
-    shaders.extension  = ".shx";
+    shaders.extension  = ".vert";
     sprites.extension  = ".sax";
     tilesets.extension = ".tsx";
     levels.extension   = ".tmx";

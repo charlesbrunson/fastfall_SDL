@@ -7,16 +7,29 @@
 #include <map>
 #include <string>
 
+#include <GL/glew.h>
+#include <SDL.h>
+#include <SDL_opengl.h>
+
 namespace ff {
 
 enum class ShaderType {
 	VERTEX,
 	FRAGMENT,
-	GEOMETRY
 };
 
 class ShaderProgram {
 public:
+    struct gl_attribute {
+        GLint       id;
+        GLenum      type;
+        std::string name;
+    };
+    struct gl_uniform {
+        GLint       id;
+        GLenum      type;
+        std::string name;
+    };
 
 	ShaderProgram() = default;
     ShaderProgram(const ShaderProgram& other) = delete;
@@ -25,18 +38,18 @@ public:
     ShaderProgram& operator=(ShaderProgram&& other) noexcept;
 	~ShaderProgram();
 
-	void add(ShaderType type, const std::string_view shader_code);
+	void add(ShaderType type, std::string_view shader_code);
 
 	void link();
 	bool isLinked() const;
 
 	void use() const;
 
-	inline int getViewUniformID() const { return view_loc; };
-	inline int getMdlUniformID() const { return mdl_loc; };
+    const gl_uniform*   getUniform(std::string_view name) const;
+    const gl_attribute* getAttribute(std::string_view name) const;
 
-	int getOtherUniformID(std::string_view uniform_name) const;
-	void cacheUniform(std::string_view uniform_name);
+    const std::vector<gl_attribute>& all_attributes() const { return attributes; }
+    const std::vector<gl_uniform>&   all_uniforms()   const { return uniforms; }
 
     static std::string_view getGLSLVersionString();
 
@@ -46,18 +59,15 @@ public:
 	unsigned int getID() const { return id; };
 
 private:
+    unsigned int id  = 0;
 	bool initialized = false;
+    bool m_is_linked = false;
 
-	unsigned int id = 0;
-
-	bool m_is_linked = false;
-
-	int view_loc 	= -1;
-	int mdl_loc  	= -1;
-
-	std::map<std::string, int, std::less<>> other_locs;
-
+    std::vector<gl_attribute> attributes;
+    std::vector<gl_uniform>   uniforms;
 	std::vector<unsigned int> shaders;
 };
+
+std::string_view uniformTypeEnumToString(GLenum type);
 
 }

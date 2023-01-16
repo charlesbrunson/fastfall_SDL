@@ -20,7 +20,6 @@ public:
 
     std::vector<std::filesystem::path> getDependencies() const override {
         return {
-            asset_path,
             vertex_path,
             fragment_path,
         };

@@ -1,9 +1,0 @@
-<shader>
-	<links>
-		<link file="tile.vert"/>
-		<link file="tile.frag"/>
-	</links>
-	<uniforms>
-		<uniform name="columns"/> 
-	</uniforms>
-</shader> 

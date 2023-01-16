@@ -106,8 +106,8 @@ void RenderTarget::draw(const TileArray& tarray, RenderState state) {
 
 	state.transform = Transform::combine(state.transform, Transform(tarray.offset));
 	state.texture = tarray.m_tex;
-    constexpr std::string_view shader = "tile.shx";
-    if (auto ptr = Resources::get<ShaderAsset>("tile.shx")) {
+    constexpr std::string_view shader = "tile.glsl";
+    if (auto ptr = Resources::get<ShaderAsset>(shader)) {
         state.program = &ptr->getProgram();
     }
     else {
@@ -136,9 +136,9 @@ void RenderTarget::draw(const TileArray& tarray, RenderState state) {
 
 	if (state.program) {
 		applyUniforms(Transform::combine(tarray.getTransform(), state.transform), state);
-		int columns_uniform_id = state.program->getOtherUniformID("columns");
-		if (columns_uniform_id >= 0) {
-			glCheck(glUniform1ui(columns_uniform_id, tarray.m_size.x));
+		auto columns = state.program->getUniform("columns");
+		if (columns) {
+			glCheck(glUniform1ui(columns->id, tarray.m_size.x));
 		}
 	}
 
@@ -167,7 +167,7 @@ void RenderTarget::draw(const Text& text, RenderState state) {
 	}
 
 	state.texture = text.bitmap_texture;
-    constexpr std::string_view shader = "text.shx";
+    constexpr std::string_view shader = "text.glsl";
     if (auto ptr = Resources::get<ShaderAsset>(shader)) {
         state.program = &ptr->getProgram();
     }
@@ -194,10 +194,10 @@ void RenderTarget::draw(const Text& text, RenderState state) {
 
 	if (state.program) {
 		applyUniforms(Transform::combine(text.getTransform(), state.transform), state);
-		int char_size_uni_id = state.program->getOtherUniformID("char_size");
-		if (char_size_uni_id >= 0) {
+		auto char_size_uni = state.program->getUniform("char_size");
+		if (char_size_uni) {
 			Vec2f size { text.getFont()->getGlyphSize() };
-			glCheck(glUniform2f(char_size_uni_id, size.x, size.y));
+			glCheck(glUniform2f(char_size_uni->id, size.x, size.y));
 		}
 	}
 
@@ -312,12 +312,11 @@ void RenderTarget::applyShader(const ShaderProgram* shader) const {
 }
 
 void RenderTarget::applyUniforms(const Transform& transform, const RenderState& state) const {
-	if (state.program->getMdlUniformID()  >= 0) {
-		glCheck(glUniformMatrix3fv(state.program->getMdlUniformID(), 1, GL_FALSE, glm::value_ptr(transform.getMatrix())));
+	if (auto uni = state.program->getUniform("model")) {
+		glCheck(glUniformMatrix3fv(uni->id, 1, GL_FALSE, glm::value_ptr(transform.getMatrix())));
 	}
-	if (state.program->getViewUniformID() >= 0) {
-		glm::mat3 viewmat = m_view.getMatrix();
-		glCheck(glUniformMatrix3fv(state.program->getViewUniformID(), 1, GL_FALSE, glm::value_ptr(viewmat)));
+	if (auto uni = state.program->getUniform("view")) {
+		glCheck(glUniformMatrix3fv(uni->id, 1, GL_FALSE, glm::value_ptr(m_view.getMatrix())));
 	}
 }
 

@@ -46,7 +46,7 @@ private:
 		std::vector<File> files;
 	};
 
-	static std::pair<bool, std::filesystem::file_time_type> is_file_modified(File& file);
+	static std::optional<std::filesystem::file_time_type> is_file_modified(File& file);
 
 	static std::mutex watchable_mut;
 	static std::vector<Watchable> watchables;

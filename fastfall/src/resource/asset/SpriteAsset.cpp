@@ -361,8 +361,6 @@ AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
         }
     };
 
-    log::scope scope;
-
     AnimID existing_id = get_animation_id(panim.owner->get_name(), panim.name);
 
     if (existing_id == AnimID::NONE) {
@@ -397,7 +395,8 @@ AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
 
         animation_table[existing_id] = std::move(anim);
     }
-    log::scope sc;
+
+    log::scope scope;
     LOG_INFO("loaded anim \"{}\', \"{}\"", panim.owner->get_name().data(), panim.name);
     return existing_id;
 }

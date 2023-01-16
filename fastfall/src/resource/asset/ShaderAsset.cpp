@@ -14,75 +14,17 @@ namespace ff {
 ShaderAsset::ShaderAsset(const std::filesystem::path& t_asset_path)
     : Asset(t_asset_path)
 {
+    asset_name = t_asset_path.stem().concat(".glsl");
 }
 
-bool ShaderAsset::loadFromFile() {
-
+bool ShaderAsset::loadFromFile()
+{
     program = {};
     uniforms.clear();
-    vertex_path.clear();
-    fragment_path.clear();
 
     bool r = true;
-    std::unique_ptr<char[]> charPtr = readXML(asset_path);
-    if (charPtr) {
-        char *xmlContent = charPtr.get();
-        auto doc = std::make_unique<xml_document<>>();
-
-        try {
-            doc->parse<0>(xmlContent);
-            xml_node<>* index = doc->first_node("shader");
-
-            if (!index)
-                throw parse_error("no shader", nullptr);
-
-            xml_node<>* node = index->first_node();
-            while (node) {
-                if (strcmp("links", node->name()) == 0) {
-                    xml_node<>* link = node->first_node("link");
-                    while(link) {
-                        if (auto* ptr = link->first_attribute("file")) {
-                            std::filesystem::path file = ptr->value();
-                            if (file.extension() == ".vert") {
-                                vertex_path = asset_path.parent_path() / file;
-                            }
-                            else if (file.extension() == ".frag") {
-                                fragment_path = asset_path.parent_path() / file;
-                            }
-                            else {
-                                throw parse_error("unable to determine shader link type", nullptr);
-                            }
-                        }
-                        else {
-                            throw parse_error("link has no file attr", nullptr);
-                        }
-                        link = link->next_sibling("link");
-                    }
-                }
-                else if (strcmp("uniforms", node->name()) == 0) {
-                    xml_node<>* link = node->first_node("uniform");
-                    while(link) {
-                        if (auto* ptr = link->first_attribute("name")) {
-                            uniforms.emplace_back(ptr->value());
-                        }
-                        else {
-                            throw parse_error("uniform has no name attr", nullptr);
-                        }
-                        link = link->next_sibling("uniform");
-                    }
-                }
-                node = node->next_sibling();
-            }
-        }
-        catch (parse_error& err) {
-            std::cout << asset_path << ": " << err.what() << std::endl;
-            r = false;
-        }
-    }
-    else {
-        std::cout << "Could not open file: " << asset_path << std::endl;
-        r = false;
-    }
+    vertex_path   = asset_path;
+    fragment_path = asset_path.parent_path() / asset_path.stem().concat(".frag");
 
     r &= !vertex_path.empty();
     r &= !fragment_path.empty();
@@ -90,7 +32,8 @@ bool ShaderAsset::loadFromFile() {
     return r;
 }
 
-bool ShaderAsset::reloadFromFile() {
+bool ShaderAsset::reloadFromFile()
+{
     try {
         ShaderAsset nasset{ asset_path };
         bool r = nasset.loadFromFile();
@@ -105,8 +48,8 @@ bool ShaderAsset::reloadFromFile() {
     return false;
 }
 
-bool ShaderAsset::compileShaderFromFile() {
-
+bool ShaderAsset::compileShaderFromFile()
+{
     program = ShaderProgram{};
 
     log::scope sc;
@@ -136,19 +79,23 @@ bool ShaderAsset::compileShaderFromFile() {
             LOG_ERR_("{}", e.what())
         }
 
-        for (auto &uniform: uniforms) {
-            program.cacheUniform(uniform);
-        }
-
-        log::scope sc;
         if (program.isLinked()) {
-            LOG_INFO("shader compiled", asset_name);
+            LOG_INFO("Shader compiled", asset_name);
+            LOG_INFO("Attributes:");
+            for (const auto& attr : program.all_attributes()) {
+                log::scope sc1;
+                LOG_INFO("{:2} - {:20} \"{}\"", attr.id, uniformTypeEnumToString(attr.type), attr.name);
+            }
+            LOG_INFO("Uniforms:");
+            for (const auto& uni : program.all_uniforms()) {
+                log::scope sc1;
+                LOG_INFO("{:2} - {:20} \"{}\"", uni.id, uniformTypeEnumToString(uni.type), uni.name);
+            }
         }
     }
     else {
         LOG_ERR_("failed to initialize", asset_name);
     }
-
 
     return program.isLinked();
 }

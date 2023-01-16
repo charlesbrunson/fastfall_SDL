@@ -14,13 +14,18 @@ std::atomic_bool ResourceWatcher::is_watching = false;
 
 std::thread ResourceWatcher::watcher;
 
-std::filesystem::file_time_type check_modified_time(const std::filesystem::path& file) {
-	return std::filesystem::last_write_time(file);
+std::optional<std::filesystem::file_time_type> check_modified_time(const std::filesystem::path& file) {
+    try {
+        return std::filesystem::last_write_time(file);
+    }
+    catch (std::exception& err) {
+        return std::nullopt;
+    }
 }
 
 ResourceWatcher::File::File(std::filesystem::path t_file) 
 	: path(t_file)
-	, last_modified(check_modified_time(t_file))
+	, last_modified(std::filesystem::file_time_type::clock::now())
 {
 }
 
@@ -33,7 +38,6 @@ void ResourceWatcher::add_watch(Asset* asset, const std::vector<std::filesystem:
 			.asset = asset
 		}
 	);
-
 
 	std::transform(
 		files.begin(),
@@ -89,11 +93,13 @@ void ResourceWatcher::join_watch_thread() {
 	watcher.join();
 }
 
-std::pair<bool, std::filesystem::file_time_type> ResourceWatcher::is_file_modified(File& file) {
-
-	std::filesystem::file_time_type mod_time = check_modified_time(file.path);
-
-	return std::make_pair(mod_time > file.last_modified, mod_time);
+std::optional<std::filesystem::file_time_type> ResourceWatcher::is_file_modified(File& file)
+{
+	auto mod_time = check_modified_time(file.path);
+    if (mod_time && mod_time <= file.last_modified) {
+        mod_time.reset();
+    }
+    return mod_time;
 }
 
 void ResourceWatcher::routine_watch() {
@@ -111,9 +117,9 @@ void ResourceWatcher::routine_watch() {
 
 			for (auto& file : watchable.files) 
 			{
-				if (auto [mod, time] = is_file_modified(file); mod)
+				if (auto opt_time = is_file_modified(file))
 				{
-					file.last_modified = time;
+					file.last_modified = *opt_time;
 					is_modified = true;
 				}
 			}
