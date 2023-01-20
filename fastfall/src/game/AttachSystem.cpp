@@ -241,15 +241,16 @@ namespace ff {
 
     void AttachSystem::update_attachpoints(World& world, secs deltaTime, AttachPoint::Schedule sched) {
         if (deltaTime > 0.0) {
+            std::set<ID<AttachPoint>> visited;
             for (auto [aid, ap]: world.all<AttachPoint>()) {
 
                 if (is_attachpoint_root(aid)
                     && ap.get_tick() != world.tick_count()
                     && ap.sched == sched)
                 {
-                    std::set<ID<AttachPoint>> visited;
                     ap.set_tick(world.tick_count());
                     update_attachments(world, aid, visited);
+                    visited.clear();
                 }
             }
         }

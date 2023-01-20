@@ -18,8 +18,8 @@ void SceneSystem::set_config(ID<Drawable> id, SceneConfig cfg) {
 
 void SceneSystem::update(World& world, secs deltaTime) {
     for (auto [did, drawable] : world.all<Drawable>()) {
-        auto id = id_cast<Drawable>(did);
-        auto& cfg = config(id);
+        //auto id = id_cast<Drawable>(did);
+        auto& cfg = config(did);
         cfg.prev_pos = cfg.curr_pos;
     }
 }
@@ -33,12 +33,12 @@ void SceneSystem::predraw(World& world, float interp, bool updated)
     for (auto [did, drawable] : world.all<Drawable>()) {
         drawable->predraw(interp, updated);
 
-        auto id = id_cast<Drawable>(did);
-        if (!world.due_to_erase(id)) {
-            auto &cfg = config(id);
+        //auto id = id_cast<Drawable>(did);
+        if (!world.due_to_erase(did)) {
+            auto &cfg = config(did);
             Vec2f prev = cfg.prev_pos;
             Vec2f curr = cfg.curr_pos;
-            config(id).rstate.transform.setPosition(prev + (curr - prev) * interp);
+            config(did).rstate.transform.setPosition(prev + (curr - prev) * interp);
         }
     }
 }
@@ -114,6 +114,9 @@ void SceneSystem::draw(const World& world, RenderTarget& target, RenderState sta
 	target.draw(background, state);
 
     for (auto id : scene_order) {
+        assert(configs.contains(id));
+        assert(world.all<Drawable>().exists(id));
+
         auto& cfg = configs.at(id);
 
         if (scissor_enabled && cfg.layer_id >= 0) {
@@ -141,6 +144,10 @@ void SceneSystem::draw(const World& world, RenderTarget& target, RenderState sta
 
             st.blend = cfg.rstate.blend;
 
+            volatile void* ptr = (void*)world.get(id);
+            //LOG_INFO("{} {} {}", id.value.generation, id.value.sparse_index, ptr);
+            volatile auto& test = world.at(id);
+            //LOG_INFO("{}", (void*)&test);
             target.draw(world.at(id), st);
         }
     }

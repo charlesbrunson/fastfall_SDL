@@ -95,11 +95,11 @@ private:
 };
 
 #ifdef DEBUG
-	#define LOG_STEP( ... ) log::_log( log::level::STEP, __FILENAME__, __LINE__, __VA_ARGS__ );
-	#define LOG_VERB( ... ) log::_log( log::level::VERB, __FILENAME__, __LINE__, __VA_ARGS__ );
-	#define LOG_INFO( ... ) log::_log( log::level::INFO, __FILENAME__, __LINE__, __VA_ARGS__ );
-	#define LOG_WARN( ... ) log::_log( log::level::WARN, __FILENAME__, __LINE__, __VA_ARGS__ );
-	#define LOG_ERR_( ... ) log::_log( log::level::ERR,  __FILENAME__, __LINE__, __VA_ARGS__ );
+	#define LOG_STEP( ... ) log::_log( log::level::STEP, __FILENAME__, __LINE__, __VA_ARGS__ )
+	#define LOG_VERB( ... ) log::_log( log::level::VERB, __FILENAME__, __LINE__, __VA_ARGS__ )
+	#define LOG_INFO( ... ) log::_log( log::level::INFO, __FILENAME__, __LINE__, __VA_ARGS__ )
+	#define LOG_WARN( ... ) log::_log( log::level::WARN, __FILENAME__, __LINE__, __VA_ARGS__ )
+	#define LOG_ERR_( ... ) log::_log( log::level::ERR,  __FILENAME__, __LINE__, __VA_ARGS__ )
 #else
 	#define LOG_NONE( ... )
 	#define LOG_STEP( ... )

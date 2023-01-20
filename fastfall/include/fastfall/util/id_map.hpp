@@ -194,7 +194,7 @@ public:
 	}
 
 	template<std::derived_from<T> Type>
-	bool exists(ID<Type> id)
+	bool exists(ID<Type> id) const
 	{
 		return components.exists(id.value);
 	}

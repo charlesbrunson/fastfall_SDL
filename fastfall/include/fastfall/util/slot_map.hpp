@@ -110,10 +110,9 @@ namespace ff {
 			assert(k.sparse_index < sparse_.size());
 			const sparse_t& sp = sparse_.at((size_t)k.sparse_index);
 
-			if (!sp.valid) {
+			if (!sp.valid || !(sp.dense_index < dense_.size())) {
 				throw std::exception{};
 			}
-
 			return dense_.at(sp.dense_index).second;
 		}
 

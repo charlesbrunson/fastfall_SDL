@@ -76,7 +76,7 @@ bool ShaderAsset::compileShaderFromFile()
             program.link();
         }
         catch (Error& e) {
-            LOG_ERR_("{}", e.what())
+            LOG_ERR_("{}", e.what());
         }
 
         if (program.isLinked()) {

@@ -230,6 +230,8 @@ public:
     // span components
     template<class T>
     inline auto& all() { return list_for<T>(); }
+    template<class T>
+    inline const auto& all() const { return list_for<T>(); }
 
 	// access system
     template<class T>
