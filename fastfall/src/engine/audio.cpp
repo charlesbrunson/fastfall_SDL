@@ -26,6 +26,7 @@ bool audio_init() {
         is_init = false;
     }
     else {
+        audio_engine.setMaxActiveVoiceCount(64);
         is_init = true;
     }
     return is_init;

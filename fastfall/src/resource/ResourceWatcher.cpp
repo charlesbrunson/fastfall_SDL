@@ -53,7 +53,7 @@ void ResourceWatcher::add_watch(Asset* asset, const std::vector<std::filesystem:
 
 			std::string relative_pathstr = path.generic_string().substr(root.generic_string().length() + 1);
 
-			LOG_INFO("{:40} \"{}\"", asset->get_name(), relative_pathstr);
+			LOG_INFO("{:35} \"{}\"", asset->get_name(), relative_pathstr);
 			return File{ path };
 		}
 	);
