@@ -285,10 +285,10 @@ void imgui_camera(World* w) {
 }
 
 void imgui_scene(World* w) {
-    for (auto id : w->system<SceneSystem>().get_scene_order()) {
-        auto& scene = w->system<SceneSystem>().config(id);
+    for (auto& proxy : w->system<SceneSystem>().get_scene_order()) {
+        auto& scene = w->system<SceneSystem>().config(proxy.id);
 
-        if (ImGui::TreeNode((void *) (&scene), "Scene Object %d", id.value.sparse_index)) {
+        if (ImGui::TreeNode((void *) (&scene), "Scene Object %d", proxy.id.value.sparse_index)) {
             static std::string_view priority_str[] = {
                 "Lowest",
                 "Low",
@@ -297,7 +297,7 @@ void imgui_scene(World* w) {
                 "Highest"
             };
 
-            ImGui::Text("Drawable:  %p", w->get(id));
+            ImGui::Text("Drawable:  %p", w->get(proxy.id));
             ImGui::Text("Layer:     %d", scene.layer_id);
             ImGui::Text("Type:      %s", scene.type == scene_type::Object ? "Object" : "Level");
             ImGui::Text("Priority:  %s", priority_str[static_cast<size_t>(scene.priority)].data());

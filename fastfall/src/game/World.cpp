@@ -15,6 +15,7 @@ World::World(const World& other)
 {
     WorldImGui::add(this);
     state = other.state;
+    state._scene_system.reset_proxy_ptrs(state._drawables);
 }
 
 World::World(World&& other) noexcept
@@ -26,6 +27,7 @@ World::World(World&& other) noexcept
 World& World::operator=(const World& other) {
     WorldImGui::add(this);
     state = other.state;
+    state._scene_system.reset_proxy_ptrs(state._drawables);
     return *this;
 }
 
@@ -67,16 +69,8 @@ void World::update(secs deltaTime) {
     }
 }
 
-void World::predraw(float interp, bool updated) {
-    /*
-    if (updated) {
-        for (auto [id, lvl] : all<Level>()) {
-            lvl.try_reload_level(*this);
-        }
-    }
-    */
-
-
+void World::predraw(float interp, bool updated)
+{
     if (Level* active = state._level_system.get_active(*this))
     {
         if (updated && active->try_reload_level(*this)) {

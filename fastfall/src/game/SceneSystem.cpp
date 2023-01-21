@@ -18,7 +18,7 @@ void SceneSystem::set_config(ID<Drawable> id, SceneConfig cfg) {
 
 void SceneSystem::update(World& world, secs deltaTime) {
     for (auto [did, drawable] : world.all<Drawable>()) {
-        //auto id = id_cast<Drawable>(did);
+
         auto& cfg = config(did);
         cfg.prev_pos = cfg.curr_pos;
     }
@@ -33,13 +33,20 @@ void SceneSystem::predraw(World& world, float interp, bool updated)
     for (auto [did, drawable] : world.all<Drawable>()) {
         drawable->predraw(interp, updated);
 
-        //auto id = id_cast<Drawable>(did);
         if (!world.due_to_erase(did)) {
             auto &cfg = config(did);
             Vec2f prev = cfg.prev_pos;
             Vec2f curr = cfg.curr_pos;
             config(did).rstate.transform.setPosition(prev + (curr - prev) * interp);
         }
+    }
+}
+
+void SceneSystem::reset_proxy_ptrs(const poly_id_map<Drawable>& drawables) {
+    for (auto& proxy : scene_order)
+    {
+        proxy.ptr = drawables.get(proxy.id);
+        assert(proxy.ptr != nullptr);
     }
 }
 
@@ -54,8 +61,8 @@ void SceneSystem::add_to_scene(World& world)
 
     struct Comp {
         std::unordered_map<ID<Drawable>, SceneConfig>* configs;
-        bool operator()(ID<Drawable> s, scene_layer i) const { return configs->at(s).layer_id < i; }
-        bool operator()(scene_layer i, ID<Drawable> s) const { return i < configs->at(s).layer_id; }
+        bool operator()(const proxy_drawable_t& s, scene_layer i) const { return configs->at(s.id).layer_id < i; }
+        bool operator()(scene_layer i, const proxy_drawable_t& s) const { return i < configs->at(s.id).layer_id; }
     };
 
     for (auto id : to_add) {
@@ -67,17 +74,21 @@ void SceneSystem::add_to_scene(World& world)
                 scene_obj.layer_id,
                 Comp{&configs});
 
-        auto it = std::upper_bound(beg, end, scene_obj.priority, [this](scene_priority p, ID<Drawable> d) {
-            return p < configs.at(d).priority;
+        auto it = std::upper_bound(beg, end, scene_obj.priority, [this](scene_priority p, const proxy_drawable_t& d) {
+            return p < configs.at(d.id).priority;
         });
 
-        scene_order.insert(it, id);
+        scene_order.insert(it, proxy_drawable_t{ .id = id, .ptr = world.get(id) });
     }
     to_add.clear();
 
     for (auto id : to_erase) {
         scene_order.erase(
-            std::find(scene_order.begin(), scene_order.end(), id)
+            std::find_if(
+            scene_order.begin(),
+            scene_order.end(),
+            [&id](const proxy_drawable_t& s) { return s.id == id; }
+            )
         );
         to_add.erase(id);
         configs.erase(id);
@@ -113,11 +124,9 @@ void SceneSystem::draw(const World& world, RenderTarget& target, RenderState sta
 
 	target.draw(background, state);
 
-    for (auto id : scene_order) {
-        assert(configs.contains(id));
-        assert(world.all<Drawable>().exists(id));
+    for (auto& proxy : scene_order) {
 
-        auto& cfg = configs.at(id);
+        auto& cfg = configs.at(proxy.id);
 
         if (scissor_enabled && cfg.layer_id >= 0) {
             scissor_enabled = false;
@@ -144,11 +153,7 @@ void SceneSystem::draw(const World& world, RenderTarget& target, RenderState sta
 
             st.blend = cfg.rstate.blend;
 
-            volatile void* ptr = (void*)world.get(id);
-            //LOG_INFO("{} {} {}", id.value.generation, id.value.sparse_index, ptr);
-            volatile auto& test = world.at(id);
-            //LOG_INFO("{}", (void*)&test);
-            target.draw(world.at(id), st);
+            target.draw(*proxy.ptr, st);
         }
     }
 

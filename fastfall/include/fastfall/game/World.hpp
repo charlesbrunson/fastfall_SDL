@@ -35,6 +35,8 @@ class World : public Drawable
 private:
     struct state_t
     {
+
+
         // entity
         id_map<Entity> _entities;
         std::unordered_map<ComponentID, ID<Entity>> _comp_to_ent;
