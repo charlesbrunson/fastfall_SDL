@@ -23,6 +23,12 @@
 
 namespace ff {
 
+namespace detail {
+    template<class T, class Container, class Item = typename Container::base_type>
+    constexpr bool fits =
+                (std::same_as<id_map<Item>,      Container>      && std::same_as<T, Item>)
+             || (std::same_as<poly_id_map<Item>, Container> && std::derived_from<T, Item>);
+}
 
 class World : public Drawable
 {
@@ -34,50 +40,30 @@ private:
         std::unordered_map<ComponentID, ID<Entity>> _comp_to_ent;
 
         // components
-        poly_id_map<GameObject> _objects;
-        id_map<Level> _levels;
-        id_map<Collidable> _collidables;
+        poly_id_map<GameObject>     _objects;
+        id_map<Level>               _levels;
+        id_map<Collidable>          _collidables;
         poly_id_map<ColliderRegion> _colliders;
-        id_map<Trigger> _triggers;
-        poly_id_map<CameraTarget> _camera_targets;
-        poly_id_map<Drawable> _drawables;
-        std::vector<ID<Drawable>> erase_drawables_deferred;
-        id_map<Emitter> _emitters;
-        id_map<AttachPoint> _attachpoints;
-        id_map<PathMover> _pathmovers;
-        id_map<TileLayer> _tilelayer;
+        id_map<Trigger>             _triggers;
+        poly_id_map<CameraTarget>   _camera_targets;
+        poly_id_map<Drawable>       _drawables;
+        id_map<Emitter>             _emitters;
+        id_map<AttachPoint>         _attachpoints;
+        id_map<PathMover>           _pathmovers;
+        id_map<TileLayer>           _tilelayer;
 
-        constexpr auto all_component_lists() const {
-            return std::tie(
-                _objects, _levels, _collidables, _colliders, _triggers, _camera_targets,
-                _drawables, _emitters, _attachpoints, _pathmovers, _tilelayer
-            );
-        }
-
-        constexpr auto all_component_lists()  {
-            return std::tie(
-                _objects, _levels, _collidables, _colliders, _triggers, _camera_targets,
-                _drawables, _emitters, _attachpoints, _pathmovers, _tilelayer
-            );
-        }
+        std::vector<ID<Drawable>>   erase_drawables_deferred;
 
         // systems
-        LevelSystem _level_system;
-        ObjectSystem _object_system;
+        LevelSystem     _level_system;
+        ObjectSystem    _object_system;
         CollisionSystem _collision_system;
-        TriggerSystem _trigger_system;
-        EmitterSystem _emitter_system;
-        AttachSystem _attach_system;
-        CameraSystem _camera_system;
-        SceneSystem _scene_system;
-        PathSystem _path_system;
-
-        constexpr auto all_systems() const {
-            return std::tie(
-                _level_system, _object_system, _collision_system, _trigger_system, _emitter_system,
-                _attach_system, _camera_system, _scene_system, _path_system
-            );
-        }
+        TriggerSystem   _trigger_system;
+        EmitterSystem   _emitter_system;
+        AttachSystem    _attach_system;
+        CameraSystem    _camera_system;
+        SceneSystem     _scene_system;
+        PathSystem      _path_system;
 
         constexpr auto all_systems()  {
             return std::tie(
@@ -97,53 +83,25 @@ private:
     state_t state;
 
 private:
-    template<typename T>
-    static constexpr auto& impl_get_best_component_list(auto& first) {
-        using Container = std::remove_cvref_t<decltype(first)>;
-        using Item      = typename Container::base_type;
-
-        if constexpr (std::same_as<id_map<T>, Container>
-                      || std::same_as<poly_id_map<Item>, Container> && std::derived_from<Item, T>)
-        {
-            return first;
-        }
-        else {
-            []<bool flag = false>()
-            { static_assert(flag, "no match component list"); }();
-            return id_map<T>{};
-        }
-    }
-
-    template<typename T>
-    static constexpr auto& impl_get_best_component_list(auto& first, auto&... rest) {
-        using Container = std::remove_cvref_t<decltype(first)>;
-        using Item      = typename Container::base_type;
-
-        if constexpr (std::same_as<id_map<T>, Container>
-                   || std::same_as<poly_id_map<Item>, Container> && std::derived_from<T, Item>)
-        {
-            return first;
-        }
-        else {
-            return impl_get_best_component_list<T>(rest...);
-        }
-    }
-
-    template<typename T>
+    template<class T>
     constexpr auto& list_for() const {
-        return std::apply(
-                [](auto&... lists) -> auto& { return impl_get_best_component_list<T>(lists...); },
-                state.all_component_lists());
+        return const_cast<World&>(*this).list_for<T>();
     }
 
     template<class T>
     constexpr auto& list_for() {
-        return std::apply(
-                [](auto&... lists) -> auto& { return impl_get_best_component_list<T>(lists...); },
-                state.all_component_lists());
+        if constexpr (detail::fits<T, decltype(state._objects)>)        { return state._objects; }
+        if constexpr (detail::fits<T, decltype(state._levels)>)         { return state._levels; }
+        if constexpr (detail::fits<T, decltype(state._collidables)>)    { return state._collidables; }
+        if constexpr (detail::fits<T, decltype(state._colliders)>)      { return state._colliders; }
+        if constexpr (detail::fits<T, decltype(state._triggers)>)       { return state._triggers; }
+        if constexpr (detail::fits<T, decltype(state._camera_targets)>) { return state._camera_targets; }
+        if constexpr (detail::fits<T, decltype(state._drawables)>)      { return state._drawables; }
+        if constexpr (detail::fits<T, decltype(state._emitters)>)       { return state._emitters; }
+        if constexpr (detail::fits<T, decltype(state._attachpoints)>)   { return state._attachpoints; }
+        if constexpr (detail::fits<T, decltype(state._pathmovers)>)     { return state._pathmovers; }
+        if constexpr (detail::fits<T, decltype(state._tilelayer)>)      { return state._tilelayer; }
     }
-
-    auto span(auto& components) { return std::span{components.begin(), components.end()}; };
 
 public:
     World();
@@ -151,7 +109,7 @@ public:
     World(World&&) noexcept;
     World& operator=(const World&);
     World& operator=(World&&) noexcept;
-    ~World();
+    ~World() override;
 
     // manage state
     void update(secs deltaTime);

@@ -100,6 +100,7 @@ void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 	previousRender = state;
 	justCleared = false;
 }
+
 void RenderTarget::draw(const TileArray& tarray, RenderState state) {
 	if (tarray.tile_count == 0)
 		return;
