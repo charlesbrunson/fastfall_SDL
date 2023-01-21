@@ -217,7 +217,7 @@ bool Engine::run_doubleThread()
     std::barrier<> bar{ 2 };
 
     running = true;
-    bool first_frame = true;
+    //bool first_frame = true;
     clock.reset();
     std::thread stateWorker(&Engine::runUpdate, this, &bar);
 
@@ -232,14 +232,9 @@ bool Engine::run_doubleThread()
 
         // do update/draw
 
-        if (!first_frame) {
-            updateView();
-            drawRunnables();
-            profiler::curr_duration.draw_time = profiler::frame_timer.elapsed();
-        }
-        else {
-            first_frame = false;
-        }
+        updateView();
+        drawRunnables();
+        profiler::curr_duration.draw_time = profiler::frame_timer.elapsed();
 
         bar.arrive_and_wait();
 

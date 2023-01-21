@@ -26,6 +26,7 @@ bool audio_init() {
         is_init = false;
     }
     else {
+        LOG_INFO("    SoLoud {}", SOLOUD_VERSION );
         audio_engine.setMaxActiveVoiceCount(64);
         is_init = true;
     }

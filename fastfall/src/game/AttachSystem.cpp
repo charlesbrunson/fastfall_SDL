@@ -52,7 +52,7 @@ namespace ff {
                 std::visit(
                     [&]<class T>(ID<T> cid) {
                         if constexpr (requires(ID<T> x_id, T& x, World& x_w, const AttachPoint& ap, Vec2f x_off) { detail::attach_teleport(x_w, x_id, x, ap, x_off); }) {
-                        detail::attach_teleport(w, cid, w.at(cid), w.at(id), offset);
+                        detail::attach_teleport(w, cid, w.at(cid), w.at(id), sub_attach.offset);
                     }
                 }, sub_attach.id);
             }
