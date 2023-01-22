@@ -8,6 +8,7 @@
 #include "fastfall/resource/asset/FontAsset.hpp"
 #include "fastfall/resource/asset/ShaderAsset.hpp"
 #include "fastfall/resource/asset/SoundAsset.hpp"
+#include "fastfall/resource/asset/MusicAsset.hpp"
 
 #include <map>
 #include <memory>
@@ -45,6 +46,7 @@ private:
     asset_type<LevelAsset>   levels;
     asset_type<FontAsset>    fonts;
     asset_type<SoundAsset>   sounds;
+    asset_type<MusicAsset>   music;
 
     constexpr auto all_asset_types() {
         return std::tie(
@@ -53,7 +55,8 @@ private:
             tilesets,
             levels,
             fonts,
-            sounds
+            sounds,
+            music
         );
     }
 
@@ -111,7 +114,6 @@ public:
 
     static bool loadAll();
     static void unloadAll();
-    //static bool compileShaders();
 	static bool reloadOutOfDateAssets();
 
 	void ImGui_getContent();

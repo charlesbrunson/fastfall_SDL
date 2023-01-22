@@ -8,9 +8,7 @@ using namespace rapidxml;
 #include <mutex>
 #include <future>
 
-//#include <ranges>
-
-#include "fastfall/schema/resource-flat.hpp"
+//#include "fastfall/schema/resource-flat.hpp"
 
 #include "fastfall/resource/ResourceWatcher.hpp"
 #include "fastfall/resource/ResourceSubscriber.hpp"
@@ -41,6 +39,7 @@ void Resources::init_asset_types() {
     levels.type_name   = "Levels";
     fonts.type_name    = "Fonts";
     sounds.type_name   = "Sound Effects";
+    music.type_name    = "Music";
 
     shaders.extension  = ".vert";
     sprites.extension  = ".sax";
@@ -48,6 +47,7 @@ void Resources::init_asset_types() {
     levels.extension   = ".tmx";
     fonts.extension    = ".ttf";
     sounds.extension   = ".wav";
+    music.extension    = ".mp3";
 }
 
 bool Resources::loadAll() {
@@ -126,22 +126,6 @@ bool Resources::loadAssetsFromDirectory(const std::filesystem::path& asset_dir)
         LOG_INFO("");
     });
 
-
-
-    /*
-    for_each_asset([&](Asset* asset) {
-        bool success = asset->loadFromFile();
-        r &= success;
-        log::scope scope;
-        if (success) {
-            LOG_INFO("{:40} ...       complete", asset->get_name());
-            asset->postLoad();
-        }
-        else {
-            LOG_ERR_("{:40} ... failed to load", asset->get_name());
-        }
-    });
-    */
 	return r;
 }
 
@@ -237,25 +221,5 @@ bool Resources::reloadOutOfDateAssets()
 
 	return assets_changed.size() > 0;
 }
-
-/*
-bool Resources::compileShaders() {
-    bool allgood = true;
-    LOG_INFO("Compiling shaders");
-    {
-        log::scope sc;
-        for (auto& [name, shader] : resource.shaders.assets) {
-            if (!shader->compileShaderFromFile()) {
-                LOG_ERR_("{} ... failed to compile.", name);
-                allgood = false;
-            }
-            else {
-                LOG_INFO("{} ... compiled.", name);
-            }
-        }
-    }
-    return allgood;
-}
-*/
 
 }

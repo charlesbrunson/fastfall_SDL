@@ -1,7 +1,6 @@
 #pragma once
 
 #include "fastfall/resource/Asset.hpp"
-
 #include "soloud_wav.h"
 
 namespace ff {
