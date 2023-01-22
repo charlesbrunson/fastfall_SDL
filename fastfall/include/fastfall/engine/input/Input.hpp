@@ -44,14 +44,6 @@ public:
 
     int velocity() const { return curr_velocity; }
 
-	// for axis inputs
-	//short axis_prev_pos = 0;
-    //bool axis_prev_in_range = false;
-
-	// for mouse inputs
-	//Vec2i mouse_press_pos;
-	//Vec2i mouse_release_pos;
-
 private:
     InputType m_type;
 	int activeCounter = 0; // num of inputs activating this
