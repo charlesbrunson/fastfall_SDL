@@ -18,9 +18,7 @@ bool SoundAsset::reloadFromFile() {
 }
 
 std::vector<std::filesystem::path> SoundAsset::getDependencies() const {
-    return {
-        asset_path
-    };
+    return { asset_path };
 }
 
 }

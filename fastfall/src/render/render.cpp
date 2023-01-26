@@ -6,16 +6,11 @@
 #include "fastfall/render/freetype.hpp"
 #include "fastfall/render/Window.hpp"
 
-#include <stdexcept>
-#include <string>
-
 #include "detail/error.hpp"
 
 #include "SDL_image.h"
 #include "imgui.h"
 
-#include <iostream>
-#include <stack>
 #include <mutex>
 
 #if defined(__EMSCRIPTEN__)
@@ -23,32 +18,31 @@
 #endif
 
 namespace ff {
+namespace render {
 namespace {
-    bool renderInitialized = false;
-    bool glewInitialized   = false;
+bool renderInitialized = false;
+bool glewInitialized = false;
 
 
-    void GLAPIENTRY
-        MessageCallback(GLenum source,
-            GLenum type,
-            GLuint id,
-            GLenum severity,
-            GLsizei length,
-            const GLchar* message,
-            const void* userParam)
-    {
+void GLAPIENTRY
+MessageCallback(GLenum source,
+                GLenum type,
+                GLuint id,
+                GLenum severity,
+                GLsizei length,
+                const GLchar *message,
+                const void *userParam) {
 
-		if (severity != GL_DEBUG_SEVERITY_NOTIFICATION) {
-			fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-				(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
-				type, severity, message);
-		}
+    if (severity != GL_DEBUG_SEVERITY_NOTIFICATION) {
+        fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+                (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+                type, severity, message);
     }
+}
 
 }
 
-bool render_init()
-{
+bool init() {
     assert(!renderInitialized);
     renderInitialized = true;
 
@@ -90,13 +84,12 @@ bool render_init()
     return renderInitialized;
 }
 
-void render_quit()
-{
+void quit() {
     assert(renderInitialized);
 
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplSDL2_Shutdown();
-	ImGui::DestroyContext();
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
 
     IMG_Quit();
     SDL_Quit();
@@ -104,18 +97,17 @@ void render_quit()
     renderInitialized = false;
 }
 
-bool render_is_init()
-{
-	return renderInitialized;
+bool is_init() {
+    return renderInitialized;
 }
 
-bool render_glew_init() {
+bool glew_init() {
     if (glewInitialized) return true;
 
     GLenum glew_err = glewInit();
     if (GLEW_OK != glew_err) {
         glewInitialized = false;
-        std::string err = (char*)glewGetErrorString(glew_err);
+        std::string err = (char *) glewGetErrorString(glew_err);
         LOG_ERR_("Unable to init glew: {}", err);
         return false;
     }
@@ -136,7 +128,7 @@ bool render_glew_init() {
     LOG_INFO("OpenGL Renderer:       {}", glGetString(GL_RENDERER));
     LOG_INFO("OpenGL Version:        {}", glGetString(GL_VERSION));
     LOG_INFO("OpenGL Shader Version: {}", glGetString(GL_SHADING_LANGUAGE_VERSION));
-    
+
     ShaderProgram::getDefaultProgram();
     LOG_INFO("Loaded default shader");
 
@@ -152,14 +144,15 @@ bool render_glew_init() {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO &io = ImGui::GetIO();
+    (void) io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
     ImGui::StyleColorsDark();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-    ImGuiStyle& style = ImGui::GetStyle();
+    ImGuiStyle &style = ImGui::GetStyle();
 
     /*
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -174,9 +167,11 @@ bool render_glew_init() {
     return glewInitialized;
 }
 
-bool render_glew_is_init() {
+bool glew_is_init() {
     return glewInitialized;
 }
+
+} // namespace render
 
 void ImGuiNewFrame(Window& window) {
 

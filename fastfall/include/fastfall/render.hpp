@@ -2,13 +2,13 @@
 
 #include "fastfall/render/opengl.hpp"
 
-namespace ff {
-	bool render_init();
-	void render_quit();
-	bool render_is_init();
+namespace ff::render {
+	bool init();
+	void quit();
+	bool is_init();
 
-	bool render_glew_init();
-	bool render_glew_is_init();
+	bool glew_init();
+	bool glew_is_init();
 }
 
 #include "fastfall/render/Window.hpp"

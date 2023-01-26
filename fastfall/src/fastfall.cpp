@@ -11,12 +11,12 @@
 namespace ff {
 
 bool Init() {
-    if (!render_init()) {
+    if (!render::init()) {
         LOG_ERR_("Could not initialize render subsystem");
         return false;
     }
 
-    if (!audio_init()) {
+    if (!audio::init()) {
         LOG_ERR_("Could not initialize audio subsystem");
         return false;
     }
@@ -33,7 +33,7 @@ bool Init() {
 }
 
 bool Load_Resources() {
-    if (!render_glew_is_init()) {
+    if (!render::glew_is_init()) {
         LOG_ERR_("Cannot load resources without an OpenGL context, a Window must be created first");
         return false;
     }
@@ -62,8 +62,8 @@ void Quit() {
     Resources::unloadAll();
     ImGuiFrame::getInstance().clear();
 
-    audio_quit();
-    render_quit();
+    audio::quit();
+    render::quit();
 
     if (kill_watch)
         ResourceWatcher::join_watch_thread();

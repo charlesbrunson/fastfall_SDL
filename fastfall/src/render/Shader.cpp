@@ -61,7 +61,7 @@ std::string_view ShaderProgram::getGLSLVersionString() {
 ShaderProgram DefaultProgram;
 
 const ShaderProgram& ShaderProgram::getDefaultProgram() {
-	if (!DefaultProgram.isLinked() && render_glew_is_init()) {
+	if (!DefaultProgram.isLinked() && render::glew_is_init()) {
 		DefaultProgram.add(ff::ShaderType::VERTEX, vertex_default);
 		DefaultProgram.add(ff::ShaderType::FRAGMENT, fragment_default);
 		DefaultProgram.link();
