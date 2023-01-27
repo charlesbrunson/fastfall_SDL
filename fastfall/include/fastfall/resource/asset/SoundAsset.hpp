@@ -14,8 +14,11 @@ public:
 
     std::vector<std::filesystem::path> getDependencies() const override;
 
-    SoLoud::Wav* wav() { return (loaded ? &sound : nullptr); }
-    const SoLoud::Wav* wav() const { return (loaded ? &sound : nullptr); }
+    SoLoud::Wav& wav() { return sound; }
+    const SoLoud::Wav& wav() const { return sound; }
+
+    operator SoLoud::Wav&() { return wav(); }
+    operator const SoLoud::Wav&() const { return wav(); }
 
     void ImGui_getContent() override {};
 

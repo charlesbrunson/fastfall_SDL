@@ -33,7 +33,9 @@ bool init() {
         audio_engine.setMaxActiveVoiceCount(64);
         audio_engine.setGlobalVolume(master_v);
         primary_mix.game.setVolume(game_v);
-        primary_mix.game.setVolume(music_v);
+        primary_mix.music.setVolume(music_v);
+        audio_engine.play(primary_mix.game);
+        audio_engine.play(primary_mix.music);
         init_state = true;
     }
     return init_state;
@@ -66,6 +68,7 @@ float get_master_volume() { return master_v; }
 float get_game_volume()   { return game_v;   }
 float get_music_volume()  { return music_v;  }
 
-SoLoud::Soloud &audio() { return audio_engine; }
+game_bus_t& primary_bus() { return primary_mix; }
+SoLoud::Soloud& engine() { return audio_engine; }
 
 }

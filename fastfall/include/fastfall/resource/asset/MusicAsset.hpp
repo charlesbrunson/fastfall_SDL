@@ -14,8 +14,9 @@ public:
 
     std::vector<std::filesystem::path> getDependencies() const override;
 
-    SoLoud::WavStream* wavstream() { return (loaded ? &stream : nullptr); }
-    const SoLoud::WavStream* wavstream() const { return (loaded ? &stream : nullptr); }
+    SoLoud::WavStream& wavstream() { return stream; }
+    const SoLoud::WavStream& wavstream() const { return stream; }
+
 
     void ImGui_getContent() override {};
 

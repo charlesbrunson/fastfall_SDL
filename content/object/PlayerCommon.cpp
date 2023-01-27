@@ -1,6 +1,7 @@
 #include "PlayerCommon.hpp"
 
 #include "fastfall/engine/InputConfig.hpp"
+#include "fastfall/engine/audio.hpp"
 
 using namespace ff;
 
@@ -169,6 +170,9 @@ namespace plr::action {
 		if (move.wishx != 0) {
 			sprite.set_hflip(move.wishx < 0);
 		}
+        if (auto* sound = Resources::get<SoundAsset>("Bump.wav")) {
+            audio::primary_bus().game.play(*sound);
+        }
 		return PlayerStateID::Dash;
 	}
 
@@ -179,26 +183,20 @@ namespace plr::action {
         auto& ground = *box.tracker();
 
 		Vec2f contact_normal = Vec2f{0.f, -1.f};
-		//Vec2f contact_velocity = Vec2f{};
 
 		if (ground.has_contact()) {
 			contact_normal = ground.get_contact()->collider_n;
-			//contact_velocity = ground.get_contact()->velocity;
 		}
-
 
 		float neutral_min_vx = -50.f;
 		float neutral_max_vx = constants::norm_speed - 5.f;
 
-		if (move.rel_speed > neutral_max_vx) 
-		{
+		if (move.rel_speed > neutral_max_vx) {
 			// running jump
-
 			sprite.set_anim(anim::jump_f);
 		}
 		else if (move.rel_speed >= neutral_min_vx) {
 			// neutral jump
-
 			if (move.speed < 100.f && move.wishx != 0) {
 				if (ground.has_contact()) {
 					ground.traverse_set_speed(*ground.traverse_get_speed() + 50.f * move.wishx);
@@ -210,8 +208,7 @@ namespace plr::action {
 			sprite.set_anim(anim::jump);
 
 		}
-		else if (move.rel_speed < neutral_min_vx)
-		{
+		else if (move.rel_speed < neutral_min_vx) {
 			//back jump
 			if (move.rel_wishx < 0) {
 				sprite.set_hflip(!sprite.get_hflip());
@@ -239,6 +236,9 @@ namespace plr::action {
 		}
 		box.set_local_vel(jumpVel);
 
+        if (auto* sound = Resources::get<SoundAsset>("Bump.wav")) {
+            audio::primary_bus().game.play(*sound);
+        }
 		return PlayerStateID::Air;
 	}
 }
