@@ -158,16 +158,17 @@ void Resources::ImGui_getContent() {
 
 
 void Resources::addLoadedToWatcher() {
-    LOG_INFO("Watching asset files:");
-    log::scope sc;
-    resource.for_each_asset_map([](auto& asset_map) {
+    size_t asset_count = 0;
+    resource.for_each_asset_map([&](auto& asset_map) {
         for (auto& [key, val] : asset_map) {
             ResourceWatcher::add_watch(
                 val.get(),
                 val->getDependencies()
             );
+            asset_count++;
         }
     });
+    LOG_INFO("Watching asset {} files", asset_count);
 }
 
 
