@@ -47,9 +47,9 @@ private:
 
 	ImGuiFrame();
 
-	std::set<ImGuiContent*> imguiContent[ImGuiContentTypeCount];
+	std::vector<ImGuiContent*> imguiContent[ImGuiContentTypeCount];
 
-	void displaySidePanel(std::set<ImGuiContent*>& contents, Recti area, const char* panelName);
+	void displaySidePanel(std::vector<ImGuiContent*>& contents, Recti area, const char* panelName);
 	void displayLog(Recti area, const char* panelName);
 
 	static ImGuiFrame frame;

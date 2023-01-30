@@ -9,17 +9,14 @@ namespace ff {
 
 size_t ImGuiContent::initCounter = 0;
 
-ImGuiContent::ImGuiContent(ImGuiContentType type, std::string title, std::string onMenuName) :
+ImGuiContent::ImGuiContent(ImGuiContentType type, const std::string& title, const std::string& onMenuName) :
 	ImGui_Type(type),
 	IDnum(initCounter++),
 	name(title),
 	menuName(onMenuName)
 {
 	isMenu = !menuName.empty();
-	std::stringstream stream;
-	stream << "##" << title << IDnum;
-	contentTag = stream.str();
-
+    contentTag = fmt::format("##{}", title);
 }
 
 void ImGuiContent::ImGui_addContent() {

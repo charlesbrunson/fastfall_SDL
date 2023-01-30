@@ -12,7 +12,6 @@ enum class ImGuiContentType {
 	NONE = -1,	// other content will include this one
 	SIDEBAR_LEFT = 0,
 	SIDEBAR_RIGHT = 1,
-	WINDOW
 };
 constexpr int ImGuiContentTypeCount = 3;
 
@@ -33,7 +32,7 @@ private:
 
 public:
 
-	ImGuiContent(ImGuiContentType type, std::string title, std::string onMenuName = "");
+	ImGuiContent(ImGuiContentType type, const std::string& title, const std::string& onMenuName = "");
 	virtual ~ImGuiContent();
 
 	inline ImGuiContentType ImGui_getType() const {

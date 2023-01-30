@@ -34,16 +34,16 @@ ImGuiFrame& ImGuiFrame::getInstance() {
 }
 
 void ImGuiFrame::addContent(ImGuiContent* content) {
-	imguiContent[static_cast<unsigned int>(content->ImGui_getType())].insert(content);
+    auto ndx = static_cast<unsigned int>(content->ImGui_getType());
+    imguiContent[ndx].push_back(content);
 }
+
 void ImGuiFrame::removeContent(ImGuiContent* content) {
-
-	std::set<ImGuiContent*>& set = imguiContent[static_cast<unsigned int>(content->ImGui_getType())];
-
-	if (!set.empty()) {
-		set.erase(content);
-	}
+    auto ndx = static_cast<unsigned int>(content->ImGui_getType());
+    auto& vec = imguiContent[ndx];
+    vec.erase(std::find(vec.begin(), vec.end(), content));
 }
+
 void ImGuiFrame::resize(Recti outer, Vec2u innersize) {
 	int sideMargin = (outer.width - innersize.x) / 2;
 	int topMargin = (outer.height - innersize.y) / 2;
@@ -61,7 +61,7 @@ void ImGuiFrame::clear() {
 
 }
 
-void ImGuiFrame::displaySidePanel(std::set<ImGuiContent*>& contents, Recti area, const char* panelName) {
+void ImGuiFrame::displaySidePanel(std::vector<ImGuiContent*>& contents, Recti area, const char* panelName) {
 
 	ImGui::SetNextWindowSize(ImVec2(area.getSize().x, area.getSize().y), ImGuiCond_Always);
 	ImGui::SetNextWindowPos(
@@ -85,7 +85,7 @@ void ImGuiFrame::displaySidePanel(std::set<ImGuiContent*>& contents, Recti area,
 
 		if (ImGui::BeginMenuBar())
 		{
-			for (auto& content : contents) {
+			for (auto content : contents) {
 				if (content->ImGui_hasMenu()) {
 					if (ImGui::BeginMenu(content->ImGui_MenuName()))
 					{
@@ -99,7 +99,7 @@ void ImGuiFrame::displaySidePanel(std::set<ImGuiContent*>& contents, Recti area,
 
 		if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_AutoSelectNewTabs))
 		{
-			for (auto& content : contents) {
+			for (auto content : contents) {
 				if (content->ImGui_getOpen()) {
 					if (ImGui::BeginTabItem(content->ImGui_Name(), &content->ImGui_getOpen(), ImGuiTabItemFlags_None)) {
 						content->ImGui_getContent();

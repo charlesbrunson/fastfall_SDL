@@ -52,7 +52,6 @@ void Resources::init_asset_types() {
 
 bool Resources::loadAll() {
 	bool result;
-	resource.ImGui_addContent();
     resource.for_each_asset_type([]<is_asset T>(asset_type<T>& type) {
         type.assets.clear();
     });

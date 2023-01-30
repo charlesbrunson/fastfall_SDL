@@ -116,6 +116,8 @@ public:
     static void unloadAll();
 	static bool reloadOutOfDateAssets();
 
+    static void ImGui_init() { resource.ImGui_addContent(); }
+
 	void ImGui_getContent();
 };
 

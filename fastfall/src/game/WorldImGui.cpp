@@ -533,7 +533,7 @@ void imgui_status(World* w) {
 // ------------------------------------------------------------
 
 WorldImGui::WorldImGui() :
-        ImGuiContent(ImGuiContentType::SIDEBAR_RIGHT, "World", "World")
+        ImGuiContent(ImGuiContentType::SIDEBAR_RIGHT, "World States", "Gameplay")
 {
 }
 
