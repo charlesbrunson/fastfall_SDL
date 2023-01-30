@@ -42,6 +42,12 @@ struct copyable_unique_ptr {
         other.clone = nullptr;
 	}
 
+    constexpr copyable_unique_ptr(std::nullopt_t) noexcept
+    {
+        clone = nullptr;
+        ptr = nullptr;
+    }
+
 	copyable_unique_ptr<Base>& operator=(const copyable_unique_ptr<Base>& other)
 	{
         if (this == &other)
@@ -66,7 +72,6 @@ struct copyable_unique_ptr {
 		ptr = nullptr;
 		return *this;
 	}
-
 
 	Base* operator->() {
 		return ptr.get();

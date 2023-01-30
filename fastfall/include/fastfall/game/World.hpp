@@ -35,8 +35,6 @@ class World : public Drawable
 private:
     struct state_t
     {
-
-
         // entity
         id_map<Entity> _entities;
         std::unordered_map<ComponentID, ID<Entity>> _comp_to_ent;
@@ -154,6 +152,20 @@ public:
 
     // create entity
     ID<Entity> create_entity();
+
+    template<std::derived_from<Actor> T, class... Args>
+    std::optional<ID<Entity>> create_entity_with_actor(Args&&... args) {
+        auto id = create_entity();
+        auto& ent = state._entities.at(id);
+        ent.actor = make_copyable_unique<T>(std::forward<Args>(args)...);
+        if (ent.actor->init(*this, id)) {
+            return id;
+        }
+        else {
+            erase(id);
+            return std::nullopt;
+        }
+    }
 
     std::optional<ID<GameObject>> create_object_from_data(ObjectLevelData& data);
 
