@@ -30,6 +30,7 @@ public:
     };
 
     explicit Actor(Type type) : _type(type) {};
+    virtual ~Actor() = default;
 
     virtual bool    init(World& world, ID<Entity> entity) = 0;
     virtual void    update(World& world, secs deltaTime) = 0;

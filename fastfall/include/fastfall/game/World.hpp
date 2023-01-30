@@ -151,20 +151,24 @@ public:
     auto get(IDs... ids) const { return std::forward_as_tuple(get(ids)...); }
 
     // create entity
-    ID<Entity> create_entity();
+    std::optional<ID<Entity>> create_entity() {
+        return state._entities.create();
+    }
 
-    template<std::derived_from<Actor> T, class... Args>
-    std::optional<ID<Entity>> create_entity_with_actor(Args&&... args) {
+    template<std::derived_from<Actor> T_Actor, class... Args>
+    std::optional<ID<Entity>> create_entity(Args&&... args) {
         auto id = create_entity();
-        auto& ent = state._entities.at(id);
-        ent.actor = make_copyable_unique<T>(std::forward<Args>(args)...);
-        if (ent.actor->init(*this, id)) {
-            return id;
+        if (id) {
+            auto &ent = state._entities.at(*id);
+            ent.actor = make_copyable_unique<T_Actor>(std::forward<Args>(args)...);
+            if (ent.actor->init(*this, *id)) {
+                return id;
+            } else {
+                erase(*id);
+                return std::nullopt;
+            }
         }
-        else {
-            erase(id);
-            return std::nullopt;
-        }
+        return id;
     }
 
     std::optional<ID<GameObject>> create_object_from_data(ObjectLevelData& data);

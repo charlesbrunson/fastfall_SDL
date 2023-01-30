@@ -102,8 +102,9 @@ void PlayerDashState::enter(ff::World& w, plr::members& plr, PlayerState* from)
 		if (sprite.set_anim_if_not(dash_anims.dash->id()))
 		{
             Vec2f pos = w.at(box.get_attach_id()).curr_pos();
-            auto ent = w.create_entity();
-            w.create<SimpleEffect>(ent, w, id_placeholder, dash_anims.fx->id(), pos, sprite.get_hflip());
+            if (auto ent = w.create_entity()) {
+                w.create<SimpleEffect>(*ent, w, id_placeholder, dash_anims.fx->id(), pos, sprite.get_hflip());
+            }
 		}
 		dash_speed = *ground.traverse_get_speed() * (sprite.get_hflip() ? -1.f : 1.f);
 	}

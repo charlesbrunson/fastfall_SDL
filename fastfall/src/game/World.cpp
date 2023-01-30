@@ -100,15 +100,10 @@ void World::draw(RenderTarget& target, RenderState t_state) const
     state._scene_system.draw(*this, target, t_state);
 }
 
-
-ID<Entity> World::create_entity() {
-    return state._entities.create();
-}
-
 std::optional<ID<GameObject>> World::create_object_from_data(ObjectLevelData& data) {
     auto ent_id = create_entity();
     auto obj_id = state._objects.peek_next_id();
-    tie_component_entity(obj_id, ent_id);
+    tie_component_entity(obj_id, *ent_id);
     auto ptr = ObjectFactory::createFromData(*this, obj_id, data);
     if (ptr) {
         state._objects.emplace(std::move(ptr));
@@ -122,7 +117,7 @@ std::optional<ID<GameObject>> World::create_object_from_data(ObjectLevelData& da
 
 ID<Level> World::create_level(const LevelAsset& levelData, bool create_objects) {
     auto id = create_entity();
-    auto lvl_id = create<Level>(id, *this, id_placeholder, levelData);
+    auto lvl_id = create<Level>(*id, *this, id_placeholder, levelData);
     system_notify_created(lvl_id);
     if (create_objects) {
         at(lvl_id).get_layers().get_obj_layer().createObjectsFromData(*this);
@@ -132,7 +127,7 @@ ID<Level> World::create_level(const LevelAsset& levelData, bool create_objects) 
 
 ID<Level> World::create_level(std::optional<std::string> name, std::optional<Vec2u> size, std::optional<Color> bg_color) {
     auto id = create_entity();
-    auto lvl_id = create<Level>(id, *this, id_placeholder, name, size, bg_color);
+    auto lvl_id = create<Level>(*id, *this, id_placeholder, name, size, bg_color);
     system_notify_created(lvl_id);
     auto& lvl = at(lvl_id);
     return lvl_id;
