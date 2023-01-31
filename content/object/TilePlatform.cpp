@@ -67,7 +67,3 @@ TilePlatform::TilePlatform(World& w, ID<GameObject> id, ObjectLevelData& data)
 void TilePlatform::update(World& w, secs deltaTime) {
 
 };
-
-void TilePlatform::notify_level_reloaded(ff::World& w, const ff::Level& lvl) {
-    // TODO
-};

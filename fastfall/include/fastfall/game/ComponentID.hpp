@@ -6,8 +6,6 @@
 
 namespace ff {
 
-class GameObject;
-class Level;
 class Collidable;
 class ColliderRegion;
 class Trigger;
@@ -19,8 +17,6 @@ class PathMover;
 class TileLayer;
 
 using ComponentID = std::variant<
-    ID<GameObject>,
-    ID<Level>,
     ID<Collidable>,
     ID<ColliderRegion>,
     ID<Trigger>,

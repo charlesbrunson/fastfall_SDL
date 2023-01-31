@@ -44,27 +44,27 @@ World::~World() {
 void World::update(secs deltaTime) {
     if (Level* active = state._level_system.get_active(*this))
     {
-
         state._scene_system.update(*this, deltaTime);
         state._attach_system.update(*this, deltaTime);
         state._input.update(deltaTime);
-        //active->update(*this, deltaTime);
         state._level_system.update(*this, deltaTime);
-        state._trigger_system.update(*this, deltaTime);
 
+        // TODO remake into actor system
         state._object_system.update(*this, deltaTime);
+
+        state._trigger_system.update(*this, deltaTime);
         state._path_system.update(*this, deltaTime);
         state._attach_system.update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostUpdate);
 
         state._collision_system.update(*this, deltaTime);
-
         state._attach_system.update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostCollision);
+
         state._camera_system.update(*this, deltaTime);
         state._emitter_system.update(*this, deltaTime);
 
-        if (deltaTime > 0.0)
+        if (deltaTime > 0.0) {
             state.update_counter++;
-
+        }
         state.update_time += deltaTime;
     }
 }
@@ -74,15 +74,14 @@ void World::predraw(float interp, bool updated)
     if (Level* active = state._level_system.get_active(*this))
     {
         if (updated && active->try_reload_level(*this)) {
-            for (auto [id, obj] : all<GameObject>()) {
-                obj->notify_level_reloaded(*this, *active);
+            for (auto [id, actor] : all<Actor>()) {
+                actor->notify_active_level_reloaded(*this);
             }
         }
 
         state._scene_system.set_bg_color(active->getBGColor());
         state._scene_system.set_size(active->size());
         state._object_system.predraw(*this, interp, updated);
-        //active->predraw(*this, interp, updated);
         state._level_system.predraw(*this, interp, updated);
         state._emitter_system.predraw(*this, interp, updated);
         state._scene_system.set_cam_pos(state._camera_system.getPosition(interp));
@@ -100,41 +99,14 @@ void World::draw(RenderTarget& target, RenderState t_state) const
     state._scene_system.draw(*this, target, t_state);
 }
 
-std::optional<ID<GameObject>> World::create_object_from_data(ObjectLevelData& data) {
-    auto ent_id = create_entity();
-    auto obj_id = state._objects.peek_next_id();
-    tie_component_entity(obj_id, *ent_id);
-    auto ptr = ObjectFactory::createFromData(*this, obj_id, data);
-    if (ptr) {
-        state._objects.emplace(std::move(ptr));
-        system_notify_created(obj_id);
-        return obj_id;
-    }
-    else {
-        return {};
-    }
-}
-
-ID<Level> World::create_level(const LevelAsset& levelData, bool create_objects) {
-    auto id = create_entity();
-    auto lvl_id = create<Level>(*id, *this, id_placeholder, levelData);
-    system_notify_created(lvl_id);
-    if (create_objects) {
-        at(lvl_id).get_layers().get_obj_layer().createObjectsFromData(*this);
-    }
-    return lvl_id;
-}
-
-ID<Level> World::create_level(std::optional<std::string> name, std::optional<Vec2u> size, std::optional<Color> bg_color) {
-    auto id = create_entity();
-    auto lvl_id = create<Level>(*id, *this, id_placeholder, name, size, bg_color);
-    system_notify_created(lvl_id);
-    auto& lvl = at(lvl_id);
-    return lvl_id;
-}
-
 bool World::erase(ID<Entity> entity) {
-    auto components = state._entities.at(entity).components;
+    auto& ent = state._entities.at(entity);
+    auto actor = ent.actor;
+    auto components = ent.components;
+    if (actor) {
+        state._actors.erase(*actor);
+        state._actor_to_ent.erase(*actor);
+    }
     for (auto& c : components) {
         erase(c);
     }
@@ -176,6 +148,14 @@ const std::set<ComponentID>& World::components_of(ID<Entity> id) const {
 
 ID<Entity> World::entity_of(ComponentID id) const {
     return state._comp_to_ent.at(id);
+}
+
+ID<Entity> World::entity_of(ID<Actor> id) const {
+    return state._actor_to_ent.at(id);
+}
+
+bool World::entity_has_actor(ID<Entity> id) const {
+    return state._entities.at(id).actor.has_value();
 }
 
 void World::tie_component_entity(ComponentID cmp, ID<Entity> ent) {

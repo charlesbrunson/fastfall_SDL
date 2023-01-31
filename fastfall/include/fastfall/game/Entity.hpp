@@ -9,8 +9,8 @@
 namespace ff {
 
 struct Entity {
-    copyable_unique_ptr<Actor> actor;
-    std::set<ComponentID> components;
+    std::optional<ID<Actor>> actor = {};
+    std::set<ComponentID>    components;
 };
 
 }

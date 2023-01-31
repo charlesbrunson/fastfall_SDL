@@ -32,12 +32,13 @@ public:
     explicit Actor(Type type) : _type(type) {};
     virtual ~Actor() = default;
 
-    virtual bool    init(World& world, ID<Entity> entity) = 0;
-    virtual void    update(World& world, secs deltaTime) = 0;
+    virtual bool init(World& world, ID<Entity> entity) = 0;
+    virtual void update(World& world, ID<Entity> entity, secs deltaTime) = 0;
+    virtual void notify_active_level_reloaded(World& world) {};
     virtual dresult message(World&, const dmessage&) { return reject; }
 
     [[nodiscard]]
-    Type get_type() const { return _type; }
+    Type type() const { return _type; }
 
 private:
     Type _type;

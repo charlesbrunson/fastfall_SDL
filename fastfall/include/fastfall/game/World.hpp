@@ -38,10 +38,10 @@ private:
         // entity
         id_map<Entity> _entities;
         std::unordered_map<ComponentID, ID<Entity>> _comp_to_ent;
+        std::unordered_map<ID<Actor>, ID<Entity>>   _actor_to_ent;
 
         // components
-        poly_id_map<GameObject>     _objects;
-        id_map<Level>               _levels;
+        poly_id_map<Actor>          _actors;
         id_map<Collidable>          _collidables;
         poly_id_map<ColliderRegion> _colliders;
         id_map<Trigger>             _triggers;
@@ -90,8 +90,9 @@ private:
 
     template<class T>
     constexpr auto& list_for() {
-        if constexpr (detail::fits<T, decltype(state._objects)>)        { return state._objects; }
-        if constexpr (detail::fits<T, decltype(state._levels)>)         { return state._levels; }
+        //if constexpr (detail::fits<T, decltype(state._objects)>)        { return state._objects; }
+        //if constexpr (detail::fits<T, decltype(state._levels)>)         { return state._levels; }
+        if constexpr (detail::fits<T, decltype(state._actors)>)         { return state._actors; }
         if constexpr (detail::fits<T, decltype(state._collidables)>)    { return state._collidables; }
         if constexpr (detail::fits<T, decltype(state._colliders)>)      { return state._colliders; }
         if constexpr (detail::fits<T, decltype(state._triggers)>)       { return state._triggers; }
@@ -151,7 +152,7 @@ public:
     auto get(IDs... ids) const { return std::forward_as_tuple(get(ids)...); }
 
     // create entity
-    std::optional<ID<Entity>> create_entity() {
+    inline std::optional<ID<Entity>> create_entity() {
         return state._entities.create();
     }
 
@@ -160,8 +161,10 @@ public:
         auto id = create_entity();
         if (id) {
             auto &ent = state._entities.at(*id);
-            ent.actor = make_copyable_unique<T_Actor>(std::forward<Args>(args)...);
-            if (ent.actor->init(*this, *id)) {
+            auto actor_id = state._actors.create<T_Actor>(std::forward<Args>(args)...);
+            ent.actor = actor_id;
+            if (state._actors.at(actor_id).init(*this, *id)) {
+                state._actor_to_ent.emplace(actor_id, *id);
                 return id;
             } else {
                 erase(*id);
@@ -170,14 +173,6 @@ public:
         }
         return id;
     }
-
-    std::optional<ID<GameObject>> create_object_from_data(ObjectLevelData& data);
-
-    ID<Level> create_level(const LevelAsset& levelData, bool create_objects);
-    ID<Level> create_level(
-            std::optional<std::string> name = {},
-            std::optional<Vec2u> size = {},
-            std::optional<Color> bg_color = {});
 
     // create component
     template<typename T>
@@ -216,6 +211,9 @@ public:
     // entity helpers
     const std::set<ComponentID>& components_of(ID<Entity> id) const;
     ID<Entity> entity_of(ComponentID id) const;
+    ID<Entity> entity_of(ID<Actor> id) const;
+
+    bool entity_has_actor(ID<Entity> id) const;
 
     // misc
     std::string name;
