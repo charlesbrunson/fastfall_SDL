@@ -73,11 +73,13 @@ void World::predraw(float interp, bool updated)
 {
     if (Level* active = state._level_system.get_active(*this))
     {
+        /*
         if (updated && active->try_reload_level(*this)) {
             for (auto [id, actor] : all<Actor>()) {
                 actor->notify_active_level_reloaded(*this);
             }
         }
+        */
 
         state._scene_system.set_bg_color(active->getBGColor());
         state._scene_system.set_size(active->size());
@@ -105,7 +107,6 @@ bool World::erase(ID<Entity> entity) {
     auto components = ent.components;
     if (actor) {
         state._actors.erase(*actor);
-        state._actor_to_ent.erase(*actor);
     }
     for (auto& c : components) {
         erase(c);
@@ -151,7 +152,7 @@ ID<Entity> World::entity_of(ComponentID id) const {
 }
 
 ID<Entity> World::entity_of(ID<Actor> id) const {
-    return state._actor_to_ent.at(id);
+    return state._actors.at(id).entity_id;
 }
 
 bool World::entity_has_actor(ID<Entity> id) const {

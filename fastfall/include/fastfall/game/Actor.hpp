@@ -24,24 +24,27 @@ using actor_vars = std::variant<
 class Actor : public dconfig<actor_vars, World&>
 {
 public:
-    enum Type {
-        GameObject,
-        Level
+    explicit Actor(ID<Entity> actor_entity_id)
+        : entity_id(actor_entity_id)
+    {
     };
 
-    explicit Actor(Type type) : _type(type) {};
     virtual ~Actor() = default;
 
-    virtual bool init(World& world, ID<Entity> entity) = 0;
-    virtual void update(World& world, ID<Entity> entity, secs deltaTime) = 0;
-    virtual void notify_active_level_reloaded(World& world) {};
+    virtual void update(World& world, secs deltaTime) {};
     virtual dresult message(World&, const dmessage&) { return reject; }
 
-    [[nodiscard]]
-    Type type() const { return _type; }
+    const ID<Entity> entity_id;
 
-private:
-    Type _type;
+protected:
+    virtual bool init_entity(World&) = 0;
+
+    friend class World;
+};
+
+template<class T, class... Args>
+concept valid_actor_ctor = std::derived_from<T, Actor> && requires(World& w, ID<Entity> id, Args&&... args) {
+    T{ w, id, std::forward<Args>(args)... };
 };
 
 }

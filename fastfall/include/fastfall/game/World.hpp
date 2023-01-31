@@ -38,7 +38,7 @@ private:
         // entity
         id_map<Entity> _entities;
         std::unordered_map<ComponentID, ID<Entity>> _comp_to_ent;
-        std::unordered_map<ID<Actor>, ID<Entity>>   _actor_to_ent;
+        //std::unordered_map<ID<Actor>, ID<Entity>>   _actor_to_ent;
 
         // components
         poly_id_map<Actor>          _actors;
@@ -156,19 +156,18 @@ public:
         return state._entities.create();
     }
 
-    template<std::derived_from<Actor> T_Actor, class... Args>
+    template<class T, class... Args>
+    requires valid_actor_ctor<T, Args...>
     std::optional<ID<Entity>> create_entity(Args&&... args) {
         auto id = create_entity();
         if (id) {
-            auto &ent = state._entities.at(*id);
-            auto actor_id = state._actors.create<T_Actor>(std::forward<Args>(args)...);
-            ent.actor = actor_id;
-            if (state._actors.at(actor_id).init(*this, *id)) {
-                state._actor_to_ent.emplace(actor_id, *id);
-                return id;
-            } else {
+            auto& ent = state._entities.at(*id);
+            ent.actor = state._actors.create<T>(*id, std::forward<Args>(args)...);
+            auto& actor = at(*ent.actor);
+            if (!actor.init_entity(*this)) {
                 erase(*id);
-                return std::nullopt;
+                id = std::nullopt;
+                LOG_ERR_("failed to initialize entity");
             }
         }
         return id;
