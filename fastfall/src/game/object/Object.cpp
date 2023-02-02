@@ -1,4 +1,4 @@
-#include "fastfall/game/object/GameObject.hpp"
+#include "fastfall/game/object/Object.hpp"
 
 #include "fastfall/util/log.hpp"
 #include "fastfall/engine/config.hpp"
@@ -168,12 +168,12 @@ const ObjectType* ObjectFactory::getType(std::string_view name) {
 	return nullptr;
 }
 
-GameObject::GameObject(ActorInit init)
+Object::Object(ActorInit init)
     : Actor{ init }
 {
 }
 
-GameObject::GameObject(ActorInit init, ObjectLevelData& data)
+Object::Object(ActorInit init, ObjectLevelData& data)
     : Actor{ init }
 	, m_data(&data)
 {

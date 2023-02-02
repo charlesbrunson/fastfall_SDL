@@ -14,7 +14,7 @@
 namespace ff {
 
 class World;
-class GameObject;
+class Object;
 
 struct TriggerPull;
 
@@ -72,7 +72,7 @@ private:
 	bool activated = false;
 
 	Rectf area;
-    std::optional<ID<GameObject>> owner;
+    std::optional<ID<Object>> owner;
     ID<Trigger> m_id;
 	TriggerFn on_trigger;
 };

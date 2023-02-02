@@ -22,7 +22,7 @@ const ObjectType Player::Type{
 };
 
 Player::Player(ActorInit init, Vec2f position, bool faceleft)
-	: GameObject{ init }
+	: Object{init }
 	, plr::members{ init, position, faceleft}
 {
     auto& box = init.world.at(collidable_id);
@@ -35,7 +35,7 @@ Player::Player(ActorInit init, Vec2f position, bool faceleft)
 };
 
 Player::Player(ActorInit init, ObjectLevelData& data)
-	: GameObject( init, data )
+	: Object(init, data )
 	, plr::members{ init, Vec2f{ data.position }, data.getPropAsBool("faceleft")}
 {
     auto& box = init.world.at(collidable_id);

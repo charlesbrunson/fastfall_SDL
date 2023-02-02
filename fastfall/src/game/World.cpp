@@ -4,7 +4,7 @@
 
 #include "fastfall/render/DebugDraw.hpp"
 
-#include "fastfall/game/object/GameObject.hpp"
+#include "fastfall/game/object/Object.hpp"
 
 namespace ff {
 
@@ -107,7 +107,7 @@ std::optional<ID<Entity>> World::create_entity() {
 }
 
 
-std::optional<ID<GameObject>> World::create_object(ObjectLevelData& data) {
+std::optional<ID<Object>> World::create_object(ObjectLevelData& data) {
     auto id = *create_entity();
     state._entities.at(id).actor = state._actors.peek_next_id();
 
@@ -124,7 +124,7 @@ std::optional<ID<GameObject>> World::create_object(ObjectLevelData& data) {
     }
     else {
         system_notify_created<Actor>(actor_id);
-        return id_cast<GameObject>(actor_id);
+        return id_cast<Object>(actor_id);
     }
 }
 

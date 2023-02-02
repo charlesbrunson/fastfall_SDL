@@ -3,7 +3,7 @@ Serialization of game configuration (.json)
 --[DONE] input config
 Assets for shaders, particle systems, sound and music
 --[DONE] shader assets
-Rebrand GameObject and Level as Actor
+--[DONE] Rebrand GameObject and Level as Actor
 Diagonal collision raycasts
 Trigger raycasts
 Simple collision for particles

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "fastfall/game/object/GameObject.hpp"
+#include "fastfall/game/object/Object.hpp"
 #include "fastfall/game/World.hpp"
 
 #include "PlayerCommon.hpp"
@@ -11,7 +11,7 @@
 #include <string_view>
 #include <variant>
 
-class Player : public ff::GameObject, public plr::members {
+class Player : public ff::Object, public plr::members {
 public:
 	static const ff::ObjectType Type;
 	const ff::ObjectType& type() const override { return Type; };

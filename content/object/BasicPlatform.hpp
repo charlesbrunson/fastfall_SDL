@@ -1,13 +1,13 @@
 
 
-#include "fastfall/game/object/GameObject.hpp"
+#include "fastfall/game/object/Object.hpp"
 #include "fastfall/game/phys/collider_regiontypes/ColliderSimple.hpp"
 #include "fastfall/game/World.hpp"
 #include "fastfall/game/path/PathMover.hpp"
 
 #include "fastfall/render/ShapeRectangle.hpp"
 
-class BasicPlatform : public ff::GameObject {
+class BasicPlatform : public ff::Object {
 public:
 	static const ff::ObjectType Type;
 	const ff::ObjectType& type() const override { return Type; };

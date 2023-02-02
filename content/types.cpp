@@ -1,5 +1,5 @@
 
-#include "fastfall/game/object/GameObject.hpp"
+#include "fastfall/game/object/Object.hpp"
 #include "fastfall/game/level/TileLogic.hpp"
 #include "fastfall/game/tile/Tile.hpp"
 

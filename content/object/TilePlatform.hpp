@@ -1,12 +1,12 @@
 #pragma once
 
 
-#include "fastfall/game/object/GameObject.hpp"
+#include "fastfall/game/object/Object.hpp"
 #include "fastfall/game/level/TileLayer.hpp"
 
 #include <memory>
 
-class TilePlatform : public ff::GameObject {
+class TilePlatform : public ff::Object {
 public:
     static const ff::ObjectType Type;
     const ff::ObjectType& type() const override { return Type; };

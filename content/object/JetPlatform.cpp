@@ -38,7 +38,7 @@ const EmitterStrategy jet_emitter_str = {
 };
 
 JetPlatform::JetPlatform(ActorInit init, ff::ObjectLevelData& data)
-    : ff::GameObject(init, data)
+    : ff::Object(init, data)
 {
     Vec2f base_position = data.getTopLeftPos();
     int tile_width = (int)data.size.x / TILESIZE;

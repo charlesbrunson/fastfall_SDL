@@ -117,11 +117,11 @@ struct ObjectType {
 	bool test(ObjectLevelData& data) const;
 };
 
-class GameObject;
+class Object;
 
 template<typename T>
 concept valid_object =
-std::is_base_of_v<GameObject, T>
+std::is_base_of_v<Object, T>
 && std::is_same_v<decltype(T::Type), const ObjectType>
 && requires (T x)
 {
@@ -167,7 +167,7 @@ public:
 	}
 
 	template<typename T, typename ... Args>
-	requires valid_object<T> && std::is_constructible_v<T, World&, ID<GameObject>, Args...>
+	requires valid_object<T> && std::is_constructible_v<T, World&, ID<Object>, Args...>
 	static copyable_unique_ptr<Actor> create(ActorInit init, Args&&... args)
 	{
         copyable_unique_ptr<Actor> obj = make_copyable_unique<Actor, T>(init, args...);
@@ -186,28 +186,25 @@ public:
 	static const ObjectType* getType(std::string_view name);
 };
 
-class GameObject : public Actor {
+class Object : public Actor {
 public:
-	GameObject(ActorInit init);
-	GameObject(ActorInit init, ObjectLevelData& data);
-	virtual ~GameObject() = default;
+	Object(ActorInit init);
+	Object(ActorInit init, ObjectLevelData& data);
+	virtual ~Object() = default;
 
 	virtual void update(World& world, secs deltaTime) = 0;
 	virtual const ObjectType& type() const = 0;
 
+    bool m_show_inspect = false;
 	virtual void ImGui_Inspect() {
 		ImGui::Text("Hello World!");
 	};
-
-	bool m_show_inspect = false;
 
     const ObjectLevelData* level_data() const { return m_data; };
 
 protected:
 	ObjectLevelData* const m_data = nullptr;
 
-private:
-    bool m_should_delete = false;
 };
 
 }

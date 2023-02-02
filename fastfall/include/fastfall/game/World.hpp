@@ -172,7 +172,7 @@ public:
         return std::nullopt;
     }
 
-    std::optional<ID<GameObject>> create_object(ObjectLevelData& data);
+    std::optional<ID<Object>> create_object(ObjectLevelData& data);
 
     void reset_entity(ID<Entity> id);
 

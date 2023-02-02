@@ -17,7 +17,7 @@ const ObjectType TilePlatform::Type{
 };
 
 TilePlatform::TilePlatform(ActorInit init, ObjectLevelData& data)
-    : GameObject(init)
+    : Object(init)
 {
     World& w = init.world;
     ObjLevelID path_id = data.getPropAsID("path");
