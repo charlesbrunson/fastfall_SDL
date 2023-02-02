@@ -11,7 +11,7 @@ public:
     static const ff::ObjectType Type;
     const ff::ObjectType& type() const override { return Type; };
 
-    TilePlatform(ff::World& w, ff::ID<ff::GameObject> id, ff::ObjectLevelData& data);
+    TilePlatform(ff::ActorInit init, ff::ObjectLevelData& data);
 
     void update(ff::World& w, secs deltaTime) override;
     void notify_level_reloaded(ff::World& w, const ff::Level& lvl);

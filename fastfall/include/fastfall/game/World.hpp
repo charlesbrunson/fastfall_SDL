@@ -10,7 +10,7 @@
 #include "fastfall/game/CameraSystem.hpp"
 #include "fastfall/game/TriggerSystem.hpp"
 #include "fastfall/game/SceneSystem.hpp"
-#include "fastfall/game/ObjectSystem.hpp"
+#include "fastfall/game/ActorSystem.hpp"
 #include "fastfall/game/LevelSystem.hpp"
 #include "fastfall/game/EmitterSystem.hpp"
 #include "fastfall/game/AttachSystem.hpp"
@@ -56,7 +56,7 @@ private:
 
         // systems
         LevelSystem     _level_system;
-        ObjectSystem    _object_system;
+        ActorSystem     _actor_system;
         CollisionSystem _collision_system;
         TriggerSystem   _trigger_system;
         EmitterSystem   _emitter_system;
@@ -67,7 +67,7 @@ private:
 
         constexpr auto all_systems()  {
             return std::tie(
-                _level_system, _object_system, _collision_system, _trigger_system, _emitter_system,
+                _level_system, _actor_system, _collision_system, _trigger_system, _emitter_system,
                 _attach_system, _camera_system, _scene_system, _path_system
             );
         }
@@ -152,26 +152,42 @@ public:
     auto get(IDs... ids) const { return std::forward_as_tuple(get(ids)...); }
 
     // create entity
-    inline std::optional<ID<Entity>> create_entity() {
-        return state._entities.create();
-    }
+    std::optional<ID<Entity>> create_entity();
 
-    template<class T, class... Args>
-    requires valid_actor_ctor<T, Args...>
-    std::optional<ID<Entity>> create_entity(Args&&... args) {
+    template<class T_Actor, class... Args>
+    requires valid_actor_ctor<T_Actor, Args...>
+    std::optional<ID<T_Actor>> create_actor_entity(Args&&... args) {
         auto id = create_entity();
         if (id) {
-            auto& ent = state._entities.at(*id);
-            ent.actor = state._actors.create<T>(*id, std::forward<Args>(args)...);
-            auto& actor = at(*ent.actor);
-            if (!actor.init_entity(*this)) {
+            if (create_actor<T_Actor>(*id, std::forward<Args>(args)...)) {
+                auto actor_id = id_cast<T_Actor>(*state._entities.at(*id).actor);
+                system_notify_created<Actor>(actor_id);
+                return actor_id;
+            }
+            else {
                 erase(*id);
-                id = std::nullopt;
                 LOG_ERR_("failed to initialize entity");
             }
         }
+        return std::nullopt;
+    }
+
+    std::optional<ID<GameObject>> create_object(ObjectLevelData& data);
+
+    void reset_entity(ID<Entity> id);
+
+    template<class T_Actor, class... Args>
+    requires valid_actor_ctor<T_Actor, Args...>
+    std::optional<ID<Entity>> reset_entity(ID<Entity> id, Args&&... args) {
+        reset_entity(id);
+        if (!create_actor<T_Actor>(id, std::forward<Args>(args)...)) {
+            reset_entity(id);
+            LOG_ERR_("failed to initialize entity");
+            return std::nullopt;
+        }
         return id;
     }
+
 
     // create component
     template<typename T>
@@ -193,9 +209,11 @@ public:
         return tmp_id;
     }
 
+
 	// erase component
-    bool erase(ID<Entity> entity);
-    bool erase(ComponentID component);
+    bool erase(ID<Entity> entity_id);
+    bool erase(ComponentID component_id);
+    bool erase_all_components(ID<Entity> entity_id);
 
     // span components
     template<class T>
@@ -210,7 +228,12 @@ public:
     // entity helpers
     const std::set<ComponentID>& components_of(ID<Entity> id) const;
     ID<Entity> entity_of(ComponentID id) const;
-    ID<Entity> entity_of(ID<Actor> id) const;
+    //ID<Entity> entity_of(ID<Actor> id) const;
+
+    template<std::derived_from<Actor> T_Actor>
+    ID<T_Actor> id_of_actor(T_Actor* actor) const {
+        return id_cast<T_Actor>(*state._entities.at(actor->entity_id()).actor);
+    }
 
     bool entity_has_actor(ID<Entity> id) const;
 
@@ -224,6 +247,20 @@ public:
 
 private:
     void draw(RenderTarget& target, RenderState state = RenderState()) const override;
+
+    template<class T_Actor, class... Args>
+    requires valid_actor_ctor<T_Actor, Args...>
+    bool create_actor(ID<Entity> id, Args&&... args) {
+        auto& ent = state._entities.at(id);
+
+        ent.actor = state._actors.create<T_Actor>(ActorInit{
+            .world = *this,
+            .entity_id = id,
+            .actor_id = state._actors.peek_next_id()
+        }, std::forward<Args>(args)...);
+        return at(*ent.actor).initialized;
+    }
+
 
     template<typename T>
     void system_notify_created(ID<T> t_id) {

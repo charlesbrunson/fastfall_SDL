@@ -21,12 +21,12 @@ const ObjectType Player::Type{
 	}
 };
 
-Player::Player(World& w, ID<GameObject> id, Vec2f position, bool faceleft)
-	: GameObject{ w , id }
-	, plr::members{ w, *this, position, faceleft}
+Player::Player(ActorInit init, Vec2f position, bool faceleft)
+	: GameObject{ init }
+	, plr::members{ init, position, faceleft}
 {
-    auto& box = w.at(collidable_id);
-    box.callbacks.onPostCollision = [plr_id = id_cast<Player>(getID())] (World& w) {
+    auto& box = init.world.at(collidable_id);
+    box.callbacks.onPostCollision = [plr_id = id_cast<Player>(actor_id)] (World& w) {
         auto& plr = w.at(plr_id);
         plr.manage_state(w, plr.get_state().post_collision(w, plr));
     };
@@ -34,12 +34,12 @@ Player::Player(World& w, ID<GameObject> id, Vec2f position, bool faceleft)
     //test_spr = w.create<AnimatedSprite>(w.entity_of(id));
 };
 
-Player::Player(World& w, ID<GameObject> id, ObjectLevelData& data)
-	: GameObject( w, id, data )
-	, plr::members{ w, *this, Vec2f{ data.position }, data.getPropAsBool("faceleft")}
+Player::Player(ActorInit init, ObjectLevelData& data)
+	: GameObject( init, data )
+	, plr::members{ init, Vec2f{ data.position }, data.getPropAsBool("faceleft")}
 {
-    auto& box = w.at(collidable_id);
-    box.callbacks.onPostCollision = [plr_id = id_cast<Player>(getID())] (World& w) {
+    auto& box = init.world.at(collidable_id);
+    box.callbacks.onPostCollision = [plr_id = id_cast<Player>(actor_id)] (World& w) {
         auto& plr = w.at(plr_id);
         plr.manage_state(w, plr.get_state().post_collision(w, plr));
     };
@@ -76,32 +76,29 @@ void Player::manage_state(World& w, PlayerStateID n_id)
 void Player::update(World& w, secs deltaTime) {
 	manage_state(w, get_state().update(w, *this, deltaTime));
     w.at(sprite_id).update(deltaTime);
-
-    //w.erase(test_spr);
-    //test_spr = w.create<AnimatedSprite>(w.entity_of(getID()));
 }
 
-objcfg::dresult Player::message(World& w, const objcfg::dmessage& msg) {
+Actor::dresult Player::message(World& w, const dmessage& msg) {
+    using namespace actor_msg;
     switch(msg) {
-        case objNoOp: {
-            //LOG_INFO("Nothing!");
-            return objNoOp.accept();
+        case NoOp: {
+            return NoOp.accept();
         }
-        case objGetPos: {
-            return objGetPos.accept(w.at(collidable_id).getPosition());
+        case GetPos: {
+            return GetPos.accept(w.at(collidable_id).getPosition());
         }
-        case objSetPos: {
-            auto [pos] = objSetPos.unwrap(msg);
+        case SetPos: {
+            auto [pos] = SetPos.unwrap(msg);
             w.at(collidable_id).setPosition(pos);
-            return objSetPos.accept();
+            return SetPos.accept();
         }
-        case objHurt: {
+        case Hurt: {
             // float [damage] = objHurt.unwrap(msg);
             //LOG_INFO("OUCH: {}", objHurt.unwrap_as<float>(msg));
-            return objHurt.accept();
+            return Hurt.accept();
         }
     }
-    return objcfg::reject;
+    return reject;
 };
 
 /*

@@ -315,13 +315,10 @@ void imgui_scene(World* w) {
 
 // ------------------------------------------------------------
 
-void imgui_levels(World* w) {
+void imgui_actors(World* w) {
 
-}
-
-void imgui_objects(World* w) {
-
-    for(auto [id, obj] : w->all<GameObject>())
+    /*
+    for(auto [id, obj] : w->all<Actor>())
     {
         auto& type = obj->type();
         auto* lvldata = obj->level_data();
@@ -363,6 +360,7 @@ void imgui_objects(World* w) {
             ImGui::TreePop();
         }
     }
+    */
 }
 
 // ------------------------------------------------------------
@@ -598,6 +596,8 @@ void WorldImGui::ImGui_getContent()
             imgui_status(curr_world);
             ImGui::EndTabItem();
         }
+        // TODO
+        /*
         if (ImGui::BeginTabItem("Levels")) {
             imgui_levels(curr_world);
             ImGui::EndTabItem();
@@ -606,6 +606,7 @@ void WorldImGui::ImGui_getContent()
             imgui_objects(curr_world);
             ImGui::EndTabItem();
         }
+        */
         if (ImGui::BeginTabItem("Components")) {
             if (ImGui::BeginTabBar("Components")) {
                 if (ImGui::BeginTabItem("Collidables")) {
@@ -644,6 +645,8 @@ void WorldImGui::ImGui_getContent()
 
 void WorldImGui::ImGui_getExtraContent() {
 
+    // TODO
+    /*
     if (curr_world) {
         for (auto [id, obj] : curr_world->all<GameObject>()) {
             if (obj->m_show_inspect
@@ -654,6 +657,7 @@ void WorldImGui::ImGui_getExtraContent() {
             }
         }
     }
+    */
 }
 
 }

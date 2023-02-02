@@ -4,6 +4,8 @@
 
 #include "fastfall/render/DebugDraw.hpp"
 
+#include "fastfall/game/object/GameObject.hpp"
+
 namespace ff {
 
 World::World()
@@ -49,8 +51,7 @@ void World::update(secs deltaTime) {
         state._input.update(deltaTime);
         state._level_system.update(*this, deltaTime);
 
-        // TODO remake into actor system
-        state._object_system.update(*this, deltaTime);
+        state._actor_system.update(*this, deltaTime);
 
         state._trigger_system.update(*this, deltaTime);
         state._path_system.update(*this, deltaTime);
@@ -83,7 +84,7 @@ void World::predraw(float interp, bool updated)
 
         state._scene_system.set_bg_color(active->getBGColor());
         state._scene_system.set_size(active->size());
-        state._object_system.predraw(*this, interp, updated);
+        state._actor_system.predraw(*this, interp, updated);
         state._level_system.predraw(*this, interp, updated);
         state._emitter_system.predraw(*this, interp, updated);
         state._scene_system.set_cam_pos(state._camera_system.getPosition(interp));
@@ -101,19 +102,57 @@ void World::draw(RenderTarget& target, RenderState t_state) const
     state._scene_system.draw(*this, target, t_state);
 }
 
-bool World::erase(ID<Entity> entity) {
-    auto& ent = state._entities.at(entity);
-    auto actor = ent.actor;
-    auto components = ent.components;
-    if (actor) {
-        state._actors.erase(*actor);
-    }
-    for (auto& c : components) {
-        erase(c);
-    }
-    state._entities.erase(entity);
-    return true;
+std::optional<ID<Entity>> World::create_entity() {
+    return state._entities.create();
 }
+
+
+std::optional<ID<GameObject>> World::create_object(ObjectLevelData& data) {
+    auto id = *create_entity();
+    state._entities.at(id).actor = state._actors.peek_next_id();
+
+    ActorInit init {
+        .world = *this,
+        .entity_id = id,
+        .actor_id = state._actors.peek_next_id()
+    };
+
+    auto actor_id = state._actors.emplace(ObjectFactory::createFromData(init, data));
+    if (!at(actor_id).initialized) {
+        erase(id);
+        return std::nullopt;
+    }
+    else {
+        system_notify_created<Actor>(actor_id);
+        return id_cast<GameObject>(actor_id);
+    }
+}
+
+void World::reset_entity(ID<Entity> id) {
+    if (state._entities.exists(id)) {
+        auto& ent = state._entities.at(id);
+        auto actor = ent.actor;
+        auto components = ent.components;
+        if (actor) {
+            system_notify_erased<Actor>(*actor);
+            state._actors.erase(*actor);
+            ent.actor.reset();
+        }
+        for (auto& c : components) {
+            erase(c);
+        }
+    }
+}
+
+bool World::erase(ID<Entity> entity) {
+    if (state._entities.exists(entity)) {
+        reset_entity(entity);
+        state._entities.erase(entity);
+        return true;
+    }
+    return false;
+}
+
 bool World::erase(ComponentID component) {
     auto ent = entity_of(component);
     std::visit([&, this]<typename T>(ID<T> id) {
@@ -133,6 +172,16 @@ bool World::erase(ComponentID component) {
         }, component);
     return true;
 }
+
+bool World::erase_all_components(ID<Entity> entity_id) {
+    bool erased = true;
+    auto components = components_of(entity_id);
+    for (auto c : components) {
+        erased &= erase(c);
+    }
+    return erased;
+}
+
 void World::clean_drawables() {
    for(auto id : state.erase_drawables_deferred) {
        list_for<Drawable>().erase(id);
@@ -149,10 +198,6 @@ const std::set<ComponentID>& World::components_of(ID<Entity> id) const {
 
 ID<Entity> World::entity_of(ComponentID id) const {
     return state._comp_to_ent.at(id);
-}
-
-ID<Entity> World::entity_of(ID<Actor> id) const {
-    return state._actors.at(id).entity_id;
 }
 
 bool World::entity_has_actor(ID<Entity> id) const {

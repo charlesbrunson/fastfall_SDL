@@ -17,16 +17,16 @@ public:
 
 	virtual void notifyReloadedAsset(const Asset* asset) = 0;
 
-	void subscribe(const Asset* asset);
-	void unsubscribe(const Asset* asset);
+	void subscribe_asset(const Asset* asset);
+	void unsubscribe_asset(const Asset* asset);
 
-	bool is_subscribed(const Asset* asset) {
+	bool is_subscribed_to_asset(const Asset* asset) {
 		return asset_subs.contains(asset);
 	}
 
-    void unsubscribe_all();
+    void unsubscribe_all_assets();
 
-	static std::unordered_set<ResourceSubscriber*>& getAll() { return subscribers; };
+	static std::unordered_set<ResourceSubscriber*>& get_asset_subscriptions() { return subscribers; };
 
 private:
 	std::unordered_set<const Asset*> asset_subs;

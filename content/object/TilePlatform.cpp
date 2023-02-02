@@ -16,9 +16,10 @@ const ObjectType TilePlatform::Type{
     }
 };
 
-TilePlatform::TilePlatform(World& w, ID<GameObject> id, ObjectLevelData& data)
-    : GameObject(w, id)
+TilePlatform::TilePlatform(ActorInit init, ObjectLevelData& data)
+    : GameObject(init)
 {
+    World& w = init.world;
     ObjLevelID path_id = data.getPropAsID("path");
 
     Rectu area{
@@ -28,13 +29,13 @@ TilePlatform::TilePlatform(World& w, ID<GameObject> id, ObjectLevelData& data)
 
     ID<AttachPoint> attach_id;
     if (path_id) {
-        auto mover_id = w.create<PathMover>(entityID(), Path{data.get_sibling(path_id)});
+        auto mover_id = w.create<PathMover>(entity_id, Path{data.get_sibling(path_id)});
         attach_id = w.at(mover_id).get_attach_id();
     } else {
-        attach_id = w.create<AttachPoint>(entityID(), id_placeholder, data.getTopLeftPos());
+        attach_id = w.create<AttachPoint>(entity_id, id_placeholder, data.getTopLeftPos());
     }
 
-    tl_id = w.create<TileLayer>(entityID(), w, id_placeholder, 0, area.getSize());
+    tl_id = w.create<TileLayer>(entity_id, w, id_placeholder, 0, area.getSize());
     auto& tl = w.at(tl_id);
     tl.set_layer(w, 0);
     tl.set_autotile_substitute("empty"_ts);

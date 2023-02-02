@@ -12,7 +12,7 @@ public:
     static const ff::ObjectType Type;
     const ff::ObjectType& type() const override { return Type; };
 
-    JetPlatform(ff::World& w, ff::ID<ff::GameObject> id, ff::ObjectLevelData& data);
+    JetPlatform(ff::ActorInit init, ff::ObjectLevelData& data);
 
     void update(ff::World& w, secs deltaTime) override;
 

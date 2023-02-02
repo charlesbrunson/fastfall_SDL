@@ -211,9 +211,9 @@ bool Resources::reloadOutOfDateAssets()
     });
 
 	for (auto asset : assets_changed) {
-        auto& all_subs = ResourceSubscriber::getAll();
+        auto& all_subs = ResourceSubscriber::get_asset_subscriptions();
 		for (auto subscriber : all_subs) {
-			if (subscriber->is_subscribed(asset)) {
+			if (subscriber->is_subscribed_to_asset(asset)) {
 				subscriber->notifyReloadedAsset(asset);
 			}
 		}

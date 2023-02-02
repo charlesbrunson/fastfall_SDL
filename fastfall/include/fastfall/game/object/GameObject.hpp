@@ -132,7 +132,7 @@ struct ObjectFactory {
 private:
 	struct ObjectFactoryImpl {
 		const ObjectType* object_type;
-        copyable_unique_ptr<GameObject>(*createfn)(World& world, ID<GameObject> id, ObjectLevelData& data);
+        copyable_unique_ptr<Actor>(*createfn)(ActorInit, ObjectLevelData& data);
 	};
 
 	static std::map<size_t, ObjectFactoryImpl>& getFactories();
@@ -143,13 +143,13 @@ public:
 	static void register_object() {
 		ObjectFactoryImpl factory{};
 		factory.object_type = &T::Type;
-		factory.createfn = [](World& world, ID<GameObject> id, ObjectLevelData& data) -> copyable_unique_ptr<GameObject>
+		factory.createfn = [](ActorInit init, ObjectLevelData& data) -> copyable_unique_ptr<Actor>
 		{
-			if constexpr (std::is_constructible_v<T, World&, ID<GameObject>, ObjectLevelData&>) {
-                copyable_unique_ptr<GameObject> ret;
+			if constexpr (std::is_constructible_v<T, ActorInit, ObjectLevelData&>) {
+                copyable_unique_ptr<Actor> ret;
 				const ObjectType& type = T::Type;
 				if (type.test(data)) {
-					ret = make_copyable_unique<GameObject, T>(world, id, data);
+					ret = make_copyable_unique<Actor, T>(init, data);
 				}
 				else {
 					LOG_WARN("unable to instantiate object:{}:{}", type.type.name, data.level_id.id);
@@ -160,7 +160,7 @@ public:
 			else {
 				const ObjectType& type = T::Type;
 				LOG_WARN("object not constructible with level data:{}:{}", type.type.name, data.level_id.id);
-				return copyable_unique_ptr<GameObject>{};
+				return copyable_unique_ptr<Actor>{};
 			}
 		};
 		getFactories().insert(std::make_pair( factory.object_type->type.hash, std::move(factory) ));
@@ -168,80 +168,46 @@ public:
 
 	template<typename T, typename ... Args>
 	requires valid_object<T> && std::is_constructible_v<T, World&, ID<GameObject>, Args...>
-	static copyable_unique_ptr<GameObject> create(World& world, ID<GameObject> id, Args&&... args)
+	static copyable_unique_ptr<Actor> create(ActorInit init, Args&&... args)
 	{
-        copyable_unique_ptr<GameObject> obj = make_copyable_unique<GameObject, T>(world, id, args...);
+        copyable_unique_ptr<Actor> obj = make_copyable_unique<Actor, T>(init, args...);
 		if (obj) {
 			return obj;
 		}
 		else {
 			LOG_ERR_("Failed to create object: {}", T::Type.type.name);
 		}
-		return copyable_unique_ptr<GameObject>{};
+		return copyable_unique_ptr<Actor>{};
 	}
 
-	static copyable_unique_ptr<GameObject> createFromData(World& world, ID<GameObject> id, ObjectLevelData& data);
+	static copyable_unique_ptr<Actor> createFromData(ActorInit init, ObjectLevelData& data);
 
 	static const ObjectType* getType(size_t hash);
 	static const ObjectType* getType(std::string_view name);
 };
 
-class GameObject {
+class GameObject : public Actor {
 public:
-	GameObject(World& w, ID<GameObject> id);
-	GameObject(World& w, ID<GameObject> id, ObjectLevelData& data);
+	GameObject(ActorInit init);
+	GameObject(ActorInit init, ObjectLevelData& data);
 	virtual ~GameObject() = default;
-
 
 	virtual void update(World& world, secs deltaTime) = 0;
 	virtual const ObjectType& type() const = 0;
-
-    //virtual void notify_level_reloaded(World& w, const Level& lvl) {};
 
 	virtual void ImGui_Inspect() {
 		ImGui::Text("Hello World!");
 	};
 
-	//bool m_has_collider = false;
 	bool m_show_inspect = false;
 
-    bool should_delete() const { return m_should_delete; }
     const ObjectLevelData* level_data() const { return m_data; };
-
-    [[nodiscard]]
-    ID<GameObject> getID() const { return m_id; };
-
-    [[nodiscard]]
-    ID<Entity> entityID() const { return entity_id; };
-
-    virtual objcfg::dresult message(World&, const objcfg::dmessage&) { return objcfg::reject; }
 
 protected:
 	ObjectLevelData* const m_data = nullptr;
 
-    void raise_should_delete(bool t_delete = true) {
-        if (t_delete)
-            m_should_delete = true;
-    }
-
-    // erase any components allocated by this object from the world
-    // called prior to deletion from world
-    //virtual void clean(World& world) = 0;
-
-    friend class ObjectSystem;
 private:
-    ID<Entity>     entity_id;
-    ID<GameObject> m_id;
     bool m_should_delete = false;
-};
-
-class EmptyObject : public GameObject {
-public:
-    EmptyObject(World& w, ID<GameObject> id) : GameObject(w, id) {};
-    void update(World& world, secs deltaTime) override {};
-    const ObjectType& type() const override { return _type; };
-private:
-    const static ObjectType _type;
 };
 
 }

@@ -31,13 +31,14 @@ plr::move_t::move_t(World& w, const plr::members& plr)
 }
 
 
-plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
-    : sprite_id(w.create<AnimatedSprite>(w.entity_of(plr.getID())))
-    , collidable_id(w.create<Collidable>(w.entity_of(plr.getID()), position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
+plr::members::members(ActorInit init, Vec2f position, bool face_dir)
+    : sprite_id(init.world.create<AnimatedSprite>(init.entity_id))
+    , collidable_id(init.world.create<Collidable>(init.entity_id, position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
     , cameratarget_id()
-    , hitbox_id(w.create<Trigger>(w.entity_of(plr.getID()), id_placeholder))
-    , hurtbox_id(w.create<Trigger>(w.entity_of(plr.getID()), id_placeholder))
+    , hitbox_id(init.world.create<Trigger>(init.entity_id, id_placeholder))
+    , hurtbox_id(init.world.create<Trigger>(init.entity_id, id_placeholder))
 {
+    World& w = init.world;
     auto& box = w.at(collidable_id);
     auto attachid = box.get_attach_id();
     box.create_tracker(
@@ -57,7 +58,7 @@ plr::members::members(World& w, GameObject& plr, Vec2f position, bool face_dir)
     };
 
     cameratarget_id = w.create<SimpleCamTarget>(
-            w.entity_of(plr.getID()),
+        init.entity_id,
         ff::CamTargetPriority::Medium,
         [id = collidable_id](World& w) {
             return w.at(id).getPosition() - Vec2f{0.f, 16.f};

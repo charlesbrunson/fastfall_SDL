@@ -12,61 +12,35 @@ namespace ff {
 
 // LEVEL
 Level::Level(
-    World& world,
-    ID<Level> t_id,
+    ActorInit init,
     std::optional<std::string>  opt_name,
     std::optional<Vec2u>        opt_size,
     std::optional<Color>        opt_bgColor
 )
-    : m_id(t_id)
+    : Actor{ init }
 {
-    entity_check(world);
     if (opt_name)    levelName = std::move(*opt_name);
     if (opt_size)    levelSize = *opt_size;
     if (opt_bgColor) bgColor = *opt_bgColor;
 }
 
 Level::Level(
-    World& world,
-    ID<Level> t_id,
+    ActorInit init,
     const LevelAsset& levelData
 )
-    : m_id(t_id)
+    : Actor{ init }
 {
-    entity_check(world);
-    initFromAsset(world, levelData);
-}
-
-void Level::entity_check(World& w) const
-{
-    auto ent = w.entity_of(m_id);
-    auto cmps = w.components_of(ent);
-    for (auto& c : cmps) {
-        if (std::holds_alternative<ID<Level>>(c) && c != ComponentID{ m_id })
-        {
-            LOG_ERR_("Entity {} has multiple instances of Level component!", ent.value.sparse_index);
-        }
-        if (std::holds_alternative<ID<GameObject>>(c) && c != ComponentID{ m_id })
-        {
-            LOG_ERR_("Entity {} has both a Level and GameObject component!", ent.value.sparse_index);
-        }
-    }
+    initFromAsset(init.world, levelData);
 }
 
 void Level::initFromAsset(World& world, const LevelAsset& levelData)
 {
-    unsubscribe_all();
-    subscribe(&levelData);
+    unsubscribe_all_assets();
+    subscribe_asset(&levelData);
     src_asset = &levelData;
 
     // remove existing components and layers
-    auto entity = world.entity_of(getID());
-    auto components = world.components_of(entity);
-    for (auto c : components) {
-        if (c != ComponentID{ getID() }) {
-            world.erase(c);
-        }
-    }
+    world.erase_all_components(entity_id);
     layers.clear_all();
 
 	levelName = levelData.get_name();
@@ -75,16 +49,15 @@ void Level::initFromAsset(World& world, const LevelAsset& levelData)
 
 	for (auto& layerRef : levelData.getLayerRefs().get_tile_layers())
 	{
-        auto ent = world.entity_of(m_id);
 		if (layerRef.position < 0) {
             layers.push_bg_front(TileLayerProxy{
-                .cmp_id   = world.create<TileLayer>(ent, world, id_placeholder, layerRef.tilelayer),
+                .cmp_id   = world.create<TileLayer>(entity_id, world, id_placeholder, layerRef.tilelayer),
                 .layer_id = layerRef.tilelayer.getID()
             });
 		}
 		else {
             layers.push_fg_front(TileLayerProxy{
-                .cmp_id   = world.create<TileLayer>(ent, world, id_placeholder, layerRef.tilelayer),
+                .cmp_id   = world.create<TileLayer>(entity_id, world, id_placeholder, layerRef.tilelayer),
                 .layer_id = layerRef.tilelayer.getID()
             });
 		}
@@ -98,6 +71,7 @@ void Level::initFromAsset(World& world, const LevelAsset& levelData)
 	layers.get_obj_layer().initFromAsset(
 		levelData.getLayerRefs().get_obj_layer()
 	);
+
 }
 
 void Level::resize(World& world, Vec2u n_size)
@@ -115,8 +89,8 @@ void Level::resize(World& world, Vec2u n_size)
             (std::min)(n_size.y, layer.getParallaxSize().y)
 		};
 
-        auto ent = world.entity_of(m_id);
-        auto n_id = world.create<TileLayer>(ent, world, id_placeholder, layer.getID(), n_size);
+        //auto ent = world.entity_of(m_id);
+        auto n_id = world.create<TileLayer>(entity_id, world, id_placeholder, layer.getID(), n_size);
         TileLayer& n_layer = world.at(n_id);
 
         n_layer.set_layer(world, layer.get_layer());
@@ -135,7 +109,7 @@ bool Level::try_reload_level(World& w) {
     if (!src_asset || !allow_asset_reload || !asset_changed)
         return false;
 
-    LevelEditor editor{ w, m_id };
+    LevelEditor editor{ w, id_cast<Level>(actor_id) };
     bool r = editor.applyLevelAsset(src_asset);
     if (r)
         asset_changed = false;

@@ -12,6 +12,8 @@
 #include "fastfall/game/level/TileLayer.hpp"
 #include "fastfall/game/level/ObjectLayer.hpp"
 
+#include "fastfall/game/Actor.hpp"
+
 #include <list>
 #include <concepts>
 
@@ -19,7 +21,7 @@ namespace ff {
 
 class World;
 
-class Level : public ResourceSubscriber {
+class Level : public ResourceSubscriber, public Actor {
 public:
     struct TileLayerProxy {
         ID<TileLayer> cmp_id;
@@ -29,8 +31,8 @@ public:
 
 	using Layers = LevelLayerContainer<TileLayerProxy, ObjectLayer>;
 
-	Level(World& w, ID<Level> t_id, std::optional<std::string> name, std::optional<Vec2u> size, std::optional<Color> bgColor);
-	Level(World& w, ID<Level> t_id, const LevelAsset& levelData);
+	Level(ActorInit init, std::optional<std::string> name, std::optional<Vec2u> size, std::optional<Color> bgColor);
+	Level(ActorInit init, const LevelAsset& levelData);
 
     void initFromAsset(World& world, const LevelAsset& levelData);
 
@@ -57,21 +59,17 @@ public:
     TileLayerProxy& get_tile_layer(unsigned id) { return layers.get_tile_layers().at(id).tilelayer; }
     const TileLayerProxy& get_tile_layer(unsigned id) const { return layers.get_tile_layers().at(id).tilelayer; }
 
-    ID<Level> getID() const { return m_id; }
-
-    inline bool has_src_asset_changed() const { return asset_changed; }
+    bool has_src_asset_changed() const { return asset_changed; }
     bool try_reload_level(World& w);
 
     bool allow_asset_reload = true;
 
 private:
-    void entity_check(World& w) const;
-
     // asset
     const LevelAsset* src_asset = nullptr;
     bool asset_changed      = false;
 
-    ID<Level> m_id;
+    //ID<Level> m_id;
 	std::string levelName = "New Level";
 	Color bgColor         = Color::Black;
 	Vec2u levelSize       = { GAME_TILE_W, GAME_TILE_H };

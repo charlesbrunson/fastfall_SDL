@@ -58,7 +58,6 @@ void ImGuiFrame::clear() {
 	for (unsigned i = 0; i < ImGuiContentTypeCount; i++) {
 		imguiContent[i].clear();
 	}
-
 }
 
 void ImGuiFrame::displaySidePanel(std::vector<ImGuiContent*>& contents, Recti area, const char* panelName) {

@@ -27,11 +27,11 @@ TestState::TestState()
     ID<Level> lvl_id;
 	if (auto* lvlptr = ff::Resources::get<ff::LevelAsset>("map_test.tmx"))
 	{
-        lvl_id = world->create_level(*lvlptr, true);
+        lvl_id = *world->create_actor_entity<Level>(*lvlptr);
         world->system<LevelSystem>().set_active(lvl_id);
 	}
     Level* lvl = world->system<LevelSystem>().get_active(*world);
-    assert(lvl);
+    lvl->get_obj_layer().createObjectsFromData(*world);
 
 	edit = std::make_unique<LevelEditor>( *world, lvl_id );
 	edit->select_layer(-1);

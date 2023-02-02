@@ -37,21 +37,23 @@ const EmitterStrategy jet_emitter_str = {
     .animation          = AnimIDRef{ "jet_platform.sax", "effect" },
 };
 
-JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
-    : ff::GameObject(w, id, data)
+JetPlatform::JetPlatform(ActorInit init, ff::ObjectLevelData& data)
+    : ff::GameObject(init, data)
 {
     Vec2f base_position = data.getTopLeftPos();
     int tile_width = (int)data.size.x / TILESIZE;
     assert(platform_width_min <= tile_width && tile_width <= platform_width_max);
 
+    World& w = init.world;
+
     // collider
-    auto collider_id = w.create<ColliderTileMap>(entityID(), Vec2i{tile_width, 1});
+    auto collider_id = w.create<ColliderTileMap>(entity_id, Vec2i{tile_width, 1});
     auto& collider = w.at(collider_id);
     collider.fill("oneway"_ts);
     collider.applyChanges();
 
     // sprite
-    auto sprite_id = w.create<AnimatedSprite>(entityID());
+    auto sprite_id = w.create<AnimatedSprite>(entity_id);
     auto& sprite = w.at(sprite_id);
     sprite.set_anim(anim_platform[tile_width - platform_width_min]);
     w.system<SceneSystem>().config(sprite_id) = {
@@ -61,7 +63,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     };
 
     // emitter
-    auto emitter_id = w.create<Emitter>(entityID());
+    auto emitter_id = w.create<Emitter>(entity_id);
     auto& emitter = w.at(emitter_id);
     emitter.strategy = jet_emitter_str;
     w.system<SceneSystem>().config(emitter.get_drawid()) = {
@@ -71,7 +73,7 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     };
 
     // spring attachpoint
-    auto attach_id = w.create<AttachPoint>(entityID(), id_placeholder);
+    auto attach_id = w.create<AttachPoint>(entity_id, id_placeholder);
     auto& attach = w.at(attach_id);
     attach.teleport(base_position);
     attach.constraint = makeSpringConstraint({30, 50}, {8, 3}, 48.f);
@@ -84,10 +86,10 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
     ObjLevelID path_id = data.getPropAsID("path");
     ID<AttachPoint> base_attach_id;
     if (path_id) {
-        auto mover_id = w.create<PathMover>(entityID(), Path{data.get_sibling(path_id)});
+        auto mover_id = w.create<PathMover>(entity_id, Path{data.get_sibling(path_id)});
         base_attach_id = w.at(mover_id).get_attach_id();
     } else {
-        base_attach_id = w.create<AttachPoint>(entityID(), id_placeholder, data.getTopLeftPos());
+        base_attach_id = w.create<AttachPoint>(entity_id, id_placeholder, data.getTopLeftPos());
     }
 
     auto& base_attach = w.at(base_attach_id);
@@ -96,9 +98,9 @@ JetPlatform::JetPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
 
     collider.set_on_postcontact(
     [
-        id      = id_cast<JetPlatform>(getID()),
-        cid  = collider_id,
-        aid     = attach_id
+        id  = id_cast<JetPlatform>(actor_id),
+        cid = collider_id,
+        aid = attach_id
     ]
         (World& w, const AppliedContact& c, secs deltaTime)
     {

@@ -16,23 +16,22 @@ public:
 	static const ff::ObjectType Type;
 	const ff::ObjectType& type() const override { return Type; };
 
-	Player(ff::World& w, ff::ID<ff::GameObject> id, ff::Vec2f position, bool faceleft);
+	Player(ff::ActorInit init, ff::Vec2f position, bool faceleft);
 
-	Player(ff::World& w, ff::ID<ff::GameObject> id, ff::ObjectLevelData& data);
+	Player(ff::ActorInit init, ff::ObjectLevelData& data);
 
 	void update(ff::World& w, secs deltaTime) override;
 
 	//void ImGui_Inspect() override;
 
-    ff::objcfg::dresult message(ff::World&, const ff::objcfg::dmessage&) override;
+    dresult message(ff::World&, const dmessage&) override;
+
 protected:
 	std::variant<
 		PlayerGroundState, 
 		PlayerAirState, 
 		PlayerDashState
 	> state = PlayerGroundState{};
-
-    //ff::ID<ff::AnimatedSprite> test_spr;
 
 	template<typename Callable>
 	requires std::is_invocable_v<Callable, PlayerState&>
@@ -49,6 +48,4 @@ protected:
 	}
 
 	void manage_state(ff::World& w, PlayerStateID n_id);
-
-	//CmdResponse do_command(ff::ObjCmd cmd, const std::any& payload) override;
 };

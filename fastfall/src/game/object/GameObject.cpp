@@ -129,10 +129,10 @@ std::map<size_t, ObjectFactory::ObjectFactoryImpl>& ObjectFactory::getFactories(
 	return factories;
 }
 
-copyable_unique_ptr<GameObject> ObjectFactory::createFromData(World& world, ID<GameObject> id, ObjectLevelData& data) {
+copyable_unique_ptr<Actor> ObjectFactory::createFromData(ActorInit init, ObjectLevelData& data) {
 	if (auto it = getFactories().find(data.typehash); it != getFactories().end())
     {
-        copyable_unique_ptr<GameObject> obj = it->second.createfn(world, id, data);
+        copyable_unique_ptr<Actor> obj = it->second.createfn(init, data);
 		if (obj) {
 			return std::move(obj);
 		}
@@ -149,7 +149,7 @@ copyable_unique_ptr<GameObject> ObjectFactory::createFromData(World& world, ID<G
 			LOG_ERR_("{}: {}", impl.object_type->type.hash, impl.object_type->type.name);
 		}
 	}
-	return copyable_unique_ptr<GameObject>{};
+	return copyable_unique_ptr<Actor>{};
 }
 
 const ObjectType* ObjectFactory::getType(size_t hash) {
@@ -168,48 +168,15 @@ const ObjectType* ObjectFactory::getType(std::string_view name) {
 	return nullptr;
 }
 
-GameObject::GameObject(World& w, ID<GameObject> id)
-    : m_id(id)
-    , entity_id(w.entity_of(id))
+GameObject::GameObject(ActorInit init)
+    : Actor{ init }
 {
-    auto cmps = w.components_of(entityID());
-    for (auto& c : cmps) {
-        if (std::holds_alternative<ID<GameObject>>(c) && c != ComponentID{ id })
-        {
-            LOG_ERR_("Entity {} has multiple instances of GameObject component!", entityID().value.sparse_index);
-        }
-        if (std::holds_alternative<ID<Level>>(c) && c != ComponentID{ id })
-        {
-            LOG_ERR_("Entity {} has both a Level and GameObject component!", entityID().value.sparse_index);
-        }
-    }
 }
 
-GameObject::GameObject(World& w, ID<GameObject> id, ObjectLevelData& data)
-    : m_id(id)
-    , entity_id(w.entity_of(id))
+GameObject::GameObject(ActorInit init, ObjectLevelData& data)
+    : Actor{ init }
 	, m_data(&data)
 {
-    auto cmps = w.components_of(entityID());
-    for (auto& c : cmps) {
-        if (std::holds_alternative<ID<GameObject>>(c) && c != ComponentID{ id })
-        {
-            LOG_ERR_("Entity {} has multiple instances of GameObject component!", entityID().value.sparse_index);
-        }
-        if (std::holds_alternative<ID<Level>>(c) && c != ComponentID{ id })
-        {
-            LOG_ERR_("Entity {} has both a Level and GameObject component!", entityID().value.sparse_index);
-        }
-    }
 }
-
-const ObjectType EmptyObject::_type = {
-    .type = { "EmptyObject" },
-    .allow_as_level_data = false,
-    .anim = std::nullopt,
-    .tile_size = {0, 0},
-    .group_tags = {},
-    .properties = {}
-};
 
 }

@@ -27,8 +27,8 @@ void ImGuiContent::ImGui_addContent() {
 };
 
 ImGuiContent::~ImGuiContent() {
-	if (ImGui_Type != ImGuiContentType::NONE)
-		ImGuiFrame::getInstance().removeContent(this);
+	//if (ImGui_Type != ImGuiContentType::NONE)
+	//	ImGuiFrame::getInstance().removeContent(this);
 }
 
 }

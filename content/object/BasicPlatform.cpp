@@ -15,21 +15,22 @@ const ObjectType BasicPlatform::Type{
 	}
 };
 
-BasicPlatform::BasicPlatform(World& w, ID<GameObject> id, ff::ObjectLevelData& data)
-	: ff::GameObject(w, id, data)
-    , shape_id{ w.create<ShapeRectangle>(entityID(), Rectf{ Vec2f{}, Vec2f{ data.size } }, platformColor) }
-    , collider_id{ w.create<ColliderSimple>(entityID(), Rectf{ Vec2f{}, Vec2f{ data.size } })}
+BasicPlatform::BasicPlatform(ActorInit init, ff::ObjectLevelData& data)
+	: ff::GameObject(init, data)
+    , shape_id{ init.world.create<ShapeRectangle>(init.entity_id, Rectf{ Vec2f{}, Vec2f{ data.size } }, platformColor) }
+    , collider_id{ init.world.create<ColliderSimple>(init.entity_id, Rectf{ Vec2f{}, Vec2f{ data.size } })}
 {
+    World& w = init.world;
     w.system<SceneSystem>().set_config(shape_id, { 1, ff::scene_type::Object });
 
 	ObjLevelID path_id = data.getPropAsID("path");
 
     ID<AttachPoint> attach_id;
     if (path_id) {
-        mover_id = w.create<PathMover>(entityID(), Path{data.get_sibling(path_id)});
+        mover_id = w.create<PathMover>(init.entity_id, Path{data.get_sibling(path_id)});
         attach_id = w.at(mover_id).get_attach_id();
     } else {
-        attach_id = w.create<AttachPoint>(entityID(), id_placeholder, data.getTopLeftPos());
+        attach_id = w.create<AttachPoint>(init.entity_id, id_placeholder, data.getTopLeftPos());
     }
 
     w.system<AttachSystem>().create(w, attach_id, collider_id);

@@ -34,14 +34,14 @@ ResourceSubscriber::~ResourceSubscriber() {
 	subscribers.erase(this);
 }
 
-void ResourceSubscriber::subscribe(const Asset* asset) {
+void ResourceSubscriber::subscribe_asset(const Asset* asset) {
 	asset_subs.insert(asset);
 }
 
-void ResourceSubscriber::unsubscribe(const Asset* asset) {
+void ResourceSubscriber::unsubscribe_asset(const Asset* asset) {
 	asset_subs.erase(asset);
 }
-void ResourceSubscriber::unsubscribe_all() {
+void ResourceSubscriber::unsubscribe_all_assets() {
     asset_subs.clear();
 }
 

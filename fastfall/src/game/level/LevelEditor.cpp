@@ -29,7 +29,7 @@ bool LevelEditor::create_layer(int layer_pos)
 		&& layer_pos >= -bg_count - 1
 		&& layer_pos <= fg_count + 1)
 	{
-        auto ent = world.entity_of(level_id);
+        auto ent = world.at(level_id).entity_id;
 		level->get_layers().insert(
 			layer_pos,
             Level::TileLayerProxy{
@@ -340,10 +340,9 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		);
 		if (not_in_lvl)
 		{
-            auto ent = world.entity_of(level->getID());
 			lvl_layers.push_fg_front(
                 Level::TileLayerProxy{
-                    .cmp_id   = world.create<TileLayer>(ent, world, id_placeholder, layer_ref.tilelayer ),
+                    .cmp_id   = world.create<TileLayer>(level->entity_id, world, id_placeholder, layer_ref.tilelayer ),
                     .layer_id = layer_ref.tilelayer.getID()
                 }
             );
