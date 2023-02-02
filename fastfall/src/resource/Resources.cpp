@@ -167,7 +167,7 @@ void Resources::addLoadedToWatcher() {
             asset_count++;
         }
     });
-    LOG_INFO("Watching asset {} files", asset_count);
+    LOG_INFO("Watching {} asset files", asset_count);
 }
 
 
