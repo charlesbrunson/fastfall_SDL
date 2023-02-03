@@ -4,10 +4,6 @@
 
 namespace ff {
 
-AnimIDRef::AnimIDRef(std::string_view sprite, std::string_view anim)
-	: m_sprite(sprite), m_anim(anim)
-{
-}
 
 AnimID AnimIDRef::id() const
 {

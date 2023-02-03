@@ -12,17 +12,19 @@ namespace ff {
 
 bool ObjectType::test(ObjectLevelData& data) const {
 
+    /*
 	if (!allow_as_level_data) {
 		LOG_WARN("object cannot be instantiated by level {}:{:x}",
 			type.name, type.hash
 		);
 		return false;
 	}
+    */
 
 	// test type
-	if (type.hash != data.typehash) {
+	if (name.hash != data.typehash) {
 		LOG_WARN("object hash ({}) not valid for object {}:{:x}",
-			data.typehash, type.name, type.hash
+			data.typehash, name.str, name.hash
 		);
 		return false;
 	}
@@ -124,20 +126,18 @@ bool ObjectType::test(ObjectLevelData& data) const {
 }
 
 
-std::map<size_t, ObjectFactory::ObjectFactoryImpl>& ObjectFactory::getFactories() {
-	static std::map<size_t, ObjectFactoryImpl> factories;
-	return factories;
-}
+std::unordered_map<size_t, ObjectFactory::ObjectBuilder> ObjectFactory::object_builders;
 
 copyable_unique_ptr<Actor> ObjectFactory::createFromData(ActorInit init, ObjectLevelData& data) {
-	if (auto it = getFactories().find(data.typehash); it != getFactories().end())
+	if (auto it = object_builders.find(data.typehash); it != object_builders.end())
     {
-        copyable_unique_ptr<Actor> obj = it->second.createfn(init, data);
+        auto& builder = it->second;
+        copyable_unique_ptr<Actor> obj = builder.create(init, data);
 		if (obj) {
 			return std::move(obj);
 		}
 		else {
-			LOG_ERR_("Failed to create object: {}:{}", it->second.object_type.type.name, data.level_id.id);
+			LOG_ERR_("Failed to create object: {}:{}", builder.type->name.str, data.level_id.id);
 		}
 	}
 	else
@@ -145,24 +145,25 @@ copyable_unique_ptr<Actor> ObjectFactory::createFromData(ActorInit init, ObjectL
 		LOG_ERR_("could not match object type {}", data.typehash);
 		LOG_ERR_("known types are:");
 		log::scope scope;
-		for (auto& [_, impl] : getFactories()) {
-			LOG_ERR_("{}: {}", impl.object_type.type.hash, impl.object_type.type.name);
+		for (auto& [_, impl] : object_builders) {
+			LOG_ERR_("{}: {}", impl.type->name.hash, impl.type->name.str);
 		}
 	}
 	return copyable_unique_ptr<Actor>{};
 }
 
 const ObjectType* ObjectFactory::getType(size_t hash) {
-	if (auto it = getFactories().find(hash); it != getFactories().end()) {
-		return &it->second.object_type;
+	if (auto it = object_builders.find(hash); it != object_builders.end()) {
+		return it->second.type;
 	}
 	return nullptr;
 }
 
 const ObjectType* ObjectFactory::getType(std::string_view name) {
-	for (auto& [_, impl] : getFactories()) {
-		if (impl.object_type.type.name == name) {
-			return &impl.object_type;
+    size_t hash = std::hash<std::string_view>{}(name);
+	for (auto& [_, impl] : object_builders) {
+		if (impl.type->name.hash == hash) {
+			return impl.type;
 		}
 	}
 	return nullptr;
@@ -170,13 +171,14 @@ const ObjectType* ObjectFactory::getType(std::string_view name) {
 
 Object::Object(ActorInit init)
     : Actor{ init }
+    , obj_type(init.object_type)
 {
 }
 
 Object::Object(ActorInit init, ObjectLevelData& data)
     : Actor{ init }
 	, obj_data(&data)
-    , obj_type(init.obj_type)
+    , obj_type(init.object_type)
 {
 }
 

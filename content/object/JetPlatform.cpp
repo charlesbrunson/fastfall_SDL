@@ -69,13 +69,9 @@ JetPlatform::JetPlatform(ActorInit init, ff::ObjectLevelData& data)
 
     // base attachpoint
     ObjLevelID path_id = data.getPropAsID("path");
-    ID<AttachPoint> base_attach_id;
-    if (path_id) {
-        auto mover = w.create<PathMover>(entity_id, Path{data.get_sibling(path_id)});
-        base_attach_id = mover->get_attach_id();
-    } else {
-        base_attach_id = w.create<AttachPoint>(entity_id, id_placeholder, data.getTopLeftPos());
-    }
+    ID<AttachPoint> base_attach_id = path_id
+            ? w.create<PathMover>(entity_id, Path{data.get_sibling(path_id)})->get_attach_id()
+            : w.create<AttachPoint>(entity_id, id_placeholder, data.getTopLeftPos());
 
     auto& base_attach = w.at(base_attach_id);
     base_attach.teleport(base_position);

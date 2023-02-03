@@ -63,6 +63,7 @@ public:
     void clear_obj_layer();
     void clear_all();
 
+    TileLayerT* get_tile_layer_by_id(unsigned id);
     const TileLayerT* get_tile_layer_by_id(unsigned id) const;
 
     TileEntry* get_tile_layer_at(position_t pos);
@@ -88,6 +89,17 @@ void LevelLayerContainer<T, O>::clear_obj_layer() { obj_layer.clear(); }
 
 template<HasID T, HasID O>
 void LevelLayerContainer<T, O>::clear_all() { clear_tile_layers(); clear_obj_layer(); }
+
+template<HasID T, HasID O>
+T* LevelLayerContainer<T, O>::get_tile_layer_by_id(unsigned id) {
+    auto it = std::find_if(tile_layers.begin(), tile_layers.end(), [id](const TileEntry& entry) {
+        return entry.tilelayer.getID() == id;
+    });
+    if (it != tile_layers.end()) {
+        return &it->tilelayer;
+    }
+    return nullptr;
+}
 
 template<HasID T, HasID O>
 const T* LevelLayerContainer<T, O>::get_tile_layer_by_id(unsigned id) const {

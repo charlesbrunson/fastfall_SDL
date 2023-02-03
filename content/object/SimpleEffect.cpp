@@ -2,12 +2,12 @@
 
 SimpleEffect::SimpleEffect(ff::ActorInit init, const ff::AnimID& anim, ff::Vec2f position, bool hflip)
     : ff::Object(init)
-    , anim_spr_id(init.world.create<ff::AnimatedSprite>(init.entity_id))
 {
-    auto& spr = init.world.at(anim_spr_id);
-    spr.set_pos(position);
-    spr.set_hflip(hflip);
-    dead = !spr.set_anim(anim);
+    auto spr = init.world.create<ff::AnimatedSprite>(init.entity_id);
+    anim_spr_id = spr;
+    spr->set_pos(position);
+    spr->set_hflip(hflip);
+    dead = !spr->set_anim(anim);
 };
 
 void SimpleEffect::update(ff::World& w, secs deltaTime) {

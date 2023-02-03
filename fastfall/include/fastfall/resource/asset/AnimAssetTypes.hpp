@@ -53,18 +53,21 @@ private:
 
 class AnimIDRef {
 public:
-	AnimIDRef() {};
-	AnimIDRef(std::string_view sprite, std::string_view anim);
+	constexpr AnimIDRef() = default;
+    constexpr AnimIDRef(std::string_view sprite, std::string_view anim)
+        : m_sprite(sprite), m_anim(anim)
+    {
+    }
 
-	AnimIDRef(const AnimIDRef&) = default;
-	AnimIDRef& operator=(const AnimIDRef&) = default;
+    constexpr AnimIDRef(const AnimIDRef&) = default;
+    AnimIDRef& operator=(const AnimIDRef&) = default;
 
-	AnimIDRef(AnimIDRef&&) = default;
-	AnimIDRef& operator=(AnimIDRef&&) = default;
+    constexpr AnimIDRef(AnimIDRef&&) = default;
+    AnimIDRef& operator=(AnimIDRef&&) = default;
 
-	AnimID id() const;
+    AnimID id() const;
 
-	operator AnimID() const {
+    operator AnimID() const {
 		return id();
 	}
 

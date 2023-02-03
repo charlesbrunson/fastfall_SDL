@@ -452,6 +452,24 @@ void TileLayer::removeTile(World& world, const Vec2u& position) {
 
 }
 
+void TileLayer::pilfer(World& w, TileLayer& from, Recti area) {
+    Vec2i topleft{ area.left, area.top };
+    for (auto x{area.left}; x < area.left + area.width; x++)
+    {
+        for (auto y{area.top}; y < area.top + area.height; y++)
+        {
+            if (x >= 0 && y >= 0) {
+                Vec2u p{ (unsigned)x, (unsigned)y };
+                if (auto tid = from.getTileBaseID(p))
+                {
+                    setTile(w, p - topleft, *tid, *from.getTileTileset(p), true);
+                    from.removeTile(w, p);
+                }
+            }
+        }
+    }
+}
+
 void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic)
 {
 	uint8_t tileset_ndx = prev_tileset_ndx;

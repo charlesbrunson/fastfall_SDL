@@ -4,6 +4,7 @@
 #include "fastfall/util/dmessage.hpp"
 #include "fastfall/util/math.hpp"
 #include "fastfall/game/ComponentID.hpp"
+#include "fastfall/resource/asset/AnimAssetTypes.hpp"
 
 #include "imgui.h"
 
@@ -12,6 +13,7 @@ namespace ff {
 class World;
 class Entity;
 
+// 16 max
 using actor_vars = std::variant<
     dvoid,
     bool,
@@ -21,7 +23,8 @@ using actor_vars = std::variant<
     Vec2f,
     secs,
     ComponentID,
-    ID<Entity>
+    ID<Entity>,
+    AnimID
 >;
 
 class Actor;
@@ -42,12 +45,12 @@ enum class ActorPriority {
 class ObjectType;
 
 struct ActorInit {
-    World&        world;
-    ID<Entity>    entity_id;
-    ID<Actor>     actor_id;
-    ActorType     type;
-    ActorPriority priority;
-    const ObjectType* obj_type = nullptr;
+    World&            world;
+    ID<Entity>        entity_id;
+    ID<Actor>         actor_id;
+    ActorType         type;
+    ActorPriority     priority;
+    const ObjectType* object_type;
 };
 
 class Actor : public dconfig<actor_vars, World&>

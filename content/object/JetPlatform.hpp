@@ -9,6 +9,16 @@
 
 class JetPlatform : public ff::Object {
 public:
+    static inline const ff::ObjectType Type = {
+        .name       = { "JetPlatform" },
+        .anim       = std::nullopt,
+        .tile_size  = {0, 1},
+        .group_tags = {	"platform" },
+        .properties = {
+            { "path",  ff::ObjLevelID{} }
+        }
+    };
+
     JetPlatform(ff::ActorInit init, ff::ObjectLevelData& data);
     void update(ff::World& w, secs deltaTime) override;
 };

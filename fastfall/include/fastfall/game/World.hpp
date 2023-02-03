@@ -4,6 +4,7 @@
 #include "fastfall/util/id_map.hpp"
 #include "fastfall/game/ComponentID.hpp"
 #include "fastfall/game/Entity.hpp"
+#include "fastfall/game/object/Object.hpp"
 
 #include "fastfall/game/level/Level.hpp"
 #include "fastfall/game/CollisionSystem.hpp"
@@ -124,13 +125,13 @@ public:
     template<class T>
     const T& at(ID<T> id) const { return list_for<T>().at(id); }
 
-    template<class... IDs>
-    requires (sizeof...(IDs) > 1)
-    auto at(IDs... ids) { return std::forward_as_tuple(at(ids)...); }
+    template<class... Ts>
+    requires (sizeof...(Ts) > 1)
+    auto at(ID<Ts>... ids) { return std::forward_as_tuple(at(ids)...); }
 
-    template<class... IDs>
-    requires (sizeof...(IDs) > 1)
-    auto at(IDs... ids) const { return std::forward_as_tuple(at(ids)...); }
+    template<class... Ts>
+    requires (sizeof...(Ts) > 1)
+    auto at(ID<Ts>... ids) const { return std::forward_as_tuple(at(ids)...); }
 
     template<class T>
     T* get(ID<T> id) { return list_for<T>().get(id); }
@@ -144,13 +145,13 @@ public:
     template<class T>
     const T* get(std::optional<ID<T>> id) const { return id ? list_for<T>().get(*id) : nullptr; }
 
-    template<class... IDs>
-    requires (sizeof...(IDs) > 1)
-    auto get(IDs... ids) { return std::forward_as_tuple(get(ids)...); }
+    template<class... Ts>
+    requires (sizeof...(Ts) > 1)
+    auto get(ID<Ts>... ids) { return std::forward_as_tuple(get(ids)...); }
 
-    template<class... IDs>
-    requires (sizeof...(IDs) > 1)
-    auto get(IDs... ids) const { return std::forward_as_tuple(get(ids)...); }
+    template<class... Ts>
+    requires (sizeof...(Ts) > 1)
+    auto get(ID<Ts>... ids) const { return std::forward_as_tuple(get(ids)...); }
 
     // create entity
     std::optional<ID<Entity>> create_entity();
@@ -260,17 +261,22 @@ private:
         }
 
         auto priority = ActorPriority::Normal;
-        if constexpr (requires() { { T_Actor::Priority } -> std::same_as<ActorPriority>; }){
-            priority = T_Actor::Priority;
+        const ObjectType* obj_type_ptr = nullptr;
+        if constexpr (valid_object<T_Actor>) {
+            priority     = T_Actor::Type.priority;
+            obj_type_ptr = &T_Actor::Type;
         }
 
-        ent.actor = state._actors.create<T_Actor>(ActorInit{
-            .world      = *this,
-            .entity_id  = id,
-            .actor_id   = state._actors.peek_next_id(),
-            .type       = type,
-            .priority   = priority
-        }, std::forward<Args>(args)...);
+        ActorInit init{
+            .world       = *this,
+            .entity_id   = id,
+            .actor_id    = state._actors.peek_next_id(),
+            .type        = type,
+            .priority    = priority,
+            .object_type = obj_type_ptr
+        };
+
+        ent.actor = state._actors.create<T_Actor>(init, std::forward<Args>(args)...);
         return at(*ent.actor).initialized;
     }
 

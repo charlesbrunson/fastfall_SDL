@@ -56,8 +56,11 @@ public:
     ObjectLayer& get_obj_layer() { return layers.get_obj_layer(); }
     const ObjectLayer& get_obj_layer() const { return layers.get_obj_layer(); }
 
-    TileLayerProxy& get_tile_layer(unsigned id) { return layers.get_tile_layers().at(id).tilelayer; }
-    const TileLayerProxy& get_tile_layer(unsigned id) const { return layers.get_tile_layers().at(id).tilelayer; }
+    TileLayerProxy& at_tile_layer(unsigned id) { return layers.get_tile_layers().at(id).tilelayer; }
+    const TileLayerProxy& at_tile_layer(unsigned id) const { return layers.get_tile_layers().at(id).tilelayer; }
+
+    TileLayerProxy* get_tile_layer(unsigned id) { return layers.get_tile_layer_by_id(id); }
+    const TileLayerProxy* get_tile_layer(unsigned id) const { return layers.get_tile_layer_by_id(id); }
 
     bool has_src_asset_changed() const { return asset_changed; }
     bool try_reload_level(World& w);
