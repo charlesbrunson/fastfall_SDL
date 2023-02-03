@@ -9,15 +9,12 @@
 
 class BasicPlatform : public ff::Object {
 public:
-	static const ff::ObjectType Type;
-	const ff::ObjectType& type() const override { return Type; };
-
 	BasicPlatform(ff::ActorInit init, ff::ObjectLevelData& data);
 	void update(ff::World& w, secs deltaTime) override;
 
 protected:
-    ff::ID<ff::ShapeRectangle> shape_id;
-    ff::ID<ff::ColliderSimple> collider_id;
-    ff::ID<ff::PathMover> mover_id;
+    ff::ID<ff::ShapeRectangle>  shape_id;
+    ff::ID<ff::ColliderSimple>  collider_id;
+    ff::ID<ff::PathMover>       mover_id;
 
 };

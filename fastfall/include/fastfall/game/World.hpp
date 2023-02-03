@@ -157,7 +157,7 @@ public:
 
     template<class T_Actor, class... Args>
     requires valid_actor_ctor<T_Actor, Args...>
-    std::optional<ID_ptr<T_Actor>> create_actor_entity(Args&&... args) {
+    std::optional<ID_ptr<T_Actor>> create_actor(Args&&... args) {
         auto id = create_entity();
         if (id) {
             if (create_actor<T_Actor>(*id, std::forward<Args>(args)...)) {
@@ -254,10 +254,22 @@ private:
     bool create_actor(ID<Entity> id, Args&&... args) {
         auto& ent = state._entities.at(id);
 
+        auto type = ActorType::Object;
+        if constexpr (std::same_as<T_Actor, Level>) {
+            type = ActorType::Level;
+        }
+
+        auto priority = ActorPriority::Normal;
+        if constexpr (requires() { { T_Actor::Priority } -> std::same_as<ActorPriority>; }){
+            priority = T_Actor::Priority;
+        }
+
         ent.actor = state._actors.create<T_Actor>(ActorInit{
-            .world = *this,
-            .entity_id = id,
-            .actor_id = state._actors.peek_next_id()
+            .world      = *this,
+            .entity_id  = id,
+            .actor_id   = state._actors.peek_next_id(),
+            .type       = type,
+            .priority   = priority
         }, std::forward<Args>(args)...);
         return at(*ent.actor).initialized;
     }

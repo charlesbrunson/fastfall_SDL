@@ -13,17 +13,9 @@
 
 class Player : public ff::Object, public plr::members {
 public:
-	static const ff::ObjectType Type;
-	const ff::ObjectType& type() const override { return Type; };
-
 	Player(ff::ActorInit init, ff::Vec2f position, bool faceleft);
-
 	Player(ff::ActorInit init, ff::ObjectLevelData& data);
-
 	void update(ff::World& w, secs deltaTime) override;
-
-	//void ImGui_Inspect() override;
-
     dresult message(ff::World&, const dmessage&) override;
 
 protected:

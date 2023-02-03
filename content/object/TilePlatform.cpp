@@ -4,18 +4,6 @@
 
 using namespace ff;
 
-const ObjectType TilePlatform::Type{
-    .type = { "TilePlatform" },
-    .allow_as_level_data = true,
-    .anim = std::nullopt,
-    .tile_size = { 0u, 0u },
-    .group_tags = {	"platform" },
-    .properties = {
-        { "layer",	 ObjectPropertyType::Int },
-        { "path",  ObjLevelID{ ObjLevelID::NO_ID } }
-    }
-};
-
 TilePlatform::TilePlatform(ActorInit init, ObjectLevelData& data)
     : Object(init)
 {
@@ -65,6 +53,5 @@ TilePlatform::TilePlatform(ActorInit init, ObjectLevelData& data)
     w.system<AttachSystem>().create(w, attach_id, tl->get_attach_id(), {});
 };
 
-void TilePlatform::update(World& w, secs deltaTime) {
-
-};
+//void TilePlatform::update(World& w, secs deltaTime) {
+//};

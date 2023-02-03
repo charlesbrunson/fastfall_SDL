@@ -10,17 +10,6 @@ AnimIDRef anim_platform[] = {
     {"jet_platform.sax", "platform_5"},
 };
 
-const ObjectType JetPlatform::Type = {
-    .type       = { "JetPlatform" },
-    .allow_as_level_data = true,
-    .anim       = std::nullopt,
-    .tile_size  = {0, 1},
-    .group_tags = {	"platform" },
-    .properties = {
-        { "path",  ObjLevelID{ ObjLevelID::NO_ID } }
-    }
-};
-
 const EmitterStrategy jet_emitter_str = {
     .emit_rate_min      = 200,
     .emit_rate_max      = 200,

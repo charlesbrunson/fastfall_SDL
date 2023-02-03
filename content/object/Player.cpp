@@ -9,18 +9,6 @@
 using namespace ff;
 using namespace plr;
 
-const ObjectType Player::Type{
-	.type = { "Player" },
-	.allow_as_level_data = true,
-	.anim = std::make_optional(AnimIDRef{"player.sax", "idle"}),
-	.tile_size = { 1u, 2u },
-	.group_tags = {	"player" },
-	.properties = {
-		{ "faceleft",	 false },
-		{ "anotherprop", ObjectPropertyType::String }
-	}
-};
-
 Player::Player(ActorInit init, Vec2f position, bool faceleft)
 	: Object{init }
 	, plr::members{ init, position, faceleft}
@@ -30,8 +18,6 @@ Player::Player(ActorInit init, Vec2f position, bool faceleft)
         auto& plr = w.at(plr_id);
         plr.manage_state(w, plr.get_state().post_collision(w, plr));
     };
-
-    //test_spr = w.create<AnimatedSprite>(w.entity_of(id));
 };
 
 Player::Player(ActorInit init, ObjectLevelData& data)
@@ -43,8 +29,6 @@ Player::Player(ActorInit init, ObjectLevelData& data)
         auto& plr = w.at(plr_id);
         plr.manage_state(w, plr.get_state().post_collision(w, plr));
     };
-
-    //test_spr = w.create<AnimatedSprite>(w.entity_of(id));
 };
 
 

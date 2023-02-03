@@ -137,7 +137,7 @@ copyable_unique_ptr<Actor> ObjectFactory::createFromData(ActorInit init, ObjectL
 			return std::move(obj);
 		}
 		else {
-			LOG_ERR_("Failed to create object: {}:{}", it->second.object_type->type.name, data.level_id.id);
+			LOG_ERR_("Failed to create object: {}:{}", it->second.object_type.type.name, data.level_id.id);
 		}
 	}
 	else
@@ -146,7 +146,7 @@ copyable_unique_ptr<Actor> ObjectFactory::createFromData(ActorInit init, ObjectL
 		LOG_ERR_("known types are:");
 		log::scope scope;
 		for (auto& [_, impl] : getFactories()) {
-			LOG_ERR_("{}: {}", impl.object_type->type.hash, impl.object_type->type.name);
+			LOG_ERR_("{}: {}", impl.object_type.type.hash, impl.object_type.type.name);
 		}
 	}
 	return copyable_unique_ptr<Actor>{};
@@ -154,15 +154,15 @@ copyable_unique_ptr<Actor> ObjectFactory::createFromData(ActorInit init, ObjectL
 
 const ObjectType* ObjectFactory::getType(size_t hash) {
 	if (auto it = getFactories().find(hash); it != getFactories().end()) {
-		return it->second.object_type;
+		return &it->second.object_type;
 	}
 	return nullptr;
 }
 
 const ObjectType* ObjectFactory::getType(std::string_view name) {
 	for (auto& [_, impl] : getFactories()) {
-		if (impl.object_type->type.name == name) {
-			return impl.object_type;
+		if (impl.object_type.type.name == name) {
+			return &impl.object_type;
 		}
 	}
 	return nullptr;
@@ -175,7 +175,8 @@ Object::Object(ActorInit init)
 
 Object::Object(ActorInit init, ObjectLevelData& data)
     : Actor{ init }
-	, m_data(&data)
+	, obj_data(&data)
+    , obj_type(init.obj_type)
 {
 }
 

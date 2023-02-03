@@ -4,17 +4,6 @@ using namespace ff;
 
 constexpr ff::Color platformColor = ff::Color{ 0x285cc4FF };
 
-const ObjectType BasicPlatform::Type{
-	.type = { "BasicPlatform" },
-	.allow_as_level_data = true,
-	.anim = std::nullopt,
-	.tile_size = {0, 0},
-	.group_tags = {	"platform" },
-	.properties = {
-		{ "path",  ObjLevelID{ ObjLevelID::NO_ID } }
-	}
-};
-
 BasicPlatform::BasicPlatform(ActorInit init, ff::ObjectLevelData& data)
 	: ff::Object(init, data)
     , shape_id( init.world.create<ShapeRectangle>(init.entity_id, Rectf{ Vec2f{}, Vec2f{ data.size } }, platformColor) )

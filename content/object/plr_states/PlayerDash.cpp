@@ -102,11 +102,7 @@ void PlayerDashState::enter(ff::World& w, plr::members& plr, PlayerState* from)
 		if (sprite.set_anim_if_not(dash_anims.dash->id()))
 		{
             Vec2f pos = w.at(box.get_attach_id()).curr_pos();
-
-            w.create_actor_entity<SimpleEffect>(dash_anims.fx->id(), pos, sprite.get_hflip());
-            //if (auto ent = w.create_entity()) {
-            //    w.create<SimpleEffect>(*ent, w, id_placeholder, );
-            //}
+            w.create_actor<SimpleEffect>(dash_anims.fx->id(), pos, sprite.get_hflip());
 		}
 		dash_speed = *ground.traverse_get_speed() * (sprite.get_hflip() ? -1.f : 1.f);
 	}
@@ -120,9 +116,10 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
 		return PlayerStateID::Continue;
 
     auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
-    auto& ground = *box.tracker();
 
-	if (ground.has_contact()) {
+	if (auto& ground = *box.tracker();
+        ground.has_contact())
+    {
 		box.setSlip({});
 		ground_flag = true;
 		box.set_gravity(constants::grav_normal);

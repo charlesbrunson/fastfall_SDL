@@ -5,6 +5,8 @@
 #include "fastfall/util/math.hpp"
 #include "fastfall/game/ComponentID.hpp"
 
+#include "imgui.h"
+
 namespace ff {
 
 class World;
@@ -24,10 +26,28 @@ using actor_vars = std::variant<
 
 class Actor;
 
+enum class ActorType {
+    Level   = 0,
+    Object  = 1,
+};
+
+enum class ActorPriority {
+    Highest     = 0,
+    High        = 1,
+    Normal      = 2,
+    Low         = 3,
+    Lowest      = 4
+};
+
+class ObjectType;
+
 struct ActorInit {
-    World& world;
-    ID<Entity> entity_id;
-    ID<Actor> actor_id;
+    World&        world;
+    ID<Entity>    entity_id;
+    ID<Actor>     actor_id;
+    ActorType     type;
+    ActorPriority priority;
+    const ObjectType* obj_type = nullptr;
 };
 
 class Actor : public dconfig<actor_vars, World&>
@@ -35,7 +55,9 @@ class Actor : public dconfig<actor_vars, World&>
 public:
     explicit Actor(ActorInit init)
         : entity_id(init.entity_id)
-        , actor_id(init.actor_id)
+        , actor_id (init.actor_id)
+        , type     (init.type)
+        , priority (init.priority)
     {
     };
 
@@ -44,8 +66,13 @@ public:
     virtual void update(World& world, secs deltaTime) {};
     virtual dresult message(World&, const dmessage&) { return reject; }
 
-    const ID<Entity> entity_id;
-    const ID<Actor>  actor_id;
+    bool imgui_show_inspect = false;
+    virtual void ImGui_Inspect() { ImGui::Text("Hello World!"); };
+
+    const ID<Entity>    entity_id;
+    const ID<Actor>     actor_id;
+    const ActorType     type;
+    const ActorPriority priority;
 
     [[nodiscard]]
     bool is_dead() const { return dead; }
@@ -57,6 +84,13 @@ protected:
 private:
     friend class World;
 };
+
+inline auto actor_compare(const Actor &lhs, const Actor &rhs) {
+    auto type_cmp = lhs.type <=> rhs.type;
+    return type_cmp == std::strong_ordering::equal
+           ? lhs.priority <=> rhs.priority
+           : type_cmp;
+}
 
 namespace actor_msg {
     static constexpr auto NoOp   = Actor::dformat<"noop">{};

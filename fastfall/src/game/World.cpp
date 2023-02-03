@@ -112,9 +112,11 @@ std::optional<ID_ptr<Object>> World::create_object(ObjectLevelData& data) {
     state._entities.at(id).actor = state._actors.peek_next_id();
 
     ActorInit init {
-        .world = *this,
-        .entity_id = id,
-        .actor_id = state._actors.peek_next_id()
+        .world      = *this,
+        .entity_id  = id,
+        .actor_id   = state._actors.peek_next_id(),
+        .type       = ActorType::Object,
+        .priority   = ActorPriority::Normal
     };
 
     auto actor_id = state._actors.emplace(ObjectFactory::createFromData(init, data));
