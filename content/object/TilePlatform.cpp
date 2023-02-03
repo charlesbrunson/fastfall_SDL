@@ -29,17 +29,17 @@ TilePlatform::TilePlatform(ActorInit init, ObjectLevelData& data)
 
     ID<AttachPoint> attach_id;
     if (path_id) {
-        auto mover_id = w.create<PathMover>(entity_id, Path{data.get_sibling(path_id)});
-        attach_id = w.at(mover_id).get_attach_id();
+        auto mover = w.create<PathMover>(entity_id, Path{data.get_sibling(path_id)});
+        attach_id = mover->get_attach_id();
     } else {
         attach_id = w.create<AttachPoint>(entity_id, id_placeholder, data.getTopLeftPos());
     }
 
-    tl_id = w.create<TileLayer>(entity_id, w, id_placeholder, 0, area.getSize());
-    auto& tl = w.at(tl_id);
-    tl.set_layer(w, 0);
-    tl.set_autotile_substitute("empty"_ts);
-    tl.set_collision(w, true);
+    auto tl = w.create<TileLayer>(entity_id, w, id_placeholder, 0, area.getSize());
+    tl_id = tl;
+    tl->set_layer(w, 0);
+    tl->set_autotile_substitute("empty"_ts);
+    tl->set_collision(w, true);
 
     // pilfer tiles from level layer
     unsigned layer_id = data.getPropAsInt("layer");
@@ -55,14 +55,14 @@ TilePlatform::TilePlatform(ActorInit init, ObjectLevelData& data)
                 Vec2u p{x, y};
                 if (auto tid = layer->getTileBaseID(p))
                 {
-                    tl.setTile(w, p - topleft, *tid, *layer->getTileTileset(p), true);
+                    tl->setTile(w, p - topleft, *tid, *layer->getTileTileset(p), true);
                     layer->removeTile(w, p);
                 }
             }
         }
     }
 
-    w.system<AttachSystem>().create(w, attach_id, tl.get_attach_id(), {});
+    w.system<AttachSystem>().create(w, attach_id, tl->get_attach_id(), {});
 };
 
 void TilePlatform::update(World& w, secs deltaTime) {

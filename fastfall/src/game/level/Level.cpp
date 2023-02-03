@@ -90,17 +90,15 @@ void Level::resize(World& world, Vec2u n_size)
 		};
 
         //auto ent = world.entity_of(m_id);
-        auto n_id = world.create<TileLayer>(entity_id, world, id_placeholder, layer.getID(), n_size);
-        TileLayer& n_layer = world.at(n_id);
-
-        n_layer.set_layer(world, layer.get_layer());
-        n_layer.set_collision(world, layer.hasCollision(), layer.getCollisionBorders());
-        n_layer.set_scroll(world, layer.hasScrolling(), layer.getScrollRate());
-        n_layer.set_parallax(world, layer.hasParallax(), parallax_size);
-        n_layer.shallow_copy(world, layer, Rectu{ Vec2u{}, Vec2u{layer_size} }, {0, 0});
+        auto n_layer = world.create<TileLayer>(entity_id, world, id_placeholder, layer.getID(), n_size);
+        n_layer->set_layer(world, layer.get_layer());
+        n_layer->set_collision(world, layer.hasCollision(), layer.getCollisionBorders());
+        n_layer->set_scroll(world, layer.hasScrolling(), layer.getScrollRate());
+        n_layer->set_parallax(world, layer.hasParallax(), parallax_size);
+        n_layer->shallow_copy(world, layer, Rectu{ Vec2u{}, Vec2u{layer_size} }, {0, 0});
 
         world.erase(layerproxy.cmp_id);
-        layerproxy.cmp_id = n_id;
+        layerproxy.cmp_id = n_layer.id;
 	}
 	levelSize = n_size;
 }

@@ -47,8 +47,8 @@ namespace ff {
                    : other.generation >= generation;
         }
 
-		constexpr size_t raw() const {
-			return *((size_t*)this);
+		constexpr uint64_t raw() const {
+			return *((uint64_t*)this);
 		}
 
         constexpr explicit operator bool() const {

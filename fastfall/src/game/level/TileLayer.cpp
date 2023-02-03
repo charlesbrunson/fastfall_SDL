@@ -57,14 +57,13 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 	// init chunks
 	for (auto& [tileset, _] : layer_data.getTilesets())
 	{
-        auto chunk_id = world.create<ChunkVertexArray>(world.entity_of(m_id), getSize(), kChunkSize);
-        world.system<SceneSystem>().set_config(chunk_id, {layer, scene_type::Level});
-        dyn.chunks.push_back(chunk_id);
+        auto chunk = world.create<ChunkVertexArray>(world.entity_of(m_id), getSize(), kChunkSize);
+        world.system<SceneSystem>().set_config(chunk, {layer, scene_type::Level});
+        dyn.chunks.push_back(chunk);
 
-        auto& cvr = world.at(chunk_id);
-        cvr.setTexture(tileset->getTexture());
-        cvr.use_visible_rect = true;
-        world.system<AttachSystem>().create(world, attach_id, chunk_id);
+        chunk->setTexture(tileset->getTexture());
+        chunk->use_visible_rect = true;
+        world.system<AttachSystem>().create(world, attach_id, chunk);
 	}
 
 	// init tiles
@@ -485,16 +484,15 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 	if (tile.tileset_ndx == dyn.chunks.size())
 	{
         // TODO buffer changes?
-        auto chunk_id = world.create<ChunkVertexArray>(world.entity_of(m_id), getSize(), kChunkSize);
-        world.system<SceneSystem>().set_config(chunk_id, { layer, scene_type::Level });
+        auto chunk = world.create<ChunkVertexArray>(world.entity_of(m_id), getSize(), kChunkSize);
+        world.system<SceneSystem>().set_config(chunk, { layer, scene_type::Level });
 
-        auto& cvr = world.at(chunk_id);
-        cvr.setTexture(next_tileset->getTexture());
-        cvr.setTile(at, tile.tile_id);
-        cvr.use_visible_rect = true;
+        chunk->setTexture(next_tileset->getTexture());
+        chunk->setTile(at, tile.tile_id);
+        chunk->use_visible_rect = true;
 
-        dyn.chunks.push_back(chunk_id);
-        world.system<AttachSystem>().create(world, attach_id, chunk_id);
+        dyn.chunks.push_back(chunk);
+        world.system<AttachSystem>().create(world, attach_id, chunk);
 	}
 	else {
         // TODO buffer changes?

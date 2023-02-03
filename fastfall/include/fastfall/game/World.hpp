@@ -30,6 +30,7 @@ namespace detail {
              || (std::same_as<poly_id_map<Item>, Container> && std::derived_from<T, Item>);
 }
 
+
 class World : public Drawable
 {
 private:
@@ -156,13 +157,13 @@ public:
 
     template<class T_Actor, class... Args>
     requires valid_actor_ctor<T_Actor, Args...>
-    std::optional<ID<T_Actor>> create_actor_entity(Args&&... args) {
+    std::optional<ID_ptr<T_Actor>> create_actor_entity(Args&&... args) {
         auto id = create_entity();
         if (id) {
             if (create_actor<T_Actor>(*id, std::forward<Args>(args)...)) {
                 auto actor_id = id_cast<T_Actor>(*state._entities.at(*id).actor);
                 system_notify_created<Actor>(actor_id);
-                return actor_id;
+                return ID_ptr<T_Actor>{actor_id, get(actor_id) };
             }
             else {
                 erase(*id);
@@ -172,7 +173,7 @@ public:
         return std::nullopt;
     }
 
-    std::optional<ID<Object>> create_object(ObjectLevelData& data);
+    std::optional<ID_ptr<Object>> create_object(ObjectLevelData& data);
 
     void reset_entity(ID<Entity> id);
 
@@ -191,7 +192,7 @@ public:
 
     // create component
     template<typename T>
-    ID<T> create(ID<Entity> ent, auto&&... args) {
+    ID_ptr<T> create(ID<Entity> ent, auto&&... args) {
         auto& list = list_for<T>();
         using container_t = std::remove_cvref_t<decltype(list)>;
         using base_type = typename container_t::base_type;
@@ -206,7 +207,7 @@ public:
                     set_placeholder_id(std::forward<decltype(args)>(args), tmp_id))...);
         }
         system_notify_created<base_type>(tmp_id);
-        return tmp_id;
+        return { tmp_id, get(tmp_id) };
     }
 
 

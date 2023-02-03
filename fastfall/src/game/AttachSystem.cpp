@@ -313,15 +313,14 @@ namespace ff {
 
     void AttachSystem::notify_created(World& world, ID<Collidable> id) {
         auto ent = world.entity_of(id);
-        auto attachid = world.create<AttachPoint>(ent, id_placeholder);
+        auto attach = world.create<AttachPoint>(ent, id_placeholder);
         auto& col = world.at(id);
-        col.set_attach_id(attachid);
-        auto& attach = world.at(attachid);
-        attach.teleport(col.getPrevPosition());
-        attach.set_pos(col.getPosition());
-        attach.set_parent_vel(col.get_global_vel());
-        attach.set_local_vel({});
-        attach.sched = AttachPoint::Schedule::PostCollision;
+        col.set_attach_id(attach);
+        attach->teleport(col.getPrevPosition());
+        attach->set_pos(col.getPosition());
+        attach->set_parent_vel(col.get_global_vel());
+        attach->set_local_vel({});
+        attach->sched = AttachPoint::Schedule::PostCollision;
     }
 
     void AttachSystem::notify_erased(World& world, ID<Collidable> id) {
@@ -331,14 +330,13 @@ namespace ff {
 
     void AttachSystem::notify_created(World& world, ID<PathMover> id) {
         auto ent = world.entity_of(id);
-        auto attachid = world.create<AttachPoint>(ent, id_placeholder);
+        auto attach = world.create<AttachPoint>(ent, id_placeholder);
         auto& pathmover = world.at(id);
-        pathmover.set_attach_id(attachid);
-        auto& attach = world.at(attachid);
-        attach.teleport(pathmover.get_pos());
-        attach.set_pos(pathmover.get_pos());
-        attach.set_parent_vel(pathmover.get_vel());
-        attach.set_local_vel({});
+        pathmover.set_attach_id(attach);
+        attach->teleport(pathmover.get_pos());
+        attach->set_pos(pathmover.get_pos());
+        attach->set_parent_vel(pathmover.get_vel());
+        attach->set_local_vel({});
     }
 
     void AttachSystem::notify_erased(World& world, ID<PathMover> id) {

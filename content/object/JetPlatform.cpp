@@ -47,60 +47,56 @@ JetPlatform::JetPlatform(ActorInit init, ff::ObjectLevelData& data)
     World& w = init.world;
 
     // collider
-    auto collider_id = w.create<ColliderTileMap>(entity_id, Vec2i{tile_width, 1});
-    auto& collider = w.at(collider_id);
-    collider.fill("oneway"_ts);
-    collider.applyChanges();
+    auto collider = w.create<ColliderTileMap>(entity_id, Vec2i{tile_width, 1});
+    collider->fill("oneway"_ts);
+    collider->applyChanges();
 
     // sprite
-    auto sprite_id = w.create<AnimatedSprite>(entity_id);
-    auto& sprite = w.at(sprite_id);
-    sprite.set_anim(anim_platform[tile_width - platform_width_min]);
-    w.system<SceneSystem>().config(sprite_id) = {
+    auto sprite = w.create<AnimatedSprite>(entity_id);
+    sprite->set_anim(anim_platform[tile_width - platform_width_min]);
+    w.system<SceneSystem>().config(sprite) = {
         .layer_id = 0,
         .type = scene_type::Object,
         .priority = scene_priority::Low
     };
 
     // emitter
-    auto emitter_id = w.create<Emitter>(entity_id);
-    auto& emitter = w.at(emitter_id);
-    emitter.strategy = jet_emitter_str;
-    w.system<SceneSystem>().config(emitter.get_drawid()) = {
+    auto emitter = w.create<Emitter>(entity_id);
+    emitter->strategy = jet_emitter_str;
+    w.system<SceneSystem>().config(emitter->get_drawid()) = {
         .layer_id = 0,
         .type = scene_type::Object,
         .priority = scene_priority::Lowest,
     };
 
     // spring attachpoint
-    auto attach_id = w.create<AttachPoint>(entity_id, id_placeholder);
-    auto& attach = w.at(attach_id);
-    attach.teleport(base_position);
-    attach.constraint = makeSpringConstraint({30, 50}, {8, 3}, 48.f);
-    w.system<AttachSystem>().create(w, attach_id, sprite_id);
-    w.system<AttachSystem>().create(w, attach_id, collider_id);
-    w.system<AttachSystem>().create(w, attach_id, emitter_id, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
-    attach.sched = AttachPoint::Schedule::PostCollision;
+    auto attach = w.create<AttachPoint>(entity_id, id_placeholder);
+    attach->teleport(base_position);
+    attach->constraint = makeSpringConstraint({30, 50}, {8, 3}, 48.f);
+    w.system<AttachSystem>().create(w, attach, sprite);
+    w.system<AttachSystem>().create(w, attach, collider);
+    w.system<AttachSystem>().create(w, attach, emitter, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
+    attach->sched = AttachPoint::Schedule::PostCollision;
 
     // base attachpoint
     ObjLevelID path_id = data.getPropAsID("path");
     ID<AttachPoint> base_attach_id;
     if (path_id) {
-        auto mover_id = w.create<PathMover>(entity_id, Path{data.get_sibling(path_id)});
-        base_attach_id = w.at(mover_id).get_attach_id();
+        auto mover = w.create<PathMover>(entity_id, Path{data.get_sibling(path_id)});
+        base_attach_id = mover->get_attach_id();
     } else {
         base_attach_id = w.create<AttachPoint>(entity_id, id_placeholder, data.getTopLeftPos());
     }
 
     auto& base_attach = w.at(base_attach_id);
     base_attach.teleport(base_position);
-    w.system<AttachSystem>().create(w, base_attach_id, attach_id);
+    w.system<AttachSystem>().create(w, base_attach_id, attach);
 
-    collider.set_on_postcontact(
+    collider->set_on_postcontact(
     [
         id  = id_cast<JetPlatform>(actor_id),
-        cid = collider_id,
-        aid = attach_id
+        cid = collider.id,
+        aid = attach.id
     ]
         (World& w, const AppliedContact& c, secs deltaTime)
     {
