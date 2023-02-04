@@ -79,7 +79,7 @@ struct ObjectProperty {
 	ObjectPropertyType type;
 	std::string default_value;
 
-    constexpr inline bool operator< (const ObjectProperty& rhs) const {
+    inline bool operator< (const ObjectProperty& rhs) const {
 		return name < rhs.name;
 	}
 };
@@ -179,10 +179,5 @@ private:
     ObjectLevelData* const  obj_data = nullptr;
     const ObjectType* const obj_type = nullptr;
 };
-
-template<std::derived_from<Object> T>
-using ObjectTypeOf = void;
-
-
 
 }

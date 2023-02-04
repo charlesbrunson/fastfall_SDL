@@ -11,8 +11,8 @@ public:
         .tile_size  = { 0u, 0u },
         .group_tags = {	"platform" },
         .properties = {
-                { "layer", ff::ObjectPropertyType::Int },
-                { "path",  ff::ObjLevelID{ ff::ObjLevelID::NO_ID } }
+            { "layer", ff::ObjectPropertyType::Int },
+            { "path",  ff::ObjLevelID{ ff::ObjLevelID::NO_ID } }
         }
     };
 

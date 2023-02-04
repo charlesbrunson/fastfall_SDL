@@ -47,7 +47,6 @@ struct Color {
         return (r << 24) + (g << 16) + (b << 8) + a;
     }
 
-
     constexpr Color operator() () const { return *this; };
 
     constexpr inline bool operator== (const Color& color) const {

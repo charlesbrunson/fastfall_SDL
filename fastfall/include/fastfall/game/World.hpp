@@ -40,7 +40,6 @@ private:
         // entity
         id_map<Entity> _entities;
         std::unordered_map<ComponentID, ID<Entity>> _comp_to_ent;
-        //std::unordered_map<ID<Actor>, ID<Entity>>   _actor_to_ent;
 
         // components
         poly_id_map<Actor>          _actors;
@@ -92,8 +91,6 @@ private:
 
     template<class T>
     constexpr auto& list_for() {
-        //if constexpr (detail::fits<T, decltype(state._objects)>)        { return state._objects; }
-        //if constexpr (detail::fits<T, decltype(state._levels)>)         { return state._levels; }
         if constexpr (detail::fits<T, decltype(state._actors)>)         { return state._actors; }
         if constexpr (detail::fits<T, decltype(state._collidables)>)    { return state._collidables; }
         if constexpr (detail::fits<T, decltype(state._colliders)>)      { return state._colliders; }
@@ -230,7 +227,6 @@ public:
     // entity helpers
     const std::set<ComponentID>& components_of(ID<Entity> id) const;
     ID<Entity> entity_of(ComponentID id) const;
-    //ID<Entity> entity_of(ID<Actor> id) const;
 
     template<std::derived_from<Actor> T_Actor>
     ID<T_Actor> id_of_actor(T_Actor* actor) const {
