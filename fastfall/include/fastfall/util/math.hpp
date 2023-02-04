@@ -277,28 +277,23 @@ constexpr Rect<T> shift(const Rect<T>& a, const Vec2<T>& offset) {
 }
 
 template<typename T>
-[[nodiscard]]
-constexpr Vec2<T> rect_topleft(const Rect<T>& a) {
-	return Vec2<T>(a.left, a.top);
-}
-
+[[nodiscard]] constexpr Vec2<T> rect_topleft (const Rect<T>& a) { return Vec2<T>(a.left,                  a.top); }
 template<typename T>
-[[nodiscard]]
-constexpr Vec2<T> rect_topright(const Rect<T>& a) {
-	return Vec2<T>(a.left + a.width, a.top);
-}
-
+[[nodiscard]] constexpr Vec2<T> rect_topmid  (const Rect<T>& a) { return Vec2<T>(a.left + a.width / T{2}, a.top); }
 template<typename T>
-[[nodiscard]]
-constexpr Vec2<T> rect_botright(const Rect<T>& a) {
-	return Vec2<T>(a.left + a.width, a.top + a.height);
-}
-
+[[nodiscard]] constexpr Vec2<T> rect_topright(const Rect<T>& a) { return Vec2<T>(a.left + a.width,        a.top); }
 template<typename T>
-[[nodiscard]]
-constexpr Vec2<T> rect_botleft(const Rect<T>& a) {
-	return Vec2<T>(a.left, a.top + a.height);
-}
+[[nodiscard]] constexpr Vec2<T> rect_leftmid (const Rect<T>& a) { return Vec2<T>(a.left,                  a.top + a.height / T{2}); }
+template<typename T>
+[[nodiscard]] constexpr Vec2<T> rect_center  (const Rect<T>& a) { return Vec2<T>(a.left + a.width / T{2}, a.top + a.height / T{2}); }
+template<typename T>
+[[nodiscard]] constexpr Vec2<T> rect_rightmid(const Rect<T>& a) { return Vec2<T>(a.left + a.width,        a.top + a.height / T{2}); }
+template<typename T>
+[[nodiscard]] constexpr Vec2<T> rect_botright(const Rect<T>& a) { return Vec2<T>(a.left + a.width,        a.top + a.height); }
+template<typename T>
+[[nodiscard]] constexpr Vec2<T> rect_botmid  (const Rect<T>& a) { return Vec2<T>(a.left + a.width / T{2}, a.top + a.height); }
+template<typename T>
+[[nodiscard]] constexpr Vec2<T> rect_botleft (const Rect<T>& a) { return Vec2<T>(a.left,                  a.top + a.height); }
 
 template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
 [[nodiscard]]
