@@ -9,6 +9,6 @@
 
 class JetPlatform : public ff::Object {
 public:
-    JetPlatform(ff::ObjectInit init, ff::ObjectLevelData& data);
-    void update(ff::World& w, secs deltaTime) override;
+    static const ff::ObjectType Type;
+    JetPlatform(ff::ActorInit init, ff::ObjectLevelData& data);
 };

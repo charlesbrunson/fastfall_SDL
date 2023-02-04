@@ -13,8 +13,10 @@
 
 class Player : public ff::Object, public plr::members {
 public:
-    Player(ff::ObjectInit init, ff::Vec2f position, bool faceleft);
-    Player(ff::ObjectInit init, ff::ObjectLevelData& data);
+    static const ff::ObjectType Type;
+
+    Player(ff::ActorInit init, ff::Vec2f position, bool faceleft);
+    Player(ff::ActorInit init, ff::ObjectLevelData& data);
     void update(ff::World& w, secs deltaTime) override;
     dresult message(ff::World&, const dmessage&) override;
 

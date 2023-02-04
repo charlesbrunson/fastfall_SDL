@@ -153,7 +153,6 @@ public:
     // create entity
     std::optional<ID<Entity>> create_entity();
 
-    /*
     template<class T_Actor, class... Args>
     requires valid_actor_ctor<T_Actor, Args...>
     std::optional<ID_ptr<T_Actor>> create_actor(Args&&... args) {
@@ -171,14 +170,8 @@ public:
         }
         return std::nullopt;
     }
-    */
 
-    template<std::derived_from<Object> T, class... Args>
-    std::optional<ID_ptr<Object>> create_object(Args&&... args) {
-
-    }
-
-    std::optional<ID_ptr<Object>> create_object(ObjectLevelData& data);
+    std::optional<ID_ptr<Object>> create_object_from_data(ObjectLevelData& data);
 
     void reset_entity(ID<Entity> id);
 
@@ -253,38 +246,27 @@ public:
 private:
     void draw(RenderTarget& target, RenderState state = RenderState()) const override;
 
-    /*
     template<class T_Actor, class... Args>
-    requires valid_actor_ctor<T_Actor, Args...>
+    requires std::constructible_from<T_Actor, ActorInit, Args...>
     bool create_actor(ID<Entity> id, Args&&... args) {
         auto& ent = state._entities.at(id);
 
-        auto type = ActorType::Object;
-        if constexpr (std::same_as<T_Actor, Level>) {
-            type = ActorType::Level;
-        }
-
-        auto priority = ActorPriority::Normal;
-        const ObjectType* obj_type_ptr = nullptr;
-        if constexpr (valid_object<T_Actor>) {
-            priority     = T_Actor::Type.priority;
-            obj_type_ptr = &T_Actor::Type;
-        }
-
-        ActorInit init{
+        ActorInit init {
             .world       = *this,
             .entity_id   = id,
             .actor_id    = state._actors.peek_next_id(),
-            .type        = type,
-            .priority    = priority,
-            .object_type = obj_type_ptr
+            .type        = ActorType::Actor,
+            .priority    = ActorPriority::Normal,
         };
+
+        if constexpr (valid_object<T_Actor>) {
+            init.type     = ActorType::Object;
+            init.priority = T_Actor::Type.priority;
+        }
 
         ent.actor = state._actors.create<T_Actor>(init, std::forward<Args>(args)...);
         return at(*ent.actor).initialized;
     }
-    */
-
 
     template<typename T>
     void system_notify_created(ID<T> t_id) {

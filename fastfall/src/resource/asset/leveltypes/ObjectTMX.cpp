@@ -103,10 +103,10 @@ void parseObjectRefs(xml_node<>* objectNode, ObjectLayerData& objLayer) {
 		attr = objectNode->first_attribute("height");
 		area.height = attr ? atoi(attr->value()) : 0;
 
-		objdata.size = area.getSize();
+		objdata.area = area;
 
-		objdata.position.x = area.left + area.width / 2;
-		objdata.position.y = area.top + area.height;
+		//objdata.position.x = area.left + area.width / 2;
+		//objdata.position.y = area.top + area.height;
 
 		objdata.properties = parseProperties(objectNode->first_node("properties"));
 		objdata.points = parsePoints(objectNode->first_node("polyline"));

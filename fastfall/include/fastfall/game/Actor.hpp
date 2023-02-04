@@ -32,6 +32,7 @@ class Actor;
 enum class ActorType {
     Level   = 0,
     Object  = 1,
+    Actor   = 2
 };
 
 enum class ActorPriority {
@@ -45,12 +46,13 @@ enum class ActorPriority {
 class ObjectType;
 
 struct ActorInit {
-    World&            world;
-    ID<Entity>        entity_id;
-    ID<Actor>         actor_id;
-    ActorType         type;
-    ActorPriority     priority;
+    World&        world;
+    ID<Entity>    entity_id;
+    ID<Actor>     actor_id;
+    ActorType     type;
+    ActorPriority priority;
 };
+
 
 class Actor : public dconfig<actor_vars, World&>
 {

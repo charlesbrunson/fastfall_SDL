@@ -13,14 +13,15 @@ Path::Path(Vec2f t_origin, std::vector<Vec2f> t_waypoints, float t_speed)
 }
 
 Path::Path(const ObjectLevelData* data)
-    : origin(data ? Vec2f{data->position} : Vec2f{})
+    : origin(data ? Vec2f{data->area.topleft()} : Vec2f{})
 {
     if (data) {
         std::transform(
             data->points.cbegin(),
             data->points.cend(),
             std::back_inserter(waypoints),
-            [](auto p) { return Vec2f{p}; });
+            [](auto p) { return Vec2f{ p }; }
+        );
 
         if (auto p = data->optPropAsFloat("speed")) { speed = *p; }
         if (auto p = data->optPropAsFloat("wait_on_start")) { wait_on_start = *p; }

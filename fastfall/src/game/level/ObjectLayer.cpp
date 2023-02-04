@@ -97,7 +97,7 @@ void ObjectLayer::createObjectsFromData(World& world) {
 	for (auto& objRef : object_refs) {
 		if (objRef.typehash != 0) {
             objRef.all_objects = &object_refs;
-            world.create_object(objRef);
+            world.create_object_from_data(objRef);
 		}
 	}
 }

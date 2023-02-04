@@ -26,8 +26,18 @@ const EmitterStrategy jet_emitter_str = {
     .animation          = AnimIDRef{ "jet_platform.sax", "effect" },
 };
 
-JetPlatform::JetPlatform(ObjectInit init, ff::ObjectLevelData& data)
-    : ff::Object(init, data)
+const ObjectType JetPlatform::Type {
+    .name       = { "JetPlatform" },
+    .anim       = std::nullopt,
+    .tile_size  = { 0, 1 },
+    .group_tags = {	"platform" },
+    .properties = {
+        { "path",  ObjLevelID{} }
+    }
+};
+
+JetPlatform::JetPlatform(ActorInit init, ObjectLevelData& data)
+    : Object(init, Type, &data)
 {
     Vec2f base_position = data.area.topleft();
     int tile_width = (int)data.area.getSize().x / TILESIZE;
@@ -106,6 +116,3 @@ JetPlatform::JetPlatform(ObjectInit init, ff::ObjectLevelData& data)
     });
 }
 
-void JetPlatform::update(ff::World& w, secs deltaTime)
-{
-}

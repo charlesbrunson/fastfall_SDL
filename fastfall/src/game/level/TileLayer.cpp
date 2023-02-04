@@ -452,7 +452,7 @@ void TileLayer::removeTile(World& world, const Vec2u& position) {
 
 }
 
-void TileLayer::pilfer(World& w, TileLayer& from, Recti area) {
+void TileLayer::steal_tiles(World& w, TileLayer& from, Recti area) {
     Vec2i topleft{ area.left, area.top };
     for (auto x{area.left}; x < area.left + area.width; x++)
     {

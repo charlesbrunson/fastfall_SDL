@@ -63,7 +63,7 @@ namespace plr::constants {
 
 namespace plr {
 	struct members {
-		members(ff::ObjectInit init, ff::Vec2f position, bool face_dir);
+		members(ff::ActorInit init, ff::Vec2f position, bool face_dir);
 
         ff::ID<ff::AnimatedSprite> sprite_id;
         ff::ID<ff::Collidable> collidable_id;

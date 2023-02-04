@@ -9,8 +9,20 @@
 using namespace ff;
 using namespace plr;
 
-Player::Player(ObjectInit init, Vec2f position, bool faceleft)
-	: Object{ init }
+const ff::ObjectType Player::Type {
+    .name       = { "Player" },
+    .anim       = ff::AnimIDRef{ "player.sax", "idle" },
+    .tile_size  = { 1u, 2u },
+    .priority   = ff::ActorPriority::Highest,
+    .group_tags = { "player" },
+    .properties = {
+        { "faceleft",	 false },
+        { "anotherprop", ff::ObjectPropertyType::String }
+    }
+};
+
+Player::Player(ActorInit init, Vec2f position, bool faceleft)
+	: Object{ init, Type }
 	, plr::members{ init, position, faceleft}
 {
     auto& box = init.world.at(collidable_id);
@@ -20,8 +32,8 @@ Player::Player(ObjectInit init, Vec2f position, bool faceleft)
     };
 };
 
-Player::Player(ObjectInit init, ObjectLevelData& data)
-	: Object{ init, data }
+Player::Player(ActorInit init, ObjectLevelData& data)
+	: Object{ init, Type, &data }
 	, plr::members{ init, data.area.botmid(), data.getPropAsBool("faceleft")}
 {
     auto& box = init.world.at(collidable_id);

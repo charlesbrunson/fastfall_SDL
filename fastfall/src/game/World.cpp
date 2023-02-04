@@ -107,7 +107,7 @@ std::optional<ID<Entity>> World::create_entity() {
 }
 
 
-std::optional<ID_ptr<Object>> World::create_object(ObjectLevelData& data) {
+std::optional<ID_ptr<Object>> World::create_object_from_data(ObjectLevelData& data) {
     auto id = *create_entity();
     state._entities.at(id).actor = state._actors.peek_next_id();
 
@@ -115,19 +115,19 @@ std::optional<ID_ptr<Object>> World::create_object(ObjectLevelData& data) {
         .world      = *this,
         .entity_id  = id,
         .actor_id   = state._actors.peek_next_id(),
-        .type       = ActorType::Object,
+        .type       = ActorType::Actor,
         .priority   = ActorPriority::Normal
     };
 
     auto actor_id = state._actors.emplace(ObjectFactory::createFromData(init, data));
-    if (!at(actor_id).initialized) {
-        erase(id);
-        return std::nullopt;
-    }
-    else {
+    if (auto* ptr = get(actor_id); ptr && ptr->initialized) {
         system_notify_created<Actor>(actor_id);
         auto obj_id = id_cast<Object>(actor_id);
         return ID_ptr<Object>{obj_id, get(obj_id) };
+    }
+    else {
+        erase(id);
+        return std::nullopt;
     }
 }
 

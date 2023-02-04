@@ -67,7 +67,7 @@ public:
 	void setTile(World& world, const Vec2u& position, TileID tile_id, const TilesetAsset& tileset, bool useLogic = true);
 	void removeTile(World& world, const Vec2u& position);
 
-    void pilfer(World& w, TileLayer& from, Recti area);
+    void steal_tiles(World& w, TileLayer& from, Recti area);
 
     // removes all tiles, collision, parallax and scrolling
 	//void clean(World& world);
