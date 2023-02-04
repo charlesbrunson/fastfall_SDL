@@ -224,6 +224,16 @@ public:
 			&& pos.y > MinY && pos.y <= MaxY;
 	}
 
+    [[nodiscard]] constexpr Vec2<T> topleft () const { return Vec2<T>(left,                top); }
+    [[nodiscard]] constexpr Vec2<T> topmid  () const { return Vec2<T>(left + width / T{2}, top); }
+    [[nodiscard]] constexpr Vec2<T> topright() const { return Vec2<T>(left + width,        top); }
+    [[nodiscard]] constexpr Vec2<T> leftmid () const { return Vec2<T>(left,                top + height / T{2}); }
+    [[nodiscard]] constexpr Vec2<T> center  () const { return Vec2<T>(left + width / T{2}, top + height / T{2}); }
+    [[nodiscard]] constexpr Vec2<T> rightmid() const { return Vec2<T>(left + width,        top + height / T{2}); }
+    [[nodiscard]] constexpr Vec2<T> botright() const { return Vec2<T>(left + width,        top + height); }
+    [[nodiscard]] constexpr Vec2<T> botmid  () const { return Vec2<T>(left + width / T{2}, top + height); }
+    [[nodiscard]] constexpr Vec2<T> botleft () const { return Vec2<T>(left,                top + height); }
+
 	T left;
 	T top;
 	T width;

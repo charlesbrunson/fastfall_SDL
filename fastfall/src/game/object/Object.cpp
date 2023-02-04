@@ -127,6 +127,7 @@ bool ObjectType::test(ObjectLevelData& data) const {
 
 
 std::unordered_map<size_t, ObjectFactory::ObjectBuilder> ObjectFactory::object_builders;
+std::unordered_map<std::type_index, size_t> ObjectFactory::type_to_hash;
 
 copyable_unique_ptr<Actor> ObjectFactory::createFromData(ActorInit init, ObjectLevelData& data) {
 	if (auto it = object_builders.find(data.typehash); it != object_builders.end())
@@ -137,7 +138,7 @@ copyable_unique_ptr<Actor> ObjectFactory::createFromData(ActorInit init, ObjectL
 			return std::move(obj);
 		}
 		else {
-			LOG_ERR_("Failed to create object: {}:{}", builder.type->name.str, data.level_id.id);
+			LOG_ERR_("Failed to create object: {}:{}", builder.type.name.str, data.level_id.id);
 		}
 	}
 	else
@@ -146,7 +147,7 @@ copyable_unique_ptr<Actor> ObjectFactory::createFromData(ActorInit init, ObjectL
 		LOG_ERR_("known types are:");
 		log::scope scope;
 		for (auto& [_, impl] : object_builders) {
-			LOG_ERR_("{}: {}", impl.type->name.hash, impl.type->name.str);
+			LOG_ERR_("{}: {}", impl.type.name.hash, impl.type.name.str);
 		}
 	}
 	return copyable_unique_ptr<Actor>{};
@@ -154,7 +155,7 @@ copyable_unique_ptr<Actor> ObjectFactory::createFromData(ActorInit init, ObjectL
 
 const ObjectType* ObjectFactory::getType(size_t hash) {
 	if (auto it = object_builders.find(hash); it != object_builders.end()) {
-		return it->second.type;
+		return &it->second.type;
 	}
 	return nullptr;
 }
@@ -162,20 +163,20 @@ const ObjectType* ObjectFactory::getType(size_t hash) {
 const ObjectType* ObjectFactory::getType(std::string_view name) {
     size_t hash = std::hash<std::string_view>{}(name);
 	for (auto& [_, impl] : object_builders) {
-		if (impl.type->name.hash == hash) {
-			return impl.type;
+		if (impl.type.name.hash == hash) {
+			return &impl.type;
 		}
 	}
 	return nullptr;
 }
 
-Object::Object(ActorInit init)
+Object::Object(ObjectInit init)
     : Actor{ init }
     , obj_type(init.object_type)
 {
 }
 
-Object::Object(ActorInit init, ObjectLevelData& data)
+Object::Object(ObjectInit init, ObjectLevelData& data)
     : Actor{ init }
 	, obj_data(&data)
     , obj_type(init.object_type)

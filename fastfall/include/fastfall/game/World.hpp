@@ -153,6 +153,7 @@ public:
     // create entity
     std::optional<ID<Entity>> create_entity();
 
+    /*
     template<class T_Actor, class... Args>
     requires valid_actor_ctor<T_Actor, Args...>
     std::optional<ID_ptr<T_Actor>> create_actor(Args&&... args) {
@@ -169,6 +170,12 @@ public:
             }
         }
         return std::nullopt;
+    }
+    */
+
+    template<std::derived_from<Object> T, class... Args>
+    std::optional<ID_ptr<Object>> create_object(Args&&... args) {
+
     }
 
     std::optional<ID_ptr<Object>> create_object(ObjectLevelData& data);
@@ -246,6 +253,7 @@ public:
 private:
     void draw(RenderTarget& target, RenderState state = RenderState()) const override;
 
+    /*
     template<class T_Actor, class... Args>
     requires valid_actor_ctor<T_Actor, Args...>
     bool create_actor(ID<Entity> id, Args&&... args) {
@@ -275,6 +283,7 @@ private:
         ent.actor = state._actors.create<T_Actor>(init, std::forward<Args>(args)...);
         return at(*ent.actor).initialized;
     }
+    */
 
 
     template<typename T>

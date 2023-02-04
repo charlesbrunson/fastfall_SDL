@@ -13,20 +13,8 @@
 
 class Player : public ff::Object, public plr::members {
 public:
-    static inline const ff::ObjectType Type = {
-        .name                = { "Player" },
-        .anim                = ff::AnimIDRef{ "player.sax", "idle" },
-        .tile_size           = { 1u, 2u },
-        .priority            = ff::ActorPriority::Highest,
-        .group_tags          = { "player" },
-        .properties          = {
-            { "faceleft",	 false },
-            { "anotherprop", ff::ObjectPropertyType::String }
-        }
-    };
-
-    Player(ff::ActorInit init, ff::Vec2f position, bool faceleft);
-    Player(ff::ActorInit init, ff::ObjectLevelData& data);
+    Player(ff::ObjectInit init, ff::Vec2f position, bool faceleft);
+    Player(ff::ObjectInit init, ff::ObjectLevelData& data);
     void update(ff::World& w, secs deltaTime) override;
     dresult message(ff::World&, const dmessage&) override;
 

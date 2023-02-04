@@ -9,8 +9,8 @@
 using namespace ff;
 using namespace plr;
 
-Player::Player(ActorInit init, Vec2f position, bool faceleft)
-	: Object{init }
+Player::Player(ObjectInit init, Vec2f position, bool faceleft)
+	: Object{ init }
 	, plr::members{ init, position, faceleft}
 {
     auto& box = init.world.at(collidable_id);
@@ -20,9 +20,9 @@ Player::Player(ActorInit init, Vec2f position, bool faceleft)
     };
 };
 
-Player::Player(ActorInit init, ObjectLevelData& data)
-	: Object(init, data )
-	, plr::members{ init, Vec2f{ data.position }, data.getPropAsBool("faceleft")}
+Player::Player(ObjectInit init, ObjectLevelData& data)
+	: Object{ init, data }
+	, plr::members{ init, data.area.botmid(), data.getPropAsBool("faceleft")}
 {
     auto& box = init.world.at(collidable_id);
     box.callbacks.onPostCollision = [plr_id = id_cast<Player>(actor_id)] (World& w) {

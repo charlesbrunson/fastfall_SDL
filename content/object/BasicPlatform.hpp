@@ -9,17 +9,7 @@
 
 class BasicPlatform : public ff::Object {
 public:
-    static inline const ff::ObjectType Type = {
-        .name       = { "BasicPlatform" },
-        .anim       = std::nullopt,
-        .tile_size  = {0, 0},
-        .group_tags = {	"platform" },
-        .properties = {
-            { "path",  ff::ObjLevelID{} }
-        }
-    };
-
-	BasicPlatform(ff::ActorInit init, ff::ObjectLevelData& data);
+	BasicPlatform(ff::ObjectInit init, ff::ObjectLevelData& data);
 	void update(ff::World& w, secs deltaTime) override;
 
 protected:

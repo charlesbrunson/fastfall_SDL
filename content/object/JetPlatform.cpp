@@ -26,11 +26,11 @@ const EmitterStrategy jet_emitter_str = {
     .animation          = AnimIDRef{ "jet_platform.sax", "effect" },
 };
 
-JetPlatform::JetPlatform(ActorInit init, ff::ObjectLevelData& data)
+JetPlatform::JetPlatform(ObjectInit init, ff::ObjectLevelData& data)
     : ff::Object(init, data)
 {
-    Vec2f base_position = data.getTopLeftPos();
-    int tile_width = (int)data.size.x / TILESIZE;
+    Vec2f base_position = data.area.topleft();
+    int tile_width = (int)data.area.getSize().x / TILESIZE;
     assert(platform_width_min <= tile_width && tile_width <= platform_width_max);
 
     World& w = init.world;
@@ -71,7 +71,7 @@ JetPlatform::JetPlatform(ActorInit init, ff::ObjectLevelData& data)
     ObjLevelID path_id = data.getPropAsID("path");
     ID<AttachPoint> base_attach_id = path_id
             ? w.create<PathMover>(entity_id, Path{data.get_sibling(path_id)})->get_attach_id()
-            : w.create<AttachPoint>(entity_id, id_placeholder, data.getTopLeftPos());
+            : w.create<AttachPoint>(entity_id, id_placeholder, base_position);
 
     auto& base_attach = w.at(base_attach_id);
     base_attach.teleport(base_position);

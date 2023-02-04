@@ -31,7 +31,7 @@ plr::move_t::move_t(World& w, const plr::members& plr)
 }
 
 
-plr::members::members(ActorInit init, Vec2f position, bool face_dir)
+plr::members::members(ObjectInit init, Vec2f position, bool face_dir)
     : sprite_id(init.world.create<AnimatedSprite>(init.entity_id))
     , collidable_id(init.world.create<Collidable>(init.entity_id, position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
     , cameratarget_id()

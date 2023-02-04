@@ -115,69 +115,83 @@ struct ObjectType
     bool test(ObjectLevelData& data) const;
 };
 
+struct ObjectInit : public ActorInit {
+    const ObjectType* object_type;
+};
+
 class Object;
 
 template<typename T>
-concept valid_object = std::derived_from<T, Object> && std::same_as<decltype(T::Type), const ObjectType>;
+concept valid_object = std::derived_from<T, Object>;
 
 struct ObjectFactory {
 private:
 
     struct ObjectBuilder {
-        using builderfn_t = copyable_unique_ptr<Actor>(*)(ActorInit, ObjectLevelData&);
-
-        const ObjectType* const type;
-        const builderfn_t create;
+        ObjectType type;
+        std::function<copyable_unique_ptr<Actor>(ActorInit, ObjectLevelData&)> create;
     };
 
 	static std::unordered_map<size_t, ObjectBuilder> object_builders;
+    static std::unordered_map<std::type_index, size_t> type_to_hash;
 
 public:
-	template<valid_object T>
-	static void register_object()
+	template<valid_object T, class... Args>
+	static void register_object(ObjectType type, Args&&... args)
     {
-        object_builders.emplace(T::Type.name.hash, ObjectBuilder{
-            .type = &T::Type,
-            .create = [](ActorInit init, ObjectLevelData& data) -> copyable_unique_ptr<Actor>
-            {
-                if constexpr (std::is_constructible_v<T, ActorInit, ObjectLevelData&>) {
-                    copyable_unique_ptr<Actor> ret;
-                    init.object_type = &T::Type;
-                    init.priority    = T::Type.priority;
-                    if (T::Type.test(data)) {
-                        ret = make_copyable_unique<Actor, T>(init, data);
-                    }
-                    else {
-                        LOG_WARN("unable to instantiate object: {}:{}", T::Type.name.str, data.level_id.id);
-                        ret = nullptr;
-                    }
-                    return ret;
+        assert(!object_builders.contains(type.name.hash));
+
+        auto [it, _] = object_builders.emplace(type.name.hash, ObjectBuilder{ .type = type });
+        auto& type_ref = it->second.type;
+        it->second.create = [&type_ref, args...](ActorInit init, ObjectLevelData& data) -> copyable_unique_ptr<Actor>
+        {
+            if constexpr (std::is_constructible_v<T, ObjectInit, ObjectLevelData&, Args...>) {
+                ObjectInit obj_init { init };
+                obj_init.priority = type_ref.priority;
+                obj_init.object_type = &type_ref;
+
+                copyable_unique_ptr<Actor> ret;
+                if (type_ref.test(data)) {
+                    ret = make_copyable_unique<Actor, T>(obj_init, data, std::forward<Args>(args)...);
                 }
                 else {
-                    LOG_WARN("object not constructible with level data: {}:{}", T::Type.name.str, data.level_id.id);
-                    return copyable_unique_ptr<Actor>{};
+                    LOG_WARN("unable to instantiate object: {}:{}", type_ref.name.str, data.level_id.id);
+                    ret = nullptr;
                 }
+                return ret;
             }
-        });
+            else {
+                LOG_WARN("object not constructible with level data: {}:{}", type_ref.name.str, data.level_id.id);
+                return copyable_unique_ptr<Actor>{};
+            }
+        };
+
+        type_to_hash.emplace(typeid(T), type.name.hash);
 	}
 
 	static copyable_unique_ptr<Actor> createFromData(ActorInit init, ObjectLevelData& data);
-
 	static const ObjectType* getType(size_t hash);
 	static const ObjectType* getType(std::string_view name);
+
+    template<class T>
+    static const ObjectType* getType() {
+        return type_to_hash.contains(typeid(T))
+            ? getType(type_to_hash.at(typeid(T)))
+            : nullptr;
+    }
 };
 
 class Object : public Actor {
 public:
-	explicit Object(ActorInit init);
-	Object(ActorInit init, ObjectLevelData& data);
+	explicit Object(ObjectInit init);
+	Object(ObjectInit init, ObjectLevelData& data);
 
     [[nodiscard]] const ObjectType*      object_type() const { return obj_type; };
     [[nodiscard]] const ObjectLevelData* object_data() const { return obj_data; };
 
 private:
-    ObjectLevelData* const  obj_data = nullptr;
-    const ObjectType* const obj_type = nullptr;
+    const ObjectLevelData* const obj_data = nullptr;
+    const ObjectType*      const obj_type = nullptr;
 };
 
 }

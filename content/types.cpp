@@ -49,9 +49,50 @@ void game_InitTypes() {
 	TileLogic::addType<AnimLogic>("anim");
 
 	// objects
-	ObjectFactory::register_object<Player>();
-	ObjectFactory::register_object<BasicPlatform>();
-    ObjectFactory::register_object<JetPlatform>();
-	ObjectFactory::register_object<SimpleEffect>();
-    ObjectFactory::register_object<TilePlatform>();
+	ObjectFactory::register_object<Player>({
+        .name                = { "Player" },
+        .anim                = ff::AnimIDRef{ "player.sax", "idle" },
+        .tile_size           = { 1u, 2u },
+        .priority            = ff::ActorPriority::Highest,
+        .group_tags          = { "player" },
+        .properties          = {
+            { "faceleft",	 false },
+            { "anotherprop", ff::ObjectPropertyType::String }
+        }
+    });
+
+	ObjectFactory::register_object<BasicPlatform>({
+        .name       = { "BasicPlatform" },
+        .anim       = std::nullopt,
+        .tile_size  = {0, 0},
+        .group_tags = {	"platform" },
+        .properties = {
+            { "path",  ff::ObjLevelID{} }
+        }
+    });
+
+    ObjectFactory::register_object<JetPlatform>({
+        .name       = { "JetPlatform" },
+        .anim       = std::nullopt,
+        .tile_size  = {0, 1},
+        .group_tags = {	"platform" },
+        .properties = {
+            { "path",  ff::ObjLevelID{} }
+        }
+    });
+
+	ObjectFactory::register_object<SimpleEffect>({
+        .name = { "SimpleEffect" }
+    });
+
+    ObjectFactory::register_object<TilePlatform>({
+        .name       = { "TilePlatform" },
+        .anim       = std::nullopt,
+        .tile_size  = { 0u, 0u },
+        .group_tags = {	"platform" },
+        .properties = {
+                { "layer", ff::ObjectPropertyType::Int },
+                { "path",  ff::ObjLevelID{ ff::ObjLevelID::NO_ID } }
+        }
+    });
 }

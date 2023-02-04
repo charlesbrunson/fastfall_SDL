@@ -8,11 +8,7 @@
 
 class SimpleEffect : public ff::Object {
 public:
-    static inline const ff::ObjectType Type = {
-            .name = { "SimpleEffect" }
-    };
-
-	SimpleEffect(ff::ActorInit init, const ff::AnimID& anim, ff::Vec2f position, bool hflip);
+	SimpleEffect(ff::ObjectInit init, const ff::AnimID& anim, ff::Vec2f position, bool hflip);
 	void update(ff::World& w, secs deltaTime) override;
 
 private:

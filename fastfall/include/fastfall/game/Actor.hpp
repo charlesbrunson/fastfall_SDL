@@ -50,7 +50,6 @@ struct ActorInit {
     ID<Actor>         actor_id;
     ActorType         type;
     ActorPriority     priority;
-    const ObjectType* object_type;
 };
 
 class Actor : public dconfig<actor_vars, World&>
