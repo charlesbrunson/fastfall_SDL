@@ -138,7 +138,14 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
 		dash_time += deltaTime;
 		if (dash_time >= dash_duration) {
 			if (ground.has_contact()) {
-				return PlayerStateID::Ground;
+                if (w.input()[InputType::DASH].is_pressed(0.25))
+                {
+                    w.input()[InputType::DASH].confirm_press();
+                    return action::dash(w, plr, move_t{ w, plr });
+                }
+                else {
+                    return PlayerStateID::Ground;
+                }
 			}
 
 			sprite.set_anim(anim::fall_f);

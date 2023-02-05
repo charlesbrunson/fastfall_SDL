@@ -10,7 +10,7 @@ SoLoud::Soloud audio_engine;
 game_bus_t primary_mix;
 float game_v  = 1.f;
 float music_v = 1.f;
-float master_v = 1.f;
+float master_v = 0.5f;
 
 bool init_state = false;
 
