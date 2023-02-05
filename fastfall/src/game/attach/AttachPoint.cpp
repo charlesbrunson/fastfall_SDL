@@ -1,16 +1,43 @@
 #include "fastfall/game/attach/AttachPoint.hpp"
 
 #include "imgui.h"
+#include "fastfall/game/World.hpp"
 
 namespace ff {
 
-void imgui_component(const AttachPoint& cmp) {
+void imgui_component(World& w, AttachPoint& cmp) {
     ImGui::Text("Curr Pos:        %3.2f, %3.2f", cmp._curr_pos.x, cmp._curr_pos.y);
     ImGui::Text("Prev Pos:        %3.2f, %3.2f", cmp._prev_pos.x, cmp._prev_pos.y);
     ImGui::Text("Curr Local Vel:  %3.2f, %3.2f", cmp._lvel.x, cmp._lvel.y);
     ImGui::Text("Prev Local Vel:  %3.2f, %3.2f", cmp._prev_lvel.x, cmp._prev_lvel.y);
     ImGui::Text("Curr Parent Vel: %3.2f, %3.2f", cmp._pvel.x, cmp._pvel.y);
     ImGui::Text("Prev Parent Vel: %3.2f, %3.2f", cmp._prev_pvel.x, cmp._prev_pvel.y);
+
+    auto& sys = w.system<AttachSystem>();
+    auto& attachs = sys.get_attachments(cmp.id());
+
+    auto parent = sys.get_attachpoint(cmp.id());
+    ImGui::Text("Has Constraint: %s", (cmp.constraint ? "Yes" : "No"));
+    ImGui::Text("Parent: ");
+    ImGui::SameLine();
+    if (parent) {
+        imgui_component_ref(w, parent.value());
+    }
+    else {
+        ImGui::Text("None");
+    }
+
+    if (ImGui::TreeNode((void*)(&attachs), "Attached Components (%d)", (unsigned)attachs.size())) {
+        ImGui::Columns(2);
+        for (auto& cmp_attach : attachs) {
+            imgui_component_ref(w, cmp_attach.id);
+            ImGui::NextColumn();
+            ImGui::Text("%3.2f, %3.2f", cmp_attach.offset.x, cmp_attach.offset.y);
+            ImGui::NextColumn();
+        }
+        ImGui::Columns();
+        ImGui::TreePop();
+    }
 }
 
 AttachPoint::AttachPoint(ID<AttachPoint> t_id, Vec2f init_pos, Vec2f init_vel, Schedule sch)

@@ -5,7 +5,7 @@
 
 namespace ff {
 
-void imgui_component(const Trigger& cmp) {
+void imgui_component(World& w, Trigger& cmp) {
 
     bool enabled = cmp.is_enabled();
     bool active = cmp.is_activated();
@@ -49,7 +49,8 @@ void imgui_component(const Trigger& cmp) {
     }
     if (ImGui::TreeNode((void*)(&drivers), "Drivers: %d", (unsigned)drivers.size())) {
         for (auto &[id, driver]: drivers) {
-            ImGui::Text("Trigger: %d:%d", id.value.sparse_index, id.value.generation);
+            //ImGui::Text("Trigger: %d:%d", id.value.sparse_index, id.value.generation);
+            imgui_component_ref(w, id);
             ImGui::Text("Duration: %f", driver.duration.time);
         }
         ImGui::TreePop();

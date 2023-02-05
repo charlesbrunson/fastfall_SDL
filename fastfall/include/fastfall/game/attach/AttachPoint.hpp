@@ -8,6 +8,7 @@
 
 namespace ff {
 
+class World;
 
 class AttachPoint {
 public:
@@ -75,7 +76,7 @@ private:
     ID<AttachPoint> _id;
     size_t _tick = 0;
 
-    friend void imgui_component(const AttachPoint&);
+    friend void imgui_component(World&, AttachPoint&);
 };
 
 }

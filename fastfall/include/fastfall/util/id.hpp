@@ -6,6 +6,7 @@
 
 namespace ff {
 
+
 template<class T>
 struct ID {
 	slot_key value;

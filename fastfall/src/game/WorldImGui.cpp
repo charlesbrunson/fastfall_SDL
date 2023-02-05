@@ -3,6 +3,7 @@
 #include "fmt/format.h"
 #include <array>
 #include <vector>
+#include <algorithm>
 
 #include "fastfall/game/World.hpp"
 
@@ -307,7 +308,6 @@ void imgui_scene(World* w) {
                 scene.render_enable = !scene.render_enable;
             }
 
-
             ImGui::TreePop();
         }
     }
@@ -319,72 +319,58 @@ void imgui_entity(World* w) {
     std::string name;
     for(auto [id, ent] : w->entities())
     {
-        Actor* actor = ent.actor ? w->get(*ent.actor) : nullptr;
-        name = actor ? actor->actor_type : "Entity";
+        auto& imgui_data = ent.imgui;
 
-        if (ImGui::TreeNode((void *)(&ent), "%s %d:%d", name.c_str(), id.value.sparse_index, id.value.generation)) {
-            for (auto& cmp_id : ent.components) {
-                auto key = std::visit([](auto& id) {
-                    return id.value;
-                }, cmp_id);
-
-                if (ImGui::TreeNode((void*)(&cmp_id), "%s %d:%d", ComponentID_Str[cmp_id.index()].data(), key.sparse_index, key.generation)) {
-                    std::visit([&]<class T>(const ID<T>& id) {
-                        if constexpr (requires (const T& x) { imgui_component(x); } ) {
-                            imgui_component(w->at(id));
-                        }
-                        else {
-                            ImGui::Text("No imgui_component() overload.");
-                        }
-                    }, cmp_id);
-                    ImGui::TreePop();
-                }
-            }
-            ImGui::TreePop();
+        if (imgui_data.name.empty()) {
+            auto* actor = ent.actor ? w->get(*ent.actor) : nullptr;
+            imgui_data.name = fmt::format("{} {}:{}",
+                (actor ? actor->actor_type : "Entity"),
+                id.value.sparse_index,
+                id.value.generation);
         }
 
-
-        /*
-        auto& type = obj->type();
-        auto* lvldata = obj->level_data();
-
-        if (ImGui::TreeNode((void *) (&obj), "%s %d", type.type.name.c_str(), id.value.sparse_index)) {
-            if (ImGui::Button("Inspect"))
-                obj->imgui_show_inspect = !obj->imgui_show_inspect;
-
-            if (ImGui::TreeNode((void *) (&obj->type()), "Type")) {
-
-                ImGui::Text("Type Name: %s", type.type.name.c_str());
-                ImGui::Text("Type Hash: %zu", type.type.hash);
-                ImGui::Text("Allowed in Level Data: %s", type.allow_as_level_data ? "true" : "false");
-                if (!type.group_tags.empty()) {
-                    ImGui::Text("Group Tags:");
-                    for(auto& tag : type.group_tags) {
-                        ImGui::Text("\t%s", tag.to_string().c_str());
+        ImGui::Checkbox(imgui_data.name.c_str(), &imgui_data.imgui_show);
+        if (imgui_data.imgui_show) {
+            ImGui::SetNextWindowSize(ImVec2(400.f, 500.f), ImGuiCond_Once);
+            if (ImGui::Begin(imgui_data.name.c_str(), &imgui_data.imgui_show))
+            {
+                float width =  ImGui::GetContentRegionAvail().x;
+                float left  = 150.f;
+                float right = (std::max)(width - left, 200.f);
+                {
+                    ImGui::BeginChild("##cmp_list", ImVec2(left, 0), true);
+                    for (auto& cmp_id : ent.components) {
+                        if (ImGui::Selectable(cmpid_str(cmp_id).c_str(), imgui_data.cmp_selected && cmp_id == *imgui_data.cmp_selected))
+                            imgui_data.cmp_selected = cmp_id;
                     }
+                    ImGui::EndChild();
                 }
-                ImGui::TreePop();
-            }
-
-            if (lvldata && ImGui::TreeNode((void *) (lvldata), "Level Data")) {
-
-                ImGui::Text("Level Object ID: %d", lvldata->level_id.id);
-                ImGui::Text("Level Name:      %s", lvldata->name.c_str());
-                ImGui::Text("Type Hash:       %zu", lvldata->typehash);
-                ImGui::Text("Position:        %d, %d", lvldata->position.x, lvldata->position.y);
-                ImGui::Text("Size:            %d, %d", lvldata->size.x, lvldata->size.y);
-                if (!lvldata->properties.empty()) {
-                    ImGui::Text("Properties:");
-                    for(auto& prop : lvldata->properties) {
-                        ImGui::Text("\t%s: %s", prop.first.c_str(), prop.second.c_str());
+                ImGui::SameLine();
+                {
+                    ImGui::BeginChild("Component##selected_cmp", ImVec2(right, 0), false);
+                    if (imgui_data.cmp_selected) {
+                        ImGui::Text("%s", cmpid_str(*imgui_data.cmp_selected).c_str());
+                        ImGui::Separator();
+                        std::visit([&]<class T>(const ID<T> &id) {
+                            if constexpr (requires (T & x) { imgui_component(x); } ) {
+                                imgui_component(w->at(id));
+                            }
+                            else if constexpr (requires (World& w, T& x) { imgui_component(w, x); } ) {
+                                imgui_component(*w, w->at(id));
+                            }
+                            else {
+                                ImGui::Text("No imgui_component() overload.");
+                            }
+                        }, *imgui_data.cmp_selected);
                     }
+                    ImGui::EndChild();
                 }
-                ImGui::TreePop();
             }
-
-            ImGui::TreePop();
+            ImGui::End();
         }
-        */
+        else {
+            imgui_data.cmp_selected = std::nullopt;
+        }
     }
 }
 

@@ -3,6 +3,7 @@
 #include "fastfall/util/id.hpp"
 
 #include <variant>
+#include <string_view>
 
 namespace ff {
 
@@ -39,5 +40,10 @@ constexpr inline static std::string_view ComponentID_Str[] = {
     "PathMover",
     "TileLayer",
 };
+
+std::string cmpid_str(const ComponentID& cmp);
+
+class World;
+void imgui_component_ref(const World& w, const ComponentID& cmp);
 
 }
