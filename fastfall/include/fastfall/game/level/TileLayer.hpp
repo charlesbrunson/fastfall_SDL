@@ -53,9 +53,6 @@ private:
 		std::vector<ID<ChunkVertexArray>> chunks;
 	} dyn;
 
-	//Vec2f offset;
-    //bool is_clean = true;
-
 public:
 	TileLayer(World& world, ID<TileLayer> t_id, unsigned id, Vec2u levelsize);
 	TileLayer(World& world, ID<TileLayer> t_id, const TileLayerData& layerData);
@@ -69,17 +66,11 @@ public:
 
     void steal_tiles(World& w, TileLayer& from, Recti area);
 
-    // removes all tiles, collision, parallax and scrolling
-	//void clean(World& world);
-
 	void shallow_copy(World& world, const TileLayer& src, Rectu src_area, Vec2u dst);
 
 	bool set_collision(World& world, bool enabled, unsigned border = 0u);
 	bool set_parallax(World& world, bool enabled, Vec2u parallax_size = Vec2u{});
 	bool set_scroll(World& world, bool enabled, Vec2f rate = Vec2f{});
-
-	//inline Vec2f getOffset() const noexcept { return offset; };
-	//inline void  setOffset(Vec2f off) noexcept { offset = off; };
 
 	// TileLayerData passthrough
 	inline bool			hasParallax()			const { return layer_data.hasParallax();		};
@@ -140,7 +131,6 @@ protected:
 	scene_layer layer;
     ID<AttachPoint> attach_id;
     ColliderTileMap* get_collider(World& world);
-	//ChunkVertexArray* get_chunk(World& world, ID<Drawable> id);
 
 	void updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic = true);
 };

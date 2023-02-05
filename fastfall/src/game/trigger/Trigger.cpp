@@ -5,6 +5,57 @@
 
 namespace ff {
 
+void imgui_component(const Trigger& cmp) {
+
+    bool enabled = cmp.is_enabled();
+    bool active = cmp.is_activated();
+    Rectf area = cmp.get_area();
+
+    auto& overlap = cmp.overlap;
+    auto& drivers = cmp.drivers;
+    auto& self_flags = cmp.self_flags;
+    auto& filter_flags = cmp.filter_flags;
+
+    ImGui::Text("Enabled: %s", enabled ? "Yes" : "No");
+    ImGui::Text("Active:  %s", active  ? "Yes" : "No");
+    ImGui::Text("Area: (%3.2f, %3.2f, %3.2f, %3.2f)",
+                area.left, area.top, area.width, area.height);
+
+
+    static constexpr std::string_view State_str[] = {
+        "None",
+        "Loop",
+        "Entry",
+        "Exit"
+    };
+    static constexpr std::string_view  Overlap_str[] = {
+        "Partial",
+        "Outside",
+        "Inside"
+    };
+
+    ImGui::Text("Overlap: %s", Overlap_str[static_cast<unsigned>(overlap)].data());
+    if (ImGui::TreeNode((void*)(&self_flags), "%s %d", "Self tags:", (unsigned)self_flags.size())) {
+        for (auto &tag: self_flags) {
+            ImGui::Text("%s", tag.tag_name_str().data());
+        }
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode((void*)(&filter_flags), "%s %d", "Filter tags:", (unsigned)filter_flags.size())) {
+        for (auto &tag: filter_flags) {
+            ImGui::Text("%s", tag.tag_name_str().data());
+        }
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode((void*)(&drivers), "Drivers: %d", (unsigned)drivers.size())) {
+        for (auto &[id, driver]: drivers) {
+            ImGui::Text("Trigger: %d:%d", id.value.sparse_index, id.value.generation);
+            ImGui::Text("Duration: %f", driver.duration.time);
+        }
+        ImGui::TreePop();
+    }
+}
+
 Trigger::Trigger(ID<Trigger> t_id)
     : m_id(t_id)
 {

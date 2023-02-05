@@ -71,13 +71,6 @@ namespace ff {
         Particle spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::default_random_engine& rand) const;
     };
 
-    /*
-    struct EmitterListener {
-        virtual void notify_particles_destroy(size_t begin, size_t count) = 0;
-        virtual void notify_particles_pushed(size_t begin, size_t count) = 0;
-    };
-    */
-
     class Emitter {
     public:
         Emitter() = default;
@@ -125,8 +118,6 @@ namespace ff {
         size_t total_emit_count = 0;
         EmitterStrategy strategy_backup;
         ID<VertexArray> varr_id;
-        //VertexArray varr;
-        //TextureRef texture;
 
         static Particle update_particle(const Emitter& e, Particle p, secs deltaTime);
         void update_particles(secs deltaTime);

@@ -18,6 +18,7 @@ enum class CamTargetState {
 
 class World;
 
+
 class CameraTarget {
 public:
 	CameraTarget(CamTargetPriority priority);
@@ -38,11 +39,13 @@ protected:
     Vec2f position;
 
 private:
-	friend class CameraSystem;
-
 	bool has_camera = false;
 	CamTargetState m_state = CamTargetState::Active;
 	CamTargetPriority m_priority;
+
+    friend class CameraSystem;
 };
+
+void imgui_component(const CameraTarget& cmp);
 
 }

@@ -71,10 +71,9 @@ private:
 	bool enabled = true;
 	bool activated = false;
 
-	Rectf area;
-    std::optional<ID<Object>> owner;
+	Rectf       area;
     ID<Trigger> m_id;
-	TriggerFn on_trigger;
+	TriggerFn   on_trigger;
 };
 
 struct TriggerPull {
@@ -83,6 +82,8 @@ struct TriggerPull {
     Trigger::State state = Trigger::State::None;
     Trigger::Duration duration;
 };
+
+void imgui_component(const Trigger& cmp);
 
 extern const TriggerTag ttag_generic;
 extern const TriggerTag ttag_hitbox;
