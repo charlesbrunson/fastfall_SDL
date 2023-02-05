@@ -28,4 +28,16 @@ using ComponentID = std::variant<
     ID<TileLayer>
 >;
 
+constexpr inline static std::string_view ComponentID_Str[] = {
+    "Collidable",
+    "ColliderRegion",
+    "Trigger",
+    "CameraTarget",
+    "Drawable",
+    "Emitter",
+    "AttachPoint",
+    "PathMover",
+    "TileLayer",
+};
+
 }

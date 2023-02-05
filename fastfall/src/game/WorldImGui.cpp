@@ -315,17 +315,42 @@ void imgui_scene(World* w) {
 
 // ------------------------------------------------------------
 
-void imgui_actors(World* w) {
-
-    /*
-    for(auto [id, obj] : w->all<Actor>())
+void imgui_entity(World* w) {
+    std::string name;
+    for(auto [id, ent] : w->entities())
     {
+        Actor* actor = ent.actor ? w->get(*ent.actor) : nullptr;
+        name = actor ? actor->actor_type : "Entity";
+
+        if (ImGui::TreeNode((void *)(&ent), "%s %d:%d", name.c_str(), id.value.sparse_index, id.value.generation)) {
+            for (auto& cmp_id : ent.components) {
+                auto key = std::visit([](auto& id) {
+                    return id.value;
+                }, cmp_id);
+
+                if (ImGui::TreeNode((void*)(&cmp_id), "%s %d:%d", ComponentID_Str[cmp_id.index()].data(), key.sparse_index, key.generation)) {
+                    std::visit([&]<class T>(const ID<T>& id) {
+                        if constexpr (requires (const T& x) { imgui_component(x); } ) {
+                            imgui_component(w->at(id));
+                        }
+                        else {
+                            ImGui::Text("No imgui_component() overload.");
+                        }
+                    }, cmp_id);
+                    ImGui::TreePop();
+                }
+            }
+            ImGui::TreePop();
+        }
+
+
+        /*
         auto& type = obj->type();
         auto* lvldata = obj->level_data();
 
         if (ImGui::TreeNode((void *) (&obj), "%s %d", type.type.name.c_str(), id.value.sparse_index)) {
             if (ImGui::Button("Inspect"))
-                obj->m_show_inspect = !obj->m_show_inspect;
+                obj->imgui_show_inspect = !obj->imgui_show_inspect;
 
             if (ImGui::TreeNode((void *) (&obj->type()), "Type")) {
 
@@ -359,15 +384,13 @@ void imgui_actors(World* w) {
 
             ImGui::TreePop();
         }
+        */
     }
-    */
 }
 
 // ------------------------------------------------------------
 
 void imgui_input(World* w) {
-
-
     static const char* inputNames[] = {
             "Up",
             "Left",
@@ -523,10 +546,7 @@ void imgui_status(World* w) {
     {
         w->system<CameraSystem>().zoomFactor = floorf(zoom * 4.f) / 4.f;
     }
-
 }
-
-
 
 // ------------------------------------------------------------
 
@@ -596,17 +616,10 @@ void WorldImGui::ImGui_getContent()
             imgui_status(curr_world);
             ImGui::EndTabItem();
         }
-        // TODO
-        /*
-        if (ImGui::BeginTabItem("Levels")) {
-            imgui_levels(curr_world);
+        if (ImGui::BeginTabItem("Entities")) {
+            imgui_entity(curr_world);
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Objects")) {
-            imgui_objects(curr_world);
-            ImGui::EndTabItem();
-        }
-        */
         if (ImGui::BeginTabItem("Components")) {
             if (ImGui::BeginTabBar("Components")) {
                 if (ImGui::BeginTabItem("Collidables")) {
@@ -631,7 +644,6 @@ void WorldImGui::ImGui_getContent()
                 }
                 ImGui::EndTabBar();
             }
-            // TODO
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Input")) {
@@ -645,19 +657,16 @@ void WorldImGui::ImGui_getContent()
 
 void WorldImGui::ImGui_getExtraContent() {
 
-    // TODO
-    /*
     if (curr_world) {
-        for (auto [id, obj] : curr_world->all<GameObject>()) {
-            if (obj->m_show_inspect
-                && ImGui::Begin(obj->type().type.name.c_str(), &obj->m_show_inspect))
+        for (auto [id, actor] : curr_world->all<Actor>()) {
+            if (actor->imgui_show_inspect
+                && ImGui::Begin("", &actor->imgui_show_inspect))
             {
-                obj->ImGui_Inspect();
+                actor->ImGui_Inspect();
                 ImGui::End();
             }
         }
     }
-    */
 }
 
 }

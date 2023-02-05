@@ -8,6 +8,8 @@
 
 namespace ff {
 
+void imgui_component(const AttachPoint& cmp);
+
 class AttachPoint {
 public:
 
@@ -73,6 +75,8 @@ private:
 
     ID<AttachPoint> _id;
     size_t _tick = 0;
+
+    friend void imgui_component(const AttachPoint&);
 
 };
 

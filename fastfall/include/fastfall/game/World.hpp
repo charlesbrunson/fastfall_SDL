@@ -150,6 +150,8 @@ public:
     requires (sizeof...(Ts) > 1)
     auto get(ID<Ts>... ids) const { return std::forward_as_tuple(get(ids)...); }
 
+    const auto& entities() const { return state._entities; }
+
     // create entity
     std::optional<ID<Entity>> create_entity();
 

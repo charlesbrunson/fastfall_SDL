@@ -1,6 +1,17 @@
 #include "fastfall/game/attach/AttachPoint.hpp"
 
+#include "imgui.h"
+
 namespace ff {
+
+void imgui_component(const AttachPoint& cmp) {
+    ImGui::Text("Curr Pos:        %3.2f, %3.2f", cmp._curr_pos.x, cmp._curr_pos.y);
+    ImGui::Text("Prev Pos:        %3.2f, %3.2f", cmp._prev_pos.x, cmp._prev_pos.y);
+    ImGui::Text("Curr Local Vel:  %3.2f, %3.2f", cmp._lvel.x, cmp._lvel.y);
+    ImGui::Text("Prev Local Vel:  %3.2f, %3.2f", cmp._prev_lvel.x, cmp._prev_lvel.y);
+    ImGui::Text("Curr Parent Vel: %3.2f, %3.2f", cmp._pvel.x, cmp._pvel.y);
+    ImGui::Text("Prev Parent Vel: %3.2f, %3.2f", cmp._prev_pvel.x, cmp._prev_pvel.y);
+}
 
 AttachPoint::AttachPoint(ID<AttachPoint> t_id, Vec2f init_pos, Vec2f init_vel, Schedule sch)
     : _id(t_id)

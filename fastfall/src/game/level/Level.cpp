@@ -17,7 +17,7 @@ Level::Level(
     std::optional<Vec2u>        opt_size,
     std::optional<Color>        opt_bgColor
 )
-    : Actor{ init }
+    : Actor{ init, { "Level" }}
 {
     if (opt_name)    levelName = std::move(*opt_name);
     if (opt_size)    levelSize = *opt_size;
@@ -28,7 +28,7 @@ Level::Level(
     ActorInit init,
     const LevelAsset& levelData
 )
-    : Actor{ init }
+    : Actor{ init, { "Level" }}
 {
     initFromAsset(init.world, levelData);
 }

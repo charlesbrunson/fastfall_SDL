@@ -172,7 +172,7 @@ const ObjectType* ObjectFactory::getType(std::string_view name) {
 }
 
 Object::Object(ActorInit init, const ObjectType& type, const ObjectLevelData* data)
-    : Actor( init )
+    : Actor( init, type.name.str )
     , obj_type(&type)
 	, obj_data(data)
 {

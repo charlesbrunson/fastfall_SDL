@@ -57,11 +57,12 @@ struct ActorInit {
 class Actor : public dconfig<actor_vars, World&>
 {
 public:
-    explicit Actor(ActorInit init)
+    explicit Actor(ActorInit init, const std::string& type_name)
         : entity_id(init.entity_id)
         , actor_id (init.actor_id)
         , type     (init.type)
         , priority (init.priority)
+        , actor_type(type_name)
     {
     };
 
@@ -73,6 +74,7 @@ public:
     bool imgui_show_inspect = false;
     virtual void ImGui_Inspect() { ImGui::Text("Hello World!"); };
 
+    const std::string   actor_type;
     const ID<Entity>    entity_id;
     const ID<Actor>     actor_id;
     const ActorType     type;
