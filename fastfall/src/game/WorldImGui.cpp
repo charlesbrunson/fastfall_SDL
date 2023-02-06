@@ -332,11 +332,15 @@ void imgui_entity(WorldImGui::WorldData& wd) {
         ImGui::SetNextWindowSize(ImVec2(600.f, 500.f), ImGuiCond_Once);
         if (ImGui::Begin(wd.name.c_str(), &wd.show_ent_browser)) {
 
-            wd.tab_name = fmt::format("##entbrowsertabs_{}", fmt::ptr(wd.world));
+            //wd.tab_name = fmt::format("##entbrowsertabs_{}", fmt::ptr(wd.world));
 
             ImGui::BeginTabBar(wd.tab_name.c_str());
             if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
-                wd.tabs.push_back({}); // Add new tab
+                wd.tabs.push_back({
+                    .w1_name = fmt::format("##w1_{}", wd.tabs.size()),
+                    .w2_name = fmt::format("##w2_{}", wd.tabs.size()),
+                    .w3_name = fmt::format("##w3_{}", wd.tabs.size())
+                }); // Add new tab
             }
 
             unsigned tab_ndx = 0;
@@ -364,10 +368,6 @@ void imgui_entity(WorldImGui::WorldData& wd) {
                 else {
                     tab.name = fmt::format("{}->{}##{}", ent_name, cmpid_str(*tab.curr_cmp), tab_ndx);
                 }
-
-                tab.w1_name = fmt::format("##w1_{}", tab_ndx);
-                tab.w2_name = fmt::format("##w2_{}", tab_ndx);
-                tab.w3_name = fmt::format("##w3_{}", tab_ndx);
 
                 if (ImGui::BeginTabItem(tab.name.c_str(), &tab.show, ImGuiTabItemFlags_None))
                 {
@@ -755,7 +755,8 @@ void WorldImGui::add(World* w) {
 
     if (!exists) {
         worlds.emplace_back(WorldData{
-            .world = w
+            .world = w,
+            .tab_name = fmt::format("##entbrowsertabs_{}", fmt::ptr(w))
         });
     }
 }
