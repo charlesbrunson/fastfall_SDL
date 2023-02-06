@@ -382,7 +382,7 @@ namespace ff {
             if (auto* anim = animspr->get_anim()) {
                 ImGui::Text("Animation: %16s - %-16s", anim->get_sprite_name().data(), anim->anim_name.data());
                 auto* tex = Resources::get<SpriteAsset>(anim->get_sprite_name());
-                ImGui::Text("Texture:   %s", tex ? tex->get_texture_path().c_str() : "None");
+                ImGui::Text("Texture:   %s", tex ? (const char*)tex->get_texture_path().c_str() : "None");
             }
             else {
                 ImGui::Text("Animation: %s", "None");

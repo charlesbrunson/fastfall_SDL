@@ -32,7 +32,7 @@ public:
 
     static void remove(World* w) {
         std::erase(worlds, w);
-        update_labels = false;
+        update_labels = true;
     }
 
 };
