@@ -2,6 +2,9 @@
 
 #include "fastfall/engine/imgui/ImGuiContent.hpp"
 
+#include "fastfall/game/Entity.hpp"
+#include "fastfall/game/ComponentID.hpp"
+
 #include <vector>
 
 namespace ff {
@@ -9,31 +12,37 @@ namespace ff {
 class World;
 
 class WorldImGui : public ImGuiContent {
-private:
-    World* curr_world = nullptr;
-    static std::vector<World*> worlds;
-
-    static bool update_labels;
 public:
+    struct EntBrowserTab {
+        bool show = true;
+        std::string name = "Empty Tab";
+        std::optional<ID<Entity>>  curr_ent;
+        std::optional<ComponentID> curr_cmp;
+
+        std::string w1_name;
+        std::string w2_name;
+        std::string w3_name;
+    };
+    struct WorldData {
+        World* world;
+        std::string name;
+        bool show_ent_browser = false;
+        std::vector<EntBrowserTab> tabs;
+        std::string tab_name;
+    };
+
     WorldImGui();
 
     void ImGui_getContent() override;
 
     void ImGui_getExtraContent() override;
 
-    static void add(World* w) {
-        bool exists = std::find(worlds.begin(), worlds.end(), w) != worlds.end();
+    static void add(World* w);
+    static void remove(World* w);
 
-        if (!exists) {
-            worlds.push_back(w);
-            update_labels = true;
-        }
-    }
-
-    static void remove(World* w) {
-        std::erase(worlds, w);
-        update_labels = true;
-    }
+    static std::vector<WorldData> worlds;
+private:
+    unsigned curr_world = 0;
 
 };
 

@@ -469,8 +469,9 @@ namespace ff {
     void imgui_component_ref(const World& w, const ComponentID &cmp) {
         if(ImGui::Selectable(fmt::format("[{}]", cmpid_str(cmp)).c_str())) {
             auto& ent = w.entities().at(w.entity_of(cmp));
-            ent.imgui.cmp_selected  = cmp;
-            ent.imgui.imgui_show    = true;
+
+            //ent.imgui.cmp_selected  = cmp;
+            //ent.imgui.imgui_show    = true;
         }
     }
 

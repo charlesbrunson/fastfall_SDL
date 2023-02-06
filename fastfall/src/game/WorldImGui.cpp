@@ -14,8 +14,8 @@
 
 namespace ff {
 
-std::vector<World*> WorldImGui::worlds;
-bool WorldImGui::update_labels = false;
+std::vector<WorldImGui::WorldData> WorldImGui::worlds;
+//bool WorldImGui::update_labels = false;
 
 
 // ------------------------------------------------------------
@@ -317,12 +317,127 @@ void imgui_scene(World* w) {
 
 // ------------------------------------------------------------
 
-void imgui_entity(World* w) {
+void imgui_entity(WorldImGui::WorldData& wd) {
+    auto* w = wd.world;
     std::string name;
-    for(auto [id, ent] : w->entities())
-    {
-        auto& imgui_data = ent.imgui;
+    //for(auto [id, ent] : w->entities())
+    //{
 
+    if (ImGui::Button("Show Entity Browser"))
+        wd.show_ent_browser = true;
+
+    if (wd.show_ent_browser) {
+        //ImGui::SetNextWindowSize(ImVec2(400.f, 500.f), ImGuiCond_Once);
+        //static std::string window_name = fmt::format("Entity Browser: {}", wd.name);
+        ImGui::SetNextWindowSize(ImVec2(600.f, 500.f), ImGuiCond_Once);
+        if (ImGui::Begin(wd.name.c_str(), &wd.show_ent_browser)) {
+
+            wd.tab_name = fmt::format("##entbrowsertabs_{}", fmt::ptr(wd.world));
+
+            ImGui::BeginTabBar(wd.tab_name.c_str());
+            if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
+                wd.tabs.push_back({}); // Add new tab
+            }
+
+            unsigned tab_ndx = 0;
+            for (auto& tab : wd.tabs) {
+
+                static std::string ent_name = "";
+                if (tab.curr_ent) {
+                    auto& ent = w->entities().at(*tab.curr_ent);
+                    auto *actor = ent.actor ? w->get(*ent.actor) : nullptr;
+                    ent_name = fmt::format("{} {}:{}",
+                           (actor ? actor->actor_type : "Entity"),
+                           tab.curr_ent->value.sparse_index,
+                           tab.curr_ent->value.generation);
+                }
+                else {
+                    ent_name = "";
+                }
+
+                if (!tab.curr_ent) {
+                    tab.name = fmt::format("Empty Tab##{}", tab_ndx);
+                }
+                else if (!tab.curr_cmp) {
+                    tab.name = fmt::format("Empty Tab##{}", ent_name, tab_ndx);
+                }
+                else {
+                    tab.name = fmt::format("{}->{}##{}", ent_name, cmpid_str(*tab.curr_cmp), tab_ndx);
+                }
+
+                tab.w1_name = fmt::format("##w1_{}", tab_ndx);
+                tab.w2_name = fmt::format("##w2_{}", tab_ndx);
+                tab.w3_name = fmt::format("##w3_{}", tab_ndx);
+
+                if (ImGui::BeginTabItem(tab.name.c_str(), &tab.show, ImGuiTabItemFlags_None))
+                {
+
+                    ImGui::Text("Entities");
+                    ImGui::SameLine(166.f);
+                    ImGui::Text("%s", ent_name.c_str());
+                    ImGui::SameLine(166.f + 166.f);
+                    ImGui::Text("%s", tab.curr_cmp ? cmpid_str(*tab.curr_cmp).c_str() : "");
+
+                    float width =  ImGui::GetContentRegionAvail().x;
+                    {
+                        ImGui::BeginChild(tab.w1_name.c_str(), ImVec2(150.f, 0), true);
+                        for (auto [id, ent] : w->entities()) {
+                            bool selected = tab.curr_ent && ID<Entity>{ id.value } == *tab.curr_ent;
+                            auto *actor = ent.actor ? w->get(*ent.actor) : nullptr;
+
+                            static std::string ent_name;
+                            ent_name = fmt::format("{} {}:{}",
+                                           (actor ? actor->actor_type : "Entity"),
+                                           id.value.sparse_index,
+                                           id.value.generation);
+
+                            if (ImGui::Selectable(ent_name.c_str(), selected)) {
+                                tab.curr_ent = selected
+                                               ? std::nullopt
+                                               : std::make_optional(ID<Entity>{ id.value });
+
+                                tab.curr_cmp = std::nullopt;
+                            }
+                        }
+                        ImGui::EndChild();
+                    }
+                    ImGui::SameLine();
+                    {
+                        ImGui::BeginChild(tab.w2_name.c_str(), ImVec2(150.f, 0), true);
+                        if (tab.curr_ent) {
+                            auto& ent = w->entities().at(*tab.curr_ent);
+                            for (auto &cmp_id: ent.components) {
+                                bool selected = tab.curr_cmp && cmp_id == *tab.curr_cmp;
+                                if (ImGui::Selectable(cmpid_str(cmp_id).c_str(), selected)) {
+                                    tab.curr_cmp = selected
+                                          ? std::nullopt
+                                          : std::make_optional(cmp_id);
+                                }
+                            }
+                        }
+                        ImGui::EndChild();
+                    }
+                    ImGui::SameLine();
+                    {
+                        ImGui::BeginChild(tab.w3_name.c_str(), ImVec2((std::max)(width - 300.f, 0.f), 0), true);
+                        if (tab.curr_cmp) {
+                            imgui_component(*w, *tab.curr_cmp);
+                        }
+                        ImGui::EndChild();
+                    }
+                    ImGui::EndTabItem();
+                }
+                ++tab_ndx;
+            }
+            ImGui::EndTabBar();
+        }
+        ImGui::End();
+    }
+
+
+        //auto& imgui_data = ent.imgui;
+
+        /*
         if (imgui_data.name.empty()) {
             auto* actor = ent.actor ? w->get(*ent.actor) : nullptr;
             imgui_data.name = fmt::format("{} {}:{}",
@@ -330,11 +445,13 @@ void imgui_entity(World* w) {
                 id.value.sparse_index,
                 id.value.generation);
         }
+        */
 
-        ImGui::Checkbox(imgui_data.name.c_str(), &imgui_data.imgui_show);
-        if (imgui_data.imgui_show) {
+        /*
+        ImGui::Checkbox(imgui_data.name.c_str(), &wd.show_ent_browser);
+        if (wd.show_ent_browser) {
             ImGui::SetNextWindowSize(ImVec2(400.f, 500.f), ImGuiCond_Once);
-            if (ImGui::Begin(imgui_data.name.c_str(), &imgui_data.imgui_show))
+            if (ImGui::Begin(imgui_data.name.c_str(), &wd.show_ent_browser))
 
             ImGui::Text("Components");
             ImGui::SameLine(166.f);
@@ -371,7 +488,8 @@ void imgui_entity(World* w) {
         else {
             imgui_data.cmp_selected = std::nullopt;
         }
-    }
+        */
+
 }
 
 // ------------------------------------------------------------
@@ -545,87 +663,75 @@ void WorldImGui::ImGui_getContent()
 {
     if (worlds.empty()) {
         ImGui::Text("No Instances!");
-        curr_world = nullptr;
+        curr_world = 0;
         return;
     }
 
-    static std::array<std::string, 32> world_labels = { "" };
-    static unsigned comboWorld = 0;
+    static std::string empty_world = "";
 
-    if (update_labels) {
-        int i = 0;
-        for (auto w: worlds) {
-            world_labels[i] = fmt::format("{:8} {} {}", fmt::ptr(w), (w->name.empty() ? "unnamed" : w->name), (i + 1));
-
-            if (++i > 32)
-                break;
-        }
-        while (i < 32) {
-            world_labels[i] = "";
-            ++i;
-        }
-        update_labels = false;
+    if (!worlds.empty() && worlds.at(0).name.empty()) {
+        worlds.at(0).name = fmt::format("{:8} {} {}",
+              fmt::ptr(worlds.at(0).world),
+              (worlds.at(0).world->name.empty() ? "unnamed" : worlds.at(0).world->name), 1);
     }
 
-    if (ImGui::BeginCombo("##Instance", world_labels[comboWorld].c_str())) {
+    auto& sel = worlds.empty()
+            ? empty_world
+            : worlds.at(curr_world).name;
 
-        for (int n = 0; n < 32; n++)
+    if (ImGui::BeginCombo("##Instance", sel.c_str()))
+    {
+        unsigned sel_ndx = 0;
+        for (auto& world_data : worlds)
         {
-            if (world_labels[n].empty())
-                break;
+            world_data.name = fmt::format("{:8} {} {}",
+                       fmt::ptr(world_data.world),
+                       (world_data.world->name.empty() ? "unnamed" : world_data.world->name), sel_ndx + 1);
 
-            const bool is_selected = (comboWorld == n);
-            if (ImGui::Selectable(world_labels[n].c_str(), is_selected)) {
-                comboWorld = n;
-                curr_world = worlds[n];
+            const bool is_selected = (curr_world == sel_ndx);
+            if (ImGui::Selectable(worlds.at(sel_ndx).name.c_str(), is_selected)) {
+                curr_world = sel_ndx;
             }
-
-            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
             if (is_selected)
                 ImGui::SetItemDefaultFocus();
+            ++sel_ndx;
         }
         ImGui::EndCombo();
     }
 
-    if (!curr_world) {
-        if (!worlds.empty())
-            curr_world = worlds[0];
-        else
-            return;
-    }
-
+    auto* w = &worlds.at(curr_world);
     ImGui::Separator();
 
     if (ImGui::BeginTabBar("MyTabBar"))
     {
         if (ImGui::BeginTabItem("Status")) {
-            imgui_status(curr_world);
+            imgui_status(w->world);
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Entities")) {
-            imgui_entity(curr_world);
+            imgui_entity(*w);
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Components")) {
             if (ImGui::BeginTabBar("Components")) {
                 if (ImGui::BeginTabItem("Collidables")) {
-                    imgui_collidables(curr_world);
+                    imgui_collidables(w->world);
                     ImGui::EndTabItem();
                 }
                 if (ImGui::BeginTabItem("Colliders")) {
-                    imgui_colliders(curr_world);
+                    imgui_colliders(w->world);
                     ImGui::EndTabItem();
                 }
                 if (ImGui::BeginTabItem("Triggers")) {
-                    imgui_triggers(curr_world);
+                    imgui_triggers(w->world);
                     ImGui::EndTabItem();
                 }
                 if (ImGui::BeginTabItem("Cameras")) {
-                    imgui_camera(curr_world);
+                    imgui_camera(w->world);
                     ImGui::EndTabItem();
                 }
                 if (ImGui::BeginTabItem("Scene Objects")) {
-                    imgui_scene(curr_world);
+                    imgui_scene(w->world);
                     ImGui::EndTabItem();
                 }
                 ImGui::EndTabBar();
@@ -633,7 +739,7 @@ void WorldImGui::ImGui_getContent()
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Input")) {
-            imgui_input(curr_world);
+            imgui_input(w->world);
             ImGui::EndTabItem();
         }
 
@@ -641,10 +747,29 @@ void WorldImGui::ImGui_getContent()
     }
 }
 
+
+void WorldImGui::add(World* w) {
+    bool exists = std::find_if(worlds.begin(), worlds.end(), [w](auto& data) {
+        return data.world == w;
+    }) != worlds.end();
+
+    if (!exists) {
+        worlds.emplace_back(WorldData{
+            .world = w
+        });
+    }
+}
+
+void WorldImGui::remove(World* w) {
+    std::erase_if(worlds, [w](auto& data) {
+        return data.world == w;
+    });
+}
+
 void WorldImGui::ImGui_getExtraContent() {
 
-    if (curr_world) {
-        for (auto [id, actor] : curr_world->all<Actor>()) {
+    if (curr_world && !worlds.empty()) {
+        for (auto [id, actor] : worlds.at(curr_world).world->all<Actor>()) {
             if (actor->imgui_show_inspect
                 && ImGui::Begin("", &actor->imgui_show_inspect))
             {

@@ -8,16 +8,10 @@
 
 namespace ff {
 
-struct EntityImGui {
-    std::string name;
-    std::optional<ComponentID> cmp_selected = std::nullopt;
-    bool imgui_show = false;
-};
-
 struct Entity {
     std::optional<ID<Actor>> actor = {};
     std::set<ComponentID>    components;
-    mutable EntityImGui      imgui;
+    //mutable EntityImGui      imgui;
 };
 
 }
