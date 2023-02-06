@@ -8,22 +8,6 @@
 
 namespace ff {
 
-void imgui_component(const CameraTarget& cmp) {
-    auto pos = cmp.get_target_pos();
-    auto state = cmp.get_state();
-    auto priority = cmp.get_priority();
-
-    static constexpr std::string_view priority_str[] = {
-       "Low",
-       "Medium",
-       "High"
-    };
-
-    ImGui::Text("Position: %3.2f, %3.2f", pos.x, pos.y);
-    ImGui::Text("State:    %s", state == CamTargetState::Active ? "Active" : "Inactive");
-    ImGui::Text("Priority: %s", priority_str[static_cast<unsigned>(priority)].data());
-}
-
 CameraTarget::CameraTarget(CamTargetPriority priority)
 	: m_priority(priority)
 {

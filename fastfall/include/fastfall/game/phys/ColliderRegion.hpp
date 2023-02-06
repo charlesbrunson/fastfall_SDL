@@ -51,8 +51,6 @@ private:
 	Vec2f position;
 };
 
-void imgui_component(ColliderRegion& col);
-
 template<typename T>
 concept ColliderType = std::is_base_of_v<ColliderRegion, T>;
 

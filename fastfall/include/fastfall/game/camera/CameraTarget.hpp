@@ -46,6 +46,4 @@ private:
     friend class CameraSystem;
 };
 
-void imgui_component(const CameraTarget& cmp);
-
 }

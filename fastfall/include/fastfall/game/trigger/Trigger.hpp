@@ -83,8 +83,6 @@ struct TriggerPull {
     Trigger::Duration duration;
 };
 
-void imgui_component(World& w, Trigger& cmp);
-
 extern const TriggerTag ttag_generic;
 extern const TriggerTag ttag_hitbox;
 extern const TriggerTag ttag_hurtbox;

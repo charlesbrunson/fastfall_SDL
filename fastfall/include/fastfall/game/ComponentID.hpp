@@ -43,7 +43,5 @@ constexpr inline static std::string_view ComponentID_Str[] = {
 
 std::string cmpid_str(const ComponentID& cmp);
 
-class World;
-void imgui_component_ref(const World& w, const ComponentID& cmp);
 
 }

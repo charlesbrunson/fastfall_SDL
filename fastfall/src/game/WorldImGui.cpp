@@ -10,6 +10,8 @@
 #include "fastfall/engine/input/InputSourceRealtime.hpp"
 #include "fastfall/engine/input/InputSourceRecord.hpp"
 
+#include "fastfall/game/imgui_component.hpp"
+
 namespace ff {
 
 std::vector<World*> WorldImGui::worlds;
@@ -333,6 +335,11 @@ void imgui_entity(World* w) {
         if (imgui_data.imgui_show) {
             ImGui::SetNextWindowSize(ImVec2(400.f, 500.f), ImGuiCond_Once);
             if (ImGui::Begin(imgui_data.name.c_str(), &imgui_data.imgui_show))
+
+            ImGui::Text("Components");
+            ImGui::SameLine(166.f);
+            ImGui::Text("%s", imgui_data.cmp_selected ? cmpid_str(*imgui_data.cmp_selected).c_str() : "Empty");
+
             {
                 float width =  ImGui::GetContentRegionAvail().x;
                 float left  = 150.f;
@@ -340,28 +347,21 @@ void imgui_entity(World* w) {
                 {
                     ImGui::BeginChild("##cmp_list", ImVec2(left, 0), true);
                     for (auto& cmp_id : ent.components) {
-                        if (ImGui::Selectable(cmpid_str(cmp_id).c_str(), imgui_data.cmp_selected && cmp_id == *imgui_data.cmp_selected))
-                            imgui_data.cmp_selected = cmp_id;
+                        bool selected = imgui_data.cmp_selected && cmp_id == *imgui_data.cmp_selected;
+                        if (ImGui::Selectable(cmpid_str(cmp_id).c_str(), selected))
+                        {
+                            imgui_data.cmp_selected = selected
+                                    ? std::nullopt
+                                    : std::make_optional(cmp_id);
+                        }
                     }
                     ImGui::EndChild();
                 }
                 ImGui::SameLine();
                 {
-                    ImGui::BeginChild("Component##selected_cmp", ImVec2(right, 0), false);
+                    ImGui::BeginChild("Component##selected_cmp", ImVec2(right, 0), true);
                     if (imgui_data.cmp_selected) {
-                        ImGui::Text("%s", cmpid_str(*imgui_data.cmp_selected).c_str());
-                        ImGui::Separator();
-                        std::visit([&]<class T>(const ID<T> &id) {
-                            if constexpr (requires (T & x) { imgui_component(x); } ) {
-                                imgui_component(w->at(id));
-                            }
-                            else if constexpr (requires (World& w, T& x) { imgui_component(w, x); } ) {
-                                imgui_component(*w, w->at(id));
-                            }
-                            else {
-                                ImGui::Text("No imgui_component() overload.");
-                            }
-                        }, *imgui_data.cmp_selected);
+                        imgui_component(*w, *imgui_data.cmp_selected);
                     }
                     ImGui::EndChild();
                 }

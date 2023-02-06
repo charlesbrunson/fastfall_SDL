@@ -4,24 +4,6 @@
 
 namespace ff {
 
-void imgui_component(ColliderRegion& col) {
-    ImGui::Text("Curr Position:  %3.2f, %3.2f", col.getPosition().x, col.getPosition().y);
-    ImGui::Text("Prev Position:  %3.2f, %3.2f", col.getPrevPosition().x, col.getPrevPosition().y);
-    ImGui::Text("Delta Position: %3.2f, %3.2f", col.getDeltaPosition().x, col.getDeltaPosition().y);
-    ImGui::Text("Velocity:       %3.2f, %3.2f", col.velocity.x, col.velocity.y);
-    ImGui::Text("Delta Vel:      %3.2f, %3.2f", col.delta_velocity.x, col.delta_velocity.y);
-
-    float pos[2] = { col.getPosition().x, col.getPosition().y };
-
-    if (ImGui::DragFloat2("Set Pos", pos)) {
-        col.setPosition(Vec2f(pos[0], pos[1]));
-
-        Vec2f nVel = (col.getPosition() - col.getPrevPosition()) / (1.0 / 60.0);
-        col.delta_velocity = nVel - col.velocity;
-        col.velocity = nVel;
-    }
-}
-
 ColliderRegion::ColliderRegion(Vec2i initialPosition)
     : position(initialPosition)
     , velocity(0.f, 0.f)
