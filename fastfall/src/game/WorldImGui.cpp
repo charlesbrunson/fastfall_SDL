@@ -317,179 +317,133 @@ void imgui_scene(World* w) {
 
 // ------------------------------------------------------------
 
-void imgui_entity(WorldImGui::WorldData& wd) {
+void entity_browser(WorldImGui::WorldData& wd)
+{
     auto* w = wd.world;
-    std::string name;
-    //for(auto [id, ent] : w->entities())
-    //{
+    ImGui::SetNextWindowSize(ImVec2(600.f, 500.f), ImGuiCond_Once);
+    if (ImGui::Begin(wd.name, &wd.show_ent_browser))
+    {
+        ImGui::BeginTabBar(wd.tab_name);
+        if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
+            wd.tabs.emplace_back();
+            fmt::format_to_n(wd.tabs.back().w1_name, 64, "##w1_{}", wd.tabs.size() - 1);
+            fmt::format_to_n(wd.tabs.back().w2_name, 64, "##w2_{}", wd.tabs.size() - 1);
+            fmt::format_to_n(wd.tabs.back().w3_name, 64, "##w3_{}", wd.tabs.size() - 1);
+        }
 
-    if (ImGui::Button("Show Entity Browser"))
-        wd.show_ent_browser = true;
+        unsigned tab_ndx = 0;
+        for (auto& tab : wd.tabs) {
 
-    if (wd.show_ent_browser) {
-        //ImGui::SetNextWindowSize(ImVec2(400.f, 500.f), ImGuiCond_Once);
-        //static std::string window_name = fmt::format("Entity Browser: {}", wd.name);
-        ImGui::SetNextWindowSize(ImVec2(600.f, 500.f), ImGuiCond_Once);
-        if (ImGui::Begin(wd.name.c_str(), &wd.show_ent_browser)) {
-
-            //wd.tab_name = fmt::format("##entbrowsertabs_{}", fmt::ptr(wd.world));
-
-            ImGui::BeginTabBar(wd.tab_name.c_str());
-            if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
-                wd.tabs.push_back({
-                    .w1_name = fmt::format("##w1_{}", wd.tabs.size()),
-                    .w2_name = fmt::format("##w2_{}", wd.tabs.size()),
-                    .w3_name = fmt::format("##w3_{}", wd.tabs.size())
-                }); // Add new tab
+            static char ent_name[64];
+            Actor* m_actor = nullptr;
+            memset(ent_name, 0, 64);
+            if (tab.curr_ent) {
+                auto& ent = w->entities().at(*tab.curr_ent);
+                m_actor = ent.actor ? w->get(*ent.actor) : nullptr;
+                fmt::format_to_n(ent_name, 64, "{}{}",
+                                 (m_actor ? m_actor->actor_type : "Entity"),
+                                 tab.curr_ent->value.sparse_index);
+            }
+            else {
+                fmt::format_to_n(ent_name, 64, "");
             }
 
-            unsigned tab_ndx = 0;
-            for (auto& tab : wd.tabs) {
-
-                static std::string ent_name = "";
-                if (tab.curr_ent) {
-                    auto& ent = w->entities().at(*tab.curr_ent);
-                    auto *actor = ent.actor ? w->get(*ent.actor) : nullptr;
-                    ent_name = fmt::format("{} {}:{}",
-                           (actor ? actor->actor_type : "Entity"),
-                           tab.curr_ent->value.sparse_index,
-                           tab.curr_ent->value.generation);
-                }
-                else {
-                    ent_name = "";
-                }
-
-                if (!tab.curr_ent) {
-                    tab.name = fmt::format("Empty Tab##{}", tab_ndx);
-                }
-                else if (!tab.curr_cmp) {
-                    tab.name = fmt::format("Empty Tab##{}", ent_name, tab_ndx);
-                }
-                else {
-                    tab.name = fmt::format("{}->{}##{}", ent_name, cmpid_str(*tab.curr_cmp), tab_ndx);
-                }
-
-                if (ImGui::BeginTabItem(tab.name.c_str(), &tab.show, ImGuiTabItemFlags_None))
-                {
-
-                    ImGui::Text("Entities");
-                    ImGui::SameLine(166.f);
-                    ImGui::Text("%s", ent_name.c_str());
-                    ImGui::SameLine(166.f + 166.f);
-                    ImGui::Text("%s", tab.curr_cmp ? cmpid_str(*tab.curr_cmp).c_str() : "");
-
-                    float width =  ImGui::GetContentRegionAvail().x;
-                    {
-                        ImGui::BeginChild(tab.w1_name.c_str(), ImVec2(150.f, 0), true);
-                        for (auto [id, ent] : w->entities()) {
-                            bool selected = tab.curr_ent && ID<Entity>{ id.value } == *tab.curr_ent;
-                            auto *actor = ent.actor ? w->get(*ent.actor) : nullptr;
-
-                            static std::string ent_name;
-                            ent_name = fmt::format("{} {}:{}",
-                                           (actor ? actor->actor_type : "Entity"),
-                                           id.value.sparse_index,
-                                           id.value.generation);
-
-                            if (ImGui::Selectable(ent_name.c_str(), selected)) {
-                                tab.curr_ent = selected
-                                               ? std::nullopt
-                                               : std::make_optional(ID<Entity>{ id.value });
-
-                                tab.curr_cmp = std::nullopt;
-                            }
-                        }
-                        ImGui::EndChild();
-                    }
-                    ImGui::SameLine();
-                    {
-                        ImGui::BeginChild(tab.w2_name.c_str(), ImVec2(150.f, 0), true);
-                        if (tab.curr_ent) {
-                            auto& ent = w->entities().at(*tab.curr_ent);
-                            for (auto &cmp_id: ent.components) {
-                                bool selected = tab.curr_cmp && cmp_id == *tab.curr_cmp;
-                                if (ImGui::Selectable(cmpid_str(cmp_id).c_str(), selected)) {
-                                    tab.curr_cmp = selected
-                                          ? std::nullopt
-                                          : std::make_optional(cmp_id);
-                                }
-                            }
-                        }
-                        ImGui::EndChild();
-                    }
-                    ImGui::SameLine();
-                    {
-                        ImGui::BeginChild(tab.w3_name.c_str(), ImVec2((std::max)(width - 300.f, 0.f), 0), true);
-                        if (tab.curr_cmp) {
-                            imgui_component(*w, *tab.curr_cmp);
-                        }
-                        ImGui::EndChild();
-                    }
-                    ImGui::EndTabItem();
-                }
-                ++tab_ndx;
+            memset(tab.name, 0, 64);
+            if (!tab.curr_ent) {
+                fmt::format_to_n(tab.name, 64, "Empty Tab###{}", tab_ndx);
             }
-            ImGui::EndTabBar();
-        }
-        ImGui::End();
-    }
+            else if (!tab.curr_cmp) {
+                fmt::format_to_n(tab.name, 64, "{}###{}", ent_name, tab_ndx);
+            }
+            else {
+                fmt::format_to_n(tab.name, 64, "{}.{}###{}", ent_name, cmpid_str(*tab.curr_cmp), tab_ndx);
+            }
 
-
-        //auto& imgui_data = ent.imgui;
-
-        /*
-        if (imgui_data.name.empty()) {
-            auto* actor = ent.actor ? w->get(*ent.actor) : nullptr;
-            imgui_data.name = fmt::format("{} {}:{}",
-                (actor ? actor->actor_type : "Entity"),
-                id.value.sparse_index,
-                id.value.generation);
-        }
-        */
-
-        /*
-        ImGui::Checkbox(imgui_data.name.c_str(), &wd.show_ent_browser);
-        if (wd.show_ent_browser) {
-            ImGui::SetNextWindowSize(ImVec2(400.f, 500.f), ImGuiCond_Once);
-            if (ImGui::Begin(imgui_data.name.c_str(), &wd.show_ent_browser))
-
-            ImGui::Text("Components");
-            ImGui::SameLine(166.f);
-            ImGui::Text("%s", imgui_data.cmp_selected ? cmpid_str(*imgui_data.cmp_selected).c_str() : "Empty");
-
+            ImGuiTabItemFlags tab_flags = 0;
+            if (tab.give_focus) {
+                tab_flags |= ImGuiTabItemFlags_SetSelected;
+                tab.give_focus = false;
+            }
+            if (ImGui::BeginTabItem(tab.name, &tab.show, tab_flags))
             {
+
+                ImGui::Text("Entities");
+                ImGui::SameLine(166.f);
+                ImGui::Text("Components");
+                ImGui::SameLine(166.f + 166.f);
+                if (tab.curr_cmp) {
+                    ImGui::Text("%s", cmpid_str(*tab.curr_cmp).c_str());
+                }
+                else if (tab.curr_ent && m_actor) {
+                    ImGui::Text("%s", ent_name);
+                }
+                else {
+                    ImGui::Text("%s", "");
+                }
+
                 float width =  ImGui::GetContentRegionAvail().x;
-                float left  = 150.f;
-                float right = (std::max)(width - left, 200.f);
                 {
-                    ImGui::BeginChild("##cmp_list", ImVec2(left, 0), true);
-                    for (auto& cmp_id : ent.components) {
-                        bool selected = imgui_data.cmp_selected && cmp_id == *imgui_data.cmp_selected;
-                        if (ImGui::Selectable(cmpid_str(cmp_id).c_str(), selected))
-                        {
-                            imgui_data.cmp_selected = selected
-                                    ? std::nullopt
-                                    : std::make_optional(cmp_id);
+                    ImGui::BeginChild(tab.w1_name, ImVec2(150.f, 0), true);
+                    for (auto [id, ent] : w->entities()) {
+                        bool selected = tab.curr_ent && ID<Entity>{ id.value } == *tab.curr_ent;
+                        auto *actor = ent.actor ? w->get(*ent.actor) : nullptr;
+
+                        static char sel_ent_name[64];
+                        memset(sel_ent_name, 0, 64);
+                        fmt::format_to_n(sel_ent_name, 64, "{}{}",
+                                       (actor ? actor->actor_type : "Entity"),
+                                       id.value.sparse_index);
+
+                        if (ImGui::Selectable(sel_ent_name, selected)) {
+                            tab.curr_cmp = std::nullopt;
+                            tab.curr_ent = !selected
+                                           ? std::make_optional(ID<Entity>{ id.value })
+                                           : std::nullopt;
                         }
                     }
                     ImGui::EndChild();
                 }
                 ImGui::SameLine();
                 {
-                    ImGui::BeginChild("Component##selected_cmp", ImVec2(right, 0), true);
-                    if (imgui_data.cmp_selected) {
-                        imgui_component(*w, *imgui_data.cmp_selected);
+                    ImGui::BeginChild(tab.w2_name, ImVec2(150.f, 0), true);
+                    if (tab.curr_ent) {
+                        auto& ent = w->entities().at(*tab.curr_ent);
+                        for (auto &cmp_id: ent.components) {
+                            bool selected = tab.curr_cmp && cmp_id == *tab.curr_cmp;
+                            if (ImGui::Selectable(cmpid_str(cmp_id).c_str(), selected)) {
+                                tab.curr_cmp = !selected
+                                      ? std::make_optional(cmp_id)
+                                      : std::nullopt;
+                            }
+                        }
                     }
                     ImGui::EndChild();
                 }
+                ImGui::SameLine();
+                {
+                    ImGui::BeginChild(tab.w3_name, ImVec2((std::max)(width - 300.f, 0.f), 0), true);
+                    if (tab.curr_cmp) {
+                        imgui_component(*w, *tab.curr_cmp);
+                    }
+                    else if (tab.curr_ent && m_actor) {
+                        m_actor->ImGui_Inspect();
+                    }
+                    ImGui::EndChild();
+                }
+                ImGui::EndTabItem();
             }
-            ImGui::End();
+            ++tab_ndx;
         }
-        else {
-            imgui_data.cmp_selected = std::nullopt;
-        }
-        */
+        ImGui::EndTabBar();
+    }
+    ImGui::End();
+}
 
+void imgui_entity(WorldImGui::WorldData& wd) {
+    auto* w = wd.world;
+
+    if (ImGui::Button("Show Entity Browser"))
+        wd.show_ent_browser = true;
 }
 
 // ------------------------------------------------------------
@@ -667,29 +621,27 @@ void WorldImGui::ImGui_getContent()
         return;
     }
 
-    static std::string empty_world = "";
+    static char empty_world[64] = "";
 
-    if (!worlds.empty() && worlds.at(0).name.empty()) {
-        worlds.at(0).name = fmt::format("{:8} {} {}",
-              fmt::ptr(worlds.at(0).world),
-              (worlds.at(0).world->name.empty() ? "unnamed" : worlds.at(0).world->name), 1);
-    }
+    fmt::format_to_n(worlds.at(0).name, 64, "{:8} {} {}",
+            fmt::ptr(worlds.at(0).world),
+            (worlds.at(0).world->name.empty() ? "unnamed" : worlds.at(0).world->name), 1);
 
     auto& sel = worlds.empty()
             ? empty_world
             : worlds.at(curr_world).name;
 
-    if (ImGui::BeginCombo("##Instance", sel.c_str()))
+    if (ImGui::BeginCombo("##Instance", sel))
     {
         unsigned sel_ndx = 0;
         for (auto& world_data : worlds)
         {
-            world_data.name = fmt::format("{:8} {} {}",
+            fmt::format_to_n(world_data.name, 64, "{:8} {} {}",
                        fmt::ptr(world_data.world),
                        (world_data.world->name.empty() ? "unnamed" : world_data.world->name), sel_ndx + 1);
 
             const bool is_selected = (curr_world == sel_ndx);
-            if (ImGui::Selectable(worlds.at(sel_ndx).name.c_str(), is_selected)) {
+            if (ImGui::Selectable(worlds.at(sel_ndx).name, is_selected)) {
                 curr_world = sel_ndx;
             }
             if (is_selected)
@@ -745,6 +697,10 @@ void WorldImGui::ImGui_getContent()
 
         ImGui::EndTabBar();
     }
+
+    if (w->show_ent_browser) {
+        entity_browser(*w);
+    }
 }
 
 
@@ -756,8 +712,9 @@ void WorldImGui::add(World* w) {
     if (!exists) {
         worlds.emplace_back(WorldData{
             .world = w,
-            .tab_name = fmt::format("##entbrowsertabs_{}", fmt::ptr(w))
+            //.tab_name = fmt::format("##entbrowsertabs_{}", fmt::ptr(w))
         });
+        fmt::format_to_n(worlds.back().tab_name, 64, "##entbrowsertabs_{}", fmt::ptr(w));
     }
 }
 

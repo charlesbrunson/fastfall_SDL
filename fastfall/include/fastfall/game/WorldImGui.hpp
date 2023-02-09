@@ -15,20 +15,21 @@ class WorldImGui : public ImGuiContent {
 public:
     struct EntBrowserTab {
         bool show = true;
-        std::string name = "Empty Tab";
+        bool give_focus = false;
+        char name[64] = "Empty Tab";
         std::optional<ID<Entity>>  curr_ent;
         std::optional<ComponentID> curr_cmp;
 
-        std::string w1_name;
-        std::string w2_name;
-        std::string w3_name;
+        char w1_name[64];
+        char w2_name[64];
+        char w3_name[64];
     };
     struct WorldData {
         World* world;
-        std::string name;
+        char name[64];
         bool show_ent_browser = false;
         std::vector<EntBrowserTab> tabs;
-        std::string tab_name;
+        char tab_name[64];
     };
 
     WorldImGui();

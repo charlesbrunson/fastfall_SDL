@@ -6,6 +6,8 @@
 #include "fastfall/render/AnimatedSprite.hpp"
 #include "fastfall/render/VertexArray.hpp"
 
+#include "fastfall/game/WorldImGui.hpp"
+
 namespace ff {
     void imgui_component(World&w , ID<AttachPoint> id) {
         auto& cmp = w.at(id);
@@ -467,8 +469,40 @@ namespace ff {
     }
 
     void imgui_component_ref(const World& w, const ComponentID &cmp) {
-        if(ImGui::Selectable(fmt::format("[{}]", cmpid_str(cmp)).c_str())) {
-            auto& ent = w.entities().at(w.entity_of(cmp));
+        if(ImGui::Selectable(fmt::format("<{}>", cmpid_str(cmp)).c_str())) {
+            auto ent_id = w.entity_of(cmp);
+            auto& ent = w.entities().at(ent_id);
+
+            auto it = std::find_if(
+                    WorldImGui::worlds.begin(), WorldImGui::worlds.end(),
+                    [&w](auto& wd) { return wd.world == &w; });
+
+            if (it != WorldImGui::worlds.end())
+            {
+                for (auto& tab : it->tabs) {
+                    if (tab.curr_cmp == cmp) {
+                        tab.give_focus = true;
+                        return;
+                    }
+                    else if (tab.curr_ent == ent_id) {
+                        tab.curr_cmp = cmp;
+                        tab.give_focus = true;
+                        return;
+                    }
+                }
+
+                it->show_ent_browser = true;
+                it->tabs.push_back({
+                    .show = true,
+                    .give_focus = true,
+                    .curr_ent = ent_id,
+                    .curr_cmp = cmp
+                });
+                fmt::format_to_n(it->tabs.back().w1_name, 64, "##w1_{}", it->tabs.size() - 1);
+                fmt::format_to_n(it->tabs.back().w2_name, 64, "##w2_{}", it->tabs.size() - 1);
+                fmt::format_to_n(it->tabs.back().w3_name, 64, "##w3_{}", it->tabs.size() - 1);
+            }
+
 
             //ent.imgui.cmp_selected  = cmp;
             //ent.imgui.imgui_show    = true;
