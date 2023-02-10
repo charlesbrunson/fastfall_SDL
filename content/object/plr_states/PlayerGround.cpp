@@ -80,10 +80,12 @@ PlayerStateID PlayerGroundState::update(ff::World& w, plr::members& plr, secs de
 			ground.settings.surface_friction = constants::braking;
 
 			if (ground.settings.has_friction) {
-				ground.traverse_add_decel(
-					(is_idle ? constants::ground_idle_decel : constants::ground_high_decel)
-					 * (heavy_brake ? 0.5f : 1.f)
-				);
+                if (ground.traverse_get_speed() < 200.f) {
+                    ground.traverse_add_decel(
+                            (is_idle ? constants::ground_idle_decel : constants::ground_high_decel)
+                            * (heavy_brake ? 0.5f : 1.f)
+                    );
+                }
 			}
 		};
 

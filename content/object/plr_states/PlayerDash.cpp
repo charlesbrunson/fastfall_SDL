@@ -141,6 +141,8 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
                 if (w.input()[InputType::DASH].is_pressed(0.25))
                 {
                     w.input()[InputType::DASH].confirm_press();
+                    Vec2f pos = w.at(box.get_attach_id()).curr_pos();
+                    w.create_actor<SimpleEffect>(dash_anims.fx->id(), pos, sprite.get_hflip());
                     return action::dash(w, plr, move_t{ w, plr });
                 }
                 else {
