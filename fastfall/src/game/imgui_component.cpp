@@ -11,6 +11,7 @@
 namespace ff {
     void imgui_component(World&w , ID<AttachPoint> id) {
         auto& cmp = w.at(id);
+        auto& sys = w.system<AttachSystem>();
 
         auto cpos = cmp.curr_pos();
         auto ppos = cmp.prev_pos();
@@ -19,6 +20,7 @@ namespace ff {
         auto cpvel = cmp.parent_vel();
         auto ppvel = cmp.prev_parent_vel();
 
+        ImGui::Text("Is root:         %s", sys.is_attachpoint_root(id) ? "Yes" : "No");
         ImGui::Text("Curr Pos:        %3.2f, %3.2f", cpos.x, cpos.y);
         ImGui::Text("Prev Pos:        %3.2f, %3.2f", ppos.x, ppos.y);
         ImGui::Text("Curr Local Vel:  %3.2f, %3.2f", cvel.x, cvel.y);
@@ -26,7 +28,6 @@ namespace ff {
         ImGui::Text("Curr Parent Vel: %3.2f, %3.2f", cpvel.x, cpvel.y);
         ImGui::Text("Prev Parent Vel: %3.2f, %3.2f", ppvel.x, ppvel.y);
 
-        auto& sys = w.system<AttachSystem>();
         auto& attachs = sys.get_attachments(cmp.id());
 
         auto parent = sys.get_attachpoint(cmp.id());
@@ -135,26 +136,26 @@ namespace ff {
         };
 
         ImGui::Columns(2);
-        text_vec2("Curr Pos",       col.getPosition());
-        text_vec2("Prev Pos",       col.getPosition());
-        text_vec2("Curr Center",    col.getBox().center());
-        text_vec2("Prev Center",    col.getPrevBox().center());
-        text_vec2("Curr Size",      col.getBox().getSize());
-        text_vec2("Prev Size",      col.getPrevBox().getSize());
+        text_vec2("Curr Pos",    col.getPosition());
+        text_vec2("Prev Pos",    col.getPosition());
+        text_vec2("Curr Center", col.getBox().center());
+        text_vec2("Prev Center", col.getPrevBox().center());
+        text_vec2("Curr Size",   col.getBox().getSize());
+        text_vec2("Prev Size",   col.getPrevBox().getSize());
 
         text_vec2("Local  Vel",      col.get_local_vel());
-        text_vec2("Parent Vel",      col.getPrevBox().getSize());
-        text_vec2("Surface Vel",     col.get_parent_vel());
+        text_vec2("Parent Vel",      col.get_parent_vel());
+        text_vec2("Last Parent Vel", col.get_last_parent_vel());
+        text_vec2("Surface Vel",     col.get_surface_vel());
         text_vec2("Global Vel",      col.get_global_vel());
 
-        text_vec2("Last Parent Vel",      col.get_last_parent_vel());
-        text_vec2("Accel",       col.get_acc());
-        text_vec2("Friction",      col.get_friction());
-        text_vec2("Gravity",       col.get_gravity());
+        text_vec2("Accel",    col.get_acc());
+        text_vec2("Friction", col.get_friction());
+        text_vec2("Gravity",  col.get_gravity());
 
-        text_vec1("Local  Speed",       col.get_local_vel().magnitude());
-        text_vec1("Parent Speed",       col.get_parent_vel().magnitude());
-        text_vec1("Global Speed",       col.get_global_vel().magnitude());
+        text_vec1("Local  Speed", col.get_local_vel().magnitude());
+        text_vec1("Parent Speed", col.get_parent_vel().magnitude());
+        text_vec1("Global Speed", col.get_global_vel().magnitude());
 
         ImGui::Text("Attach ID: "); ImGui::NextColumn();
         imgui_component_ref(w, col.get_attach_id()); ImGui::NextColumn();
