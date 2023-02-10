@@ -30,25 +30,14 @@ namespace ff {
         */
 
     private:
-        struct Attachment {
-            ComponentID id;
+        struct AttachmentData {
             Vec2f offset;
-            //ConstraintFn constraint;
-
-            bool operator==(const Attachment& other) const {
-                return id == other.id;
-            }
-
-            bool operator!=(const Attachment& other) const {
-                return id != other.id;
-            }
-
-            bool operator<(const Attachment& other) const {
-                return id < other.id;
-            }
         };
 
     public:
+        using attach_map = std::map<ID<AttachPoint>, std::map<ComponentID, AttachmentData>>;
+
+
         void update(World& world, secs deltaTime);
 
         void update_attachpoints(World& world, secs deltaTime, AttachPoint::Schedule sched);
@@ -69,14 +58,15 @@ namespace ff {
         std::optional<ID<AttachPoint>> get_attachpoint(ComponentID cmp_id) const;
 
         bool has_attachments(ID<AttachPoint> id) const;
-        const std::set<Attachment>& get_attachments(ID<AttachPoint> id) const;
+        const std::map<ComponentID, AttachmentData>& get_attachments(ID<AttachPoint> id) const;
+        void set_attach_offset(ID<AttachPoint> id, ComponentID cmp, Vec2f offset);
 
         bool is_attachpoint_root(ID<AttachPoint> id) const;
 
     private:
         void update_attachments(World& world, ID<AttachPoint> id, std::set<ID<AttachPoint>>& visited);
 
-        std::map<ID<AttachPoint>, std::set<Attachment>> attachments;
+        attach_map attachments;
         std::map<ComponentID, ID<AttachPoint>> cmp_lookup;
         secs curr_delta;
     };

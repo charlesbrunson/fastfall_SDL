@@ -324,11 +324,12 @@ void entity_browser(WorldImGui::WorldData& wd)
     if (ImGui::Begin(wd.name, &wd.show_ent_browser))
     {
         ImGui::BeginTabBar(wd.tab_name);
-        if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
+        if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip) || wd.tabs.empty()) {
             wd.tabs.emplace_back();
-            fmt::format_to_n(wd.tabs.back().w1_name, 64, "##w1_{}", wd.tabs.size() - 1);
-            fmt::format_to_n(wd.tabs.back().w2_name, 64, "##w2_{}", wd.tabs.size() - 1);
-            fmt::format_to_n(wd.tabs.back().w3_name, 64, "##w3_{}", wd.tabs.size() - 1);
+            fmt::format_to_n(wd.tabs.back().w1_name, 64, "##w1_{}", wd.tab_id_counter);
+            fmt::format_to_n(wd.tabs.back().w2_name, 64, "##w2_{}", wd.tab_id_counter);
+            fmt::format_to_n(wd.tabs.back().w3_name, 64, "##w3_{}", wd.tab_id_counter);
+            ++wd.tab_id_counter;
         }
 
         unsigned tab_ndx = 0;
@@ -434,6 +435,10 @@ void entity_browser(WorldImGui::WorldData& wd)
             }
             ++tab_ndx;
         }
+        std::erase_if(wd.tabs, [](auto& tab) {
+            return !tab.show;
+        });
+
         ImGui::EndTabBar();
     }
     ImGui::End();

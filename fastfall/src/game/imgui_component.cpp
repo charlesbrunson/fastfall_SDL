@@ -41,12 +41,21 @@ namespace ff {
         }
 
         if (ImGui::TreeNode((void*)(&attachs), "Attached Components (%d)", (unsigned)attachs.size())) {
-            ImGui::Columns(2);
-            for (auto& cmp_attach : attachs) {
-                imgui_component_ref(w, cmp_attach.id);
+            ImGui::Columns(2, NULL, false);
+            int counter = 0;
+            for (auto& [cmp_id, data] : attachs) {
+                imgui_component_ref(w, cmp_id);
                 ImGui::NextColumn();
-                ImGui::Text("%3.2f, %3.2f", cmp_attach.offset.x, cmp_attach.offset.y);
+                static float v[2];
+                ImGui::PushID(counter);
+                v[0] = data.offset.x;
+                v[1] = data.offset.y;
+                if (ImGui::DragFloat2("", v)) {
+                    sys.set_attach_offset(cmp.id(), cmp_id, Vec2f{ v[0], v[1] });
+                }
+                ImGui::PopID();
                 ImGui::NextColumn();
+                ++counter;
             }
             ImGui::Columns();
             ImGui::TreePop();
@@ -498,14 +507,11 @@ namespace ff {
                     .curr_ent = ent_id,
                     .curr_cmp = cmp
                 });
-                fmt::format_to_n(it->tabs.back().w1_name, 64, "##w1_{}", it->tabs.size() - 1);
-                fmt::format_to_n(it->tabs.back().w2_name, 64, "##w2_{}", it->tabs.size() - 1);
-                fmt::format_to_n(it->tabs.back().w3_name, 64, "##w3_{}", it->tabs.size() - 1);
+                fmt::format_to_n(it->tabs.back().w1_name, 64, "##w1_{}", it->tab_id_counter);
+                fmt::format_to_n(it->tabs.back().w2_name, 64, "##w2_{}", it->tab_id_counter);
+                fmt::format_to_n(it->tabs.back().w3_name, 64, "##w3_{}", it->tab_id_counter);
+                ++it->tab_id_counter;
             }
-
-
-            //ent.imgui.cmp_selected  = cmp;
-            //ent.imgui.imgui_show    = true;
         }
     }
 

@@ -20,6 +20,7 @@ public:
         std::optional<ID<Entity>>  curr_ent;
         std::optional<ComponentID> curr_cmp;
 
+
         char w1_name[64];
         char w2_name[64];
         char w3_name[64];
@@ -28,6 +29,8 @@ public:
         World* world;
         char name[64];
         bool show_ent_browser = false;
+
+        size_t tab_id_counter = 0;
         std::vector<EntBrowserTab> tabs;
         char tab_name[64];
     };

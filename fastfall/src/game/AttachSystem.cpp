@@ -48,13 +48,13 @@ namespace ff {
             cmp.set_parent_vel(attach.global_vel());
             cmp.set_local_vel({});
 
-            for (auto& sub_attach : w.system<AttachSystem>().get_attachments(id)) {
+            for (auto& [cmp_id, data] : w.system<AttachSystem>().get_attachments(id)) {
                 std::visit(
                     [&]<class T>(ID<T> cid) {
                         if constexpr (requires(ID<T> x_id, T& x, World& x_w, const AttachPoint& ap, Vec2f x_off) { detail::attach_teleport(x_w, x_id, x, ap, x_off); }) {
-                        detail::attach_teleport(w, cid, w.at(cid), w.at(id), sub_attach.offset);
+                        detail::attach_teleport(w, cid, w.at(cid), w.at(id), data.offset);
                     }
-                }, sub_attach.id);
+                }, cmp_id);
             }
         }
 
@@ -262,22 +262,23 @@ namespace ff {
 
         visited.insert(id);
         auto& ap = world.at(id);
-        for (auto at : attachments.at(id))
+        for (auto [id, data] : attachments.at(id))
         {
             Vec2f p;
             std::visit(
-                [&]<class T>(ID<T> c_id) { p = update_attachment(world, ap, c_id, at.offset, curr_delta); },
-                        at.id);
+                [&]<class T>(ID<T> c_id) {
+                    p = update_attachment(world, ap, c_id, data.offset, curr_delta);
+                }, id);
 
-            if (holds_alternative<ID<AttachPoint>>(at.id)) {
-                update_attachments(world, std::get<ID<AttachPoint>>(at.id), visited);
+            if (holds_alternative<ID<AttachPoint>>(id)) {
+                update_attachments(world, std::get<ID<AttachPoint>>(id), visited);
             }
 
             if (debug_draw::hasTypeEnabled(debug_draw::Type::ATTACH)  /*&& !debug_draw::repeat((void *) &at, p) */ ) {
 
                 //debug_draw::set_offset(p);
                 auto &attach = createDebugDrawable<VertexArray, debug_draw::Type::ATTACH>(
-                        (const void *) &at, Primitive::LINES, 6);
+                        (const void *)&data, Primitive::LINES, 6);
 
                 for (auto ndx = 0; ndx < attach.size(); ++ndx) {
                     attach[ndx].color = Color::Green;
@@ -300,13 +301,13 @@ namespace ff {
     }
 
     void AttachSystem::notify_created(World& world, ID<AttachPoint> id){
-        attachments.emplace(id, std::set<Attachment>{});
+        attachments.emplace(id, std::map<ComponentID, AttachmentData>{});
     }
 
     void AttachSystem::notify_erased(World& world, ID<AttachPoint> id){
         auto attchs = std::move(attachments.at(id));
-        for (auto& at : attchs) {
-            erase(at.id);
+        for (auto& [id, _] : attchs) {
+            erase(id);
         }
         attachments.erase(id);
     }
@@ -346,7 +347,7 @@ namespace ff {
 
     void AttachSystem::create(World& world, ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset)
     {
-        attachments.at(id).insert(Attachment{ cmp_id, offset });
+        attachments.at(id).emplace(cmp_id, AttachmentData{ offset });
         cmp_lookup.emplace(cmp_id, id);
         std::visit(
         [&]<class T>(ID<T> cid) {
@@ -361,7 +362,7 @@ namespace ff {
         if (iter != cmp_lookup.end())
         {
             auto ap = iter->second;
-            attachments.at(ap).erase(Attachment{.id = cmp_id});
+            attachments.at(ap).erase(cmp_id);
             cmp_lookup.erase(iter);
         }
     }
@@ -378,9 +379,19 @@ namespace ff {
         return attachments.contains(id) && !attachments.at(id).empty();
     }
 
-    const std::set<AttachSystem::Attachment>&
+    const std::map<ComponentID, AttachSystem::AttachmentData>&
     AttachSystem::get_attachments(ID<AttachPoint> id) const
     {
         return attachments.at(id);
+    }
+
+    void AttachSystem::set_attach_offset(ID<AttachPoint> id, ComponentID cmp, Vec2f offset) {
+        if (attachments.contains(id)) {
+            auto& attach = attachments.at(id);
+            if (auto it = attach.find(cmp); it != attach.end())
+            {
+                it->second.offset = offset;
+            }
+        }
     }
 }
