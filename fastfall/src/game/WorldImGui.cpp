@@ -697,10 +697,6 @@ void WorldImGui::ImGui_getContent()
 
         ImGui::EndTabBar();
     }
-
-    if (w->show_ent_browser) {
-        entity_browser(*w);
-    }
 }
 
 
@@ -725,15 +721,9 @@ void WorldImGui::remove(World* w) {
 }
 
 void WorldImGui::ImGui_getExtraContent() {
-
-    if (curr_world && !worlds.empty()) {
-        for (auto [id, actor] : worlds.at(curr_world).world->all<Actor>()) {
-            if (actor->imgui_show_inspect
-                && ImGui::Begin("", &actor->imgui_show_inspect))
-            {
-                actor->ImGui_Inspect();
-                ImGui::End();
-            }
+    for (auto& wd : worlds) {
+        if (wd.show_ent_browser) {
+            entity_browser(wd);
         }
     }
 }

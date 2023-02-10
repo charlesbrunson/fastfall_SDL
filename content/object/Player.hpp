@@ -20,6 +20,8 @@ public:
     void update(ff::World& w, secs deltaTime) override;
     dresult message(ff::World&, const dmessage&) override;
 
+    void ImGui_Inspect() override;
+
 protected:
 	std::variant<
 		PlayerGroundState, 

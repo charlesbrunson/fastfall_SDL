@@ -97,7 +97,6 @@ Actor::dresult Player::message(World& w, const dmessage& msg) {
     return reject;
 };
 
-/*
 void Player::ImGui_Inspect() {
 	using namespace ImGui;
 
@@ -105,12 +104,12 @@ void Player::ImGui_Inspect() {
 		[](PlayerState& state) { 
 			return make_pair(state.get_id(), state.get_name());
 		});
-	auto id = pair.first;
+	auto id   = pair.first;
 	auto name = pair.second;
 
 	ImGui::Text("Current State: %d %s", (int)id, name.data());
-	ImGui::Text("Position(%3.2f, %3.2f)", box->getPosition().x, box->getPosition().y);
-	ImGui::Text("Velocity(%3.2f, %3.2f)", box->get_vel().x, box->get_vel().y);
+	//ImGui::Text("Position(%3.2f, %3.2f)", box->getPosition().x, box->getPosition().y);
+	//ImGui::Text("Velocity(%3.2f, %3.2f)", box->get_vel().x, box->get_vel().y);
 
 	Separator();
 
@@ -120,11 +119,7 @@ void Player::ImGui_Inspect() {
 		constants::max_speed.restore();
 	}
 
-	if (DragFloat("Normal Speed", &constants::norm_speed.get(), 1.f, 0.f, 500.f)) {
-		if (constants::norm_speed > ground->settings.max_speed) {
-			ground->settings.max_speed = constants::norm_speed;
-		}
-	}
+    DragFloat("Normal Speed", &constants::norm_speed.get(), 1.f, 0.f, 500.f);
 	SameLine(GetWindowWidth() - 60);
 	if (SmallButton("reset##2")) {
 		constants::norm_speed.restore();
@@ -146,4 +141,3 @@ void Player::ImGui_Inspect() {
 
 	get_state().get_imgui(*this);
 }
-*/

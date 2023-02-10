@@ -65,14 +65,11 @@ public:
         , actor_type(type_name)
     {
     };
-
     virtual ~Actor() = default;
 
     virtual void update(World& world, secs deltaTime) {};
     virtual dresult message(World&, const dmessage&) { return reject; }
-
-    bool imgui_show_inspect = false;
-    virtual void ImGui_Inspect() { ImGui::Text("Hello World!"); };
+    virtual void ImGui_Inspect() {};
 
     const std::string   actor_type;
     const ID<Entity>    entity_id;
