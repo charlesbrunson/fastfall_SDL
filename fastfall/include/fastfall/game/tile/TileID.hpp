@@ -85,7 +85,7 @@ struct TileID {
 
 	constexpr bool hasPadding(Cardinal dir) const
 	{
-		return (value & direction::to_bits(dir)) > 0;
+		return (getPadding() & direction::to_bits(dir)) > 0;
 	}
 
 	constexpr Vec2u to_vec() const {
@@ -100,18 +100,6 @@ struct TileID {
 	constexpr bool valid() const {
 		return (value & TileID_Mask::InvalidTile) != TileID_Mask::InvalidTile;
 	}
-
-	/*
-	constexpr operator bool() const {
-		return valid();
-	}
-	*/
-
-	/*
-	constexpr operator Vec2u() const {
-		return to_vec();
-	}
-	*/
 
 	constexpr bool operator== (TileID id) const {
 		return getX() == id.getX() && getY() == id.getY();
@@ -128,7 +116,6 @@ struct TileID {
 		r.setY((r.getY() + rhs.y) & 63u);
 		return r;
 	}
-
 };
 
 }

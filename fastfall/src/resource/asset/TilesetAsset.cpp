@@ -45,15 +45,12 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 	}},
 	{"next_x", [](TilesetAsset& asset, TileData& state, char* value)
 	{
-
 		int v = std::stoi(value);
-
 		auto& next = state.tile.next_offset;
-		next = TileID{ 
-			v < 0			? TileID::dimension_max + v : v, 
-			next.valid()	? next.getY()				: 0u 
+		next = TileID{
+            (v < 0		  ? TileID::dimension_max + v : v),
+            (next.valid() ? next.getY()				  : 0u)
 		};
-
 	}},
 	{"next_y", [](TilesetAsset& asset, TileData& state, char* value)
 	{
@@ -69,7 +66,6 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 	{
         auto str = asset.asset_path.generic_string();
 		if (strlen(value) > 0 && strcmp(str.c_str(), value) != 0) {
-
 			state.tile.next_tileset = asset.getTilesetRefIndex(value);
 		}
 	}},
@@ -202,10 +198,13 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 		}
 
 	}},
-
-
+    { "framecount", [](TilesetAsset& asset, TileData& state, char* value) {
+        state.frameCount = (std::max)(uint8_t{ 1 }, static_cast<uint8_t>(std::stoi(value)));
+    }},
+    { "framedelay", [](TilesetAsset& asset, TileData& state, char* value) {
+        state.frameDelay = (std::max)(uint8_t{ 1 }, static_cast<uint8_t>(std::stoi(value)));
+    }},
 };
-
 
 TilesetAsset::TilesetAsset(const std::filesystem::path& t_asset_path) :
 	TextureAsset(t_asset_path)
@@ -491,6 +490,18 @@ std::optional<TileID> TilesetAsset::getAutoTileForShape(TileShape shape) const
 		}
 	}
 	return {};
+}
+
+unsigned TilesetAsset::getFrameCount(TileID tile_id) const {
+    assert(tile_id.getX() < texTileSize.x && tile_id.getY() < texTileSize.y);
+    auto& r = tiles[tile_id.to_vec()];
+    return (unsigned)r.frameCount;
+}
+
+secs TilesetAsset::getFrameDelay(TileID tile_id) const {
+    assert(tile_id.getX() < texTileSize.x && tile_id.getY() < texTileSize.y);
+    auto& r = tiles[tile_id.to_vec()];
+    return secs{ 1.0 / 60.0 } * (unsigned)r.frameDelay;
 }
 
 void TilesetAsset::ImGui_getContent() {

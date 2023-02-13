@@ -46,7 +46,6 @@ public:
 	Rectf visibility;
 
 private:
-
 	void do_setTile(Vec2u at, TileID tile);
 	void do_blank(Vec2u at);
 	void do_clear();
@@ -69,7 +68,6 @@ private:
 
 	Rectf getChunkBounds(const Chunk& chunk, Vec2f draw_offset = Vec2f{}) const noexcept;
 	Rectf getChunkLocalBounds(const Chunk& chunk) const noexcept;
-
 
 	Vec2u m_size;
 	Vec2u m_chunk_size;

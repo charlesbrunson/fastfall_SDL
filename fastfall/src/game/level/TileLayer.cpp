@@ -151,6 +151,8 @@ void TileLayer::update(World& world, secs deltaTime)
 	for (auto& logic : dyn.tile_logic) {
 		logic->update(deltaTime);
 	}
+
+    dyn.life_time += deltaTime;
 }
 
 bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
@@ -506,7 +508,7 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
         world.system<SceneSystem>().set_config(chunk, { layer, scene_type::Level });
 
         chunk->setTexture(next_tileset->getTexture());
-        chunk->setTile(at, tile.tile_id);
+        chunk->setTile(at, getIDForChunk(tile.tile_id));
         chunk->use_visible_rect = true;
 
         dyn.chunks.push_back(chunk);
@@ -514,7 +516,8 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 	}
 	else {
         // TODO buffer changes?
-        world.at(dyn.chunks.at(tile.tileset_ndx)).setTile(at, tile.tile_id);
+        auto& chunk = world.at(dyn.chunks.at(tile.tileset_ndx));
+        chunk.setTile(at, getIDForChunk(tile.tile_id));
 	}
 
 	if (hasCollision() && next_tile) {
@@ -676,6 +679,22 @@ std::optional<Vec2i> TileLayer::getTileFromWorldPos(Vec2f position) const {
 
 	return tile_pos;
 
+}
+
+TileID TileLayer::getIDForChunk(TileID id) const {
+    auto& data = tiles_dyn.at(id.to_vec());
+    if (data.timer == TILEDATA_NONE)
+        return id;
+
+    TileID n_id{ id };
+    int step = 1;
+    if (n_id.hasPadding(Cardinal::W) && n_id.hasPadding(Cardinal::E)) {
+        step = 3;
+    } else if (n_id.hasPadding(Cardinal::W) || n_id.hasPadding(Cardinal::E)) {
+        step = 2;
+    }
+    n_id.setX(n_id.getX() + (data.curr_frame * step));
+    return n_id;
 }
 
 ColliderTileMap* TileLayer::get_collider(World& world) {

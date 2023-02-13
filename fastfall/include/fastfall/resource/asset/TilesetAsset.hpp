@@ -9,6 +9,8 @@
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/grid_vector.hpp"
 
+#include "fastfall/engine/time/time.hpp"
+
 //#include "fastfall/schema/resource-flat.hpp"
 #include <map>
 #include <optional>
@@ -23,16 +25,19 @@ protected:
 		HasLogic		= 1 << 1,
 		HasLogicArgs	= 1 << 2,
 		HasMaterial		= 1 << 3,
-		HasConstraint	= 1 << 4
+		HasConstraint	= 1 << 4,
+        HasFrameCount   = 1 << 5
 	};
 
 	struct TileData {
-		uint8_t has_prop_bits = 0;
-		Tile tile;
+		Tile     tile;
+        uint8_t  has_prop_bits = 0;
+        uint8_t  frameCount = 1;    // how many frames this tile has
+        uint8_t  frameDelay = 60;   // in 1/60 second increments
 		unsigned tileLogicNdx;		// ndx of tileLogic
 		unsigned tileLogicParamNdx; // ndx of tileLogic's parameter list
 		unsigned tileMatNdx;		// ndx of tileMat
-		unsigned tileConstraint;
+		unsigned tileConstraint;    // ndx of autotile constraints for this tile
 	};
 
 	struct TilesetLogic {
@@ -48,24 +53,24 @@ protected:
 	std::vector<TilesetLogic>	tileLogic;	// name and params of tile logic
 	std::vector<std::string>	tileMat;	// name of material
 	std::vector<TileConstraint> constraints;
+    std::vector<TileConstraint> frameCount;
 
 	const static std::map<std::string, void(*)(TilesetAsset&, TileData&, char*)> tileProperties;
 
-	unsigned addTilesetRef(std::string ref);
 	unsigned addLogicType(std::string type);
 	unsigned addLogicArgs(unsigned logicType, std::string args);
 	unsigned addMaterial(std::string mat);
-
 	unsigned addTileConstraint(TileID tile_id, TileConstraint constraint);
 
 public:
+    struct TileLogicData {
+        std::string_view logic_type;
+        std::string_view logic_args;
+    };
 
 	TilesetAsset(const std::filesystem::path& t_asset_path);
 
 	bool loadFromFile() override;
-	//bool loadFromFlat(const flat::resources::TilesetAssetF* builder);
-	//flatbuffers::Offset<flat::resources::TilesetAssetF> writeToFlat(flatbuffers::FlatBufferBuilder& builder) const;
-
 	bool reloadFromFile() override;
 
 	std::optional<Tile> getTile(TileID tile_id) const;
@@ -77,35 +82,22 @@ public:
 
 	unsigned getTilesetRefIndex(std::string_view tileset_name);
 
-	struct TileLogicData {
-		std::string_view logic_type;
-		std::string_view logic_args;
-	};
-
-	TileLogicData getTileLogic(TileID tile_id) const;
-	const TileMaterial& getMaterial(TileID tile_id) const;
+	TileLogicData       getTileLogic (TileID tile_id) const;
+	const TileMaterial& getMaterial  (TileID tile_id) const;
+    unsigned            getFrameCount(TileID tile_id) const;
+    secs                getFrameDelay(TileID tile_id) const;
 
 	const std::vector<TileConstraint>& getConstraints() const { return constraints; };
-
 	std::optional<TileID> getAutoTileForShape(TileShape shape) const;
 
     std::vector<std::filesystem::path> getDependencies() const override {
-        return {
-            get_path(),
-            get_texture_path()
-        };
+        return { get_path(), get_texture_path() };
     }
 
 protected:
-	
 	void loadFromFile_TileProperties(rapidxml::xml_node<>* propsNode, TileData& t);
 	void loadFromFile_Header(rapidxml::xml_node<>* tileset_node);
 	void loadFromFile_Tile(rapidxml::xml_node<>* tile_node);
-
-	constexpr size_t get_ndx(Vec2u pos) const {
-		assert(pos.x < texTileSize.x && pos.y < texTileSize.y);
-		return (size_t)pos.x + ((size_t)pos.y * texTileSize.x);
-	}
 
 	mutable std::vector<std::pair<TileShape, TileID>> auto_shape_cache;
 
