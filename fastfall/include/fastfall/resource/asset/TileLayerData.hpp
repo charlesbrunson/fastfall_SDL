@@ -53,7 +53,7 @@ private:
 public:
 
 	struct TileChange {
-		//uint8_t last_tileset_ndx = UINT8_MAX;
+		uint8_t prev_tileset_ndx = UINT8_MAX;
 		const TilesetAsset* tileset;
 		Vec2u position;
 	};

@@ -423,43 +423,34 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
 
 void TileLayer::setTile(World& world, const Vec2u& position, TileID tile_id, const TilesetAsset& tileset, bool useLogic)
 {
-	auto& tile_data = layer_data.getTileData();
-	auto prev_tileset_ndx = tile_data[position].tileset_ndx;
 	auto changes = layer_data.setTile(position, tile_id, tileset);
 	for (int i = 0; i < changes.count; i++) {
 		auto& change = changes.arr[i];
 		updateTile(
             world,
 			change.position,
-            (change.position == position ? prev_tileset_ndx : tile_data[change.position].tileset_ndx),
+            change.prev_tileset_ndx,
 			change.tileset, 
 			useLogic);
 	}
 }
 
 void TileLayer::removeTile(World& world, const Vec2u& position) {
-	const auto& tile_data = layer_data.getTileData();
-
-	if (tile_data[position].tileset_ndx != TILEDATA_NONE) {
-		uint8_t t_ndx = tile_data[position].tileset_ndx;
-        world.at(dyn.chunks.at(t_ndx)).blank(position);
-	}
-
-	uint8_t tileset_ndx = tile_data[position].tileset_ndx;
+    auto prev_tileset_ndx = layer_data.getTileData()[position].tileset_ndx;
 	auto result = layer_data.removeTile(position);
+
+    bool erased_chunk = false;
 	if (result.erased_tile && result.tileset_remaining == 0) {
-		dyn.chunks.erase(dyn.chunks.begin() + tileset_ndx);
+		dyn.chunks.erase(dyn.chunks.begin() + prev_tileset_ndx);
+        erased_chunk = true;
 	}
 
-    LOG_INFO("{}", position);
-    log::scope sc;
 	for (int i = 0; i < result.changes.count; i++) {
 		auto& change = result.changes.arr[i];
-        LOG_INFO("{}", change.position);
 		updateTile(
             world,
 			change.position,
-            tile_data[change.position].tileset_ndx,
+            (!erased_chunk ? change.prev_tileset_ndx : TILEDATA_NONE),
 			change.tileset,
 			true);
 	}

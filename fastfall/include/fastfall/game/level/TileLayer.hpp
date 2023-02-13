@@ -164,7 +164,12 @@ protected:
 
     TileID getIDForChunk(Vec2u tile_pos, TileID id) const; // need to check timer to offset
 
-	void updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic = true);
+	void updateTile(
+            World& world,
+            const Vec2u& at,
+            uint8_t prev_tileset_ndx,
+            const TilesetAsset* next_tileset,
+            bool useLogic = true);
 };
 
 }

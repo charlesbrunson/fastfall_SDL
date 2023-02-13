@@ -123,22 +123,22 @@ TileLayerData::TileChangeArray TileLayerData::setTile(Vec2u at, TileID tile_id, 
 	auto it = std::find_if(tilesets.begin(), tilesets.end(), 
 		[&tileset](const auto& tileset_data) { return &tileset == tileset_data.tileset; }
 	);
+    uint8_t prev_tileset_ndx = tiles[at].tileset_ndx;
 	uint8_t tileset_ndx = UINT8_MAX;
 	if (it != tilesets.end()) {
 
-		uint8_t p_ndx = tiles[at].tileset_ndx;
 		tileset_ndx = std::distance(tilesets.begin(), it);
 
-		if (p_ndx != UINT8_MAX)	{
+		if (prev_tileset_ndx != UINT8_MAX)	{
 			// replacing a tile
-			tilesets[p_ndx].tile_count--;
+			tilesets[prev_tileset_ndx].tile_count--;
 		}
 
 		it->tile_count++;
 	}
 	else if (tilesets.size() <= UINT8_MAX) {
 		tileset_ndx = tilesets.size();
-		tilesets.push_back({ 
+		tilesets.push_back({
 			.tileset = &tileset,
 			.tile_count = 1 
 			});
@@ -148,48 +148,46 @@ TileLayerData::TileChangeArray TileLayerData::setTile(Vec2u at, TileID tile_id, 
 	}
 
 	std::optional<Tile> tile = tileset.getTile(tile_id);
-	if (!tile)
-	{
-		changes.push({ nullptr, at });
+	if (!tile) {
+		changes.push({ prev_tileset_ndx, nullptr, at });
 		setShape(at, TileShape{}, changes);
 		tiles[at] = TileData{};
-		return changes;
 	}
+    else {
 
-	TileID placed_tiled_id = tile->id;
+        TileID placed_tiled_id = tile->id;
+        if (tile->auto_substitute) {
+            unsigned rseed = (at.x + at.y * getSize().x);
 
-	if (tile->auto_substitute)
-	{
-		unsigned rseed = (at.x + at.y * getSize().x);
+            TileState state;
 
-		TileState state;
+            auto shapes_view = shapes.take_view(
+                    { 0, 0 }, (hasParallax() ? getParallaxSize() : getSize())
+                );
 
-		auto shapes_view = shapes.take_view({ 0, 0 },
-			hasParallax() ? getParallaxSize() : getSize());
+            if (hasScrolling()) {
+                state = get_autotile_state(tile->shape, shapes_view, at, AUTOTILE_GRID_WRAP{});
+            } else {
+                state = get_autotile_state(tile->shape, shapes_view, at, autotile_substitute);
+            }
+            auto opt_tile_id = auto_best_tile(state, tileset.getConstraints(), rseed);
+            placed_tiled_id = opt_tile_id.value_or(placed_tiled_id);
+        }
 
-		if (hasScrolling()) {
-			state = get_autotile_state(tile->shape, shapes_view, at, AUTOTILE_GRID_WRAP{});
-		}
-		else {
-			state = get_autotile_state(tile->shape, shapes_view, at, autotile_substitute);
-		}
-		auto opt_tile_id = auto_best_tile(state, tileset.getConstraints(), rseed);
-		placed_tiled_id = opt_tile_id.value_or(placed_tiled_id);
-	}
+        changes.push({ prev_tileset_ndx, &tileset, at });
 
-	changes.push({ &tileset, at });
+        setShape(at, tile->shape, changes);
 
-	setShape(at, tile->shape, changes);
-
-	tiles[at] = TileData{
-		.has_tile = true,
-		.is_autotile = tile->auto_substitute,
-		.pos = at,
-		.base_id = tile->id,
-		.tile_id = placed_tiled_id,
-		.tileset_ndx = tileset_ndx
-	};
-	return changes;
+        tiles[at] = TileData{
+                .has_tile = true,
+                .is_autotile = tile->auto_substitute,
+                .pos = at,
+                .base_id = tile->id,
+                .tile_id = placed_tiled_id,
+                .tileset_ndx = tileset_ndx
+        };
+    }
+    return changes;
 }
 
 TileLayerData::RemoveResult TileLayerData::removeTile(Vec2u at)
@@ -205,6 +203,7 @@ TileLayerData::RemoveResult TileLayerData::removeTile(Vec2u at)
 	{
 		result.erased_tile = true;
 		result.tileset_remaining = --tilesets[tile.tileset_ndx].tile_count;
+        auto prev_tileset_ndx = tile.tileset_ndx;
 
 		if (tilesets[tile.tileset_ndx].tile_count == 0)
 		{
@@ -217,8 +216,7 @@ TileLayerData::RemoveResult TileLayerData::removeTile(Vec2u at)
 		}
 
 		tile = TileData{};
-
-        result.changes.push({ nullptr, at });
+        result.changes.push({ prev_tileset_ndx, nullptr, at });
 		setShape(at, TileShape{}, result.changes);
 	}
 	return result;
@@ -259,6 +257,7 @@ void TileLayerData::setShape(Vec2u at, TileShape shape, TileChangeArray& changes
 
 			if (tiles.valid(adj_at) && tiles[adj_at].is_autotile) {
 				unsigned rseed = (adj_at.x + adj_at.y * getSize().x);
+                auto prev_tileset_ndx = tiles[adj_at].tileset_ndx;
 				const TilesetAsset* tileset_ptr = tilesets[tiles[adj_at].tileset_ndx].tileset;
 
 				TileState state;
@@ -274,7 +273,7 @@ void TileLayerData::setShape(Vec2u at, TileShape shape, TileChangeArray& changes
 				if (opt_tile_id)
 				{
 					tiles[adj_at].tile_id = *opt_tile_id;
-					changes.push({ tileset_ptr, adj_at });
+					changes.push({ prev_tileset_ndx, tileset_ptr, adj_at });
 				}
 				
 			}
