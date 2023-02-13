@@ -445,27 +445,17 @@ void TileLayer::removeTile(World& world, const Vec2u& position) {
         world.at(dyn.chunks.at(t_ndx)).blank(position);
 	}
 
-	if (tiles_dyn[position].logic_id != TILEDATA_NONE) {
-		dyn.tile_logic.at(tiles_dyn[position].logic_id)->removeTile(position);
-	}
-
-    if (tiles_dyn[position].timer_id != TILEDATA_NONE) {
-        dyn.timers.at(tiles_dyn[position].timer_id).tiles.erase(position);
-    }
-
-	if (hasCollision()) {
-        get_collider(world)->removeTile(Vec2i(position));
-        dyn.collision.is_modified = true;
-	}
-
 	uint8_t tileset_ndx = tile_data[position].tileset_ndx;
 	auto result = layer_data.removeTile(position);
 	if (result.erased_tile && result.tileset_remaining == 0) {
 		dyn.chunks.erase(dyn.chunks.begin() + tileset_ndx);
 	}
 
+    LOG_INFO("{}", position);
+    log::scope sc;
 	for (int i = 0; i < result.changes.count; i++) {
 		auto& change = result.changes.arr[i];
+        LOG_INFO("{}", change.position);
 		updateTile(
             world,
 			change.position,
@@ -496,11 +486,11 @@ void TileLayer::steal_tiles(World& w, TileLayer& from, Recti area) {
 void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic)
 {
 	uint8_t tileset_ndx = prev_tileset_ndx;
-    uint8_t logic_ndx = tiles_dyn[at].logic_id;
-    uint8_t timer_ndx = tiles_dyn[at].timer_id;
-    auto& tile = layer_data.getTileData()[at]; // the updated tile
+    uint8_t logic_ndx   = tiles_dyn[at].logic_id;
+    uint8_t timer_ndx   = tiles_dyn[at].timer_id;
+    auto& tile          = layer_data.getTileData()[at];
 
-    // reset properties
+    // reset dynamic properties
 	if (tileset_ndx != TILEDATA_NONE) {
         world.at(dyn.chunks.at(tileset_ndx)).blank(at);
 	}
@@ -509,8 +499,7 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 		tiles_dyn[at].logic_id = TILEDATA_NONE;
 	}
     if (timer_ndx != TILEDATA_NONE) {
-        auto& tiles = dyn.timers.at(timer_ndx).tiles;
-        tiles.erase(at);
+        dyn.timers.at(timer_ndx).tiles.erase(at);
         tiles_dyn[at].timer_id = TILEDATA_NONE;
     }
 

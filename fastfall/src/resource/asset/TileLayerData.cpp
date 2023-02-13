@@ -218,6 +218,7 @@ TileLayerData::RemoveResult TileLayerData::removeTile(Vec2u at)
 
 		tile = TileData{};
 
+        result.changes.push({ nullptr, at });
 		setShape(at, TileShape{}, result.changes);
 	}
 	return result;
