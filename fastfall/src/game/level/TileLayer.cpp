@@ -83,10 +83,24 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 		if (!opt_tile)
 			continue;
 
-        //setFrameTimer(tile.pos,
-        //    tileset->getFrameCount(tile.tile_id),
-        //    tileset->getFrameDelay(tile.tile_id)
-        //);
+        auto framecount = tileset->getFrameCount(opt_tile->id);
+        auto framedelay = tileset->getFrameDelay(opt_tile->id);
+        if (framecount > 1) {
+            auto it = std::find_if(dyn.timers.begin(), dyn.timers.end(), [&](dyn_t::frame_timer_t& timer) {
+                return timer.framecount == framecount && timer.framedelay == framedelay;
+            });
+            if (it == dyn.timers.end()) {
+                it = dyn.timers.emplace(it, dyn_t::frame_timer_t{
+                    .framecount  = framecount,
+                    .framedelay  = framedelay,
+                    .curr_frame  = static_cast<uint8_t>(dyn.frame_count % (size_t)framedelay),
+                    .framebuffer = static_cast<uint8_t>(dyn.frame_count / (size_t)framedelay),
+                    .tiles       = {}
+                });
+            }
+            it->tiles.insert(tile.pos);
+            dyn_tile.timer_id = std::distance(dyn.timers.begin(), it);
+        }
 
 		auto chunk_id = dyn.chunks.at(tile.tileset_ndx);
         world.at(chunk_id).setTile(tile.pos, getIDForChunk(tile.pos, opt_tile->id));
@@ -182,16 +196,11 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 
 	if (enabled) {
 		if (!dyn.collision.collider) {
-
             dyn.collision.collider = world.create<ColliderTileMap>(world.entity_of(m_id), Vec2i{getLevelSize() }, true);
             auto* collider = get_collider(world);
-
 			layer_data.setCollision(true, border);
-
-			for (const auto& tile_data : layer_data.getTileData())
-			{
-				if (tile_data.has_tile && tile_data.tileset_ndx != TILEDATA_NONE)
-				{
+			for (const auto& tile_data : layer_data.getTileData()) {
+				if (tile_data.has_tile && tile_data.tileset_ndx != TILEDATA_NONE) {
 					const auto* tileset = layer_data.getTilesetFromNdx(tile_data.tileset_ndx);
 					auto tile = tileset->getTile(tile_data.tile_id);
 
@@ -208,7 +217,6 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 
 			collider->setBorders(getLevelSize(), layer_data.getCollisionBorders());
 			collider->applyChanges();
-
             collider->set_on_precontact(
                 [id = m_id, layer_id = layer_data.getID()]
                 (World& w, const ContinuousContact& contact, secs duration)
@@ -350,8 +358,8 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
                 auto &data_st = layer_data.getTileData().at(pos);
                 auto &chunk = world.at(dyn.chunks.at(data_st.tileset_ndx));
                 auto id = getIDForChunk(pos, data_st.tile_id);
-                LOG_INFO("X: {} -> {}", data_st.tile_id.getX(), id.getX());
-                LOG_INFO("Y: {} -> {}", data_st.tile_id.getY(), id.getY());
+                // LOG_INFO("X: {} -> {}", data_st.tile_id.getX(), id.getX());
+                // LOG_INFO("Y: {} -> {}", data_st.tile_id.getY(), id.getY());
                 chunk.setTile(pos, id);
             }
             timer.apply_tiles = false;
@@ -415,12 +423,9 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
 
 void TileLayer::setTile(World& world, const Vec2u& position, TileID tile_id, const TilesetAsset& tileset, bool useLogic)
 {
-
 	auto& tile_data = layer_data.getTileData();
 	auto prev_tileset_ndx = tile_data[position].tileset_ndx;
-
 	auto changes = layer_data.setTile(position, tile_id, tileset);
-
 	for (int i = 0; i < changes.count; i++) {
 		auto& change = changes.arr[i];
 		updateTile(
@@ -432,22 +437,23 @@ void TileLayer::setTile(World& world, const Vec2u& position, TileID tile_id, con
 	}
 }
 
-
-
 void TileLayer::removeTile(World& world, const Vec2u& position) {
 	const auto& tile_data = layer_data.getTileData();
 
 	if (tile_data[position].tileset_ndx != TILEDATA_NONE) {
 		uint8_t t_ndx = tile_data[position].tileset_ndx;
-        // TODO buffer changes?
         world.at(dyn.chunks.at(t_ndx)).blank(position);
 	}
+
 	if (tiles_dyn[position].logic_id != TILEDATA_NONE) {
 		dyn.tile_logic.at(tiles_dyn[position].logic_id)->removeTile(position);
 	}
 
+    if (tiles_dyn[position].timer_id != TILEDATA_NONE) {
+        dyn.timers.at(tiles_dyn[position].timer_id).tiles.erase(position);
+    }
+
 	if (hasCollision()) {
-        // TODO buffer changes?
         get_collider(world)->removeTile(Vec2i(position));
         dyn.collision.is_modified = true;
 	}
@@ -460,7 +466,6 @@ void TileLayer::removeTile(World& world, const Vec2u& position) {
 
 	for (int i = 0; i < result.changes.count; i++) {
 		auto& change = result.changes.arr[i];
-
 		updateTile(
             world,
 			change.position,
@@ -468,7 +473,6 @@ void TileLayer::removeTile(World& world, const Vec2u& position) {
 			change.tileset,
 			true);
 	}
-
 }
 
 void TileLayer::steal_tiles(World& w, TileLayer& from, Recti area) {
@@ -492,25 +496,25 @@ void TileLayer::steal_tiles(World& w, TileLayer& from, Recti area) {
 void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic)
 {
 	uint8_t tileset_ndx = prev_tileset_ndx;
+    uint8_t logic_ndx = tiles_dyn[at].logic_id;
+    uint8_t timer_ndx = tiles_dyn[at].timer_id;
+    auto& tile = layer_data.getTileData()[at]; // the updated tile
+
+    // reset properties
 	if (tileset_ndx != TILEDATA_NONE) {
         world.at(dyn.chunks.at(tileset_ndx)).blank(at);
 	}
-
-	uint8_t logic_ndx = tiles_dyn[at].logic_id;
 	if (useLogic && logic_ndx != TILEDATA_NONE) {
 		dyn.tile_logic.at(logic_ndx)->removeTile(at);
 		tiles_dyn[at].logic_id = TILEDATA_NONE;
 	}
-
-    uint8_t timer_ndx = tiles_dyn[at].timer_id;
     if (timer_ndx != TILEDATA_NONE) {
         auto& tiles = dyn.timers.at(timer_ndx).tiles;
         tiles.erase(at);
         tiles_dyn[at].timer_id = TILEDATA_NONE;
     }
 
-	auto& tile = layer_data.getTileData()[at];
-
+    // setting to a tile that doesn't exist
 	if (!next_tileset || !next_tileset->getTile(tile.tile_id)) {
 		if (hasCollision()) {
             get_collider(world)->removeTile(Vec2i(at));
@@ -521,12 +525,25 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 
 	std::optional<Tile> next_tile = next_tileset->getTile(tile.tile_id);
 
-    /*
-    setFrameTimer(at,
-      next_tileset->getFrameCount(tile.tile_id),
-      next_tileset->getFrameDelay(tile.tile_id)
-    );
-    */
+    uint8_t framecount = next_tileset->getFrameCount(tile.tile_id);
+    uint8_t framedelay = next_tileset->getFrameDelay(tile.tile_id);
+    if (framecount > 1) {
+        auto it = std::find_if(dyn.timers.begin(), dyn.timers.end(), [&](dyn_t::frame_timer_t& timer) {
+            return timer.framecount == framecount && timer.framedelay == framedelay;
+        });
+
+        if (it == dyn.timers.end()) {
+            it = dyn.timers.emplace(it, dyn_t::frame_timer_t{
+                    .framecount  = framecount,
+                    .framedelay  = framedelay,
+                    .curr_frame  = static_cast<uint8_t>(dyn.frame_count % (size_t)framedelay),
+                    .framebuffer = static_cast<uint8_t>(dyn.frame_count / (size_t)framedelay),
+                    .tiles       = {}
+            });
+        }
+        it->tiles.insert(at);
+        tiles_dyn[at].timer_id = std::distance(dyn.timers.begin(), it);
+    }
 
 	if (tile.tileset_ndx == dyn.chunks.size()) {
         auto chunk = world.create<ChunkVertexArray>(world.entity_of(m_id), getSize(), kChunkSize);

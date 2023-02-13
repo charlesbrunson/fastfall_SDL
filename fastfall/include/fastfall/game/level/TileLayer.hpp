@@ -58,17 +58,16 @@ private:
             uint8_t curr_frame = 0;
             uint8_t framebuffer = 0;
             std::set<Vec2u> tiles;
-            bool apply_tiles = false;
+            bool apply_tiles = true;
 
             void update(size_t frame_diff) {
                 framebuffer += frame_diff;
-                uint8_t tmp = curr_frame;
                 while (framebuffer > framedelay) {
                     framebuffer -= framedelay;
                     ++curr_frame;
                     curr_frame %= framecount;
+                    apply_tiles = true;
                 }
-                apply_tiles |= curr_frame != tmp;
             }
         };
 

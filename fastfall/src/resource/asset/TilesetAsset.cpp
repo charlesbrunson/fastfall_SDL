@@ -430,7 +430,6 @@ std::optional<Tile> TilesetAsset::getTile(TileID tile_id) const {
 	assert(tile_id.getX() < texTileSize.x && tile_id.getY() < texTileSize.y);
 
 	auto& r = tiles[tile_id.to_vec()];
-
 	if (r.has_prop_bits & TileHasProp::HasTile) {
 		return r.tile;
 	}
