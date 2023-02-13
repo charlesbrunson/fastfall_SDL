@@ -53,6 +53,7 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
     }
 
 	layer_data = layerData;
+    dyn = dyn_t{};
 
 	// init chunks
 	for (auto& [tileset, _] : layer_data.getTilesets())
@@ -72,6 +73,7 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 
 	for (const auto& tile : tiles)
 	{
+        auto& dyn_tile = tiles_dyn[tile.pos];
 		if (!tile.has_tile)
 			continue;
 
@@ -80,6 +82,11 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 
 		if (!opt_tile)
 			continue;
+
+        //setFrameTimer(tile.pos,
+        //    tileset->getFrameCount(tile.tile_id),
+        //    tileset->getFrameDelay(tile.tile_id)
+        //);
 
 		auto chunk_id = dyn.chunks.at(tile.tileset_ndx);
         world.at(chunk_id).setTile(tile.pos, getIDForChunk(tile.pos, opt_tile->id));
@@ -94,7 +101,6 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 					return ptr->getName() == l;
 				});
 
-			auto& dyn_tile = tiles_dyn[tile.pos];
 
 			if (logic_it != dyn.tile_logic.end())
 			{
@@ -151,7 +157,20 @@ void TileLayer::update(World& world, secs deltaTime)
 		logic->update(deltaTime);
 	}
 
-    dyn.life_time += deltaTime;
+    // update timers
+    dyn.frame_buffer += deltaTime;
+    size_t frame_diff = 0;
+    while (dyn.frame_buffer > FrameTime) {
+        dyn.frame_buffer -= FrameTime;
+        ++dyn.frame_count;
+        ++frame_diff;
+    }
+
+    if (frame_diff > 0) {
+        for (auto& timer : dyn.timers) {
+            timer.update(frame_diff);
+        }
+    }
 }
 
 bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
@@ -161,8 +180,7 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 		return false;
 	}
 
-	if (enabled)
-	{
+	if (enabled) {
 		if (!dyn.collision.collider) {
 
             dyn.collision.collider = world.create<ColliderTileMap>(world.entity_of(m_id), Vec2i{getLevelSize() }, true);
@@ -237,10 +255,8 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
             world.system<AttachSystem>().create(world, attach_id, *dyn.collision.collider);
 		}
 	}
-	else if (!enabled)
-	{
-        if (dyn.collision.collider)
-        {
+	else if (!enabled) {
+        if (dyn.collision.collider) {
             world.erase(*dyn.collision.collider);
         }
         dyn.collision.collider.reset();
@@ -304,25 +320,19 @@ bool TileLayer::set_scroll(World& world, bool enabled, Vec2f rate)
 void TileLayer::predraw(World& world, float interp, bool updated) {
 	const auto& tile_data = layer_data.getTileData();
 
-	bool changed = false;
-
 	// update tile logic
 	if (updated) {
 		for (auto& logic : dyn.tile_logic) {
 			TileLogic* ptr = logic.get();
 
 			while (ptr->hasNextCommand()) {
-
 				const TileLogicCommand& cmd = ptr->nextCommand();
-
 				if (cmd.type == TileLogicCommand::Type::Set) {
 					setTile(world, cmd.position, cmd.texposition, cmd.tileset, cmd.updateLogic);
 				}
 				else if (tile_data[cmd.position].has_tile && cmd.type == TileLogicCommand::Type::Remove) {
 					removeTile(world, cmd.position);
 				}
-				changed = true;
-
 				ptr->popCommand();
 			}
 		}
@@ -330,6 +340,22 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
     if (hasCollision() && dyn.collision.is_modified) {
         get_collider(world)->applyChanges();
         dyn.collision.is_modified = false;
+    }
+
+    // update timers
+    for (auto& timer : dyn.timers) {
+        if (timer.apply_tiles) {
+            for (auto &pos: timer.tiles) {
+                auto &data_dyn = tiles_dyn.at(pos);
+                auto &data_st = layer_data.getTileData().at(pos);
+                auto &chunk = world.at(dyn.chunks.at(data_st.tileset_ndx));
+                auto id = getIDForChunk(pos, data_st.tile_id);
+                LOG_INFO("X: {} -> {}", data_st.tile_id.getX(), id.getX());
+                LOG_INFO("Y: {} -> {}", data_st.tile_id.getY(), id.getY());
+                chunk.setTile(pos, id);
+            }
+            timer.apply_tiles = false;
+        }
     }
 
     // calc visible area
@@ -419,6 +445,7 @@ void TileLayer::removeTile(World& world, const Vec2u& position) {
 	if (tiles_dyn[position].logic_id != TILEDATA_NONE) {
 		dyn.tile_logic.at(tiles_dyn[position].logic_id)->removeTile(position);
 	}
+
 	if (hasCollision()) {
         // TODO buffer changes?
         get_collider(world)->removeTile(Vec2i(position));
@@ -433,12 +460,11 @@ void TileLayer::removeTile(World& world, const Vec2u& position) {
 
 	for (int i = 0; i < result.changes.count; i++) {
 		auto& change = result.changes.arr[i];
-		auto next_tileset_ndx = tile_data[change.position].tileset_ndx;
 
 		updateTile(
             world,
 			change.position,
-			tile_data[change.position].tileset_ndx,
+            tile_data[change.position].tileset_ndx,
 			change.tileset,
 			true);
 	}
@@ -476,6 +502,13 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 		tiles_dyn[at].logic_id = TILEDATA_NONE;
 	}
 
+    uint8_t timer_ndx = tiles_dyn[at].timer_id;
+    if (timer_ndx != TILEDATA_NONE) {
+        auto& tiles = dyn.timers.at(timer_ndx).tiles;
+        tiles.erase(at);
+        tiles_dyn[at].timer_id = TILEDATA_NONE;
+    }
+
 	auto& tile = layer_data.getTileData()[at];
 
 	if (!next_tileset || !next_tileset->getTile(tile.tile_id)) {
@@ -487,6 +520,13 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 	}
 
 	std::optional<Tile> next_tile = next_tileset->getTile(tile.tile_id);
+
+    /*
+    setFrameTimer(at,
+      next_tileset->getFrameCount(tile.tile_id),
+      next_tileset->getFrameDelay(tile.tile_id)
+    );
+    */
 
 	if (tile.tileset_ndx == dyn.chunks.size()) {
         auto chunk = world.create<ChunkVertexArray>(world.entity_of(m_id), getSize(), kChunkSize);
@@ -551,6 +591,8 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 			}
 		}
 	}
+
+
 }
 
 void TileLayer::shallow_copy(World& world, const TileLayer& src, Rectu src_area, Vec2u dst)
@@ -633,10 +675,9 @@ TileShape TileLayer::getTileShape(Vec2u tile_pos) const
 }
 
 
-TileLayer::world_pos_t TileLayer::getWorldPosFromTilePos(Vec2i tile_pos) const {
-
+TileLayer::world_pos_t TileLayer::getWorldPosFromTilePos(Vec2i tile_pos) const
+{
 	Vec2f pos = Vec2f{ tile_pos * TILESIZE } + get_total_offset();
-
 	return world_pos_t{
 		.mirrorx = pos.x >= getSize().x * TILESIZE_F,
 		.mirrory = pos.y >= getSize().y * TILESIZE_F,
@@ -644,9 +685,9 @@ TileLayer::world_pos_t TileLayer::getWorldPosFromTilePos(Vec2i tile_pos) const {
 	};;
 }
 
-std::optional<Vec2i> TileLayer::getTileFromWorldPos(Vec2f position) const {
+std::optional<Vec2i> TileLayer::getTileFromWorldPos(Vec2f position) const
+{
 	position -= get_total_offset();
-
 	position.x = floorf(position.x / TILESIZE_F);
 	position.y = floorf(position.y / TILESIZE_F);
 
@@ -654,9 +695,7 @@ std::optional<Vec2i> TileLayer::getTileFromWorldPos(Vec2f position) const {
 
 	if (tile_pos.x < 0) tile_pos.x += getSize().x;
 	if (tile_pos.y < 0) tile_pos.y += getSize().y;
-
 	return tile_pos;
-
 }
 
 TileID TileLayer::getIDForChunk(Vec2u tile_pos, TileID id) const {
@@ -664,9 +703,8 @@ TileID TileLayer::getIDForChunk(Vec2u tile_pos, TileID id) const {
         return id;
 
     auto& data = tiles_dyn.at(tile_pos);
-    if (data.timer_id == TILEDATA_NONE) {
+    if (data.timer_id == TILEDATA_NONE)
         return id;
-    }
 
     TileID n_id{ id };
     int step = 1;
@@ -675,8 +713,40 @@ TileID TileLayer::getIDForChunk(Vec2u tile_pos, TileID id) const {
     } else if (n_id.hasPadding(Cardinal::W) || n_id.hasPadding(Cardinal::E)) {
         step = 2;
     }
-    n_id.setX(n_id.getX() + (data.curr_frame * step));
+    uint8_t offset = dyn.timers.at(data.timer_id).curr_frame * step;
+    n_id.setX(n_id.getX() + offset);
     return n_id;
+}
+
+
+void TileLayer::setFrameTimer(Vec2u pos, uint8_t framecount, uint8_t framedelay) {
+
+    if (tiles_dyn[pos].timer_id != TILEDATA_NONE) {
+        dyn.timers.at(tiles_dyn[pos].timer_id).tiles.erase(pos);
+        tiles_dyn[pos].timer_id = TILEDATA_NONE;
+    }
+
+    if (framecount > 1) {
+        auto it = std::find_if(dyn.timers.begin(), dyn.timers.end(),
+       [&](const auto& timer) {
+           return timer.framecount == framecount && timer.framedelay == framedelay;
+       });
+
+        if (it == dyn.timers.end()) {
+            it = dyn.timers.emplace(it, dyn_t::frame_timer_t{
+                .framecount  = framecount,
+                .framedelay  = framedelay,
+                .curr_frame  = static_cast<uint8_t>(dyn.frame_count % (size_t)framedelay),
+                .framebuffer = static_cast<uint8_t>(dyn.frame_count / (size_t)framedelay),
+                .tiles       = {}
+            });
+        }
+        it->tiles.insert(pos);
+        tiles_dyn[pos].timer_id = std::distance(dyn.timers.begin(), it);
+    }
+    else {
+        tiles_dyn[pos].timer_id = TILEDATA_NONE;
+    }
 }
 
 ColliderTileMap* TileLayer::get_collider(World& world) {

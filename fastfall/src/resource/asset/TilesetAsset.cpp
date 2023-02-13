@@ -492,16 +492,16 @@ std::optional<TileID> TilesetAsset::getAutoTileForShape(TileShape shape) const
 	return {};
 }
 
-unsigned TilesetAsset::getFrameCount(TileID tile_id) const {
+uint8_t TilesetAsset::getFrameCount(TileID tile_id) const {
     assert(tile_id.getX() < texTileSize.x && tile_id.getY() < texTileSize.y);
     auto& r = tiles[tile_id.to_vec()];
-    return (unsigned)r.frameCount;
+    return r.frameCount;
 }
 
-secs TilesetAsset::getFrameDelay(TileID tile_id) const {
+uint8_t TilesetAsset::getFrameDelay(TileID tile_id) const {
     assert(tile_id.getX() < texTileSize.x && tile_id.getY() < texTileSize.y);
     auto& r = tiles[tile_id.to_vec()];
-    return secs{ 1.0 / 60.0 } * (unsigned)r.frameDelay;
+    return r.frameDelay;
 }
 
 void TilesetAsset::ImGui_getContent() {

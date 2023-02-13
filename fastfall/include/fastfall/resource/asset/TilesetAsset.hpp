@@ -82,8 +82,8 @@ public:
 
 	TileLogicData       getTileLogic (TileID tile_id) const;
 	const TileMaterial& getMaterial  (TileID tile_id) const;
-    unsigned            getFrameCount(TileID tile_id) const;
-    secs                getFrameDelay(TileID tile_id) const;
+    uint8_t             getFrameCount(TileID tile_id) const;
+    uint8_t             getFrameDelay(TileID tile_id) const;
 
 	const std::vector<TileConstraint>& getConstraints() const { return constraints; };
 	std::optional<TileID> getAutoTileForShape(TileShape shape) const;

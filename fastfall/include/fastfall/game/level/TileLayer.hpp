@@ -13,6 +13,7 @@
 #include "fastfall/render/ChunkVertexArray.hpp"
 
 #include <memory>
+#include <set>
 
 namespace ff {
 
@@ -28,7 +29,6 @@ private:
 	TileLayerData layer_data;
 
 	struct TileDynamic {
-        uint8_t curr_frame = 0;
 		uint8_t logic_id   = TILEDATA_NONE;
         uint8_t timer_id   = TILEDATA_NONE;
 	};
@@ -53,19 +53,36 @@ private:
 		} collision;
 
         struct frame_timer_t {
-            uint8_t  curr_frame  = 0;
-            uint8_t  frame_count = 1;
-            secs     delay_time  = 1.0;
-            secs     buffer      = 0.0;
+            uint8_t framecount = 1;
+            uint8_t framedelay = 60;
+            uint8_t curr_frame = 0;
+            uint8_t framebuffer = 0;
+            std::set<Vec2u> tiles;
+            bool apply_tiles = false;
+
+            void update(size_t frame_diff) {
+                framebuffer += frame_diff;
+                uint8_t tmp = curr_frame;
+                while (framebuffer > framedelay) {
+                    framebuffer -= framedelay;
+                    ++curr_frame;
+                    curr_frame %= framecount;
+                }
+                apply_tiles |= curr_frame != tmp;
+            }
         };
 
 		std::vector<copyable_unique_ptr<TileLogic>> tile_logic;
         std::vector<frame_timer_t>                  timers;
-
 		std::vector<ID<ChunkVertexArray>>           chunks;
 
-        secs life_time;
+        size_t frame_count  = 0;            // total frame count
+        secs   frame_buffer = secs{ 0.0 };  // time until next frame
 	} dyn;
+
+    static constexpr secs FrameTime = secs{ 1.0 / 60.0 };
+
+    void setFrameTimer(Vec2u pos, uint8_t framecount, uint8_t framedelay);
 
 public:
 	TileLayer(World& world, ID<TileLayer> t_id, unsigned id, Vec2u levelsize);

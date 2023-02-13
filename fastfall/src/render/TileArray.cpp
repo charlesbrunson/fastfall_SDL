@@ -91,8 +91,10 @@ void TileArray::setTile(Vec2u at, TileID tile)
 	if (!tiles[ndx].valid() && tile.valid())
 	{
 		tile_count++;
-		gl.sync = false;
 	}
+    if (tiles[ndx] != tile) {
+        gl.sync = false;
+    }
 	tiles[ndx] = tile;
 }
 
