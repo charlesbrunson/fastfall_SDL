@@ -28,9 +28,9 @@ private:
 	TileLayerData layer_data;
 
 	struct TileDynamic {
-        uint8_t  curr_frame = 0;
-		uint8_t  logic_id   = TILEDATA_NONE;
-        unsigned timer      = TILEDATA_NONE;
+        uint8_t curr_frame = 0;
+		uint8_t logic_id   = TILEDATA_NONE;
+        uint8_t timer_id   = TILEDATA_NONE;
 	};
 
 	grid_vector<TileDynamic> tiles_dyn;
@@ -57,12 +57,12 @@ private:
             uint8_t  frame_count = 1;
             secs     delay_time  = 1.0;
             secs     buffer      = 0.0;
-            //unsigned tile_count  = 0;
         };
 
 		std::vector<copyable_unique_ptr<TileLogic>> tile_logic;
-		std::vector<ID<ChunkVertexArray>>           chunks;
         std::vector<frame_timer_t>                  timers;
+
+		std::vector<ID<ChunkVertexArray>>           chunks;
 
         secs life_time;
 	} dyn;
@@ -146,7 +146,7 @@ protected:
     ID<AttachPoint> attach_id;
     ColliderTileMap* get_collider(World& world);
 
-    TileID getIDForChunk(TileID id) const; // need to check timer to offset
+    TileID getIDForChunk(Vec2u tile_pos, TileID id) const; // need to check timer to offset
 
 	void updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic = true);
 };

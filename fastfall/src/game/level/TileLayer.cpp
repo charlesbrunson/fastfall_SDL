@@ -68,8 +68,6 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 
 	// init tiles
 	const auto& tiles = layer_data.getTileData();
-	unsigned tile_count = layer_data.getSize().x * layer_data.getSize().y;
-
 	tiles_dyn = grid_vector<TileDynamic>(layer_data.getSize());
 
 	for (const auto& tile : tiles)
@@ -84,9 +82,10 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 			continue;
 
 		auto chunk_id = dyn.chunks.at(tile.tileset_ndx);
-        world.at(chunk_id).setTile(tile.pos, opt_tile->id);
+        world.at(chunk_id).setTile(tile.pos, getIDForChunk(tile.pos, opt_tile->id));
 
-		if (auto [logic, args] = tileset->getTileLogic(tile.tile_id); !logic.empty())
+		if (auto [logic, args] = tileset->getTileLogic(tile.tile_id);
+            !logic.empty())
 		{
 			uint8_t logic_ndx = 0;
 			auto logic_it = std::find_if(dyn.tile_logic.begin(), dyn.tile_logic.end(),
@@ -259,8 +258,6 @@ bool TileLayer::set_parallax(World& world, bool enabled, Vec2u parallax_size)
 		return false;
 	}
 
-	//bool updateChunks = parallax.enabled != enabled || (parallax.enabled && parallax_size != parallax.size);
-
 	layer_data.setParallax(enabled, parallax_size);
 	if (hasParallax()) {
 		dyn.parallax.init_offset.x = (float)((std::min)(getLevelSize().x, GAME_TILE_W) * TILESIZE) / 2.f;
@@ -276,7 +273,6 @@ bool TileLayer::set_parallax(World& world, bool enabled, Vec2u parallax_size)
 	else {
 		// reset offset on each chunk
 		for (auto& chunk_id : dyn.chunks) {
-			//get_chunk(world, chunk)->offset = Vec2f{};
             world.at(chunk_id).offset = Vec2f{};
 		}
 	}
@@ -338,8 +334,8 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
 
     // calc visible area
 	Rectf visible;
-	Vec2f cam_pos = world.system<CameraSystem>().getPosition(interp); //instance::cam_get_interpolated_pos(m_context, interp);
-	float cam_zoom = world.system<CameraSystem>().zoomFactor; //instance::cam_get_zoom(m_context);
+	Vec2f cam_pos    = world.system<CameraSystem>().getPosition(interp);
+	float cam_zoom   = world.system<CameraSystem>().zoomFactor;
     Vec2f attach_pos = world.at(attach_id).interpolate(interp);
     visible.width  = GAME_W_F * cam_zoom;
     visible.height = GAME_H_F * cam_zoom;
@@ -357,17 +353,14 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
     for (auto& chunk_id : dyn.chunks) {
         auto& chunk = world.at(chunk_id);
         chunk.visibility = visible;
-
         // parallax update
         if (hasParallax()) {
             chunk.offset = dyn.parallax.offset;
         }
-
         // scroll update
         if (hasScrolling()) {
             chunk.scroll = math::lerp(dyn.scroll.prev_offset, dyn.scroll.offset, interp);
         }
-
         // chunk predraw
         chunk.predraw(interp, updated);
     }
@@ -404,12 +397,10 @@ void TileLayer::setTile(World& world, const Vec2u& position, TileID tile_id, con
 
 	for (int i = 0; i < changes.count; i++) {
 		auto& change = changes.arr[i];
-		auto next_tileset_ndx = tile_data[change.position].tileset_ndx;
-
 		updateTile(
             world,
-			change.position, 
-			change.position == position ? prev_tileset_ndx : tile_data[change.position].tileset_ndx, 
+			change.position,
+            (change.position == position ? prev_tileset_ndx : tile_data[change.position].tileset_ndx),
 			change.tileset, 
 			useLogic);
 	}
@@ -476,7 +467,6 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 {
 	uint8_t tileset_ndx = prev_tileset_ndx;
 	if (tileset_ndx != TILEDATA_NONE) {
-        // TODO buffer changes?
         world.at(dyn.chunks.at(tileset_ndx)).blank(at);
 	}
 
@@ -488,11 +478,8 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 
 	auto& tile = layer_data.getTileData()[at];
 
-	if (!next_tileset || !next_tileset->getTile(tile.tile_id)) 
-	{
-		if (hasCollision())
-		{
-            // TODO buffer changes?
+	if (!next_tileset || !next_tileset->getTile(tile.tile_id)) {
+		if (hasCollision()) {
             get_collider(world)->removeTile(Vec2i(at));
             dyn.collision.is_modified = true;
 		}
@@ -501,28 +488,23 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 
 	std::optional<Tile> next_tile = next_tileset->getTile(tile.tile_id);
 
-	if (tile.tileset_ndx == dyn.chunks.size())
-	{
-        // TODO buffer changes?
+	if (tile.tileset_ndx == dyn.chunks.size()) {
         auto chunk = world.create<ChunkVertexArray>(world.entity_of(m_id), getSize(), kChunkSize);
         world.system<SceneSystem>().set_config(chunk, { layer, scene_type::Level });
 
         chunk->setTexture(next_tileset->getTexture());
-        chunk->setTile(at, getIDForChunk(tile.tile_id));
+        chunk->setTile(at, getIDForChunk(at, tile.tile_id));
         chunk->use_visible_rect = true;
 
         dyn.chunks.push_back(chunk);
         world.system<AttachSystem>().create(world, attach_id, chunk);
 	}
 	else {
-        // TODO buffer changes?
         auto& chunk = world.at(dyn.chunks.at(tile.tileset_ndx));
-        chunk.setTile(at, getIDForChunk(tile.tile_id));
+        chunk.setTile(at, getIDForChunk(at, tile.tile_id));
 	}
 
 	if (hasCollision() && next_tile) {
-
-        // TODO buffer changes?
         get_collider(world)->setTile(
 			Vec2i(at),
 			next_tile->shape,
@@ -533,7 +515,9 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 	}
 
 	if (useLogic) {
-		if (auto [logic, args] = next_tileset->getTileLogic(tile.tile_id); !logic.empty()) {
+		if (auto [logic, args] = next_tileset->getTileLogic(tile.tile_id);
+            !logic.empty())
+        {
 			std::string_view logic_var = logic;
 
 			unsigned dist = 0;
@@ -602,8 +586,7 @@ void TileLayer::shallow_copy(World& world, const TileLayer& src, Rectu src_area,
 
 bool TileLayer::hasTileAt(Vec2u tile_pos) const
 {
-	if (tile_pos.x < getLevelSize().x && tile_pos.y < getLevelSize().y)
-	{
+	if (tile_pos.x < getLevelSize().x && tile_pos.y < getLevelSize().y) {
 		return layer_data.getTileData()[tile_pos].has_tile;
 	}
 	return false;
@@ -611,8 +594,7 @@ bool TileLayer::hasTileAt(Vec2u tile_pos) const
 
 std::optional<TileID> TileLayer::getTileID(Vec2u tile_pos) const
 {
-	if (hasTileAt(tile_pos))
-	{
+	if (hasTileAt(tile_pos)) {
 		return layer_data.getTileData()[tile_pos].tile_id;
 	}
 	return std::nullopt;
@@ -620,8 +602,7 @@ std::optional<TileID> TileLayer::getTileID(Vec2u tile_pos) const
 
 std::optional<TileID> TileLayer::getTileBaseID(Vec2u tile_pos) const
 {
-	if (hasTileAt(tile_pos))
-	{
+	if (hasTileAt(tile_pos)) {
 		return layer_data.getTileData()[tile_pos].base_id;
 	}
 	return std::nullopt;
@@ -629,8 +610,7 @@ std::optional<TileID> TileLayer::getTileBaseID(Vec2u tile_pos) const
 
 const TilesetAsset* TileLayer::getTileTileset(Vec2u tile_pos) const
 {
-	if (hasTileAt(tile_pos))
-	{
+	if (hasTileAt(tile_pos)) {
 		return layer_data.getTilesetFromNdx(layer_data.getTileData()[tile_pos].tileset_ndx);
 	}
 	return nullptr;
@@ -638,8 +618,7 @@ const TilesetAsset* TileLayer::getTileTileset(Vec2u tile_pos) const
 
 bool TileLayer::isTileAuto(Vec2u tile_pos) const
 {
-	if (hasTileAt(tile_pos))
-	{
+	if (hasTileAt(tile_pos)) {
 		return layer_data.getTileData()[tile_pos].is_autotile;
 	}
 	return false;
@@ -647,8 +626,7 @@ bool TileLayer::isTileAuto(Vec2u tile_pos) const
 
 TileShape TileLayer::getTileShape(Vec2u tile_pos) const
 {
-	if (hasTileAt(tile_pos))
-	{
+	if (hasTileAt(tile_pos)) {
 		return layer_data.getTileShapes()[tile_pos];
 	}
 	return TileShape{};
@@ -681,10 +659,14 @@ std::optional<Vec2i> TileLayer::getTileFromWorldPos(Vec2f position) const {
 
 }
 
-TileID TileLayer::getIDForChunk(TileID id) const {
-    auto& data = tiles_dyn.at(id.to_vec());
-    if (data.timer == TILEDATA_NONE)
+TileID TileLayer::getIDForChunk(Vec2u tile_pos, TileID id) const {
+    if (!hasTileAt(tile_pos))
         return id;
+
+    auto& data = tiles_dyn.at(tile_pos);
+    if (data.timer_id == TILEDATA_NONE) {
+        return id;
+    }
 
     TileID n_id{ id };
     int step = 1;

@@ -26,14 +26,13 @@ protected:
 		HasLogicArgs	= 1 << 2,
 		HasMaterial		= 1 << 3,
 		HasConstraint	= 1 << 4,
-        HasFrameCount   = 1 << 5
 	};
 
 	struct TileData {
 		Tile     tile;
         uint8_t  has_prop_bits = 0;
-        uint8_t  frameCount = 1;    // how many frames this tile has
-        uint8_t  frameDelay = 60;   // in 1/60 second increments
+        uint8_t  frameCount    = 1;    // how many frames this tile has
+        uint8_t  frameDelay    = 60;   // in 1/60 second increments
 		unsigned tileLogicNdx;		// ndx of tileLogic
 		unsigned tileLogicParamNdx; // ndx of tileLogic's parameter list
 		unsigned tileMatNdx;		// ndx of tileMat
@@ -53,7 +52,6 @@ protected:
 	std::vector<TilesetLogic>	tileLogic;	// name and params of tile logic
 	std::vector<std::string>	tileMat;	// name of material
 	std::vector<TileConstraint> constraints;
-    std::vector<TileConstraint> frameCount;
 
 	const static std::map<std::string, void(*)(TilesetAsset&, TileData&, char*)> tileProperties;
 
