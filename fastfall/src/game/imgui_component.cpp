@@ -80,7 +80,12 @@ namespace ff {
     }
 
     void imgui_component(World&w , ID<TileLayer> id) {
+        auto& cmp = w.at(id);
+        auto& layer_data = cmp.getData();
 
+        for (auto& tileset : layer_data.getTilesets()) {
+            ImGui::Text("%s %d", tileset.tileset->get_name().data(), tileset.tile_count);
+        }
     }
 
     void imgui_component(World&w , ID<Emitter> id) {

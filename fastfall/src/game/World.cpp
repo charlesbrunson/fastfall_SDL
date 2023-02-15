@@ -158,6 +158,9 @@ bool World::erase(ID<Entity> entity) {
 
 bool World::erase(ComponentID component) {
     auto ent = entity_of(component);
+    if (state._attach_system.is_attached(component)) {
+        state._attach_system.erase(component);
+    }
     std::visit([&, this]<typename T>(ID<T> id) {
             system_notify_erased(id);
             untie_component_entity(id, ent);

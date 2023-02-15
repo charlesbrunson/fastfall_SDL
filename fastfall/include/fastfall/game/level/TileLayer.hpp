@@ -81,8 +81,6 @@ private:
 
     static constexpr secs FrameTime = secs{ 1.0 / 60.0 };
 
-    void setFrameTimer(Vec2u pos, uint8_t framecount, uint8_t framedelay);
-
 public:
 	TileLayer(World& world, ID<TileLayer> t_id, unsigned id, Vec2u levelsize);
 	TileLayer(World& world, ID<TileLayer> t_id, const TileLayerData& layerData);
@@ -152,6 +150,8 @@ public:
     ID<AttachPoint> get_attach_id() const {
         return attach_id;
     }
+
+    const TileLayerData& getData() const { return layer_data; }
 
     void set_autotile_substitute(TileShape sub) noexcept { layer_data.set_autotile_substitute(sub); }
     TileShape get_autotile_substitute() const noexcept { return layer_data.get_autotile_substitute(); }

@@ -9,15 +9,11 @@
 #include "fastfall/render/DebugDraw.hpp"
 #include "fastfall/render/ShapeRectangle.hpp"
 
-#include "fastfall/game/level/ObjectLayer.hpp"
 #include "fastfall/game/CameraSystem.hpp"
 #include "fastfall/game/CollisionSystem.hpp"
 #include "fastfall/game/World.hpp"
 
-#include <assert.h>
-
 namespace ff {
-
 
 TileLayer::TileLayer(World& world, ID<TileLayer> t_id, unsigned id, Vec2u levelsize)
 	: m_id(t_id)
@@ -423,9 +419,22 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
 
 void TileLayer::setTile(World& world, const Vec2u& position, TileID tile_id, const TilesetAsset& tileset, bool useLogic)
 {
-	auto changes = layer_data.setTile(position, tile_id, tileset);
-	for (int i = 0; i < changes.count; i++) {
-		auto& change = changes.arr[i];
+	auto result = layer_data.setTile(position, tile_id, tileset);
+    if (result.erased_tileset != TILEDATA_NONE) {
+        auto it = dyn.chunks.begin() + result.erased_tileset;
+        world.erase(*it);
+        dyn.chunks.erase(it);
+    }
+    if (result.created_tileset) {
+        auto chunk = world.create<ChunkVertexArray>(world.entity_of(m_id), getSize(), kChunkSize);
+        chunk->setTexture(tileset.getTexture());
+        chunk->use_visible_rect = true;
+        dyn.chunks.push_back(chunk);
+        world.system<AttachSystem>().create(world, attach_id, chunk);
+        world.system<SceneSystem>().set_config(chunk, { layer, scene_type::Level });
+    }
+	for (int i = 0; i < result.changes.count; i++) {
+		auto& change = result.changes.arr[i];
 		updateTile(
             world,
 			change.position,
@@ -436,21 +445,18 @@ void TileLayer::setTile(World& world, const Vec2u& position, TileID tile_id, con
 }
 
 void TileLayer::removeTile(World& world, const Vec2u& position) {
-    auto prev_tileset_ndx = layer_data.getTileData()[position].tileset_ndx;
 	auto result = layer_data.removeTile(position);
-
-    bool erased_chunk = false;
-	if (result.erased_tile && result.tileset_remaining == 0) {
-		dyn.chunks.erase(dyn.chunks.begin() + prev_tileset_ndx);
-        erased_chunk = true;
+	if (result.erased_tileset != TILEDATA_NONE) {
+        auto it = dyn.chunks.begin() + result.erased_tileset;
+        world.erase(*it);
+		dyn.chunks.erase(it);
 	}
-
 	for (int i = 0; i < result.changes.count; i++) {
 		auto& change = result.changes.arr[i];
 		updateTile(
             world,
 			change.position,
-            (!erased_chunk ? change.prev_tileset_ndx : TILEDATA_NONE),
+            change.prev_tileset_ndx,
 			change.tileset,
 			true);
 	}
@@ -476,14 +482,13 @@ void TileLayer::steal_tiles(World& w, TileLayer& from, Recti area) {
 
 void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic)
 {
-	uint8_t tileset_ndx = prev_tileset_ndx;
     uint8_t logic_ndx   = tiles_dyn[at].logic_id;
     uint8_t timer_ndx   = tiles_dyn[at].timer_id;
     auto& tile          = layer_data.getTileData()[at];
 
     // reset dynamic properties
-	if (tileset_ndx != TILEDATA_NONE) {
-        world.at(dyn.chunks.at(tileset_ndx)).blank(at);
+	if (prev_tileset_ndx != TILEDATA_NONE) {
+        world.at(dyn.chunks.at(prev_tileset_ndx)).blank(at);
 	}
 	if (useLogic && logic_ndx != TILEDATA_NONE) {
 		dyn.tile_logic.at(logic_ndx)->removeTile(at);
@@ -505,8 +510,8 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 
 	std::optional<Tile> next_tile = next_tileset->getTile(tile.tile_id);
 
-    uint8_t framecount = next_tileset->getFrameCount(tile.tile_id);
-    uint8_t framedelay = next_tileset->getFrameDelay(tile.tile_id);
+    uint8_t framecount            = next_tileset->getFrameCount(tile.tile_id);
+    uint8_t framedelay            = next_tileset->getFrameDelay(tile.tile_id);
     if (framecount > 1) {
         auto it = std::find_if(dyn.timers.begin(), dyn.timers.end(), [&](dyn_t::frame_timer_t& timer) {
             return timer.framecount == framecount && timer.framedelay == framedelay;
@@ -514,32 +519,19 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 
         if (it == dyn.timers.end()) {
             it = dyn.timers.emplace(it, dyn_t::frame_timer_t{
-                    .framecount  = framecount,
-                    .framedelay  = framedelay,
-                    .curr_frame  = static_cast<uint8_t>(dyn.frame_count % (size_t)framedelay),
-                    .framebuffer = static_cast<uint8_t>(dyn.frame_count / (size_t)framedelay),
-                    .tiles       = {}
+                .framecount  = framecount,
+                .framedelay  = framedelay,
+                .curr_frame  = static_cast<uint8_t>(dyn.frame_count % (size_t)framedelay),
+                .framebuffer = static_cast<uint8_t>(dyn.frame_count / (size_t)framedelay),
+                .tiles       = {}
             });
         }
         it->tiles.insert(at);
         tiles_dyn[at].timer_id = std::distance(dyn.timers.begin(), it);
     }
 
-	if (tile.tileset_ndx == dyn.chunks.size()) {
-        auto chunk = world.create<ChunkVertexArray>(world.entity_of(m_id), getSize(), kChunkSize);
-        world.system<SceneSystem>().set_config(chunk, { layer, scene_type::Level });
-
-        chunk->setTexture(next_tileset->getTexture());
-        chunk->setTile(at, getIDForChunk(at, tile.tile_id));
-        chunk->use_visible_rect = true;
-
-        dyn.chunks.push_back(chunk);
-        world.system<AttachSystem>().create(world, attach_id, chunk);
-	}
-	else {
-        auto& chunk = world.at(dyn.chunks.at(tile.tileset_ndx));
-        chunk.setTile(at, getIDForChunk(at, tile.tile_id));
-	}
+    auto chunk = world.get(dyn.chunks.at(tile.tileset_ndx));
+    chunk->setTile(at, getIDForChunk(at, tile.tile_id));
 
 	if (hasCollision() && next_tile) {
         get_collider(world)->setTile(
@@ -713,37 +705,6 @@ TileID TileLayer::getIDForChunk(Vec2u tile_pos, TileID id) const {
     uint8_t offset = dyn.timers.at(data.timer_id).curr_frame * step;
     n_id.setX(n_id.getX() + offset);
     return n_id;
-}
-
-
-void TileLayer::setFrameTimer(Vec2u pos, uint8_t framecount, uint8_t framedelay) {
-
-    if (tiles_dyn[pos].timer_id != TILEDATA_NONE) {
-        dyn.timers.at(tiles_dyn[pos].timer_id).tiles.erase(pos);
-        tiles_dyn[pos].timer_id = TILEDATA_NONE;
-    }
-
-    if (framecount > 1) {
-        auto it = std::find_if(dyn.timers.begin(), dyn.timers.end(),
-       [&](const auto& timer) {
-           return timer.framecount == framecount && timer.framedelay == framedelay;
-       });
-
-        if (it == dyn.timers.end()) {
-            it = dyn.timers.emplace(it, dyn_t::frame_timer_t{
-                .framecount  = framecount,
-                .framedelay  = framedelay,
-                .curr_frame  = static_cast<uint8_t>(dyn.frame_count % (size_t)framedelay),
-                .framebuffer = static_cast<uint8_t>(dyn.frame_count / (size_t)framedelay),
-                .tiles       = {}
-            });
-        }
-        it->tiles.insert(pos);
-        tiles_dyn[pos].timer_id = std::distance(dyn.timers.begin(), it);
-    }
-    else {
-        tiles_dyn[pos].timer_id = TILEDATA_NONE;
-    }
 }
 
 ColliderTileMap* TileLayer::get_collider(World& world) {

@@ -69,9 +69,9 @@ public:
 		std::array<TileChange, 9> arr;
 	};
 
-	struct RemoveResult {
-		bool erased_tile = false;
-		unsigned tileset_remaining;
+	struct TileChangeResult {
+        uint8_t erased_tileset = UINT8_MAX;
+        bool created_tileset = false;
 		TileChangeArray changes;
 	};
 
@@ -103,8 +103,8 @@ public:
 	void setScroll(bool enabled, Vec2f scroll_rate = Vec2f{});
 	void setCollision(bool enabled, unsigned border = 0);
 
-	TileChangeArray setTile(Vec2u at, TileID tile_id, const TilesetAsset& tileset);
-	RemoveResult removeTile(Vec2u at);
+	TileChangeResult setTile(Vec2u at, TileID tile_id, const TilesetAsset& tileset);
+	TileChangeResult removeTile(Vec2u at);
 
 	std::string_view getName() const { return layer_name; };
 	void setName(std::string_view name) { layer_name = name; };
@@ -124,6 +124,11 @@ public:
     TileShape get_autotile_substitute() const noexcept { return autotile_substitute; }
 
 private:
+
+    std::pair<uint8_t, unsigned> incrTileset(const TilesetAsset& asset);
+    unsigned incrTileset(uint8_t asset_ndx);
+    std::pair<uint8_t, unsigned> decrTileset(const TilesetAsset& asset);
+    unsigned decrTileset(uint8_t asset_ndx);
 
 	void setShape(Vec2u at, TileShape shape, TileChangeArray& changes);
 
