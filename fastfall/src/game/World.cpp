@@ -102,13 +102,13 @@ void World::draw(RenderTarget& target, RenderState t_state) const
     state._scene_system.draw(*this, target, t_state);
 }
 
-std::optional<ID<Entity>> World::create_entity() {
+ID<Entity> World::create_entity() {
     return state._entities.create();
 }
 
 
 std::optional<ID_ptr<Object>> World::create_object_from_data(ObjectLevelData& data) {
-    auto id = *create_entity();
+    auto id = create_entity();
     state._entities.at(id).actor = state._actors.peek_next_id();
 
     ActorInit init {

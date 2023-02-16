@@ -48,8 +48,6 @@ protected:
 		log.close();
 	}
 
-
-
 	void SetUp() override {
 		
 		Vec2f pos  = { 0, 0 };
@@ -57,9 +55,8 @@ protected:
 		Vec2f grav = { 0, 0 };
 
         collidable_obj_id = world.create_entity();
-        collider_obj_id = world.create_entity();
-        auto box_id = world.create<Collidable>(collidable_obj_id, pos, size, grav);
-		box = world.get(box_id);
+        collider_obj_id   = world.create_entity();
+        box = world.create<Collidable>(collidable_obj_id, pos, size, grav).ptr;
 
         box->create_tracker(
             Angle::Degree(-135),
@@ -90,9 +87,11 @@ protected:
 
 	void initTileMap(grid_vector<std::string_view> tiles) 
 	{
-		collider = world.get(
-                world.create<ColliderTileMap>(collider_obj_id, Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() })
-                );
+		collider = world.create<ColliderTileMap>(
+                    collider_obj_id,
+                    Vec2i{ (int)tiles.column_count(), (int)tiles.row_count() }
+                ).ptr;
+
 		for (auto it = tiles.begin(); it != tiles.end(); it++) {
 			if (!it->empty()) {
 				collider->setTile({ (int)it.column(), (int)it.row() }, TileShape::from_string(*it));
@@ -710,6 +709,54 @@ TEST_F(surfacetracker, move_up_slope_to_oneway)
         update();
         render.draw();
 
+        EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
+    }
+}
+
+TEST_F(surfacetracker, treadmill_to_slope)
+{
+    initTileMap({
+        {"",        "",         ""     },
+        {"",        "",         ""     },
+        {"solid",  "slope-h",   ""     },
+        {"solid",  "solid",     "solid"},
+    });
+
+    TileMaterial mat{
+        .surfaces = {
+            SurfaceMaterial{ .velocity = 100.f },
+            SurfaceMaterial{ .velocity = 0.f },
+            SurfaceMaterial{ .velocity = 0.f },
+            SurfaceMaterial{ .velocity = 0.f },
+        }
+    };
+    collider->setTile(Vec2i{ 0, 2, }, "solid"_ts, &mat);
+    collider->applyChanges();
+
+    box->teleport({ 8, 32 });
+    box->set_gravity({ 0, 500 });
+    box->set_local_vel({ 0.f, 10.f });
+
+    ground->settings = {
+        .move_with_platforms = true,
+        .slope_sticking = true,
+        .has_friction = true,
+        .use_surf_vel = true,
+        .stick_angle_max = Angle::Degree(90),
+        .surface_friction = {
+            .stationary = 1.0f,
+            .kinetic = 1.0f
+        }
+    };
+
+    Rectf area = collider->getBoundingBox();
+    TestPhysRenderer render(world, area);
+    render.draw();
+
+    while (render.curr_frame < 60) {
+        LOG_INFO("{}", colMan->getFrameCount());
+        update();
+        render.draw();
         EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
     }
 }

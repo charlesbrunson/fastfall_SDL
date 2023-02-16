@@ -153,22 +153,20 @@ public:
     const auto& entities() const { return state._entities; }
 
     // create entity
-    std::optional<ID<Entity>> create_entity();
+    ID<Entity> create_entity();
 
     template<class T_Actor, class... Args>
     requires valid_actor_ctor<T_Actor, Args...>
     std::optional<ID_ptr<T_Actor>> create_actor(Args&&... args) {
         auto id = create_entity();
-        if (id) {
-            if (create_actor<T_Actor>(*id, std::forward<Args>(args)...)) {
-                auto actor_id = id_cast<T_Actor>(*state._entities.at(*id).actor);
-                system_notify_created<Actor>(actor_id);
-                return ID_ptr<T_Actor>{actor_id, get(actor_id) };
-            }
-            else {
-                erase(*id);
-                LOG_ERR_("failed to initialize entity");
-            }
+        if (create_actor<T_Actor>(id, std::forward<Args>(args)...)) {
+            auto actor_id = id_cast<T_Actor>(*state._entities.at(id).actor);
+            system_notify_created<Actor>(actor_id);
+            return ID_ptr<T_Actor>{actor_id, get(actor_id) };
+        }
+        else {
+            erase(id);
+            LOG_ERR_("failed to initialize entity");
         }
         return std::nullopt;
     }

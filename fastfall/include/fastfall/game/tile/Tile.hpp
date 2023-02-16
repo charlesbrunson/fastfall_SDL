@@ -98,12 +98,11 @@ namespace ff {
 
 	struct TileMaterial {
 		const SurfaceMaterial& getSurface(Cardinal side, Cardinal facing = Cardinal::N) const {
-			size_t ndx = (static_cast<int>(side) - static_cast<int>(facing)) % 4;
-			return surfaces.at(ndx);
+			auto ndx = (static_cast<int>(side) - static_cast<int>(facing)) % 4;
+			return surfaces[(Cardinal)ndx];
 		}
-
 		std::string typeName;
-		std::array<SurfaceMaterial, 4> surfaces;
+        cardinal_array<SurfaceMaterial> surfaces;
 	};
 
 	class TilesetAsset;
