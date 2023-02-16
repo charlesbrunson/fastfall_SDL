@@ -89,7 +89,7 @@ public:
 	void update(World& world, secs deltaTime);
 	void predraw(World& world, float interp, bool updated);
 
-	void setTile(World& world, const Vec2u& position, TileID tile_id, const TilesetAsset& tileset, bool useLogic = true);
+	void setTile(World& world, const Vec2u& position, TileID tile_id, const TilesetAsset& tileset);
 	void removeTile(World& world, const Vec2u& position);
 
     void steal_tiles(World& w, TileLayer& from, Recti area);
@@ -101,19 +101,15 @@ public:
 	bool set_scroll(World& world, bool enabled, Vec2f rate = Vec2f{});
 
 	// TileLayerData passthrough
-	inline bool			hasParallax()			const { return layer_data.hasParallax();		};
-	inline Vec2u		getParallaxSize()		const { return layer_data.getParallaxSize();	};
-
-	inline bool			hasScrolling()			const { return layer_data.hasScrolling();		};
-	inline Vec2f		getScrollRate()			const { return layer_data.getScrollRate();		};
-
-	inline bool			hasCollision()			const { return layer_data.hasCollision();		};
-	inline unsigned		getCollisionBorders()	const { return layer_data.getCollisionBorders();};
-
-	inline unsigned		getID()					const { return layer_data.getID();				};
-	inline Vec2u		getLevelSize()			const { return layer_data.getSize();			};
-
-	inline std::string_view getName()			const { return layer_data.getName();			}
+	inline bool			hasParallax()			const { return layer_data.hasParallax();		 };
+	inline Vec2u		getParallaxSize()		const { return layer_data.getParallaxSize();	 };
+	inline bool			hasScrolling()			const { return layer_data.hasScrolling();		 };
+	inline Vec2f		getScrollRate()			const { return layer_data.getScrollRate();		 };
+	inline bool			hasCollision()			const { return layer_data.hasCollision();		 };
+	inline unsigned		getCollisionBorders()	const { return layer_data.getCollisionBorders(); };
+	inline unsigned		getID()					const { return layer_data.getID();				 };
+	inline Vec2u		getLevelSize()			const { return layer_data.getSize();			 };
+	inline std::string_view getName()			const { return layer_data.getName();			 };
 
 	// size varies based on parallax enabled
 	inline Vec2u		getSize() const { return hasParallax() ? getParallaxSize() : getLevelSize(); };
@@ -168,8 +164,7 @@ protected:
             World& world,
             const Vec2u& at,
             uint8_t prev_tileset_ndx,
-            const TilesetAsset* next_tileset,
-            bool useLogic = true);
+            const TilesetAsset* next_tileset);
 };
 
 }

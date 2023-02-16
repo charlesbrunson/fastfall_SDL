@@ -332,7 +332,7 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
 			while (ptr->hasNextCommand()) {
 				const TileLogicCommand& cmd = ptr->nextCommand();
 				if (cmd.type == TileLogicCommand::Type::Set) {
-					setTile(world, cmd.position, cmd.texposition, cmd.tileset, cmd.updateLogic);
+					setTile(world, cmd.position, cmd.texposition, cmd.tileset);
 				}
 				else if (tile_data[cmd.position].has_tile && cmd.type == TileLogicCommand::Type::Remove) {
 					removeTile(world, cmd.position);
@@ -362,7 +362,7 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
         }
     }
 
-    // calc visible area
+    // update visible area
 	Rectf visible;
 	Vec2f cam_pos    = world.system<CameraSystem>().getPosition(interp);
 	float cam_zoom   = world.system<CameraSystem>().zoomFactor;
@@ -380,18 +380,13 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
 		} - dyn.parallax.init_offset;
 	}
 
+    // apply offsets to tile chunks
     for (auto& chunk_id : dyn.chunks) {
         auto& chunk = world.at(chunk_id);
         chunk.visibility = visible;
-        // parallax update
-        if (hasParallax()) {
-            chunk.offset = dyn.parallax.offset;
-        }
-        // scroll update
-        if (hasScrolling()) {
-            chunk.scroll = math::lerp(dyn.scroll.prev_offset, dyn.scroll.offset, interp);
-        }
-        // chunk predraw
+        if (hasParallax())  { chunk.offset = dyn.parallax.offset; }
+        if (hasScrolling()) { chunk.scroll = math::lerp(dyn.scroll.prev_offset, dyn.scroll.offset, interp); }
+
         chunk.predraw(interp, updated);
     }
 
@@ -417,7 +412,7 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
 	}
 }
 
-void TileLayer::setTile(World& world, const Vec2u& position, TileID tile_id, const TilesetAsset& tileset, bool useLogic)
+void TileLayer::setTile(World& world, const Vec2u& position, TileID tile_id, const TilesetAsset& tileset)
 {
 	auto result = layer_data.setTile(position, tile_id, tileset);
     if (result.erased_tileset != TILEDATA_NONE) {
@@ -439,8 +434,7 @@ void TileLayer::setTile(World& world, const Vec2u& position, TileID tile_id, con
             world,
 			change.position,
             change.prev_tileset_ndx,
-			change.tileset, 
-			useLogic);
+			change.tileset);
 	}
 }
 
@@ -457,8 +451,7 @@ void TileLayer::removeTile(World& world, const Vec2u& position) {
             world,
 			change.position,
             change.prev_tileset_ndx,
-			change.tileset,
-			true);
+			change.tileset);
 	}
 }
 
@@ -472,7 +465,7 @@ void TileLayer::steal_tiles(World& w, TileLayer& from, Recti area) {
                 Vec2u p{ (unsigned)x, (unsigned)y };
                 if (auto tid = from.getTileBaseID(p))
                 {
-                    setTile(w, p - topleft, *tid, *from.getTileTileset(p), true);
+                    setTile(w, p - topleft, *tid, *from.getTileTileset(p));
                     from.removeTile(w, p);
                 }
             }
@@ -480,7 +473,7 @@ void TileLayer::steal_tiles(World& w, TileLayer& from, Recti area) {
     }
 }
 
-void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset, bool useLogic)
+void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_ndx, const TilesetAsset* next_tileset)
 {
     uint8_t logic_ndx   = tiles_dyn[at].logic_id;
     uint8_t timer_ndx   = tiles_dyn[at].timer_id;
@@ -490,7 +483,7 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 	if (prev_tileset_ndx != TILEDATA_NONE) {
         world.at(dyn.chunks.at(prev_tileset_ndx)).blank(at);
 	}
-	if (useLogic && logic_ndx != TILEDATA_NONE) {
+	if (logic_ndx != TILEDATA_NONE) {
 		dyn.tile_logic.at(logic_ndx)->removeTile(at);
 		tiles_dyn[at].logic_id = TILEDATA_NONE;
 	}
@@ -509,9 +502,9 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 	}
 
 	std::optional<Tile> next_tile = next_tileset->getTile(tile.tile_id);
+    uint8_t framecount = next_tileset->getFrameCount(tile.tile_id);
+    uint8_t framedelay = next_tileset->getFrameDelay(tile.tile_id);
 
-    uint8_t framecount            = next_tileset->getFrameCount(tile.tile_id);
-    uint8_t framedelay            = next_tileset->getFrameDelay(tile.tile_id);
     if (framecount > 1) {
         auto it = std::find_if(dyn.timers.begin(), dyn.timers.end(), [&](dyn_t::frame_timer_t& timer) {
             return timer.framecount == framecount && timer.framedelay == framedelay;
@@ -530,8 +523,8 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
         tiles_dyn[at].timer_id = std::distance(dyn.timers.begin(), it);
     }
 
-    auto chunk = world.get(dyn.chunks.at(tile.tileset_ndx));
-    chunk->setTile(at, getIDForChunk(at, tile.tile_id));
+    world.at(dyn.chunks.at(tile.tileset_ndx))
+        .setTile(at, getIDForChunk(at, tile.tile_id));
 
 	if (hasCollision() && next_tile) {
         get_collider(world)->setTile(
@@ -543,45 +536,35 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
         dyn.collision.is_modified = true;
 	}
 
-	if (useLogic) {
-		if (auto [logic, args] = next_tileset->getTileLogic(tile.tile_id);
-            !logic.empty())
-        {
-			std::string_view logic_var = logic;
+    if (auto [logic, args] = next_tileset->getTileLogic(tile.tile_id);
+        !logic.empty())
+    {
+        std::string_view logic_var = logic;
+        auto it = std::find_if(dyn.tile_logic.begin(), dyn.tile_logic.end(),
+            [&](const copyable_unique_ptr<TileLogic>& log) {
+                return logic_var == log->getName();
+            });
 
-			unsigned dist = 0;
-			auto it = std::find_if(dyn.tile_logic.begin(), dyn.tile_logic.end(),
-				[logic_var, &dist](const copyable_unique_ptr<TileLogic>& log) {
-					dist++;
-					return logic_var == log->getName();
-				});
-			dist--;
-
-			if (it == dyn.tile_logic.end()) {
-				if (dyn.tile_logic.size() < UINT8_MAX - 1) {
-
-					auto logic_ptr = TileLogic::create(world, logic);
-					if (logic_ptr) {
-						dyn.tile_logic.push_back(std::move(logic_ptr));
-						dyn.tile_logic.back()->addTile(at, *next_tile, args.data());
-						tiles_dyn[at].logic_id = dyn.tile_logic.size() - 1;
-					}
-					else {
-						LOG_WARN("could not create tile logic type: {}", logic);
-					}
-				}
-				else {
-					LOG_ERR_("Cannot set tile logic, tilelayer has reached max logic references: {}", dyn.tile_logic.size());
-				}
-			}
-			else {
-				it->get()->addTile(at, *next_tile, args.data());
-				tiles_dyn[at].logic_id = dist;
-			}
-		}
-	}
-
-
+        if (it == dyn.tile_logic.end()) {
+            if (dyn.tile_logic.size() < UINT8_MAX - 1) {
+                if (auto logic_ptr = TileLogic::create(world, logic)) {
+                    tiles_dyn[at].logic_id = dyn.tile_logic.size();
+                    dyn.tile_logic.push_back(std::move(logic_ptr));
+                    dyn.tile_logic.back()->addTile(at, *next_tile, args.data());
+                }
+                else {
+                    LOG_WARN("could not create tile logic type: {}", logic);
+                }
+            }
+            else {
+                LOG_ERR_("Cannot set tile logic, tilelayer has reached max logic references: {}", dyn.tile_logic.size());
+            }
+        }
+        else {
+            it->get()->addTile(at, *next_tile, args.data());
+            tiles_dyn[at].logic_id = std::distance(dyn.tile_logic.begin(), it);
+        }
+    }
 }
 
 void TileLayer::shallow_copy(World& world, const TileLayer& src, Rectu src_area, Vec2u dst)
