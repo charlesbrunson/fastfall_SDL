@@ -754,7 +754,7 @@ TEST_F(surfacetracker, treadmill_to_slope)
     render.draw();
 
     while (render.curr_frame < 60) {
-        LOG_INFO("{}", colMan->getFrameCount());
+        //LOG_INFO("{}", colMan->getFrameCount());
         update();
         render.draw();
         EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));

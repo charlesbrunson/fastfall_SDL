@@ -358,6 +358,7 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
 
 			float slow = 1.f - settings.slope_stick_speed_factor * abs(diff.degrees() / settings.stick_angle_max.degrees());
 
+            owner->reset_surface_vel();
 			float vel_mag = owner->get_local_vel().magnitude() * slow;
 			owner->set_local_vel(Vec2f{
                  cosf(gAng.radians()),
