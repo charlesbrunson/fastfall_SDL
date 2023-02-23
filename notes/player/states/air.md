@@ -1,10 +1,10 @@
 #### Actions
-* Air idle
+- Air idle
     Perform aerial control 
 #### Transitions 
-* [[ground]] 
+- [[ground]] 
 	made contact with ground
-* [[wall]]
+- [[wall]]
 	made contact with the wall
-* [[air boost]] 
+- [[air boost]] 
 	boost input

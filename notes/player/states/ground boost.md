@@ -1,4 +1,6 @@
 #### Actions
-* TBD
+- TBD
 #### Transitions 
-* TBD
+- TBD
+- [[attack]]
+	cancel boost into attack
