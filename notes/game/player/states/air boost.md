@@ -6,7 +6,7 @@
 - [[ground boost]]
 	made contact with ground
 	ground boost direction depends on air boost direction and ground angle
-- [[wall]]
+- [[wall cling]]
 	made contact with wall
 - [[air]]
 	boost expires and boost not sustained

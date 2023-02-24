@@ -4,7 +4,7 @@
 #### Transitions 
 - [[ground]] 
 	made contact with ground
-- [[wall]]
+- [[wall cling]]
 	made contact with the wall
 - [[air boost]] 
 	boost input
