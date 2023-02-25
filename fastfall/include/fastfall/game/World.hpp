@@ -54,14 +54,12 @@ private:
     {
         struct folding_opt {
             std::optional<size_t> opt;
-            constexpr folding_opt operator|| (const folding_opt& rhs) {
-                return opt ? *this : rhs;
-            }
+            constexpr folding_opt operator|| (const folding_opt& rhs) { return opt ? *this : rhs; }
         };
 
         constexpr size_t index = []<size_t... Ndx>(std::index_sequence<Ndx...>) constexpr {
             return ([]<size_t N>(std::integral_constant<size_t, N>) constexpr -> folding_opt {
-                using List = std::remove_cvref_t<decltype(std::get<N>(state._components))>;
+                using List = std::tuple_element_t<N, Components::MapTuple>;
                 using Item = typename List::base_type;
                 constexpr bool match      = std::same_as<id_map<Item>, List>      && std::same_as<T, Item>;
                 constexpr bool poly_match = std::same_as<poly_id_map<Item>, List> && std::derived_from<T, Item>;

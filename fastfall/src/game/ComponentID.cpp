@@ -9,7 +9,7 @@
 namespace ff {
 
     std::string cmpid_str(const ComponentID& cmp) {
-        return std::visit([ndx = cmp.index()]<class T>(const ID<T>& id) -> std::string {
+        return std::visit([]<class T>(const ID<T>& id) -> std::string {
                 return fmt::format(
                     "{}{}",
                     typeid(T).name(),
