@@ -119,8 +119,7 @@ TileLayerData::TileChangeResult TileLayerData::setTile(Vec2u at, TileID tile_id,
 	assert(at.x < tileSize.x && at.y < tileSize.y);
 	TileChangeResult result;
 
-    auto prev_tileset_ndx = tiles[at].tileset_ndx;
-    auto prev_count       = decrTileset(prev_tileset_ndx);
+    auto [prev_tileset_ndx, prev_count] = decrTileset(tiles[at].tileset_ndx);
     if (prev_tileset_ndx != UINT8_MAX && prev_count == 0) {
         result.erased_tileset = prev_tileset_ndx;
         prev_tileset_ndx = UINT8_MAX;
@@ -158,7 +157,7 @@ TileLayerData::TileChangeResult TileLayerData::setTile(Vec2u at, TileID tile_id,
             if (hasScrolling()) {
                 state = get_autotile_state(tile->shape, shapes_view, at, AUTOTILE_GRID_WRAP{});
             } else {
-                state = get_autotile_state(tile->shape, shapes_view, at, autotile_substitute);
+                state = get_autotile_state(tile->shape, shapes_view, at, autotile_default);
             }
             auto opt_tile_id = auto_best_tile(state, tileset.getConstraints(), rseed);
             placed_tiled_id = opt_tile_id.value_or(placed_tiled_id);
@@ -185,8 +184,7 @@ TileLayerData::TileChangeResult TileLayerData::removeTile(Vec2u at)
 	if (TileData& tile = tiles[at];
         tile.has_tile)
 	{
-        auto prev_tileset_ndx = tile.tileset_ndx;
-        auto count = decrTileset(tile.tileset_ndx);
+        auto [prev_tileset_ndx, count] = decrTileset(tile.tileset_ndx);
         if (count == 0) {
             result.erased_tileset = tile.tileset_ndx;
             prev_tileset_ndx = UINT8_MAX;
@@ -205,12 +203,12 @@ void TileLayerData::clearTiles() {
 	shapes = grid_vector<TileShape>(tileSize);
 }
 
-std::pair<uint8_t, unsigned> TileLayerData::incrTileset(const TilesetAsset& asset) {
+TileLayerData::tileset_state_t TileLayerData::incrTileset(const TilesetAsset& asset) {
     auto it = std::find_if(tilesets.begin(), tilesets.end(),
        [&](const auto& tileset_data) { return &asset == tileset_data.tileset; }
     );
 
-    auto tileset_ndx = UINT8_MAX;
+    uint8_t tileset_ndx = UINT8_MAX;
     if (it != tilesets.end()) {
         tileset_ndx = std::distance(tilesets.begin(), it);
     }
@@ -218,19 +216,19 @@ std::pair<uint8_t, unsigned> TileLayerData::incrTileset(const TilesetAsset& asse
         tileset_ndx = tilesets.size();
         tilesets.push_back({ &asset, 0u });
     }
-    return { tileset_ndx, incrTileset(tileset_ndx) };
+    return incrTileset(tileset_ndx);
 }
 
-unsigned TileLayerData::incrTileset(uint8_t asset_ndx) {
+TileLayerData::tileset_state_t TileLayerData::incrTileset(uint8_t asset_ndx) {
     if (asset_ndx != UINT8_MAX) {
-        return ++tilesets[asset_ndx].tile_count;
+        return { asset_ndx, ++tilesets[asset_ndx].tile_count };
     }
     else {
-        return 0;
+        return { asset_ndx, 0 };
     }
 }
 
-std::pair<uint8_t, unsigned> TileLayerData::decrTileset(const TilesetAsset& asset) {
+TileLayerData::tileset_state_t TileLayerData::decrTileset(const TilesetAsset& asset) {
     auto it = std::find_if(tilesets.begin(), tilesets.end(),
         [&](const auto& tileset_data) { return &asset == tileset_data.tileset; }
     );
@@ -238,10 +236,10 @@ std::pair<uint8_t, unsigned> TileLayerData::decrTileset(const TilesetAsset& asse
     if (it != tilesets.end()) {
         tileset_ndx = std::distance(tilesets.begin(), it);
     }
-    return { tileset_ndx, decrTileset(tileset_ndx) };
+    return decrTileset(tileset_ndx);
 }
 
-unsigned TileLayerData::decrTileset(uint8_t asset_ndx) {
+TileLayerData::tileset_state_t TileLayerData::decrTileset(uint8_t asset_ndx) {
     if (asset_ndx != UINT8_MAX) {
         auto count = --tilesets[asset_ndx].tile_count;
         if (count == 0) {
@@ -253,10 +251,10 @@ unsigned TileLayerData::decrTileset(uint8_t asset_ndx) {
                     --tile.tileset_ndx;
             });
         }
-        return count;
+        return { asset_ndx, count };
     }
     else {
-        return 0;
+        return { asset_ndx, 0 };
     }
 }
 
@@ -296,7 +294,7 @@ void TileLayerData::setShape(Vec2u at, TileShape shape, TileChangeArray& changes
 					state = get_autotile_state(shapes_view[adj_at], shapes_view, adj_at, AUTOTILE_GRID_WRAP{});
 				}
 				else {
-					state = get_autotile_state(shapes_view[adj_at], shapes_view, adj_at, autotile_substitute);
+					state = get_autotile_state(shapes_view[adj_at], shapes_view, adj_at, autotile_default);
 				}
 
 				auto opt_tile_id = auto_best_tile(state, tileset_ptr->getConstraints(), rseed);

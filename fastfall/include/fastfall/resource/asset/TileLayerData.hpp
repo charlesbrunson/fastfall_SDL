@@ -15,40 +15,36 @@
 
 namespace ff {
 
-
 // represents a layer of tile data
 class TileLayerData {
 private:
-	Vec2u tileSize;
+    struct TileData {
+        bool has_tile		= false;
+        bool is_autotile	= false;
+        Vec2u	pos			= {};
+        TileID	base_id		= {};
+        TileID	tile_id		= {};
+        uint8_t tileset_ndx = UINT8_MAX;
+    };
+    struct TilesetData {
+        const TilesetAsset* tileset;
+        unsigned tile_count;
+    };
 
-	bool has_parallax = false;
-	bool has_scroll = false;
-	bool has_collision = false;
+    unsigned    layer_id = 0;
+    std::string layer_name;
+    TileShape   autotile_default = "solid"_ts;
+	Vec2u       tileSize;
+	bool        has_parallax = false;
+	bool        has_scroll = false;
+	bool        has_collision = false;
+	Vec2u       parallaxSize;
+	Vec2f       scrollrate;
+	unsigned    collision_border_bits = 0u;
 
-	Vec2u parallaxSize;
-	Vec2f scrollrate;
-	unsigned collision_border_bits = 0u;
-
-	struct TileData {
-		bool has_tile		= false;
-		bool is_autotile	= false;
-		Vec2u	pos			= {};
-		TileID	base_id		= {};
-		TileID	tile_id		= {};
-		uint8_t tileset_ndx = UINT8_MAX;
-	};
-	grid_vector<TileData> tiles;
-	grid_vector<TileShape> shapes;
-
-	struct TilesetData {
-		const TilesetAsset* tileset;
-		unsigned tile_count;
-	};
-	std::vector<TilesetData> tilesets;
-
-	unsigned layer_id = 0;
-	std::string layer_name;
-    TileShape autotile_substitute = "solid"_ts;
+	grid_vector<TileData>       tiles;
+	grid_vector<TileShape>      shapes;
+	std::vector<TilesetData>    tilesets;
 
 public:
 
@@ -74,8 +70,6 @@ public:
         bool created_tileset = false;
 		TileChangeArray changes;
 	};
-
-	//using TileChangeArray = std::array<TileChange, 9>;
 
 	TileLayerData();
 	TileLayerData(unsigned id);
@@ -120,18 +114,21 @@ public:
 		return ndx < tilesets.size() ? tilesets.at(ndx).tileset : nullptr;
 	}
 
-    void set_autotile_substitute(TileShape sub) noexcept { autotile_substitute = sub; }
-    TileShape get_autotile_substitute() const noexcept { return autotile_substitute; }
+    void set_autotile_substitute(TileShape sub) noexcept { autotile_default = sub; }
+    TileShape get_autotile_substitute() const noexcept { return autotile_default; }
 
 private:
+    struct tileset_state_t {
+        uint8_t index;
+        unsigned tile_count;
+    };
 
-    std::pair<uint8_t, unsigned> incrTileset(const TilesetAsset& asset);
-    unsigned incrTileset(uint8_t asset_ndx);
-    std::pair<uint8_t, unsigned> decrTileset(const TilesetAsset& asset);
-    unsigned decrTileset(uint8_t asset_ndx);
+    tileset_state_t incrTileset(const TilesetAsset& asset);
+    tileset_state_t incrTileset(uint8_t asset_ndx);
+    tileset_state_t decrTileset(const TilesetAsset& asset);
+    tileset_state_t decrTileset(uint8_t asset_ndx);
 
 	void setShape(Vec2u at, TileShape shape, TileChangeArray& changes);
-
 };
 
 }

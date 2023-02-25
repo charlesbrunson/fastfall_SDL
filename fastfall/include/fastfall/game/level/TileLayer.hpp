@@ -20,6 +20,53 @@ namespace ff {
 class World;
 class Level;
 
+/*
+
+// TilesDynamic
+
+struct TileAnimator {
+    uint8_t framecount = 1;
+    uint8_t framedelay = 60;
+    uint8_t curr_frame = 0;
+    uint8_t framebuffer = 0;
+    std::set<Vec2u> tiles;
+    bool apply_tiles = true;
+
+    void update(size_t frame_diff) {
+        framebuffer += frame_diff;
+        while (framebuffer > framedelay) {
+            framebuffer -= framedelay;
+            ++curr_frame;
+            curr_frame %= framecount;
+            apply_tiles = true;
+        }
+    }
+};
+
+struct DynTile {
+    ID<TileLogic> logic;
+    ID<TileAnimator> timer_id;
+};
+
+struct TilesDynamic {
+    grid_vector<DynTile> tiles_dyn;
+};
+// TileParallax
+struct TileParallax {
+    Vec2f init_offset;
+    Vec2f cam_factor;
+    Vec2f offset;
+};
+// TileScroll
+struct TileScroll {
+    Vec2f prev_offset;
+    Vec2f offset;
+};
+// ColliderTileMap
+// TileLogic
+
+*/
+
 class TileLayer {
 private:
 	static constexpr int	TILEDATA_NONE	= UINT8_MAX;
@@ -49,7 +96,6 @@ private:
 
 		struct collision_dyn_t {
             std::optional<ID<ColliderTileMap>> collider;
-            bool is_modified = false;
 		} collision;
 
         struct frame_timer_t {
@@ -158,7 +204,7 @@ protected:
     ID<AttachPoint> attach_id;
     ColliderTileMap* get_collider(World& world);
 
-    TileID getIDForChunk(Vec2u tile_pos, TileID id) const; // need to check timer to offset
+    TileID getDisplayTileID(Vec2u tile_pos, TileID id); // need to check timer to offset
 
 	void updateTile(
             World& world,
