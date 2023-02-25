@@ -3,7 +3,7 @@
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/util/dmessage.hpp"
 #include "fastfall/util/math.hpp"
-#include "fastfall/game/ComponentID.hpp"
+//#include "fastfall/game/ComponentID.hpp"
 #include "fastfall/resource/asset/AnimAssetTypes.hpp"
 
 #include "imgui.h"
@@ -12,6 +12,7 @@ namespace ff {
 
 class World;
 class Entity;
+class ComponentID;
 
 // 16 max
 using actor_vars = std::variant<

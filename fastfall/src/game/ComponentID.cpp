@@ -12,7 +12,8 @@ namespace ff {
         return std::visit([ndx = cmp.index()]<class T>(const ID<T>& id) -> std::string {
                 return fmt::format(
                     "{}{}",
-                    ComponentID_Str[ndx],
+                    typeid(T).name(),
+                    //ComponentID_Str[ndx],
                     id.value.sparse_index);
             }, cmp);
     }

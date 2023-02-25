@@ -17,7 +17,7 @@ World::World(const World& other)
 {
     WorldImGui::add(this);
     state = other.state;
-    state._scene_system.reset_proxy_ptrs(state._drawables);
+    system<SceneSystem>().reset_proxy_ptrs(component<Drawable>());
 }
 
 World::World(World&& other) noexcept
@@ -29,7 +29,7 @@ World::World(World&& other) noexcept
 World& World::operator=(const World& other) {
     WorldImGui::add(this);
     state = other.state;
-    state._scene_system.reset_proxy_ptrs(state._drawables);
+    system<SceneSystem>().reset_proxy_ptrs(component<Drawable>());
     return *this;
 }
 
@@ -44,24 +44,24 @@ World::~World() {
 }
 
 void World::update(secs deltaTime) {
-    if (Level* active = state._level_system.get_active(*this))
+    if (system<LevelSystem>().get_active(*this))
     {
-        state._scene_system.update(*this, deltaTime);
-        state._attach_system.update(*this, deltaTime);
+        system<SceneSystem>().update(*this, deltaTime);
+        system<AttachSystem>().update(*this, deltaTime);
         state._input.update(deltaTime);
-        state._level_system.update(*this, deltaTime);
+        system<LevelSystem>().update(*this,deltaTime);
 
-        state._actor_system.update(*this, deltaTime);
+        system<ActorSystem>().update(*this,deltaTime);
 
-        state._trigger_system.update(*this, deltaTime);
-        state._path_system.update(*this, deltaTime);
-        state._attach_system.update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostUpdate);
+        system<TriggerSystem>().update(*this,deltaTime);
+        system<PathSystem>().update(*this,deltaTime);
+        system<AttachSystem>().update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostUpdate);
 
-        state._collision_system.update(*this, deltaTime);
-        state._attach_system.update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostCollision);
+        system<CollisionSystem>().update(*this,deltaTime);
+        system<AttachSystem>().update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostCollision);
 
-        state._camera_system.update(*this, deltaTime);
-        state._emitter_system.update(*this, deltaTime);
+        system<CameraSystem>().update(*this, deltaTime);
+        system<EmitterSystem>().update(*this, deltaTime);
 
         if (deltaTime > 0.0) {
             state.update_counter++;
@@ -72,34 +72,26 @@ void World::update(secs deltaTime) {
 
 void World::predraw(float interp, bool updated)
 {
-    if (Level* active = state._level_system.get_active(*this))
+    if (auto* active = system<LevelSystem>().get_active(*this))
     {
-        /*
-        if (updated && active->try_reload_level(*this)) {
-            for (auto [id, actor] : all<Actor>()) {
-                actor->notify_active_level_reloaded(*this);
-            }
-        }
-        */
-
-        state._scene_system.set_bg_color(active->getBGColor());
-        state._scene_system.set_size(active->size());
-        state._actor_system.predraw(*this, interp, updated);
-        state._level_system.predraw(*this, interp, updated);
-        state._emitter_system.predraw(*this, interp, updated);
-        state._scene_system.set_cam_pos(state._camera_system.getPosition(interp));
-        state._scene_system.predraw(*this, interp, updated);
+        system<SceneSystem>().set_bg_color(active->getBGColor());
+        system<SceneSystem>().set_size(active->size());
+        system<ActorSystem>().predraw(*this, interp, updated);
+        system<LevelSystem>().predraw(*this, interp, updated);
+        system<EmitterSystem>().predraw(*this, interp, updated);
+        system<SceneSystem>().set_cam_pos(system<CameraSystem>().getPosition(interp));
+        system<SceneSystem>().predraw(*this, interp, updated);
     }
     else
     {
-        state._scene_system.set_bg_color(ff::Color::Transparent);
+        system<SceneSystem>().set_bg_color(ff::Color::Transparent);
     }
     clean_drawables();
 }
 
 void World::draw(RenderTarget& target, RenderState t_state) const
 {
-    state._scene_system.draw(*this, target, t_state);
+    system<SceneSystem>().draw(*this, target, t_state);
 }
 
 ID<Entity> World::create_entity() {
@@ -109,17 +101,17 @@ ID<Entity> World::create_entity() {
 
 std::optional<ID_ptr<Object>> World::create_object_from_data(ObjectLevelData& data) {
     auto id = create_entity();
-    state._entities.at(id).actor = state._actors.peek_next_id();
+    state._entities.at(id).actor = component<Actor>().peek_next_id();
 
     ActorInit init {
         .world      = *this,
         .entity_id  = id,
-        .actor_id   = state._actors.peek_next_id(),
+        .actor_id   = component<Actor>().peek_next_id(),
         .type       = ActorType::Actor,
         .priority   = ActorPriority::Normal
     };
 
-    auto actor_id = state._actors.emplace(ObjectFactory::createFromData(init, data));
+    auto actor_id = component<Actor>().emplace(ObjectFactory::createFromData(init, data));
     if (auto* ptr = get(actor_id); ptr && ptr->initialized) {
         system_notify_created<Actor>(actor_id);
         auto obj_id = id_cast<Object>(actor_id);
@@ -138,7 +130,7 @@ void World::reset_entity(ID<Entity> id) {
         auto components = ent.components;
         if (actor) {
             system_notify_erased<Actor>(*actor);
-            state._actors.erase(*actor);
+            component<Actor>().erase(*actor);
             ent.actor.reset();
         }
         for (auto& c : components) {
@@ -158,8 +150,8 @@ bool World::erase(ID<Entity> entity) {
 
 bool World::erase(ComponentID component) {
     auto ent = entity_of(component);
-    if (state._attach_system.is_attached(component)) {
-        state._attach_system.erase(component);
+    if (system<AttachSystem>().is_attached(component)) {
+        system<AttachSystem>().erase(component);
     }
     std::visit([&, this]<typename T>(ID<T> id) {
             system_notify_erased(id);

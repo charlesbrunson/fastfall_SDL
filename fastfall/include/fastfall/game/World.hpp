@@ -6,31 +6,16 @@
 #include "fastfall/game/Entity.hpp"
 #include "fastfall/game/object/Object.hpp"
 
-#include "fastfall/game/level/Level.hpp"
-#include "fastfall/game/CollisionSystem.hpp"
-#include "fastfall/game/CameraSystem.hpp"
-#include "fastfall/game/TriggerSystem.hpp"
-#include "fastfall/game/SceneSystem.hpp"
-#include "fastfall/game/ActorSystem.hpp"
-#include "fastfall/game/LevelSystem.hpp"
-#include "fastfall/game/EmitterSystem.hpp"
-#include "fastfall/game/AttachSystem.hpp"
-#include "fastfall/game/PathSystem.hpp"
 #include "fastfall/engine/input/InputState.hpp"
+
+#include "fastfall/game/WorldComponentConfig.hpp"
+#include "fastfall/game/WorldSystemConfig.hpp"
 
 #include <optional>
 #include <concepts>
 #include <span>
 
 namespace ff {
-
-namespace detail {
-    template<class T, class Container, class Item = typename Container::base_type>
-    constexpr bool fits =
-                (std::same_as<id_map<Item>,      Container>      && std::same_as<T, Item>)
-             || (std::same_as<poly_id_map<Item>, Container> && std::derived_from<T, Item>);
-}
-
 
 class World : public Drawable
 {
@@ -39,43 +24,18 @@ private:
     {
         // entity
         id_map<Entity> _entities;
-        std::unordered_map<ComponentID, ID<Entity>> _comp_to_ent;
+        std::map<ComponentID, ID<Entity>> _comp_to_ent;
 
         // components
-        poly_id_map<Actor>          _actors;
-        id_map<Collidable>          _collidables;
-        poly_id_map<ColliderRegion> _colliders;
-        id_map<Trigger>             _triggers;
-        poly_id_map<CameraTarget>   _camera_targets;
-        poly_id_map<Drawable>       _drawables;
-        id_map<Emitter>             _emitters;
-        id_map<AttachPoint>         _attachpoints;
-        id_map<PathMover>           _pathmovers;
-        id_map<TileLayer>           _tilelayer;
-
+        Components::MapTuple _components;
         std::vector<ID<Drawable>>   erase_drawables_deferred;
 
         // systems
-        LevelSystem     _level_system;
-        ActorSystem     _actor_system;
-        CollisionSystem _collision_system;
-        TriggerSystem   _trigger_system;
-        EmitterSystem   _emitter_system;
-        AttachSystem    _attach_system;
-        CameraSystem    _camera_system;
-        SceneSystem     _scene_system;
-        PathSystem      _path_system;
-
-        constexpr auto all_systems()  {
-            return std::tie(
-                _level_system, _actor_system, _collision_system, _trigger_system, _emitter_system,
-                _attach_system, _camera_system, _scene_system, _path_system
-            );
-        }
+        Systems::Tuple _systems;
 
         // misc
         size_t update_counter = 0;
-        secs update_time = 0.0;
+        secs   update_time = 0.0;
 
         // input
         InputState _input;
@@ -90,17 +50,28 @@ private:
     }
 
     template<class T>
-    constexpr auto& list_for() {
-        if constexpr (detail::fits<T, decltype(state._actors)>)         { return state._actors; }
-        if constexpr (detail::fits<T, decltype(state._collidables)>)    { return state._collidables; }
-        if constexpr (detail::fits<T, decltype(state._colliders)>)      { return state._colliders; }
-        if constexpr (detail::fits<T, decltype(state._triggers)>)       { return state._triggers; }
-        if constexpr (detail::fits<T, decltype(state._camera_targets)>) { return state._camera_targets; }
-        if constexpr (detail::fits<T, decltype(state._drawables)>)      { return state._drawables; }
-        if constexpr (detail::fits<T, decltype(state._emitters)>)       { return state._emitters; }
-        if constexpr (detail::fits<T, decltype(state._attachpoints)>)   { return state._attachpoints; }
-        if constexpr (detail::fits<T, decltype(state._pathmovers)>)     { return state._pathmovers; }
-        if constexpr (detail::fits<T, decltype(state._tilelayer)>)      { return state._tilelayer; }
+    constexpr auto& list_for()
+    {
+        struct folding_opt {
+            std::optional<size_t> opt;
+            constexpr folding_opt operator|| (const folding_opt& rhs) {
+                return opt ? *this : rhs;
+            }
+        };
+
+        constexpr size_t index = []<size_t... Ndx>(std::index_sequence<Ndx...>) constexpr {
+            return ([]<size_t N>(std::integral_constant<size_t, N>) constexpr -> folding_opt {
+                using List = std::remove_cvref_t<decltype(std::get<N>(state._components))>;
+                using Item = typename List::base_type;
+                constexpr bool match      = std::same_as<id_map<Item>, List>      && std::same_as<T, Item>;
+                constexpr bool poly_match = std::same_as<poly_id_map<Item>, List> && std::derived_from<T, Item>;
+                return folding_opt{
+                    (match || poly_match) ? std::make_optional(N) : std::nullopt
+                };
+            }(std::integral_constant<size_t, Ndx>{}) || ...).opt.value();
+        }(std::make_index_sequence<Components::Count>{});
+
+        return std::get<index>(state._components);
     }
 
 public:
@@ -222,7 +193,9 @@ public:
 
 	// access system
     template<class T>
-    inline constexpr T& system() { return std::get<T&>(state.all_systems()); }
+    inline constexpr T& system() { return std::get<T>(state._systems); }
+    template<class T>
+    inline constexpr const T& system() const { return std::get<T>(state._systems); }
 
     // entity helpers
     const std::set<ComponentID>& components_of(ID<Entity> id) const;
@@ -246,6 +219,9 @@ public:
 private:
     void draw(RenderTarget& target, RenderState state = RenderState()) const override;
 
+    template<class T>
+    auto& component() { return list_for<T>(); }
+
     template<class T_Actor, class... Args>
     requires std::constructible_from<T_Actor, ActorInit, Args...>
     bool create_actor(ID<Entity> id, Args&&... args) {
@@ -254,7 +230,7 @@ private:
         ActorInit init {
             .world       = *this,
             .entity_id   = id,
-            .actor_id    = state._actors.peek_next_id(),
+            .actor_id    = list_for<Actor>().peek_next_id(),
             .type        = ActorType::Actor,
             .priority    = ActorPriority::Normal,
         };
@@ -264,7 +240,7 @@ private:
             init.priority = T_Actor::Type.priority;
         }
 
-        ent.actor = state._actors.create<T_Actor>(init, std::forward<Args>(args)...);
+        ent.actor = list_for<Actor>().create<T_Actor>(init, std::forward<Args>(args)...);
         return at(*ent.actor).initialized;
     }
 
@@ -276,7 +252,7 @@ private:
                     sys.notify_created(*this, t_id);
                 }
             }(system), ...);
-        }, state.all_systems());
+        }, state._systems);
     }
 
     template<typename T>
@@ -287,7 +263,7 @@ private:
                     sys.notify_erased(*this, t_id);
                 }
             }(system), ...);
-        }, state.all_systems());
+        }, state._systems);
     }
 
     void tie_component_entity(ComponentID cmp, ID<Entity> ent);
