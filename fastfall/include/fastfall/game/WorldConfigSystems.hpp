@@ -18,6 +18,7 @@ namespace ff {
 template<class... Ts>
 struct SystemConfig {
     using Tuple = std::tuple<Ts...>;
+    constexpr static size_t Count = sizeof...(Ts);
 };
 
 using Systems = SystemConfig<
@@ -31,5 +32,17 @@ using Systems = SystemConfig<
     SceneSystem,
     PathSystem
 >;
+
+constexpr inline static std::string_view SystemNames[Systems::Count] = {
+    "LevelSystem",
+    "ActorSystem",
+    "CollisionSystem",
+    "TriggerSystem",
+    "EmitterSystem",
+    "AttachSystem",
+    "CameraSystem",
+    "SceneSystem",
+    "PathSystem"
+};
 
 }

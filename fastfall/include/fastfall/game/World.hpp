@@ -8,8 +8,8 @@
 
 #include "fastfall/engine/input/InputState.hpp"
 
-#include "fastfall/game/WorldComponentConfig.hpp"
-#include "fastfall/game/WorldSystemConfig.hpp"
+#include "fastfall/game/WorldConfigComponents.hpp"
+#include "fastfall/game/WorldConfigSystems.hpp"
 
 #include <optional>
 #include <concepts>

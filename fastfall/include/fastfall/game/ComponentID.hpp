@@ -1,11 +1,6 @@
 #pragma once
 
-#include "fastfall/util/id.hpp"
-
-#include <variant>
-#include <string_view>
-
-#include "WorldComponentConfig.hpp"
+#include "WorldConfigComponents.hpp"
 
 namespace ff {
 
