@@ -45,12 +45,12 @@ private:
 
 private:
     template<class T>
-    constexpr auto& list_for() const {
-        return const_cast<World&>(*this).list_for<T>();
+    constexpr auto& components() const {
+        return const_cast<World&>(*this).components<T>();
     }
 
     template<class T>
-    constexpr auto& list_for()
+    constexpr auto& components()
     {
         struct folding_opt {
             std::optional<size_t> opt;
@@ -86,10 +86,10 @@ public:
 
 	// access component
     template<class T>
-    T& at(ID<T> id) { return list_for<T>().at(id); }
+    T& at(ID<T> id) { return components<T>().at(id); }
 
     template<class T>
-    const T& at(ID<T> id) const { return list_for<T>().at(id); }
+    const T& at(ID<T> id) const { return components<T>().at(id); }
 
     template<class... Ts>
     requires (sizeof...(Ts) > 1)
@@ -100,16 +100,16 @@ public:
     auto at(ID<Ts>... ids) const { return std::forward_as_tuple(at(ids)...); }
 
     template<class T>
-    T* get(ID<T> id) { return list_for<T>().get(id); }
+    T* get(ID<T> id) { return components<T>().get(id); }
 
     template<class T>
-    const T* get(ID<T> id) const { return list_for<T>().get(id); }
+    const T* get(ID<T> id) const { return components<T>().get(id); }
 
     template<class T>
-    T* get(std::optional<ID<T>> id) { return id ? list_for<T>().get(*id) : nullptr; }
+    T* get(std::optional<ID<T>> id) { return id ? components<T>().get(*id) : nullptr; }
 
     template<class T>
-    const T* get(std::optional<ID<T>> id) const { return id ? list_for<T>().get(*id) : nullptr; }
+    const T* get(std::optional<ID<T>> id) const { return id ? components<T>().get(*id) : nullptr; }
 
     template<class... Ts>
     requires (sizeof...(Ts) > 1)
@@ -160,7 +160,7 @@ public:
     // create component
     template<typename T>
     ID_ptr<T> create(ID<Entity> ent, auto&&... args) {
-        auto& list = list_for<T>();
+        auto& list = components<T>();
         using container_t = std::remove_cvref_t<decltype(list)>;
         using base_type = typename container_t::base_type;
         ID<T> tmp_id = id_cast<T>(list.peek_next_id());
@@ -185,9 +185,9 @@ public:
 
     // span components
     template<class T>
-    inline auto& all() { return list_for<T>(); }
+    inline auto& all() { return components<T>(); }
     template<class T>
-    inline const auto& all() const { return list_for<T>(); }
+    inline const auto& all() const { return components<T>(); }
 
 	// access system
     template<class T>
@@ -217,9 +217,6 @@ public:
 private:
     void draw(RenderTarget& target, RenderState state = RenderState()) const override;
 
-    template<class T>
-    auto& component() { return list_for<T>(); }
-
     template<class T_Actor, class... Args>
     requires std::constructible_from<T_Actor, ActorInit, Args...>
     bool create_actor(ID<Entity> id, Args&&... args) {
@@ -228,7 +225,7 @@ private:
         ActorInit init {
             .world       = *this,
             .entity_id   = id,
-            .actor_id    = list_for<Actor>().peek_next_id(),
+            .actor_id    = components<Actor>().peek_next_id(),
             .type        = ActorType::Actor,
             .priority    = ActorPriority::Normal,
         };
@@ -238,7 +235,7 @@ private:
             init.priority = T_Actor::Type.priority;
         }
 
-        ent.actor = list_for<Actor>().create<T_Actor>(init, std::forward<Args>(args)...);
+        ent.actor = components<Actor>().create<T_Actor>(init, std::forward<Args>(args)...);
         return at(*ent.actor).initialized;
     }
 

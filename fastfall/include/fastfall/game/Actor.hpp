@@ -15,7 +15,6 @@ namespace ff {
 
 class World;
 class Entity;
-//class ComponentID;
 
 // 16 max
 using actor_vars = std::variant<
@@ -26,7 +25,6 @@ using actor_vars = std::variant<
     Vec2i,
     Vec2f,
     secs,
-    //ComponentID,
     ID<Entity>,
     AnimID
 >;

@@ -17,7 +17,7 @@ World::World(const World& other)
 {
     WorldImGui::add(this);
     state = other.state;
-    system<SceneSystem>().reset_proxy_ptrs(component<Drawable>());
+    system<SceneSystem>().reset_proxy_ptrs(components<Drawable>());
 }
 
 World::World(World&& other) noexcept
@@ -29,7 +29,7 @@ World::World(World&& other) noexcept
 World& World::operator=(const World& other) {
     WorldImGui::add(this);
     state = other.state;
-    system<SceneSystem>().reset_proxy_ptrs(component<Drawable>());
+    system<SceneSystem>().reset_proxy_ptrs(components<Drawable>());
     return *this;
 }
 
@@ -101,17 +101,17 @@ ID<Entity> World::create_entity() {
 
 std::optional<ID_ptr<Object>> World::create_object_from_data(ObjectLevelData& data) {
     auto id = create_entity();
-    state._entities.at(id).actor = component<Actor>().peek_next_id();
+    state._entities.at(id).actor = components<Actor>().peek_next_id();
 
     ActorInit init {
         .world      = *this,
         .entity_id  = id,
-        .actor_id   = component<Actor>().peek_next_id(),
+        .actor_id   = components<Actor>().peek_next_id(),
         .type       = ActorType::Actor,
         .priority   = ActorPriority::Normal
     };
 
-    auto actor_id = component<Actor>().emplace(ObjectFactory::createFromData(init, data));
+    auto actor_id = components<Actor>().emplace(ObjectFactory::createFromData(init, data));
     if (auto* ptr = get(actor_id); ptr && ptr->initialized) {
         system_notify_created<Actor>(actor_id);
         auto obj_id = id_cast<Object>(actor_id);
@@ -127,13 +127,13 @@ void World::reset_entity(ID<Entity> id) {
     if (state._entities.exists(id)) {
         auto& ent = state._entities.at(id);
         auto actor = ent.actor;
-        auto components = ent.components;
+        auto cmp_set = ent.components;
         if (actor) {
             system_notify_erased<Actor>(*actor);
-            component<Actor>().erase(*actor);
+            components<Actor>().erase(*actor);
             ent.actor.reset();
         }
-        for (auto& c : components) {
+        for (auto& c : cmp_set) {
             erase(c);
         }
     }
@@ -165,7 +165,7 @@ bool World::erase(ComponentID component) {
                     id);
             }
             else {
-                list_for<T>().erase(id);
+                components<T>().erase(id);
             }
         }, component);
     return true;
@@ -182,7 +182,7 @@ bool World::erase_all_components(ID<Entity> entity_id) {
 
 void World::clean_drawables() {
    for(auto id : state.erase_drawables_deferred) {
-       list_for<Drawable>().erase(id);
+       components<Drawable>().erase(id);
    }
    state.erase_drawables_deferred.clear();
 }
