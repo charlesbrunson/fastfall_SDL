@@ -25,9 +25,9 @@ TestState::TestState()
     on_realtime = true;
 
     ID<Level> lvl_id;
-	if (auto* lvlptr = ff::Resources::get<ff::LevelAsset>("map_test.tmx"))
+	if (auto* lvl_asset = ff::Resources::get<ff::LevelAsset>("map_test.tmx"))
 	{
-        lvl_id = *world->create_actor<Level>(*lvlptr);
+        lvl_id = world->create_actor<Level>(*lvl_asset)->id;
         world->system<LevelSystem>().set_active(lvl_id);
 	}
     Level* lvl = world->system<LevelSystem>().get_active(*world);

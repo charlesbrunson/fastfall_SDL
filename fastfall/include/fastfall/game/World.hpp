@@ -221,11 +221,12 @@ private:
     requires std::constructible_from<T_Actor, ActorInit, Args...>
     bool create_actor(ID<Entity> id, Args&&... args) {
         auto& ent = state._entities.at(id);
+        auto actor_id = components<Actor>().emplace(copyable_unique_ptr<Actor>());
 
         ActorInit init {
             .world       = *this,
             .entity_id   = id,
-            .actor_id    = components<Actor>().peek_next_id(),
+            .actor_id    = actor_id,
             .type        = ActorType::Actor,
             .priority    = ActorPriority::Normal,
         };
@@ -235,8 +236,10 @@ private:
             init.priority = T_Actor::Type.priority;
         }
 
-        ent.actor = components<Actor>().create<T_Actor>(init, std::forward<Args>(args)...);
-        return at(*ent.actor).initialized;
+        ent.actor = actor_id;
+        components<Actor>().emplace_at<T_Actor>(actor_id, init, std::forward<Args>(args)...);
+        auto& actor = at(actor_id);
+        return actor.initialized;
     }
 
     template<typename T>

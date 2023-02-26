@@ -27,7 +27,7 @@ TilePlatform::TilePlatform(ActorInit init, ObjectLevelData& data)
     tile_area.height /= TILESIZE;
 
     // create tile layer for platform
-    auto tl = w.create<TileLayer>(entity_id, w, id_placeholder, 0, (Vec2u)tile_area.getSize());
+    auto tl = *w.create_actor<TileLayer>(0u, (Vec2u)tile_area.getSize());
     tl->set_layer(w, 0);
     tl->set_autotile_substitute("empty"_ts);
     tl->set_collision(w, true);

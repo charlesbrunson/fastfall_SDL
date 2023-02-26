@@ -164,6 +164,15 @@ public:
         return { id };
     }
 
+    template<std::derived_from<T> Type, class... Args>
+    void emplace_at(ID<T> id, Args&&... args) {
+        components.at(id.value) = make_copyable_unique<T, Type>(std::forward<Args>(args)...);
+    }
+
+    void emplace_at(ID<T> id, value_type&& val) {
+        components.at(id.value) = std::move(val);
+    }
+
 	template<std::derived_from<T> Type>
 	Type& at(ID<Type> id) {
 		return *static_cast<Type*>(components.at(id.value).get());

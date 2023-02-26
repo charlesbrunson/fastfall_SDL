@@ -53,6 +53,8 @@ struct ActorInit {
     ID<Actor>     actor_id;
     ActorType     type;
     ActorPriority priority;
+
+    ActorInit& set_type(ActorType t) { type = t; return *this; }
 };
 
 
@@ -70,6 +72,7 @@ public:
     virtual ~Actor() = default;
 
     virtual void update(World& world, secs deltaTime) {};
+    virtual void predraw(World& world, float interp, bool updated) {};
     virtual dresult message(World&, const dmessage&) { return reject; }
     virtual void ImGui_Inspect() {};
 

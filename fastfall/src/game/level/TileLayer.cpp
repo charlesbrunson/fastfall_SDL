@@ -15,19 +15,19 @@
 
 namespace ff {
 
-TileLayer::TileLayer(World& world, ID<TileLayer> t_id, unsigned id, Vec2u levelsize)
-	: m_id(t_id)
+TileLayer::TileLayer(ActorInit init, unsigned id, Vec2u levelsize)
+	: Actor{ init.set_type(ActorType::Level), {"TileLayer"} }
     , layer_data(id, levelsize)
 	, tiles_dyn(levelsize)
-    , attach_id(world.create<AttachPoint>(world.entity_of(t_id), id_placeholder))
+    , attach_id(init.world.create<AttachPoint>(init.entity_id, id_placeholder))
 {
 }
 
-TileLayer::TileLayer(World& world, ID<TileLayer> t_id, const TileLayerData& layerData)
-    : m_id(t_id)
-    , attach_id(world.create<AttachPoint>(world.entity_of(t_id), id_placeholder))
+TileLayer::TileLayer(ActorInit init, const TileLayerData& layerData)
+    : Actor{ init.set_type(ActorType::Level), {"TileLayer"} }
+    , attach_id(init.world.create<AttachPoint>(init.entity_id, id_placeholder))
 {
-	initFromAsset(world, layerData);
+	initFromAsset(init.world, layerData);
 }
 
 void TileLayer::set_layer(World& world, scene_layer lyr) {
@@ -54,7 +54,7 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 	// init chunks
 	for (auto& [tileset, _] : layer_data.getTilesets())
 	{
-        auto chunk = world.create<ChunkVertexArray>(world.entity_of(m_id), getSize(), kChunkSize);
+        auto chunk = world.create<ChunkVertexArray>(entity_id, getSize(), kChunkSize);
         world.system<SceneSystem>().set_config(chunk, {layer, scene_type::Level});
         dyn.chunks.push_back(chunk);
 
@@ -196,7 +196,7 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 
 	if (enabled) {
 		if (!dyn.collision.collider) {
-            dyn.collision.collider = world.create<ColliderTileMap>(world.entity_of(m_id), Vec2i{getLevelSize() }, true);
+            dyn.collision.collider = world.create<ColliderTileMap>(entity_id, Vec2i{getLevelSize() }, true);
             auto* collider = get_collider(world);
 			layer_data.setCollision(true, border);
 			for (const auto& tile_data : layer_data.getTileData()) {
@@ -218,7 +218,7 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
 			collider->setBorders(getLevelSize(), layer_data.getCollisionBorders());
 			collider->applyChanges();
             collider->set_on_precontact(
-                [id = m_id, layer_id = layer_data.getID()]
+                [id = id_cast<TileLayer>(actor_id), layer_id = layer_data.getID()]
                 (World& w, const ContinuousContact& contact, secs duration)
                 {
                     auto& tile_layer = w.at(id);
@@ -239,7 +239,7 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
                 }
 			);
 			collider->set_on_postcontact(
-                [id = m_id, layer_id = layer_data.getID()]
+                [id = id_cast<TileLayer>(actor_id), layer_id = layer_data.getID()]
                 (World& w, const AppliedContact& contact, secs deltaTime)
                 {
                     auto& tile_layer = w.at(id);
@@ -385,7 +385,6 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
         chunk.visibility = visible;
         if (hasParallax())  { chunk.offset = dyn.parallax.offset; }
         if (hasScrolling()) { chunk.scroll = math::lerp(dyn.scroll.prev_offset, dyn.scroll.offset, interp); }
-
         chunk.predraw(interp, updated);
     }
 
@@ -420,7 +419,7 @@ void TileLayer::setTile(World& world, const Vec2u& position, TileID tile_id, con
         dyn.chunks.erase(it);
     }
     if (result.created_tileset) {
-        auto chunk = world.create<ChunkVertexArray>(world.entity_of(m_id), getSize(), kChunkSize);
+        auto chunk = world.create<ChunkVertexArray>(entity_id, getSize(), kChunkSize);
         chunk->setTexture(tileset.getTexture());
         chunk->use_visible_rect = true;
         dyn.chunks.push_back(chunk);

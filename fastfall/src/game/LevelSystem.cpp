@@ -23,15 +23,17 @@ std::optional<ID<Level>> LevelSystem::get_active_id() const {
 }
 
 void LevelSystem::update(World& world, secs deltaTime) {
-    for (auto [id, tl] : world.all<TileLayer>()) {
-        tl.update(world, deltaTime);
-    }
+    //TODO
+    //for (auto [id, tl] : world.all<TileLayer>()) {
+    //    tl.update(world, deltaTime);
+    //}
 }
 
 void LevelSystem::predraw(World& world, float interp, bool updated) {
-    for (auto [id, tl] : world.all<TileLayer>()) {
-        tl.predraw(world, interp, updated);
-    }
+    //TODO
+    //for (auto [id, tl] : world.all<TileLayer>()) {
+    //    tl.predraw(world, interp, updated);
+    //}
 }
 
 Level* LevelSystem::get_active(World& world) const {

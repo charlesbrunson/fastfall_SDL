@@ -12,6 +12,8 @@
 #include "fastfall/render/Drawable.hpp"
 #include "fastfall/render/ChunkVertexArray.hpp"
 
+#include "fastfall/game/Actor.hpp"
+
 #include <memory>
 #include <set>
 
@@ -67,7 +69,7 @@ struct TileScroll {
 
 */
 
-class TileLayer {
+class TileLayer : public Actor {
 private:
 	static constexpr int	TILEDATA_NONE	= UINT8_MAX;
 	static constexpr Vec2u	kChunkSize		= Vec2u{ GAME_TILE_W / 2u, GAME_TILE_H / 2u };
@@ -128,12 +130,13 @@ private:
     static constexpr secs FrameTime = secs{ 1.0 / 60.0 };
 
 public:
-	TileLayer(World& world, ID<TileLayer> t_id, unsigned id, Vec2u levelsize);
-	TileLayer(World& world, ID<TileLayer> t_id, const TileLayerData& layerData);
+	TileLayer(ActorInit init, unsigned id, Vec2u levelsize);
+	TileLayer(ActorInit init, const TileLayerData& layerData);
 
 	void initFromAsset(World& world, const TileLayerData& layerData);
-	void update(World& world, secs deltaTime);
+	void update(World& world, secs deltaTime) override;
 	void predraw(World& world, float interp, bool updated);
+    void ImGui_Inspect() override { ImGui::Text("test2"); };
 
 	void setTile(World& world, const Vec2u& position, TileID tile_id, const TilesetAsset& tileset);
 	void removeTile(World& world, const Vec2u& position);
@@ -199,7 +202,6 @@ public:
     TileShape get_autotile_substitute() const noexcept { return layer_data.get_autotile_substitute(); }
 
 protected:
-    ID<TileLayer> m_id;
 	scene_layer layer;
     ID<AttachPoint> attach_id;
     ColliderTileMap* get_collider(World& world);

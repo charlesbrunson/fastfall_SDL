@@ -21,6 +21,9 @@ void ActorSystem::predraw(World& world, float interp, bool updated)
         if (actor.is_dead()) {
             to_erase.push_back(actor.entity_id);
         }
+        else {
+            actor.predraw(world, interp, updated);
+        }
     }
     for (auto ent : to_erase) {
         world.erase(ent);

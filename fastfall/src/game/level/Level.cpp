@@ -17,7 +17,7 @@ Level::Level(
     std::optional<Vec2u>        opt_size,
     std::optional<Color>        opt_bgColor
 )
-    : Actor{ init, { "Level" }}
+    : Actor{ init.set_type(ActorType::Level), { "Level" }}
 {
     if (opt_name)    levelName = std::move(*opt_name);
     if (opt_size)    levelSize = *opt_size;
@@ -28,7 +28,7 @@ Level::Level(
     ActorInit init,
     const LevelAsset& levelData
 )
-    : Actor{ init, { "Level" }}
+    : Actor{ init.set_type(ActorType::Level), { "Level" }}
 {
     initFromAsset(init.world, levelData);
 }
@@ -51,13 +51,15 @@ void Level::initFromAsset(World& world, const LevelAsset& levelData)
 	{
 		if (layerRef.position < 0) {
             layers.push_bg_front(TileLayerProxy{
-                .cmp_id   = world.create<TileLayer>(entity_id, world, id_placeholder, layerRef.tilelayer),
+                //.cmp_id   = world.create<TileLayer>(entity_id, world, id_placeholder, layerRef.tilelayer),
+                .cmp_id   = world.create_actor<TileLayer>(layerRef.tilelayer)->id,
                 .layer_id = layerRef.tilelayer.getID()
             });
 		}
 		else {
             layers.push_fg_front(TileLayerProxy{
-                .cmp_id   = world.create<TileLayer>(entity_id, world, id_placeholder, layerRef.tilelayer),
+                //.cmp_id   = world.create<TileLayer>(entity_id, world, id_placeholder, layerRef.tilelayer),
+                .cmp_id   = world.create_actor<TileLayer>(layerRef.tilelayer)->id,
                 .layer_id = layerRef.tilelayer.getID()
             });
 		}
@@ -90,7 +92,8 @@ void Level::resize(World& world, Vec2u n_size)
 		};
 
         //auto ent = world.entity_of(m_id);
-        auto n_layer = world.create<TileLayer>(entity_id, world, id_placeholder, layer.getID(), n_size);
+        //auto n_layer = world.create<TileLayer>(entity_id, world, id_placeholder, layer.getID(), n_size);
+        auto n_layer = *world.create_actor<TileLayer>(layer.getID(), n_size);
         n_layer->set_layer(world, layer.get_layer());
         n_layer->set_collision(world, layer.hasCollision(), layer.getCollisionBorders());
         n_layer->set_scroll(world, layer.hasScrolling(), layer.getScrollRate());

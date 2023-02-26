@@ -40,8 +40,8 @@ using Components = ComponentConfig<
     Drawable*,
     Emitter,
     AttachPoint,
-    PathMover,
-    TileLayer
+    PathMover
+    //TileLayer
 >;
 
 constexpr inline static std::string_view ComponentNames[Components::Count] = {
@@ -54,7 +54,7 @@ constexpr inline static std::string_view ComponentNames[Components::Count] = {
     "Emitter",
     "AttachPoint",
     "PathMover",
-    "TileLayer"
+    //"TileLayer"
 };
 
 }

@@ -33,7 +33,8 @@ bool LevelEditor::create_layer(int layer_pos)
 		level->get_layers().insert(
 			layer_pos,
             Level::TileLayerProxy{
-                .cmp_id = world.create<TileLayer>( ent, world, id_placeholder, 0, level->size() ),
+                //.cmp_id = world.create<TileLayer>( ent, world, id_placeholder, 0, level->size() ),
+                .cmp_id = world.create_actor<TileLayer>( 0u, level->size() )->id,
                 .layer_id = 0
             }
 		);
@@ -124,6 +125,7 @@ bool LevelEditor::erase_layer()
     auto* level = world.get(level_id);
 	if (level && curr_layer)
 	{
+        world.erase(curr_layer->tile_layer_id);
 		level->get_layers().erase(curr_layer->position);	
 	}
 	return false;
@@ -313,6 +315,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 
 		if (asset_it == asset_ids.end())
 		{
+            world.erase(lvl_layers.get_tile_layer_at(i)->tilelayer.cmp_id);
 			lvl_layers.erase(i);
 		}
 		return asset_it == asset_ids.end();
@@ -342,7 +345,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		{
 			lvl_layers.push_fg_front(
                 Level::TileLayerProxy{
-                    .cmp_id   = world.create<TileLayer>(level->entity_id, world, id_placeholder, layer_ref.tilelayer ),
+                    .cmp_id   = world.create_actor<TileLayer>( layer_ref.tilelayer )->id,
                     .layer_id = layer_ref.tilelayer.getID()
                 }
             );

@@ -49,8 +49,8 @@ void World::update(secs deltaTime) {
         system<SceneSystem>().update(*this, deltaTime);
         system<AttachSystem>().update(*this, deltaTime);
         state._input.update(deltaTime);
-        system<LevelSystem>().update(*this,deltaTime);
 
+        system<LevelSystem>().update(*this,deltaTime);
         system<ActorSystem>().update(*this,deltaTime);
 
         system<TriggerSystem>().update(*this,deltaTime);
@@ -101,17 +101,18 @@ ID<Entity> World::create_entity() {
 
 std::optional<ID_ptr<Object>> World::create_object_from_data(ObjectLevelData& data) {
     auto id = create_entity();
-    state._entities.at(id).actor = components<Actor>().peek_next_id();
+    auto actor_id = components<Actor>().emplace(copyable_unique_ptr<Actor>());
+    state._entities.at(id).actor = actor_id;
 
     ActorInit init {
         .world      = *this,
         .entity_id  = id,
-        .actor_id   = components<Actor>().peek_next_id(),
+        .actor_id   = actor_id,
         .type       = ActorType::Actor,
         .priority   = ActorPriority::Normal
     };
-
-    auto actor_id = components<Actor>().emplace(ObjectFactory::createFromData(init, data));
+    //auto actor_id = components<Actor>().emplace(ObjectFactory::createFromData(init, data));
+    components<Actor>().emplace_at(actor_id, ObjectFactory::createFromData(init, data));
     if (auto* ptr = get(actor_id); ptr && ptr->initialized) {
         system_notify_created<Actor>(actor_id);
         auto obj_id = id_cast<Object>(actor_id);
