@@ -40,8 +40,7 @@ private:
         // input
         InputState _input;
         InputSourceNull input_null;
-    };
-    state_t state;
+    } state;
 
 private:
     template<class T>
@@ -52,21 +51,22 @@ private:
     template<class T>
     constexpr auto& components()
     {
-        struct folding_opt {
-            std::optional<size_t> opt;
-            constexpr folding_opt operator|| (const folding_opt& rhs) { return opt ? *this : rhs; }
-        };
-
         constexpr size_t index = []<size_t... Ndx>(std::index_sequence<Ndx...>) constexpr {
-            return ([]<size_t N>(std::integral_constant<size_t, N>) constexpr -> folding_opt {
-                using List = std::tuple_element_t<N, Components::MapTuple>;
-                using Item = typename List::base_type;
-                constexpr bool match      = std::same_as<id_map<Item>, List>      && std::same_as<T, Item>;
-                constexpr bool poly_match = std::same_as<poly_id_map<Item>, List> && std::derived_from<T, Item>;
-                return folding_opt{
-                    (match || poly_match) ? std::make_optional(N) : std::nullopt
-                };
-            }(std::integral_constant<size_t, Ndx>{}) || ...).opt.value();
+
+            std::optional<size_t> opt_ndx;
+
+            ([&]<size_t N>(std::integral_constant<size_t, N>) constexpr {
+                using Container = std::tuple_element_t<N, Components::MapTuple>;
+                using Item      = typename Container::base_type;
+                bool match      = std::same_as<id_map<Item>, Container>      && std::same_as<T, Item>;
+                bool poly_match = std::same_as<poly_id_map<Item>, Container> && std::derived_from<T, Item>;
+                if (!opt_ndx && (match || poly_match)) {
+                    opt_ndx = N;
+                }
+            }(std::integral_constant<size_t, Ndx>{}), ...);
+
+            return *opt_ndx;
+
         }(std::make_index_sequence<Components::Count>{});
 
         return std::get<index>(state._components);
@@ -245,7 +245,7 @@ private:
     template<typename T>
     void system_notify_created(ID<T> t_id) {
         std::apply([&, this](auto&... system) {
-            ([&, this]<typename System>(System& sys){
+            ([&, this]<class System>(System& sys){
                 if constexpr (requires(System s, ID<T> i, World& w) { s.notify_created(w, i); }) {
                     sys.notify_created(*this, t_id);
                 }
@@ -256,7 +256,7 @@ private:
     template<typename T>
     void system_notify_erased(ID<T> t_id) {
         std::apply([&, this](auto&... system) {
-            ([&, this]<typename System>(System& sys){
+            ([&, this]<class System>(System& sys){
                 if constexpr (requires(System s, ID<T> i, World& w) { s.notify_erased(w, i); }) {
                     sys.notify_erased(*this, t_id);
                 }

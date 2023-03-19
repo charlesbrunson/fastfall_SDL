@@ -18,21 +18,26 @@ namespace ff {
 
 template<class... Ts>
 struct ComponentConfig {
-    using MapTuple = std::tuple <
+
+    using Tuple = std::tuple<Ts...>;
+
+    using MapTuple = std::tuple<
         std::conditional_t<
             std::is_pointer_v<Ts>,
             poly_id_map<std::remove_pointer_t<Ts>>,
             id_map<Ts>
         >...
     >;
-    using ComponentID = std::variant <
+
+    using ComponentID = std::variant<
         ID<std::remove_pointer_t<Ts>>...
     >;
+
     constexpr static size_t Count = sizeof...(Ts);
 };
 
 using Components = ComponentConfig<
-    Actor*,
+    Actor*, // pointer specifies this type should be stored as a pointer (for polymorphic types)
     Collidable,
     ColliderRegion*,
     Trigger,
