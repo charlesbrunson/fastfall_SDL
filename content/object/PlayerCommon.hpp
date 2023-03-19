@@ -3,7 +3,7 @@
 //#include "Player.hpp"
 #include "fastfall/util/Default.hpp"
 
-#include "fastfall/render/AnimatedSprite.hpp"
+#include "fastfall/render/drawable/AnimatedSprite.hpp"
 #include "fastfall/game/World.hpp"
 #include "../camera/SimpleCamTarget.hpp"
 

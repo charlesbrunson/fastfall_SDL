@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "fastfall/engine/input/InputState.hpp"
-#include "fastfall/engine/InputConfig.hpp"
+#include "fastfall/engine/input/InputConfig.hpp"
 #include "fastfall/engine/input/InputSourceRealtime.hpp"
 #include "fastfall/engine/input/InputSourceRecord.hpp"
 

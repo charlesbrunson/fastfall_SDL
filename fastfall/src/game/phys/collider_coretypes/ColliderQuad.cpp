@@ -1,7 +1,7 @@
 #include "fastfall/game/phys/collider_coretypes/ColliderQuad.hpp"
 
 #include "fastfall/render/DebugDraw.hpp"
-#include "fastfall/render/VertexArray.hpp"
+#include "fastfall/render/drawable/VertexArray.hpp"
 
 #include "fastfall/util/log.hpp"
 

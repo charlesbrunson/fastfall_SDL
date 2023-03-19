@@ -9,7 +9,7 @@
 #include "fastfall/game/level/LevelLayerContainer.hpp"
 #include "fastfall/resource/asset/LevelAssetTypes.hpp"
 #include "fastfall/resource/asset/TileLayerData.hpp"
-#include "fastfall/render/Color.hpp"
+#include "fastfall/render/util/Color.hpp"
 
 //#include <SFML/Graphics.hpp>
 //#include "fastfall/schema/resource-flat.hpp"

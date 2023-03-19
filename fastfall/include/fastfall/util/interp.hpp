@@ -5,6 +5,7 @@
 
 namespace ff {
 
+/*
 template<class T>
 struct InterpVec2
 {
@@ -78,7 +79,6 @@ protected:
     Rect<T> _prev;
 };
 
-
-
+ */
 
 }

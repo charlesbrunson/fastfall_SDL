@@ -3,10 +3,9 @@
 //#include <SFML/Graphics.hpp>
 
 #include "fastfall/util/math.hpp"
-#include "fastfall/render/Drawable.hpp"
-#include "fastfall/render/RenderTarget.hpp"
-#include "fastfall/render/VertexArray.hpp"
-#include "fastfall/render/Drawable.hpp"
+#include "fastfall/render/drawable/Drawable.hpp"
+#include "fastfall/render/target/RenderTarget.hpp"
+#include "fastfall/render/drawable/VertexArray.hpp"
 
 #include <memory>
 
@@ -15,24 +14,17 @@ namespace ff {
 namespace debug_draw {
 	enum class Type {
 		NONE,
-
 		COLLISION_COLLIDER,
 		COLLISION_COLLIDABLE,
 		COLLISION_CONTACT,
 		COLLISION_RAYCAST,
-
 		TILELAYER_AREA,
 		TILELAYER_CHUNK,
-
 		CAMERA_VISIBLE,
 		CAMERA_TARGET,
-
 		TRIGGER_AREA,
-
         PATHS,
-
         ATTACH,
-
 		LAST
 	};
 

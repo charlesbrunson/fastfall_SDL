@@ -1,7 +1,7 @@
 #include "fastfall/render/DebugDraw.hpp"
 #include "fastfall/util/log.hpp"
 
-#include "fastfall/render/ShapeRectangle.hpp"
+#include "fastfall/render/drawable/ShapeRectangle.hpp"
 
 #include <set>
 #include <deque>

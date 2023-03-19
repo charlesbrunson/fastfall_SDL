@@ -1,6 +1,6 @@
 #include "PlayerAir.hpp"
 
-#include "fastfall/engine/InputConfig.hpp"
+#include "fastfall/engine/input/InputConfig.hpp"
 
 using namespace ff;
 

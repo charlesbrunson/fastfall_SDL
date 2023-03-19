@@ -3,7 +3,7 @@
 #include "fastfall/util/math.hpp"
 //#include "SFML/Graphics.hpp"
 
-#include "fastfall/render/Texture.hpp"
+#include "fastfall/render/util/Texture.hpp"
 #include "fastfall/resource/asset/AnimAssetTypes.hpp"
 
 #include <assert.h>

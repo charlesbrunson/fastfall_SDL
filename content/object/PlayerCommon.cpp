@@ -1,6 +1,6 @@
 #include "PlayerCommon.hpp"
 
-#include "fastfall/engine/InputConfig.hpp"
+#include "fastfall/engine/input/InputConfig.hpp"
 #include "fastfall/engine/audio.hpp"
 
 using namespace ff;

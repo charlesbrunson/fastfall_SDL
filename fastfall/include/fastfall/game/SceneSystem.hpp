@@ -1,7 +1,7 @@
 #pragma once
 
-#include "fastfall/render/Drawable.hpp"
-#include "fastfall/render/ShapeRectangle.hpp"
+#include "fastfall/render/drawable/Drawable.hpp"
+#include "fastfall/render/drawable/ShapeRectangle.hpp"
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/slot_map.hpp"
 #include "fastfall/util/id.hpp"

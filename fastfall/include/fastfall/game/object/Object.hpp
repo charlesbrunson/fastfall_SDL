@@ -12,7 +12,7 @@
 
 #include "imgui.h"
 
-#include "fastfall/render/Drawable.hpp"
+#include "fastfall/render/drawable/Drawable.hpp"
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/util/log.hpp"
 #include "fastfall/util/tag.hpp"

@@ -1,6 +1,6 @@
 
 #include "fastfall/engine/Engine.hpp"
-#include "fastfall/render/Window.hpp"
+#include "fastfall/render/target/Window.hpp"
 #include "fastfall/fastfall.hpp"
 
 #include "content/types.hpp"

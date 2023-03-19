@@ -2,11 +2,11 @@
 #include "TestState.hpp"
 
 #include "fastfall/game/World.hpp"
-#include "fastfall/render/ShapeRectangle.hpp"
-#include "fastfall/render/ShapeCircle.hpp"
-#include "fastfall/render/ShapeLine.hpp"
+#include "fastfall/render/drawable/ShapeRectangle.hpp"
+#include "fastfall/render/drawable/ShapeCircle.hpp"
+#include "fastfall/render/drawable/ShapeLine.hpp"
 #include "fastfall/render/DebugDraw.hpp"
-#include "fastfall/engine/InputConfig.hpp"
+#include "fastfall/engine/input/InputConfig.hpp"
 
 #include "fastfall/engine/input/Mouse.hpp"
 

@@ -1,21 +1,23 @@
 #pragma once
 
+#include "fastfall/engine/config.hpp"
+
 #include "fastfall/resource/asset/LevelAsset.hpp"
 #include "fastfall/resource/asset/TilesetAsset.hpp"
 #include "fastfall/resource/asset/TileLayerData.hpp"
+
+#include "fastfall/render/drawable/Drawable.hpp"
+#include "fastfall/render/drawable/ChunkVertexArray.hpp"
 
 #include "fastfall/game/phys/collider_regiontypes/ColliderTileMap.hpp"
 #include "fastfall/game/level/TileLogic.hpp"
 #include "fastfall/game/scene/SceneConfig.hpp"
 #include "fastfall/game/tile/Tile.hpp"
-
-#include "fastfall/render/Drawable.hpp"
-#include "fastfall/render/ChunkVertexArray.hpp"
-
 #include "fastfall/game/Actor.hpp"
 
 #include <memory>
 #include <set>
+#include <numeric>
 
 namespace ff {
 
@@ -71,7 +73,7 @@ struct TileScroll {
 
 class TileLayer : public Actor {
 private:
-	static constexpr int	TILEDATA_NONE	= UINT8_MAX;
+	static constexpr int	TILEDATA_NONE	= std::numeric_limits<uint8_t>::max();
 	static constexpr Vec2u	kChunkSize		= Vec2u{ GAME_TILE_W / 2u, GAME_TILE_H / 2u };
 
 	// copy of layer from asset

@@ -5,9 +5,9 @@
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/util/log.hpp"
 
-#include "fastfall/render/RenderTarget.hpp"
+#include "fastfall/render/target/RenderTarget.hpp"
 #include "fastfall/render/DebugDraw.hpp"
-#include "fastfall/render/ShapeRectangle.hpp"
+#include "fastfall/render/drawable/ShapeRectangle.hpp"
 
 #include "fastfall/game/CameraSystem.hpp"
 #include "fastfall/game/CollisionSystem.hpp"

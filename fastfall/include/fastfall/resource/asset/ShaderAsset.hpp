@@ -1,7 +1,7 @@
 #pragma once
 
 #include "fastfall/resource/Asset.hpp"
-#include "fastfall/render/Shader.hpp"
+#include "fastfall/render/util/Shader.hpp"
 
 namespace ff {
 

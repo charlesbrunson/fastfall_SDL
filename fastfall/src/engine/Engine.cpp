@@ -6,20 +6,20 @@
 
 #include "fastfall/util/log.hpp"
 
-#include "fastfall/render.hpp"
+#include "fastfall/render/render.hpp"
 #include "../render/detail/error.hpp"
 
 #include "fastfall/engine/Engine.hpp"
 #include "fastfall/engine/config.hpp"
 #include "fastfall/engine/input/Mouse.hpp"
 
-#include "fastfall/engine/InputConfig.hpp"
+#include "fastfall/engine/input/InputConfig.hpp"
 #include "fastfall/engine/time/profiler.hpp"
 
 #include "fastfall/resource/ResourceWatcher.hpp"
 
 #include "fastfall/resource/Resources.hpp"
-#include "fastfall/render/AnimatedSprite.hpp"
+#include "fastfall/render/drawable/AnimatedSprite.hpp"
 #include "fastfall/render/DebugDraw.hpp"
 
 #include "fmt/format.h"

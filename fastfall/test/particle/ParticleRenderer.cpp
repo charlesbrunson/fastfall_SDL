@@ -2,7 +2,7 @@
 
 #include "gtest/gtest.h"
 
-#include "fastfall/render/Color.hpp"
+#include "fastfall/render/util/Color.hpp"
 
 #if FF_PARTICLERENDERER_ENABLED
 #include "gif.h"

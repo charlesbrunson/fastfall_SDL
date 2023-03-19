@@ -1,10 +1,10 @@
 
-#include "fastfall/render.hpp"
+#include "fastfall/render/render.hpp"
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_sdl.h"
-#include "fastfall/render/opengl.hpp"
-#include "fastfall/render/freetype.hpp"
-#include "fastfall/render/Window.hpp"
+#include "fastfall/render/external/opengl.hpp"
+#include "fastfall/render/external/freetype.hpp"
+#include "fastfall/render/target/Window.hpp"
 
 #include "detail/error.hpp"
 

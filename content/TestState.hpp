@@ -15,7 +15,7 @@
 
 #include "fastfall/game/level/LevelEditor.hpp"
 
-#include "fastfall/render/Sprite.hpp"
+#include "fastfall/render/drawable/Sprite.hpp"
 
 class TestState : public ff::EngineState {
 public:

@@ -3,7 +3,7 @@
 #include "fastfall/util/log.hpp"
 #include "fastfall/engine/config.hpp"
 #include "fastfall/render/DebugDraw.hpp"
-#include "fastfall/render/ShapeCircle.hpp"
+#include "fastfall/render/drawable/ShapeCircle.hpp"
 
 #include "fastfall/game/phys/collision/Response.hpp"
 

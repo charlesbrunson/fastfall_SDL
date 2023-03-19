@@ -1,7 +1,7 @@
 #include "fastfall/engine/input/InputSourceRealtime.hpp"
 
 #include "fastfall/engine/input/Input.hpp"
-#include "fastfall/engine/InputConfig.hpp"
+#include "fastfall/engine/input/InputConfig.hpp"
 #include "fastfall/util/log.hpp"
 
 #include <assert.h>

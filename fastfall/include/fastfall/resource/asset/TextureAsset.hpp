@@ -3,7 +3,7 @@
 #include "fastfall/resource/Asset.hpp"
 //#include <SFML/Graphics.hpp>
 
-#include "fastfall/render/Texture.hpp"
+#include "fastfall/render/util/Texture.hpp"
 
 namespace ff {
 

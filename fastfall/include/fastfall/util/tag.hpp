@@ -6,6 +6,9 @@
 #include <concepts>
 #include <algorithm>
 #include <type_traits>
+#include <numeric>
+
+#include "fastfall/util/log.hpp"
 
 namespace ff {
 
@@ -20,7 +23,7 @@ struct Tag {
 private:
 
 	unsigned short tag_id = 0;
-	static constexpr unsigned short kLimit = USHRT_MAX - 1;
+	static constexpr unsigned short kLimit = std::numeric_limits<unsigned short>::max() - 1;
 
 	std::string_view str;
 

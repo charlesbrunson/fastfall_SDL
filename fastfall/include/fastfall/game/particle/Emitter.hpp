@@ -4,8 +4,8 @@
 
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/util/math.hpp"
-#include "fastfall/render/Texture.hpp"
-#include "fastfall/render/VertexArray.hpp"
+#include "fastfall/render/util/Texture.hpp"
+#include "fastfall/render/drawable/VertexArray.hpp"
 #include "fastfall/resource/asset/AnimAssetTypes.hpp"
 #include "fastfall/resource/asset/AnimAsset.hpp"
 #include "fastfall/util/id.hpp"

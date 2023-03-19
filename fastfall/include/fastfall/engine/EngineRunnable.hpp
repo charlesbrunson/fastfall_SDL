@@ -2,7 +2,7 @@
 
 //#include <SFML/Graphics.hpp>
 
-#include "fastfall/render/RenderTexture.hpp"
+#include "fastfall/render/target/RenderTexture.hpp"
 
 #include "state/EngineStateHandler.hpp"
 

@@ -5,7 +5,7 @@
 #include "fastfall/game/World.hpp"
 #include "fastfall/game/path/PathMover.hpp"
 
-#include "fastfall/render/ShapeRectangle.hpp"
+#include "fastfall/render/drawable/ShapeRectangle.hpp"
 
 class BasicPlatform : public ff::Object {
 public:

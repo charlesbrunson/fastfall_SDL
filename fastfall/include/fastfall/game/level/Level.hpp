@@ -5,7 +5,7 @@
 #include "fastfall/resource/asset/LevelAsset.hpp"
 #include "fastfall/resource/ResourceSubscriber.hpp"
 
-#include "fastfall/render/Drawable.hpp"
+#include "fastfall/render/drawable/Drawable.hpp"
 #include "fastfall/engine/config.hpp"
 
 #include "fastfall/game/level/LevelLayerContainer.hpp"

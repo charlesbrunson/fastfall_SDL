@@ -1,7 +1,7 @@
 #pragma once
 
 #include "fastfall/util/math.hpp"
-#include "fastfall/render/Drawable.hpp"
+#include "fastfall/render/drawable/Drawable.hpp"
 #include "fastfall/engine/time/time.hpp"
 
 #include <assert.h>

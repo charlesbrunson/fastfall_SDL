@@ -1,7 +1,7 @@
 
 #include "fastfall/resource/asset/SpriteAsset.hpp"
 #include "fastfall/resource/asset/AnimAsset.hpp"
-#include "fastfall/render/AnimatedSprite.hpp"
+#include "fastfall/render/drawable/AnimatedSprite.hpp"
 
 #include "fastfall/util/xml.hpp"
 

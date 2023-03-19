@@ -1,12 +1,12 @@
 #include "fastfall/fastfall.hpp"
 
-#include "fastfall/render.hpp"
+#include "fastfall/render/render.hpp"
 #include "fastfall/engine/audio.hpp"
 #include "fastfall/util/log.hpp"
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/resource/ResourceWatcher.hpp"
 #include "fastfall/engine/imgui/ImGuiFrame.hpp"
-#include "fastfall/engine/InputConfig.hpp"
+#include "fastfall/engine/input/InputConfig.hpp"
 
 namespace ff {
 

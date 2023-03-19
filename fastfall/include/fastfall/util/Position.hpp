@@ -6,6 +6,7 @@
 
 namespace ff {
 
+/*
 template<typename T>
 struct Position {
 	Vec2<T> previous;
@@ -68,5 +69,7 @@ struct Position {
 };
 
 using Positionf = Position<float>;
+
+*/
 
 }

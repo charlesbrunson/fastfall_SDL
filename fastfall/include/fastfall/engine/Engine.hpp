@@ -9,9 +9,9 @@
 
 #include "fastfall/util/Vec2.hpp"
 
-#include "fastfall/render/VertexArray.hpp"
-#include "fastfall/render/Window.hpp"
-#include "fastfall/engine/InputConfig.hpp"
+#include "fastfall/render/drawable/VertexArray.hpp"
+#include "fastfall/render/target/Window.hpp"
+#include "fastfall/engine/input/InputConfig.hpp"
 #include "fastfall/game/WorldImGui.hpp"
 
 #include <queue>

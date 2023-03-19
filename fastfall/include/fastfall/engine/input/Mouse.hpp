@@ -4,7 +4,7 @@
 #include "fastfall/util/math.hpp"
 
 #include "fastfall/engine/input/Input.hpp"
-#include "fastfall/render/View.hpp"
+#include "fastfall/render/util/View.hpp"
 
 namespace ff {
     class MouseInput : public Input {

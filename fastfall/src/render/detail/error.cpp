@@ -1,7 +1,7 @@
 
 #include "error.hpp"
 
-#include "fastfall/render/opengl.hpp"
+#include "fastfall/render/external/opengl.hpp"
 #include "fastfall/util//log.hpp"
 
 namespace ff {
