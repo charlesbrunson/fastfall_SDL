@@ -1,4 +1,4 @@
-#include "fastfall/game/TriggerSystem.hpp"
+#include "fastfall/game/systems/TriggerSystem.hpp"
 
 #include "fastfall/render/DebugDraw.hpp"
 #include "fastfall/game/World.hpp"

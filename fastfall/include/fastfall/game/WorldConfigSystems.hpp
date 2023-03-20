@@ -1,14 +1,14 @@
 #pragma once
 
-#include "fastfall/game/CollisionSystem.hpp"
-#include "fastfall/game/CameraSystem.hpp"
-#include "fastfall/game/TriggerSystem.hpp"
-#include "fastfall/game/SceneSystem.hpp"
-#include "fastfall/game/ActorSystem.hpp"
-#include "fastfall/game/LevelSystem.hpp"
-#include "fastfall/game/EmitterSystem.hpp"
-#include "fastfall/game/AttachSystem.hpp"
-#include "fastfall/game/PathSystem.hpp"
+#include "fastfall/game/systems/CollisionSystem.hpp"
+#include "fastfall/game/systems/CameraSystem.hpp"
+#include "fastfall/game/systems/TriggerSystem.hpp"
+#include "fastfall/game/systems/SceneSystem.hpp"
+#include "fastfall/game/systems/ActorSystem.hpp"
+#include "fastfall/game/systems/LevelSystem.hpp"
+#include "fastfall/game/systems/EmitterSystem.hpp"
+#include "fastfall/game/systems/AttachSystem.hpp"
+#include "fastfall/game/systems/PathSystem.hpp"
 
 #include <tuple>
 #include <variant>

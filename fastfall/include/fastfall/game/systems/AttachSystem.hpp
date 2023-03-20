@@ -2,7 +2,7 @@
 
 #include "fastfall/game/attach/AttachPoint.hpp"
 #include "fastfall/engine/time/time.hpp"
-#include "ComponentID.hpp"
+#include "fastfall/game/ComponentID.hpp"
 
 #include <map>
 #include <set>

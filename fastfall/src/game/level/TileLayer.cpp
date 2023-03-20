@@ -9,8 +9,8 @@
 #include "fastfall/render/DebugDraw.hpp"
 #include "fastfall/render/drawable/ShapeRectangle.hpp"
 
-#include "fastfall/game/CameraSystem.hpp"
-#include "fastfall/game/CollisionSystem.hpp"
+#include "fastfall/game/systems/CameraSystem.hpp"
+#include "fastfall/game/systems/CollisionSystem.hpp"
 #include "fastfall/game/World.hpp"
 
 namespace ff {

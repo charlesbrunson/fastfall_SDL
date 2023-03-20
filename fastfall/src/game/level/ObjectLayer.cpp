@@ -1,6 +1,6 @@
 #include "fastfall/game/level/ObjectLayer.hpp"
 
-#include "fastfall/game/ActorSystem.hpp"
+#include "fastfall/game/systems/ActorSystem.hpp"
 #include "fastfall/game/World.hpp"
 
 namespace ff {

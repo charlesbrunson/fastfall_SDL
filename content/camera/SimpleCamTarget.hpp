@@ -1,6 +1,6 @@
 #pragma once
 
-#include "fastfall/game/CameraSystem.hpp"
+#include "fastfall/game/systems/CameraSystem.hpp"
 
 namespace ff {
     class World;

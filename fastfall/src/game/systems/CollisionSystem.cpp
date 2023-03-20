@@ -1,4 +1,4 @@
-#include "fastfall/game/CollisionSystem.hpp"
+#include "fastfall/game/systems/CollisionSystem.hpp"
 
 #include "fastfall/game/phys/CollisionSolver.hpp"
 #include "fastfall/game/World.hpp"

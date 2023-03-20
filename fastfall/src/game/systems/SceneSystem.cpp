@@ -1,4 +1,4 @@
-#include "fastfall/game/SceneSystem.hpp"
+#include "fastfall/game/systems/SceneSystem.hpp"
 #include "fastfall/game/World.hpp"
 #include "fastfall/engine/config.hpp"
 

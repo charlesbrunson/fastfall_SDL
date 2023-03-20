@@ -1,4 +1,4 @@
-#include "fastfall/game/PathSystem.hpp"
+#include "fastfall/game/systems/PathSystem.hpp"
 
 #include "fastfall/game/World.hpp"
 

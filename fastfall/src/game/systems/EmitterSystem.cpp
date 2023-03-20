@@ -1,4 +1,4 @@
-#include "fastfall/game/EmitterSystem.hpp"
+#include "fastfall/game/systems/EmitterSystem.hpp"
 
 #include "fastfall/game/World.hpp"
 

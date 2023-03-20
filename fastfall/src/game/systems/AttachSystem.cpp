@@ -1,6 +1,6 @@
 #include <utility>
 
-#include "fastfall/game/AttachSystem.hpp"
+#include "fastfall/game/systems/AttachSystem.hpp"
 
 #include "fastfall/render/DebugDraw.hpp"
 

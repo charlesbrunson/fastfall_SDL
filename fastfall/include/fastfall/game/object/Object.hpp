@@ -18,7 +18,6 @@
 #include "fastfall/util/tag.hpp"
 #include "fastfall/util/id.hpp"
 #include "fastfall/util/copyable_uniq_ptr.hpp"
-//#include "fastfall/game/object/objmessage.hpp"
 #include "fastfall/game/Entity.hpp"
 
 

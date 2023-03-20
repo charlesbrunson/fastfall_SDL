@@ -37,7 +37,7 @@ struct ComponentConfig {
 };
 
 using Components = ComponentConfig<
-    Actor*, // pointer specifies this type should be stored as a pointer (for polymorphic types)
+    Actor*, // pointer specifies this type should be stored dynamically (for polymorphic types)
     Collidable,
     ColliderRegion*,
     Trigger,
@@ -46,7 +46,6 @@ using Components = ComponentConfig<
     Emitter,
     AttachPoint,
     PathMover
-    //TileLayer
 >;
 
 constexpr inline static std::string_view ComponentNames[Components::Count] = {
@@ -59,7 +58,6 @@ constexpr inline static std::string_view ComponentNames[Components::Count] = {
     "Emitter",
     "AttachPoint",
     "PathMover",
-    //"TileLayer"
 };
 
 }
