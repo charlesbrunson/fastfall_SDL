@@ -11,7 +11,6 @@ namespace ff {
 struct Entity {
     std::optional<ID<Actor>> actor = {};
     std::set<ComponentID>    components;
-    //mutable EntityImGui      imgui;
 };
 
 }

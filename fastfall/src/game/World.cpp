@@ -113,7 +113,7 @@ std::optional<ID_ptr<Object>> World::create_object_from_data(ObjectLevelData& da
     };
     //auto actor_id = components<Actor>().emplace(ObjectFactory::createFromData(init, data));
     components<Actor>().emplace_at(actor_id, ObjectFactory::createFromData(init, data));
-    if (auto* ptr = get(actor_id); ptr && ptr->initialized) {
+    if (auto* ptr = get(actor_id); ptr && ptr->is_initialized()) {
         system_notify_created<Actor>(actor_id);
         auto obj_id = id_cast<Object>(actor_id);
         return ID_ptr<Object>{obj_id, get(obj_id) };

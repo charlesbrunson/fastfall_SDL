@@ -67,6 +67,9 @@ public:
 	using value_type = T;
     constexpr static bool is_poly = false;
 
+    template<typename Item>
+    constexpr static bool fits() { return std::same_as<Item, T>; };
+
 private:
     slot_map<value_type> components;
 
@@ -144,6 +147,9 @@ public:
     using value_type = copyable_unique_ptr<T>;
     using span = std::span<value_type>;
     constexpr static bool is_poly = true;
+
+    template<typename Item>
+    constexpr static bool fits() { return std::derived_from<Item, T>; };
 
 private:
 	slot_map<value_type> components;

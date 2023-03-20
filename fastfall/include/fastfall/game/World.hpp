@@ -51,22 +51,19 @@ private:
     template<class T>
     constexpr auto& components()
     {
+        // figure out what container fits T
         constexpr size_t index = []<size_t... Ndx>(std::index_sequence<Ndx...>) constexpr {
-
             std::optional<size_t> opt_ndx;
-
-            ([&]<size_t N>(std::integral_constant<size_t, N>) constexpr {
+            constexpr auto container_matches = []<size_t N>(std::optional<size_t>& opt_ndx, std::integral_constant<size_t, N>) constexpr {
                 using Container = std::tuple_element_t<N, Components::MapTuple>;
                 using Item      = typename Container::base_type;
-                bool match      = std::same_as<id_map<Item>, Container>      && std::same_as<T, Item>;
-                bool poly_match = std::same_as<poly_id_map<Item>, Container> && std::derived_from<T, Item>;
-                if (!opt_ndx && (match || poly_match)) {
+                if (!opt_ndx && Container::template fits<T>()) {
                     opt_ndx = N;
                 }
-            }(std::integral_constant<size_t, Ndx>{}), ...);
-
+                return opt_ndx.has_value();
+            };
+            (container_matches(opt_ndx, std::integral_constant<size_t, Ndx>{}) || ...);
             return *opt_ndx;
-
         }(std::make_index_sequence<Components::Count>{});
 
         return std::get<index>(state._components);
@@ -239,7 +236,7 @@ private:
         ent.actor = actor_id;
         components<Actor>().emplace_at<T_Actor>(actor_id, init, std::forward<Args>(args)...);
         auto& actor = at(actor_id);
-        return actor.initialized;
+        return actor.is_initialized();
     }
 
     template<typename T>

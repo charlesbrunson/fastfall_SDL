@@ -82,15 +82,12 @@ public:
     const ActorType     type;
     const ActorPriority priority;
 
-    [[nodiscard]]
-    bool is_dead() const { return dead; }
+    [[nodiscard]] bool is_dead() const { return dead; }
+    [[nodiscard]] bool is_initialized() const { return initialized; }
 
 protected:
     bool initialized = true;
     bool dead = false;
-
-private:
-    friend class World;
 };
 
 inline auto actor_compare(const Actor &lhs, const Actor &rhs) {
@@ -104,7 +101,7 @@ namespace actor_msg {
     static constexpr auto NoOp   = Actor::dformat<"noop">{};
     static constexpr auto GetPos = Actor::dformat<"getpos", Vec2f>{};
     static constexpr auto SetPos = Actor::dformat<"setpos", dvoid, Vec2f>{};
-    static constexpr auto Hurt   = Actor::dformat<"hurt", dvoid, float>{};
+    static constexpr auto Hurt   = Actor::dformat<"hurt",   dvoid, float>{};
 }
 
 template<class T, class... Args>
