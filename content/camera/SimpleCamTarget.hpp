@@ -1,10 +1,6 @@
 #pragma once
 
-#include "fastfall/game/systems/CameraSystem.hpp"
-
-namespace ff {
-    class World;
-}
+#include "fastfall/game/camera/CameraTarget.hpp"
 
 class SimpleCamTarget : public ff::CameraTarget {
 public:
