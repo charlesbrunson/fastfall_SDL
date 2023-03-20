@@ -380,3 +380,6 @@ FodyWeavers.xsd
 /fastfall/test/google_test
 /notes/.obsidian/
 /notes/.trash/
+/.ccls-cache/
+/embuild
+/.idea

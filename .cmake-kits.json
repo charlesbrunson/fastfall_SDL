@@ -1,0 +1,17 @@
+{
+	"clang": {
+		"compilers":{
+			"CC":"/usr/bin/clang",
+			"CXX":"/usr/bin/clang++"
+		}
+	},
+	"gcc":{
+		"compilers":{
+			"CC":"/usr/bin/gcc",
+			"CXX":"/usr/bin/g++"
+		}
+	},
+	"emscripten":{
+		"toolchainFile":"~/emscripten/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake"
+	}
+}
