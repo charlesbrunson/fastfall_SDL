@@ -182,6 +182,7 @@ add_dependencies(fastfall fbs_compiled)
 
 # includes
 target_include_directories(fastfall PUBLIC ${FF_INCLUDES})
+target_include_directories(fastfall PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # libraries
 target_link_libraries(fastfall PRIVATE ${FF_LIBRARIES})
