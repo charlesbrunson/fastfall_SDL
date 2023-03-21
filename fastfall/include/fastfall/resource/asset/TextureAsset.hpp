@@ -32,7 +32,6 @@ protected:
 	std::string imgui_title;
 	bool imgui_showTex = false;
 
-	//sf::Texture tex;
 	Texture tex;
 };
 

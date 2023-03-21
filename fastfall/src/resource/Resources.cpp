@@ -8,8 +8,6 @@ using namespace rapidxml;
 #include <mutex>
 #include <future>
 
-//#include "fastfall/schema/resource-flat.hpp"
-
 #include "fastfall/resource/ResourceWatcher.hpp"
 #include "fastfall/resource/ResourceSubscriber.hpp"
 

@@ -1,9 +1,5 @@
 #pragma once
 
-//#include <SFML/System.hpp>
-
-#include "fastfall/schema/math-flat.hpp"
-
 #include <glm/vec2.hpp>
 
 #include <type_traits>

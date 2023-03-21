@@ -2,7 +2,6 @@
 
 #include "rapidxml.hpp"
 
-
 #include "fastfall/game/tile/Tile.hpp"
 #include "fastfall/resource/asset/TextureAsset.hpp"
 
@@ -11,7 +10,6 @@
 
 #include "fastfall/engine/time/time.hpp"
 
-//#include "fastfall/schema/resource-flat.hpp"
 #include <map>
 #include <optional>
 

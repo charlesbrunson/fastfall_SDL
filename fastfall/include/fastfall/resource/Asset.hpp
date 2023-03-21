@@ -4,8 +4,6 @@
 #include "fastfall/engine/imgui/ImGuiContent.hpp"
 #include "fastfall/util/math.hpp"
 
-//#include "flatbuffers/flatbuffers.h"
-
 #include <iostream>
 #include <filesystem>
 
@@ -39,7 +37,5 @@ protected:
     std::string asset_name;
 	bool loaded = false;
 };
-
-std::vector<int8_t> readFile(const std::filesystem::path& filename);
 
 }

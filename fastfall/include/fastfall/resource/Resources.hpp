@@ -20,14 +20,10 @@ namespace ff {
 template<typename T>
 concept is_asset = (std::derived_from<T, Asset> && !std::same_as<T, Asset>);
 
-//template<is_asset T>
-//using AssetMap = std::map<std::string, std::unique_ptr<T>, std::less<>>;
-
 template<is_asset T>
 struct asset_type {
     using map = std::map<std::string, std::unique_ptr<T>, std::less<>>;
 
-    //const std::type_index type = typeid(T);
     std::filesystem::path extension;
     std::string_view type_name;
     map assets;

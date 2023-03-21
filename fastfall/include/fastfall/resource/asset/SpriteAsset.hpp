@@ -5,11 +5,9 @@
 
 #include "fastfall/util/math.hpp"
 
-//#include "fastfall/schema/resource-flat.hpp"
-
 #include <map>
-#include <chrono>
-using namespace std::chrono;
+//#include <chrono>
+//using namespace std::chrono;
 
 
 namespace ff {

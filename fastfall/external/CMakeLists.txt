@@ -24,20 +24,6 @@ FetchContent_Declare(
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/fmt
 )
 
-#flatbuffers
-set(FLATBUFFERS_BUILD_TESTS 	OFF CACHE INTERNAL "")
-set(FLATBUFFERS_INSTALL 		OFF CACHE INTERNAL "")
-set(FLATBUFFERS_BUILD_FLATC 	OFF CACHE INTERNAL "")
-set(FLATBUFFERS_BUILD_FLATLIB 	ON  CACHE INTERNAL "")
-set(FLATBUFFERS_BUILD_CPP17 	ON  CACHE INTERNAL "")
-FetchContent_Declare(
-	flatbuffers
-	GIT_REPOSITORY https://github.com/google/flatbuffers.git
-	GIT_TAG        v1.12.0
-    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers
-)
-
-
 #rapidxml
 FetchContent_Declare(
 	rapidxml
@@ -87,7 +73,6 @@ FetchContent_MakeAvailable(
 	freetype
 	glm
 	fmt	
-	flatbuffers
 	json
 	rapidxml
 	imgui
@@ -95,10 +80,8 @@ FetchContent_MakeAvailable(
 )
 
 if (EMSCRIPTEN)
-
 	target_compile_options(freetype PRIVATE -s USE_LIBPNG=1)
 	target_link_options(freetype PRIVATE -s USE_LIBPNG=1)
-
 endif()
 
 
