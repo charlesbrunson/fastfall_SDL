@@ -1,0 +1,46 @@
+cmake_minimum_required (VERSION 3.16)
+
+target_sources(fastfall PRIVATE
+    ComponentID.cpp
+    World.cpp
+    imgui_component.cpp
+    WorldImGui.cpp
+    path/PathMover.cpp
+    path/Path.cpp
+    trigger/Trigger.cpp
+    object/Object.cpp
+    phys/Collidable.cpp
+    phys/CollidableArbiter.cpp
+    phys/CollisionSolver.cpp
+    phys/RegionArbiter.cpp
+    phys/ColliderRegion.cpp
+    phys/Raycast.cpp
+    phys/Arbiter.cpp
+    phys/collidable/SurfaceTracker.cpp
+    phys/collision/Response.cpp
+    phys/collision/CollisionContinuous.cpp
+    phys/collision/CollisionDiscrete.cpp
+    phys/collision/Contact.cpp
+    phys/collider_regiontypes/ColliderTileMap.cpp
+    phys/collider_regiontypes/ColliderSimple.cpp
+    phys/collider_coretypes/ColliderTile.cpp
+    phys/collider_coretypes/ColliderQuad.cpp
+    tile/Tile.cpp
+    level/ObjectLayer.cpp
+    level/LevelEditor.cpp
+    level/Level.cpp
+    level/TileLayer.cpp
+    level/TileLogic.cpp
+    attach/AttachConstraint.cpp
+    attach/AttachPoint.cpp
+    systems/LevelSystem.cpp
+    systems/ActorSystem.cpp
+    systems/AttachSystem.cpp
+    systems/CameraSystem.cpp
+    systems/PathSystem.cpp
+    systems/CollisionSystem.cpp
+    systems/SceneSystem.cpp
+    systems/EmitterSystem.cpp
+    systems/TriggerSystem.cpp
+    particle/Emitter.cpp
+)

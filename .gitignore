@@ -383,3 +383,5 @@ FodyWeavers.xsd
 /.ccls-cache/
 /embuild
 /.idea
+
+input_config.json

@@ -79,7 +79,32 @@ FetchContent_MakeAvailable(
 	implot
 )
 
+# compile imgui and implot as library
+add_library(imgui STATIC
+		imgui/imgui.cpp
+		imgui/imgui_demo.cpp
+		imgui/imgui_draw.cpp
+		imgui/imgui_tables.cpp
+		imgui/imgui_widgets.cpp
+		imgui/backends/imgui_impl_sdl.cpp
+		imgui/backends/imgui_impl_opengl3.cpp
+
+		implot/implot.cpp
+		implot/implot_demo.cpp
+		implot/implot_items.cpp
+		)
+
+target_include_directories(imgui PRIVATE
+		imgui
+		implot
+		sdl/include
+		)
+
+target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLEW )
+
 if (EMSCRIPTEN)
+	target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_ES3)
+
 	target_compile_options(freetype PRIVATE -s USE_LIBPNG=1)
 	target_link_options(freetype PRIVATE -s USE_LIBPNG=1)
 endif()
@@ -194,3 +219,56 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(
 		soloud
 )
+
+# add all include directories to fastfall
+target_include_directories(fastfall PUBLIC
+	freetype/include
+	rapidxml
+	json/include
+	fmt/include
+	glm
+	imgui
+	implot
+	soloud/include
+)
+if(NOT EMSCRIPTEN)
+	target_include_directories(fastfall PUBLIC
+		glew/include
+		sdl_image
+		sdl/include
+		zlib
+	)
+endif()
+
+
+# add all libraries and includes to fastfall
+target_link_libraries(fastfall PRIVATE
+	freetype
+	glm
+	fmt::fmt
+	soloud
+	imgui
+)
+if(NOT EMSCRIPTEN)
+	target_link_libraries(fastfall PRIVATE
+		zlibstatic
+		SDL2image
+		glew_s
+		SDL2main
+		SDL2-static
+	)
+endif()
+
+
+
+
+
+
+
+
+
+
+
+
+
+

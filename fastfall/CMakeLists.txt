@@ -3,89 +3,17 @@
 #
 cmake_minimum_required (VERSION 3.16)
 
-# build fastfall dependencies
+add_library(fastfall STATIC ${FF_SOURCES})
 add_subdirectory("external")
-
-set(FF_INCLUDES
-	${CMAKE_CURRENT_SOURCE_DIR}/include
-
-	${CMAKE_CURRENT_SOURCE_DIR}/external/freetype/include
-	${CMAKE_CURRENT_SOURCE_DIR}/external/rapidxml
-	${CMAKE_CURRENT_SOURCE_DIR}/external/json/include
-	${CMAKE_CURRENT_SOURCE_DIR}/external/fmt/include
-	${CMAKE_CURRENT_SOURCE_DIR}/external/glm
-	
-	${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
-	${CMAKE_CURRENT_SOURCE_DIR}/external/implot
-	${CMAKE_CURRENT_SOURCE_DIR}/external/soloud/include
-)
-
-set(FF_LIBRARIES
-	freetype
-	glm
-	fmt::fmt
-	soloud
-)
-
-if(NOT EMSCRIPTEN)
-	set(FF_INCLUDES
-		${FF_INCLUDES}
-		${CMAKE_CURRENT_SOURCE_DIR}/external/glew/include
-		${CMAKE_CURRENT_SOURCE_DIR}/external/sdl_image
-		${CMAKE_CURRENT_SOURCE_DIR}/external/sdl/include
-		${CMAKE_CURRENT_SOURCE_DIR}/external/zlib
-	)
-	set(FF_LIBRARIES
-		${FF_LIBRARIES}
-		zlibstatic
-		SDL2image 
-		glew_s
-		SDL2main
-		SDL2-static
-	)
-endif()
-
-
-# grab fastfall source
-file(GLOB_RECURSE FF_SOURCES 
-	${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp
-)
-file(GLOB_RECURSE FF_HEADERS 
-	${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
-)
-
-# grab imgui source
-set(imgui_SOURCE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui")
-set(implot_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/implot")
-
-file(GLOB IMGUI_SOURCES  ${imgui_SOURCE_DIR}/*.cpp)
-file(GLOB IMGUI_HEADERS  ${imgui_SOURCE_DIR}/*.h)
-file(GLOB IMPLOT_SOURCES ${implot_SOURCE_DIR}/*.cpp)
-file(GLOB IMPLOT_HEADERS ${implot_SOURCE_DIR}/*.h)
-
-set(FF_SOURCES 
-	${FF_SOURCES} 
-	${IMGUI_SOURCES}
-	${IMPLOT_SOURCES}
-	${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.h
-	${imgui_SOURCE_DIR}/backends/imgui_impl_sdl.cpp
-	${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.h
-	${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
-)
-
-set(FF_HEADERS 
-	${FF_HEADERS} 
-	${IMGUI_HEADERS} 
-	${IMPLOT_HEADERS} 
-)
-
-add_library(fastfall STATIC ${FF_SOURCES} ${FF_HEADERS})
+add_subdirectory("src")
 set_target_properties(fastfall PROPERTIES
 	CXX_STANDARD 20
 	CXX_STANDARD_REQUIRED YES
 	CXX_EXTENSIONS NO
 )
+
+target_include_directories(fastfall PUBLIC  include)
+target_include_directories(fastfall PRIVATE src)
 
 message(STATUS "FASTFALL COMPILER   -- ${CMAKE_CXX_COMPILER_ID}")
 
@@ -117,47 +45,33 @@ if(EMSCRIPTEN)
 	)
 
 	if (${CMAKE_BUILD_TYPE} MATCHES "Release")
-		target_compile_options(fastfall PUBLIC 
-			-O3 
-		)
-		target_link_options(fastfall PUBLIC 
-			-O3 
-			-sBINARYEN_IGNORE_IMPLICIT_TRAPS=1 
-		)
+		target_compile_options(fastfall PUBLIC -O3)
+		target_link_options(fastfall PUBLIC -O3 -sBINARYEN_IGNORE_IMPLICIT_TRAPS=1)
 	endif()
 endif()
 
-if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" AND EMSCRIPTEN)
+if(EMSCRIPTEN)
 	message(STATUS "FASTFALL EMSCRIPTEN -- ON")
 else()
 	message(STATUS "FASTFALL EMSCRIPTEN -- OFF")
 endif()
 
-# includes
-target_include_directories(fastfall PUBLIC ${FF_INCLUDES})
-target_include_directories(fastfall PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-
-# libraries
-target_link_libraries(fastfall PRIVATE ${FF_LIBRARIES})
-
 # compile definitions
-target_compile_definitions(fastfall PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLEW )
-target_compile_definitions(fastfall PRIVATE DEBUG)
-
+target_compile_definitions(fastfall PUBLIC DEBUG)
 
 if(EMSCRIPTEN)
-	target_compile_definitions(fastfall PUBLIC IMGUI_IMPL_OPENGL_ES3)
 	target_compile_definitions(fastfall PRIVATE FF_DATA_DIR="")
 else()
 	if (${CMAKE_BUILD_TYPE} MATCHES "Release")
-		target_compile_definitions(fastfall PUBLIC FF_DATA_DIR="")
+		target_compile_definitions(fastfall PRIVATE FF_DATA_DIR="")
 	else()
-		target_compile_definitions(fastfall PUBLIC FF_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../")
+		target_compile_definitions(fastfall PRIVATE FF_DATA_DIR="")
 	endif()
 
-	if (WIN32)
-		target_compile_definitions(fastfall PRIVATE NOMINMAX)
-	endif()
+endif()
+
+if (WIN32)
+	target_compile_definitions(fastfall PRIVATE NOMINMAX)
 endif()
 
 add_subdirectory("test")
