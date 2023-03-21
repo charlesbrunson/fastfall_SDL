@@ -48,44 +48,6 @@ public:
 
 	}
 
-	/*
-	template<typename T = float>
-	requires std::is_same_v<Type, T>
-	constexpr Vec2(const flat::math::Vec2Ff& v) : x(v.x()), y(v.y()) {}
-
-	template<typename T = int>
-	requires std::is_same_v<Type, T>
-	constexpr Vec2(const flat::math::Vec2Fi& v) : x(v.x()), y(v.y()) {}
-
-	template<typename T = unsigned>
-	requires std::is_same_v<Type, T>
-	constexpr Vec2(const flat::math::Vec2Fu& v) : x(v.x()), y(v.y()) {}
-
-	template<typename T = float>
-	requires std::is_same_v<Type, T>
-	constexpr Vec2(const flat::math::Vec2Ff* v) : x(v->x()), y(v->y()) {}
-
-	template<typename T = int>
-	requires std::is_same_v<Type, T>
-	constexpr Vec2(const flat::math::Vec2Fi* v) : x(v->x()), y(v->y()) {}
-
-	template<typename T = unsigned>
-	requires std::is_same_v<Type, T>
-	constexpr Vec2(const flat::math::Vec2Fu* v) : x(v->x()), y(v->y()) {}
-
-	template<typename T = float>
-	requires std::is_same_v<Type, T>
-	constexpr Vec2<Type> operator=(const flat::math::Vec2Ff* v) { x = v->x(); y = v->y();	return *this; }
-
-	template<typename T = int>
-	requires std::is_same_v<Type, T>
-	constexpr Vec2<Type> operator=(const flat::math::Vec2Fi* v) { x = v->x(); y = v->y();	return *this; }
-
-	template<typename T = unsigned>
-	requires std::is_same_v<Type, T>
-	constexpr Vec2<Type> operator=(const flat::math::Vec2Fu* v) { x = v->x(); y = v->y();	return *this; }
-	*/
-	
 	//template <typename P>
 	constexpr operator glm::vec<2, Type>() const {
 		return glm::vec<2, Type>(x,	y);
@@ -127,7 +89,6 @@ public:
 	std::string to_string() const noexcept {
 		return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";
 	}
-
 
 	template <typename T, typename = std::enable_if_t<std::is_integral<T>::value>>
 	bool operator< (const ff::Vec2<T>& right) const noexcept {
@@ -207,13 +168,13 @@ constexpr inline ff::Vec2<T>& operator*=(ff::Vec2<T>& left, const ff::Vec2<U>& r
 
 template <typename T, typename U>
 constexpr inline ff::Vec2<T> operator/(const ff::Vec2<T>& left, const U right) {
-	if (right == 0) throw "Vec2: divide by zero";
+	if (right == 0) throw std::runtime_error{ "Vec2: divide by zero" };
 	return ff::Vec2<T>(left.x / static_cast<T>(right), left.y / static_cast<T>(right));
 }
 
 template <typename T, typename U>
 constexpr inline ff::Vec2<T>& operator/=(ff::Vec2<T>& left, const U right) {
-	if (right == 0) throw "Vec2: divide by zero";
+	if (right == 0) throw std::runtime_error{ "Vec2: divide by zero" };
 	left.x /= right;
 	left.y /= right;
 	return left;
@@ -267,8 +228,7 @@ struct fmt::formatter<ff::Vec2<T>> {
 			while (it != end && *it != '}') 
 				it++;
 
-			if (has_arg)
-			{
+			if (has_arg) {
 				presentation = std::string{ "{:" }
 				+ std::string{ ctx.begin(), it + 1 };
 			}
@@ -278,8 +238,6 @@ struct fmt::formatter<ff::Vec2<T>> {
 		return it;
 	}
 
-	// Formats the point p using the parsed format specification (presentation)
-	// stored in this formatter.
 	template <typename FormatContext>
 	auto format(const ff::Vec2<T>& p, FormatContext& ctx) -> decltype(ctx.out()) {
 		return format_to(ctx.out(), "({})", 
@@ -287,7 +245,3 @@ struct fmt::formatter<ff::Vec2<T>> {
 		);
 	}
 };
-
-
-
-//#include "Vec2.inl"

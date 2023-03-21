@@ -64,7 +64,7 @@ dash_anims select_dash_anim(ff::World& w, const plr::members& plr)
 
 	if (ground.has_contact()) {
 		Vec2f cNorm = ground.get_contact()->collider_n;
-		Angle ang = math::angle(cNorm) + Angle::Radian((float)PI_F / 2.f);
+		Angle ang = math::angle(cNorm) + Angle::Radian(Angle::PI / 2.f);
 
 		if (sprite.get_hflip()) {
 			ang = -ang;

@@ -2,13 +2,13 @@
 
 #include <cmath>
 #include <string>
+#include <numbers>
 
 namespace ff {
 
-constexpr float PI_F = 3.14159265358979323846264f;
-
 class Angle {
 public:
+    constexpr static inline float PI = std::numbers::pi_v<float>;
 
 	constexpr Angle() {
 		rad = 0.f;
@@ -57,10 +57,10 @@ public:
 	}
 
 	constexpr inline static float toDegree(float radian) {
-		return radian * 180.f / PI_F;
+		return radian * 180.f / PI;
 	}
 	constexpr inline static float toRadian(float degree) {
-		return degree * PI_F / 180.f;
+		return degree * PI / 180.f;
 	}
 
 	std::string to_string() const noexcept {
@@ -75,10 +75,10 @@ protected:
 	float deg;
 
 	constexpr inline void calcDeg() {
-		deg = rad * 180.f / PI_F;
+		deg = rad * 180.f / PI;
 	}
 	constexpr inline void calcRad() {
-		rad = deg * PI_F / 180.f;
+		rad = deg * PI / 180.f;
 	}
 	constexpr void normalize() {
 
@@ -88,15 +88,15 @@ protected:
 
 		if (deg > 180.f || deg <= -180.f) {
 			deg = remainder(deg + 180.f, 360.f) - 180.f;
-			rad = remainder(rad + PI_F, 2.f * PI_F) - PI_F;
+			rad = remainder(rad + PI, 2.f * PI) - PI;
 
 			if (deg <= -180.f) {
 				deg += 360.f;
-				rad += 2.f * PI_F;
+				rad += 2.f * PI;
 			}
 			else if (deg > 180.f) {
 				deg -= 360.f;
-				rad -= 2.f * PI_F;
+				rad -= 2.f * PI;
 			}
 		}
 	}
