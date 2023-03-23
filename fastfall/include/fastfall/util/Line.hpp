@@ -1,7 +1,5 @@
 #pragma once
 
-//#include <SFML/System.hpp>
-
 #include <stdexcept>
 
 #include "fastfall/util/Vec2.hpp"
