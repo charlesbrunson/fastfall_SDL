@@ -22,9 +22,9 @@ void game_InitTypes() {
 	}
 	isInit = true;
 
-	// tile materials
+	// tile materials - this could be an asset file?
 	Tile::addMaterial(
-		TileMaterial{
+		TileMaterial {
 			.typeName = "conveyor_slow",
 			.surfaces = {
 				SurfaceMaterial{.velocity = 120.f }, // north

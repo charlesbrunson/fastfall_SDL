@@ -75,6 +75,12 @@ bool Resources::loadAssetsFromDirectory(const std::filesystem::path& asset_dir)
     });
 
     namespace fs = std::filesystem;
+
+    if (!exists(asset_dir)) {
+        LOG_ERR_("Asset root directory {} does not exist", asset_dir.string());
+        return false;
+    }
+
     for (auto& entry : fs::recursive_directory_iterator(asset_dir)) {
         if (entry.is_regular_file()) {
             auto& path = entry.path();

@@ -71,7 +71,7 @@ else()
 endif()
 
 if (WIN32)
-	target_compile_definitions(fastfall PRIVATE NOMINMAX)
+	target_compile_definitions(fastfall PUBLIC NOMINMAX)
 endif()
 
 add_subdirectory("test")
