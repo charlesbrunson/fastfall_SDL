@@ -32,13 +32,13 @@ bool Init() {
     return true;
 }
 
-bool Load_Resources() {
+bool Load_Resources(std::filesystem::path root) {
     if (!render::glew_is_init()) {
         LOG_ERR_("Cannot load resources without an OpenGL context, a Window must be created first");
         return false;
     }
 
-    bool result = Resources::loadAll();
+    bool result = Resources::loadAll( root );
     if (!result) {
         LOG_ERR_("Could not load assets");
     } else {

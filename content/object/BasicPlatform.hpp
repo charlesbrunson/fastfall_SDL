@@ -1,5 +1,4 @@
 
-
 #include "fastfall/game/object/Object.hpp"
 #include "fastfall/game/phys/collider_regiontypes/ColliderSimple.hpp"
 #include "fastfall/game/World.hpp"

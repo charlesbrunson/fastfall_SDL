@@ -44,6 +44,8 @@ private:
     asset_type<SoundAsset>   sounds;
     asset_type<MusicAsset>   music;
 
+    std::filesystem::path curr_root;
+
     constexpr auto all_asset_types() {
         return std::tie(
             shaders,
@@ -83,6 +85,8 @@ private:
 
     bool loadAssetsFromDirectory(const std::filesystem::path& asset_dir);
 
+
+
 public:
 	static void loadControllerDB();
 	static void addLoadedToWatcher();
@@ -108,7 +112,7 @@ public:
         return *r.first->second.get();
     }
 
-    static bool loadAll();
+    static bool loadAll(std::filesystem::path root);
     static void unloadAll();
 	static bool reloadOutOfDateAssets();
 

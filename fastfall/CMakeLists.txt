@@ -59,18 +59,8 @@ endif()
 # compile definitions
 target_compile_definitions(fastfall PUBLIC DEBUG)
 
-if(EMSCRIPTEN)
-	target_compile_definitions(fastfall PRIVATE FF_DATA_DIR="")
-else()
-	if (${CMAKE_BUILD_TYPE} MATCHES "Release")
-		target_compile_definitions(fastfall PRIVATE FF_DATA_DIR="")
-	else()
-		target_compile_definitions(fastfall PRIVATE FF_DATA_DIR="")
-	endif()
-
-endif()
-
 if (WIN32)
+	# thanks windows
 	target_compile_definitions(fastfall PUBLIC NOMINMAX)
 endif()
 

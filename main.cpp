@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
         auto window = ff::Window{ false };
 
         // load resources from file
-        if (ff::Load_Resources())
+        if (ff::Load_Resources( "data/" ))
         {
             // create the engine
             auto engine = ff::Engine{ &window };

@@ -11,6 +11,7 @@ using namespace rapidxml;
 #include "fastfall/resource/ResourceWatcher.hpp"
 #include "fastfall/resource/ResourceSubscriber.hpp"
 
+/*
 #ifndef FF_DATAPATH
 #if defined(DEBUG)
 #define FF_DATAPATH FF_DATA_DIR
@@ -18,6 +19,7 @@ using namespace rapidxml;
 #define FF_DATAPATH ""
 #endif
 #endif
+*/
 
 namespace ff {
 
@@ -48,13 +50,15 @@ void Resources::init_asset_types() {
     music.extension    = ".mp3";
 }
 
-bool Resources::loadAll() {
+bool Resources::loadAll(std::filesystem::path root) {
 	bool result;
     resource.for_each_asset_type([]<is_asset T>(asset_type<T>& type) {
         type.assets.clear();
     });
-    result = resource.loadAssetsFromDirectory( std::string{FF_DATAPATH} + "data/" );
-	loadControllerDB();
+    result = resource.loadAssetsFromDirectory( root );
+    if (result) {
+        loadControllerDB();
+    }
 	return result;
 }
 void Resources::unloadAll()
@@ -65,6 +69,7 @@ void Resources::unloadAll()
 	AnimID::resetCounter();
 	Texture::destroyNullTexture();
     AnimDB::reset();
+    resource.curr_root.clear();
 	LOG_INFO("All resources unloaded");
 }
 
@@ -80,6 +85,7 @@ bool Resources::loadAssetsFromDirectory(const std::filesystem::path& asset_dir)
         LOG_ERR_("Asset root directory {} does not exist", asset_dir.string());
         return false;
     }
+    curr_root = asset_dir;
 
     for (auto& entry : fs::recursive_directory_iterator(asset_dir)) {
         if (entry.is_regular_file()) {
@@ -178,7 +184,7 @@ void Resources::addLoadedToWatcher() {
 void Resources::loadControllerDB() {
 	static bool loadedControllerDB = false;
 	if (!loadedControllerDB) {
-		std::string path = FF_DATAPATH + std::string("gamecontrollerdb.txt");
+		auto path = (resource.curr_root / "gamecontrollerdb.txt").string();
 		if (SDL_GameControllerAddMappingsFromFile(path.c_str()) >= 0) {
 			LOG_INFO("Loaded gamecontrollerdb.txt");
 		}
