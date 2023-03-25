@@ -4,11 +4,26 @@
 #include "fastfall/resource/asset/LevelAssetTypes.hpp"
 #include "fastfall/render/util/Color.hpp"
 #include "fastfall/util/tag.hpp"
-#include "fastfall/game/Actor.hpp"
+#include "fastfall/util/id.hpp"
 
 #include <variant>
 
 namespace ff {
+
+class World;
+class Entity;
+class Actor;
+struct ActorType;
+
+struct ActorInit {
+    World&      world;
+    ID<Entity>  entity_id;
+    ID<Actor>   actor_id;
+    uint8_t     priority = 0;
+
+    const ActorType*       const type         = nullptr;
+    const LevelObjectData* const level_object = nullptr;
+};
 
 enum class ActorPropertyType : size_t {
     String  = 0,

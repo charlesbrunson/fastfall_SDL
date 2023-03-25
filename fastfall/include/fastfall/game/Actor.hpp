@@ -2,6 +2,7 @@
 
 #include "imgui.h"
 #include "ActorMsg.hpp"
+#include "ActorType.hpp"
 #include "fastfall/resource/asset/LevelAssetTypes.hpp"
 
 namespace ff {
@@ -11,15 +12,6 @@ class Entity;
 class Actor;
 class ActorType;
 
-struct ActorInit {
-    World&      world;
-    ID<Entity>  entity_id;
-    ID<Actor>   actor_id;
-    uint8_t     priority;
-
-    const ActorType*       const type         = nullptr;
-    const LevelObjectData* const level_object = nullptr;
-};
 
 class Actor : public actor_dconfig
 {
