@@ -46,16 +46,16 @@ struct ActorProperty
     // defines type with a default value
     template<typename T>
         requires std::is_constructible_v<ActorPropertyValue, T>
-    constexpr ActorProperty(std::string_view t_name, T t_value)
-        : name(t_name)
+    ActorProperty(std::string t_name, T t_value)
+        : name(std::move(t_name))
         , value(t_value)
     {
         type = static_cast<ActorPropertyType>(value->index());
     }
 
     // defines a type, but requires a value
-    ActorProperty(std::string_view t_name, ActorPropertyType t_type)
-        : name(t_name)
+    ActorProperty(std::string t_name, ActorPropertyType t_type)
+        : name(std::move(t_name))
         , type(t_type)
     {
     }

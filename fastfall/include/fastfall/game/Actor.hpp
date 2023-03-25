@@ -16,11 +16,12 @@ class ActorType;
 class Actor : public actor_dconfig
 {
 public:
-    explicit Actor(ActorInit init, const std::string& type_name)
-        : entity_id(init.entity_id)
-        , actor_id (init.actor_id)
-        , priority (init.priority)
-        , actor_type(type_name)
+    explicit Actor(ActorInit init)
+        : entity_id     (init.entity_id)
+        , actor_id      (init.actor_id)
+        , priority      (init.priority)
+        , type          (init.type)
+        , level_object  (init.level_object)
     {
     };
 
@@ -31,7 +32,6 @@ public:
     virtual dresult message(World&, const dmessage&) { return reject; }
     virtual void ImGui_Inspect() {};
 
-    const std::string   actor_type;
     const ID<Entity>    entity_id;
     const ID<Actor>     actor_id;
     const uint8_t priority;
@@ -39,10 +39,23 @@ public:
     [[nodiscard]] bool is_dead() const { return dead; }
     [[nodiscard]] bool is_initialized() const { return initialized; }
 
+    bool             has_actor_type() const { return type; }
+    const ActorType* get_actor_type() const { return type; }
+
+    std::optional<ObjLevelID> level_id() const {
+        return level_object ? std::make_optional(level_object->level_id) : std::nullopt;
+    }
+
 protected:
     bool initialized = true;
     bool dead = false;
 
+    bool                   has_level_object() const { return level_object; }
+    const LevelObjectData* get_level_object() const { return level_object; }
+
+private:
+    const ActorType*       const type         = nullptr;
+    const LevelObjectData* const level_object = nullptr;
 };
 
 template<class T, class... Args>
