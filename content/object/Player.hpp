@@ -16,7 +16,7 @@ public:
     static const ff::ObjectType Type;
 
     Player(ff::ActorInit init, ff::Vec2f position, bool faceleft);
-    Player(ff::ActorInit init, ff::ObjectLevelData& data);
+    Player(ff::ActorInit init, ff::LevelObjectData& data);
     void update(ff::World& w, secs deltaTime) override;
     dresult message(ff::World&, const dmessage&) override;
 

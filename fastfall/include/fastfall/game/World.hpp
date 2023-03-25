@@ -137,7 +137,7 @@ public:
         return std::nullopt;
     }
 
-    std::optional<ID_ptr<Object>> create_object_from_data(ObjectLevelData& data);
+    std::optional<ID_ptr<Object>> create_object_from_data(LevelObjectData& data);
 
     void reset_entity(ID<Entity> id);
 

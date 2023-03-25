@@ -15,7 +15,7 @@ const ObjectType TilePlatform::Type {
     }
 };
 
-TilePlatform::TilePlatform(ActorInit init, ObjectLevelData& data)
+TilePlatform::TilePlatform(ActorInit init, LevelObjectData& data)
     : Object(init, Type, &data)
 {
     World& w = init.world;

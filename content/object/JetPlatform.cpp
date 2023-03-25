@@ -36,7 +36,7 @@ const ObjectType JetPlatform::Type {
     }
 };
 
-JetPlatform::JetPlatform(ActorInit init, ObjectLevelData& data)
+JetPlatform::JetPlatform(ActorInit init, LevelObjectData& data)
     : Object(init, Type, &data)
 {
     Vec2f base_position = data.area.topleft();

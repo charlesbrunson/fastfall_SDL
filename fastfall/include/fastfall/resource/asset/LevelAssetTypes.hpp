@@ -101,21 +101,21 @@ struct ObjectData {
     }
 };
 
-struct ObjectLevelData : public ObjectData {
+struct LevelObjectData : public ObjectData {
 	ObjLevelID level_id;
-    const std::vector<ObjectLevelData>* all_objects = nullptr;
+    const std::vector<LevelObjectData>* all_objects = nullptr;
 
-	bool operator< (const ObjectLevelData& rhs) const {
+	bool operator< (const LevelObjectData& rhs) const {
 		return level_id < rhs.level_id;
 	}
 
-    const ObjectLevelData* get_sibling(ObjLevelID obj_id) const {
-        const ObjectLevelData* ref = nullptr;
+    const LevelObjectData* get_sibling(ObjLevelID obj_id) const {
+        const LevelObjectData* ref = nullptr;
 
         if (obj_id && all_objects) {
             auto it = std::find_if(
                     all_objects->begin(), all_objects->end(),
-                    [obj_id](const ObjectLevelData& ref) {
+                    [obj_id](const LevelObjectData& ref) {
                         return ref.level_id == obj_id;
                     });
 
@@ -131,7 +131,7 @@ struct ObjectLayerData {
 	unsigned layer_id = 0;
 	std::string layer_name;
 
-	std::vector<ObjectLevelData> objects;
+	std::vector<LevelObjectData> objects;
 
 	unsigned getID() const { return layer_id; }
 };

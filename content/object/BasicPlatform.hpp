@@ -9,7 +9,7 @@
 class BasicPlatform : public ff::Object {
 public:
     static const ff::ObjectType Type;
-	BasicPlatform(ff::ActorInit init, ff::ObjectLevelData& data);
+	BasicPlatform(ff::ActorInit init, ff::LevelObjectData& data);
 
 protected:
     ff::ID<ff::ShapeRectangle>  shape_id;

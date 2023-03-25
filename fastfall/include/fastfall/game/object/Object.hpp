@@ -26,7 +26,6 @@ namespace ff {
 class World;
 
 //class GameObject;
-
 enum class ObjectPropertyType {
 	String,
 	Int,
@@ -108,10 +107,10 @@ struct ObjectType
     // groups this type is part of
     const std::vector<ObjectGroupTag> group_tags = {};
 
-    // properties optional/required init arguments from ObjectLevelData
+    // properties optional/required init arguments from LevelObjectData
     const std::vector<ObjectProperty> properties = {};
 
-    bool test(ObjectLevelData& data) const;
+    bool test(LevelObjectData& data) const;
 };
 
 class Object;
@@ -127,7 +126,7 @@ private:
 
     struct ObjectBuilder {
         const ObjectType* type;
-        std::function<copyable_unique_ptr<Actor>(ActorInit, ObjectLevelData&)> create;
+        std::function<copyable_unique_ptr<Actor>(ActorInit, LevelObjectData&)> create;
     };
 
 	static std::unordered_map<size_t, ObjectBuilder> object_builders;
@@ -138,9 +137,9 @@ public:
     {
         auto& type = T::Type;
         auto [it, _] = object_builders.emplace(type.name.hash, ObjectBuilder{ .type = &type });
-        it->second.create = [type](ActorInit init, ObjectLevelData& data) -> copyable_unique_ptr<Actor>
+        it->second.create = [type](ActorInit init, LevelObjectData& data) -> copyable_unique_ptr<Actor>
         {
-            if constexpr (std::is_constructible_v<T, ActorInit, ObjectLevelData&>) {
+            if constexpr (std::is_constructible_v<T, ActorInit, LevelObjectData&>) {
                 ActorInit obj_init { init };
                 obj_init.priority = type.priority;
 
@@ -161,21 +160,21 @@ public:
         };
 	}
 
-	static copyable_unique_ptr<Actor> createFromData(ActorInit init, ObjectLevelData& data);
+	static copyable_unique_ptr<Actor> createFromData(ActorInit init, LevelObjectData& data);
 	static const ObjectType* getType(size_t hash);
 	static const ObjectType* getType(std::string_view name);
 };
 
 class Object : public Actor {
 public:
-	Object(ActorInit init, const ObjectType& type, const ObjectLevelData* data = nullptr);
+	Object(ActorInit init, const ObjectType& type, const LevelObjectData* data = nullptr);
 
     [[nodiscard]] const ObjectType*      object_type() const { return obj_type; };
-    [[nodiscard]] const ObjectLevelData* object_data() const { return obj_data; };
+    [[nodiscard]] const LevelObjectData* object_data() const { return obj_data; };
 
 private:
     const ObjectType*      const obj_type = nullptr;
-    const ObjectLevelData* const obj_data = nullptr;
+    const LevelObjectData* const obj_data = nullptr;
 };
 
 }

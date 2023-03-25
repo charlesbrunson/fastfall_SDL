@@ -99,7 +99,7 @@ ID<Entity> World::create_entity() {
 }
 
 
-std::optional<ID_ptr<Object>> World::create_object_from_data(ObjectLevelData& data) {
+std::optional<ID_ptr<Object>> World::create_object_from_data(LevelObjectData& data) {
     auto id = create_entity();
     auto actor_id = components<Actor>().emplace(copyable_unique_ptr<Actor>());
     state._entities.at(id).actor = actor_id;

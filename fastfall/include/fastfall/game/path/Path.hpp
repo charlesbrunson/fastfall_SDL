@@ -17,7 +17,7 @@ enum class PathOnComplete {
 struct Path {
     Path() = default;
     Path(Vec2f t_origin, std::vector<Vec2f> t_waypoints, float t_speed);
-    Path(const ObjectLevelData* data);
+    Path(const LevelObjectData* data);
 
     Vec2f origin{};
     std::vector<Vec2f> waypoints{};

@@ -12,7 +12,7 @@ Path::Path(Vec2f t_origin, std::vector<Vec2f> t_waypoints, float t_speed)
 {
 }
 
-Path::Path(const ObjectLevelData* data)
+Path::Path(const LevelObjectData* data)
     : origin(data ? Vec2f{data->area.topleft()} : Vec2f{})
 {
     if (data) {

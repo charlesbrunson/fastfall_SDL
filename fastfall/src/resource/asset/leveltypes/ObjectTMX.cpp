@@ -74,7 +74,7 @@ std::vector<Vec2i> parsePoints(xml_node<>* polylineNode) {
 void parseObjectRefs(xml_node<>* objectNode, ObjectLayerData& objLayer) {
 
 	while (objectNode) {
-		ObjectLevelData objdata;
+		LevelObjectData objdata;
 
 		objdata.level_id.id = atoi(objectNode->first_attribute("id")->value());
 

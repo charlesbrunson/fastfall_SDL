@@ -10,5 +10,5 @@
 class JetPlatform : public ff::Object {
 public:
     static const ff::ObjectType Type;
-    JetPlatform(ff::ActorInit init, ff::ObjectLevelData& data);
+    JetPlatform(ff::ActorInit init, ff::LevelObjectData& data);
 };

@@ -24,16 +24,16 @@ public:
 	void createObjectsFromData(World& world);
 
 	inline unsigned int getID() const { return layerID; };
-	inline const std::vector<ObjectLevelData>& getObjectData() { return object_refs; };
+	inline const std::vector<LevelObjectData>& getObjectData() { return object_refs; };
 
-	const ObjectLevelData* getObjectDataByID(ObjLevelID id) const;
+	const LevelObjectData* getObjectDataByID(ObjLevelID id) const;
 
 	void addObjectData(ObjectData ref);
 	bool removeObjectDataByID(ObjLevelID id);
 
 private:
 	unsigned int layerID;
-	std::vector<ObjectLevelData> object_refs;
+	std::vector<LevelObjectData> object_refs;
 
 	unsigned lastID = 1;
 };

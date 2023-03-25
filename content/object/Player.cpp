@@ -32,7 +32,7 @@ Player::Player(ActorInit init, Vec2f position, bool faceleft)
     };
 };
 
-Player::Player(ActorInit init, ObjectLevelData& data)
+Player::Player(ActorInit init, LevelObjectData& data)
 	: Object{ init, Type, &data }
 	, plr::members{ init, data.area.botmid(), data.getPropAsBool("faceleft")}
 {

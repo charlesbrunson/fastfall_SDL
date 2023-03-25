@@ -10,7 +10,7 @@
 
 namespace ff {
 
-bool ObjectType::test(ObjectLevelData& data) const {
+bool ObjectType::test(LevelObjectData& data) const {
 
     /*
 	if (!allow_as_level_data) {
@@ -128,7 +128,7 @@ bool ObjectType::test(ObjectLevelData& data) const {
 
 std::unordered_map<size_t, ObjectFactory::ObjectBuilder> ObjectFactory::object_builders;
 
-copyable_unique_ptr<Actor> ObjectFactory::createFromData(ActorInit init, ObjectLevelData& data) {
+copyable_unique_ptr<Actor> ObjectFactory::createFromData(ActorInit init, LevelObjectData& data) {
 	if (auto it = object_builders.find(data.typehash); it != object_builders.end())
     {
         auto& builder = it->second;
@@ -171,7 +171,7 @@ const ObjectType* ObjectFactory::getType(std::string_view name) {
 	return nullptr;
 }
 
-Object::Object(ActorInit init, const ObjectType& type, const ObjectLevelData* data)
+Object::Object(ActorInit init, const ObjectType& type, const LevelObjectData* data)
     : Actor( init, type.name.str )
     , obj_type(&type)
 	, obj_data(data)

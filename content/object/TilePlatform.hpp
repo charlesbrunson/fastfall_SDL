@@ -5,7 +5,7 @@
 class TilePlatform : public ff::Object {
 public:
     static const ff::ObjectType Type;
-    TilePlatform(ff::ActorInit init, ff::ObjectLevelData& data);
+    TilePlatform(ff::ActorInit init, ff::LevelObjectData& data);
 };
 
 

@@ -43,13 +43,13 @@ void ObjectLayer::initFromAsset(const ObjectLayerData& layerData)
 	object_refs = layerData.objects;
 }
 
-const ObjectLevelData* ObjectLayer::getObjectDataByID(ObjLevelID obj_id) const {
-	const ObjectLevelData* ref = nullptr;
+const LevelObjectData* ObjectLayer::getObjectDataByID(ObjLevelID obj_id) const {
+	const LevelObjectData* ref = nullptr;
 
 	if (obj_id) {
 		auto it = std::find_if(
 			object_refs.begin(), object_refs.end(),
-			[obj_id](const ObjectLevelData& ref) {
+			[obj_id](const LevelObjectData& ref) {
 				return ref.level_id == obj_id;
 			});
 
@@ -70,7 +70,7 @@ void ObjectLayer::addObjectData(ObjectData ref) {
 		id = object_refs.back().level_id.id + 1;
 	}
 
-	ObjectLevelData lvlref{ ref };
+	LevelObjectData lvlref{ref };
 	lvlref.level_id = ObjLevelID{ id };
 
 	object_refs.push_back(lvlref);
@@ -81,7 +81,7 @@ bool ObjectLayer::removeObjectDataByID(ObjLevelID id) {
 	if (id) {
 		auto it = std::find_if(
 			object_refs.begin(), object_refs.end(),
-			[id](const ObjectLevelData& ref) {
+			[id](const LevelObjectData& ref) {
 				return ref.level_id == id;
 			});
 

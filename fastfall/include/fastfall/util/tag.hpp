@@ -79,10 +79,10 @@ public:
 };
 
 
-struct object_group_tag_traits { constexpr static const char* TagType = "object_group"; };
+struct actor_group_tag_traits { constexpr static const char* TagType = "object_group"; };
 struct trigger_tag_traits { constexpr static const char* TagType = "trigger"; };
 
-using ObjectGroupTag = Tag<object_group_tag_traits>;
+using ActorGroupTag = Tag<actor_group_tag_traits>;
 using TriggerTag = Tag<trigger_tag_traits>;
 
 }
