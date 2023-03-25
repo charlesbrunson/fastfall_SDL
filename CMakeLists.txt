@@ -66,8 +66,7 @@ if(EMSCRIPTEN)
 
 	# create test_project.data file
 	target_link_options(test_project PRIVATE 
-		"SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/data@/data" 
-		"SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/gamecontrollerdb.txt@/gamecontrollerdb.txt"
+		"SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/data@/data"
 	)
 
 	# rename test_project.html to index.html
@@ -98,14 +97,7 @@ else()
 			POST_BUILD
 			COMMAND ${CMAKE_COMMAND} -E copy_directory
         		${CMAKE_SOURCE_DIR}/data/ $<TARGET_FILE_DIR:test_project>/data/)
-			
-		# copy gamecontrollerdb.txt directory to bin folder
-		add_custom_command(
-			TARGET test_project 
-			POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy
-        		${CMAKE_SOURCE_DIR}/gamecontrollerdb.txt $<TARGET_FILE_DIR:test_project>)
-			
+
 		# zip it
 		add_custom_command(
 			TARGET test_project 
