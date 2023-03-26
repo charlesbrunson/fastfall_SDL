@@ -5,6 +5,7 @@ target_sources(fastfall PRIVATE
     World.cpp
     imgui_component.cpp
     WorldImGui.cpp
+    actor/ActorType.cpp
     path/PathMover.cpp
     path/Path.cpp
     trigger/Trigger.cpp

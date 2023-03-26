@@ -13,7 +13,7 @@
 #include "fastfall/game/level/TileLogic.hpp"
 #include "fastfall/game/scene/SceneConfig.hpp"
 #include "fastfall/game/tile/Tile.hpp"
-#include "fastfall/game/Actor.hpp"
+#include "fastfall/game/actor/Actor.hpp"
 
 #include <memory>
 #include <set>

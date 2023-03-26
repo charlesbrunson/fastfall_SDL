@@ -34,7 +34,7 @@ public:
 
     const ID<Entity>    entity_id;
     const ID<Actor>     actor_id;
-    const uint8_t priority;
+    const uint8_t       priority;
 
     [[nodiscard]] bool is_dead() const { return dead; }
     [[nodiscard]] bool is_initialized() const { return initialized; }

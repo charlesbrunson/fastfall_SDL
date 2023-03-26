@@ -11,12 +11,12 @@
 #include <string_view>
 #include <variant>
 
-class Player : public ff::Object, public plr::members {
+class Player : public ff::Actor, public plr::members {
 public:
-    static const ff::ObjectType Type;
+    static const ff::ActorType Type;
 
     Player(ff::ActorInit init, ff::Vec2f position, bool faceleft);
-    Player(ff::ActorInit init, ff::LevelObjectData& data);
+    //Player(ff::ActorInit init, ff::LevelObjectData& data);
     void update(ff::World& w, secs deltaTime) override;
     dresult message(ff::World&, const dmessage&) override;
 

@@ -12,7 +12,7 @@
 #include "fastfall/game/level/TileLayer.hpp"
 #include "fastfall/game/level/ObjectLayer.hpp"
 
-#include "fastfall/game/Actor.hpp"
+#include "fastfall/game/actor/Actor.hpp"
 
 #include <list>
 #include <concepts>

@@ -9,20 +9,26 @@
 using namespace ff;
 using namespace plr;
 
-const ff::ObjectType Player::Type {
+const ff::ActorType Player::Type {
     .name       = { "Player" },
     .anim       = ff::AnimIDRef{ "player.sax", "idle" },
     .tile_size  = { 1u, 2u },
-    .priority   = ff::ActorPriority::Highest,
+    .priority   = 0,
     .group_tags = { "player" },
     .properties = {
         { "faceleft",	 false },
-        { "anotherprop", ff::ObjectPropertyType::String }
-    }
+        { "anotherprop", ff::ActorPropertyType::String }
+    },
+    .builder = make_level_data_parser<Player>([](const LevelObjectData& data) {
+        return std::make_tuple(
+            data.area.botmid(),
+            data.getPropAsBool("faceleft")
+        );
+    })
 };
 
 Player::Player(ActorInit init, Vec2f position, bool faceleft)
-	: Object{ init, Type }
+	: Actor{ init }
 	, plr::members{ init, position, faceleft}
 {
     auto& box = init.world.at(collidable_id);
@@ -30,19 +36,7 @@ Player::Player(ActorInit init, Vec2f position, bool faceleft)
         auto& plr = w.at(plr_id);
         plr.manage_state(w, plr.get_state().post_collision(w, plr));
     };
-};
-
-Player::Player(ActorInit init, LevelObjectData& data)
-	: Object{ init, Type, &data }
-	, plr::members{ init, data.area.botmid(), data.getPropAsBool("faceleft")}
-{
-    auto& box = init.world.at(collidable_id);
-    box.callbacks.onPostCollision = [plr_id = id_cast<Player>(actor_id)] (World& w) {
-        auto& plr = w.at(plr_id);
-        plr.manage_state(w, plr.get_state().post_collision(w, plr));
-    };
-};
-
+}
 
 void Player::manage_state(World& w, PlayerStateID n_id)
 {

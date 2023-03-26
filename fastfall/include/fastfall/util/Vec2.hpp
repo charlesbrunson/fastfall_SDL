@@ -9,7 +9,8 @@
 
 namespace ff {
 
-template<typename Type, typename = std::enable_if_t<std::is_arithmetic<Type>::value>>
+template<typename Type>
+    requires std::is_arithmetic_v<Type>
 class Vec2 {
 public:
 	constexpr Vec2() :

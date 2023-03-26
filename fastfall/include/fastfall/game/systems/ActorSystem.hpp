@@ -1,6 +1,6 @@
 #pragma once
 
-#include "fastfall/game/Actor.hpp"
+#include "fastfall/game/actor/Actor.hpp"
 
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/util/id.hpp"

@@ -5,7 +5,7 @@
 
 #include "fastfall/util/id_map.hpp"
 
-#include "fastfall/game/Actor.hpp"
+#include "fastfall/game/actor/Actor.hpp"
 #include "fastfall/game/level/Level.hpp"
 #include "fastfall/game/phys/Collidable.hpp"
 #include "fastfall/game/phys/ColliderRegion.hpp"
