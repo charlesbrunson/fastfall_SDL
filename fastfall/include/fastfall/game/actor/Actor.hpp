@@ -19,7 +19,7 @@ public:
     explicit Actor(ActorInit init)
         : entity_id     (init.entity_id)
         , actor_id      (init.actor_id)
-        , priority      (init.priority)
+        , priority      (init.get_priority())
         , type          (init.type)
         , level_object  (init.level_object)
     {

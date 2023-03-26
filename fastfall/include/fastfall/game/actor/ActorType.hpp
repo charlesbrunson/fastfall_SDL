@@ -14,19 +14,20 @@
 
 namespace ff {
 
-class World;
-class Entity;
-class Actor;
+class  World;
+class  Entity;
+class  Actor;
 struct ActorType;
 
 struct ActorInit {
     World&      world;
     ID<Entity>  entity_id;
     ID<Actor>   actor_id;
-    uint8_t     priority = 0;
 
     const ActorType*       const type         = nullptr;
     const LevelObjectData* const level_object = nullptr;
+
+    uint8_t get_priority() const;
 };
 
 enum class ActorPropertyType : size_t {
@@ -67,6 +68,8 @@ struct ActorProperty
     std::string name;
     ActorPropertyType type;
     std::optional<ActorPropertyValue> value = std::nullopt;
+
+    std::pair<std::string, std::string> to_string_pair() const;
 };
 
 using level_data_builder_fn = copyable_unique_ptr<Actor>(ActorInit, const LevelObjectData&);
@@ -102,6 +105,8 @@ make_level_data_parser()
     };
 }
 
+
+
 struct ActorType {
     // name and type hash
     struct Name {
@@ -115,16 +120,20 @@ struct ActorType {
         const size_t hash;
     } const name;
 
+    constexpr inline static uint8_t priority_default = 128;
+
     const std::optional<AnimIDRef> anim = std::nullopt;
-    const Vec2u tile_size               = { 0u, 0u };
-    const Color tile_fill_color         = Color::White().alpha(128u);
-    const uint8_t priority;
+    const Vec2u   tile_size       = { 0u, 0u };
+    const Color   tile_fill_color = Color::White().alpha(128u);
+    const uint8_t priority = priority_default;
+
+    const bool level_constructable = false;
 
     const std::vector<ActorGroupTag> group_tags = {};
     const std::vector<ActorProperty> properties = {};
 
     const std::function<level_data_builder_fn> builder = nullptr;
-    copyable_unique_ptr<Actor> make_with_data(ActorInit) const;
+    copyable_unique_ptr<Actor> make_with_data(ActorInit init) const;
 };
 
 }
