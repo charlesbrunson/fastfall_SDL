@@ -3,20 +3,81 @@
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/log.hpp"
 
+#include <charconv>
+
 namespace ff {
 
-std::unordered_map<std::string, std::string> parseProperties(xml_node<>* propGroupNode) {
-	std::unordered_map<std::string, std::string> properties;
+std::map<std::string, ObjectProperty, std::less<>> parseProperties(xml_node<>* propGroupNode) {
+	std::map<std::string, ObjectProperty, std::less<>> properties;
 
 	if (propGroupNode) {
 		xml_node<>* propNode = propGroupNode->first_node("property");
 		while (propNode) {
-			char* name = propNode->first_attribute("name")->value();
-			char* value = propNode->first_attribute("value")->value();
+			std::string_view name  = propNode->first_attribute("name")->value();
+            std::string_view value = propNode->first_attribute("value")->value();
+            std::string_view type  = "string";
 
-			if (name && value) {
-				properties.insert(std::make_pair(name, value));
-			}
+            if (auto* node = propNode->first_attribute("type"); node && node->value()) {
+                type = node->value();
+            }
+
+            size_t ndx = 0;
+            for (auto& str : ObjectProperty::string) {
+                if (str == type) {
+                    break;
+                }
+                ++ndx;
+            }
+
+            auto parse_color = [](std::string_view sv) {
+                uint8_t c[4];
+                for (int i = 0; i < 4; ++i) {
+                    std::from_chars(
+                        &sv[1 + (i * 2)],
+                        &sv[1 + (i * 2) + 1],
+                        c[i],
+                        16);
+                }
+
+                return Color {
+                    c[1], c[2], c[3], c[0],
+                };
+            };
+
+            ObjectProperty::Variant v;
+            switch (static_cast<ObjectProperty::Type>(ndx)) {
+                case ObjectProperty::Type::Bool:
+                    v.emplace<bool>( value == "true" );
+                    break;
+                case ObjectProperty::Type::Color:
+                    v.emplace<Color>(value.empty() ? parse_color(value) : Color{});
+                    break;
+                case ObjectProperty::Type::Float:
+                    v.emplace<float>(0.f);
+                    std::from_chars(value.begin(), value.end(), std::get<float>(v));
+                    break;
+                case ObjectProperty::Type::File:
+                    v = std::filesystem::path{ value };
+                    break;
+                case ObjectProperty::Type::Int:
+                    v.emplace<int>(0);
+                    std::from_chars(value.begin(), value.end(), std::get<int>(v));
+                    break;
+                case ObjectProperty::Type::Object:
+                    v.emplace<ObjLevelID>();
+                    std::from_chars(value.begin(), value.end(), std::get<ObjLevelID>(v).id);
+                    break;
+                case ObjectProperty::Type::String:
+                    v.emplace<std::string>(value);
+                    break;
+            }
+
+            if (!v.valueless_by_exception()) {
+                properties.emplace(name, ObjectProperty{
+                    .value     = v,
+                    .str_value = std::string{ value }
+                });
+            }
 
 			propNode = propNode->next_sibling();
 		}

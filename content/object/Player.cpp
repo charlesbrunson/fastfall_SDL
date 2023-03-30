@@ -9,22 +9,19 @@
 using namespace ff;
 using namespace plr;
 
-const ff::ActorType Player::Type {
-    .name       = { "Player" },
-    .anim       = ff::AnimIDRef{ "player.sax", "idle" },
-    .tile_size  = { 1u, 2u },
-    .priority   = 0,
-    .group_tags = { "player" },
-    .properties = {
-        { "faceleft",	 false },
-        { "anotherprop", ff::ActorPropertyType::String }
-    },
-    .builder = make_level_data_parser<Player>([](const LevelObjectData& data) {
-        return std::make_tuple(
-            data.area.botmid(),
-            data.getPropAsBool("faceleft")
-        );
-    })
+const std::string_view Player::prop_facing = "faceleft";
+
+const ff::ActorType Player::actor_type = {
+        .name       = { "Player" },
+        .anim       = { "player.sax", "idle" },
+        .tile_size  = { 1u, 2u },
+        .priority   = 0,
+        .group_tags = { "player" },
+        .properties = {
+            { Player::prop_facing,  false },
+            { "anotherprop",        ff::ObjectProperty::Type::String }
+        },
+        .builder    = ActorType::make_builder<Player>()
 };
 
 Player::Player(ActorInit init, Vec2f position, bool faceleft)
@@ -36,6 +33,13 @@ Player::Player(ActorInit init, Vec2f position, bool faceleft)
         auto& plr = w.at(plr_id);
         plr.manage_state(w, plr.get_state().post_collision(w, plr));
     };
+}
+
+PlayerState& Player::get_state() {
+    return std::visit([](auto& t_state) -> PlayerState& {
+        static_assert(std::derived_from<std::decay_t<decltype(t_state)>, PlayerState>, "all state types must be derived from PlayerState!");
+        return static_cast<PlayerState&>(t_state);
+    }, state);
 }
 
 void Player::manage_state(World& w, PlayerStateID n_id)

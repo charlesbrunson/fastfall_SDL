@@ -3,6 +3,7 @@
 #include "fastfall/util/math.hpp"
 #include "fastfall/util/Vec2.hpp"
 #include "fastfall/util/log.hpp"
+#include "fastfall/render/util/Color.hpp"
 
 #include <map>
 #include <unordered_map>
@@ -10,6 +11,7 @@
 #include <memory>
 #include <variant>
 #include <string_view>
+#include <filesystem>
 
 namespace ff {
 
@@ -36,68 +38,67 @@ struct ObjLevelID {
 	}
 };
 
+struct ObjectProperty
+{
+    using Variant = std::variant<
+        bool,
+        Color,
+        float,
+        std::filesystem::path,
+        int,
+        ObjLevelID,
+        std::string
+    >;
+
+    enum class Type {
+        Bool   = 0,
+        Color  = 1,
+        Float  = 2,
+        File   = 3,
+        Int    = 4,
+        Object = 5,
+        String = 6
+    };
+
+    constexpr inline static std::string_view string[] = {
+        "bool",
+        "color",
+        "float",
+        "file",
+        "int",
+        "object",
+        "string",
+    };
+
+    Variant value;
+    std::string str_value = "";
+
+    Type get_type() const { return static_cast<Type>(value.index()); }
+    std::string_view get_type_str() const { return string[ value.index() ]; }
+};
+
 struct ObjectData {
 	std::string name;
 	size_t      typehash = 0; // hash of type string
     Rectf       area;
-	std::unordered_map<std::string, std::string> properties;
+	std::map<std::string, ObjectProperty, std::less<>> properties;
 	std::vector<Vec2i> points;
 
-    bool hasProp(const std::string& key) const {
-        return properties.contains(key);
-    }
-
-	const std::string& getPropAsString(const std::string& key) const
-	{
-		return properties.at(key);
-	}
-
-    std::optional<std::string> optPropAsString(const std::string& key) const {
-        return properties.contains(key) ? std::make_optional(getPropAsString(key)) : std::nullopt;
-    }
-
-	int getPropAsInt(const std::string& key) const
-	{
-		return std::atoi(properties.at(key).c_str());
-	}
-
-    std::optional<int> optPropAsInt(const std::string& key) const {
-        return properties.contains(key) ? std::make_optional(getPropAsInt(key)) : std::nullopt;
-    }
-
-	bool getPropAsBool(const std::string& key) const
-	{
-		const std::string& value = properties.at(key);
-		if (strcmp(value.c_str(), "true") == 0) {
-			return true;
-		}
-		else if (strcmp(value.c_str(), "false") == 0) {
-			return false;
-		}
-		else {
-			throw std::exception();
-		}
-	}
-
-    std::optional<bool> optPropAsBool(const std::string& key) const {
-        return properties.contains(key) ? std::make_optional(getPropAsBool(key)) : std::nullopt;
-    }
-
-	float getPropAsFloat(const std::string& key) const
-	{
-		return std::atof(properties.at(key).c_str());
-	}
-
-    std::optional<float> optPropAsFloat(const std::string& key) const {
-        return properties.contains(key) ? std::make_optional(getPropAsFloat(key)) : std::nullopt;
-    }
-
-	ObjLevelID getPropAsID(const std::string& key) const {
-		return ObjLevelID{ (unsigned)std::atol(properties.at(key).c_str()) };
-	}
-
-    std::optional<ObjLevelID> optPropAsID(const std::string& key) const {
-        return properties.contains(key) ? std::make_optional(getPropAsID(key)) : std::nullopt;
+    template<typename T>
+    T get_prop(std::string_view name) const {
+        auto it = properties.find(name);
+        if (it != properties.end()) {
+            if (std::holds_alternative<T>(it->second.value)) {
+                return std::get<T>(it->second.value);
+            }
+            else {
+                LOG_WARN("Object property {} does not contains expected type, instead holds {}", name, it->second.get_type_str());
+            }
+        }
+        else {
+            LOG_WARN("Object property {} not found", name);
+        }
+        return T{};
     }
 };
 

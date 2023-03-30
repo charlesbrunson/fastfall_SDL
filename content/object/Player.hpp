@@ -12,11 +12,17 @@
 #include <variant>
 
 class Player : public ff::Actor, public plr::members {
+private:
+    static const std::string_view prop_facing;
+
 public:
-    static const ff::ActorType Type;
+    const static ff::ActorType actor_type;
 
     Player(ff::ActorInit init, ff::Vec2f position, bool faceleft);
-    //Player(ff::ActorInit init, ff::LevelObjectData& data);
+    Player(ff::ActorInit init, const ff::LevelObjectData& data)
+        : Player(init, data.area.botmid(), data.get_prop<bool>(prop_facing))
+    {};
+
     void update(ff::World& w, secs deltaTime) override;
     dresult message(ff::World&, const dmessage&) override;
 
@@ -36,12 +42,7 @@ protected:
 		return std::visit(callable, state);
 	}
 
-	PlayerState& get_state() {
-		return std::visit([](auto& t_state) -> PlayerState& { 
-			static_assert(std::derived_from<std::decay_t<decltype(t_state)>, PlayerState>, "all state types must be derived from PlayerState!");
-			return static_cast<PlayerState&>(t_state); 
-		}, state);
-	}
+	PlayerState& get_state();
 
 	void manage_state(ff::World& w, PlayerStateID n_id);
 };

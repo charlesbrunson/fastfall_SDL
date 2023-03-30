@@ -6,8 +6,6 @@ namespace ff {
 
 class AnimID {
 public:
-	static AnimID NONE;
-
 	constexpr unsigned int get() const noexcept {
 		return value;
 	}
@@ -15,6 +13,8 @@ public:
 	constexpr unsigned int operator() () const noexcept {
 		return value;
 	}
+
+    constexpr AnimID() = default;
 
 	constexpr AnimID(const AnimID& id) {
 		value = id.value;
@@ -25,15 +25,15 @@ public:
 		return AnimID{ counter };
 	}
 
-	bool operator< (const AnimID& id) const noexcept {
+	constexpr bool operator< (const AnimID& id) const noexcept {
 		return value < id.value;
 	}
 
-	bool operator== (const AnimID& id) const noexcept {
+	constexpr bool operator== (const AnimID& id) const noexcept {
 		return value == id.value;
 	}
 
-	void operator= (const AnimID& id) {
+	constexpr void operator= (const AnimID& id) {
 		value = id.value;
 	}
 
@@ -47,7 +47,7 @@ private:
 	{
 	};
 
-	unsigned int value;
+	unsigned int value = 0;
 	static unsigned int counter;
 };
 
@@ -72,7 +72,7 @@ public:
 	}
 
 private:
-	mutable AnimID m_id = AnimID::NONE;
+	mutable AnimID m_id = {};
 
 	std::string_view m_sprite;
 	std::string_view m_anim;

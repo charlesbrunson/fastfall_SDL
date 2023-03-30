@@ -8,76 +8,28 @@ uint8_t ActorInit::get_priority() const {
     return type ? type->priority : ActorType::priority_default;
 }
 
-std::pair<std::string, std::string> ActorProperty::to_string_pair() const
-{
-    std::string v = "";
-    if (value) {
-        switch (type)
-        {
-        case ActorPropertyType::String:
-            v = std::get<std::string>(*value);
-            break;
-        case ActorPropertyType::Int:
-            v = fmt::format("{}", std::get<int>(*value));
-            break;
-        case ActorPropertyType::Bool:
-            v = fmt::format("{}", std::get<bool>(*value));
-            break;
-        case ActorPropertyType::Float:
-            v = fmt::format("{}", std::get<float>(*value));
-            break;
-        case ActorPropertyType::Object:
-            v = fmt::format("{}", std::get<ObjLevelID>(*value).id);
-            break;
-        }
-    }
-    return std::make_pair(name, v);
-}
-
-bool test_value(ActorPropertyType type, const std::string& value) {
-    try {
-        switch(type) {
-        case ActorPropertyType::String:
-            break;
-        case ActorPropertyType::Int:
-            std::stoi(value);
-        case ActorPropertyType::Bool:
-            if (value != "true" && value != "false") {
-                throw std::exception{};
-            }
-        case ActorPropertyType::Float:
-            std::stof(value);
-        case ActorPropertyType::Object:
-            if (std::stoi(value) < 0)
-                throw std::exception();
-        }
-    }
-    catch (std::exception except) {
-        return false;
-    }
-    return true;
-}
-
-copyable_unique_ptr<Actor> ActorType::make_with_data(ActorInit init) const {
-    if (!init.level_object) {
+copyable_unique_ptr<Actor> ActorInit::create() const {
+    if (!level_object) {
         LOG_ERR_("actor init has no associated level object");
         return {};
     }
 
-    if (init.type != this) {
-        LOG_ERR_("actor init type not this instance: {} to {}", name.str, init.type->name.str);
+    if (!type) {
+        LOG_ERR_("actor init has no actor type");
         return {};
     }
 
-    if (!builder) {
-        LOG_ERR_("no builder function");
+    if (!type->builder) {
+        LOG_ERR_("actor type has no builder function");
         return {};
     }
 
-    auto data = *init.level_object;
+    auto data = *level_object;
+
+    auto tile_size = type->tile_size;
 
     // test size
-    if (tile_size.x > 0 && (init.level_object->area.width / TILESIZE != tile_size.x)) {
+    if (tile_size.x > 0 && (data.area.width / TILESIZE != tile_size.x)) {
         LOG_ERR_("object width ({}) not valid for object:{:x}",
                  data.area.width, data.typehash
         );
@@ -91,11 +43,11 @@ copyable_unique_ptr<Actor> ActorType::make_with_data(ActorInit init) const {
     }
 
     // test custom properties
-    for (const auto& prop : properties) {
+    for (const auto& prop : type->properties) {
         auto it = data.properties.find(prop.name);
         if (it == data.properties.end()) {
             if (prop.value) {
-                data.properties.emplace(prop.to_string_pair()).first;
+                data.properties.emplace(prop.name, ObjectProperty{ *prop.value }).first;
                 continue;
             }
             else {
@@ -106,15 +58,14 @@ copyable_unique_ptr<Actor> ActorType::make_with_data(ActorInit init) const {
             }
         }
 
-        if (!test_value(prop.type, it->second)) {
+        if (prop.type != it->second.get_type()) {
             LOG_ERR_("actor property ({}={}) not valid for object:{:x}",
-                     it->first, it->second, data.typehash
+                     it->first, it->second.str_value, data.typehash
             );
             return {};
         }
-
     }
-    return builder(init, data);
+    return type->builder(*this, data);
 }
 
 }
