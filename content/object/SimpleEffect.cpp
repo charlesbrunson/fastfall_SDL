@@ -2,12 +2,12 @@
 
 using namespace ff;
 
-const ObjectType SimpleEffect::Type {
+const ActorType SimpleEffect::actor_type {
     .name = { "SimpleEffect" }
 };
 
 SimpleEffect::SimpleEffect(ActorInit init, const AnimID& anim, Vec2f position, bool hflip)
-    : Object(init, Type)
+    : Actor(init)
 {
     auto spr = init.world.create<ff::AnimatedSprite>(init.entity_id);
     anim_spr_id = spr;

@@ -4,48 +4,48 @@
 
 using namespace ff;
 
-const ObjectType TilePlatform::Type {
+const ActorType TilePlatform::actor_type {
     .name       = { "TilePlatform" },
-    .anim       = std::nullopt,
+    .anim       = {},
     .tile_size  = { 0u, 0u },
     .group_tags = {	"platform" },
     .properties = {
-        { "layer", ff::ObjectPropertyType::Int },
-        { "path",  ff::ObjLevelID{ ff::ObjLevelID::NO_ID } }
+        { "layer", ObjectProperty::Type::Int },
+        { "path",  ObjLevelID{ ObjLevelID::NO_ID } }
     }
 };
 
 TilePlatform::TilePlatform(ActorInit init, LevelObjectData& data)
-    : Object(init, Type, &data)
+    : TilePlatform(init, Rectu{ data.area } / TILESIZE, data.get_prop<int>("layer"), data.get_prop<ObjLevelID>("path"))
+{
+}
+
+TilePlatform::TilePlatform(ActorInit init, Rectu area, int level_layer, ObjLevelID path_objid)
+    : TileLayer(init, 0, area.getSize())
 {
     World& w = init.world;
 
-    Recti tile_area{ data.area };
-    tile_area.left   /= TILESIZE;
-    tile_area.top    /= TILESIZE;
-    tile_area.width  /= TILESIZE;
-    tile_area.height /= TILESIZE;
-
     // create tile layer for platform
-    auto tl = *w.create_actor<TileLayer>(0u, (Vec2u)tile_area.getSize());
-    tl->set_layer(w, 0);
-    tl->set_autotile_substitute("empty"_ts);
-    tl->set_collision(w, true);
+    set_layer(w, 0);
+    set_autotile_substitute("empty"_ts);
+    set_collision(w, true);
 
     // pilfer tiles from level tile layer
-    auto layer_id = data.getPropAsInt("layer");
     auto* active_level = w.system<LevelSystem>().get_active(w);
-    auto* layer_proxy = active_level->get_tile_layer(layer_id);
+    auto* layer_proxy = active_level->get_tile_layer(level_layer);
     if (auto* layer = (layer_proxy ? w.get(layer_proxy->cmp_id) : nullptr))
     {
-        tl->steal_tiles(w, *layer, tile_area);
+        steal_tiles(w, *layer, area);
     }
 
     // attach tile layer to something
-    ObjLevelID path_id = data.getPropAsID("path");
-    ID<AttachPoint> attach_id = path_id
-        ? w.create<PathMover>(entity_id, Path{data.get_sibling(path_id)})->get_attach_id()
-        : w.create<AttachPoint>(entity_id, id_placeholder, data.area.topleft());
-
-    w.system<AttachSystem>().create(w, attach_id, tl->get_attach_id());
+    ID<AttachPoint> attach_id;
+    if (path_objid) {
+        Path p = active_level->get_obj_layer().getObjectDataByID(path_objid);
+        attach_id = w.create<PathMover>(entity_id, p)->get_attach_id();
+    }
+    else {
+        attach_id = w.create<AttachPoint>(entity_id, id_placeholder, Vec2f{ area.topleft() } * TILESIZE_F);
+    }
+    w.system<AttachSystem>().create(w, attach_id, get_attach_id());
 };

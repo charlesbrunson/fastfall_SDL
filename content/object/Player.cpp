@@ -35,6 +35,11 @@ Player::Player(ActorInit init, Vec2f position, bool faceleft)
     };
 }
 
+Player::Player(ActorInit init, const ff::LevelObjectData& data)
+    : Player(init, data.area.botmid(), data.get_prop<bool>(prop_facing))
+{
+}
+
 PlayerState& Player::get_state() {
     return std::visit([](auto& t_state) -> PlayerState& {
         static_assert(std::derived_from<std::decay_t<decltype(t_state)>, PlayerState>, "all state types must be derived from PlayerState!");

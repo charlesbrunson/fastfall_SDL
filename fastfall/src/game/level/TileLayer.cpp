@@ -16,7 +16,7 @@
 namespace ff {
 
 TileLayer::TileLayer(ActorInit init, unsigned id, Vec2u levelsize)
-	: Actor{ init.set_type(ActorType::Level), {"TileLayer"} }
+	: Actor{ init }
     , layer_data(id, levelsize)
 	, tiles_dyn(levelsize)
     , attach_id(init.world.create<AttachPoint>(init.entity_id, id_placeholder))
@@ -24,7 +24,7 @@ TileLayer::TileLayer(ActorInit init, unsigned id, Vec2u levelsize)
 }
 
 TileLayer::TileLayer(ActorInit init, const TileLayerData& layerData)
-    : Actor{ init.set_type(ActorType::Level), {"TileLayer"} }
+    : Actor{ init }
     , attach_id(init.world.create<AttachPoint>(init.entity_id, id_placeholder))
 {
 	initFromAsset(init.world, layerData);

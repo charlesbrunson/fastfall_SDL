@@ -19,9 +19,7 @@ public:
     const static ff::ActorType actor_type;
 
     Player(ff::ActorInit init, ff::Vec2f position, bool faceleft);
-    Player(ff::ActorInit init, const ff::LevelObjectData& data)
-        : Player(init, data.area.botmid(), data.get_prop<bool>(prop_facing))
-    {};
+    Player(ff::ActorInit init, const ff::LevelObjectData& data);
 
     void update(ff::World& w, secs deltaTime) override;
     dresult message(ff::World&, const dmessage&) override;

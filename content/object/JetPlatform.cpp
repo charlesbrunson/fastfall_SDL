@@ -2,8 +2,8 @@
 
 using namespace ff;
 
-constexpr unsigned platform_width_min = 3;
-constexpr unsigned platform_width_max = 5;
+constexpr int platform_width_min = 3;
+constexpr int platform_width_max = 5;
 AnimIDRef anim_platform[] = {
     {"jet_platform.sax", "platform_3"},
     {"jet_platform.sax", "platform_4"},
@@ -26,9 +26,9 @@ const EmitterStrategy jet_emitter_str = {
     .animation          = AnimIDRef{ "jet_platform.sax", "effect" },
 };
 
-const ObjectType JetPlatform::Type {
+const ActorType JetPlatform::actor_type {
     .name       = { "JetPlatform" },
-    .anim       = std::nullopt,
+    .anim       = {},
     .tile_size  = { 0, 1 },
     .group_tags = {	"platform" },
     .properties = {
@@ -37,11 +37,15 @@ const ObjectType JetPlatform::Type {
 };
 
 JetPlatform::JetPlatform(ActorInit init, LevelObjectData& data)
-    : Object(init, Type, &data)
+    : JetPlatform(init, data.area.topleft(), (int)data.area.getSize().x / TILESIZE, data.get_prop<ObjLevelID>("path"))
 {
-    Vec2f base_position = data.area.topleft();
-    int tile_width = (int)data.area.getSize().x / TILESIZE;
-    assert(platform_width_min <= tile_width && tile_width <= platform_width_max);
+}
+
+JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLevelID path_objid)
+    : Actor(init)
+{
+    Vec2f base_position = pos;
+    int   tile_width    = std::clamp(width, platform_width_min, platform_width_max);
 
     World& w = init.world;
 
@@ -78,10 +82,15 @@ JetPlatform::JetPlatform(ActorInit init, LevelObjectData& data)
     attach->sched = AttachPoint::Schedule::PostCollision;
 
     // base attachpoint
-    ObjLevelID path_id = data.getPropAsID("path");
-    ID<AttachPoint> base_attach_id = path_id
-            ? w.create<PathMover>(entity_id, Path{data.get_sibling(path_id)})->get_attach_id()
-            : w.create<AttachPoint>(entity_id, id_placeholder, base_position);
+    Level* active_level = w.system<LevelSystem>().get_active(w);
+    ID<AttachPoint> base_attach_id;
+    if (active_level && path_objid) {
+        Path p = active_level->get_obj_layer().getObjectDataByID(path_objid);
+        base_attach_id = w.create<PathMover>(entity_id, p)->get_attach_id();
+    }
+    else {
+        base_attach_id = w.create<AttachPoint>(entity_id, id_placeholder, base_position);
+    }
 
     auto& base_attach = w.at(base_attach_id);
     base_attach.teleport(base_position);
@@ -115,4 +124,5 @@ JetPlatform::JetPlatform(ActorInit init, LevelObjectData& data)
         }
     });
 }
+
 
