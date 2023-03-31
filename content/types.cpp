@@ -14,14 +14,8 @@
 
 using namespace ff;
 
-bool isInit = false;
-
-void game_InitTypes() {
-	if (isInit) {
-		return;
-	}
-	isInit = true;
-
+void register_types()
+{
 	// tile materials - this could be an asset file?
 	Tile::addMaterial(
 		TileMaterial {
@@ -45,13 +39,17 @@ void game_InitTypes() {
 			}
 		});
 
-	// tile logics
+    // engine states
+    // ff::user_types::register_engine_state<TestState>("Test State");
+
+	// tile logic
 	TileLogic::addType<AnimLogic>("anim");
+    // ff::user_types::register_tile_logic<AnimLogic>("anim");
 
 	// objects
-	ObjectFactory::register_object<Player>();
-	ObjectFactory::register_object<BasicPlatform>();
-    ObjectFactory::register_object<JetPlatform>();
-	ObjectFactory::register_object<SimpleEffect>();
-    ObjectFactory::register_object<TilePlatform>();
+    // ff::user_types::register_actor<Player>();
+    // ff::user_types::register_actor<BasicPlatform>();
+    // ff::user_types::register_actor<JetPlatform>();
+    // ff::user_types::register_actor<SimpleEffect>();
+    // ff::user_types::register_actor<TilePlatform>();
 }

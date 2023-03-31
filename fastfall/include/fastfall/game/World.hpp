@@ -4,7 +4,7 @@
 #include "fastfall/util/id_map.hpp"
 #include "fastfall/game/ComponentID.hpp"
 #include "fastfall/game/Entity.hpp"
-#include "fastfall/game/object/Object.hpp"
+#include "fastfall/game/actor/Actor.hpp"
 
 #include "fastfall/engine/input/InputState.hpp"
 
@@ -137,7 +137,7 @@ public:
         return std::nullopt;
     }
 
-    std::optional<ID_ptr<Object>> create_object_from_data(LevelObjectData& data);
+    std::optional<ID_ptr<Actor>> create_actor_from_data(LevelObjectData& data);
 
     void reset_entity(ID<Entity> id);
 
@@ -220,23 +220,34 @@ private:
         auto& ent = state._entities.at(id);
         auto actor_id = components<Actor>().emplace(copyable_unique_ptr<Actor>());
 
-        ActorInit init {
-            .world       = *this,
-            .entity_id   = id,
-            .actor_id    = actor_id,
-            .type        = ActorType::Actor,
-            .priority    = ActorPriority::Normal,
-        };
+        if constexpr (requires (T_Actor x) { {T_Actor::actor_type } -> std::same_as<ActorType>; }) {
+            ActorInit init{
+                .world        = *this,
+                .entity_id    = id,
+                .actor_id     = actor_id,
+                .type         = T_Actor::actor_type,
+                .level_object = nullptr
+            };
 
-        if constexpr (valid_object<T_Actor>) {
-            init.type     = ActorType::Object;
-            init.priority = T_Actor::Type.priority;
+            ent.actor = actor_id;
+            components<Actor>().emplace_at<T_Actor>(actor_id, init, std::forward<Args>(args)...);
+            auto& actor = at(actor_id);
+            return actor.is_initialized();
         }
+        else {
+            ActorInit init{
+                .world        = *this,
+                .entity_id    = id,
+                .actor_id     = actor_id,
+                .type         = nullptr,
+                .level_object = nullptr
+            };
 
-        ent.actor = actor_id;
-        components<Actor>().emplace_at<T_Actor>(actor_id, init, std::forward<Args>(args)...);
-        auto& actor = at(actor_id);
-        return actor.is_initialized();
+            ent.actor = actor_id;
+            components<Actor>().emplace_at<T_Actor>(actor_id, init, std::forward<Args>(args)...);
+            auto& actor = at(actor_id);
+            return actor.is_initialized();
+        }
     }
 
     template<typename T>

@@ -4,7 +4,7 @@
 
 #include "fastfall/render/DebugDraw.hpp"
 
-#include "fastfall/game/object/Object.hpp"
+//#include "fastfall/game/actor/Actor.hpp"
 
 namespace ff {
 
@@ -99,24 +99,23 @@ ID<Entity> World::create_entity() {
 }
 
 
-std::optional<ID_ptr<Object>> World::create_object_from_data(LevelObjectData& data) {
+std::optional<ID_ptr<Actor>> World::create_actor_from_data(LevelObjectData& data) {
     auto id = create_entity();
     auto actor_id = components<Actor>().emplace(copyable_unique_ptr<Actor>());
     state._entities.at(id).actor = actor_id;
 
     ActorInit init {
-        .world      = *this,
-        .entity_id  = id,
-        .actor_id   = actor_id,
-        .type       = ActorType::Actor,
-        .priority   = ActorPriority::Normal
+        .world        = *this,
+        .entity_id    = id,
+        .actor_id     = actor_id,
+        .type         = nullptr, // TODO look up type by data.name or typehash from user types db
+        .level_object = &data
     };
-    //auto actor_id = components<Actor>().emplace(ObjectFactory::createFromData(init, data));
-    components<Actor>().emplace_at(actor_id, ObjectFactory::createFromData(init, data));
+
+    components<Actor>().emplace_at(actor_id, init.create());
     if (auto* ptr = get(actor_id); ptr && ptr->is_initialized()) {
         system_notify_created<Actor>(actor_id);
-        auto obj_id = id_cast<Object>(actor_id);
-        return ID_ptr<Object>{obj_id, get(obj_id) };
+        return ID_ptr<Actor>{actor_id, get(actor_id) };
     }
     else {
         erase(id);

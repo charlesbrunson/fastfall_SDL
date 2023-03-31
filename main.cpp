@@ -7,7 +7,7 @@
 #include "content/TestState.hpp"
 
 int main(int argc, char* argv[]) {
-    game_InitTypes();
+    register_types();
 
     // initialize subsystems
     if (ff::Init())

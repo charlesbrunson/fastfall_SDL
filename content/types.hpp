@@ -1,3 +1,3 @@
 #pragma once
 
-void game_InitTypes();
+void register_types();
