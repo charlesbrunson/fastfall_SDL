@@ -141,9 +141,11 @@ void parseObjectRefs(xml_node<>* objectNode, ObjectLayerData& objLayer) {
 
 		auto* type = objectNode->first_attribute("class");
 		if (type && type->value()) {
+            objdata.type = type->value();
 			objdata.typehash = std::hash<std::string_view>{}(type->value());
 		}
 		else {
+            objdata.type = {};
 			objdata.typehash = 0u;
 		}
 

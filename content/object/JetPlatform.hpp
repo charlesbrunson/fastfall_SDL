@@ -11,5 +11,5 @@ class JetPlatform : public ff::Actor {
 public:
     static const ff::ActorType actor_type;
     JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLevelID path_objid = {});
-    JetPlatform(ff::ActorInit init, ff::LevelObjectData& data);
+    JetPlatform(ff::ActorInit init, const ff::LevelObjectData& data);
 };

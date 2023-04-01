@@ -336,7 +336,7 @@ AnimID AnimDB::get_animation_id(std::string_view sprite_name, std::string_view a
     {
         return iter->second;
     }
-    return AnimID::NONE;
+    return AnimID{};
 }
 
 AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
@@ -347,7 +347,7 @@ AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
 
             AnimID chain_id = get_animation_id(panim.chain_spr_name, panim.chain_anim_name);
 
-            if (chain_id == AnimID::NONE) {
+            if (chain_id == AnimID{}) {
                 // operate under assumption that there will be an anim later on to fill this
                 anim.chain.anim_id = AnimID::reserve_id();
                 auto chain_key = std::pair<std::string, std::string>(panim.chain_spr_name, panim.chain_anim_name);
@@ -363,7 +363,7 @@ AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
 
     AnimID existing_id = get_animation_id(panim.owner->get_name(), panim.name);
 
-    if (existing_id == AnimID::NONE) {
+    if (existing_id == AnimID{}) {
         auto nID = AnimID::reserve_id();
         std::pair<std::string, std::string> key{panim.owner->get_name(), panim.name};
         anim_lookup_table.insert(std::make_pair(key, nID));

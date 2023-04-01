@@ -11,10 +11,11 @@ const ActorType BasicPlatform::actor_type {
     .group_tags = {	"platform" },
     .properties = {
         { "path",  ff::ObjLevelID::NO_ID }
-    }
+    },
+    .builder    = ActorType::make_builder<BasicPlatform>()
 };
 
-BasicPlatform::BasicPlatform(ActorInit init, ff::LevelObjectData& data)
+BasicPlatform::BasicPlatform(ActorInit init, const ff::LevelObjectData& data)
     : BasicPlatform(init, data.area, data.get_prop<ObjLevelID>("path"))
 {
 }

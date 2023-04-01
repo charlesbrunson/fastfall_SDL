@@ -29,7 +29,7 @@ struct ActorInit {
 
     uint8_t get_priority() const;
 
-    copyable_unique_ptr<Actor> create() const;
+    std::optional<copyable_unique_ptr<Actor>> create() const;
 };
 
 struct ActorProperty
@@ -78,9 +78,9 @@ struct ActorType {
     const builder_fn builder = nullptr;
 
     template<std::derived_from<Actor> TActor>
-    requires std::is_constructible_v<TActor, ActorInit, const LevelObjectData&>
+    requires std::is_constructible_v<TActor, ActorInit, const LevelObjectData&> && (!std::same_as<TActor, Actor>)
     static builder_fn make_builder() {
-        return [](ActorInit init, const LevelObjectData& data) {
+        return [](ActorInit init, const LevelObjectData& data) -> copyable_unique_ptr<Actor> {
             return make_copyable_unique<Actor, TActor>(init, data);
         };
     }

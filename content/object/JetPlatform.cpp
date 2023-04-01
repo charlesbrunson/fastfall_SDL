@@ -33,10 +33,11 @@ const ActorType JetPlatform::actor_type {
     .group_tags = {	"platform" },
     .properties = {
         { "path",  ObjLevelID{} }
-    }
+    },
+    .builder    = ActorType::make_builder<JetPlatform>()
 };
 
-JetPlatform::JetPlatform(ActorInit init, LevelObjectData& data)
+JetPlatform::JetPlatform(ActorInit init, const LevelObjectData& data)
     : JetPlatform(init, data.area.topleft(), (int)data.area.getSize().x / TILESIZE, data.get_prop<ObjLevelID>("path"))
 {
 }

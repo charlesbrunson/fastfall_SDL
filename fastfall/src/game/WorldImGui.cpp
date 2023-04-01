@@ -342,7 +342,7 @@ void entity_browser(WorldImGui::WorldData& wd)
                 auto& ent = w->entities().at(*tab.curr_ent);
                 m_actor = ent.actor ? w->get(*ent.actor) : nullptr;
                 fmt::format_to_n(ent_name, 64, "{}{}",
-                                 (m_actor ? m_actor->actor_type : "Entity"),
+                                 (m_actor && m_actor->get_actor_type() ? m_actor->get_actor_type()->name.str : "Entity"),
                                  tab.curr_ent->value.sparse_index);
             }
             else {
@@ -392,7 +392,7 @@ void entity_browser(WorldImGui::WorldData& wd)
                         static char sel_ent_name[64];
                         memset(sel_ent_name, 0, 64);
                         fmt::format_to_n(sel_ent_name, 64, "{}{}",
-                                       (actor ? actor->actor_type : "Entity"),
+                                       (actor && actor->get_actor_type() ? actor->get_actor_type()->name.str : "Entity"),
                                        id.value.sparse_index);
 
                         if (ImGui::Selectable(sel_ent_name, selected)) {

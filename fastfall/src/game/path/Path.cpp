@@ -23,13 +23,13 @@ Path::Path(const LevelObjectData* data)
             [](auto p) { return Vec2f{ p }; }
         );
 
-        if (auto p = data->optPropAsFloat("speed")) { speed = *p; }
-        if (auto p = data->optPropAsFloat("wait_on_start")) { wait_on_start = *p; }
-        if (auto p = data->optPropAsFloat("wait_on_way")) { wait_on_way = *p; }
-        if (auto p = data->optPropAsFloat("wait_on_end")) { wait_on_end = *p; }
-        if (auto p = data->optPropAsBool("stop_on_complete")) { stop_on_complete = *p; }
+        speed            = data->get_prop_or("speed",         0.f);
+        wait_on_start    = data->get_prop_or("wait_on_start", 0.f);
+        wait_on_way      = data->get_prop_or("wait_on_way",   0.f);
+        wait_on_end      = data->get_prop_or("wait_on_end",   0.f);
+        stop_on_complete = data->get_prop_or("wait_on_end",   false);
 
-        if (auto p = data->optPropAsString("on_complete")) {
+        if (auto p = data->get_prop_opt<std::string>("on_complete")) {
             std::string str = std::move(*p);
             if (str == "restart") {
                 on_complete = PathOnComplete::Restart;

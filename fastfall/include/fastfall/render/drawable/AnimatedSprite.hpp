@@ -18,7 +18,7 @@ class AnimatedSprite : public Drawable {
 public:
 
 	AnimatedSprite() :
-		curr_anim{ AnimID::NONE },
+		curr_anim{ AnimID{} },
 		sprite{nullptr}
 	{
 

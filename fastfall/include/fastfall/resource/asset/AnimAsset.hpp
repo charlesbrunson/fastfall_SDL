@@ -15,7 +15,7 @@ class SpriteAsset;
 class Animation {
 public:
 
-	Animation(const SpriteAsset* sprite = nullptr, AnimID my_id = AnimID::NONE);
+	Animation(const SpriteAsset* sprite = nullptr, AnimID my_id = {});
 
 	void operator= (const Animation& anim) noexcept {
 		anim_id = anim.anim_id;
@@ -55,7 +55,7 @@ public:
 	std::vector<unsigned> framerateMS;
 
 	struct AnimChain {
-		AnimID anim_id = AnimID::NONE;
+		AnimID anim_id = {};
 		unsigned int start_frame = 0;
 		bool has_chain = false;
 	} chain;

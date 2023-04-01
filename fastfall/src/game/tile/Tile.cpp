@@ -7,6 +7,10 @@
 
 namespace ff {
 
+    const TileMaterial TileMaterial::standard {
+        .typeName = "standard"
+    };
+
 	// Tile Touch
 
 	TileTouch::TileTouch(TileShape t_shape)
@@ -390,31 +394,6 @@ namespace ff {
 		else
 		{
 			return std::nullopt;
-		}
-	}
-
-	// Tile Materials
-
-	namespace {
-		std::unordered_map<std::string, TileMaterial> materials;
-	}
-
-	const TileMaterial Tile::standardMat = {
-		.typeName = "standard"
-	};
-
-	void Tile::addMaterial(const TileMaterial& mat) {
-		materials.insert_or_assign(mat.typeName, mat);
-	}
-
-	const TileMaterial& Tile::getMaterial(std::string typeName) {
-		const auto it = materials.find(typeName);
-
-		if (it != materials.end()) {
-			return (it->second);
-		}
-		else {
-			return standardMat;
 		}
 	}
 

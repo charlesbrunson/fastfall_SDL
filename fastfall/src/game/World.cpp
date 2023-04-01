@@ -3,6 +3,7 @@
 #include "fastfall/game/WorldImGui.hpp"
 
 #include "fastfall/render/DebugDraw.hpp"
+#include "fastfall/user_types.hpp"
 
 //#include "fastfall/game/actor/Actor.hpp"
 
@@ -104,21 +105,32 @@ std::optional<ID_ptr<Actor>> World::create_actor_from_data(LevelObjectData& data
     auto actor_id = components<Actor>().emplace(copyable_unique_ptr<Actor>());
     state._entities.at(id).actor = actor_id;
 
+    const ActorType* type = ff::user_types::get_actor_type(data.typehash);
+    if (!type) {
+        LOG_WARN("Unknown actor type {}, hash {}", data.type, data.typehash);
+        return std::nullopt;
+    }
+
     ActorInit init {
         .world        = *this,
         .entity_id    = id,
         .actor_id     = actor_id,
-        .type         = nullptr, // TODO look up type by data.name or typehash from user types db
+        .type         = type,
         .level_object = &data
     };
 
-    components<Actor>().emplace_at(actor_id, init.create());
-    if (auto* ptr = get(actor_id); ptr && ptr->is_initialized()) {
-        system_notify_created<Actor>(actor_id);
-        return ID_ptr<Actor>{actor_id, get(actor_id) };
+    if (auto opt = init.create()) {
+        components<Actor>().emplace_at(actor_id, std::move(opt.value()));
+        if (auto *ptr = get(actor_id); ptr && ptr->is_initialized()) {
+            system_notify_created<Actor>(actor_id);
+            return ID_ptr<Actor>{actor_id, get(actor_id)};
+        } else {
+            erase(id);
+            return std::nullopt;
+        }
     }
     else {
-        erase(id);
+        LOG_ERR_("Failed to create actor {}", type->name.str);
         return std::nullopt;
     }
 }

@@ -10,7 +10,7 @@ class BasicPlatform : public ff::Actor {
 public:
     static const ff::ActorType actor_type;
 
-    BasicPlatform(ff::ActorInit init, ff::LevelObjectData& data);
+    BasicPlatform(ff::ActorInit init, const ff::LevelObjectData& data);
 	BasicPlatform(ff::ActorInit init, ff::Rectf area, ff::ObjLevelID path_objid = {});
 
 protected:

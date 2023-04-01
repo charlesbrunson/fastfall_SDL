@@ -12,10 +12,11 @@ const ActorType TilePlatform::actor_type {
     .properties = {
         { "layer", ObjectProperty::Type::Int },
         { "path",  ObjLevelID{ ObjLevelID::NO_ID } }
-    }
+    },
+    .builder    = ActorType::make_builder<TilePlatform>()
 };
 
-TilePlatform::TilePlatform(ActorInit init, LevelObjectData& data)
+TilePlatform::TilePlatform(ActorInit init, const LevelObjectData& data)
     : TilePlatform(init, Rectu{ data.area } / TILESIZE, data.get_prop<int>("layer"), data.get_prop<ObjLevelID>("path"))
 {
 }

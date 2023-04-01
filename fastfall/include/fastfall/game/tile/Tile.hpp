@@ -103,6 +103,8 @@ namespace ff {
 		}
 		std::string typeName;
         cardinal_array<SurfaceMaterial> surfaces;
+
+        static const TileMaterial standard;
 	};
 
 	class TilesetAsset;
@@ -127,9 +129,9 @@ namespace ff {
 			return next_tileset.has_value();
 		}
 
-		static const TileMaterial standardMat;
-		static void addMaterial(const TileMaterial& mat);
-		static const TileMaterial& getMaterial(std::string typeName);
+		//static const TileMaterial standardMat;
+		//static void addMaterial(const TileMaterial& mat);
+		//static const TileMaterial& getMaterial(std::string typeName);
 	};
 
 }

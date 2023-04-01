@@ -6,7 +6,7 @@
 class TilePlatform : public ff::TileLayer {
 public:
     static const ff::ActorType actor_type;
-    TilePlatform(ff::ActorInit init, ff::LevelObjectData& data);
+    TilePlatform(ff::ActorInit init, const ff::LevelObjectData& data);
     TilePlatform(ff::ActorInit init, ff::Rectu area, int level_layer, ff::ObjLevelID path = {});
 };
 

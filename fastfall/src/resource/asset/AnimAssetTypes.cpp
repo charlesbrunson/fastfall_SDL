@@ -7,7 +7,7 @@ namespace ff {
 
 AnimID AnimIDRef::id() const
 {
-	if (m_id == AnimID::NONE && !m_sprite.empty() && !m_anim.empty()) {
+	if (m_id == AnimID{} && !m_sprite.empty() && !m_anim.empty()) {
 		m_id = AnimDB::get_animation_id(m_sprite, m_anim);
 	}
 	return AnimID{ m_id };

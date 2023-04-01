@@ -88,17 +88,17 @@ public:
 	inline void popCommand() { commands.pop(); }
 	inline void clearCommands() { commands = std::queue<TileLogicCommand>{}; }
 
-	template<typename T, typename = std::enable_if<std::is_base_of<TileLogic, T>::value>>
-	static void addType(const std::string& typeName) {
-		TileLogicType type{
-			typeName,
-			[](World& w) -> copyable_unique_ptr<TileLogic> {
-				return make_copyable_unique<TileLogic, T>(w);
-			}
-		};
-		getMap().insert(std::make_pair(type.typeName, type));
-	}
-	static copyable_unique_ptr<TileLogic> create(World& world, std::string_view typeName);
+	//template<typename T, typename = std::enable_if<std::is_base_of<TileLogic, T>::value>>
+	//static void addType(const std::string& typeName) {
+	//	TileLogicType type{
+	//		typeName,
+	//		[](World& w) -> copyable_unique_ptr<TileLogic> {
+	//			return make_copyable_unique<TileLogic, T>(w);
+	//		}
+	//	};
+	//	getMap().insert(std::make_pair(type.typeName, type));
+	//}
+	//static copyable_unique_ptr<TileLogic> create(World& world, std::string_view typeName);
 
 private:
 	using Map = std::map<std::string, TileLogicType, std::less<>>;

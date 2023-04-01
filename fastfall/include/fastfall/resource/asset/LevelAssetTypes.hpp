@@ -79,13 +79,14 @@ struct ObjectProperty
 
 struct ObjectData {
 	std::string name;
+    std::string type;
 	size_t      typehash = 0; // hash of type string
     Rectf       area;
 	std::map<std::string, ObjectProperty, std::less<>> properties;
 	std::vector<Vec2i> points;
 
     template<typename T>
-    T get_prop(std::string_view name) const {
+    [[nodiscard]] T get_prop(std::string_view name) const {
         auto it = properties.find(name);
         if (it != properties.end()) {
             if (std::holds_alternative<T>(it->second.value)) {
@@ -99,6 +100,40 @@ struct ObjectData {
             LOG_WARN("Object property {} not found", name);
         }
         return T{};
+    }
+
+    template<typename T>
+    [[nodiscard]] std::optional<T> get_prop_opt(std::string_view name) const {
+        auto it = properties.find(name);
+        if (it != properties.end()) {
+            if (std::holds_alternative<T>(it->second.value)) {
+                return std::get<T>(it->second.value);
+            }
+            else {
+                LOG_WARN("Object property {} does not contains expected type, instead holds {}", name, it->second.get_type_str());
+            }
+        }
+        else {
+            LOG_WARN("Object property {} not found", name);
+        }
+        return std::nullopt;
+    }
+
+    template<typename T>
+    [[nodiscard]] bool has_prop(std::string_view name) const {
+        auto it = properties.find(name);
+        return it != properties.end() && std::holds_alternative<T>(it->second.value);
+    }
+
+    template<typename T>
+    [[nodiscard]] bool get_prop_or(std::string_view name, T alt_value) const {
+        auto it = properties.find(name);
+        if (it != properties.end() && std::holds_alternative<T>(it->second.value)) {
+            return std::get<T>(it->second.value);
+        }
+        else {
+            return alt_value;
+        }
     }
 };
 

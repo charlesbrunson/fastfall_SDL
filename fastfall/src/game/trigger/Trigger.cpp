@@ -1,7 +1,6 @@
 #include "fastfall/game/trigger/Trigger.hpp"
 
 #include "fastfall/game/World.hpp"
-#include "fastfall/game/object/Object.hpp"
 
 namespace ff {
 

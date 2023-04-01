@@ -9,7 +9,6 @@ target_sources(fastfall PRIVATE
     path/PathMover.cpp
     path/Path.cpp
     trigger/Trigger.cpp
-    object/Object.cpp
     phys/Collidable.cpp
     phys/CollidableArbiter.cpp
     phys/CollisionSolver.cpp

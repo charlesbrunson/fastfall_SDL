@@ -6,6 +6,8 @@
 
 #include "nlohmann/json.hpp"
 
+#include "fastfall/user_types.hpp"
+
 #include <assert.h>
 #include <fstream>
 
@@ -461,12 +463,12 @@ const TileMaterial& TilesetAsset::getMaterial(TileID tile_id) const {
 
 	auto& r = tiles[tile_id.to_vec()];
 
-	if (r.has_prop_bits & TileHasProp::HasMaterial) 
+	if (r.has_prop_bits & TileHasProp::HasMaterial)
 	{
-		return Tile::getMaterial(tileMat.at(r.tileMatNdx));
+		return ff::user_types::get_tile_material(tileMat.at(r.tileMatNdx));
 	}
 	else {
-		return Tile::standardMat;
+		return TileMaterial::standard;
 	}
 }
 
