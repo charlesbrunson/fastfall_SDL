@@ -113,9 +113,6 @@ struct ObjectData {
                 LOG_WARN("Object property {} does not contains expected type, instead holds {}", name, it->second.get_type_str());
             }
         }
-        else {
-            LOG_WARN("Object property {} not found", name);
-        }
         return std::nullopt;
     }
 
@@ -126,7 +123,7 @@ struct ObjectData {
     }
 
     template<typename T>
-    [[nodiscard]] bool get_prop_or(std::string_view name, T alt_value) const {
+    [[nodiscard]] T get_prop_or(std::string_view name, T alt_value) const {
         auto it = properties.find(name);
         if (it != properties.end() && std::holds_alternative<T>(it->second.value)) {
             return std::get<T>(it->second.value);

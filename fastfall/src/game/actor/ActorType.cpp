@@ -2,6 +2,8 @@
 
 #include "fastfall/engine/config.hpp"
 
+#include "fastfall/game/actor/Actor.hpp"
+
 namespace ff {
 
 uint8_t ActorInit::get_priority() const {

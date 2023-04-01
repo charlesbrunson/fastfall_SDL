@@ -24,12 +24,18 @@ struct ActorInit {
     ID<Entity>  entity_id;
     ID<Actor>   actor_id;
 
-    const ActorType*       const type         = nullptr;
+    const ActorType*       type         = nullptr;
     const LevelObjectData* const level_object = nullptr;
 
     uint8_t get_priority() const;
 
     copyable_unique_ptr<Actor> create() const;
+
+    ActorInit& set_type_if_not(const ActorType* n_type) {
+        type = (type ? type : n_type);
+        return *this;
+    }
+
 };
 
 struct ActorProperty
@@ -58,6 +64,10 @@ struct ActorType {
     struct Name {
         Name(std::string_view _str)
             : str(_str), hash(std::hash<std::string_view>{}(_str))
+        {}
+
+        Name(const char* _str)
+            : Name(std::string_view{ _str })
         {}
 
         const std::string str;

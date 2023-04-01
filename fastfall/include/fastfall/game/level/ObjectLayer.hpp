@@ -21,7 +21,7 @@ public:
 
 	void clear();
 
-	void createObjectsFromData(World& world);
+	void createActorsFromObjects(World& world);
 
 	inline unsigned int getID() const { return layerID; };
 	inline const std::vector<LevelObjectData>& getObjectData() { return object_refs; };

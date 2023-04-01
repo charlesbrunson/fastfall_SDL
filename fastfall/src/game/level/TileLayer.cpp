@@ -13,10 +13,16 @@
 #include "fastfall/game/systems/CollisionSystem.hpp"
 #include "fastfall/game/World.hpp"
 
+#include "fastfall/user_types.hpp"
+
 namespace ff {
 
+const ActorType TileLayer::actor_type {
+        .name = "TileLayer"
+};
+
 TileLayer::TileLayer(ActorInit init, unsigned id, Vec2u levelsize)
-	: Actor{ init }
+	: Actor{ init.set_type_if_not(&actor_type) }
     , layer_data(id, levelsize)
 	, tiles_dyn(levelsize)
     , attach_id(init.world.create<AttachPoint>(init.entity_id, id_placeholder))
@@ -24,7 +30,7 @@ TileLayer::TileLayer(ActorInit init, unsigned id, Vec2u levelsize)
 }
 
 TileLayer::TileLayer(ActorInit init, const TileLayerData& layerData)
-    : Actor{ init }
+    : Actor{ init.set_type_if_not(&actor_type) }
     , attach_id(init.world.create<AttachPoint>(init.entity_id, id_placeholder))
 {
 	initFromAsset(init.world, layerData);
@@ -117,12 +123,11 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 				dyn_tile.logic_id = logic_ndx - 1;
 				logic_it->get()->addTile(tile.pos, *opt_tile, args);
 			}
-			else
-			{
-				dyn_tile.logic_id = dyn.tile_logic.size();
-				dyn.tile_logic.emplace_back(TileLogic::create(world, logic));
-				dyn.tile_logic.back()->addTile(tile.pos, *opt_tile, args);
-			}
+			else if (auto* logic_factory = ff::user_types::get_tile_logic_factory(logic)) {
+                dyn_tile.logic_id = dyn.tile_logic.size();
+                dyn.tile_logic.emplace_back(logic_factory(world));
+                dyn.tile_logic.back()->addTile(tile.pos, *opt_tile, args);
+            }
 		}
 	}
 
@@ -543,9 +548,9 @@ void TileLayer::updateTile(World& world, const Vec2u& at, uint8_t prev_tileset_n
 
         if (it == dyn.tile_logic.end()) {
             if (dyn.tile_logic.size() < UINT8_MAX - 1) {
-                if (auto logic_ptr = TileLogic::create(world, logic)) {
+                if (auto logic_factory = ff::user_types::get_tile_logic_factory(logic)) {
                     tiles_dyn[at].logic_id = dyn.tile_logic.size();
-                    dyn.tile_logic.push_back(std::move(logic_ptr));
+                    dyn.tile_logic.push_back(logic_factory(world));
                     dyn.tile_logic.back()->addTile(at, *next_tile, args.data());
                 }
                 else {

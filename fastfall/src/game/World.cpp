@@ -124,6 +124,7 @@ std::optional<ID_ptr<Actor>> World::create_actor_from_data(LevelObjectData& data
         system_notify_created<Actor>(actor_id);
         return ID_ptr<Actor>{actor_id, get(actor_id)};
     } else {
+        LOG_WARN("Failed to create actor type {}, hash {} from object", data.type, data.typehash);
         erase(id);
         return std::nullopt;
     }

@@ -22,7 +22,7 @@ struct copyable_unique_ptr {
 	explicit copyable_unique_ptr(Type* in_ptr)
 	{
 		clone = make_copy_fn<Type>();
-		ptr = in_ptr;
+		ptr = std::unique_ptr<Type>{ in_ptr };
 	}
 
 	copyable_unique_ptr(const copyable_unique_ptr<Base>& other)
@@ -113,8 +113,8 @@ private:
         requires (std::derived_from<Type, Base> || std::same_as<Type, Base>)
 	static auto make_copy_fn()
 	{
-		return [](const std::unique_ptr<Base>& ptr) -> std::unique_ptr<Base> {
-			const Type* under_ptr = static_cast<const Type*>(ptr.get());
+		return [](const std::unique_ptr<Base>& clone_ptr) -> std::unique_ptr<Base> {
+			const Type* under_ptr = static_cast<const Type*>(clone_ptr.get());
 			return std::make_unique<Type>(*under_ptr);
 		};
 	}

@@ -93,11 +93,11 @@ bool ObjectLayer::removeObjectDataByID(ObjLevelID id) {
 	return false;
 }
 
-void ObjectLayer::createObjectsFromData(World& world) {
+void ObjectLayer::createActorsFromObjects(World& world) {
 	for (auto& objRef : object_refs) {
 		if (objRef.typehash != 0) {
             objRef.all_objects = &object_refs;
-            world.create_object_from_data(objRef);
+            world.create_actor_from_data(objRef);
 		}
 	}
 }

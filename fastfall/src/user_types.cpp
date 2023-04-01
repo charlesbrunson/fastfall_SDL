@@ -2,6 +2,18 @@
 
 namespace ff {
 
+std::map<std::string, user_types::EngineStateFactory, std::less<>>
+user_types::engine_state_types;
+
+std::map<size_t, const ActorType*>
+user_types::actor_types;
+
+std::map<std::string, TileMaterial, std::less<>>
+user_types::tile_material_types;
+
+std::map<std::string, user_types::TileLogicFactory, std::less<>>
+user_types::tile_logic_types;
+
 bool user_types::register_tile_material(TileMaterial mat) {
     if (tile_material_types.contains(mat.typeName)) {
         return false;

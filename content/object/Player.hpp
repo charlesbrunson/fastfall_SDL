@@ -1,6 +1,5 @@
 #pragma once
 
-#include "fastfall/game/object/Object.hpp"
 #include "fastfall/game/World.hpp"
 
 #include "PlayerCommon.hpp"

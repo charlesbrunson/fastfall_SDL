@@ -23,6 +23,8 @@ class World;
 
 class Level : public ResourceSubscriber, public Actor {
 public:
+    const static ActorType actor_type;
+
     struct TileLayerProxy {
         ID<TileLayer> cmp_id;
         unsigned layer_id;

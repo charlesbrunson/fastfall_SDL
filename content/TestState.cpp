@@ -31,7 +31,7 @@ TestState::TestState()
         world->system<LevelSystem>().set_active(lvl_id);
 	}
     Level* lvl = world->system<LevelSystem>().get_active(*world);
-    lvl->get_obj_layer().createObjectsFromData(*world);
+    lvl->get_obj_layer().createActorsFromObjects(*world);
 
 	edit = std::make_unique<LevelEditor>( *world, lvl_id );
 	edit->select_layer(-1);

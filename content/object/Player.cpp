@@ -25,7 +25,7 @@ const ff::ActorType Player::actor_type = {
 };
 
 Player::Player(ActorInit init, Vec2f position, bool faceleft)
-	: Actor{ init }
+	: Actor{ init.set_type_if_not(&actor_type) }
 	, plr::members{ init, position, faceleft}
 {
     auto& box = init.world.at(collidable_id);

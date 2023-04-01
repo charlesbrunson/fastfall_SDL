@@ -10,6 +10,10 @@
 
 namespace ff {
 
+const ActorType Level::actor_type {
+    .name = "Level"
+};
+
 // LEVEL
 Level::Level(
     ActorInit init,
@@ -17,7 +21,7 @@ Level::Level(
     std::optional<Vec2u>        opt_size,
     std::optional<Color>        opt_bgColor
 )
-    : Actor{ init.set_type(ActorType::Level), { "Level" }}
+    : Actor{ init.set_type_if_not(&actor_type) }
 {
     if (opt_name)    levelName = std::move(*opt_name);
     if (opt_size)    levelSize = *opt_size;
@@ -28,7 +32,7 @@ Level::Level(
     ActorInit init,
     const LevelAsset& levelData
 )
-    : Actor{ init.set_type(ActorType::Level), { "Level" }}
+    : Actor{ init.set_type_if_not(&actor_type) }
 {
     initFromAsset(init.world, levelData);
 }

@@ -85,6 +85,8 @@ private:
     static constexpr secs FrameTime = secs{ 1.0 / 60.0 };
 
 public:
+    const static ActorType actor_type;
+
 	TileLayer(ActorInit init, unsigned id, Vec2u levelsize);
 	TileLayer(ActorInit init, const TileLayerData& layerData);
 

@@ -49,7 +49,7 @@ void ActorSystem::append_created(World& world) {
                update_order.end(),
                id,
                [world](ID<Actor> id, ID<Actor> actor) {
-                   return actor_compare(world.at(id), world.at(actor)) == std::strong_ordering::less;
+                   return world.at(id).priority < world.at(actor).priority;
                }
             );
             update_order.insert(it, id);
