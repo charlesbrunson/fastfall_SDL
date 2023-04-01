@@ -8,20 +8,20 @@ uint8_t ActorInit::get_priority() const {
     return type ? type->priority : ActorType::priority_default;
 }
 
-std::optional<copyable_unique_ptr<Actor>> ActorInit::create() const {
+copyable_unique_ptr<Actor> ActorInit::create() const {
     if (!level_object) {
         LOG_ERR_("actor init has no associated level object");
-        return std::nullopt;
+        return {};
     }
 
     if (!type) {
         LOG_ERR_("actor init has no actor type");
-        return std::nullopt;
+        return {};
     }
 
     if (!type->builder) {
         LOG_ERR_("actor type has no builder function");
-        return std::nullopt;
+        return {};
     }
 
     auto data = *level_object;
@@ -33,13 +33,13 @@ std::optional<copyable_unique_ptr<Actor>> ActorInit::create() const {
         LOG_ERR_("object width ({}) not valid for object:{:x}",
                  data.area.width, data.typehash
         );
-        return std::nullopt;
+        return {};
     }
     if (tile_size.y > 0 && (data.area.height / TILESIZE != tile_size.y)) {
         LOG_ERR_("object height ({}) not valid for object:{:x}",
                  data.area.height, data.typehash
         );
-        return std::nullopt;
+        return {};
     }
 
     // test custom properties
@@ -54,7 +54,7 @@ std::optional<copyable_unique_ptr<Actor>> ActorInit::create() const {
                 LOG_ERR_("actor property ({}) not defined for level object:{:x}",
                          prop.name, data.typehash
                 );
-                return std::nullopt;
+                return {};
             }
         }
 
@@ -62,7 +62,7 @@ std::optional<copyable_unique_ptr<Actor>> ActorInit::create() const {
             LOG_ERR_("actor property ({}={}) not valid for object:{:x}",
                      it->first, it->second.str_value, data.typehash
             );
-            return std::nullopt;
+            return {};
         }
     }
     return type->builder(*this, data);

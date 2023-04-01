@@ -29,7 +29,7 @@ struct ActorInit {
 
     uint8_t get_priority() const;
 
-    std::optional<copyable_unique_ptr<Actor>> create() const;
+    copyable_unique_ptr<Actor> create() const;
 };
 
 struct ActorProperty

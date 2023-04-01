@@ -119,18 +119,12 @@ std::optional<ID_ptr<Actor>> World::create_actor_from_data(LevelObjectData& data
         .level_object = &data
     };
 
-    if (auto opt = init.create()) {
-        components<Actor>().emplace_at(actor_id, std::move(opt.value()));
-        if (auto *ptr = get(actor_id); ptr && ptr->is_initialized()) {
-            system_notify_created<Actor>(actor_id);
-            return ID_ptr<Actor>{actor_id, get(actor_id)};
-        } else {
-            erase(id);
-            return std::nullopt;
-        }
-    }
-    else {
-        LOG_ERR_("Failed to create actor {}", type->name.str);
+    components<Actor>().emplace_at(actor_id, init.create());
+    if (auto *ptr = get(actor_id); ptr && ptr->is_initialized()) {
+        system_notify_created<Actor>(actor_id);
+        return ID_ptr<Actor>{actor_id, get(actor_id)};
+    } else {
+        erase(id);
         return std::nullopt;
     }
 }

@@ -22,7 +22,7 @@ struct copyable_unique_ptr {
 	explicit copyable_unique_ptr(Type* in_ptr)
 	{
 		clone = make_copy_fn<Type>();
-		ptr = std::unique_ptr<Base>(in_ptr);
+		ptr = in_ptr;
 	}
 
 	copyable_unique_ptr(const copyable_unique_ptr<Base>& other)
