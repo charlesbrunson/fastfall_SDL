@@ -78,4 +78,6 @@ private:
 
 };
 
+void imgui_component(World& w, ID<AttachPoint> id);
+
 }

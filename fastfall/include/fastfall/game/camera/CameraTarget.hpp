@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fastfall/util/math.hpp"
+#include "fastfall/util/id.hpp"
 #include "fastfall/engine/time/time.hpp"
 
 namespace ff {
@@ -18,7 +19,6 @@ enum class CamTargetState {
 
 class World;
 
-
 class CameraTarget {
 public:
 	CameraTarget(CamTargetPriority priority);
@@ -26,10 +26,9 @@ public:
 
 	virtual void update(World& w, secs delta) = 0;
 
-	Vec2f get_target_pos() const { return position; }
-
-	CamTargetPriority get_priority() const { return m_priority; };
-	CamTargetState get_state() const { return m_state; };
+	Vec2f               get_target_pos() const;
+	CamTargetPriority   get_priority() const;
+	CamTargetState      get_state() const;
 
 	friend bool operator< (const CameraTarget& lhs, const CameraTarget& rhs) {
 		return lhs.m_priority < rhs.m_priority;
@@ -45,5 +44,7 @@ private:
 
     friend class CameraSystem;
 };
+
+void imgui_component(World& w, ID<CameraTarget> id);
 
 }

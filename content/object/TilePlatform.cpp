@@ -22,7 +22,7 @@ TilePlatform::TilePlatform(ActorInit init, const LevelObjectData& data)
 }
 
 TilePlatform::TilePlatform(ActorInit init, Rectu area, int level_layer, ObjLevelID path_objid)
-    : TileLayer(init.set_type_if_not(&actor_type), 0, area.getSize())
+    : TileLayer(init.type_or(&actor_type), 0, area.getSize())
 {
     World& w = init.world;
 

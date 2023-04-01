@@ -2,6 +2,8 @@
 
 #include "fastfall/game/World.hpp"
 
+#include "fastfall/game/imgui_component.hpp"
+
 namespace ff {
 
 Trigger::Trigger(ID<Trigger> t_id)
@@ -102,5 +104,57 @@ const TriggerTag ttag_generic = "generic";
 const TriggerTag ttag_hitbox  = "hitbox";
 const TriggerTag ttag_hurtbox = "hurtbox";
 const TriggerTag ttag_pushbox = "pushbox";
+
+void imgui_component(World& w, ID<Trigger> id) {
+    static constexpr std::string_view State_str[] = {
+            "None",
+            "Loop",
+            "Entry",
+            "Exit"
+    };
+    static constexpr std::string_view  Overlap_str[] = {
+            "Partial",
+            "Outside",
+            "Inside"
+    };
+
+    auto &cmp = w.at(id);
+
+    bool enabled = cmp.is_enabled();
+    bool active = cmp.is_activated();
+    Rectf area = cmp.get_area();
+
+    auto& overlap = cmp.overlap;
+    auto& drivers = cmp.drivers;
+    auto& self_flags = cmp.self_flags;
+    auto& filter_flags = cmp.filter_flags;
+
+    ImGui::Text("Enabled: %s", enabled ? "Yes" : "No");
+    ImGui::Text("Active:  %s", active  ? "Yes" : "No");
+    ImGui::Text("Area: (%3.2f, %3.2f, %3.2f, %3.2f)",
+                area.left, area.top, area.width, area.height);
+
+    ImGui::Text("Overlap: %s", Overlap_str[static_cast<unsigned>(overlap)].data());
+    if (ImGui::TreeNode((void*)(&self_flags), "%s %d", "Self tags:", (unsigned)self_flags.size())) {
+        for (auto &tag: self_flags) {
+            ImGui::Text("%s", tag.tag_name_str().data());
+        }
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode((void*)(&filter_flags), "%s %d", "Filter tags:", (unsigned)filter_flags.size())) {
+        for (auto &tag: filter_flags) {
+            ImGui::Text("%s", tag.tag_name_str().data());
+        }
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode((void*)(&drivers), "Drivers: %d", (unsigned)drivers.size())) {
+        for (auto &[id, driver]: drivers) {
+            imgui_component_ref(w, id);
+            ImGui::Text("\tState: %s", State_str[static_cast<unsigned>(driver.state)].data());
+            ImGui::Text("\tDuration: %f", driver.duration.time);
+        }
+        ImGui::TreePop();
+    }
+}
 
 }

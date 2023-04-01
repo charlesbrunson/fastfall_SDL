@@ -8,7 +8,9 @@ target_sources(fastfall PRIVATE
     actor/ActorType.cpp
     path/PathMover.cpp
     path/Path.cpp
+    camera/CameraTarget.cpp
     trigger/Trigger.cpp
+    drawable/drawable.cpp
     phys/Collidable.cpp
     phys/CollidableArbiter.cpp
     phys/CollisionSolver.cpp

@@ -21,7 +21,7 @@ BasicPlatform::BasicPlatform(ActorInit init, const ff::LevelObjectData& data)
 }
 
 BasicPlatform:: BasicPlatform(ff::ActorInit init, ff::Rectf area, ff::ObjLevelID path_objid)
-    : Actor(init.set_type_if_not(&actor_type))
+    : Actor(init.type_or(&actor_type))
     , shape_id( init.world.create<ShapeRectangle>(init.entity_id, Rectf{ {}, Vec2f{ area.getSize() } }, platformColor) )
     , collider_id( init.world.create<ColliderSimple>(init.entity_id, Rectf{ {}, Vec2f{ area.getSize() } }) )
 {

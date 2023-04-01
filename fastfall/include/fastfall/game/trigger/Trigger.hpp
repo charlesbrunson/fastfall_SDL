@@ -87,4 +87,6 @@ extern const TriggerTag ttag_hitbox;
 extern const TriggerTag ttag_hurtbox;
 extern const TriggerTag ttag_pushbox;
 
+void imgui_component(World& w, ID<Trigger> id);
+
 }

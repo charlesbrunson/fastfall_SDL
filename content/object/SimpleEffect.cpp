@@ -7,7 +7,7 @@ const ActorType SimpleEffect::actor_type {
 };
 
 SimpleEffect::SimpleEffect(ActorInit init, const AnimID& anim, Vec2f position, bool hflip)
-    : Actor(init.set_type_if_not(&actor_type))
+    : Actor(init.type_or(&actor_type))
 {
     auto spr = init.world.create<ff::AnimatedSprite>(init.entity_id);
     anim_spr_id = spr;

@@ -8,13 +8,6 @@
 
 namespace ff {
 
-CameraTarget::CameraTarget(CamTargetPriority priority)
-	: m_priority(priority)
-{
-}
-
-// ----------------------------
-
 CameraSystem::CameraSystem(Vec2f initPos)
     : currentPosition(initPos)
 {

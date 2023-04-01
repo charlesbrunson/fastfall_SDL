@@ -125,4 +125,7 @@ namespace ff {
         void spawn_particles(secs deltaTime);
     };
 
+    class World;
+    void imgui_component(World& w, ID<Emitter> id);
+
 }

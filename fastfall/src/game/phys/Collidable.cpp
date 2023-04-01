@@ -9,6 +9,8 @@
 
 #include "fastfall/game/phys/ColliderRegion.hpp"
 #include "fastfall/game/ComponentID.hpp"
+#include "fastfall/game/World.hpp"
+#include "fastfall/game/imgui_component.hpp"
 
 #include <assert.h>
 #include <functional>
@@ -521,9 +523,6 @@ void Collidable::reset_surface_vel() noexcept {
 }
 
 void Collidable::set_parent_vel(Vec2f pvel) noexcept { parent_vel = pvel; }
-/*
-void Collidable::set_surface_vel(Vec2f svel) noexcept { surface_vel = svel; }
-*/
 
 Vec2f Collidable::get_last_parent_vel() const noexcept { return last_parent_vel; }
 void Collidable::set_last_parent_vel(Vec2f pvel) noexcept { last_parent_vel = pvel; }
@@ -533,5 +532,221 @@ void Collidable::add_decel(Vec2f deceleration) { decel_accum += deceleration; };
 
 Vec2f Collidable::get_friction()   const noexcept { return friction; };
 Vec2f Collidable::get_acc() const noexcept { return acc; };
+
+void imgui_component(World& w, ID<Collidable> id) {
+    auto& col = w.at(id);
+
+    auto text_vec2 = [](std::string_view label, const auto& v) {
+        ImGui::Text("%s: ", label.data());     ImGui::NextColumn();
+        ImGui::Text("%3.2f, %3.2f", v.x, v.y); ImGui::NextColumn();
+    };
+    auto text_vec1 = [](std::string_view label, const auto& v) {
+        ImGui::Text("%s: ", label.data());     ImGui::NextColumn();
+        ImGui::Text("%3.2f", v); ImGui::NextColumn();
+    };
+
+    ImGui::Columns(2);
+    text_vec2("Curr Pos",    col.getPosition());
+    text_vec2("Prev Pos",    col.getPosition());
+    text_vec2("Curr Center", col.getBox().center());
+    text_vec2("Prev Center", col.getPrevBox().center());
+    text_vec2("Curr Size",   col.getBox().getSize());
+    text_vec2("Prev Size",   col.getPrevBox().getSize());
+
+    text_vec2("Local  Vel",      col.get_local_vel());
+    text_vec2("Parent Vel",      col.get_parent_vel());
+    text_vec2("Last Parent Vel", col.get_last_parent_vel());
+    text_vec2("Surface Vel",     col.get_surface_vel());
+    text_vec2("Global Vel",      col.get_global_vel());
+
+    text_vec2("Accel",    col.get_acc());
+    text_vec2("Friction", col.get_friction());
+    text_vec2("Gravity",  col.get_gravity());
+
+    text_vec1("Local  Speed", col.get_local_vel().magnitude());
+    text_vec1("Parent Speed", col.get_parent_vel().magnitude());
+    text_vec1("Global Speed", col.get_global_vel().magnitude());
+
+    ImGui::Text("Attach ID: "); ImGui::NextColumn();
+    imgui_component_ref(w, col.get_attach_id()); ImGui::NextColumn();
+
+    text_vec2("Attach Offset",       col.get_attach_origin());
+    ImGui::Columns();
+
+    if (ImGui::TreeNode((void*)(&col.tracker()), "Tracker")) {
+
+        if (!col.tracker()) {
+            ImGui::Text("No trackers!");
+        }
+        else {
+            auto& tracker = *col.tracker();
+
+            static char labelbuf[32];
+            sprintf(labelbuf, "Friction (%d)", tracker.settings.has_friction);
+
+            if (ImGui::SmallButton(labelbuf)) {
+                tracker.settings.has_friction = !tracker.settings.has_friction;
+            } ImGui::SameLine();
+            sprintf(labelbuf, "Platform Stick (%d)", tracker.settings.move_with_platforms);
+            if (ImGui::SmallButton(labelbuf)) {
+                tracker.settings.move_with_platforms = !tracker.settings.move_with_platforms;
+            } ImGui::SameLine();
+            sprintf(labelbuf, "Slope Stick (%d)", tracker.settings.slope_sticking);
+            if (ImGui::SmallButton(labelbuf)) {
+                tracker.settings.slope_sticking = !tracker.settings.slope_sticking;
+            }ImGui::SameLine();
+            sprintf(labelbuf, "Wall stop (%d)", tracker.settings.slope_wall_stop);
+            if (ImGui::SmallButton(labelbuf)) {
+                tracker.settings.slope_wall_stop = !tracker.settings.slope_wall_stop;
+            }
+
+            static char trackerbuf[32];
+            sprintf(trackerbuf, "%p", &col);
+            ImGui::Columns(2, trackerbuf);
+            //ImGui::SetColumnWidth(0, 120.f);
+            ImGui::Separator();
+
+            ImGui::Text("Angle Range"); ImGui::NextColumn();
+            ImGui::Text("(%3.2f, %3.2f)", tracker.angle_range.min.degrees(), tracker.angle_range.max.degrees()); ImGui::NextColumn();
+
+            ImGui::Text("Has Contact"); ImGui::NextColumn();
+            ImGui::Text("%s", tracker.has_contact() ? "true" : "false"); ImGui::NextColumn();
+
+            ImGui::Text("Contact Duration"); ImGui::NextColumn();
+            ImGui::Text("%3.2f", tracker.contact_time); ImGui::NextColumn();
+
+            ImGui::Text("Air Duration"); ImGui::NextColumn();
+            ImGui::Text("%3.2f", tracker.air_time); ImGui::NextColumn();
+
+            ImGui::Text("Traversal Speed"); ImGui::NextColumn();
+            auto tspeed = tracker.traverse_get_speed();
+            ImGui::Text("%3.2f", tspeed ? *tspeed : 0.f); ImGui::NextColumn();
+
+            ImGui::Text("Max Speed"); ImGui::NextColumn();
+            ImGui::Text("%3.2f", tracker.settings.max_speed); ImGui::NextColumn();
+
+            if (tracker.get_contact().has_value()) {
+                const auto& c = tracker.get_contact().value();
+
+                ImGui::Text("Collider"); ImGui::NextColumn();
+                if (tracker.get_contact()->id) {
+                    imgui_component_ref(w, tracker.get_contact()->id->collider);
+                }
+                else {
+                    ImGui::Text("N/A");
+                }
+                ImGui::NextColumn();
+
+                ImGui::Text("Surface Normal"); ImGui::NextColumn();
+                ImGui::Text("(%3.2f, %3.2f)", c.collider_n.x, c.collider_n.y); ImGui::NextColumn();
+
+                ImGui::Text("Ortho Normal"); ImGui::NextColumn();
+                ImGui::Text("(%1.f, %1.f)", c.ortho_n.x, c.ortho_n.y); ImGui::NextColumn();
+
+                ImGui::Text("Separation"); ImGui::NextColumn();
+                ImGui::Text("%s%3.3f", (c.separation == 0 ? " " : (c.separation > 0 ? "+" : "-")), c.separation); ImGui::NextColumn();
+
+                ImGui::Text("Surface Velocity"); ImGui::NextColumn();
+                ImGui::Text("(%3.2f, %3.2f)", c.velocity.x, c.velocity.y); ImGui::NextColumn();
+
+                ImGui::Text("Has Contact"); ImGui::NextColumn();
+                ImGui::Text("%s", c.hasContact ? "true" : "false"); ImGui::NextColumn();
+
+                ImGui::Text("Impact Time"); ImGui::NextColumn();
+                if (c.hasImpactTime) {
+                    ImGui::Text("%.3f", c.impactTime);
+                }
+                else {
+                    ImGui::Text("N/A");
+                } ImGui::NextColumn();
+
+                ImGui::Text("Duration"); ImGui::NextColumn();
+                ImGui::Text("%3.2f", c.touchDuration); ImGui::NextColumn();
+
+                ImGui::Text("Contact Type"); ImGui::NextColumn();
+                ImGui::Text("%s", contactTypeToString(c.type).data()); ImGui::NextColumn();
+
+            }
+            ImGui::Columns(1);
+            ImGui::Separator();
+        }
+
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode((void*)(&col.get_contacts()), "Collisions")) {
+        bool has_collision = false;
+        if (!col.get_contacts().empty()) {
+
+            for (auto& c : col.get_contacts()) {
+
+                if (!has_collision) {
+
+                    static char collisionbuf[32];
+                    sprintf(collisionbuf, "%p", &col);
+                    ImGui::Columns(2, collisionbuf);
+                    //ImGui::SetColumnWidth(0, 120.f);
+                    ImGui::Separator();
+
+                    has_collision = true;
+                }
+
+                ImGui::Text("Collider: "); ImGui::NextColumn();
+                if (c.id && c.id->collider) {
+                    imgui_component_ref(w, ComponentID{ c.id->collider });
+                }
+                else {
+                    ImGui::Text("Combined");
+                }
+                ImGui::NextColumn();
+
+                ImGui::Text("Surface Normal"); ImGui::NextColumn();
+                ImGui::Text("(%3.2f, %3.2f)", c.collider_n.x, c.collider_n.y); ImGui::NextColumn();
+
+                ImGui::Text("Ortho Normal"); ImGui::NextColumn();
+                ImGui::Text("(%1.f, %1.f)", c.ortho_n.x, c.ortho_n.y); ImGui::NextColumn();
+
+                ImGui::Text("Separation"); ImGui::NextColumn();
+                ImGui::Text("%s%3.3f", (c.separation == 0 ? " " : (c.separation > 0 ? "+" : "-")), c.separation); ImGui::NextColumn();
+
+                ImGui::Text("Velocity"); ImGui::NextColumn();
+                ImGui::Text("(%3.2f, %3.2f)", c.velocity.x, c.velocity.y); ImGui::NextColumn();
+
+                ImGui::Text("Surface Velocity"); ImGui::NextColumn();
+                ImGui::Text("(%3.2f, %3.2f)", c.surface_vel().x, c.surface_vel().y); ImGui::NextColumn();
+
+                ImGui::Text("Has Contact"); ImGui::NextColumn();
+                ImGui::Text("%s", c.hasContact ? "true" : "false"); ImGui::NextColumn();
+
+                ImGui::Text("Impact Time"); ImGui::NextColumn();
+                if (c.hasImpactTime) {
+                    ImGui::Text("%.3f", c.impactTime);
+                }
+                else {
+                    ImGui::Text("N/A");
+                } ImGui::NextColumn();
+
+                ImGui::Text("Duration"); ImGui::NextColumn();
+                ImGui::Text("%3.2f", c.touchDuration); ImGui::NextColumn();
+
+
+                ImGui::Text("Contact Type"); ImGui::NextColumn();
+                ImGui::Text("%s", contactTypeToString(c.type).data()); ImGui::NextColumn();
+
+                ImGui::Separator();
+            }
+        }
+        else {
+            ImGui::Text("None"); ImGui::NextColumn(); ImGui::NextColumn();
+            ImGui::Separator();
+        }
+
+        if (!has_collision) {
+            ImGui::Text("No collisions!");
+        }
+
+        ImGui::Columns();
+        ImGui::TreePop();
+    }
+}
 
 }

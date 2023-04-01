@@ -51,6 +51,9 @@ private:
     Vec2f path_offset;
     bool reversed = false;
     bool stopped = false;
+
 };
+
+void imgui_component(World& w, ID<PathMover> id);
 
 }

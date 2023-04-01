@@ -22,7 +22,7 @@ const ActorType TileLayer::actor_type {
 };
 
 TileLayer::TileLayer(ActorInit init, unsigned id, Vec2u levelsize)
-	: Actor{ init.set_type_if_not(&actor_type) }
+	: Actor{init.type_or(&actor_type) }
     , layer_data(id, levelsize)
 	, tiles_dyn(levelsize)
     , attach_id(init.world.create<AttachPoint>(init.entity_id, id_placeholder))
@@ -30,7 +30,7 @@ TileLayer::TileLayer(ActorInit init, unsigned id, Vec2u levelsize)
 }
 
 TileLayer::TileLayer(ActorInit init, const TileLayerData& layerData)
-    : Actor{ init.set_type_if_not(&actor_type) }
+    : Actor{init.type_or(&actor_type) }
     , attach_id(init.world.create<AttachPoint>(init.entity_id, id_placeholder))
 {
 	initFromAsset(init.world, layerData);

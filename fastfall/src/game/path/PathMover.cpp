@@ -1,5 +1,8 @@
 #include "fastfall/game/path/PathMover.hpp"
 
+#include "fastfall/game/World.hpp"
+#include "fastfall/game/imgui_component.hpp"
+
 #include <algorithm>
 #include <utility>
 
@@ -133,6 +136,42 @@ Vec2f PathMover::get_pos() const {
 
 Vec2f PathMover::get_vel() const {
     return vel;
+}
+
+void imgui_component(World& w, ID<PathMover> id) {
+
+    auto& cmp = w.at(id);
+    auto attach_id = cmp.get_attach_id();
+
+    ImGui::Text("Attach ID: ");
+    ImGui::SameLine();
+    imgui_component_ref(w, attach_id);
+
+    ImGui::Text("At Start: %s", cmp.at_start() ? "Yes" : "No");
+    ImGui::Text("At End: %s", cmp.at_end() ? "Yes" : "No");
+    auto prev_point = cmp.prev_waypoint_pos();
+    ImGui::Text("Prev Point: %3.2f, %3.2f", prev_point.x, prev_point.y);
+    auto next_point = cmp.next_waypoint_pos();
+    ImGui::Text("Next Point: %3.2f, %3.2f", next_point.x, next_point.y);
+    auto pos = cmp.get_pos();
+    ImGui::Text("Curr Pos: %3.2f, %3.2f", pos.x, pos.y);
+    auto vel = cmp.get_vel();
+    ImGui::Text("Curr Vel: %3.2f, %3.2f", vel.x, vel.y);
+    auto path_offset = cmp.get_path_offset();
+    ImGui::Text("Path offset: %3.2f, %3.2f", path_offset.x, path_offset.y);
+    auto is_stopped = cmp.is_stopped();
+    ImGui::Text("Is Stopped: %s", is_stopped ? "Yes" : "No");
+    auto& path = cmp.get_path();
+    if (ImGui::TreeNode((void*)(&path), "Path"))
+    {
+        if (ImGui::TreeNode((void *) (&path.waypoints), "Path Points (%d)", (unsigned)path.waypoints.size())) {
+            for (auto &point: path.waypoints) {
+                ImGui::Text("%3.2f, %3.2f", point.x, point.y);
+            }
+            ImGui::TreePop();
+        }
+        ImGui::TreePop();
+    }
 }
 
 }

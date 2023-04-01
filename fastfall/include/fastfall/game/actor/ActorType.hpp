@@ -24,18 +24,12 @@ struct ActorInit {
     ID<Entity>  entity_id;
     ID<Actor>   actor_id;
 
-    const ActorType*       type         = nullptr;
+    const ActorType* type = nullptr;
     const LevelObjectData* const level_object = nullptr;
 
     uint8_t get_priority() const;
-
+    ActorInit& type_or(const ActorType* n_type);
     copyable_unique_ptr<Actor> create() const;
-
-    ActorInit& set_type_if_not(const ActorType* n_type) {
-        type = (type ? type : n_type);
-        return *this;
-    }
-
 };
 
 struct ActorProperty

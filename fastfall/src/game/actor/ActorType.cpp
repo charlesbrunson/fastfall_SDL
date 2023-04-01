@@ -10,6 +10,11 @@ uint8_t ActorInit::get_priority() const {
     return type ? type->priority : ActorType::priority_default;
 }
 
+ActorInit& ActorInit::type_or(const ActorType* n_type) {
+    type = (type ? type : n_type);
+    return *this;
+}
+
 copyable_unique_ptr<Actor> ActorInit::create() const {
     if (!level_object) {
         LOG_ERR_("actor init has no associated level object");

@@ -231,4 +231,8 @@ void Emitter::backup_strategy() {
     strategy_backup = strategy;
 }
 
+void imgui_component(World& w, ID<Emitter> id) {
+    // TODO
+}
+
 }

@@ -189,6 +189,6 @@ private:
 	std::vector<AppliedContact> currContacts;
 };
 
-void imgui_component(World& w, Collidable& cmp);
+void imgui_component(World&w , ID<Collidable> id);
 
 }

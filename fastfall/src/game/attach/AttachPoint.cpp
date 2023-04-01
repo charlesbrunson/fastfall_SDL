@@ -2,6 +2,7 @@
 
 #include "imgui.h"
 #include "fastfall/game/World.hpp"
+#include "fastfall/game/imgui_component.hpp"
 
 namespace ff {
 
@@ -59,6 +60,60 @@ void AttachPoint::update_prev() {
 
 ID<AttachPoint> AttachPoint::id() const {
     return _id;
+}
+
+void imgui_component(World& w, ID<AttachPoint> id) {
+    auto& cmp = w.at(id);
+    auto& sys = w.system<AttachSystem>();
+
+    auto cpos  = cmp.curr_pos();
+    auto ppos  = cmp.prev_pos();
+    auto cvel  = cmp.local_vel();
+    auto pvel  = cmp.prev_local_vel();
+    auto cpvel = cmp.parent_vel();
+    auto ppvel = cmp.prev_parent_vel();
+
+    ImGui::Text("Is root:         %s", sys.is_attachpoint_root(id) ? "Yes" : "No");
+    ImGui::Text("Curr Pos:        %3.2f, %3.2f", cpos.x, cpos.y);
+    ImGui::Text("Prev Pos:        %3.2f, %3.2f", ppos.x, ppos.y);
+    ImGui::Text("Curr Local Vel:  %3.2f, %3.2f", cvel.x, cvel.y);
+    ImGui::Text("Prev Local Vel:  %3.2f, %3.2f", pvel.x, pvel.y);
+    ImGui::Text("Curr Parent Vel: %3.2f, %3.2f", cpvel.x, cpvel.y);
+    ImGui::Text("Prev Parent Vel: %3.2f, %3.2f", ppvel.x, ppvel.y);
+
+    auto& attachs = sys.get_attachments(cmp.id());
+
+    auto parent = sys.get_attachpoint(cmp.id());
+    ImGui::Text("Has Constraint: %s", (cmp.constraint ? "Yes" : "No"));
+    ImGui::Text("Parent: ");
+    ImGui::SameLine();
+    if (parent) {
+        imgui_component_ref(w, parent.value());
+    }
+    else {
+        ImGui::Text("None");
+    }
+
+    if (ImGui::TreeNode((void*)(&attachs), "Attached Components (%d)", (unsigned)attachs.size())) {
+        ImGui::Columns(2, NULL, false);
+        int counter = 0;
+        for (auto& [cmp_id, data] : attachs) {
+            imgui_component_ref(w, cmp_id);
+            ImGui::NextColumn();
+            static float v[2];
+            ImGui::PushID(counter);
+            v[0] = data.offset.x;
+            v[1] = data.offset.y;
+            if (ImGui::DragFloat2("", v)) {
+                sys.set_attach_offset(cmp.id(), cmp_id, Vec2f{ v[0], v[1] });
+            }
+            ImGui::PopID();
+            ImGui::NextColumn();
+            ++counter;
+        }
+        ImGui::Columns();
+        ImGui::TreePop();
+    }
 }
 
 }
