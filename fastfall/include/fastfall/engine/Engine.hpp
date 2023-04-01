@@ -92,13 +92,13 @@ public:
 
     bool run();
 
-    bool is_running() const noexcept { return running; };
-    bool is_init() const noexcept { return initialized; }
+    bool is_running() const noexcept;
+    bool is_init() const noexcept;
 
-    int get_window_scale() const noexcept { return windowZoom; }
-    const Window* get_window() const noexcept { return window; }
-    const FixedEngineClock& get_clock() const { return clock; }
-    secs get_uptime() const { return upTime; }
+    int get_window_scale() const noexcept;
+    const Window* get_window() const noexcept;
+    const FixedEngineClock& get_clock() const;
+    secs get_uptime() const;
 
     void resizeWindow(Vec2u size, bool force_size = false);
 private:

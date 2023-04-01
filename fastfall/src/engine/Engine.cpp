@@ -147,6 +147,14 @@ bool Engine::run() {
     }
 }
 
+bool Engine::is_running() const noexcept { return running; };
+bool Engine::is_init() const noexcept { return initialized; }
+
+int Engine::get_window_scale() const noexcept { return windowZoom; }
+const Window* Engine::get_window() const noexcept { return window; }
+const FixedEngineClock& Engine::get_clock() const { return clock; }
+secs Engine::get_uptime() const { return upTime; }
+
 // -------------------------------------------
 
 bool Engine::run_singleThread()
