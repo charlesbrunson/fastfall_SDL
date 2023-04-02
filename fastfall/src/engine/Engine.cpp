@@ -163,6 +163,11 @@ bool Engine::run_singleThread()
     SDL_SetThreadPriority(SDL_ThreadPriority::SDL_THREAD_PRIORITY_HIGH);
 
     running = true;
+    bool first_frame = true;
+
+    predrawRunnables();
+    updateView();
+    drawRunnables();
 
     while (is_running() && !runnables.empty())
     {
@@ -178,8 +183,11 @@ bool Engine::run_singleThread()
         profiler::curr_duration.predraw_time = profiler::frame_timer.elapsed();
 
         updateView();
-
         drawRunnables();
+        if (first_frame && window) {
+            first_frame = false;
+            window->showWindow();
+        }
         profiler::curr_duration.draw_time = profiler::frame_timer.elapsed();
 
         updateImGui();
@@ -226,9 +234,15 @@ bool Engine::run_doubleThread()
     std::barrier<> bar{ 2 };
 
     running = true;
-    //bool first_frame = true;
+    bool first_frame = true;
+
+    predrawRunnables();
+    //updateView();
+    drawRunnables();
+
     clock.reset();
     std::thread stateWorker(&Engine::runUpdate, this, &bar);
+
 
     while (is_running() && !runnables.empty()) {
         profiler::curr_duration = {};
@@ -257,6 +271,10 @@ bool Engine::run_doubleThread()
         ff::glDeleteStale();
 
         display();
+        if (first_frame && window) {
+            first_frame = false;
+            window->showWindow();
+        }
         profiler::curr_duration.display_time = profiler::frame_timer.elapsed();
 
         sleep();
@@ -770,7 +788,7 @@ void Engine::initRenderTarget(bool fullscreen)
     // browser handles vsync if emscripten
     IF_N_EMSCRIPTEN(window->setVsyncEnabled(settings.vsyncEnabled));
 
-    window->showWindow();
+    //window->showWindow();
 
     margins = std::make_unique<VertexArray>(Primitive::TRIANGLE_STRIP, 10);
     for (int i = 0; i < 10; i++) {

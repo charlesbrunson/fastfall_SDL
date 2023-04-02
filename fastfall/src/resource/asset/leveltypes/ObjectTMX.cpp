@@ -54,18 +54,27 @@ std::map<std::string, ObjectProperty, std::less<>> parseProperties(xml_node<>* p
                     break;
                 case ObjectProperty::Type::Float:
                     v.emplace<float>(0.f);
-                    std::from_chars(value.begin(), value.end(), std::get<float>(v));
+                    std::from_chars(
+                            value.data(),
+                            value.data() + value.size(),
+                            std::get<float>(v));
                     break;
                 case ObjectProperty::Type::File:
                     v = std::filesystem::path{ value };
                     break;
                 case ObjectProperty::Type::Int:
                     v.emplace<int>(0);
-                    std::from_chars(value.begin(), value.end(), std::get<int>(v));
+                    std::from_chars(
+                            value.data(),
+                            value.data() + value.size(),
+                            std::get<int>(v));
                     break;
                 case ObjectProperty::Type::Object:
                     v.emplace<ObjLevelID>();
-                    std::from_chars(value.begin(), value.end(), std::get<ObjLevelID>(v).id);
+                    std::from_chars(
+                            value.data(),
+                            value.data() + value.size(),
+                            std::get<ObjLevelID>(v).id);
                     break;
                 case ObjectProperty::Type::String:
                     v.emplace<std::string>(value);

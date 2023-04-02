@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
     if (ff::Init())
     {
         // create an opengl context
-        auto window = ff::Window{ false };
+        auto window = ff::Window{ true };
 
         // load resources from file
         if (ff::Load_Resources( "data/" ))
