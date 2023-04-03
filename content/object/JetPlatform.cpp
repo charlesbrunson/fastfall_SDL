@@ -26,16 +26,15 @@ const EmitterStrategy jet_emitter_str = {
     .animation          = AnimIDRef{ "jet_platform.sax", "effect" },
 };
 
-const ActorType JetPlatform::actor_type {
-    .name       = { "JetPlatform" },
+const ActorType JetPlatform::actor_type = ActorType::create<JetPlatform>({
+    .name       = "JetPlatform",
     .anim       = {},
     .tile_size  = { 0, 1 },
     .group_tags = {	"platform" },
     .properties = {
         { "path",  ObjLevelID{} }
     },
-    .builder    = ActorType::make_builder<JetPlatform>()
-};
+});
 
 JetPlatform::JetPlatform(ActorInit init, const LevelObjectData& data)
     : JetPlatform(init, data.area.topleft(), (int)data.area.getSize().x / TILESIZE, data.get_prop<ObjLevelID>("path"))

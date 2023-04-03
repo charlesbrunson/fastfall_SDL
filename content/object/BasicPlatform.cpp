@@ -4,16 +4,15 @@ using namespace ff;
 
 constexpr ff::Color platformColor = ff::Color{ 0x285cc4FF };
 
-const ActorType BasicPlatform::actor_type {
-    .name       = { "BasicPlatform" },
+const ActorType BasicPlatform::actor_type = ActorType::create<BasicPlatform>({
+    .name       = "BasicPlatform",
     .anim       = {},
     .tile_size  = {0, 0},
     .group_tags = {	"platform" },
     .properties = {
         { "path",  ff::ObjLevelID::NO_ID }
     },
-    .builder    = ActorType::make_builder<BasicPlatform>()
-};
+});
 
 BasicPlatform::BasicPlatform(ActorInit init, const ff::LevelObjectData& data)
     : BasicPlatform(init, data.area, data.get_prop<ObjLevelID>("path"))

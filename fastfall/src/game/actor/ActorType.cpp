@@ -26,8 +26,8 @@ copyable_unique_ptr<Actor> ActorInit::create() const {
         return {};
     }
 
-    if (!type->builder) {
-        LOG_ERR_("actor type has no builder function");
+    if (!type->has_builder()) {
+        LOG_ERR_("actor type has not constructible from data");
         return {};
     }
 
@@ -72,7 +72,7 @@ copyable_unique_ptr<Actor> ActorInit::create() const {
             return {};
         }
     }
-    return type->builder(*this, data);
+    return type->build_with_data(*this, data);
 }
 
 }

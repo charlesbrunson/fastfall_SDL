@@ -17,9 +17,9 @@
 
 namespace ff {
 
-const ActorType TileLayer::actor_type {
+const ActorType TileLayer::actor_type = ActorType::create<TileLayer>({
         .name = "TileLayer"
-};
+});
 
 TileLayer::TileLayer(ActorInit init, unsigned id, Vec2u levelsize)
 	: Actor{init.type_or(&actor_type) }

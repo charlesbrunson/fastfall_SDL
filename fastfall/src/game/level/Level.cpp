@@ -10,9 +10,9 @@
 
 namespace ff {
 
-const ActorType Level::actor_type {
+const ActorType Level::actor_type = ActorType::create<Level>({
     .name = "Level"
-};
+});
 
 // LEVEL
 Level::Level(

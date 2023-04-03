@@ -2,9 +2,9 @@
 
 using namespace ff;
 
-const ActorType SimpleEffect::actor_type {
-    .name = { "SimpleEffect" }
-};
+const ActorType SimpleEffect::actor_type = ActorType::create<SimpleEffect>({
+    .name = "SimpleEffect"
+});
 
 SimpleEffect::SimpleEffect(ActorInit init, const AnimID& anim, Vec2f position, bool hflip)
     : Actor(init.type_or(&actor_type))

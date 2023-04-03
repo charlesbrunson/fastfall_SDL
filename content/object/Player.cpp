@@ -11,8 +11,8 @@ using namespace plr;
 
 const std::string_view Player::prop_facing = "faceleft";
 
-const ff::ActorType Player::actor_type = {
-        .name       = { "Player" },
+const ff::ActorType Player::actor_type = ff::ActorType::create<Player>({
+        .name       = "Player",
         .anim       = { "player.sax", "idle" },
         .tile_size  = { 1u, 2u },
         .priority   = 0,
@@ -20,9 +20,8 @@ const ff::ActorType Player::actor_type = {
         .properties = {
             { Player::prop_facing,  false },
             { "anotherprop",        ff::ObjectProperty::Type::String }
-        },
-        .builder    = ActorType::make_builder<Player>()
-};
+        }
+});
 
 Player::Player(ActorInit init, Vec2f position, bool faceleft)
 	: Actor{init.type_or(&actor_type) }

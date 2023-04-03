@@ -4,8 +4,8 @@
 
 using namespace ff;
 
-const ActorType TilePlatform::actor_type {
-    .name       = { "TilePlatform" },
+const ActorType TilePlatform::actor_type = ActorType::create<TilePlatform>({
+    .name       = "TilePlatform",
     .anim       = {},
     .tile_size  = { 0u, 0u },
     .group_tags = {	"platform" },
@@ -13,8 +13,7 @@ const ActorType TilePlatform::actor_type {
         { "layer", ObjectProperty::Type::Int },
         { "path",  ObjLevelID{ ObjLevelID::NO_ID } }
     },
-    .builder    = ActorType::make_builder<TilePlatform>()
-};
+});
 
 TilePlatform::TilePlatform(ActorInit init, const LevelObjectData& data)
     : TilePlatform(init, Rectu{ data.area } / TILESIZE, data.get_prop<int>("layer"), data.get_prop<ObjLevelID>("path"))

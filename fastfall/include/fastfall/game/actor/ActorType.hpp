@@ -54,14 +54,14 @@ struct ActorProperty
     std::optional<ObjectProperty::Variant> value = std::nullopt;
 };
 
-struct ActorType {
+struct ActorTypeInfo {
     struct Name {
         Name(std::string_view _str)
-            : str(_str), hash(std::hash<std::string_view>{}(_str))
+                : str(_str), hash(std::hash<std::string_view>{}(_str))
         {}
 
         Name(const char* _str)
-            : Name(std::string_view{ _str })
+                : Name(std::string_view{ _str })
         {}
 
         const std::string str;
@@ -77,17 +77,35 @@ struct ActorType {
 
     const std::vector<ActorGroupTag> group_tags = {};
     const std::vector<ActorProperty> properties = {};
+};
+
+class ActorType : public ActorTypeInfo {
+    explicit ActorType(const ActorTypeInfo& info) : ActorTypeInfo(info) {}
 
     using builder_fn = copyable_unique_ptr<Actor>(*)(ActorInit, const LevelObjectData&);
-    const builder_fn builder = nullptr;
+    builder_fn builder = nullptr;
+public:
 
-    template<std::derived_from<Actor> TActor>
-    requires std::is_constructible_v<TActor, ActorInit, const LevelObjectData&> && (!std::same_as<TActor, Actor>)
-    static builder_fn make_builder() {
-        return [](ActorInit init, const LevelObjectData& data) -> copyable_unique_ptr<Actor> {
-            return make_copyable_unique<Actor, TActor>(init, data);
-        };
+    template <std::derived_from<Actor> T>
+    static ActorType create(ActorTypeInfo info)
+    {
+        auto type = ActorType{ info };
+        if constexpr (std::is_constructible_v<T, ActorInit, const LevelObjectData&>) {
+            type.builder = [](ActorInit init, const LevelObjectData &data) -> copyable_unique_ptr<Actor> {
+                return make_copyable_unique<Actor, T>(init, data);
+            };
+        }
+        return type;
     }
+
+    bool has_builder() const {
+        return builder;
+    }
+
+    copyable_unique_ptr<Actor> build_with_data(ActorInit init, const LevelObjectData &data) const {
+        return builder ? builder(init, data) : copyable_unique_ptr<Actor>{};
+    }
+
 };
 
 }
