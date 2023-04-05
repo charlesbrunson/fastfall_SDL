@@ -54,7 +54,7 @@ private:
         // figure out what container fits T
         constexpr size_t index = []<size_t... Ndx>(std::index_sequence<Ndx...>) constexpr {
             std::optional<size_t> opt_ndx;
-            constexpr auto container_matches = []<size_t N>(std::optional<size_t>& opt_ndx, std::integral_constant<size_t, N>) constexpr {
+            auto container_matches = [&]<size_t N>(std::integral_constant<size_t, N>) {
                 using Container = std::tuple_element_t<N, Components::MapTuple>;
                 using Item      = typename Container::base_type;
                 if (!opt_ndx && Container::template fits<T>()) {
@@ -62,7 +62,7 @@ private:
                 }
                 return opt_ndx.has_value();
             };
-            (container_matches(opt_ndx, std::integral_constant<size_t, Ndx>{}) || ...);
+            (container_matches(std::integral_constant<size_t, Ndx>{}) || ...);
             return *opt_ndx;
         }(std::make_index_sequence<Components::Count>{});
 
@@ -214,40 +214,22 @@ public:
 private:
     void draw(RenderTarget& target, RenderState state = RenderState()) const override;
 
-    template<class T_Actor, class... Args>
-    requires std::constructible_from<T_Actor, ActorInit, Args...>
+    template<typename T_Actor, class... Args>
+    requires valid_actor_ctor<T_Actor, Args...>
     bool create_actor(ID<Entity> id, Args&&... args) {
-        auto& ent = state._entities.at(id);
-        auto actor_id = components<Actor>().emplace(copyable_unique_ptr<Actor>());
+        auto& actor_opt = state._entities.at(id).actor;
+        actor_opt = components<Actor>().emplace(copyable_unique_ptr<Actor>());
 
-        if constexpr (requires (T_Actor x) { {T_Actor::actor_type } -> std::same_as<ActorType>; }) {
-            ActorInit init{
-                .world        = *this,
-                .entity_id    = id,
-                .actor_id     = actor_id,
-                .type         = T_Actor::actor_type,
-                .level_object = nullptr
-            };
+        auto init = ActorInit{
+            .world        = *this,
+            .entity_id    = id,
+            .actor_id     = *actor_opt,
+            .type         = actor_type_of_v<T_Actor>,
+            .level_object = nullptr
+        };
 
-            ent.actor = actor_id;
-            components<Actor>().emplace_at<T_Actor>(actor_id, init, std::forward<Args>(args)...);
-            auto& actor = at(actor_id);
-            return actor.is_initialized();
-        }
-        else {
-            ActorInit init{
-                .world        = *this,
-                .entity_id    = id,
-                .actor_id     = actor_id,
-                .type         = nullptr,
-                .level_object = nullptr
-            };
-
-            ent.actor = actor_id;
-            components<Actor>().emplace_at<T_Actor>(actor_id, init, std::forward<Args>(args)...);
-            auto& actor = at(actor_id);
-            return actor.is_initialized();
-        }
+        components<Actor>().emplace_at<T_Actor>(*actor_opt, init, std::forward<Args>(args)...);
+        return at(*actor_opt).is_initialized();
     }
 
     template<typename T>
