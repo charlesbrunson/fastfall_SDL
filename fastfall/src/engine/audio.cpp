@@ -14,12 +14,12 @@ float master_v = 0.5f;
 
 bool init_state = false;
 
-bool init() {
+bool init(AudioBackends backend) {
     auto r = audio_engine.init(
-            SoLoud::Soloud::CLIP_ROUNDOFF,
-            SoLoud::Soloud::BACKENDS::SDL2,
-            SoLoud::Soloud::AUTO,
-            SoLoud::Soloud::AUTO
+        SoLoud::Soloud::CLIP_ROUNDOFF,
+        static_cast<SoLoud::Soloud::BACKENDS>(backend),
+        SoLoud::Soloud::AUTO,
+        SoLoud::Soloud::AUTO
     );
 
     if (r != SoLoud::SOLOUD_ERRORS::SO_NO_ERROR) {

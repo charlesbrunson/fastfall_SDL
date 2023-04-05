@@ -1,6 +1,5 @@
 #pragma once
 
-#include "fastfall/engine/audio.hpp"
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/resource/asset/SoundAsset.hpp"
 
@@ -13,11 +12,14 @@ namespace ff {
     namespace audio {
         struct Volume {
             float loudness = 1.f;
-
-            void operator()(SoundHandle t_hdl) {
-                engine().setVolume(t_hdl.id, loudness);
-            };
+            void operator()(SoundHandle t_hdl);
         };
+        struct Pan {
+            float pan = 1.f;
+            void operator()(SoundHandle t_hdl);
+        };
+
+        struct game_bus_t;
     }
 
     template<typename T>
@@ -25,25 +27,29 @@ namespace ff {
         x(hdl);
     };
 
+
     class AudioSystem {
     public:
 
         AudioSystem() = default;
+        explicit AudioSystem(audio::game_bus_t* t_dest);
 
         template<is_audio_property ...AudioProp_Ts>
         SoundHandle play(std::string_view sound_asset_name, AudioProp_Ts&&... props) {
-            if (auto* sound = Resources::get<SoundAsset>(sound_asset_name))
+            if (SoundAsset* asset = get_asset_impl(sound_asset_name))
             {
-                return play(*sound, std::forward<AudioProp_Ts>(props)...);
+                return play(*asset, std::forward<AudioProp_Ts>(props)...);
             }
             return { 0 };
         }
 
         template<is_audio_property ...AudioProp_Ts>
         SoundHandle play(SoundAsset& sound_asset, AudioProp_Ts&&... props) {
-            SoundHandle hdl = { .id = dest->game.play(sound_asset.wav()) };
-            set(hdl, std::forward<AudioProp_Ts>(props)...);
-            active_sounds.push_back(hdl);
+            SoundHandle hdl = play_impl(sound_asset);
+            if (hdl.id) {
+                set(hdl, std::forward<AudioProp_Ts>(props)...);
+                active_sounds.push_back(hdl);
+            }
             return hdl;
         }
 
@@ -62,12 +68,24 @@ namespace ff {
             (props(t_hdl), ...);
         }
 
-        void update(World& world, secs deltaTime);
+        void update(secs deltaTime);
+
+        audio::game_bus_t* get_destination_bus() const {
+            return dest;
+        }
+
+        void set_destination_bus(audio::game_bus_t* t_dest) {
+            dest = t_dest;
+        }
 
     private:
         std::vector<SoundHandle> active_sounds; // currently playing ( as of last update() )
 
-        audio::game_bus_t* dest = &audio::primary_bus();
+        SoundHandle play_impl(SoundAsset& sound_asset);
+        SoundAsset* get_asset_impl(std::string_view sound_asset_name);
+
+        audio::game_bus_t* dest = nullptr;
+        secs upTime = 0.0;
     };
 
 }

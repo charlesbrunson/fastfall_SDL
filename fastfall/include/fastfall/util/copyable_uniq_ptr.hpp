@@ -42,7 +42,7 @@ struct copyable_unique_ptr {
         other.clone = nullptr;
 	}
 
-    constexpr copyable_unique_ptr(std::nullopt_t) noexcept
+    constexpr copyable_unique_ptr(std::nullptr_t) noexcept
     {
         clone = nullptr;
         ptr = nullptr;

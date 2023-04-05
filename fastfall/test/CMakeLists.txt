@@ -36,7 +36,6 @@ create_ff_test(ff_test_utils
 create_ff_test(ff_test_phys 
 	phys/collision.cpp
 	phys/surfacetracker.cpp
-	phys/collisionsolver.cpp
 	phys/colliderghost.cpp
 
 	phys/TestPhysRenderer.cpp
@@ -52,8 +51,13 @@ create_ff_test(ff_test_particle
 	particle/ParticleRenderer.cpp
 )
 
+create_ff_test(ff_test_audio
+	audio/audio_system.cpp
+)
+
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/phys_render_out)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/particle_render_out)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 # add more tests...
 

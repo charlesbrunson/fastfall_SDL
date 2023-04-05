@@ -4,6 +4,7 @@
 
 #include "fastfall/render/DebugDraw.hpp"
 #include "fastfall/user_types.hpp"
+#include "fastfall/engine/audio.hpp"
 
 //#include "fastfall/game/actor/Actor.hpp"
 
@@ -13,6 +14,7 @@ World::World()
 {
     WorldImGui::add(this);
     state._input.set_source(nullptr);
+    system<AudioSystem>().set_destination_bus(&audio::primary_bus());
 }
 
 World::World(const World& other)
@@ -64,6 +66,8 @@ void World::update(secs deltaTime) {
 
         system<CameraSystem>().update(*this, deltaTime);
         system<EmitterSystem>().update(*this, deltaTime);
+
+        system<AudioSystem>().update(deltaTime);
 
         if (deltaTime > 0.0) {
             state.update_counter++;

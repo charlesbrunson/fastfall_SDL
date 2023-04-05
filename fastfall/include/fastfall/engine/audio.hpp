@@ -9,7 +9,12 @@ struct game_bus_t {
     SoLoud::Bus game;
 };
 
-bool init();
+enum class AudioBackends {
+    SDL2 = SoLoud::Soloud::BACKENDS::SDL2,
+    Null = SoLoud::Soloud::BACKENDS::NULLDRIVER
+};
+
+bool init(AudioBackends backend = AudioBackends::SDL2);
 bool quit();
 bool is_init();
 

@@ -1,7 +1,6 @@
 #include "PlayerCommon.hpp"
 
 #include "fastfall/engine/input/InputConfig.hpp"
-#include "fastfall/engine/audio.hpp"
 
 using namespace ff;
 
@@ -172,8 +171,7 @@ namespace plr::action {
 			sprite.set_hflip(move.wishx < 0);
 		}
 
-        w.system<AudioSystem>().play("Bump.wav",
-                                     audio::Volume{ 0.5f });
+        w.system<AudioSystem>().play("Bump.wav", audio::Volume{ 0.25f });
 		return PlayerStateID::Dash;
 	}
 
@@ -237,9 +235,7 @@ namespace plr::action {
 		}
 		box.set_local_vel(jumpVel);
 
-        if (auto* sound = Resources::get<SoundAsset>("Bump.wav")) {
-            audio::primary_bus().game.play(*sound);
-        }
+        w.system<AudioSystem>().play("Bump.wav", audio::Volume{ 0.5f });
 		return PlayerStateID::Air;
 	}
 }
