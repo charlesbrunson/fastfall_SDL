@@ -61,4 +61,18 @@ private:
 template<class T, class... Args>
 concept valid_actor_ctor = std::derived_from<T, Actor> && std::constructible_from<T, ActorInit, Args...>;
 
+template<class T>
+concept actor_has_type = valid_actor_ctor<T> && requires (T x) {
+    { T::actor_type } -> std::same_as<ActorType>;
+};
+
+template<std::derived_from<Actor> T>
+constexpr inline static const ActorType* actor_type_of_v = []() {
+    if constexpr (actor_has_type<T>) {
+        return &T::actor_type;
+    } else {
+        return nullptr;
+    }
+}();
+
 }
