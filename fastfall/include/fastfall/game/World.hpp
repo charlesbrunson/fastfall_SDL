@@ -51,12 +51,11 @@ private:
     template<class T>
     constexpr auto& components()
     {
-        // figure out what container fits T
+        // figure out what container fits component T
         constexpr size_t index = []<size_t... Ndx>(std::index_sequence<Ndx...>) constexpr {
             std::optional<size_t> opt_ndx;
             auto container_matches = [&]<size_t N>(std::integral_constant<size_t, N>) {
                 using Container = std::tuple_element_t<N, Components::MapTuple>;
-                using Item      = typename Container::base_type;
                 if (!opt_ndx && Container::template fits<T>()) {
                     opt_ndx = N;
                 }
