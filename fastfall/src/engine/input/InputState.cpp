@@ -81,7 +81,6 @@ void InputState::process_events()
 
             input.set_magnitude(event.magnitude);
         }
-        //input_source->next();
     }
 }
 
@@ -95,8 +94,6 @@ void InputState::notify_unbind(InputType in) {
         at(in).reset();
     }
 }
-
-//void InputState::set_tick(size_t tick) { input_tick = tick; }
 
 size_t InputState::get_tick() const { return input_tick; }
 

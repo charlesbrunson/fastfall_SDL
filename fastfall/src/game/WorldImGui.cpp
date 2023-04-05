@@ -507,14 +507,17 @@ void imgui_input(World* w) {
 
     std::string source_str;
     auto* source = w->input().get_source();
-    if (dynamic_cast<const InputSourceNull*>(source)) {
-        source_str = "null";
-    }
-    else if (dynamic_cast<const InputSourceRecord*>(source)) {
+    if (dynamic_cast<const InputSourceRecord*>(source)) {
         source_str = "record";
     }
     else if (dynamic_cast<const InputSourceRealtime*>(source)) {
         source_str = "realtime";
+    }
+    else if (source == nullptr) {
+        source_str = "null";
+    }
+    else {
+        source_str = "unknown";
     }
 
     ImGui::Text("Input Source: %s", source_str.c_str() );

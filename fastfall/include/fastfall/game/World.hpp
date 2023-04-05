@@ -39,7 +39,6 @@ private:
 
         // input
         InputState _input;
-        InputSourceNull input_null;
     } state;
 
 private:
@@ -216,19 +215,20 @@ private:
     template<typename T_Actor, class... Args>
     requires valid_actor_ctor<T_Actor, Args...>
     bool create_actor(ID<Entity> id, Args&&... args) {
-        auto& actor_opt = state._entities.at(id).actor;
-        actor_opt = components<Actor>().emplace(copyable_unique_ptr<Actor>());
+        auto& ent = state._entities.at(id);
+        ent.actor = components<Actor>().emplace(copyable_unique_ptr<Actor>{});
+        auto actor_id = ent.actor.value();
 
         auto init = ActorInit{
             .world        = *this,
             .entity_id    = id,
-            .actor_id     = *actor_opt,
+            .actor_id     = actor_id,
             .type         = actor_type_of_v<T_Actor>,
             .level_object = nullptr
         };
 
-        components<Actor>().emplace_at<T_Actor>(*actor_opt, init, std::forward<Args>(args)...);
-        return at(*actor_opt).is_initialized();
+        components<Actor>().emplace_at<T_Actor>(actor_id, init, std::forward<Args>(args)...);
+        return at(actor_id).is_initialized();
     }
 
     template<typename T>

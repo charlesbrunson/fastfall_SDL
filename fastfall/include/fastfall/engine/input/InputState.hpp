@@ -29,6 +29,8 @@ public:
     ~InputState();
 
     void set_source(InputSource* source);
+    inline void reset_source() { set_source(nullptr); }
+
     InputSource* get_source() const { return input_source; }
 
     void update(secs deltaTime);

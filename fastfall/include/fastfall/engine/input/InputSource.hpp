@@ -19,6 +19,8 @@ struct InputEvent {
 
 class InputState;
 
+class InputSourceNull;
+
 class InputSource {
 public:
     InputSource(const std::set<InputType>& listen_to)
@@ -35,15 +37,6 @@ public:
 private:
     std::set<InputType> listening;
     InputState* consumer = nullptr;
-};
-
-class InputSourceNull : InputSource {
-public:
-    InputSourceNull() : InputSource({}) {};
-    const std::vector<InputEvent>& get_events() const override { return null_events; }
-    void next() override {};
-private:
-    std::vector<InputEvent> null_events;
 };
 
 }

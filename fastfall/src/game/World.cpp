@@ -12,6 +12,7 @@ namespace ff {
 World::World()
 {
     WorldImGui::add(this);
+    state._input.set_source(nullptr);
 }
 
 World::World(const World& other)
