@@ -171,9 +171,9 @@ namespace plr::action {
 		if (move.wishx != 0) {
 			sprite.set_hflip(move.wishx < 0);
 		}
-        if (auto* sound = Resources::get<SoundAsset>("Bump.wav")) {
-            audio::primary_bus().game.play(*sound);
-        }
+
+        w.system<AudioSystem>().play("Bump.wav",
+                                     audio::Volume{ 0.5f });
 		return PlayerStateID::Dash;
 	}
 

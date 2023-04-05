@@ -19,8 +19,7 @@ bool init() {
             SoLoud::Soloud::CLIP_ROUNDOFF,
             SoLoud::Soloud::BACKENDS::SDL2,
             SoLoud::Soloud::AUTO,
-            SoLoud::Soloud::AUTO,
-            2
+            SoLoud::Soloud::AUTO
     );
 
     if (r != SoLoud::SOLOUD_ERRORS::SO_NO_ERROR) {

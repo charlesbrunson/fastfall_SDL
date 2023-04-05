@@ -166,7 +166,6 @@ bool Engine::run_singleThread()
     bool first_frame = true;
 
     predrawRunnables();
-    updateView();
     drawRunnables();
 
     while (is_running() && !runnables.empty())
@@ -237,7 +236,6 @@ bool Engine::run_doubleThread()
     bool first_frame = true;
 
     predrawRunnables();
-    //updateView();
     drawRunnables();
 
     clock.reset();
