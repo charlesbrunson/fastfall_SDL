@@ -5,12 +5,13 @@
 
 #include "fastfall/render/drawable/AnimatedSprite.hpp"
 #include "fastfall/render/drawable/VertexArray.hpp"
+#include "fastfall/game/drawable/drawable.hpp"
 
 #include "fastfall/game/WorldImGui.hpp"
 
 namespace ff {
     void imgui_component(World& w, ComponentID id) {
-        std::visit([&w](auto& id) {
+        std::visit([&w]<typename T>(ID<T>& id) {
             imgui_component(w, id);
         }, id);
     }
