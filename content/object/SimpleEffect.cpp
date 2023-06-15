@@ -21,6 +21,6 @@ SimpleEffect::SimpleEffect(ActorInit init, const AnimID& anim, Vec2f position, b
 
 void SimpleEffect::update(World& w, secs deltaTime) {
     auto& spr = w.at(anim_spr_id);
-    spr.update(deltaTime);
+    //spr.update(deltaTime);
     dead |= spr.is_complete();
 };

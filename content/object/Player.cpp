@@ -73,7 +73,7 @@ void Player::manage_state(World& w, PlayerStateID n_id)
 
 void Player::update(World& w, secs deltaTime) {
 	manage_state(w, get_state().update(w, *this, deltaTime));
-    w.at(sprite_id).update(deltaTime);
+    //w.at(sprite_id).update(deltaTime);
 }
 
 Actor::dresult Player::message(World& w, const dmessage& msg) {

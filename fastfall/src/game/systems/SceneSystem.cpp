@@ -21,6 +21,7 @@ void SceneSystem::update(World& world, secs deltaTime) {
 
         auto& cfg = config(did);
         cfg.prev_pos = cfg.curr_pos;
+        //drawable->update(deltaTime);
     }
 }
 

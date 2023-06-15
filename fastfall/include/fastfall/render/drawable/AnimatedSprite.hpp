@@ -37,7 +37,7 @@ public:
 	void set_frame(unsigned frame) { current_frame = frame; };
 	inline unsigned	get_frame()  noexcept { return current_frame; };
 
-	void update(secs deltaTime);
+	void update(secs deltaTime) override;
 	void predraw(float interp, bool updated) override;
 
 	bool is_complete() const noexcept;

@@ -69,6 +69,10 @@ void World::update(secs deltaTime) {
 
         system<AudioSystem>().update(deltaTime);
 
+        for (auto [did, drawable] : all<Drawable>()) {
+            drawable->update(deltaTime);
+        }
+
         if (deltaTime > 0.0) {
             state.update_counter++;
         }
