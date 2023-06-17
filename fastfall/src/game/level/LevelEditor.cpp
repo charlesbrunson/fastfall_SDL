@@ -53,7 +53,7 @@ bool LevelEditor::select_layer(int layer_pos)
 
 	if (layer_pos != Level::Layers::OBJECT_LAYER_POS) {
         auto* layer = level->get_layers().get_tile_layer_at(layer_pos);
-		curr_layer = SelectedTileLayer{ *level->get_layers().get_tile_layer_at(layer_pos) };
+        curr_layer = layer ? std::make_optional<SelectedTileLayer>(*layer) : std::nullopt;
 		obj_layer_selected = false;
 	}
 	else {

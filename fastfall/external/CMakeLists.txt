@@ -131,7 +131,7 @@ if (NOT EMSCRIPTEN)
 	set(BUILD_UTILS OFF PARENT)
 	FetchContent_Declare(
 		glew
-		URL			https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0.tgz/download
+		URL				https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.zip
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glew
 		SOURCE_SUBDIR  build/cmake
 	)
