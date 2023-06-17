@@ -50,8 +50,12 @@ TestState::TestState()
 void TestState::update(secs deltaTime) {
 
     world->update(deltaTime);
-    if (auto src = world->input().get_source())
-        src->next();
+
+    if (deltaTime > 0) {
+        if (auto src = world->input().get_source()) {
+            src->next();
+        }
+    }
 
 	if (edit)
 	{
