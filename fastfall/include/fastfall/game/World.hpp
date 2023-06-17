@@ -76,7 +76,7 @@ public:
     ~World() override;
 
     // manage state
-    void update(secs deltaTime);
+    void update(secs deltaTime) override;
     void predraw(float interp, bool updated) override;
 
 	// access component

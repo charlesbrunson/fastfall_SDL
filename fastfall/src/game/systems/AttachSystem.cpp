@@ -48,7 +48,9 @@ namespace ff {
             cmp.set_parent_vel(attach.global_vel());
             cmp.set_local_vel({});
 
-            for (auto& [cmp_id, data] : w.system<AttachSystem>().get_attachments(id)) {
+            for (auto& pair : w.system<AttachSystem>().get_attachments(id)) {
+	        auto& cmp_id = pair.first;
+		auto& data = pair.second;
                 std::visit(
                     [&]<class T>(ID<T> cid) {
                         if constexpr (requires(ID<T> x_id, T& x, World& x_w, const AttachPoint& ap, Vec2f x_off) { detail::attach_teleport(x_w, x_id, x, ap, x_off); }) {
@@ -262,8 +264,12 @@ namespace ff {
 
         visited.insert(id);
         auto& ap = world.at(id);
-        for (auto [id, data] : attachments.at(id))
+        for (auto& attach : attachments.at(id))
         {
+
+	    auto& id = attach.first;
+	    auto& data = attach.second;
+
             Vec2f p;
             std::visit(
                 [&]<class T>(ID<T> c_id) {

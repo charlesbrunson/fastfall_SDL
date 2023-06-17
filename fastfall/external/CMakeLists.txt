@@ -139,7 +139,7 @@ if (NOT EMSCRIPTEN)
 	#zlib
 	FetchContent_Declare(
 		zlib
-		URL			http://zlib.net/fossils/zlib-1.2.12.tar.gz
+		URL            https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
 	)
 
@@ -242,7 +242,7 @@ endif()
 
 
 # add all libraries and includes to fastfall
-target_link_libraries(fastfall PRIVATE
+target_link_libraries(fastfall PUBLIC
 	freetype
 	glm
 	fmt::fmt
@@ -250,7 +250,7 @@ target_link_libraries(fastfall PRIVATE
 	imgui
 )
 if(NOT EMSCRIPTEN)
-	target_link_libraries(fastfall PRIVATE
+	target_link_libraries(fastfall PUBLIC
 		zlibstatic
 		SDL2image
 		glew_s

@@ -54,7 +54,7 @@ copyable_unique_ptr<Actor> ActorInit::create() const {
         auto it = data.properties.find(prop.name);
         if (it == data.properties.end()) {
             if (prop.value) {
-                data.properties.emplace(prop.name, ObjectProperty{ *prop.value }).first;
+                data.properties.emplace(prop.name, ObjectProperty{ *prop.value });
                 continue;
             }
             else {
