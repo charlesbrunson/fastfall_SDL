@@ -8,15 +8,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-latest]
-        compiler: [g++-11, clang++-12, emscripten, MSVC]
+        os: [ubuntu-latest, windows-latest]
+        compiler: [g++, clang++, emscripten, MSVC]
         exclude:
-        - os: ubuntu-22.04
+        - os: ubuntu-latest
           compiler: MSVC
         - os: windows-latest
-          compiler: g++-11
+          compiler: g++
         - os: windows-latest
-          compiler: clang++-12
+          compiler: clang++
         - os: windows-latest
           compiler: emscripten
 
