@@ -77,7 +77,7 @@ jobs:
 
     - name: Test
       id: test-id
-      if: matrix.compiler != 'emscripten' && steps.build-id.outcome == 'success'
+      if: steps.build-id.outcome == 'success'
       working-directory: ${{github.workspace}}/${{env.BUILD_NAME}}
       run: ctest -C ${{env.BUILD_TYPE}} --output-junit ${{env.TESTS_NAME}}
       
@@ -90,7 +90,7 @@ jobs:
 
     - name: Upload Release
       uses: actions/upload-artifact@v2
-      if: steps.build-id.outcome == 'success' 
+      if: steps.test-id.outcome == 'success' 
       with:
         name: ${{env.BUILD_NAME}}
         path: ${{github.workspace}}/${{env.BUILD_NAME}}/test_project_*.zip
