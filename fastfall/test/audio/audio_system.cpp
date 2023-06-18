@@ -6,6 +6,8 @@
 #include "fastfall/game/systems/AudioSystem.hpp"
 #include "soloud_speech.h"
 
+#include <thread>
+
 using namespace ff;
 
 

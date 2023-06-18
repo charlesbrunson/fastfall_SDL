@@ -142,15 +142,24 @@ if (NOT EMSCRIPTEN)
 		URL			   https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
 	)
-
+	#FetchContent_MakeAvailable(
+	#	zlib
+	#)
 
 	#libpng
-	set(PNG_SHARED OFF 		CACHE INTERNAL "")
-	set(PNG_TESTS OFF 		CACHE INTERNAL "")
-	set(PNG_BUILD_ZLIB ON 	CACHE INTERNAL "" )
+	set(ZLIB_LIBRARY zlib)
+	set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR} ${zlib_INCLUDE_DIR})
+	set(PNG_SHARED OFF 		CACHE BOOL "" FORCE)
+	set(PNG_STATIC ON 		CACHE BOOL "" FORCE)
+	set(PNG_TESTS OFF 		CACHE BOOL "" FORCE)
+	#set(PNG_BUILD_ZLIB ON 	        CACHE BOOL "" FORCE)
+	set(PNG_EXECUTABLES OFF 	CACHE BOOL "" FORCE)
+	set(PNG_TESTS OFF 	        CACHE BOOL "" FORCE)
+	set(SKIP_INSTALL_ALL ON 	CACHE BOOL "" FORCE)
+
 	FetchContent_Declare(
 		libpng
-		URL			https://download.sourceforge.net/libpng/libpng-1.6.37.tar.gz
+		URL			https://github.com/glennrp/libpng/archive/refs/tags/v1.6.39.zip
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/libpng
 	)
 
@@ -236,13 +245,17 @@ if(NOT EMSCRIPTEN)
 		glew/include
 		sdl_image
 		sdl/include
+		libpng
+		zlib
+	)
+	include_directories(
 		zlib
 	)
 endif()
 
 
 # add all libraries and includes to fastfall
-target_link_libraries(fastfall PRIVATE
+target_link_libraries(fastfall PUBLIC
 	freetype
 	glm
 	fmt::fmt
@@ -250,7 +263,7 @@ target_link_libraries(fastfall PRIVATE
 	imgui
 )
 if(NOT EMSCRIPTEN)
-	target_link_libraries(fastfall PRIVATE
+	target_link_libraries(fastfall PUBLIC
 		zlibstatic
 		SDL2image
 		glew_s
