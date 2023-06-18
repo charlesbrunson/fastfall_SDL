@@ -77,7 +77,7 @@ jobs:
 
     - name: Test
       id: test-id
-      if: steps.build-id.outcome == 'success'
+      if: matrix.compiler != 'emscripten' && steps.build-id.outcome == 'success'
       working-directory: ${{github.workspace}}/${{env.BUILD_NAME}}
       run: ctest -C ${{env.BUILD_TYPE}} --output-junit ${{env.TESTS_NAME}}
       
