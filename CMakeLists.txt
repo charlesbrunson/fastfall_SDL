@@ -106,7 +106,7 @@ else()
 				--format=zip
 				"$<TARGET_FILE_DIR:test_project>/test_project${CMAKE_EXECUTABLE_SUFFIX}"
 				"$<TARGET_FILE_DIR:test_project>/data"
-				"$<TARGET_FILE_DIR:test_project>/gamecontrollerdb.txt")
+			)
 	endif()
 endif()
 
