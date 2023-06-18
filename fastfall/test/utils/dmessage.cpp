@@ -35,7 +35,7 @@ struct Mailbox {
         case dGetPosition:
             return dGetPosition.accept(pos);
         case dSetPosition:
-            std::tie(pos) = dSetPosition.unwrap(msg);
+            std::tie(pos) = dSetPosition.unwrap(msg).value();
             return dSetPosition.accept();
         case dHasHPBetween:
             //auto [min, max] = dHasHPBetween.unwrap(msg);
@@ -82,7 +82,7 @@ TEST(dmessage, wrap_unwrap)
     }
     ASSERT_TRUE(found);
 
-    auto [vec] = dSetPosition.unwrap(setpos_msg);
+    auto [vec] = dSetPosition.unwrap(setpos_msg).value();
     ASSERT_TRUE(vec == test_vec1);
 }
 
@@ -109,8 +109,8 @@ TEST(dmessage, badbox) {
     Badbox box;
 
     Vec2i r1 = {100, 20};
-    ASSERT_ANY_THROW(dGetPosition.send(box, ExampleAddtlArg{}));
-    ASSERT_ANY_THROW(dSetPosition.send(box, ExampleAddtlArg{}, r1));
+    ASSERT_FALSE(dGetPosition.send(box, ExampleAddtlArg{}));
+    ASSERT_FALSE(dSetPosition.send(box, ExampleAddtlArg{}, r1));
 
     auto h = dUnhandled.send(box, ExampleAddtlArg{});
     ASSERT_FALSE(h);

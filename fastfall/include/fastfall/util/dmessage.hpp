@@ -132,11 +132,16 @@ public:
         >
         constexpr dresult
         apply(const dmessage &msg, Callable &&callable, CallBinds&&... binds) const {
+
+            auto result = unwrap(msg);
+            if (!result)
+                return reject;
+
             if constexpr (detail::index_of_v<Variant, RType> != 0) {
-                return {true, type_hash, std::apply(std::forward<Callable>(callable), std::tuple_cat(std::tuple(std::forward<CallBinds>(binds)...), unwrap(msg)))};
+                return {true, type_hash, std::apply(std::forward<Callable>(callable), std::tuple_cat(std::tuple(std::forward<CallBinds>(binds)...), *result))};
             }
             else {
-                std::apply(std::forward<Callable>(callable), std::tuple_cat(std::tuple(std::forward<CallBinds>(binds)...), unwrap(msg)));
+                std::apply(std::forward<Callable>(callable), std::tuple_cat(std::tuple(std::forward<CallBinds>(binds)...), *result));
                 return {true, type_hash, std::nullopt};
             }
         };
