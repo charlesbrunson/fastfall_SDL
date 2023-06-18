@@ -102,7 +102,7 @@ else()
 		add_custom_command(
 			TARGET test_project 
 			POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E tar "cfv" "test_project_${CMAKE_SYSTEM_NAME}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_SYSTEM_PROCESSOR}.zip" 
+			COMMAND ${CMAKE_COMMAND} -E tar "cf" "test_project_${CMAKE_SYSTEM_NAME}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_SYSTEM_PROCESSOR}.zip"
 				--format=zip
 				"$<TARGET_FILE_DIR:test_project>/test_project${CMAKE_EXECUTABLE_SUFFIX}"
 				"$<TARGET_FILE_DIR:test_project>/data"

@@ -994,7 +994,7 @@ void Engine::ImGui_getContent() {
 
             static ImPlotFormatter format = [](double value, char* buff, int size, void* userdata)
             {
-                snprintf(buff, size, "%.2fms", value * 1000.0);
+                return snprintf(buff, size, "%.2fms", value * 1000.0);
             };
 
             ImPlot::SetupAxisFormat(ImAxis_Y1, format);
