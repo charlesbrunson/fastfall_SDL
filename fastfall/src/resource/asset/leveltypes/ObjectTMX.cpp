@@ -54,10 +54,17 @@ std::map<std::string, ObjectProperty, std::less<>> parseProperties(xml_node<>* p
                     break;
                 case ObjectProperty::Type::Float:
                     v.emplace<float>(0.f);
-                    std::from_chars(
-                            value.data(),
-                            value.data() + value.size(),
-                            std::get<float>(v));
+		    // emscripten doesn't like this :(
+                    //std::from_chars(
+                    //        value.data(),
+                    //        value.data() + value.size(),
+                    //        std::get<float>(v));
+		    try {
+		        float f = std::stof(value.data());
+			v.emplace<float>(f);
+		    }
+		    catch(std::exception& e) {}
+
                     break;
                 case ObjectProperty::Type::File:
                     v = std::filesystem::path{ value };

@@ -217,7 +217,7 @@ else()
 endif()
 
 # soloud
-set(SOLOUD_STATIC 		ON  CACHE INTERNAL "")
+set(SOLOUD_STATIC 	ON  CACHE INTERNAL "")
 set(SOLOUD_BACKEND_SDL2 ON  CACHE INTERNAL "")
 FetchContent_Declare(
 		soloud
@@ -228,6 +228,16 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(
 		soloud
 )
+
+if (EMSCRIPTEN) 
+	target_compile_options(soloud PUBLIC 
+		-sUSE_SDL=2 
+	)
+
+	target_link_options(soloud PUBLIC 
+		-sUSE_SDL=2 
+	)
+endif()
 
 # add all include directories to fastfall
 target_include_directories(fastfall PUBLIC
@@ -240,6 +250,8 @@ target_include_directories(fastfall PUBLIC
 	implot
 	soloud/include
 )
+
+
 if(NOT EMSCRIPTEN)
 	target_include_directories(fastfall PUBLIC
 		glew/include
