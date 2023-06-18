@@ -46,7 +46,7 @@ FetchContent_Declare(
 	GIT_REPOSITORY	https://github.com/ocornut/imgui.git
 	#GIT_TAG			bac748fa95ac003c7b354139980f8b4b7f6ac5da # docking branch
 	#GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-	GIT_TAG			v1.87
+	#GIT_TAG			v1.87
     SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/imgui
 )
 
@@ -105,8 +105,11 @@ target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLEW )
 if (EMSCRIPTEN)
 	target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_ES3)
 
-	target_compile_options(freetype PRIVATE -s USE_LIBPNG=1)
-	target_link_options(freetype PRIVATE -s USE_LIBPNG=1)
+	target_compile_options(imgui PRIVATE -sUSE_SDL=2)
+	target_link_options(imgui PRIVATE -sUSE_SDL=2)
+
+	target_compile_options(freetype PRIVATE -sUSE_LIBPNG=1)
+	target_link_options(freetype PRIVATE -sUSE_LIBPNG=1)
 endif()
 
 
