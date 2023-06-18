@@ -74,7 +74,7 @@ public:
 
     struct dresult {
         bool accepted = false;
-        uint64_t type_hash;
+        uint64_t type_hash = 0;
         std::optional<Variant> result = {};
     };
 
@@ -85,10 +85,10 @@ public:
     class dformat {
     private:
         std::array<size_t, 4> param_types;
-        unsigned param_count = 0;
-        size_t rtype;
 
-        uint64_t type_hash;
+        //unsigned    param_count = 0;
+        size_t      rtype;
+        uint64_t    type_hash;
 
         constexpr static std::string_view type_name = Name;
 
@@ -96,7 +96,7 @@ public:
         constexpr dformat()
             : rtype(detail::index_of_v<Variant, RType>)
             , param_types(std::array<size_t, 4>{ detail::index_of_v<Variant, Params>... })
-            , param_count(sizeof...(Params))
+            //, param_count(sizeof...(Params))
         {
             unsigned name_hash = detail::hash(Name.data());
             unsigned param_hash = 0;
@@ -153,7 +153,7 @@ public:
 
         // unwrap message parameters
         constexpr
-        std::tuple<Params...>
+        std::optional<std::tuple<Params...>>
         unwrap(const dmessage &msg) const {
             if (msg.hash() == type_hash) {
                 return [&]<size_t...Is>(std::index_sequence<Is...>) {
@@ -161,19 +161,20 @@ public:
                             std::get<Params>(msg.params()[Is])...);
                 }(std::make_index_sequence<sizeof...(Params)>{});
             } else {
-                throw std::invalid_argument{"message hash doesn't match format hash"};
+                return std::nullopt;
             }
         }
 
         template<class U, size_t... I>
-        constexpr U
+        requires std::constructible_from<U, Params...>
+        constexpr std::optional<U>
         unwrap_as(const dmessage &msg) const {
             if (msg.hash() == type_hash) {
                 return [&]<size_t...Is>(std::index_sequence<Is...>) {
-                    return U{std::get<Params>(msg.params()[Is])...};
+                    return U{ std::get<Params>(msg.params()[Is])... };
                 }(std::make_index_sequence<sizeof...(Params)>{});
             } else {
-                throw std::invalid_argument{"message hash doesn't match format hash"};
+                return std::nullopt;
             }
         }
 
@@ -189,21 +190,17 @@ public:
         constexpr
         std::conditional_t<detail::index_of_v<Variant, RType> == 0, bool, std::optional<RType>>
         unwrap_result(dresult r) const {
-            if constexpr (detail::index_of_v<Variant, RType> != 0) {
-                if (r.accepted) {
-                    if (r.result && r.type_hash == type_hash && std::holds_alternative<RType>(*r.result)) {
-                        return std::get<RType>(*r.result);
-                    } else {
-                        throw std::invalid_argument{"unexpected message return type"};
-                    }
-                } else {
-                    return {};
-                }
-            } else {
+            if constexpr (detail::index_of_v<Variant, RType> == 0) {
                 if (!r.result) {
                     return r.accepted && r.type_hash == type_hash;
                 } else {
-                    throw std::invalid_argument{"unexpected message return type, should be nil"};
+                    return false;
+                }
+            } else {
+                if (r.accepted && r.result && r.type_hash == type_hash && std::holds_alternative<RType>(*r.result)) {
+                    return std::get<RType>(*r.result);
+                } else {
+                    return {};
                 }
             }
         }

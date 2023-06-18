@@ -86,7 +86,7 @@ Actor::dresult Player::message(World& w, const dmessage& msg) {
             return GetPos.accept(w.at(collidable_id).getPosition());
         }
         case SetPos: {
-            auto [pos] = SetPos.unwrap(msg);
+            auto [pos] = SetPos.unwrap(msg).value();
             w.at(collidable_id).setPosition(pos);
             return SetPos.accept();
         }
