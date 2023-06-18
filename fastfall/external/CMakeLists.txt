@@ -54,7 +54,7 @@ FetchContent_Declare(
 FetchContent_Declare(
 	implot
 	GIT_REPOSITORY	https://github.com/epezent/implot.git
-	GIT_TAG			v0.13
+	#GIT_TAG			v0.13
     SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/implot
 )
 
