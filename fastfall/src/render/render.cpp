@@ -1,7 +1,7 @@
 
 #include "fastfall/render/render.hpp"
 #include "backends/imgui_impl_opengl3.h"
-#include "backends/imgui_impl_sdl.h"
+#include "backends/imgui_impl_sdl2.h"
 #include "fastfall/render/external/opengl.hpp"
 #include "fastfall/render/external/freetype.hpp"
 #include "fastfall/render/target/Window.hpp"
