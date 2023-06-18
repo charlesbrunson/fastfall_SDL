@@ -142,17 +142,17 @@ if (NOT EMSCRIPTEN)
 		URL			   https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
 	)
-	#FetchContent_MakeAvailable(
-	#	zlib
-	#)
+	FetchContent_MakeAvailable(
+		zlib
+	)
 
 	#libpng
 	set(ZLIB_LIBRARY zlib)
-	set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR} ${zlib_INCLUDE_DIR})
+	set(ZLIB_INCLUDE_DIRS ${zlib_SOURCE_DIR} ${zlib_INCLUDE_DIR})
 	set(PNG_SHARED OFF 		CACHE BOOL "" FORCE)
 	set(PNG_STATIC ON 		CACHE BOOL "" FORCE)
 	set(PNG_TESTS OFF 		CACHE BOOL "" FORCE)
-	#set(PNG_BUILD_ZLIB ON 	        CACHE BOOL "" FORCE)
+	set(PNG_BUILD_ZLIB ON 	        CACHE BOOL "" FORCE)
 	set(PNG_EXECUTABLES OFF 	CACHE BOOL "" FORCE)
 	set(PNG_TESTS OFF 	        CACHE BOOL "" FORCE)
 	set(SKIP_INSTALL_ALL ON 	CACHE BOOL "" FORCE)
@@ -180,7 +180,7 @@ if (NOT EMSCRIPTEN)
 
 	FetchContent_MakeAvailable(
 		glew
-		zlib
+		#zlib
 		libpng
 		sdl
 		sdl_image
