@@ -29,7 +29,7 @@ if(EMSCRIPTEN)
 		-sUSE_LIBPNG=1 
 		-sUSE_SDL=2 
 		-sUSE_SDL_IMAGE=2 
-		-sSDL2_IMAGE_FORMATS=["bmp","png"]	
+		-sSDL2_IMAGE_FORMATS=["bmp","png"]
 	)
 
 	target_link_options(fastfall PUBLIC 
@@ -41,7 +41,7 @@ if(EMSCRIPTEN)
 		-sWASM=1
 		-sWASM_BIGINT=1 
 		-sFULL_ES3=1 
-		-sALLOW_MEMORY_GROWTH=1 
+		-sALLOW_MEMORY_GROWTH=1
 	)
 
 	if (${CMAKE_BUILD_TYPE} MATCHES "Release")

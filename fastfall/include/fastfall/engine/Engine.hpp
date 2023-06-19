@@ -38,7 +38,7 @@ struct EngineSettings {
 
 	// display refresh rate
 	int refreshRate = 0;
-	bool vsyncEnabled = true;
+	bool vsyncEnabled = false;
 
 	// display fullscreen
 	bool fullscreen = false;

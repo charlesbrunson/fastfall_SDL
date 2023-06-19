@@ -371,50 +371,37 @@ void Engine::emscripten_loop(void* engine_ptr) {
 	Engine* engine = (Engine*)engine_ptr;
 
 	if(!engine->is_running() || engine->runnables.empty()) {
-		LOG_INFO("TOCK");
 		return;
 	}
 
-	LOG_INFO("TICK");
     profiler::curr_duration = {};
     profiler::frame_timer.reset();
 
-	LOG_INFO("A");
 	engine->updateTimer();
 
-	LOG_INFO("B");
     engine->updateRunnables();
     profiler::curr_duration.update_time = profiler::frame_timer.elapsed();
 
-	LOG_INFO("C");
 	engine->predrawRunnables();
     profiler::curr_duration.predraw_time = profiler::frame_timer.elapsed();
 
-	LOG_INFO("D");
 	engine->updateView();
 
-	LOG_INFO("E");
 	engine->drawRunnables();
     profiler::curr_duration.draw_time = profiler::frame_timer.elapsed();
 
-	LOG_INFO("F");
 	engine->updateImGui();
     profiler::curr_duration.imgui_time = profiler::frame_timer.elapsed();
 
-	LOG_INFO("G");
 	engine->updateStateHandler();
 
-	LOG_INFO("H");
 	engine->cleanRunnables();
 
-	LOG_INFO("I");
 	ff::glDeleteStale();
 
-	LOG_INFO("J");
     engine->display();
     profiler::curr_duration.display_time = profiler::frame_timer.elapsed();
 
-	LOG_INFO("K");
 	engine->sleep();
     profiler::curr_duration.sleep_time = profiler::frame_timer.elapsed();
     profiler::curr_duration.total_time = profiler::curr_duration.sleep_time;
@@ -440,25 +427,19 @@ void Engine::updateTimer() {
 
     tick = clock.tick();
 
-    LOG_INFO("YES");
-
     if (window) {
         bool resetTimers = false;
-	    LOG_INFO("A");
         handleEvents(&resetTimers);
-	    LOG_INFO("B");
         if (resetTimers) {
 			tick = clock.tick();
         }
     }
 
-    LOG_INFO("YOS");
     if (ResourceWatcher::is_watch_running()) {
         if (Resources::reloadOutOfDateAssets()) {
            clock.tick();
         }
     }
-    LOG_INFO("YIS");
 
     log::set_tick(clock.getTickCount());
     upTime += tick.elapsed;
@@ -491,7 +472,6 @@ void Engine::updateView() {
             std::string title = fmt::format("game v{}.{}.{} fps={} ups={}", VERSION[0], VERSION[1], VERSION[2], avgFPS, avgUPS);
             window->setWindowTitle(title);
         }
-
     }
 }
 
@@ -523,7 +503,6 @@ void Engine::updateRunnables()
 }
 void Engine::predrawRunnables() 
 {
-    static bool latch_interp = false;
     float interp = tick.interp_value;
 
     if (pauseUpdate && hasUpdated) {
@@ -619,8 +598,6 @@ void Engine::handleEvents(bool* timeWasted)
     SDL_Event event;
     event_count = 0u;
 
-    LOG_INFO("FUNNY EVENTS");
-
     auto push_to_states = [this](SDL_Event event) {
         if (auto in = InputConfig::is_waiting_for_bind()) {
             switch (event.type) {
@@ -651,8 +628,6 @@ void Engine::handleEvents(bool* timeWasted)
 
     while (SDL_PollEvent(&event)) 
     {
-
-	    LOG_INFO("EVENT");
         event_count++;
         if (settings.showDebug && ImGui_ImplSDL2_ProcessEvent(&event)) {
             if (ImGui::GetIO().WantCaptureMouse && (event.type & SDL_MOUSEMOTION) > 0) {
@@ -909,6 +884,7 @@ void Engine::resizeWindow(Vec2u size, bool force_size)
         });
 
     v.setSize(GAME_W_F, GAME_H_F);
+
     window->setView(v);
 
     windowZoom = scale;

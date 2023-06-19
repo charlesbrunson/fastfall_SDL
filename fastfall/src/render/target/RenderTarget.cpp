@@ -51,7 +51,6 @@ void RenderTarget::setView(const View& view) {
 		m_view.getViewport()[1],
 		m_view.getViewport()[2],
 		m_view.getViewport()[3]);
-
 }
 
 void RenderTarget::draw(const Drawable& drawable, const RenderState& state) {

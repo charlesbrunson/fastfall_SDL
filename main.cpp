@@ -13,15 +13,15 @@ int main(int argc, char* argv[]) {
     if (ff::Init())
     {
         // create an opengl context
-        auto window = ff::Window{ true };
+        auto* window = new ff::Window{ true };
 
-	ff::Engine* engine = nullptr;
+        ff::Engine* engine = nullptr;
 
         // load resources from file
         if (ff::Load_Resources( "data/" ))
         {
             // create the engine
-            engine = new ff::Engine{ &window };
+            engine = new ff::Engine{ window };
 
             // give it something to run
             engine->make_runnable<TestState>();
@@ -29,9 +29,12 @@ int main(int argc, char* argv[]) {
             // run it
             engine->run();
         }
-#if !defined(__EMSCRIPTEN__)
-	if (engine) 
-		delete engine;
+#if not defined(__EMSCRIPTEN__)
+
+        delete window;
+
+        if (engine)
+            delete engine;
 
         ff::Quit();
 #endif
