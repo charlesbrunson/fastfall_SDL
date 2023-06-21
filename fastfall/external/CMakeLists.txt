@@ -58,9 +58,6 @@ FetchContent_Declare(
     SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/implot
 )
 
-
-
-
 FetchContent_MakeAvailable(
 	glm
 	fmt	
@@ -105,7 +102,7 @@ if (NOT EMSCRIPTEN)
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
 	)
 	FetchContent_MakeAvailable(zlib)
-	set(ZLIB_LIBRARY zlib)
+	set(ZLIB_LIBRARY zlibstatic)
 	set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
 	set(ZLIB_INCLUDE_DIRS ${zlib_SOURCE_DIR} ${zlib_INCLUDE_DIR})
 

@@ -218,7 +218,7 @@ bool Engine::run_singleThread()
 
         cleanRunnables();
 
-        ff::glDeleteStale();
+        glDeleteStale();
 
         display();
         profiler::curr_duration.display_time = profiler::frame_timer.elapsed();
@@ -238,7 +238,7 @@ bool Engine::run_singleThread()
 
     running = false;
 
-    ff::glDeleteStale();
+    glDeleteStale();
 
     return true;
 }
@@ -288,7 +288,7 @@ bool Engine::run_doubleThread()
 
 		// clean
 
-        ff::glDeleteStale();
+        glDeleteStale();
 
         display();
         if (first_frame && window) {
@@ -316,7 +316,7 @@ bool Engine::run_doubleThread()
 
     running = false;
 
-    ff::glDeleteStale();
+    glDeleteStale();
 
     return true;
 }
@@ -419,7 +419,7 @@ void Engine::emscripten_loop(void* engine_ptr) {
 
 	engine->cleanRunnables();
 
-	ff::glDeleteStale();
+	glDeleteStale();
 
     engine->display();
     profiler::curr_duration.display_time = profiler::frame_timer.elapsed();
@@ -567,9 +567,9 @@ void Engine::drawRunnables() {
 void Engine::updateImGui() {
 #ifdef DEBUG
     if (window && settings.showDebug) {
-        ff::ImGuiNewFrame(*window);
+        ImGuiNewFrame(*window);
         ImGuiFrame::getInstance().display();
-        ff::ImGuiRender();
+        ImGuiRender();
     }
 #endif
 }
