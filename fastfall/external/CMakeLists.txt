@@ -102,12 +102,18 @@ if (NOT EMSCRIPTEN)
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
 	)
 	FetchContent_MakeAvailable(zlib)
-	set(ZLIB_LIBRARY zlibstatic)
+
+	if (MSVC)
+		set(ZLIB_LIBRARY zlibstatic)
+	else()
+		set(ZLIB_LIBRARY zlib)
+	endif()
+
 	set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
-	set(ZLIB_INCLUDE_DIRS ${zlib_SOURCE_DIR} ${zlib_INCLUDE_DIR})
+	set(ZLIB_INCLUDE_DIRS ${zlib_SOURCE_DIR} ${zlib_BINARY_DIR})
 
 	include_directories(
-			${zlib_BINARY_DIR}
+			${ZLIB_INCLUDE_DIRS}
 	)
 	configure_file(
 			"${zlib_BINARY_DIR}/zconf.h"
@@ -116,13 +122,13 @@ if (NOT EMSCRIPTEN)
 	)
 
 	#libpng
-	set(PNG_SHARED OFF 		CACHE BOOL "" FORCE)
-	set(PNG_STATIC ON 		CACHE BOOL "" FORCE)
-	set(PNG_TESTS OFF 		CACHE BOOL "" FORCE)
-	set(PNG_BUILD_ZLIB ON 	        CACHE BOOL "" FORCE)
-	set(PNG_EXECUTABLES OFF 	CACHE BOOL "" FORCE)
-	set(PNG_TESTS OFF 	        CACHE BOOL "" FORCE)
-	set(SKIP_INSTALL_ALL ON 	CACHE BOOL "" FORCE)
+	set(PNG_SHARED 			OFF CACHE BOOL "" FORCE)
+	set(PNG_STATIC 			ON 	CACHE BOOL "" FORCE)
+	set(PNG_TESTS 			OFF CACHE BOOL "" FORCE)
+	set(PNG_BUILD_ZLIB 		ON 	CACHE BOOL "" FORCE)
+	set(PNG_EXECUTABLES 	OFF CACHE BOOL "" FORCE)
+	set(PNG_TESTS 			OFF CACHE BOOL "" FORCE)
+	set(SKIP_INSTALL_ALL 	ON 	CACHE BOOL "" FORCE)
 
 	FetchContent_Declare(
 			libpng
