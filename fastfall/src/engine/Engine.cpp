@@ -28,8 +28,27 @@
 #define FF_HAS_EMSCRIPTEN 1
 #include <emscripten.h>
 #include <emscripten/html5.h>
+
+ff::EngineSettings engineDefaultSettings = {
+    .allowMargins = true,
+    .refreshRate = 0,
+    .vsyncEnabled = false,
+    .fullscreen = false,
+    .showDebug = false,
+};
+
 #else
 #define FF_HAS_EMSCRIPTEN 0
+
+ff::EngineSettings engineDefaultSettings = {
+    .allowMargins = true,
+    .refreshRate = 0,
+    .vsyncEnabled = true,
+    .fullscreen = false,
+    .showDebug = false,
+    .runstyle = ff::EngineRunStyle::DoubleThread
+};
+
 #endif
 
 #define IF_EMSCRIPTEN( expr ) if constexpr (FF_HAS_EMSCRIPTEN) { expr; }
@@ -39,7 +58,7 @@
 namespace ff {
 
 Engine::Engine(Window* window)
-    : Engine{window, {GAME_W * 3, GAME_H * 3}, {}}
+    : Engine{ window, {GAME_W * 3, GAME_H * 3}, engineDefaultSettings }
 {
 }
 
@@ -133,6 +152,10 @@ bool Engine::run() {
     if (runnables.empty())
         return false;
 
+#if FF_HAS_EMSCRIPTEN
+    LOG_INFO("Engine loop config: emscripten");
+    return run_emscripten();
+#else
     switch (settings.runstyle) {
     case EngineRunStyle::SingleThread:
         LOG_INFO("Engine loop config: single thread");
@@ -140,11 +163,10 @@ bool Engine::run() {
     case EngineRunStyle::DoubleThread:
         LOG_INFO("Engine loop config: double thread");
         return run_doubleThread();
-    case EngineRunStyle::Emscripten:
-        LOG_INFO("Engine loop config: emscripten");
-        return run_emscripten();
-    default: return false;
+    default:
+        return false;
     }
+#endif
 }
 
 bool Engine::is_running() const noexcept { return running; };

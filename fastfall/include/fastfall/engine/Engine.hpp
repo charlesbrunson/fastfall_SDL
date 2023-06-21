@@ -29,7 +29,7 @@ constexpr int VERSION[3] = { 0, 0, 2 };
 enum class EngineRunStyle {
 	SingleThread,
 	DoubleThread,
-	Emscripten
+	//Emscripten
 };
 
 struct EngineSettings {
@@ -47,12 +47,7 @@ struct EngineSettings {
 	bool showDebug = false;
 
 	// run style
-	EngineRunStyle runstyle =
-#if defined(__EMSCRIPTEN__)
-            EngineRunStyle::Emscripten;
-#else
-            EngineRunStyle::DoubleThread;
-#endif
+	EngineRunStyle runstyle = EngineRunStyle::DoubleThread;
 };
 
 class DebugDrawImgui : public ImGuiContent {

@@ -59,18 +59,9 @@ FetchContent_Declare(
 )
 
 
-#freetype
-set(ZLIB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/zlib" CACHE INTERNAL "")
-set(FT_DISABLE_HARFBUZZ ON CACHE INTERNAL "")
-FetchContent_Declare(
-	freetype
-	URL https://download.savannah.gnu.org/releases/freetype/freetype-2.11.1.tar.xz
-	SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/freetype
-)
 
 
 FetchContent_MakeAvailable(
-	freetype
 	glm
 	fmt	
 	json
@@ -102,18 +93,59 @@ target_include_directories(imgui PRIVATE
 
 target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLEW )
 
-if (EMSCRIPTEN)
-	target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_ES3)
-
-	target_compile_options(imgui PRIVATE -sUSE_SDL=2)
-	target_link_options(imgui PRIVATE -sUSE_SDL=2)
-
-	target_compile_options(freetype PRIVATE -sUSE_LIBPNG=1)
-	target_link_options(freetype PRIVATE -sUSE_LIBPNG=1)
-endif()
 
 
 if (NOT EMSCRIPTEN)
+
+
+	#zlib
+	FetchContent_Declare(
+		zlib
+		URL			   https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
+	)
+	FetchContent_MakeAvailable(zlib)
+	set(ZLIB_LIBRARY zlib)
+	set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
+	set(ZLIB_INCLUDE_DIRS ${zlib_SOURCE_DIR} ${zlib_INCLUDE_DIR})
+
+	include_directories(
+			${zlib_BINARY_DIR}
+	)
+	configure_file(
+			"${zlib_BINARY_DIR}/zconf.h"
+			"${zlib_SOURCE_DIR}/zconf.h"
+			COPYONLY
+	)
+
+	#libpng
+	set(PNG_SHARED OFF 		CACHE BOOL "" FORCE)
+	set(PNG_STATIC ON 		CACHE BOOL "" FORCE)
+	set(PNG_TESTS OFF 		CACHE BOOL "" FORCE)
+	set(PNG_BUILD_ZLIB ON 	        CACHE BOOL "" FORCE)
+	set(PNG_EXECUTABLES OFF 	CACHE BOOL "" FORCE)
+	set(PNG_TESTS OFF 	        CACHE BOOL "" FORCE)
+	set(SKIP_INSTALL_ALL ON 	CACHE BOOL "" FORCE)
+
+	FetchContent_Declare(
+			libpng
+			URL			https://github.com/glennrp/libpng/archive/refs/tags/v1.6.39.zip
+			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/libpng
+	)
+	FetchContent_MakeAvailable(libpng)
+	set(PNG_LIBRARY png_static)
+	set(PNG_PNG_INCLUDE_DIR ${libpng_SOURCE_DIR})
+	include_directories(${libpng_BINARY_DIR})
+
+	# glew
+	set(BUILD_UTILS OFF PARENT)
+	FetchContent_Declare(
+			glew
+			URL				https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.zip
+			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glew
+			SOURCE_SUBDIR  build/cmake
+	)
+	FetchContent_MakeAvailable(glew)
 
 	# sdl
 	set(SDL_SHARED OFF CACHE INTERNAL "")
@@ -125,53 +157,11 @@ if (NOT EMSCRIPTEN)
 	endif()
 
 	FetchContent_Declare(
-		sdl
-		URL			https://www.libsdl.org/release/SDL2-2.0.14.tar.gz
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
+			sdl
+			URL			https://www.libsdl.org/release/SDL2-2.0.14.tar.gz
+			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
 	)
-
-	# glew
-	set(BUILD_UTILS OFF PARENT)
-	FetchContent_Declare(
-		glew
-		URL				https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.zip
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glew
-		SOURCE_SUBDIR  build/cmake
-	)
-
-	#zlib
-	FetchContent_Declare(
-		zlib
-		URL			   https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
-	)
-	FetchContent_MakeAvailable(
-		zlib
-	)
-
-	#libpng
-	set(ZLIB_LIBRARY zlib)
-	set(ZLIB_INCLUDE_DIRS ${zlib_SOURCE_DIR} ${zlib_INCLUDE_DIR})
-	set(PNG_SHARED OFF 		CACHE BOOL "" FORCE)
-	set(PNG_STATIC ON 		CACHE BOOL "" FORCE)
-	set(PNG_TESTS OFF 		CACHE BOOL "" FORCE)
-	set(PNG_BUILD_ZLIB ON 	        CACHE BOOL "" FORCE)
-	set(PNG_EXECUTABLES OFF 	CACHE BOOL "" FORCE)
-	set(PNG_TESTS OFF 	        CACHE BOOL "" FORCE)
-	set(SKIP_INSTALL_ALL ON 	CACHE BOOL "" FORCE)
-
-	FetchContent_Declare(
-		libpng
-		URL			https://github.com/glennrp/libpng/archive/refs/tags/v1.6.39.zip
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/libpng
-	)
-
-	# sdl
-	FetchContent_Declare(
-		sdl
-		URL			https://www.libsdl.org/release/SDL2-2.0.10.tar.gz
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
-	)
+	FetchContent_MakeAvailable(sdl)
 
 	# sdl_image
 	FetchContent_Declare(
@@ -179,25 +169,8 @@ if (NOT EMSCRIPTEN)
 		URL			https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.5.tar.gz
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_image
 	)
+	FetchContent_MakeAvailable(sdl_image)
 
-
-	FetchContent_MakeAvailable(
-		glew
-		#zlib
-		libpng
-		sdl
-		sdl_image
-	)
-
-	include_directories(
-		${zlib_BINARY_DIR}
-		${libpng_BINARY_DIR}
-	)
-	configure_file(
-		"${zlib_BINARY_DIR}/zconf.h"
-		"${zlib_SOURCE_DIR}/zconf.h"
-		COPYONLY
-	)
 
 	# build sdl_image as library
 	file(GLOB SDLIMG_SOURCES ${sdl_image_SOURCE_DIR}/*.c)
@@ -219,6 +192,27 @@ else()
 	set(SDL2_INCLUDE_DIR "${sdl_SOURCE_DIR}/include")
 endif()
 
+#freetype
+#set(ZLIB_LIBRARY zlib)
+#set(ZLIB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/zlib" CACHE INTERNAL "")
+set(FT_DISABLE_HARFBUZZ ON CACHE INTERNAL "")
+FetchContent_Declare(
+		freetype
+		URL https://download.savannah.gnu.org/releases/freetype/freetype-2.11.1.tar.xz
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/freetype
+)
+FetchContent_MakeAvailable(freetype)
+
+if (EMSCRIPTEN)
+	target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_ES3)
+
+	target_compile_options(imgui PRIVATE -sUSE_SDL=2)
+	target_link_options(imgui PRIVATE -sUSE_SDL=2)
+
+	target_compile_options(freetype PRIVATE -sUSE_LIBPNG=1)
+	target_link_options(freetype PRIVATE -sUSE_LIBPNG=1)
+endif()
+
 # soloud
 set(SOLOUD_STATIC 	ON  CACHE INTERNAL "")
 set(SOLOUD_BACKEND_SDL2 ON  CACHE INTERNAL "")
@@ -228,9 +222,7 @@ FetchContent_Declare(
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/soloud
 		SOURCE_SUBDIR  contrib
 )
-FetchContent_MakeAvailable(
-		soloud
-)
+FetchContent_MakeAvailable(soloud)
 
 if (EMSCRIPTEN) 
 	target_compile_options(soloud PUBLIC 

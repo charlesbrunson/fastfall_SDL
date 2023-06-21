@@ -24,7 +24,7 @@ if(EMSCRIPTEN)
 		target_link_options(fastfall PUBLIC -g -O0 -sDEMANGLE_SUPPORT=1)
 	endif()
 
-	target_compile_options(fastfall PUBLIC 
+	target_compile_options(fastfall PUBLIC
 		-sUSE_ZLIB=1 
 		-sUSE_LIBPNG=1 
 		-sUSE_SDL=2 
@@ -32,7 +32,7 @@ if(EMSCRIPTEN)
 		-sSDL2_IMAGE_FORMATS=["bmp","png"]
 	)
 
-	target_link_options(fastfall PUBLIC 
+	target_link_options(fastfall PUBLIC
 		-sUSE_ZLIB=1 
 		-sUSE_LIBPNG=1 
 		-sUSE_SDL=2 
