@@ -1019,7 +1019,7 @@ void Engine::ImGui_getContent() {
             ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 1.f);
 
             const auto plot = [&](std::string_view name, const secs* start) {
-                ImPlot::PlotShaded(name.data(), &buff[0].curr_uptime, start, buff.size(), 0.0, 0, sizeof(profiler::Duration));
+                ImPlot::PlotShaded(name.data(), &buff[0].curr_uptime, start, buff.size(), 0.0, 0, 0, sizeof(profiler::Duration));
             };
 
             if (!buff.empty()) {
