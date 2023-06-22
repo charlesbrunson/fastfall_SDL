@@ -223,7 +223,7 @@ private:
             .world        = *this,
             .entity_id    = id,
             .actor_id     = actor_id,
-            .type         = actor_type_of_v<T_Actor>,
+            .type         = actor_type_of<T_Actor>(),
             .level_object = nullptr
         };
 

@@ -12,10 +12,13 @@
 
 #include "tilelogic/AnimLogic.hpp"
 #include "fastfall/engine/Engine.hpp"
+#include "object/Player.hpp"
 
 
 TestState::TestState()
     : insrc_realtime(input_sets::gameplay, 1.0/60.0, ff::RecordInputs::Yes)
+    , recorded_pos(Primitive::LINE_STRIP, 0, VertexUsage::DYNAMIC)
+    , replay_pos(Primitive::LINE_STRIP, 0, VertexUsage::DYNAMIC)
 {
 	stateID = ff::EngineStateID::TEST_STATE;
 	clearColor = ff::Color{ 0x141013FF };
@@ -55,7 +58,20 @@ void TestState::update(secs deltaTime) {
         if (auto src = world->input().get_source()) {
             src->next();
         }
+
+        auto plr_it = std::find_if(world->entities().begin(), world->entities().end(), [&](const auto& e) -> bool {
+            const Entity& ent = e.second;
+            Actor* a = world->get(ent.actor);
+            return a && a->has_type<Player>();
+        });
+
+        if (plr_it != world->entities().end()) {
+            if (auto plr = (Player*)(world->get(*plr_it->actor))) {
+                next_pos = world->at(plr->collidable_id).getPosition();
+            }
+        }
     }
+
 
 	if (edit)
 	{
@@ -189,29 +205,28 @@ void TestState::update(secs deltaTime) {
 		auto tile_id = edit->get_tile();
 
 
-		if (tileset && tile_id)
-		{
-			auto tile = tileset->getTile(*tile_id);
+		if (tileset && tile_id) {
+            auto tile = tileset->getTile(*tile_id);
 
-			std::string_view tileset_name = tileset->get_name();
-			std::string_view layer_name = world->at(edit->get_tile_layer()->tile_layer_id).getName();
-			unsigned layer_id = edit->get_tile_layer()->layer_id;
-			int layer_pos = layer;
+            std::string_view tileset_name = tileset->get_name();
+            std::string_view layer_name = world->at(edit->get_tile_layer()->tile_layer_id).getName();
+            unsigned layer_id = edit->get_tile_layer()->layer_id;
+            int layer_pos = layer;
 
-			Vec2u tile_origin = tile_id->to_vec();
-			std::string_view tile_type = (tile ? (tile->auto_substitute ? "auto" : "") : "null");
+            Vec2u tile_origin = tile_id->to_vec();
+            std::string_view tile_type = (tile ? (tile->auto_substitute ? "auto" : "") : "null");
 
-			std::string str = 
-				  fmt::format("tileset\t{}\n",			tileset_name)
-				+ fmt::format("layer\t\t{}#{} ({})\n",	layer_name, layer_id, layer_pos)
-				+ fmt::format("tile\t\t\t{:2d}\t{}\n",	tile_origin, tile_type)
-				+ fmt::format("pos\t\t{:3d}\n",			tpos)
-				+ fmt::format("pixel\t\t{:4d}\n",		Vec2i{ mpos });
+            std::string str =
+                    fmt::format("tileset\t{}\n", tileset_name)
+                    + fmt::format("layer\t\t{}#{} ({})\n", layer_name, layer_id, layer_pos)
+                    + fmt::format("tile\t\t\t{:2d}\t{}\n", tile_origin, tile_type)
+                    + fmt::format("pos\t\t{:3d}\n", tpos)
+                    + fmt::format("pixel\t\t{:4d}\n", Vec2i{mpos});
 
 
-			tile_text.setText({}, {}, str);
-			
-		}
+            tile_text.setText({}, {}, str);
+
+        }
 	}
 
 	if (currKeys) {
@@ -224,6 +239,23 @@ void TestState::update(secs deltaTime) {
 
 void TestState::predraw(float interp, bool updated, const WindowState* win_state) {
 
+    //recorded_pos.visible = on_realtime;
+    //recorded_pos.predraw(interp, updated);
+
+    if (next_pos) {
+        auto &pos = on_realtime ? recorded_pos : replay_pos;
+        auto color = on_realtime ? ff::Color::Red : ff::Color::Green;
+        if (!on_realtime && recorded_pos.size() > pos.size()) {
+            Vec2f real_pos = Vec2f{ recorded_pos[pos.size()].pos };
+            if (!on_realtime && real_pos != *next_pos) {
+                LOG_WARN("desync {} -> {}", real_pos, *next_pos);
+            }
+        }
+
+
+        pos.insert(pos.size(), 1, { *next_pos, color});
+        next_pos.reset();
+    }
 
     if (to_save) {
         if (save_world) {
@@ -251,9 +283,18 @@ void TestState::predraw(float interp, bool updated, const WindowState* win_state
 
                 insrc_realtime.set_record(record);
                 world->input().set_source(&insrc_realtime);
+
+                if (world->tick_count() < recorded_pos.size())
+                    recorded_pos.erase(world->tick_count(), recorded_pos.size() - world->tick_count());
+
+                if (world->tick_count() < replay_pos.size())
+                    replay_pos.erase(  world->tick_count(), replay_pos.size() -   world->tick_count());
             }
             else {
                 world->input().set_source(&*insrc_record);
+
+                if (world->tick_count() < replay_pos.size())
+                    replay_pos.erase(  world->tick_count(), replay_pos.size() -   world->tick_count());
             }
 
             debug_draw::clear();
@@ -329,7 +370,13 @@ bool TestState::pushEvent(const SDL_Event& event) {
 
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const 
 {
-    target.draw(*world, state);
+    target.draw(*world,         state);
+
+    if (recorded_pos.size() >= 2)
+        target.draw(recorded_pos, state);
+
+    if (replay_pos.size() >= 2)
+        target.draw(replay_pos, state);
 
 	if (show_tile && edit && edit->get_tile_layer()) {
 		target.draw(tile_ghost, state);

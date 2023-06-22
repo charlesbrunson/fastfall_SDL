@@ -43,3 +43,5 @@ protected:
 
 	void manage_state(ff::World& w, PlayerStateID n_id);
 };
+
+//static_assert(ff::actor_type_of_v<Player> == &Player::actor_type, "not funny didn't laugh");

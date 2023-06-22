@@ -142,28 +142,29 @@ Collidable::Collidable(Vec2f position, Vec2f size, Vec2f gravity)
 
 Collidable::Collidable(const Collidable& rhs)
 {
-    col_state = rhs.col_state;
-    slip = rhs.slip;
+    col_state       = rhs.col_state;
+    slip            = rhs.slip;
 
-    currPos = rhs.currPos;
-    prevPos = rhs.prevPos;
+    currPos         = rhs.currPos;
+    prevPos         = rhs.prevPos;
+    currRect        = rhs.currRect;
+    prevRect        = rhs.prevRect;
 
-    currRect = rhs.currRect;
-    prevRect = rhs.prevRect;
-
-    local_vel = rhs.local_vel;
+    last_parent_vel = rhs.last_parent_vel;
+    parent_vel      = rhs.parent_vel;
+    surface_vel     = rhs.surface_vel;
+    local_vel       = rhs.local_vel;
     local_precollision_vel = rhs.local_precollision_vel;
-    parent_vel = rhs.parent_vel;
 
-    friction = rhs.friction;
-    acc = rhs.acc;
-    gravity_acc = rhs.gravity_acc;
-    accel_accum = rhs.accel_accum;
-    decel_accum = rhs.decel_accum;
+    friction        = rhs.friction;
+    acc             = rhs.acc;
+    gravity_acc     = rhs.gravity_acc;
+    accel_accum     = rhs.accel_accum;
+    decel_accum     = rhs.decel_accum;
 
-    currContacts = rhs.currContacts;
-    _tracker = rhs._tracker;
-    callbacks = rhs.callbacks;
+    _tracker        = rhs._tracker;
+    currContacts    = rhs.currContacts;
+    callbacks       = rhs.callbacks;
 
     if (_tracker) {
         _tracker->update_collidable_ptr(this);
@@ -172,28 +173,29 @@ Collidable::Collidable(const Collidable& rhs)
 
 Collidable::Collidable(Collidable&& rhs) noexcept
 {
-    col_state = rhs.col_state;
-    slip = rhs.slip;
+    col_state       = rhs.col_state;
+    slip            = rhs.slip;
 
-    currPos = rhs.currPos;
-    prevPos = rhs.prevPos;
+    currPos         = rhs.currPos;
+    prevPos         = rhs.prevPos;
+    currRect        = rhs.currRect;
+    prevRect        = rhs.prevRect;
 
-    currRect = rhs.currRect;
-    prevRect = rhs.prevRect;
-
-    local_vel = rhs.local_vel;
+    last_parent_vel = rhs.last_parent_vel;
+    parent_vel      = rhs.parent_vel;
+    surface_vel     = rhs.surface_vel;
+    local_vel       = rhs.local_vel;
     local_precollision_vel = rhs.local_precollision_vel;
-    parent_vel = rhs.parent_vel;
 
-    friction = rhs.friction;
-    acc = rhs.acc;
-    gravity_acc = rhs.gravity_acc;
-    accel_accum = rhs.accel_accum;
-    decel_accum = rhs.decel_accum;
+    friction        = rhs.friction;
+    acc             = rhs.acc;
+    gravity_acc     = rhs.gravity_acc;
+    accel_accum     = rhs.accel_accum;
+    decel_accum     = rhs.decel_accum;
 
-    currContacts = std::move(rhs.currContacts);
-    _tracker = std::move(rhs._tracker);
-    callbacks = rhs.callbacks;
+    _tracker        = std::move(rhs._tracker);
+    currContacts    = std::move(rhs.currContacts);
+    callbacks       = rhs.callbacks;
 
     if (_tracker) {
         _tracker->update_collidable_ptr(this);
@@ -205,28 +207,29 @@ Collidable& Collidable::operator=(const Collidable& rhs)
     if (this == &rhs)
         return *this;
 
-    col_state = rhs.col_state;
-    slip = rhs.slip;
+    col_state       = rhs.col_state;
+    slip            = rhs.slip;
 
-    currPos = rhs.currPos;
-    prevPos = rhs.prevPos;
+    currPos         = rhs.currPos;
+    prevPos         = rhs.prevPos;
+    currRect        = rhs.currRect;
+    prevRect        = rhs.prevRect;
 
-    currRect = rhs.currRect;
-    prevRect = rhs.prevRect;
-
-    local_vel = rhs.local_vel;
+    last_parent_vel = rhs.last_parent_vel;
+    parent_vel      = rhs.parent_vel;
+    surface_vel     = rhs.surface_vel;
+    local_vel       = rhs.local_vel;
     local_precollision_vel = rhs.local_precollision_vel;
-    parent_vel = rhs.parent_vel;
 
-    friction = rhs.friction;
-    acc = rhs.acc;
-    gravity_acc = rhs.gravity_acc;
-    accel_accum = rhs.accel_accum;
-    decel_accum = rhs.decel_accum;
+    friction        = rhs.friction;
+    acc             = rhs.acc;
+    gravity_acc     = rhs.gravity_acc;
+    accel_accum     = rhs.accel_accum;
+    decel_accum     = rhs.decel_accum;
 
-    currContacts = rhs.currContacts;
-    _tracker = rhs._tracker;
-    callbacks = rhs.callbacks;
+    _tracker        = rhs._tracker;
+    currContacts    = rhs.currContacts;
+    callbacks       = rhs.callbacks;
 
     if (_tracker) {
         _tracker->update_collidable_ptr(this);
@@ -239,28 +242,29 @@ Collidable& Collidable::operator=(Collidable&& rhs) noexcept
     if (this == &rhs)
         return *this;
 
-    col_state = rhs.col_state;
-    slip = rhs.slip;
+    col_state       = rhs.col_state;
+    slip            = rhs.slip;
 
-    currPos = rhs.currPos;
-    prevPos = rhs.prevPos;
+    currPos         = rhs.currPos;
+    prevPos         = rhs.prevPos;
+    currRect        = rhs.currRect;
+    prevRect        = rhs.prevRect;
 
-    currRect = rhs.currRect;
-    prevRect = rhs.prevRect;
-
-    local_vel = rhs.local_vel;
+    last_parent_vel = rhs.last_parent_vel;
+    parent_vel      = rhs.parent_vel;
+    surface_vel     = rhs.surface_vel;
+    local_vel       = rhs.local_vel;
     local_precollision_vel = rhs.local_precollision_vel;
-    parent_vel = rhs.parent_vel;
 
-    friction = rhs.friction;
-    acc = rhs.acc;
-    gravity_acc = rhs.gravity_acc;
-    accel_accum = rhs.accel_accum;
-    decel_accum = rhs.decel_accum;
+    friction        = rhs.friction;
+    acc             = rhs.acc;
+    gravity_acc     = rhs.gravity_acc;
+    accel_accum     = rhs.accel_accum;
+    decel_accum     = rhs.decel_accum;
 
-    currContacts = std::move(rhs.currContacts);
-    _tracker = std::move(rhs._tracker);
-    callbacks = rhs.callbacks;
+    _tracker        = std::move(rhs._tracker);
+    currContacts    = std::move(rhs.currContacts);
+    callbacks       = rhs.callbacks;
 
     if (_tracker) {
         _tracker->update_collidable_ptr(this);

@@ -168,7 +168,6 @@ private:
 
 	Vec2f currPos;
 	Vec2f prevPos;
-
 	Rectf currRect;
 	Rectf prevRect;
 
@@ -179,7 +178,6 @@ private:
 	Vec2f local_precollision_vel; // velocity saved before collision, used for friction calculation
 
 	Vec2f friction;
-
 	Vec2f acc;
 	Vec2f gravity_acc;
 	Vec2f accel_accum;

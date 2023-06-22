@@ -39,7 +39,13 @@ public:
     [[nodiscard]] bool is_dead() const { return dead; }
     [[nodiscard]] bool is_initialized() const { return initialized; }
 
-    bool             has_actor_type() const { return type; }
+    bool has_any_type() const { return type != nullptr; }
+
+    template<typename T_Actor>
+    bool has_type() const {
+        return type != nullptr && type == actor_type_of<T_Actor>();
+    }
+
     const ActorType* get_actor_type() const { return type; }
 
     std::optional<ObjLevelID> level_id() const {
@@ -62,10 +68,21 @@ template<class T, class... Args>
 concept valid_actor_ctor = std::derived_from<T, Actor> && std::constructible_from<T, ActorInit, Args...>;
 
 template<class T>
-concept actor_has_type = valid_actor_ctor<T> && requires (T x) {
-    { T::actor_type } -> std::same_as<ActorType>;
+//concept actor_has_type = std::same_as<typename T::actor_type, const ActorType>;
+concept actor_has_type = requires (T t) {
+    { T::actor_type } -> std::same_as<const ActorType&>;
 };
 
+template<std::derived_from<Actor> T>
+const ActorType* actor_type_of() {
+    if constexpr (actor_has_type<T>) {
+        return &T::actor_type;
+    } else {
+        return nullptr;
+    }
+}
+
+/*
 template<std::derived_from<Actor> T>
 constexpr inline static const ActorType* actor_type_of_v = []() {
     if constexpr (actor_has_type<T>) {
@@ -74,5 +91,6 @@ constexpr inline static const ActorType* actor_type_of_v = []() {
         return nullptr;
     }
 }();
+*/
 
 }

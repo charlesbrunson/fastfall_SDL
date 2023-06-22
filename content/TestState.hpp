@@ -35,6 +35,10 @@ private:
     std::optional<ff::InputSourceRecord>   insrc_record;
     bool on_realtime;
 
+    ff::VertexArray recorded_pos;
+    ff::VertexArray replay_pos;
+    std::optional<ff::Vec2f> next_pos;
+
     std::unique_ptr<ff::World> world;
     std::unique_ptr<ff::World> save_world;
     bool to_save = false;

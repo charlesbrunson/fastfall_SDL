@@ -28,7 +28,7 @@ public:
     explicit id_iterator(value_type ptr) : m_ptr(ptr) {}
 
     id_iterator& operator=(value_type ptr) { m_ptr = ptr; return *this; }
-    id_iterator& operator=(const id_iterator& other) { m_ptr = other.ptr; return *this; }
+    id_iterator& operator=(const id_iterator& other) { m_ptr = other.m_ptr; return *this; }
 
     auto operator*() requires(!std::is_const_v<T>) { return std::make_pair( id_type{m_ptr->first}, std::ref(m_ptr->second) ); }
     auto operator*() const { return std::make_pair( id_type{m_ptr->first}, std::ref(m_ptr->second) ); }

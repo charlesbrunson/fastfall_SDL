@@ -48,8 +48,9 @@ World::~World() {
 }
 
 void World::update(secs deltaTime) {
-    if (system<LevelSystem>().get_active(*this))
+    if (deltaTime > 0.0 && system<LevelSystem>().get_active(*this))
     {
+        //LOG_INFO("{:.25f}", deltaTime);
         system<SceneSystem>().update(*this, deltaTime);
         system<AttachSystem>().update(*this, deltaTime);
         state._input.update(deltaTime);
@@ -73,9 +74,7 @@ void World::update(secs deltaTime) {
             drawable->update(deltaTime);
         }
 
-        if (deltaTime > 0.0) {
-            state.update_counter++;
-        }
+        state.update_counter++;
         state.update_time += deltaTime;
     }
 }
