@@ -270,7 +270,7 @@ void TestState::predraw(float interp, bool updated, const WindowState* win_state
     else if (to_load) {
         if (save_world) {
             if (!on_realtime) {
-                insrc_record = InputSourceRecord{ *insrc_realtime.get_record(), save_world->tick_count() + 1 };
+                insrc_record = InputSourceRecord{ *insrc_realtime.get_record(), save_world->tick_count() };
             }
 
             *world = *save_world;
