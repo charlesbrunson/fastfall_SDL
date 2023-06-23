@@ -68,9 +68,11 @@ void TestState::update(secs deltaTime) {
 
 
         auto& pos = on_realtime ? recorded_pos : replay_pos;
-        if (plr_it != world->entities().end()) {
-            if (auto plr = (Player*)(world->get(*plr_it->actor))) {
-                pos.push_back(world->at(plr->collidable_id).getPosition());
+        if (on_realtime || recorded_pos.size() > replay_pos.size()) {
+            if (plr_it != world->entities().end()) {
+                if (auto plr = (Player *) (world->get(*plr_it->actor))) {
+                    pos.push_back(world->at(plr->collidable_id).getPosition());
+                }
             }
         }
 

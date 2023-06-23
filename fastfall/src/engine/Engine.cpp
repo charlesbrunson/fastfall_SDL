@@ -46,7 +46,7 @@ ff::EngineSettings engineDefaultSettings = {
     .vsyncEnabled = true,
     .fullscreen = false,
     .showDebug = false,
-    .runstyle = ff::EngineRunStyle::SingleThread
+    .runstyle = ff::EngineRunStyle::DoubleThread
 };
 
 #endif

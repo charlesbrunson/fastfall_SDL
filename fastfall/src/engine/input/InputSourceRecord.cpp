@@ -28,9 +28,9 @@ void InputSourceRecord::make_events(const InputFrame& frame)
     for (size_t ndx = 0; ndx < INPUT_COUNT; ++ndx)
     {
         auto type       = static_cast<InputType>(ndx);
-        bool pressed    = frame.pressed.test(ndx);
+        bool pressed    = (frame.pressed & (1 << ndx)) > 0;
         uint8_t mag     = frame.magnitudes.at(ndx);
-        bool can_switch = frame.activation_change.test(ndx);
+        bool can_switch = (frame.activation_change & (1 << ndx)) > 0;
 
         if (pressed && mag == 0)
         {

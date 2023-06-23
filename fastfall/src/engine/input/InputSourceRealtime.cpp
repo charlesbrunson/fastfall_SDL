@@ -41,7 +41,11 @@ InputSourceRealtime::InputSourceRealtime(const std::set<InputType>& accept_input
     {
         record = InputRecord{};
         record->deltaTime = deltaTime;
-        record->listening = accept_inputs;
+        record->listening = 0;
+
+        for (InputType type : accept_inputs) {
+            record->listening |= 1 << static_cast<uint8_t>(type);
+        }
     }
 }
 
@@ -143,21 +147,22 @@ void InputSourceRealtime::next() {
                      ? InputFrame{}
                      : record->frame_data.back();
 
-        frame.pressed.reset();
-        frame.activation_change.reset();
+        frame.pressed           = 0;
+        frame.activation_change = 0;
 
         for (auto& e : events) {
             size_t type_ndx = static_cast<size_t>(e.type);
 
             if (e.activate_or_deactivate && e.magnitude > 0) {
-                frame.pressed.set(type_ndx, true);
+                frame.pressed |= 1 << type_ndx;
             }
+
             frame.magnitudes[type_ndx] = e.magnitude;
 
-            if (e.activate_or_deactivate)
-                frame.activation_change.set(type_ndx);
+            if (e.activate_or_deactivate) {
+                frame.activation_change |= 1 << type_ndx;
+            }
         }
-        //LOG_INFO("realtime {:5d} {}", record->frame_data.size(), frame.to_string());
         record->frame_data.push_back(frame);
     }
 

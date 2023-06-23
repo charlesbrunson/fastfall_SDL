@@ -23,9 +23,19 @@ class InputSourceNull;
 
 class InputSource {
 public:
-    InputSource(const std::set<InputType>& listen_to)
+    explicit InputSource(const std::set<InputType>& listen_to)
         : listening(listen_to)
     {
+    };
+
+    explicit InputSource(uint8_t listen_to)
+    {
+        for (uint8_t i = 0; i < std::numeric_limits<uint8_t>::digits; ++i)
+        {
+            bool val = listen_to & i;
+            if (val)
+                listening.insert(static_cast<InputType>(i));
+        }
     };
 
     virtual const std::vector<InputEvent>& get_events() const = 0;

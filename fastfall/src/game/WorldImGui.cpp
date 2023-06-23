@@ -580,7 +580,7 @@ void imgui_input(World* w) {
 
     ImGui::Text("Last %zu frames:", MAX_FRAMES);
     for (auto& [frame, str] : frame_data) {
-        if (!frame.frame.activation_change.any()) {
+        if (frame.frame.activation_change == 0) {
             ImGui::PushStyleColor(ImGuiCol_Text, 0xFF808080);
             ImGui::Text("%s", str.c_str());
             ImGui::PopStyleColor();
