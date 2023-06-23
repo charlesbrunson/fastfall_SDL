@@ -14,9 +14,9 @@ namespace ff {
     constexpr size_t INPUT_RECORD_SIZE_MAX = 60 * 60 * 30; // 30 mins of record at 60 fps
 
     struct InputFrame {
-        uint8_t pressed;
-        uint8_t activation_change;
-        std::array<uint8_t, INPUT_COUNT> magnitudes;
+        uint8_t pressed             = {};
+        uint8_t activation_change   = {};
+        std::array<uint8_t, INPUT_COUNT> magnitudes = {};
 
         std::string to_string() const;
     };

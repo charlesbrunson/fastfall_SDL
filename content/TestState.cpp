@@ -273,9 +273,7 @@ void TestState::predraw(float interp, bool updated, const WindowState* win_state
 
             if (on_realtime) {
                 auto record = *insrc_realtime.get_record();
-                record.frame_data.erase(
-                        record.frame_data.begin() + world->tick_count(),
-                        record.frame_data.end());
+                record.frame_data.resize(world->tick_count(), {});
 
                 insrc_realtime.set_record(record);
                 world->input().set_source(&insrc_realtime);
