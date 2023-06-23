@@ -17,6 +17,7 @@
 
 #include "fastfall/render/drawable/Sprite.hpp"
 
+
 class TestState : public ff::EngineState {
 public:
 	TestState();
@@ -35,9 +36,11 @@ private:
     std::optional<ff::InputSourceRecord>   insrc_record;
     bool on_realtime;
 
-    ff::VertexArray recorded_pos;
-    ff::VertexArray replay_pos;
-    std::optional<ff::Vec2f> next_pos;
+    std::vector<ff::Vec2f> recorded_pos;
+    std::vector<ff::Vec2f> replay_pos;
+
+    ff::VertexArray recorded_va;
+    ff::VertexArray replay_va;
 
     std::unique_ptr<ff::World> world;
     std::unique_ptr<ff::World> save_world;

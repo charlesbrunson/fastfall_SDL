@@ -46,7 +46,7 @@ ff::EngineSettings engineDefaultSettings = {
     .vsyncEnabled = true,
     .fullscreen = false,
     .showDebug = false,
-    .runstyle = ff::EngineRunStyle::DoubleThread
+    .runstyle = ff::EngineRunStyle::SingleThread
 };
 
 #endif
@@ -507,6 +507,7 @@ void Engine::updateRunnables()
         if (pauseUpdate && !stepUpdate) {
             tickDuration = 0.0;
             tick.update_count = 1;
+            hasUpdated = false;
         }
         stepUpdate = false;
 
