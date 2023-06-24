@@ -42,9 +42,7 @@ public:
     bool has_any_type() const { return type != nullptr; }
 
     template<typename T_Actor>
-    bool has_type() const {
-        return type != nullptr && type == actor_type_of<T_Actor>();
-    }
+    bool has_type() const;
 
     const ActorType* get_actor_type() const { return type; }
 
@@ -82,15 +80,9 @@ const ActorType* actor_type_of() {
     }
 }
 
-/*
-template<std::derived_from<Actor> T>
-constexpr inline static const ActorType* actor_type_of_v = []() {
-    if constexpr (actor_has_type<T>) {
-        return &T::actor_type;
-    } else {
-        return nullptr;
-    }
-}();
-*/
+template<typename T_Actor>
+bool Actor::has_type() const {
+    return type != nullptr && type == actor_type_of<T_Actor>();
+}
 
 }
