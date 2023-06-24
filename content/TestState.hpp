@@ -36,12 +36,6 @@ private:
     std::optional<ff::InputSourceRecord>   insrc_record;
     bool on_realtime;
 
-    std::vector<ff::Vec2f> recorded_pos;
-    std::vector<ff::Vec2f> replay_pos;
-
-    ff::VertexArray recorded_va;
-    ff::VertexArray replay_va;
-
     std::unique_ptr<ff::World> world;
     std::unique_ptr<ff::World> save_world;
     bool to_save = false;
@@ -63,7 +57,6 @@ private:
 
 	int layer = -1;
 
-	ff::Vec2f mirror;
 	ff::Vec2i tpos;
 	ff::Vec2f mpos;
 

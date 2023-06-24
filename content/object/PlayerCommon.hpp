@@ -14,12 +14,6 @@ namespace plr::anim {
 	extern ff::AnimIDRef idle_to_run;
 	extern ff::AnimIDRef run;
 
-	extern ff::AnimIDRef dash_n2;
-	extern ff::AnimIDRef dash_n1;
-	extern ff::AnimIDRef dash_0;
-	extern ff::AnimIDRef dash_p1;
-	extern ff::AnimIDRef dash_p2;
-
 	extern ff::AnimIDRef jump;
 	extern ff::AnimIDRef jump_f;
 
@@ -32,13 +26,19 @@ namespace plr::anim {
 	const std::vector<ff::AnimID>& get_ground_anims();
 	const std::vector<ff::AnimID>& get_air_anims();
 
-	namespace fx {
-		extern ff::AnimIDRef dash_n2;
-		extern ff::AnimIDRef dash_n1;
-		extern ff::AnimIDRef dash_0;
-		extern ff::AnimIDRef dash_p1;
-		extern ff::AnimIDRef dash_p2;
-	}
+    struct dash_anim_t {
+        ff::AnimIDRef   dash_anim;
+        ff::AnimIDRef   fx_anim;
+        ff::AnimIDRef   jet_anim;
+        ff::Vec2f       jet_offset;
+    };
+
+    extern dash_anim_t dash_n2;
+    extern dash_anim_t dash_n1;
+    extern dash_anim_t dash_0;
+    extern dash_anim_t dash_p1;
+    extern dash_anim_t dash_p2;
+
 }
 
 namespace plr::constants {
@@ -70,6 +70,8 @@ namespace plr {
         ff::ID<SimpleCamTarget> cameratarget_id;
         ff::ID<ff::Trigger> hurtbox_id;
         ff::ID<ff::Trigger> hitbox_id;
+
+        ff::ID<ff::AnimatedSprite> jet_id;
 	};
 
 	struct move_t {

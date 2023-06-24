@@ -18,8 +18,8 @@
 
 TestState::TestState()
     : insrc_realtime(input_sets::gameplay, 1.0/60.0, ff::RecordInputs::Yes)
-    , recorded_va(Primitive::LINE_STRIP, 0, VertexUsage::DYNAMIC)
-    , replay_va  (Primitive::LINE_STRIP, 0, VertexUsage::DYNAMIC)
+    //, recorded_va(Primitive::LINE_STRIP, 0, VertexUsage::DYNAMIC)
+    //, replay_va  (Primitive::LINE_STRIP, 0, VertexUsage::DYNAMIC)
 {
 	stateID = ff::EngineStateID::TEST_STATE;
 	clearColor = ff::Color{ 0x141013FF };
@@ -53,38 +53,12 @@ TestState::TestState()
 
 void TestState::update(secs deltaTime) {
 
-    world->update(deltaTime);
-
-    if (deltaTime > 0) {
+    if (deltaTime > 0.0) {
+        world->update(deltaTime);
         if (auto src = world->input().get_source()) {
             src->next();
         }
-
-        auto plr_it = std::find_if(world->entities().begin(), world->entities().end(), [&](const auto& e) -> bool {
-            const Entity& ent = e.second;
-            Actor* a = world->get(ent.actor);
-            return a && a->has_type<Player>();
-        });
-
-
-        auto& pos = on_realtime ? recorded_pos : replay_pos;
-        if (on_realtime || recorded_pos.size() > replay_pos.size()) {
-            if (plr_it != world->entities().end()) {
-                if (auto plr = (Player *) (world->get(*plr_it->actor))) {
-                    pos.push_back(world->at(plr->collidable_id).getPosition());
-                }
-            }
-        }
-
-        if (!on_realtime && replay_pos.size() <= recorded_pos.size()) {
-            auto record_p = replay_pos.back();
-            auto replay_p = recorded_pos[replay_pos.size() - 1];
-            if (record_p != replay_p) {
-                LOG_INFO("desync {} -> {}", record_p, replay_p);
-            }
-        }
     }
-
 
 	if (edit)
 	{
@@ -252,10 +226,6 @@ void TestState::update(secs deltaTime) {
 
 void TestState::predraw(float interp, bool updated, const WindowState* win_state) {
 
-    //recorded_pos.visible = on_realtime;
-    //recorded_pos.predraw(interp, updated);
-
-
     if (to_save) {
         if (save_world) {
             *save_world = *world;
@@ -277,37 +247,16 @@ void TestState::predraw(float interp, bool updated, const WindowState* win_state
 
                 insrc_realtime.set_record(record);
                 world->input().set_source(&insrc_realtime);
-
-                if (world->tick_count() < recorded_pos.size())
-                    recorded_pos.erase(recorded_pos.begin() + world->tick_count(), recorded_pos.end());
             }
             else {
                 insrc_record = InputSourceRecord{ *insrc_realtime.get_record(), world->tick_count() };
                 world->input().set_source(&*insrc_record);
             }
 
-            if (world->tick_count() < replay_pos.size())
-                replay_pos.erase(replay_pos.begin() + world->tick_count(), replay_pos.end());
-
             debug_draw::clear();
         }
         to_load = false;
         LOG_INFO("loaded state");
-    }
-
-    if (updated) {
-        if (on_realtime) {
-            recorded_va.clear();
-            for (auto p: recorded_pos) {
-                recorded_va.insert(recorded_va.size(), 1, Vertex{p, ff::Color::Red});
-            }
-        }
-        else {
-            replay_va.clear();
-            for (auto p: replay_pos) {
-                replay_va.insert(replay_va.size(), 1, Vertex{p, ff::Color::Green});
-            }
-        }
     }
 
     world->predraw(interp, updated);
@@ -379,12 +328,6 @@ bool TestState::pushEvent(const SDL_Event& event) {
 void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const 
 {
     target.draw(*world,         state);
-
-    if (recorded_pos.size() >= 2)
-        target.draw(recorded_va, state);
-
-    if (replay_pos.size() >= 2)
-        target.draw(replay_va, state);
 
 	if (show_tile && edit && edit->get_tile_layer()) {
 		target.draw(tile_ghost, state);

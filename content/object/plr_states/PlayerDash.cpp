@@ -47,20 +47,27 @@ PlayerStateID dash_jump(ff::World& w, plr::members& plr, const move_t& move) {
 	return action::jump(w, plr, move);
 }
 
+/*
 struct dash_anims {
 	const AnimIDRef* dash;
 	const AnimIDRef* fx;
 };
+*/
 
-dash_anims select_dash_anim(ff::World& w, const plr::members& plr)
+const anim::dash_anim_t& select_dash_anim(ff::World& w, const plr::members& plr)
 {
+    /*
 	dash_anims anims{
         &anim::dash_0,
         &anim::fx::dash_0
     };
+    */
 
     auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
     auto& ground = *box.tracker();
+
+    //jet_spr.visible = true;
+    //jet_spr.set_anim_if_not(AnimIDRef("player.sax", "jet_blast"));
 
 	if (ground.has_contact()) {
 		Vec2f cNorm = ground.get_contact()->collider_n;
@@ -72,26 +79,22 @@ dash_anims select_dash_anim(ff::World& w, const plr::members& plr)
 
         if (ang.degrees() != 0.f) {
             if (ang.degrees() > 40.f) {
-                anims.dash = &anim::dash_n2;
-                anims.fx   = &anim::fx::dash_n2;
+                return anim::dash_n2;
             } else if (ang.degrees() > 20.f) {
-                anims.dash = &anim::dash_n1;
-                anims.fx   = &anim::fx::dash_n1;
+                return anim::dash_n1;
             } else if (ang.degrees() < -40.f) {
-                anims.dash = &anim::dash_p2;
-                anims.fx   = &anim::fx::dash_p2;
+                return anim::dash_p2;
             } else if (ang.degrees() < -20.f) {
-                anims.dash = &anim::dash_p1;
-                anims.fx   = &anim::fx::dash_p1;
+                return anim::dash_p1;
             }
         }
 	}
-	return anims;
+	return anim::dash_0;
 }
 
 void PlayerDashState::enter(ff::World& w, plr::members& plr, PlayerState* from)
 {
-    auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
+    auto [sprite, jet_spr, box] = w.at(plr.sprite_id, plr.jet_id, plr.collidable_id);
     auto& ground = *box.tracker();
 
 	ground_flag = ground.has_contact();
@@ -99,10 +102,19 @@ void PlayerDashState::enter(ff::World& w, plr::members& plr, PlayerState* from)
 	if (ground_flag) {
 
 		auto dash_anims = select_dash_anim(w, plr);
-		if (sprite.set_anim_if_not(dash_anims.dash->id()))
+
+        jet_spr.visible = true;
+        jet_spr.set_hflip(sprite.get_hflip());
+        jet_spr.set_anim_if_not(dash_anims.jet_anim.id());
+
+        Vec2f offset = dash_anims.jet_offset;
+        offset.x *= (sprite.get_hflip() ? -1.f : 1.f);
+        w.system<AttachSystem>().set_attach_offset(box.get_attach_id(), plr.jet_id, offset);
+
+		if (sprite.set_anim_if_not(dash_anims.dash_anim.id()))
 		{
             Vec2f pos = w.at(box.get_attach_id()).curr_pos();
-            w.create_actor<SimpleEffect>(dash_anims.fx->id(), pos, sprite.get_hflip());
+            w.create_actor<SimpleEffect>(dash_anims.fx_anim.id(), pos, sprite.get_hflip());
 		}
 		dash_speed = *ground.traverse_get_speed() * (sprite.get_hflip() ? -1.f : 1.f);
 	}
@@ -115,7 +127,7 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
 	if (deltaTime <= 0.0)
 		return PlayerStateID::Continue;
 
-    auto [sprite, box] = w.at(plr.sprite_id, plr.collidable_id);
+    auto [sprite, jet_spr, box] = w.at(plr.sprite_id, plr.jet_id, plr.collidable_id);
 
 	if (auto& ground = *box.tracker();
         ground.has_contact())
@@ -126,7 +138,8 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
 		apply_dash_vel(w, plr, get_dash_vel(dash_speed));
 
 		auto dash_anims = select_dash_anim(w, plr);
-		sprite.set_anim_if_not(dash_anims.dash->id());
+		sprite.set_anim_if_not(dash_anims.dash_anim.id());
+        jet_spr.set_anim_if_not(dash_anims.jet_anim.id());
 
 		if (w.input()[InputType::JUMP].is_pressed(0.1))
 		{
@@ -142,7 +155,7 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
                 {
                     w.input()[InputType::DASH].confirm_press();
                     Vec2f pos = w.at(box.get_attach_id()).curr_pos();
-                    w.create_actor<SimpleEffect>(dash_anims.fx->id(), pos, sprite.get_hflip());
+                    w.create_actor<SimpleEffect>(dash_anims.fx_anim.id(), pos, sprite.get_hflip());
                     return action::dash(w, plr, move_t{ w, plr });
                 }
                 else {
@@ -185,6 +198,8 @@ void PlayerDashState::exit(ff::World& w, plr::members& plr, PlayerState* to)
 {
     auto& box = w.at(plr.collidable_id);
     auto& ground = *box.tracker();
+
+    w.at(plr.jet_id).visible = false;
 
 	box.set_gravity(constants::grav_normal);
 

@@ -7,7 +7,7 @@ using namespace ff;
 plr::move_t::move_t(World& w, const plr::members& plr)
 {
     auto& sprite = w.at(plr.sprite_id);
-    auto& box = w.at(plr.collidable_id);
+    auto& box    = w.at(plr.collidable_id);
     auto& ground = *box.tracker();
 
 	wishx = 0;
@@ -17,25 +17,26 @@ plr::move_t::move_t(World& w, const plr::members& plr)
 	int flipper = (sprite.get_hflip() ? -1 : 1);
 
 	auto gspeed = ground.traverse_get_speed();
-	speed = gspeed ? *gspeed : box.get_local_vel().x;
-	rel_speed = speed * flipper;
+	speed       = gspeed ? *gspeed : box.get_local_vel().x;
+	rel_speed   = speed * flipper;
 
-	movex = (speed == 0.f ? 0 : (speed < 0.f ? -1 : 1));
-	speed = abs(speed);
+	movex       = (speed == 0.f ? 0 : (speed < 0.f ? -1 : 1));
+	speed       = abs(speed);
 
-	rel_movex = movex * flipper;
-	rel_wishx = wishx * flipper;
+	rel_movex   = movex * flipper;
+	rel_wishx   = wishx * flipper;
 
 	facing = flipper;
 }
 
 
 plr::members::members(ActorInit init, Vec2f position, bool face_dir)
-    : sprite_id(init.world.create<AnimatedSprite>(init.entity_id))
-    , collidable_id(init.world.create<Collidable>(init.entity_id, position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
+    : sprite_id(        init.world.create<AnimatedSprite>(init.entity_id))
+    , collidable_id(    init.world.create<Collidable>(init.entity_id, position, ff::Vec2f(8.f, 28.f), constants::grav_normal))
     , cameratarget_id()
-    , hitbox_id(init.world.create<Trigger>(init.entity_id, id_placeholder))
-    , hurtbox_id(init.world.create<Trigger>(init.entity_id, id_placeholder))
+    , hitbox_id(        init.world.create<Trigger>(init.entity_id, id_placeholder))
+    , hurtbox_id(       init.world.create<Trigger>(init.entity_id, id_placeholder))
+    , jet_id(      init.world.create<AnimatedSprite>(init.entity_id))
 {
     World& w = init.world;
     auto& box = w.at(collidable_id);
@@ -92,6 +93,11 @@ plr::members::members(ActorInit init, Vec2f position, bool face_dir)
     sprite.set_hflip(face_dir);
     w.system<AttachSystem>().create(w, attachid, sprite_id);
 
+    auto& jet_spr = w.at(jet_id);
+    jet_spr.visible = false;
+    w.system<AttachSystem>().create(w, attachid, jet_id, Vec2f{ 0, -16 });
+
+    w.system<SceneSystem>().config(jet_id).priority = scene_priority::Low;
 }
 
 namespace plr::anim {
@@ -101,11 +107,13 @@ namespace plr::anim {
 	AnimIDRef idle_to_run("player.sax", "idle_to_run");
 	AnimIDRef run("player.sax", "running");
 
+    /*
 	AnimIDRef dash_n2("player.sax", "dash-2");
 	AnimIDRef dash_n1("player.sax", "dash-1");
 	AnimIDRef dash_0 ("player.sax", "dash0");
 	AnimIDRef dash_p1("player.sax", "dash+1");
 	AnimIDRef dash_p2("player.sax", "dash+2");
+    */
 
 	AnimIDRef jump("player.sax", "jump");
 	AnimIDRef jump_f("player.sax", "jump_f");
@@ -116,19 +124,49 @@ namespace plr::anim {
 	AnimIDRef brakeb("player.sax", "brake_back");
 	AnimIDRef brakef("player.sax", "brake_front");
 
-
-	namespace fx {
-		AnimIDRef dash_n2("player.sax", "dash_fx-2");
-		AnimIDRef dash_n1("player.sax", "dash_fx-1");
-		AnimIDRef dash_0 ("player.sax", "dash_fx0");
-		AnimIDRef dash_p1("player.sax", "dash_fx+1");
-		AnimIDRef dash_p2("player.sax", "dash_fx+2");
-	}
+    dash_anim_t dash_n2{
+        { "player.sax", "dash-2" },
+        { "player.sax", "dash_fx-2" },
+        { "player.sax", "jet_blast" },
+        { 5.f, -15.f }
+    };
+    dash_anim_t dash_n1{
+        { "player.sax", "dash-1" },
+        { "player.sax", "dash_fx-1" },
+        { "player.sax", "jet_blast" },
+        { 5.f, -15.f }
+    };
+    dash_anim_t dash_0 {
+        { "player.sax", "dash0" },
+        { "player.sax", "dash_fx0"  },
+        { "player.sax", "jet_blast" },
+        { 5.f, -15.f }
+    };
+    dash_anim_t dash_p1{
+        { "player.sax", "dash+1" },
+        { "player.sax", "dash_fx+1" },
+        { "player.sax", "jet_blast" },
+        { 5.f, -15.f }
+    };
+    dash_anim_t dash_p2{
+        { "player.sax", "dash+2" },
+        { "player.sax", "dash_fx+2" },
+        { "player.sax", "jet_blast" },
+        { 5.f, -15.f }
+    };
 
 	const std::vector<AnimID>& get_ground_anims() {
 		static std::vector<AnimID> ground_anims{
-			idle, land, run, brakeb, brakef,
-			dash_n2, dash_n1, dash_0, dash_p1, dash_p2,
+			idle,
+            land,
+            run,
+            brakeb,
+            brakef,
+			dash_n2.dash_anim,
+            dash_n1.dash_anim,
+            dash_0.dash_anim,
+            dash_p1.dash_anim,
+            dash_p2.dash_anim,
 		};
 		return ground_anims;
 	}

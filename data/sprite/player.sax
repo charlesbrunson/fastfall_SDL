@@ -171,10 +171,10 @@
 	</animation>
 
 	<animation name="jet_blast">
-		<area   x="0" y="208" w="16" h="16" />
-		<origin x="8" y="8" />
-		<framerate count="6" defaultMS="50"/>
-		<loop>1</loop>
+		<area   x="224" y="80" w="48" h="16" />
+		<origin x="48" y="8" />
+		<framerate count="3" defaultMS="50"/>
+		<loop>0</loop>
 	</animation>
 
 </sprite>
