@@ -127,32 +127,32 @@ namespace plr::anim {
     dash_anim_t dash_n2{
         { "player.sax", "dash-2" },
         { "player.sax", "dash_fx-2" },
-        { "player.sax", "jet_blast" },
-        { 5.f, -15.f }
+        { "player.sax", "jet_blast-2" },
+        { 7.f, -12.f }
     };
     dash_anim_t dash_n1{
         { "player.sax", "dash-1" },
         { "player.sax", "dash_fx-1" },
-        { "player.sax", "jet_blast" },
-        { 5.f, -15.f }
+        { "player.sax", "jet_blast-1" },
+        { 6.f, -10.f }
     };
     dash_anim_t dash_0 {
         { "player.sax", "dash0" },
         { "player.sax", "dash_fx0"  },
-        { "player.sax", "jet_blast" },
+        { "player.sax", "jet_blast0" },
         { 5.f, -15.f }
     };
     dash_anim_t dash_p1{
         { "player.sax", "dash+1" },
         { "player.sax", "dash_fx+1" },
-        { "player.sax", "jet_blast" },
-        { 5.f, -15.f }
+        { "player.sax", "jet_blast+1" },
+        { 0.f, -17.f }
     };
     dash_anim_t dash_p2{
         { "player.sax", "dash+2" },
         { "player.sax", "dash_fx+2" },
-        { "player.sax", "jet_blast" },
-        { 5.f, -15.f }
+        { "player.sax", "jet_blast+2" },
+        { 0.f, -18.f }
     };
 
 	const std::vector<AnimID>& get_ground_anims() {

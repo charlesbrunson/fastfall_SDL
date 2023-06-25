@@ -170,9 +170,38 @@
 		<loop>1</loop>
 	</animation>
 
-	<animation name="jet_blast">
-		<area   x="224" y="80" w="48" h="16" />
+
+	<animation name="jet_blast-2">
+		<area   x="416" y="144" w="32" h="32" />
+		<origin x="29" y="29" />
+		<framerate count="3" defaultMS="50"/>
+		<loop>0</loop>
+	</animation>
+	
+	<animation name="jet_blast-1">
+		<area   x="368" y="176" w="48" h="32" />
+		<origin x="46" y="31" />
+		<framerate count="3" defaultMS="50"/>
+		<loop>0</loop>
+	</animation>
+
+	<animation name="jet_blast0">
+		<area   x="368" y="208" w="48" h="16" />
 		<origin x="48" y="8" />
+		<framerate count="3" defaultMS="50"/>
+		<loop>0</loop>
+	</animation>
+
+	<animation name="jet_blast+1">
+		<area   x="368" y="224" w="48" h="32" />
+		<origin x="46" y="2" />
+		<framerate count="3" defaultMS="50"/>
+		<loop>0</loop>
+	</animation>
+	
+	<animation name="jet_blast+2">
+		<area   x="416" y="256" w="32" h="32" />
+		<origin x="30" y="2" />
 		<framerate count="3" defaultMS="50"/>
 		<loop>0</loop>
 	</animation>

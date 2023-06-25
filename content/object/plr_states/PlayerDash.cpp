@@ -140,6 +140,9 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
 		auto dash_anims = select_dash_anim(w, plr);
 		sprite.set_anim_if_not(dash_anims.dash_anim.id());
         jet_spr.set_anim_if_not(dash_anims.jet_anim.id());
+        Vec2f offset = dash_anims.jet_offset;
+        offset.x *= (sprite.get_hflip() ? -1.f : 1.f);
+        w.system<AttachSystem>().set_attach_offset(box.get_attach_id(), plr.jet_id, offset);
 
 		if (w.input()[InputType::JUMP].is_pressed(0.1))
 		{
