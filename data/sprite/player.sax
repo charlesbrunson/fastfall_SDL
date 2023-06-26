@@ -112,30 +112,49 @@
 		<origin x="16" y="32" />
 		<framerate count="1" defaultMS="83.3333333333"/>
 		<loop>0</loop>
+		<offsets>
+			<offset name="jet" x="7" y="-13" />
+		</offsets>
 	</animation>
+	
 	<animation name="dash-1">
 		<area   x="320" y="0" w="32" h="32" />
 		<origin x="16" y="32" />
 		<framerate count="1" defaultMS="83.3333333333"/>
 		<loop>0</loop>
+		<offsets>
+			<offset name="jet" x="6" y="-13" />
+		</offsets>
 	</animation>
+	
 	<animation name="dash0">
 		<area   x="352" y="0" w="32" h="32" />
 		<origin x="16" y="32" />
 		<framerate count="1" defaultMS="83.3333333333"/>
 		<loop>0</loop>
+		<offsets>
+			<offset name="jet" x="4" y="-14" />
+		</offsets>
 	</animation>
+	
 	<animation name="dash+1">
 		<area   x="384" y="0" w="32" h="48" />
 		<origin x="16" y="32" />
 		<framerate count="1" defaultMS="83.3333333333"/>
 		<loop>0</loop>
+		<offsets>
+			<offset name="jet" x="0" y="-16" />
+		</offsets>
 	</animation>
+	
 	<animation name="dash+2">
 		<area   x="416" y="0" w="32" h="48" />
 		<origin x="16" y="32" />
 		<framerate count="1" defaultMS="83.3333333333"/>
 		<loop>0</loop>
+		<offsets>
+			<offset name="jet" x="-1" y="-17" />
+		</offsets>
 	</animation>
 	
 	<!-- Dash FX -->
@@ -145,24 +164,31 @@
 		<framerate count="3" defaultMS="50"/>
 		<loop>1</loop>
 	</animation>
+	
 	<animation name="dash_fx-1">
 		<area   x="464" y="16" w="16" h="16" />
 		<origin x="27" y="19" />
 		<framerate count="3" defaultMS="50"/>
 		<loop>1</loop>
+		<offsets>
+			<offset name="jet" x="7" y="-12"/>
+		</offsets>
 	</animation>
+	
 	<animation name="dash_fx0">
 		<area   x="464" y="32" w="16" h="16" />
 		<origin x="20" y="16" />
 		<framerate count="3" defaultMS="50"/>
 		<loop>1</loop>
 	</animation>
+	
 	<animation name="dash_fx+1">
 		<area   x="464" y="48" w="16" h="16" />
 		<origin x="17" y="0" />
 		<framerate count="3" defaultMS="50"/>
 		<loop>1</loop>
 	</animation>
+	
 	<animation name="dash_fx+2">
 		<area   x="464" y="64" w="16" h="16" />
 		<origin x="16" y="0" />
@@ -171,16 +197,17 @@
 	</animation>
 
 
+	<!-- Dash Jet Boost FX -->
 	<animation name="jet_blast-2">
 		<area   x="416" y="144" w="32" h="32" />
-		<origin x="29" y="29" />
+		<origin x="30" y="30" />
 		<framerate count="3" defaultMS="50"/>
 		<loop>0</loop>
 	</animation>
 	
 	<animation name="jet_blast-1">
 		<area   x="368" y="176" w="48" h="32" />
-		<origin x="46" y="31" />
+		<origin x="46" y="29" />
 		<framerate count="3" defaultMS="50"/>
 		<loop>0</loop>
 	</animation>
@@ -194,14 +221,14 @@
 
 	<animation name="jet_blast+1">
 		<area   x="368" y="224" w="48" h="32" />
-		<origin x="46" y="2" />
+		<origin x="46" y="3" />
 		<framerate count="3" defaultMS="50"/>
 		<loop>0</loop>
 	</animation>
 	
 	<animation name="jet_blast+2">
 		<area   x="416" y="256" w="32" h="32" />
-		<origin x="30" y="2" />
+		<origin x="30" y="3" />
 		<framerate count="3" defaultMS="50"/>
 		<loop>0</loop>
 	</animation>

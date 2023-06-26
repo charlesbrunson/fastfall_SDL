@@ -8,6 +8,8 @@
 #include <fstream>
 #include <chrono>
 
+#include "fastfall/engine/Engine.hpp"
+
 #include "fastfall/resource/Resources.hpp"
 
 namespace ff {
@@ -160,6 +162,26 @@ SpriteAsset::ParsedAnim AnimCompiler::parseAnimation(xml_node<>* animationNode, 
 			if (!anim.chain_anim_name.empty() && !anim.chain_spr_name.empty())
 				anim.has_chain = true;
 		}
+        else if (strcmp("offsets", propName) == 0) {
+            xml_node<>* offsetProp = prop->first_node("offset");
+            while (offsetProp) {
+                auto* offsetName = offsetProp->first_attribute("name");
+                auto* offsetX    = offsetProp->first_attribute("x");
+                auto* offsetY    = offsetProp->first_attribute("y");
+
+                if (offsetName && offsetX && offsetY) {
+                    anim.offsets.insert(std::make_pair(
+                        std::string{ offsetName->value() },
+                        Vec2f{
+                            (float)atof( offsetX->value() ),
+                            (float)atof( offsetY->value() )
+                        })
+                    );
+                }
+
+                offsetProp = offsetProp->next_sibling("offset");
+            }
+        }
 		prop = prop->next_sibling();
 	}
 
@@ -183,15 +205,16 @@ void SpriteAsset::ImGui_getContent() {
 
 	using namespace std::chrono;
 	
-	static steady_clock anim_clock;
-	static time_point<steady_clock> last_time;
-	static time_point<steady_clock> curr_time = anim_clock.now();
+	//static steady_clock anim_clock;
+	static time_point<steady_clock, duration<double>> last_time = steady_clock::now();
+	static time_point<steady_clock, duration<double>> curr_time = last_time;
+    static double buffer = 0;
+    constexpr double frame = 1.0 / 60.0;
 
-	last_time = curr_time;
-	curr_time = anim_clock.now();
+	curr_time = steady_clock::now();
+    double secs = (curr_time - last_time).count() * 1000.0;
+    last_time = curr_time;
 
-	duration<double> elapsed = (curr_time - last_time);
-	double secs = elapsed.count();
 
 	if (imgui_showTex) {
 		if (ImGui::Begin(imgui_title.c_str(), &imgui_showTex)) {
@@ -210,6 +233,7 @@ void SpriteAsset::ImGui_getContent() {
 					if (!imgui_anim || anims_labels.empty())
 					{
 						imgui_anim = new AnimatedSprite();
+                        buffer = 0.f;
 						anims_labels.clear();
 							
 						std::transform(anims.begin(), anims.end(), std::back_inserter(anims_labels), 
@@ -224,6 +248,7 @@ void SpriteAsset::ImGui_getContent() {
 						if (!anims.empty())
 						{
 							imgui_anim->set_anim(*anims.begin());
+                            buffer = 0.f;
 						}
 
 						scale = 4;
@@ -231,8 +256,14 @@ void SpriteAsset::ImGui_getContent() {
 					}
 					if (imgui_anim->has_anim()) 
 					{
-						imgui_anim->update(secs * playback_speed);
-						imgui_anim->predraw(secs * playback_speed, false);
+                        buffer += secs;
+                        bool updated = false;
+                        while (buffer > (frame / playback_speed)) {
+                            imgui_anim->update(frame);
+                            updated = true;
+                            buffer -= (frame / playback_speed);
+                        }
+                        imgui_anim->predraw(1.f, updated);
 
 						if (imgui_anim->is_complete() 
 							&& imgui_anim->get_anim()->loop != 0)
@@ -245,6 +276,7 @@ void SpriteAsset::ImGui_getContent() {
 						}
 
 						Sprite spr = imgui_anim->get_sprite();
+                        //LOG_INFO("{} {}", spr.getTextureRect().topleft(), Vec2f{ spr.getTextureRect().getSize() });
 						TextureRef tex = *spr.getTexture();
 
 						Rectf rect = spr.getTextureRect();
@@ -279,7 +311,7 @@ void SpriteAsset::ImGui_getContent() {
 						ImGui::DragFloat("Playback Rate", &playback_speed, 0.05f, 0.1f, 5.f);
 						if (ImGui::Button("Reset Playback")) { playback_speed = 1.f; }
 
-						static ImVec4 bg_color = { 0.75f, 0.75f, 0.75f, 1.f };
+						static ImVec4 bg_color = { 0.50f, 0.50f, 0.50f, 1.f };
 						ImGui::ColorEdit3("Bg Color", (float*)&bg_color);
 
 						static char anim_child[32];
@@ -287,6 +319,47 @@ void SpriteAsset::ImGui_getContent() {
 						ImGui::PushStyleColor(ImGuiCol_ChildBg, bg_color);
 						if (ImGui::BeginChild(anim_child)) {
 							ImGui::Image((void*)(intptr_t)tex.get()->getID(), tex_size, uv0, uv1);
+                            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+                            auto* anim = AnimDB::get_animation(anims[anims_current]);
+                            //auto origin = anim->origin;
+
+                            ImVec2 im_canvas_p0 = ImGui::GetWindowPos();      // ImDrawList API uses screen coordinates!
+                            ImVec2 im_canvas_sz = ImGui::GetWindowSize();   // Resize canvas to what's available
+                            ImVec2 im_canvas_p1 = ImVec2(im_canvas_p0.x + im_canvas_sz.x, im_canvas_p0.y + im_canvas_sz.y);
+
+
+                            auto mark_pos = [&](Vec2f p, ImU32 color) {
+                                draw_list->AddLine(
+                                    {
+                                        im_canvas_p0.x + (p.x - 1.f) * scale,
+                                        im_canvas_p0.y + p.y * scale
+                                    },
+                                    {
+                                        im_canvas_p0.x + (p.x + 1.f) * scale,
+                                        im_canvas_p0.y + p.y * scale
+                                    },
+                                    color);
+
+                                draw_list->AddLine(
+                                    {
+                                        im_canvas_p0.x + p.x * scale,
+                                        im_canvas_p0.y + (p.y - 1.f) * scale
+                                    },
+                                    {
+                                        im_canvas_p0.x + p.x * scale,
+                                        im_canvas_p0.y + (p.y + 1.f) * scale
+                                    },
+                                    color);
+                            };
+                            Vec2f origin{ anim->origin };
+
+                            draw_list->PushClipRect(im_canvas_p0, im_canvas_p1, true);
+                            mark_pos(origin, IM_COL32(255, 255, 255, 255) );
+                            for (const auto& [name, pos] : anim->offsets) {
+                                mark_pos(origin + pos, IM_COL32(255, 0, 0, 255) );
+                            }
+                            draw_list->PopClipRect();
 						}
 						ImGui::EndChild();
 						ImGui::PopStyleColor();
@@ -305,6 +378,7 @@ void SpriteAsset::ImGui_getContent() {
 		}
 		else {
 			if (imgui_anim) {
+                LOG_INFO("{}", "delete anim");
 				delete imgui_anim;
 			}
 			anims_labels.clear();
@@ -377,6 +451,7 @@ AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
 
         anim.framerateMS = panim.framerateMS;
         anim.chain.has_chain = panim.has_chain;
+        anim.offsets = panim.offsets;
         doChain(anim);
 
         animation_table[anim.anim_id] = std::move(anim);
@@ -391,6 +466,7 @@ AnimID AnimDB::add_animation(const SpriteAsset::ParsedAnim& panim) {
 
         anim.framerateMS = panim.framerateMS;
         anim.chain.has_chain = panim.has_chain;
+        anim.offsets = panim.offsets;
         doChain(anim);
 
         animation_table[existing_id] = std::move(anim);

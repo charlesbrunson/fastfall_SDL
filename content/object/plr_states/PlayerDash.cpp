@@ -103,13 +103,21 @@ void PlayerDashState::enter(ff::World& w, plr::members& plr, PlayerState* from)
 
 		auto dash_anims = select_dash_anim(w, plr);
 
-        jet_spr.visible = true;
+        //jet_spr.visible = true;
+
+        auto& jetcfg = w.system<SceneSystem>().config(plr.jet_id);
+        jetcfg.render_enable = true;
+
         jet_spr.set_hflip(sprite.get_hflip());
         jet_spr.set_anim_if_not(dash_anims.jet_anim.id());
 
-        Vec2f offset = dash_anims.jet_offset;
-        offset.x *= (sprite.get_hflip() ? -1.f : 1.f);
-        w.system<AttachSystem>().set_attach_offset(box.get_attach_id(), plr.jet_id, offset);
+        auto* jet_anim = AnimDB::get_animation(dash_anims.dash_anim.id());
+
+        w.system<AttachSystem>().set_attach_offset(
+            box.get_attach_id(),
+            plr.jet_id,
+            jet_anim->get_offset( "jet", sprite.get_hflip() ).value()
+        );
 
 		if (sprite.set_anim_if_not(dash_anims.dash_anim.id()))
 		{
@@ -140,9 +148,11 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
 		auto dash_anims = select_dash_anim(w, plr);
 		sprite.set_anim_if_not(dash_anims.dash_anim.id());
         jet_spr.set_anim_if_not(dash_anims.jet_anim.id());
-        Vec2f offset = dash_anims.jet_offset;
-        offset.x *= (sprite.get_hflip() ? -1.f : 1.f);
-        w.system<AttachSystem>().set_attach_offset(box.get_attach_id(), plr.jet_id, offset);
+        w.system<AttachSystem>().set_attach_offset(
+            box.get_attach_id(),
+            plr.jet_id,
+            AnimDB::get_animation(dash_anims.dash_anim)->get_offset( "jet", sprite.get_hflip() ).value()
+        );
 
 		if (w.input()[InputType::JUMP].is_pressed(0.1))
 		{
@@ -202,7 +212,8 @@ void PlayerDashState::exit(ff::World& w, plr::members& plr, PlayerState* to)
     auto& box = w.at(plr.collidable_id);
     auto& ground = *box.tracker();
 
-    w.at(plr.jet_id).visible = false;
+    auto& jetcfg = w.system<SceneSystem>().config(plr.jet_id);
+    jetcfg.render_enable = false;
 
 	box.set_gravity(constants::grav_normal);
 

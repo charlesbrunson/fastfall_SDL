@@ -30,7 +30,7 @@ namespace plr::anim {
         ff::AnimIDRef   dash_anim;
         ff::AnimIDRef   fx_anim;
         ff::AnimIDRef   jet_anim;
-        ff::Vec2f       jet_offset;
+        //ff::Vec2f       jet_offset;
     };
 
     extern dash_anim_t dash_n2;

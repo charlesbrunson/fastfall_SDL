@@ -94,10 +94,12 @@ plr::members::members(ActorInit init, Vec2f position, bool face_dir)
     w.system<AttachSystem>().create(w, attachid, sprite_id);
 
     auto& jet_spr = w.at(jet_id);
-    jet_spr.visible = false;
+    //jet_spr.visible = false;
     w.system<AttachSystem>().create(w, attachid, jet_id, Vec2f{ 0, -16 });
 
-    w.system<SceneSystem>().config(jet_id).priority = scene_priority::Low;
+    auto& jetcfg = w.system<SceneSystem>().config(jet_id);
+    jetcfg.render_enable = false;
+    jetcfg.priority = scene_priority::Low;
 }
 
 namespace plr::anim {
@@ -128,31 +130,31 @@ namespace plr::anim {
         { "player.sax", "dash-2" },
         { "player.sax", "dash_fx-2" },
         { "player.sax", "jet_blast-2" },
-        { 7.f, -12.f }
+        //{ 7.f, -12.f }
     };
     dash_anim_t dash_n1{
         { "player.sax", "dash-1" },
         { "player.sax", "dash_fx-1" },
         { "player.sax", "jet_blast-1" },
-        { 6.f, -10.f }
+        //{ 6.f, -10.f }
     };
     dash_anim_t dash_0 {
         { "player.sax", "dash0" },
         { "player.sax", "dash_fx0"  },
         { "player.sax", "jet_blast0" },
-        { 5.f, -15.f }
+        //{ 5.f, -15.f }
     };
     dash_anim_t dash_p1{
         { "player.sax", "dash+1" },
         { "player.sax", "dash_fx+1" },
         { "player.sax", "jet_blast+1" },
-        { 0.f, -17.f }
+        //{ 0.f, -17.f }
     };
     dash_anim_t dash_p2{
         { "player.sax", "dash+2" },
         { "player.sax", "dash_fx+2" },
         { "player.sax", "jet_blast+2" },
-        { 0.f, -18.f }
+        //{ 0.f, -18.f }
     };
 
 	const std::vector<AnimID>& get_ground_anims() {

@@ -5,6 +5,7 @@
 
 #include "fastfall/util/math.hpp"
 
+#include <vector>
 #include <map>
 //#include <chrono>
 //using namespace std::chrono;
@@ -23,6 +24,8 @@ public:
 		Recti area;
 		Vec2i origin;
 		std::vector<unsigned> framerateMS;
+        std::map<std::string, Vec2f, std::less<>> offsets;
+
 		unsigned loop;
 
 		bool has_chain = false;

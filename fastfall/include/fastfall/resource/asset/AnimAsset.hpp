@@ -7,6 +7,7 @@
 #include "fastfall/resource/asset/AnimAssetTypes.hpp"
 
 #include <assert.h>
+#include <map>
 
 namespace ff {
 
@@ -26,6 +27,7 @@ public:
 		loop = anim.loop;
 		framerateMS = anim.framerateMS;
 		chain = anim.chain;
+        offsets = anim.offsets;
 
 		my_sprite = anim.my_sprite;
 	}
@@ -38,6 +40,7 @@ public:
 		loop = anim.loop;
 		framerateMS = anim.framerateMS;
 		chain = anim.chain;
+        offsets = std::move(anim.offsets);
 
 		my_sprite = anim.my_sprite;
 
@@ -53,6 +56,17 @@ public:
 	Vec2i origin = Vec2i(0, 0);
 	unsigned loop = 0;
 	std::vector<unsigned> framerateMS;
+
+    std::map<std::string, Vec2f, std::less<>> offsets;
+
+    std::optional<Vec2f> get_offset(std::string_view str, bool hflip = false) const {
+        if (auto it = offsets.find(str); it != offsets.end()) {
+            return Vec2f{ it->second.x * (hflip ? -1.f : 1.f), it->second.y };
+        }
+        else {
+            return {};
+        }
+    }
 
 	struct AnimChain {
 		AnimID anim_id = {};
