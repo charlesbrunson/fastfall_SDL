@@ -26,7 +26,7 @@ public:
     }
 
     // TODO
-    void ImGui_getContent() override {};
+    void ImGui_getContent(secs deltaTime) override {};
 
 private:
     ShaderProgram program;

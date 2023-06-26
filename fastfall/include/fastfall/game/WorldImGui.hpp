@@ -37,7 +37,7 @@ public:
 
     WorldImGui();
 
-    void ImGui_getContent() override;
+    void ImGui_getContent(secs deltaTime) override;
 
     void ImGui_getExtraContent() override;
 

@@ -440,7 +440,7 @@ namespace InputConfig {
 
     }
 
-    void InputObserver::ImGui_getContent() {
+    void InputObserver::ImGui_getContent(secs deltaTime) {
 
         static const char* inputNames[] = {
             "Up",

@@ -72,7 +72,7 @@ public:
 	std::optional<Tile> getTile(TileID tile_id) const;
 	inline const Vec2u& getTileSize() const { return texTileSize; };
 
-	void ImGui_getContent() override;
+	void ImGui_getContent(secs deltaTime) override;
 
 	inline const std::string_view getTilesetRef(unsigned ndx) const { return tilesetRef.at(ndx); };
 

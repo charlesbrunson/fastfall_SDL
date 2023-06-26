@@ -18,7 +18,7 @@ public:
     const SoLoud::WavStream& wavstream() const { return stream; }
 
 
-    void ImGui_getContent() override {};
+    void ImGui_getContent(secs deltaTime) override {};
 
 private:
     SoLoud::WavStream stream;

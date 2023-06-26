@@ -15,7 +15,7 @@ namespace ff {
 
 		inline const Font& getFont() const noexcept { return font; }
 
-		void ImGui_getContent() override;
+		void ImGui_getContent(secs deltaTime) override;
 
 		operator const Font&() const {
 			return getFont();

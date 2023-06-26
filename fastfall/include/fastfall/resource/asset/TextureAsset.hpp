@@ -21,7 +21,7 @@ public:
 
 	bool reloadFromFile() override;
 
-	void ImGui_getContent() override;
+	void ImGui_getContent(secs deltaTime) override;
 
 	inline auto get_texture_path() const noexcept { return texture_path; };
 

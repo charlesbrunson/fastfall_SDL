@@ -19,7 +19,7 @@ namespace ff::InputConfig {
 	class InputObserver : public ImGuiContent {
 	public:
 		InputObserver();
-		void ImGui_getContent();
+		void ImGui_getContent(secs deltaTime);
 	};
 
 	void setAxisDeadzone(short deadzone);

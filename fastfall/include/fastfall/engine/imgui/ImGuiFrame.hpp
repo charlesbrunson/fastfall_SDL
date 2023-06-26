@@ -4,6 +4,7 @@
 #include "fastfall/util/math.hpp"
 
 #include "ImGuiContent.hpp"
+#include "fastfall/engine/time/time.hpp"
 
 
 #include <set>
@@ -21,7 +22,7 @@ public:
 	void addContent(ImGuiContent* content);
 	void removeContent(ImGuiContent* content);
 	void resize(Recti outer, Vec2u innersize);
-	void display();
+	void display(secs deltaTime);
 
 	inline bool isDisplay() const noexcept {
 		return enabled;
@@ -49,7 +50,7 @@ private:
 
 	std::vector<ImGuiContent*> imguiContent[ImGuiContentTypeCount];
 
-	void displaySidePanel(std::vector<ImGuiContent*>& contents, Recti area, const char* panelName);
+	void displaySidePanel(secs deltaTime, std::vector<ImGuiContent*>& contents, Recti area, const char* panelName);
 	void displayLog(Recti area, const char* panelName);
 
 	static ImGuiFrame frame;

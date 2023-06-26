@@ -24,10 +24,11 @@ public:
 
 	}
 
+    void reset();
 	bool set_anim(AnimID id, bool reset = true) noexcept;
 	bool set_anim_if_not(AnimID id, bool reset = true) noexcept;
 
-	void reset_anim(bool reset_time_buffer = true);
+	void restart_anim(bool reset_time_buffer = true);
 
 	inline bool has_anim() noexcept { return animation != nullptr; };
 	inline const Animation* get_anim() { return animation; };

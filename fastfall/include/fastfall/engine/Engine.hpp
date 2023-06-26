@@ -53,7 +53,7 @@ struct EngineSettings {
 class DebugDrawImgui : public ImGuiContent {
 public:
 	DebugDrawImgui();
-	void ImGui_getContent() override;
+	void ImGui_getContent(secs deltaTime) override;
 };
 
 
@@ -173,7 +173,7 @@ private:
 	void handleEvents(bool* timeWasted);
 	bool setFullscreen(bool fullscreen);
 
-	void ImGui_getContent() override;
+	void ImGui_getContent(secs deltaTime) override;
 	void ImGui_getExtraContent() override;
 };
 

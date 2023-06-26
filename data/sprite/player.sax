@@ -228,7 +228,7 @@
 	
 	<animation name="jet_blast+2">
 		<area   x="416" y="256" w="32" h="32" />
-		<origin x="30" y="3" />
+		<origin x="30" y="4" />
 		<framerate count="3" defaultMS="50"/>
 		<loop>0</loop>
 	</animation>

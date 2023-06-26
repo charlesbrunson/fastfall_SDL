@@ -1,6 +1,7 @@
 #pragma once
 
 #include "imgui.h"
+#include "fastfall/engine/time/time.hpp"
 
 #include <string>
 #include <sstream>
@@ -60,7 +61,7 @@ public:
 
 	void ImGui_addContent();
 
-	virtual void ImGui_getContent() = 0;
+	virtual void ImGui_getContent(secs deltaTime) = 0;
 	virtual void ImGui_getExtraContent() {};
 
 };

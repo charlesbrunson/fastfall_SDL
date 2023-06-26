@@ -212,6 +212,8 @@ void PlayerDashState::exit(ff::World& w, plr::members& plr, PlayerState* to)
     auto& box = w.at(plr.collidable_id);
     auto& ground = *box.tracker();
 
+    w.at(plr.jet_id).reset();
+
     auto& jetcfg = w.system<SceneSystem>().config(plr.jet_id);
     jetcfg.render_enable = false;
 

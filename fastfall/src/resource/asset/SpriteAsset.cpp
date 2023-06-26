@@ -196,7 +196,7 @@ void SpriteAsset::addParsedAnimsToDB() {
     }
 }
 
-void SpriteAsset::ImGui_getContent() {
+void SpriteAsset::ImGui_getContent(secs deltaTime) {
 	ImGui::Text("%s", asset_name.c_str());
 	ImGui::SameLine(ImGui::GetWindowWidth() - 100);
 	if (ImGui::Button("Show Sprite")) {
@@ -206,14 +206,14 @@ void SpriteAsset::ImGui_getContent() {
 	using namespace std::chrono;
 	
 	//static steady_clock anim_clock;
-	static time_point<steady_clock, duration<double>> last_time = steady_clock::now();
-	static time_point<steady_clock, duration<double>> curr_time = last_time;
+	static time_point<steady_clock, duration<double>> last_time;
+	static time_point<steady_clock, duration<double>> curr_time;
     static double buffer = 0;
     constexpr double frame = 1.0 / 60.0;
 
-	curr_time = steady_clock::now();
-    double secs = (curr_time - last_time).count() * 1000.0;
-    last_time = curr_time;
+	//curr_time = steady_clock::now();
+    //double secs = (curr_time - last_time).count();
+    //last_time = curr_time;
 
 
 	if (imgui_showTex) {
@@ -256,7 +256,7 @@ void SpriteAsset::ImGui_getContent() {
 					}
 					if (imgui_anim->has_anim()) 
 					{
-                        buffer += secs;
+                        buffer += deltaTime;
                         bool updated = false;
                         while (buffer > (frame / playback_speed)) {
                             imgui_anim->update(frame);
@@ -268,7 +268,7 @@ void SpriteAsset::ImGui_getContent() {
 						if (imgui_anim->is_complete() 
 							&& imgui_anim->get_anim()->loop != 0)
 						{
-							imgui_anim->reset_anim();
+                            imgui_anim->restart_anim();
 						}
 						else if (imgui_anim->get_anim()->anim_id != anims[anims_current])
 						{
@@ -333,24 +333,24 @@ void SpriteAsset::ImGui_getContent() {
                                 draw_list->AddLine(
                                     {
                                         im_canvas_p0.x + (p.x - 1.f) * scale,
-                                        im_canvas_p0.y + p.y * scale
-                                    },
-                                    {
-                                        im_canvas_p0.x + (p.x + 1.f) * scale,
-                                        im_canvas_p0.y + p.y * scale
-                                    },
-                                    color);
-
-                                draw_list->AddLine(
-                                    {
-                                        im_canvas_p0.x + p.x * scale,
                                         im_canvas_p0.y + (p.y - 1.f) * scale
                                     },
                                     {
-                                        im_canvas_p0.x + p.x * scale,
+                                        im_canvas_p0.x + (p.x + 1.f) * scale,
                                         im_canvas_p0.y + (p.y + 1.f) * scale
                                     },
-                                    color);
+                                    color, 0.f);
+
+                                draw_list->AddLine(
+                                    {
+                                        im_canvas_p0.x + (p.x + 1.f) * scale,
+                                        im_canvas_p0.y + (p.y - 1.f) * scale
+                                    },
+                                    {
+                                        im_canvas_p0.x + (p.x - 1.f) * scale,
+                                        im_canvas_p0.y + (p.y + 1.f) * scale
+                                    },
+                                    color, 0.f);
                             };
                             Vec2f origin{ anim->origin };
 
