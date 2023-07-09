@@ -29,7 +29,7 @@ namespace ff
 		return loadFromFile();
 	}
 
-	void FontAsset::ImGui_getContent() {
+	void FontAsset::ImGui_getContent(secs deltaTime) {
 		ImGui::Text("%s", asset_path.c_str());
 		/*
 		ImGui::SameLine(ImGui::GetWindowWidth() - 100);

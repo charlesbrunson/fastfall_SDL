@@ -9,6 +9,19 @@
 
 namespace ff {
 
+void AnimatedSprite::reset() {
+    hflip = false;
+    curr_anim = {};
+    sprite    = {};
+    loop_counter   = 0;
+    current_frame  = 0;
+    playback_speed = 1.f;
+    time_buffer         = 0.0;
+    curr_frame_duration = 0.0;
+    animation  = nullptr;
+    flag_dirty = false;
+}
+
 bool AnimatedSprite::set_anim_if_not(AnimID id, bool reset) noexcept {
 	if (!is_playing(id)) {
 		return set_anim(id, reset);
@@ -24,7 +37,7 @@ bool AnimatedSprite::set_anim(AnimID id, bool reset) noexcept {
 	loop_counter = 0;
 
 	if (reset) {
-		reset_anim();
+        restart_anim();
 	}
 	else if (animation && current_frame >= animation->framerateMS.size()) {
 		current_frame = current_frame % animation->framerateMS.size();
@@ -34,7 +47,7 @@ bool AnimatedSprite::set_anim(AnimID id, bool reset) noexcept {
 	return (animation != nullptr);
 }
 
-void AnimatedSprite::reset_anim(bool reset_time_buffer) {
+void AnimatedSprite::restart_anim(bool reset_time_buffer) {
 	current_frame = 0;
 	playback_speed = 1.f;
 
@@ -69,7 +82,7 @@ void AnimatedSprite::update(secs deltaTime)
 			loop_counter++;
 
 			if (animation->loop == 0 || loop_counter < animation->loop) {
-				reset_anim(false);
+                restart_anim(false);
 			}
 			else if (loop_counter >= animation->loop && animation->chain.has_chain) {
 

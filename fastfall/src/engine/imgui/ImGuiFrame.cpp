@@ -60,7 +60,7 @@ void ImGuiFrame::clear() {
 	}
 }
 
-void ImGuiFrame::displaySidePanel(std::vector<ImGuiContent*>& contents, Recti area, const char* panelName) {
+void ImGuiFrame::displaySidePanel(secs deltaTime, std::vector<ImGuiContent*>& contents, Recti area, const char* panelName) {
 
 	ImGui::SetNextWindowSize(ImVec2(area.getSize().x, area.getSize().y), ImGuiCond_Always);
 	ImGui::SetNextWindowPos(
@@ -101,7 +101,7 @@ void ImGuiFrame::displaySidePanel(std::vector<ImGuiContent*>& contents, Recti ar
 			for (auto content : contents) {
 				if (content->ImGui_getOpen()) {
 					if (ImGui::BeginTabItem(content->ImGui_Name(), &content->ImGui_getOpen(), ImGuiTabItemFlags_None)) {
-						content->ImGui_getContent();
+						content->ImGui_getContent(deltaTime);
 
 						ImGui::EndTabItem();
 					}
@@ -202,15 +202,23 @@ void ImGuiFrame::displayLog(Recti area, const char* panelName) {
 	}
 }
 
-void ImGuiFrame::display() {
+void ImGuiFrame::display(secs deltaTime) {
 	if (!enabled)
 		return;
 
 	//LEFT PANEL
-	displaySidePanel(imguiContent[static_cast<unsigned int>(ImGuiContentType::SIDEBAR_LEFT)], left_SideBarArea, ImGuiFrame::leftPanel.c_str());
+	displaySidePanel(
+            deltaTime,
+            imguiContent[static_cast<unsigned int>(ImGuiContentType::SIDEBAR_LEFT)],
+            left_SideBarArea,
+            ImGuiFrame::leftPanel.c_str());
 
 	//RIGHT PANEL
-	displaySidePanel(imguiContent[static_cast<unsigned int>(ImGuiContentType::SIDEBAR_RIGHT)], right_SideBarArea, ImGuiFrame::rightPanel.c_str());
+	displaySidePanel(
+            deltaTime,
+            imguiContent[static_cast<unsigned int>(ImGuiContentType::SIDEBAR_RIGHT)],
+            right_SideBarArea,
+            ImGuiFrame::rightPanel.c_str());
 
 	//TOP LOG
 	displayLog(upper_consoleArea, ImGuiFrame::logPanel.c_str());

@@ -569,7 +569,7 @@ void Engine::updateImGui() {
 #ifdef DEBUG
     if (window && settings.showDebug) {
         ImGuiNewFrame(*window);
-        ImGuiFrame::getInstance().display();
+        ImGuiFrame::getInstance().display(tick.elapsed);
         ImGuiRender();
     }
 #endif
@@ -949,7 +949,7 @@ void Engine::resizeWindow(Vec2u size, bool force_size)
 bool showImGuiDemo = false;
 bool showImPlotDemo = false;
 
-void Engine::ImGui_getContent() {
+void Engine::ImGui_getContent(secs deltaTime) {
 
     if (ImGui::Button("Show ImGui Demo")) {
         showImGuiDemo = true;
@@ -1100,7 +1100,7 @@ DebugDrawImgui::DebugDrawImgui() :
 {
 
 }
-void DebugDrawImgui::ImGui_getContent() {
+void DebugDrawImgui::ImGui_getContent(secs deltaTime) {
 
     constexpr std::string_view names[] = {
         "NONE",

@@ -505,8 +505,8 @@ uint8_t TilesetAsset::getFrameDelay(TileID tile_id) const {
     return r.frameDelay;
 }
 
-void TilesetAsset::ImGui_getContent() {
-	TextureAsset::ImGui_getContent();
+void TilesetAsset::ImGui_getContent(secs deltaTime) {
+	TextureAsset::ImGui_getContent(deltaTime);
 }
 
 }

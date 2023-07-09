@@ -45,7 +45,7 @@ public:
 
     void addParsedAnimsToDB();
 
-	void ImGui_getContent() override;
+	void ImGui_getContent(secs deltaTime) override;
 
     std::vector<std::filesystem::path> getDependencies() const override {
         return {

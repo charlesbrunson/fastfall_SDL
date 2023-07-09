@@ -20,7 +20,7 @@ public:
     operator SoLoud::Wav&() { return wav(); }
     operator const SoLoud::Wav&() const { return wav(); }
 
-    void ImGui_getContent() override {};
+    void ImGui_getContent(secs deltaTime) override {};
 
 private:
     SoLoud::Wav sound;

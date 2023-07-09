@@ -118,7 +118,7 @@ public:
 
     static void ImGui_init() { resource.ImGui_addContent(); }
 
-	void ImGui_getContent();
+	void ImGui_getContent(secs deltaTime) override;
 };
 
 }

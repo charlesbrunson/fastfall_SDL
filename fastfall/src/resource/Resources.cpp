@@ -138,11 +138,11 @@ bool Resources::loadAssetsFromDirectory(const std::filesystem::path& asset_dir)
 	return r;
 }
 
-void Resources::ImGui_getContent() {
+void Resources::ImGui_getContent(secs deltaTime) {
 	if (ImGui::CollapsingHeader("Sprites", ImGuiTreeNodeFlags_DefaultOpen)) {
 		for (auto& [name, asset] : sprites.assets) {
 			if (ImGui::BeginChild(name.c_str(), ImVec2(0, 100), true)) {
-				asset->ImGui_getContent();
+				asset->ImGui_getContent(deltaTime);
 			}
 			ImGui::EndChild();
 		}
@@ -150,7 +150,7 @@ void Resources::ImGui_getContent() {
 	if (ImGui::CollapsingHeader("Tilesets", ImGuiTreeNodeFlags_DefaultOpen)) {
 		for (auto& [name, asset] : tilesets.assets) {
             if (ImGui::BeginChild(name.c_str(), ImVec2(0, 100), true)) {
-                asset->ImGui_getContent();
+                asset->ImGui_getContent(deltaTime);
             }
 			ImGui::EndChild();
 		}
@@ -158,7 +158,7 @@ void Resources::ImGui_getContent() {
 	if (ImGui::CollapsingHeader("Levels", ImGuiTreeNodeFlags_DefaultOpen)) {
 		for (auto& [name, asset] : levels.assets) {
             if (ImGui::BeginChild(name.c_str(), ImVec2(0, 100), true)) {
-                asset->ImGui_getContent();
+                asset->ImGui_getContent(deltaTime);
             }
 			ImGui::EndChild();
 		}

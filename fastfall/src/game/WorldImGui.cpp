@@ -621,7 +621,7 @@ WorldImGui::WorldImGui() :
 {
 }
 
-void WorldImGui::ImGui_getContent()
+void WorldImGui::ImGui_getContent(secs deltaTime)
 {
     if (worlds.empty()) {
         ImGui::Text("No Instances!");
