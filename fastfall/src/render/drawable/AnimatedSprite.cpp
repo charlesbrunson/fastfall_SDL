@@ -43,11 +43,9 @@ void AnimatedSprite::reset_anim(bool reset_time_buffer) {
 		loop_counter = 0;
 	}
 
-	curr_frame_duration = (
-		(has_anim() && !animation->framerateMS.empty()) ?
-		ms_to_secs(animation->framerateMS.front()) :
-		0.0
-		);
+	curr_frame_duration = has_anim() && !animation->framerateMS.empty()
+        ? ms_to_secs(animation->framerateMS.front())
+        : 0.0;
 
 	flag_dirty = true;
 }

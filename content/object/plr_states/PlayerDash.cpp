@@ -103,11 +103,8 @@ void PlayerDashState::enter(ff::World& w, plr::members& plr, PlayerState* from)
 
 		auto dash_anims = select_dash_anim(w, plr);
 
-        //jet_spr.visible = true;
-
         auto& jetcfg = w.system<SceneSystem>().config(plr.jet_id);
-        jetcfg.render_enable = true;
-
+        jetcfg.visible = true;
         jet_spr.set_hflip(sprite.get_hflip());
         jet_spr.set_anim_if_not(dash_anims.jet_anim.id());
 
@@ -213,7 +210,7 @@ void PlayerDashState::exit(ff::World& w, plr::members& plr, PlayerState* to)
     auto& ground = *box.tracker();
 
     auto& jetcfg = w.system<SceneSystem>().config(plr.jet_id);
-    jetcfg.render_enable = false;
+    jetcfg.visible = false;
 
 	box.set_gravity(constants::grav_normal);
 

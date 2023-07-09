@@ -9,19 +9,19 @@ namespace ff {
 
 
 void SceneSystem::set_config(ID<Drawable> id, SceneConfig cfg) {
-    auto it = configs.find(id);
-    if (it != configs.end())
+    auto it = update_configs.find(id);
+    if (it != update_configs.end())
     {
         it->second = cfg;
     }
 }
 
 void SceneSystem::update(World& world, secs deltaTime) {
-    for (auto [did, drawable] : world.all<Drawable>()) {
-
+    for (auto [did, drawable] : world.all<Drawable>())
+    {
         auto& cfg = config(did);
-        cfg.prev_pos = cfg.curr_pos;
-        //drawable->update(deltaTime);
+        if (cfg.auto_update_prev_pos)
+            cfg.prev_pos = cfg.curr_pos;
     }
 }
 
@@ -35,12 +35,14 @@ void SceneSystem::predraw(World& world, float interp, bool updated)
         drawable->predraw(interp, updated);
 
         if (!world.due_to_erase(did)) {
-            auto &cfg = config(did);
-            Vec2f prev = cfg.prev_pos;
-            Vec2f curr = cfg.curr_pos;
-            config(did).rstate.transform.setPosition(prev + (curr - prev) * interp);
+            auto& ucfg = update_configs.at(did);
+            Vec2f prev = ucfg.prev_pos;
+            Vec2f curr = ucfg.curr_pos;
+            ucfg.rstate.transform.setPosition(prev + (curr - prev) * interp);
         }
     }
+
+    draw_configs = update_configs;
 }
 
 void SceneSystem::reset_proxy_ptrs(const poly_id_map<Drawable>& drawables) {
@@ -54,7 +56,7 @@ void SceneSystem::reset_proxy_ptrs(const poly_id_map<Drawable>& drawables) {
 void SceneSystem::notify_created(World& world, ID<Drawable> id)
 {
     to_add.insert(id);
-    configs.emplace(id, SceneConfig{});
+    update_configs.emplace(id, SceneConfig{});
 }
 
 void SceneSystem::add_to_scene(World& world)
@@ -67,16 +69,16 @@ void SceneSystem::add_to_scene(World& world)
     };
 
     for (auto id : to_add) {
-        auto &scene_obj = configs.at(id);
+        auto &scene_obj = update_configs.at(id);
 
         auto [beg, end] = std::equal_range(
                 scene_order.begin(),
                 scene_order.end(),
                 scene_obj.layer_id,
-                Comp{&configs});
+                Comp{ &update_configs });
 
         auto it = std::upper_bound(beg, end, scene_obj.priority, [this](scene_priority p, const proxy_drawable_t& d) {
-            return p < configs.at(d.id).priority;
+            return p < update_configs.at(d.id).priority;
         });
 
         scene_order.insert(it, proxy_drawable_t{ .id = id, .ptr = world.get(id) });
@@ -92,7 +94,7 @@ void SceneSystem::add_to_scene(World& world)
             )
         );
         to_add.erase(id);
-        configs.erase(id);
+        update_configs.erase(id);
     }
     to_erase.clear();
 
@@ -127,7 +129,7 @@ void SceneSystem::draw(const World& world, RenderTarget& target, RenderState sta
 
     for (auto& proxy : scene_order) {
 
-        auto& cfg = configs.at(proxy.id);
+        auto& cfg = draw_configs.at(proxy.id);
 
         if (scissor_enabled && cfg.layer_id >= 0) {
             scissor_enabled = false;
@@ -138,7 +140,7 @@ void SceneSystem::draw(const World& world, RenderTarget& target, RenderState sta
             continue;
         }
 
-        if (cfg.render_enable)
+        if (cfg.visible)
         {
             auto st = state;
             if (cfg.rstate.texture.exists()

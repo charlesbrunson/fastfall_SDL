@@ -28,16 +28,17 @@ enum class scene_priority {
 };
 
 struct SceneConfig {
+public:
     scene_layer		layer_id    = 0;
-    // TODO may be redundant now we have entity lookup
     scene_type		type        = scene_type::Object;
     scene_priority	priority    = scene_priority::Normal;
+    bool            visible     = true;
+    bool            resort_flag = false;
+
     RenderState     rstate;
-    //std::optional<TextureRef> texture;
-    bool            render_enable = true;
-    bool            resort_flag   = false;
     Vec2f           curr_pos;
     Vec2f           prev_pos;
+    bool            auto_update_prev_pos = true;
 };
 
 }

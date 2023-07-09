@@ -98,7 +98,7 @@ plr::members::members(ActorInit init, Vec2f position, bool face_dir)
     w.system<AttachSystem>().create(w, attachid, jet_id, Vec2f{ 0, -16 });
 
     auto& jetcfg = w.system<SceneSystem>().config(jet_id);
-    jetcfg.render_enable = false;
+    jetcfg.visible = false;
     jetcfg.priority = scene_priority::Low;
 }
 

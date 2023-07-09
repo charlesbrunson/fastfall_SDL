@@ -18,7 +18,7 @@ void imgui_component(World &w, ID<Drawable> id) {
         "Highest"
     };
 
-    ImGui::Checkbox("Visible", &cfg.render_enable);
+    ImGui::Checkbox("Visible", &cfg.visible);
     ImGui::Text("Scene Type:     %s", cfg.type == scene_type::Object ? "Object" : "Level");
     ImGui::Text("Scene Priority: %s", ScenePriority_str[static_cast<unsigned>(cfg.priority)].data());
     ImGui::Text("Scene Layer:    %d", cfg.layer_id);

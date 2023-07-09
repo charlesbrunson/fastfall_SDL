@@ -40,8 +40,8 @@ public:
 
     const std::vector<proxy_drawable_t>& get_scene_order() const { return scene_order; }
 
-    SceneConfig& config(ID<Drawable> id) { return configs.at(id); }
-    const SceneConfig& config(ID<Drawable>id) const { return configs.at(id); }
+    SceneConfig& config(ID<Drawable> id) { return update_configs.at(id); }
+    const SceneConfig& config(ID<Drawable>id) const { return update_configs.at(id); }
 
     void set_config(ID<Drawable> id, SceneConfig cfg);
 
@@ -56,7 +56,9 @@ private:
     std::vector<proxy_drawable_t> scene_order;
     std::unordered_set<ID<Drawable>> to_add;
     std::unordered_set<ID<Drawable>> to_erase;
-    std::unordered_map<ID<Drawable>, SceneConfig> configs;
+
+    std::unordered_map<ID<Drawable>, SceneConfig> update_configs;
+    std::unordered_map<ID<Drawable>, SceneConfig> draw_configs;
 
     void add_to_scene(World& world);
 
