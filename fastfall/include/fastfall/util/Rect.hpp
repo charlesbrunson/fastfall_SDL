@@ -217,11 +217,11 @@ public:
 	{
 		T MinX = std::min(left, static_cast<T>(left + width));
 		T MaxX = std::max(left, static_cast<T>(left + width));
-		T MinY = std::min(top, static_cast<T>(top + height));
-		T MaxY = std::max(top, static_cast<T>(top + height));
+		T MinY = std::min(top,  static_cast<T>(top + height));
+		T MaxY = std::max(top,  static_cast<T>(top + height));
 
-		return pos.x > MinX && pos.x <= MaxX
-			&& pos.y > MinY && pos.y <= MaxY;
+		return pos.x >= MinX && pos.x <= MaxX
+			&& pos.y >= MinY && pos.y <= MaxY;
 	}
 
     [[nodiscard]] constexpr Vec2<T> topleft () const { return Vec2<T>(left,                top); }

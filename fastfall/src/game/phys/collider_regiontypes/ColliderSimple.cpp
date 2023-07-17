@@ -12,6 +12,7 @@ namespace ff {
 		quad.setID({ 0u });
 	}
 
+
 	void ColliderSimple::update(secs deltaTime) {
 		debugDrawQuad(quad, getPosition(), this);
 	}
@@ -49,4 +50,5 @@ namespace ff {
 		if (callback_on_postcontact)
 			callback_on_postcontact(w, contact, deltaTime);
 	}
+
 }

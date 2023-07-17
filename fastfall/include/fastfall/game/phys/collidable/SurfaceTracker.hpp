@@ -59,6 +59,7 @@ public:
     //inline void set_collidable_ptr(Collidable* ptr) { owner = ptr;}
 
 	bool can_make_contact_with(const AppliedContact& contact) const noexcept;
+    bool can_make_contact_with(Vec2f collier_normal) const noexcept;
 
 	const std::optional<AppliedContact>& get_contact() const { return currentContact; };
 
@@ -125,7 +126,7 @@ private:
     void end_touch(AppliedContact& contact);
 
 	// returns position offset
-	Vec2f do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos, float left, float right) const noexcept;
+	Vec2f do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos) const;
 
     Collidable* owner;
 };

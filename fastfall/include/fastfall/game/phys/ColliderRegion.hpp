@@ -9,12 +9,25 @@
 
 namespace ff {
 
+struct touching_surface_t {
+    ColliderSurfaceID id;
+    Linef surface;
+    Vec2f intersect;
+};
+
 class ColliderRegion {
 public:
 	explicit ColliderRegion(Vec2i initialPosition = Vec2i(0, 0));
 	virtual ~ColliderRegion() = default;
 
 	virtual void get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, QuadID>>& out_buffer) const = 0;
+
+    //virtual void get_touching_surfaces(Linef surface, std::vector<touching_surface_t>& out_ids) const = 0;
+    void get_intersecting_surfaces(
+            Rectf surface_bounds,
+            Linef surface,
+            std::vector<std::pair<Rectf, QuadID>>& tmp_quads,
+            std::vector<touching_surface_t>& out_ids) const;
 
 	virtual void update(secs deltaTime) = 0;
 

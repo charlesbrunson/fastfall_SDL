@@ -32,6 +32,7 @@ public:
 		std::optional<ContinuousContact> contact;
 	};
 
+
 private:
 	// stacks that the contact get organized into
 	std::deque<ContinuousContact*> north;
@@ -105,7 +106,7 @@ public:
 	// attempts to resolve the combination of collisions
 	// pushed contacts will be cleared after solving
 	// returns vector of applied contact in order of application
-	std::vector<AppliedContact> solve(nlohmann::ordered_json* dump_ptr = nullptr);
+    std::vector<AppliedContact>&& solve(nlohmann::ordered_json* dump_ptr = nullptr);
 
 };
 

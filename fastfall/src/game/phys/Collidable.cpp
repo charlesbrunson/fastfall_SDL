@@ -422,9 +422,9 @@ bool Collidable::has_contact(Cardinal dir) const noexcept {
 
 void Collidable::set_frame(
         poly_id_map<ColliderRegion>* colliders,
-        std::vector<AppliedContact>&& frame)
+        std::vector<AppliedContact>&& curr_frame)
 {
-	currContacts = std::move(frame);
+	currContacts = std::move(curr_frame);
 
     // process contacts
     col_state.reset();

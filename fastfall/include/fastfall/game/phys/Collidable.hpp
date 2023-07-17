@@ -129,9 +129,10 @@ public:
 	bool has_contact(Angle angle) const noexcept;
 	bool has_contact(Cardinal dir) const noexcept;
 
-	inline const std::vector<AppliedContact>& get_contacts() const noexcept { return currContacts; };
+	inline const std::vector<AppliedContact>& get_contacts()   const noexcept { return currContacts; };
 
-	void set_frame(poly_id_map<ColliderRegion>* colliders, std::vector<AppliedContact>&& frame);
+	void set_frame(poly_id_map<ColliderRegion>*  colliders,
+                   std::vector<AppliedContact>&& curr_frame);
 
 	void    setSlip(slip_t set) noexcept { slip = set; };
 	bool    hasSlip()   const noexcept { return slip.leeway != 0.f; };
@@ -184,7 +185,9 @@ private:
 	Vec2f decel_accum;
 
     std::optional<SurfaceTracker> _tracker;
+
 	std::vector<AppliedContact> currContacts;
+    //std::vector<NearContact>  nearContacts;
 };
 
 void imgui_component(World&w , ID<Collidable> id);

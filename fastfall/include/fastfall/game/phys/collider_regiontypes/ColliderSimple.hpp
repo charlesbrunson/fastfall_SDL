@@ -25,6 +25,9 @@ public:
 	bool on_precontact(World& w, const ContinuousContact& contact, secs duration) const override;
 	void on_postcontact(World& w, const AppliedContact& contact, secs deltaTime) const override;
 
+
+    //void get_touching_surfaces(Linef surface, std::vector<touching_surface_t>& out_ids) const override;
+
 private:
 	std::function<bool(World&, const ContinuousContact&, secs)> callback_on_precontact;
 	std::function<void(World&, const AppliedContact&, secs)> callback_on_postcontact;

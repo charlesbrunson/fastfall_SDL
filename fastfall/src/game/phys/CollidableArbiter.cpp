@@ -199,11 +199,11 @@ namespace ff {
 		}
 
         auto frame = solver.solve(json_dump);
-        for (auto& fr : frame) {
-            if (fr.id) {
-                if (auto* collider = world.get(fr.id->collider)) {
-                    collider->on_postcontact(world, fr, deltaTime);
-                    //fr.velocity = collider->velocity;
+
+        for (auto& contact : frame) {
+            if (contact.id) {
+                if (auto* collider = world.get(contact.id->collider)) {
+                    collider->on_postcontact(world, contact, deltaTime);
                 }
             }
         }

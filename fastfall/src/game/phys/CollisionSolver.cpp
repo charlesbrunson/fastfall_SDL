@@ -477,11 +477,13 @@ void CollisionSolver::detectWedges() {
 	}
 }
 
-std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_ptr)
+std::vector<AppliedContact>&& CollisionSolver::solve(nlohmann::ordered_json* dump_ptr)
 {
 	frame.clear();
 
 	json_dump = dump_ptr;
+
+    //std::transform(contacts);
 
 	if (contacts.empty())
 		return {};
@@ -580,7 +582,7 @@ std::vector<AppliedContact> CollisionSolver::solve(nlohmann::ordered_json* dump_
 	// solve Y axis
 	solveAxis(north, south, pickV);
 
-	return frame;
+	return std::move(frame);
 }
 
 bool CollisionSolver::solveAxis(std::deque<ContinuousContact*>& stackA, std::deque<ContinuousContact*>& stackB, PickerFn picker)

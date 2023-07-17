@@ -86,6 +86,8 @@ public:
 		callback_on_postcontact = func;
 	}
 
+    //void get_touching_surfaces(Linef surface, std::vector<touching_surface_t>& out_ids) const override;
+
 private:
 	void updateGhosts(const Vec2i& position);
 

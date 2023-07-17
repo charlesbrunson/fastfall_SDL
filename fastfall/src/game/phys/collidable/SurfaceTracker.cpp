@@ -4,6 +4,9 @@
 
 #include "fastfall/game/phys/ColliderRegion.hpp"
 
+#include <set>
+#include <algorithm>
+
 namespace ff {
 
 SurfaceTracker::SurfaceTracker(Collidable* t_owner, Angle ang_min, Angle ang_max, bool inclusive)
@@ -22,19 +25,24 @@ bool SurfaceTracker::has_contact_with(ID<ColliderRegion> collider) const noexcep
 }
 
 
+bool SurfaceTracker::can_make_contact_with(Vec2f collider_normal) const noexcept
+{
+    Angle angle = math::angle(collider_normal);
+    bool withinStickMax = true;
+    if (currentContact)
+    {
+        Angle next_ang = math::angle(currentContact->collider_n.righthand());
+        Angle curr_ang = math::angle(collider_normal.righthand());
+        Angle diff = next_ang - curr_ang;
+
+        withinStickMax = abs(diff.degrees()) < abs(settings.stick_angle_max.degrees());
+    }
+    return angle_range.within_range(angle) && withinStickMax;
+}
+
 bool SurfaceTracker::can_make_contact_with(const AppliedContact& contact) const noexcept
 {
-	Angle angle = math::angle(contact.collider_n);
-	bool withinStickMax = true;
-	if (currentContact)
-	{
-		Angle next_ang = math::angle(currentContact->collider_n.righthand());
-		Angle curr_ang = math::angle(contact.collider_n.righthand());
-		Angle diff = next_ang - curr_ang;
-
-		withinStickMax = abs(diff.degrees()) < abs(settings.stick_angle_max.degrees());
-	}
-	return angle_range.within_range(angle) && withinStickMax;
+    return can_make_contact_with(contact.collider_n);
 }
 
 void SurfaceTracker::process_contacts(
@@ -252,133 +260,113 @@ CollidablePreMove SurfaceTracker::do_max_speed(CollidablePreMove in, secs deltaT
 
 // ----------------------------
 
-Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos, float left, float right) const noexcept
+Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos) const
 {
+    if (!has_contact() || !currentContact->id)
+        return {};
 
-	Vec2f regionOffset;
-    Vec2f regionDelta;
-    const ColliderRegion* region = nullptr;
-    if (currentContact && currentContact->id) {
-        region = colliders->get(currentContact->id->collider);
-    }
-	if (region) {
-		regionOffset = region->getPosition();
-        regionDelta  = region->getDeltaPosition();
-	}
+    float distance = math::dist(prev_pos, wish_pos);
 
-    static auto goLeft = [](const ColliderRegion* region, const ColliderSurface& surface) -> const ColliderSurface* {
+    struct visited_surface_t {
+        ID<ColliderRegion> rid;
+        ColliderSurfaceID sid;
 
-        if (region) {
-            if (surface.surface.p1.x < surface.surface.p2.x && surface.prev_id) {
-                if (auto* r = region->get_surface_collider(*surface.prev_id)) {
-                    return r->surface.p1.x < r->surface.p2.x ? r : nullptr;
-                }
-            }
-            else if (surface.surface.p1.x > surface.surface.p2.x && surface.next_id) {
-                if (auto* r = region->get_surface_collider(*surface.next_id)) {
-                    return r->surface.p1.x > r->surface.p2.x ? r : nullptr;
-                }
-            }
+        bool operator< (const visited_surface_t& rhs) const {
+            if      (rid != rhs.rid)                 { return rid         < rhs.rid; }
+            else if (sid.quad_id != rhs.sid.quad_id) { return sid.quad_id < rhs.sid.quad_id; }
+            else                                     { return sid.dir     < rhs.sid.dir; }
         }
-        return nullptr;
-    };
-    static auto goRight = [](const ColliderRegion* region, const ColliderSurface& surface) -> const ColliderSurface* {
-
-        // TODO Wall support?
-        if (region) {
-            if (surface.surface.p1.x < surface.surface.p2.x && surface.next_id) {
-                if (auto* r = region->get_surface_collider(*surface.next_id)) {
-                    return r->surface.p1.x < r->surface.p2.x ? r : nullptr;
-                }
-            }
-            else if (surface.surface.p1.x > surface.surface.p2.x && surface.prev_id) {
-                if (auto* r = region->get_surface_collider(*surface.prev_id)) {
-                    return r->surface.p1.x > r->surface.p2.x ? r : nullptr;
-                }
-            }
-        }
-        return nullptr;
     };
 
-    const ColliderSurface* next = nullptr;
-    bool goingLeft = false;
-    bool goingRight = false;
+    std::set<visited_surface_t> visited = {
+        { .rid = currentContact->id->collider, .sid = currentContact->collider.id }
+    };
 
-    if (wish_pos.x >= right && prev_pos.x + regionDelta.x < right) {
-        goingRight = true;
-        next = goRight(region, currentContact->collider);
-    }
-    else if (wish_pos.x <= left && prev_pos.x + regionDelta.x > left) {
-        goingLeft = true;
-        next = goLeft(region, currentContact->collider);
-    }
-    else if (wish_pos.x >= left && prev_pos.x + regionDelta.x < left)
-    {
-        goingRight = true;
-        if (region) {
-            if (auto* r = region->get_surface_collider(currentContact->collider.id)) {
-                next = r;
+
+    struct curr_surface_t {
+        const ColliderRegion*  region  = nullptr;
+        const ColliderSurface* surface = nullptr;
+        Vec2f pos = {};
+    };
+
+    curr_surface_t curr {
+        .region  = colliders->get(currentContact->id->collider),
+        .surface = &currentContact->collider,
+        .pos     = prev_pos
+    };
+
+    std::vector<touching_surface_t> touching_surfaces;
+
+
+    std::vector<Vec2f> path { curr.pos };
+
+    auto pick_best_surface = [&](const std::vector<touching_surface_t>& surfs) -> std::optional<touching_surface_t> {
+        Vec2f curr_dir = math::vector(curr.surface->surface).unit();
+
+        float curr_distsq = 0.f;
+        const touching_surface_t* curr_pick = nullptr;
+
+        for (auto& surf : surfs) {
+            if (math::dot(curr_dir, curr.pos - surf.intersect) > 0) {
+                // this intersect is behind us
+                continue;
+            }
+
+            Vec2f normal = math::vector(surf.surface).lefthand().unit();
+            float distsq = math::distSquared(surf.intersect, curr.pos);
+
+            if (can_make_contact_with(normal)) {
+                if (!curr_pick || curr_distsq > distsq) {
+                    curr_pick = &surf;
+                    curr_distsq = distsq;
+                }
             }
         }
-        else {
-            next = &currentContact->collider;
+
+        return (curr_pick ? std::make_optional(*curr_pick) : std::nullopt);
+    };
+
+    std::vector<std::pair<Rectf, QuadID>> quads;
+
+    while (distance > 0.f) {
+        touching_surfaces.clear();
+
+        Linef surface = math::shift(curr.surface->surface, curr.region->getPosition());
+
+        Rectf line_bounds;
+        line_bounds.left   = std::min(surface.p1.x, surface.p2.x);
+        line_bounds.top    = std::min(surface.p1.y, surface.p2.y);
+        line_bounds.width  = std::max(surface.p1.x, surface.p2.x) - line_bounds.left;
+        line_bounds.height = std::max(surface.p1.y, surface.p2.y) - line_bounds.top;
+
+        for (auto [id, ptr] : *colliders)
+        {
+            quads.clear();
+            ptr->get_intersecting_surfaces(
+                line_bounds,
+                surface,
+                quads,
+                touching_surfaces);
         }
 
-    }
-    else if (wish_pos.x <= right && prev_pos.x + regionDelta.x > right)
-    {
-        goingLeft = true;
-        if (region) {
-            if (auto* r = region->get_surface_collider(currentContact->collider.id)) {
-                next = r;
+        std::sort(
+            touching_surfaces.begin(),
+            touching_surfaces.end(),
+            [](const touching_surface_t& lhs, const touching_surface_t& rhs) {
+                return lhs.intersect.x < rhs.intersect.x;
             }
+        );
+
+        if (auto surf = pick_best_surface(touching_surfaces)) {
+
+
         }
         else {
-            next = &currentContact->collider;
+            return curr.pos + (distance * math::vector(curr.surface->surface).unit()) - wish_pos;
         }
     }
 
-	if (next) {
-
-		Angle next_ang = math::angle(math::tangent(next->surface));
-		Angle curr_ang = math::angle(currentContact->collider_n.righthand());
-		Angle diff = next_ang - curr_ang;
-
-		if (next_ang.radians() != curr_ang.radians()
-			&& angle_range.within_range(next_ang - Angle::Degree(90.f))
-			&& abs(diff.degrees()) < abs(settings.stick_angle_max.degrees()))
-		{
-			Vec2f hyp = wish_pos - ((goingRight ? next->surface.p1 : next->surface.p2) + regionOffset + regionDelta);
-			Angle theta = math::angle(hyp) - math::angle(next->surface);
-
-			// update velocity
-			Angle gAng = math::angle(next->surface);
-			if (goingLeft)
-				gAng += Angle::Degree(180.f);
-
-			float slow = 1.f - settings.slope_stick_speed_factor * abs(diff.degrees() / settings.stick_angle_max.degrees());
-
-            owner->reset_surface_vel();
-			float vel_mag = owner->get_local_vel().magnitude() * slow;
-			owner->set_local_vel(Vec2f{
-                 cosf(gAng.radians()),
-                 sinf(gAng.radians())
-            } * vel_mag);
-
-			if (theta.degrees() < 0.f && abs(diff.degrees()) < abs(settings.stick_angle_max.degrees())) {
-
-				// update position
-				float dist = hyp.magnitude() * sin(theta.radians());
-				Vec2f offset = math::vector(next->surface).lefthand().unit();
-
-				if (callbacks.on_stick)
-					callbacks.on_stick(*next);
-
-				return offset * dist;
-			}
-		}
-	}
-	return Vec2f{};
+    return curr.pos - wish_pos;
 }
 
 CollidablePostMove SurfaceTracker::postmove_update(
@@ -390,31 +378,12 @@ CollidablePostMove SurfaceTracker::postmove_update(
 	CollidablePostMove out;
 	Vec2f position = wish_pos;
 
-	if (has_contact()) {
-
-        float left = 0.f;
-        float right = 0.f;
-        if (currentContact->id)
-        {
-            auto region = colliders->get(currentContact->id->collider);
-            if (auto surf = region->get_surface_collider(currentContact->collider.id)) {
-                Linef line = math::shift(surf->surface, region->getPosition());
-                left = std::min(line.p1.x, line.p2.x);
-                right = std::max(line.p1.x, line.p2.x);
-            }
-        }
-        else {
-            left = std::min(currentContact->collider.surface.p1.x, currentContact->collider.surface.p2.x);
-            right = std::max(currentContact->collider.surface.p1.x, currentContact->collider.surface.p2.x);
-        }
-
-		if (settings.slope_sticking && left < right) {
-			position += do_slope_stick(colliders, wish_pos, prev_pos, left, right);
-		}
+	if (settings.slope_sticking) {
+        position += do_slope_stick(colliders, wish_pos, prev_pos);
 	}
+
 	out.pos_offset = position - wish_pos;
 	return out;
-	
 }
 
 void SurfaceTracker::start_touch(AppliedContact& contact) {
