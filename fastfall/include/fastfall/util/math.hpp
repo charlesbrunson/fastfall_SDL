@@ -238,6 +238,27 @@ constexpr Vec2<T> intersection(const Line<T>& a, const Line<T>& b) {
 	return Vec2<T>(ixOut, iyOut);
 }
 
+
+template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
+[[nodiscard]]
+constexpr bool collinear(const Line<T>& a, const Line<T>& b) {
+
+    float x1 = a.p1.x;
+    float x2 = a.p2.x;
+    float x3 = b.p2.x;
+
+    float y1 = a.p1.y;
+    float y2 = a.p2.y;
+    float y3 = b.p2.y;
+
+    float d = x1 * (y2 - y3)
+            + x2 * (y3 - y1)
+            + x3 * (y1 - y2);
+
+    return d == 0.f;
+}
+
+
 template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
 [[nodiscard]] 
 constexpr Vec2<T> midpoint(const Line<T>& a) {
