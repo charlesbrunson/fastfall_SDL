@@ -309,8 +309,8 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
     }
 
     // moving orthogonal to surface
-    if (travel_dir == 0.f)
-        return {};
+    //if (travel_dir == 0.f)
+    //    return {};
 
     std::vector<travel_surface_t> touching_surfaces;
 
@@ -352,10 +352,24 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
     };
 
     auto surface_cmp =
-        []
-        (const travel_surface_t& curr, const travel_surface_t& candidate) -> bool
+        [&]
+        (const travel_surface_t& curr_pick, const travel_surface_t& candidate) -> bool
     {
-        // ...
+        float curr_dist = math::dist(curr_pick.pos, curr.pos);
+        float cand_dist = math::dist(candidate.pos, curr.pos);
+
+        if (cand_dist < curr_dist) {
+            return true;
+        }
+
+        Angle ang       = math::angle(curr.line);
+        Angle curr_ang  = math::angle(curr_pick.line) - ang;
+        Angle cand_ang  = math::angle(candidate.line) - ang;
+
+        if (travel_dir > 0.f  ? cand_ang > curr_ang : cand_ang < curr_ang) {
+            return true;
+        }
+
         return false;
     };
 
@@ -371,10 +385,10 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             // is the same surface
             bool is_same = candidate.region_id == curr.region_id && candidate.surf_id == curr.surf_id;
 
-            // surface intersect is behind us
+            // surface intersect is on or behind us
             float dir_dot = math::dot(curr_dir, candidate.pos - curr.pos);
 
-            if (is_same || (dir_dot < 0)) {
+            if (is_same || (dir_dot <= 0)) {
                 continue;
             }
 
@@ -390,12 +404,26 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         return (curr_pick ? std::make_optional(*curr_pick) : std::nullopt);
     };
 
-    auto travel_to = [](const travel_surface_t& surf, float remaining_dist) -> float {
-        // ...
+    auto travel_to = [&](const travel_surface_t& from, const travel_surface_t& to, float remaining_dist) -> float {
+        Vec2f unit = (to.pos - from.pos).unit();
+        float dist = (to.pos - from.pos).magnitude();
+        if (dist > remaining_dist) {
+            path.push_back(from.pos + remaining_dist * unit);
+            return 0.f;
+        }
+        else {
+            LOG_INFO("[{}, {}] SWITCH TO {} -> {} AT {}", remaining_dist, travel_dir, to.line.p1, to.line.p2, to.pos);
+            path.push_back(to.pos);
+            remaining_dist -= dist;
+        }
         return remaining_dist;
     };
 
     float distance = math::dist(prev_pos, prev_pos + math::projection(wish_pos - prev_pos, math::vector(curr.line)));
+
+    if (distance == 0.f)
+        return {};
+
     while (distance > 0.f) {
         touching_surfaces.clear();
 
@@ -404,16 +432,21 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         }
 
         if (auto surf = pick_best_surface(curr, touching_surfaces)) {
-            LOG_INFO("[{}, {}] SWITCH TO {} -> {} AT {}", distance, travel_dir, surf->line.p1, surf->line.p2, surf->pos);
-            return {};
-            distance = travel_to(*surf, distance);
+            distance = travel_to(curr, *surf, distance);
+            curr = *surf;
+            curr.pos = path.back();
         }
         else {
-            return (curr.pos + ( distance * travel_dir * math::vector(curr.line).unit() )) - wish_pos;
+            break;
         }
     }
 
-    return (curr.pos) - wish_pos;
+    if (distance == 0.f) {
+        return curr.pos - wish_pos;
+    }
+    else {
+        return (curr.pos + ( distance * travel_dir * math::vector(curr.line).unit() )) - wish_pos;
+    }
 }
 
 CollidablePostMove SurfaceTracker::postmove_update(
@@ -427,7 +460,6 @@ CollidablePostMove SurfaceTracker::postmove_update(
 	Vec2f position = wish_pos;
 
 	if (settings.slope_sticking) {
-
         position += do_slope_stick(colliders, wish_pos, prev_pos);
 	}
 
