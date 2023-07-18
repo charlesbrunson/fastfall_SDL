@@ -9,6 +9,7 @@ struct ColliderSurfaceID
 {
 	QuadID quad_id;
 	Cardinal dir = Cardinal::N;
+    std::strong_ordering operator<=>(const ColliderSurfaceID& other) const = default;
 };
 
 class ColliderSurface {

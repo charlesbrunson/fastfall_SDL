@@ -265,32 +265,77 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
     if (!has_contact() || !currentContact->id)
         return {};
 
-    struct visited_surface_t {
-        ID<ColliderRegion> rid;
-        ColliderSurfaceID sid;
-
-        bool operator< (const visited_surface_t& rhs) const {
-            if      (rid != rhs.rid)                 { return rid         < rhs.rid; }
-            else if (sid.quad_id != rhs.sid.quad_id) { return sid.quad_id < rhs.sid.quad_id; }
-            else                                     { return sid.dir     < rhs.sid.dir; }
-        }
+    struct touching_surface_t {
+        ID<ColliderRegion> region_id;
+        ColliderSurfaceID  id;
+        Linef              surface;
+        Vec2f              intersect;
     };
 
     struct curr_surface_t {
+        ID<ColliderRegion>     region_id;
+        ColliderSurfaceID      surf_id;
         const ColliderRegion*  region  = nullptr;
         const ColliderSurface* surface = nullptr;
-        Vec2f pos = {};
+        Vec2f                  pos     = {};
     };
 
-    auto pick_best_surface = [&](const curr_surface_t& curr, const std::vector<touching_surface_t>& surfs) -> std::optional<touching_surface_t> {
+    curr_surface_t curr {
+        .region_id = currentContact->id->collider,
+        .surf_id   = currentContact->collider.id,
+        .region    = colliders->get(currentContact->id->collider),
+        .surface   = &currentContact->collider,
+        .pos       = prev_pos
+    };
+
+    std::vector<Vec2f> path {
+        curr.pos
+    };
+
+    std::vector<touching_surface_t> touching_surfaces;
+
+    auto get_touching_surfaces =
+        [&touching_surfaces]
+        (ID<ColliderRegion> collider_id, const ColliderRegion* region, Linef surface)
+    {
+        Rectf bounds = math::line_bounds(surface);
+        for (auto& quad : region->in_rect(bounds)) {
+            for (auto dir: direction::cardinals) {
+                ColliderSurfaceID surf_id{
+                        .quad_id = quad.getID(),
+                        .dir     = dir
+                };
+
+                if (auto surf = quad.getSurface(dir)) {
+                    Linef msurf = math::shift(surf->surface, region->getPosition());
+                    Vec2f inter = math::intersection(msurf, surface);
+                    bool in_bounds = inter != Vec2f{NAN, NAN} && bounds.contains(inter);
+                    if (in_bounds) {
+                        touching_surfaces.emplace_back(touching_surface_t{
+                            .region_id = collider_id,
+                            .id        = surf_id,
+                            .surface   = msurf,
+                            .intersect = inter,
+                        });
+                    }
+                }
+            }
+        }
+    };
+
+    auto pick_best_surface =
+        [&]
+        (const curr_surface_t& curr, const std::vector<touching_surface_t>& surfs) -> std::optional<touching_surface_t>
+    {
         Vec2f curr_dir = math::vector(curr.surface->surface).unit();
 
         float curr_distsq = 0.f;
         const touching_surface_t* curr_pick = nullptr;
 
         for (auto& surf : surfs) {
-            if (math::dot(curr_dir, curr.pos - surf.intersect) > 0) {
-                // this intersect is behind us
+            if (    (surf.region_id == curr.region_id && surf.id == curr.surf_id)
+                 || (math::dot(curr_dir, curr.pos - surf.intersect) > 0))
+            {
                 continue;
             }
 
@@ -308,21 +353,6 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         return (curr_pick ? std::make_optional(*curr_pick) : std::nullopt);
     };
 
-    curr_surface_t curr {
-        .region  = colliders->get(currentContact->id->collider),
-        .surface = &currentContact->collider,
-        .pos     = prev_pos
-    };
-
-    std::set<visited_surface_t> visited = {
-        { .rid = currentContact->id->collider, .sid = currentContact->collider.id }
-    };
-    std::vector<Vec2f> path {
-        curr.pos
-    };
-
-    std::vector<touching_surface_t> touching_surfaces;
-
 
     float distance = math::dist(prev_pos, wish_pos);
     while (distance > 0.f) {
@@ -330,19 +360,9 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
 
         Linef surface = math::shift(curr.surface->surface, curr.region->getPosition());
 
-        for (auto [id, ptr] : *colliders)
-        {
-            ptr->get_intersecting_surfaces(surface, std::back_inserter(touching_surfaces));
+        for (auto [collider_id, ptr] : *colliders) {
+            get_touching_surfaces(collider_id, ptr.get(), surface);
         }
-
-        std::sort(
-            touching_surfaces.begin(),
-            touching_surfaces.end(),
-            [](const touching_surface_t& lhs, const touching_surface_t& rhs) {
-                return lhs.intersect.x < rhs.intersect.x;
-            }
-        );
-        return{};
 
         if (auto surf = pick_best_surface(curr, touching_surfaces)) {
 

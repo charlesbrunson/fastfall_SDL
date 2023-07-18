@@ -7,12 +7,14 @@ namespace ff {
 struct QuadID {
     int value = -1;
 
-    bool operator==(const QuadID other) const {
-        return value == other.value;
-    }
-    bool operator<(const QuadID other) const {
-        return value < other.value;
-    }
+    std::strong_ordering operator<=>(const QuadID& other) const = default;
+
+    //bool operator==(const QuadID other) const {
+    //    return value == other.value;
+    //}
+    //bool operator<(const QuadID other) const {
+    //    return value < other.value;
+    //}
 
     Vec2i to_pos(Vec2u size, bool border) const {
         Vec2i pos;

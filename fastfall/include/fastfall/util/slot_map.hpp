@@ -13,39 +13,41 @@ namespace ff {
 		uint32_t generation = 0;
 		uint32_t sparse_index = 0;
 
-		constexpr bool operator==(const slot_key& other) const {
-			return other.generation == generation
-				&& other.sparse_index == sparse_index;
-		}
+        constexpr std::strong_ordering operator<=>(const slot_key& other) const = default;
 
-		constexpr bool operator!=(const slot_key& other) const {
-			return other.generation != generation
-				|| other.sparse_index != sparse_index;
-		}
+		//constexpr bool operator==(const slot_key& other) const {
+		//	return other.generation == generation
+		//		&& other.sparse_index == sparse_index;
+		//}
 
-        constexpr bool operator<(const slot_key& other) const {
-            return other.generation == generation
-                ? other.sparse_index < sparse_index
-               : other.generation < generation;
-        }
+		//constexpr bool operator!=(const slot_key& other) const {
+		//	return other.generation != generation
+		//		|| other.sparse_index != sparse_index;
+		//}
 
-        constexpr bool operator<=(const slot_key& other) const {
-            return other.generation == generation
-                   ? other.sparse_index <= sparse_index
-                   : other.generation <= generation;
-        }
+        //constexpr bool operator<(const slot_key& other) const {
+        //    return other.generation == generation
+        //        ? other.sparse_index < sparse_index
+        //       : other.generation < generation;
+        //}
 
-        constexpr bool operator>(const slot_key& other) const {
-            return other.generation == generation
-                   ? other.sparse_index > sparse_index
-                   : other.generation > generation;
-        }
+        //constexpr bool operator<=(const slot_key& other) const {
+        //    return other.generation == generation
+        //           ? other.sparse_index <= sparse_index
+        //           : other.generation <= generation;
+        //}
 
-        constexpr bool operator>=(const slot_key& other) const {
-            return other.generation == generation
-                   ? other.sparse_index >= sparse_index
-                   : other.generation >= generation;
-        }
+        //constexpr bool operator>(const slot_key& other) const {
+        //    return other.generation == generation
+        //           ? other.sparse_index > sparse_index
+        //           : other.generation > generation;
+        //}
+
+        //constexpr bool operator>=(const slot_key& other) const {
+        //    return other.generation == generation
+        //           ? other.sparse_index >= sparse_index
+        //           : other.generation >= generation;
+        //}
 
 		constexpr uint64_t raw() const {
 			return *((uint64_t*)this);

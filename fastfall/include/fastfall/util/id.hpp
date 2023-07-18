@@ -11,13 +11,15 @@ template<class T>
 struct ID {
 	slot_key value;
 
-	bool operator==(const ID<T>& other) const { return value == other.value; };
-	bool operator!=(const ID<T>& other) const { return value != other.value; };
-	bool operator<(const ID<T>& other)  const {
-        return value.sparse_index != other.value.sparse_index
-            ? value.sparse_index < other.value.sparse_index
-            : value.generation < other.value.generation;
-    };
+    std::strong_ordering operator<=>(const ID<T>& other) const = default;
+
+	//bool operator==(const ID<T>& other) const { return value == other.value; };
+	//bool operator!=(const ID<T>& other) const { return value != other.value; };
+	//bool operator<(const ID<T>& other)  const {
+    //    return value.sparse_index != other.value.sparse_index
+    //        ? value.sparse_index < other.value.sparse_index
+    //        : value.generation < other.value.generation;
+    //};
 
     explicit operator bool() const {
         return (bool)value;
