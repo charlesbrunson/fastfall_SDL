@@ -35,7 +35,7 @@ private:
 	ID<ColliderRegion> collider_id;
 	ID<Collidable> collidable_id;
 
-	std::vector<std::pair<Rectf, QuadID>> currQuads;
+    std::vector<QuadID> currQuads;
 	std::map<QuadID, Arbiter> quadArbiters;
 
 };

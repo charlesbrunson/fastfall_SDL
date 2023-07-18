@@ -20,18 +20,18 @@ namespace ff {
 		return quad_id.value == 0u ? &quad : nullptr;
 	}
 
-	void ColliderSimple::get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, QuadID>>& out_buffer) const {
-
-		Rectf bbox = math::shift(area, -getPosition());
-
+    std::optional<QuadID> ColliderSimple::first_quad_in_rect(Rectf area) const {
+        Rectf bbox = math::shift(area, -getPosition());
 		Vec2f deltap = getPosition() - getPrevPosition();
 		bbox = math::rect_extend(bbox, (deltap.x < 0.f ? Cardinal::W : Cardinal::E), abs(deltap.x));
 		bbox = math::rect_extend(bbox, (deltap.y < 0.f ? Cardinal::N : Cardinal::S), abs(deltap.y));
 
-		if (boundingBox.touches(bbox)) {
-			out_buffer.push_back(std::make_pair(boundingBox, quad.getID()));
-		}
-	}
+        return boundingBox.touches(bbox) ? std::make_optional(quad.getID()) : std::nullopt;
+    }
+    std::optional<QuadID> ColliderSimple::next_quad_in_rect(Rectf area, QuadID quadid) const {
+        // there's only one
+        return {};
+    }
 
 	void ColliderSimple::set_on_precontact(std::function<bool(World&, const ContinuousContact&, secs)> func) {
 		callback_on_precontact = func;

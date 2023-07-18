@@ -13,43 +13,6 @@ ColliderRegion::ColliderRegion(Vec2i initialPosition)
 {
 }
 
-
-
-void ColliderRegion::get_intersecting_surfaces(Rectf surface_bounds, Linef surface, std::vector<std::pair<Rectf, QuadID>>& tmp_quads, std::vector<touching_surface_t>& out_ids) const {
-
-    get_quads_in_rect(surface_bounds, tmp_quads);
-
-    for (auto [rect, quadid] : tmp_quads) {
-        auto* quad = get_quad(quadid);
-        if (!quad)
-            continue;
-
-        for (auto dir: direction::cardinals) {
-
-            ColliderSurfaceID id{
-                .quad_id = quadid,
-                .dir = dir
-            };
-
-            if (auto surf = quad->getSurface(dir)) {
-                Linef msurf = math::shift(surf->surface, getPosition());
-                Vec2f inter = math::intersection(msurf, surface);
-                bool in_bounds = inter != Vec2f{NAN, NAN} && surface_bounds.contains(inter);
-
-                LOG_INFO("intersection: {}, in_bounds: {}", inter, surface_bounds.contains(inter));
-
-                if (in_bounds) {
-                    out_ids.push_back({
-                        .id        = id,
-                        .surface   = msurf,
-                        .intersect = inter,
-                    });
-                }
-            }
-        }
-    }
-}
-
 const ColliderSurface* ColliderRegion::get_surface_collider(ColliderSurfaceID id) const noexcept
 {
     if (auto* q = get_quad(id.quad_id);
@@ -131,5 +94,16 @@ void imgui_component(World& w, ID<ColliderRegion> id) {
         col.velocity = nVel;
     }
 }
+
+ColliderRegion::QuadIterator& ColliderRegion::QuadIterator::operator++() {
+    curr_quad = region->next_quad_in_rect(area, *curr_quad);
+    return *this;
+}
+
+const ColliderRegion::QuadIterator::value_type* ColliderRegion::QuadIterator::operator->() const { return region->get_quad(*curr_quad); }
+const ColliderRegion::QuadIterator::value_type& ColliderRegion::QuadIterator::operator* () const { return *region->get_quad(*curr_quad); }
+
+ColliderRegion::QuadIterator ColliderRegion::QuadArea::begin() const { return QuadIterator{region, area, region->first_quad_in_rect(area)}; }
+ColliderRegion::QuadIterator ColliderRegion::QuadArea::end()   const { return QuadIterator{region, area, region->first_quad_in_rect(area)}; }
 
 }

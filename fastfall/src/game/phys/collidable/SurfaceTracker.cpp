@@ -265,7 +265,6 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
     if (!has_contact() || !currentContact->id)
         return {};
 
-
     struct visited_surface_t {
         ID<ColliderRegion> rid;
         ColliderSurfaceID sid;
@@ -310,17 +309,18 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
     };
 
     curr_surface_t curr {
-            .region  = colliders->get(currentContact->id->collider),
-            .surface = &currentContact->collider,
-            .pos     = prev_pos
+        .region  = colliders->get(currentContact->id->collider),
+        .surface = &currentContact->collider,
+        .pos     = prev_pos
     };
 
     std::set<visited_surface_t> visited = {
-            { .rid = currentContact->id->collider, .sid = currentContact->collider.id }
+        { .rid = currentContact->id->collider, .sid = currentContact->collider.id }
     };
-    std::vector<Vec2f> path { curr.pos };
+    std::vector<Vec2f> path {
+        curr.pos
+    };
 
-    std::vector<std::pair<Rectf, QuadID>> quads;
     std::vector<touching_surface_t> touching_surfaces;
 
     float distance = math::dist(prev_pos, wish_pos);
@@ -329,20 +329,9 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
 
         Linef surface = math::shift(curr.surface->surface, curr.region->getPosition());
 
-        Rectf line_bounds;
-        line_bounds.left   = std::min(surface.p1.x, surface.p2.x);
-        line_bounds.top    = std::min(surface.p1.y, surface.p2.y);
-        line_bounds.width  = std::max(surface.p1.x, surface.p2.x) - line_bounds.left;
-        line_bounds.height = std::max(surface.p1.y, surface.p2.y) - line_bounds.top;
-
         for (auto [id, ptr] : *colliders)
         {
-            quads.clear();
-            ptr->get_intersecting_surfaces(
-                line_bounds,
-                surface,
-                quads,
-                touching_surfaces);
+            ptr->get_intersecting_surfaces(surface, std::back_inserter(touching_surfaces));
         }
 
         std::sort(

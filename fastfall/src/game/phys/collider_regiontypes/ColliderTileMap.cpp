@@ -371,47 +371,92 @@ namespace ff {
 		return nullptr;
 	}
 
-	void ColliderTileMap::get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, QuadID>>& out_buffer) const {
 
-		Rectf bbox = math::shift(area, -getPosition());
+    std::optional<QuadID> ColliderTileMap::first_quad_in_rect(Rectf area) const
+    {
+        Rectf bbox = math::shift(area, -getPosition());
+        Vec2f deltap = getPosition() - getPrevPosition();
+        bbox = math::rect_extend(bbox, (deltap.x < 0.f ? Cardinal::W : Cardinal::E), abs(deltap.x));
+        bbox = math::rect_extend(bbox, (deltap.y < 0.f ? Cardinal::N : Cardinal::S), abs(deltap.y));
 
-		Vec2f deltap = getPosition() - getPrevPosition();
-		bbox = math::rect_extend(bbox, (deltap.x < 0.f ? Cardinal::W : Cardinal::E), abs(deltap.x));
-		bbox = math::rect_extend(bbox, (deltap.y < 0.f ? Cardinal::N : Cardinal::S), abs(deltap.y));
+        Rectf ts_bbox{
+                bbox.getPosition() / TILESIZE_F,
+                bbox.getSize()     / TILESIZE_F
+        };
 
-		Rectf ts_bbox{
-			bbox.getPosition() / TILESIZE_F,
-			bbox.getSize()     / TILESIZE_F
-		};
+        Recti tsi_bbox;
+        tsi_bbox.top    = static_cast<int>( ceilf(ts_bbox.top  - 1));
+        tsi_bbox.left   = static_cast<int>( ceilf(ts_bbox.left - 1));
+        tsi_bbox.width  = static_cast<int>(floorf(ts_bbox.left + ts_bbox.width  + 1)) - tsi_bbox.left;
+        tsi_bbox.height = static_cast<int>(floorf(ts_bbox.top  + ts_bbox.height + 1)) - tsi_bbox.top;
 
-		Recti tsi_bbox;
-		tsi_bbox.top    = static_cast<int>( ceilf(ts_bbox.top  - 1));
-		tsi_bbox.left   = static_cast<int>( ceilf(ts_bbox.left - 1));
-		tsi_bbox.width  = static_cast<int>(floorf(ts_bbox.left + ts_bbox.width  + 1)) - tsi_bbox.left;
-		tsi_bbox.height = static_cast<int>(floorf(ts_bbox.top  + ts_bbox.height + 1)) - tsi_bbox.top;
+        if (tsi_bbox.width == 0) {
+            tsi_bbox.left--;
+            tsi_bbox.width = 2;
+        }
+        if (tsi_bbox.height == 0) {
+            tsi_bbox.top--;
+            tsi_bbox.height = 2;
+        }
 
-		if (tsi_bbox.width == 0) {
-			tsi_bbox.left--;
-			tsi_bbox.width = 2;
-		}
-		if (tsi_bbox.height == 0) {
-			tsi_bbox.top--;
-			tsi_bbox.height = 2;
-		}
+        Recti tilemap_bounds{ size_min, size_max - size_min };
+        tilemap_bounds.intersects(tsi_bbox, tsi_bbox);
 
-		Recti tilemap_bounds{ size_min, size_max - size_min };
-		tilemap_bounds.intersects(tsi_bbox, tsi_bbox);
+        Vec2i pos{ tsi_bbox.left, tsi_bbox.top };
+        for (; pos.y < tsi_bbox.top + tsi_bbox.height; pos.y++, pos.x = tsi_bbox.left) {
+            for (; pos.x < tsi_bbox.left + tsi_bbox.width; pos.x++) {
+                if (auto* tile = get_quad(pos)) {
+                    return tile->getID();
+                }
+            }
+        }
 
-		Vec2i pos{ tsi_bbox.left, tsi_bbox.top };
-		for (; pos.y < tsi_bbox.top + tsi_bbox.height; pos.y++, pos.x = tsi_bbox.left) {
-			for (; pos.x < tsi_bbox.left + tsi_bbox.width; pos.x++) {
-				if (auto* tile = get_quad(pos)) {
-					Rectf tile_bounds{ Vec2f{ pos } * TILESIZE_F, { TILESIZE_F, TILESIZE_F }};
-					out_buffer.push_back(std::make_pair(tile_bounds, tile->getID()));
-				}
-			}
-		}
-	}
+        return {};
+    }
+    std::optional<QuadID> ColliderTileMap::next_quad_in_rect(Rectf area, QuadID quadid) const {
+        Rectf bbox = math::shift(area, -getPosition());
+        Vec2f deltap = getPosition() - getPrevPosition();
+        bbox = math::rect_extend(bbox, (deltap.x < 0.f ? Cardinal::W : Cardinal::E), abs(deltap.x));
+        bbox = math::rect_extend(bbox, (deltap.y < 0.f ? Cardinal::N : Cardinal::S), abs(deltap.y));
+
+        Rectf ts_bbox{
+                bbox.getPosition() / TILESIZE_F,
+                bbox.getSize()     / TILESIZE_F
+        };
+
+        Recti tsi_bbox;
+        tsi_bbox.top    = static_cast<int>( ceilf(ts_bbox.top  - 1));
+        tsi_bbox.left   = static_cast<int>( ceilf(ts_bbox.left - 1));
+        tsi_bbox.width  = static_cast<int>(floorf(ts_bbox.left + ts_bbox.width  + 1)) - tsi_bbox.left;
+        tsi_bbox.height = static_cast<int>(floorf(ts_bbox.top  + ts_bbox.height + 1)) - tsi_bbox.top;
+
+        if (tsi_bbox.width == 0) {
+            tsi_bbox.left--;
+            tsi_bbox.width = 2;
+        }
+        if (tsi_bbox.height == 0) {
+            tsi_bbox.top--;
+            tsi_bbox.height = 2;
+        }
+
+        Recti tilemap_bounds{ size_min, size_max - size_min };
+        tilemap_bounds.intersects(tsi_bbox, tsi_bbox);
+
+        auto next_quadid = QuadID{ quadid.value + 1 };
+        if (!validPosition(next_quadid))
+            return {};
+
+        Vec2i pos{ to_pos(next_quadid) };
+        for (; pos.y < tsi_bbox.top + tsi_bbox.height; pos.y++, pos.x = tsi_bbox.left) {
+            for (; pos.x < tsi_bbox.left + tsi_bbox.width; pos.x++) {
+                if (auto* tile = get_quad(pos)) {
+                    return tile->getID();
+                }
+            }
+        }
+
+        return {};
+    }
 
 	void ColliderTileMap::updateGhosts(const Vec2i& position) {
 		auto [quad, tile] = get_tile(position);

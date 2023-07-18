@@ -351,6 +351,18 @@ Angle angle(const Line<T>& a) {
 	return Angle(std::atan2(a.p2.y - a.p1.y, a.p2.x - a.p1.x));
 }
 
+// Line stuff
+template<typename T>
+[[nodiscard]]
+Rect<T> line_bounds(const Line<T>& a) {
+    Rect<T> line_bounds;
+    line_bounds.left   = std::min(a.p1.x, a.p2.x);
+    line_bounds.top    = std::min(a.p1.y, a.p2.y);
+    line_bounds.width  = std::max(a.p1.x, a.p2.x) - line_bounds.left;
+    line_bounds.height = std::max(a.p1.y, a.p2.y) - line_bounds.top;
+    return line_bounds;
+}
+
 }
 
 }

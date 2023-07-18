@@ -73,9 +73,6 @@ public:
 	void clear();
 	void applyChanges();
 
-
-	void get_quads_in_rect(Rectf area, std::vector<std::pair<Rectf, QuadID>>& out_buffer) const override;
-
 	bool on_precontact(World& w, const ContinuousContact& contact, secs duration) const override;
 	void on_postcontact(World& w, const AppliedContact& contact, secs deltaTime) const override;
 
@@ -86,7 +83,9 @@ public:
 		callback_on_postcontact = func;
 	}
 
-    //void get_touching_surfaces(Linef surface, std::vector<touching_surface_t>& out_ids) const override;
+protected:
+    std::optional<QuadID> first_quad_in_rect(Rectf area) const override;
+    std::optional<QuadID> next_quad_in_rect(Rectf area, QuadID quadid) const override;
 
 private:
 	void updateGhosts(const Vec2i& position);

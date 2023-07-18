@@ -486,7 +486,7 @@ std::vector<AppliedContact>&& CollisionSolver::solve(nlohmann::ordered_json* dum
     //std::transform(contacts);
 
 	if (contacts.empty())
-		return {};
+		return std::move(frame);
 
 	if (json_dump)
 	{

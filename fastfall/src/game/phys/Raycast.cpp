@@ -128,14 +128,14 @@ std::optional<RaycastHit> raycastQuad(const ColliderRegion* region, const Collid
 
 std::optional<RaycastHit> raycastRegion(ColliderRegion* region, const Rectf& raycastArea, const Linef& raycastLine, float backoff) {
 
-	std::vector<std::pair<Rectf, QuadID>> buffer;
-
-	region->get_quads_in_rect(raycastArea, buffer);
+	std::vector<const ColliderQuad*> buffer;
+    for (auto& quad : region->in_rect(raycastArea)) {
+        buffer.push_back(&quad);
+    }
 
 	std::optional<RaycastHit> result{};
-
-	for (auto& [area, quad_id] : buffer) {
-		result = compareHits(result, raycastQuad(region, region->get_quad(quad_id), raycastLine, backoff));
+	for (auto& quad : buffer) {
+		result = compareHits(result, raycastQuad(region, quad, raycastLine, backoff));
 	}
 	return result;
 }
