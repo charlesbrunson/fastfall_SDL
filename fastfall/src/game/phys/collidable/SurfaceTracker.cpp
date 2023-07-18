@@ -276,11 +276,11 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         Vec2f                  pos;
     };
 
-    auto make_travel_surface = [&colliders](ID<ColliderRegion> region_id, ColliderSurfaceID surf_id, Vec2f p) {
+    auto make_travel_surface = [&colliders](ID<ColliderRegion> region_id, ColliderSurfaceID surf_id, Vec2f travel_start_pos) {
         travel_surface_t tmp{
             .region_id    = region_id,
             .surf_id      = surf_id,
-            .pos          = p
+            .pos          = travel_start_pos
         };
         tmp.region          = colliders->get(region_id);
         tmp.surface         = tmp.region->get_surface_collider(surf_id);
