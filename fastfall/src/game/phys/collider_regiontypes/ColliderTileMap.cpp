@@ -371,9 +371,7 @@ namespace ff {
 		return nullptr;
 	}
 
-
-    std::optional<QuadID> ColliderTileMap::first_quad_in_rect(Rectf area) const
-    {
+    Recti ColliderTileMap::get_tile_area_for_rect(Rectf area) const {
         Rectf bbox = math::shift(area, -getPosition());
         Vec2f deltap = getPosition() - getPrevPosition();
         bbox = math::rect_extend(bbox, (deltap.x < 0.f ? Cardinal::W : Cardinal::E), abs(deltap.x));
@@ -401,6 +399,12 @@ namespace ff {
 
         Recti tilemap_bounds{ size_min, size_max - size_min };
         tilemap_bounds.intersects(tsi_bbox, tsi_bbox);
+
+        return tsi_bbox;
+    }
+
+    std::optional<QuadID> ColliderTileMap::first_quad_in_rect(Rectf area) const {
+        auto tsi_bbox = get_tile_area_for_rect(area);
 
         Vec2i pos{ tsi_bbox.left, tsi_bbox.top };
         for (; pos.y < tsi_bbox.top + tsi_bbox.height; pos.y++, pos.x = tsi_bbox.left) {
@@ -414,39 +418,13 @@ namespace ff {
         return {};
     }
     std::optional<QuadID> ColliderTileMap::next_quad_in_rect(Rectf area, QuadID quadid) const {
-        Rectf bbox = math::shift(area, -getPosition());
-        Vec2f deltap = getPosition() - getPrevPosition();
-        bbox = math::rect_extend(bbox, (deltap.x < 0.f ? Cardinal::W : Cardinal::E), abs(deltap.x));
-        bbox = math::rect_extend(bbox, (deltap.y < 0.f ? Cardinal::N : Cardinal::S), abs(deltap.y));
-
-        Rectf ts_bbox{
-                bbox.getPosition() / TILESIZE_F,
-                bbox.getSize()     / TILESIZE_F
-        };
-
-        Recti tsi_bbox;
-        tsi_bbox.top    = static_cast<int>( ceilf(ts_bbox.top  - 1));
-        tsi_bbox.left   = static_cast<int>( ceilf(ts_bbox.left - 1));
-        tsi_bbox.width  = static_cast<int>(floorf(ts_bbox.left + ts_bbox.width  + 1)) - tsi_bbox.left;
-        tsi_bbox.height = static_cast<int>(floorf(ts_bbox.top  + ts_bbox.height + 1)) - tsi_bbox.top;
-
-        if (tsi_bbox.width == 0) {
-            tsi_bbox.left--;
-            tsi_bbox.width = 2;
-        }
-        if (tsi_bbox.height == 0) {
-            tsi_bbox.top--;
-            tsi_bbox.height = 2;
-        }
-
-        Recti tilemap_bounds{ size_min, size_max - size_min };
-        tilemap_bounds.intersects(tsi_bbox, tsi_bbox);
+        auto tsi_bbox = get_tile_area_for_rect(area);
 
         auto next_quadid = QuadID{ quadid.value + 1 };
         if (!validPosition(next_quadid))
             return {};
 
-        Vec2i pos{ to_pos(next_quadid) };
+        Vec2i pos = to_pos(next_quadid);
         for (; pos.y < tsi_bbox.top + tsi_bbox.height; pos.y++, pos.x = tsi_bbox.left) {
             for (; pos.x < tsi_bbox.left + tsi_bbox.width; pos.x++) {
                 if (auto* tile = get_quad(pos)) {

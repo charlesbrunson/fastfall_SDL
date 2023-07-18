@@ -2,8 +2,8 @@
 
 namespace ff {
 
-void RegionArbiter::updateRegion(CollisionContext ctx, Rectf bounds) {
-
+void RegionArbiter::updateRegion(CollisionContext ctx, Rectf bounds)
+{
 	currQuads.clear();
     for (auto& quad : ctx.collider->in_rect(bounds)) {
         currQuads.push_back(quad.getID());
@@ -11,15 +11,13 @@ void RegionArbiter::updateRegion(CollisionContext ctx, Rectf bounds) {
 
 	// check for stale (out of bounds) quads to remove
 	for (auto& [_, arb] : quadArbiters) {
-		if (!bounds.touches(arb.quad_bounds)) 
-		{
-			arb.stale = true;
-		}
+        arb.stale = true;
 	}
 
 	// create arbiters and/or update arbiters 
 	for (auto& qid : currQuads) {
         auto quad = ctx.collider->get_quad(qid);
+
 		if (!quad->hasAnySurface())
 			continue;
 

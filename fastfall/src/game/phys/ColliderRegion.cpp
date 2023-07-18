@@ -103,7 +103,7 @@ ColliderRegion::QuadIterator& ColliderRegion::QuadIterator::operator++() {
 const ColliderRegion::QuadIterator::value_type* ColliderRegion::QuadIterator::operator->() const { return region->get_quad(*curr_quad); }
 const ColliderRegion::QuadIterator::value_type& ColliderRegion::QuadIterator::operator* () const { return *region->get_quad(*curr_quad); }
 
-ColliderRegion::QuadIterator ColliderRegion::QuadArea::begin() const { return QuadIterator{region, area, region->first_quad_in_rect(area)}; }
-ColliderRegion::QuadIterator ColliderRegion::QuadArea::end()   const { return QuadIterator{region, area, region->first_quad_in_rect(area)}; }
+ColliderRegion::QuadIterator ColliderRegion::QuadArea::begin() const { return QuadIterator{ region, area, region->first_quad_in_rect(area) }; }
+ColliderRegion::QuadIterator ColliderRegion::QuadArea::end()   const { return QuadIterator{ region, area, std::nullopt }; }
 
 }

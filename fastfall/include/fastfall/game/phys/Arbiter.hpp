@@ -32,7 +32,7 @@ public:
 
     CollisionID id;
 
-	Rectf quad_bounds;
+	//Rectf quad_bounds;
 
 	bool stale = false;
 

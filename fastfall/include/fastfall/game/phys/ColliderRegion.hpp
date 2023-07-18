@@ -37,9 +37,7 @@ public:
         QuadIterator& operator=(QuadIterator&&) = default;
 
         QuadIterator& operator++();
-        QuadIterator operator++(int) {
-            auto cpy = *this; ++(*this); return cpy;
-        }
+        QuadIterator operator++(int) { auto cpy = *this; ++(*this); return cpy; }
 
         const value_type* operator->() const;
         const value_type& operator* () const;
@@ -64,18 +62,7 @@ public:
 	explicit ColliderRegion(Vec2i initialPosition = Vec2i(0, 0));
 	virtual ~ColliderRegion() = default;
 
-    QuadArea in_rect(Rectf area) {
-        return QuadArea{ this, area };
-    }
-
-    //template<typename QuadPtrFunction>
-    //requires std::is_invocable_v<QuadPtrFunction, const ColliderQuad&>
-    //void for_quads_in_rect(Rectf area, QuadPtrFunction&& f) {
-    //    for (auto& quad : in_rect(area))
-    //    {
-    //        f(quad);
-    //    }
-    //}
+    QuadArea in_rect(Rectf area) const { return QuadArea{ this, area }; }
 
     template<typename OutputIt>
     void get_intersecting_surfaces(Linef surface, OutputIt iter) {

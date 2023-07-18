@@ -97,6 +97,8 @@ private:
 	bool validPosition(QuadID ndx) const noexcept;
 	QuadID getTileID(const Vec2i& at) const noexcept;
 
+    Recti get_tile_area_for_rect(Rectf area) const;
+
 	std::pair<ColliderQuad*, const ColliderTile*> get_tile(const Vec2i& at);
 
 	template<typename Callable>
