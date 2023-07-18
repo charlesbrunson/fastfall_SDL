@@ -276,11 +276,11 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         Vec2f                  pos;
     };
 
-    auto make_travel_surface = [&colliders](ID<ColliderRegion> region_id, ColliderSurfaceID surf_id, Vec2f p) {
+    auto make_travel_surface = [&colliders](ID<ColliderRegion> region_id, ColliderSurfaceID surf_id, Vec2f travel_start_pos) {
         travel_surface_t tmp{
             .region_id    = region_id,
             .surf_id      = surf_id,
-            .pos          = p
+            .pos          = travel_start_pos
         };
         tmp.region          = colliders->get(region_id);
         tmp.surface         = tmp.region->get_surface_collider(surf_id);
@@ -299,7 +299,7 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
     float travel_dir = 0.f;
     {
         Vec2f curr_vec = math::vector(curr.line);
-        float dir_dot  = math::dot(math::projection(wish_pos - (prev_pos + curr.region_delta), curr_vec), curr_vec);
+        float dir_dot  = math::dot(math::projection(wish_pos - prev_pos, curr_vec), curr_vec);
         if (dir_dot > 0.f) {
             travel_dir = 1.f;
         }
@@ -416,6 +416,9 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             path.push_back(to.pos);
             remaining_dist -= dist;
         }
+
+        // DO VELOCITY UPDATE SOMEWHERE
+
         return remaining_dist;
     };
 

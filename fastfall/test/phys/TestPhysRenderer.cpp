@@ -81,17 +81,9 @@ void TestPhysRenderer::draw() {
 	// draw colliders
 	for (const auto& [collider_id, collider] : world->all<ColliderRegion>())
 	{
-		std::vector<std::pair<Rectf, QuadID>> quads;
-		collider->get_quads_in_rect(render_area, quads);
-
 		Vec2f offset = collider->getPosition();
 
-		//Rectf bb = collider->getSweptBoundingBox();
-		//drawRectOutline(bb, 100, 100, 0, 255);
-
-		for (const auto& [rect, id] : quads) {
-
-            auto& quad = *collider->get_quad(id);
+		for (const auto& quad : collider->in_rect(render_area)) {
 
 			SDL_SetRenderDrawColor(render, 50, 50, 50, 255);
 			for (const auto& line : quad.surfaces) {
