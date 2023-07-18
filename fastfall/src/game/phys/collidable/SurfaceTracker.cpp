@@ -407,15 +407,18 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
     auto travel_to = [&](const travel_surface_t& from, const travel_surface_t& to, float remaining_dist) -> float {
         Vec2f unit = (to.pos - from.pos).unit();
         float dist = (to.pos - from.pos).magnitude();
+
+        Vec2f npos;
         if (dist > remaining_dist) {
-            path.push_back(from.pos + remaining_dist * unit);
-            return 0.f;
+            npos = from.pos + (remaining_dist * unit);
+            remaining_dist = 0.f;
         }
         else {
             LOG_INFO("[{}, {}] SWITCH TO {} -> {} AT {}", remaining_dist, travel_dir, to.line.p1, to.line.p2, to.pos);
-            path.push_back(to.pos);
+            npos = to.pos;
             remaining_dist -= dist;
         }
+        path.push_back(npos);
 
         // DO VELOCITY UPDATE SOMEWHERE
 
