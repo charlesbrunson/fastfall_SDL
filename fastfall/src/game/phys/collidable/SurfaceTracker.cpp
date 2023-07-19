@@ -276,7 +276,7 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         Vec2f                  pos;
     };
 
-    auto make_travel_surface = [&colliders](ID<ColliderRegion> region_id, ColliderSurfaceID surf_id, Vec2f travel_start_pos) {
+    auto make_travel_surface = [&colliders](ID<ColliderRegion> region_id, ColliderSurfaceID surf_id, const ColliderSurface* surf, Vec2f travel_start_pos) {
         travel_surface_t tmp{
             .region_id    = region_id,
             .surf_id      = surf_id,
@@ -286,11 +286,11 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         tmp.surface         = tmp.region->get_surface_collider(surf_id);
         tmp.region_pos      = tmp.region->getPosition();
         tmp.region_delta    = tmp.region->getDeltaPosition();
-        tmp.line            = math::shift(tmp.surface->surface, tmp.region_pos);
+        tmp.line            = math::shift(surf->surface, tmp.region_pos);
         return tmp;
     };
 
-    travel_surface_t curr = make_travel_surface(currentContact->id->collider, currentContact->collider.id, prev_pos);
+    travel_surface_t curr = make_travel_surface(currentContact->id->collider, currentContact->collider.id, &currentContact->collider, prev_pos);
 
     std::vector<Vec2f> path {
         curr.pos
@@ -342,9 +342,10 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         Rectf bounds = math::line_bounds(surface);
         for (auto& quad : region->in_rect(bounds)) {
             for (auto dir: direction::cardinals) {
-                if (auto inter = valid_surface(region, quad.getSurface(dir), bounds, surface)) {
+                auto* surf = quad.getSurface(dir);
+                if (auto inter = valid_surface(region, surf, bounds, surface)) {
                     touching_surfaces.emplace_back(
-                        make_travel_surface(collider_id, { quad.getID(), dir }, *inter)
+                        make_travel_surface(collider_id, { quad.getID(), dir }, surf, *inter)
                     );
                 }
             }
