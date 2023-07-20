@@ -56,7 +56,7 @@ namespace ff {
 
     Vec2i ColliderTileMap::to_pos(QuadID quad_id) const noexcept {
         Vec2i position;
-        position.y = quad_id.value / (size_max.x);
+        position.y = quad_id.value / (size_max.x - size_min.x);
         position.x = quad_id.value - (position.y * (size_max.x - size_min.x));
         position += size_min;
         return position;
@@ -407,6 +407,8 @@ namespace ff {
         auto tsi_bbox = get_tile_area_for_rect(area);
 
         Vec2i pos{ tsi_bbox.left, tsi_bbox.top };
+
+        // iterate until we get a quad
         for (; pos.y < tsi_bbox.top + tsi_bbox.height; pos.y++, pos.x = tsi_bbox.left) {
             for (; pos.x < tsi_bbox.left + tsi_bbox.width; pos.x++) {
                 if (auto* tile = get_quad(pos)) {
@@ -420,11 +422,22 @@ namespace ff {
     std::optional<QuadID> ColliderTileMap::next_quad_in_rect(Rectf area, QuadID quadid) const {
         auto tsi_bbox = get_tile_area_for_rect(area);
 
-        auto next_quadid = QuadID{ quadid.value + 1 };
-        if (!validPosition(next_quadid))
-            return {};
+        Vec2i pos = to_pos(quadid);
 
-        Vec2i pos = to_pos(next_quadid);
+        // next quadid
+        ++pos.x;
+        if (pos.x > tsi_bbox.left + tsi_bbox.width)
+        {
+            pos.x = tsi_bbox.left;
+            ++pos.y;
+
+            if (pos.y > tsi_bbox.top + tsi_bbox.height)
+            {
+                return {};
+            }
+        }
+
+        // iterate until we get a quad
         for (; pos.y < tsi_bbox.top + tsi_bbox.height; pos.y++, pos.x = tsi_bbox.left) {
             for (; pos.x < tsi_bbox.left + tsi_bbox.width; pos.x++) {
                 if (auto* tile = get_quad(pos)) {
