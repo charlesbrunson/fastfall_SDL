@@ -768,11 +768,7 @@ TEST_F(surfacetracker, treadmill_to_slope)
 TEST_F(surfacetracker, split_slope) {
 
     constexpr unsigned framecount = 20;
-
-    std::array<Vec2f, framecount> first;
-    std::array<Vec2f, framecount> second;
-    std::array<Vec2f, framecount> third;
-    std::array<Vec2f, framecount> fourth;
+    std::array<Vec2f, framecount> control;
 
     initTileMap({
         {"",      "",      ""},
@@ -797,7 +793,7 @@ TEST_F(surfacetracker, split_slope) {
         for (unsigned i = 0; i < framecount; ++i) {
             update();
             render.draw();
-            first[i] = box->getPosition();
+            control[i] = box->getPosition();
         }
     }
 
@@ -820,7 +816,9 @@ TEST_F(surfacetracker, split_slope) {
         for (unsigned i = 0; i < framecount; ++i) {
             update();
             render.draw();
-            second[i] = box->getPosition();
+            auto p = box->getPosition();
+            EXPECT_EQ(control[i].x, p.x);
+            EXPECT_EQ(control[i].y, p.y);
         }
     }
 
@@ -840,7 +838,9 @@ TEST_F(surfacetracker, split_slope) {
         for (unsigned i = 0; i < framecount; ++i) {
             update();
             render.draw();
-            third[i] = box->getPosition();
+            auto p = box->getPosition();
+            EXPECT_EQ(control[i].x, p.x);
+            EXPECT_EQ(control[i].y, p.y);
         }
     }
 
@@ -860,17 +860,9 @@ TEST_F(surfacetracker, split_slope) {
         for (unsigned i = 0; i < framecount; ++i) {
             update();
             render.draw();
-            fourth[i] = box->getPosition();
+            auto p = box->getPosition();
+            EXPECT_EQ(control[i].x, p.x);
+            EXPECT_EQ(control[i].y, p.y);
         }
-    }
-
-    for (unsigned i = 0; i < framecount; i++) {
-        LOG_INFO("frame = {}", i);
-        EXPECT_EQ(first[i].x, second[i].x);
-        EXPECT_EQ(first[i].y, second[i].y);
-        EXPECT_EQ(first[i].x,  third[i].x);
-        EXPECT_EQ(first[i].y,  third[i].y);
-        EXPECT_EQ(first[i].x, fourth[i].x);
-        EXPECT_EQ(first[i].y, fourth[i].y);
     }
 }
