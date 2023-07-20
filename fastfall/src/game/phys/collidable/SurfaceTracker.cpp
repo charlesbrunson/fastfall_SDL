@@ -305,7 +305,8 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         tmp.surface         = tmp.region->get_surface_collider(surf_id);
         tmp.region_pos      = tmp.region->getPosition();
         tmp.region_delta    = tmp.region->getDeltaPosition();
-        tmp.line            = math::shift(surf->surface, tmp.region_pos + tmp.region_delta);
+        tmp.line            = math::shift(surf->surface, tmp.region_delta);
+        //tmp.line            = surf->surface;
         tmp.collider_n      = collider_n;
 
         return tmp;
@@ -348,21 +349,35 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             return {};
         }
 
-        Linef msurf = math::shift(surf->surface, region->getPosition() + region->getDeltaPosition());
+        Linef msurf = math::shift(surf->surface, region->getPosition());
         Vec2f inter = math::intersection(msurf, surface);
 
         bool inter_in_bounds = bounds.contains(inter);
         bool is_collinear = math::collinear(msurf, surface);
-        bool line_bounds = bounds.touches(math::line_bounds(msurf));
+        auto msurf_bounds = math::line_bounds(msurf);
+        bool line_bounds = bounds.touches(msurf_bounds);
 
         std::optional<Vec2f> intersect;
         if (inter != Vec2f{NAN, NAN} && bounds.contains(inter))
         {
             intersect = inter;
         }
-        else if (math::collinear(msurf, surface) && bounds.touches(math::line_bounds(msurf)))
-        {
-            intersect = (travel_dir > 0.f ? surface.p2 : surface.p1);
+        else if (math::collinear(msurf, surface)) {
+            if (bounds.touches(math::line_bounds(msurf))) {
+                intersect = (travel_dir > 0.f ? surface.p2 : surface.p1);
+            }
+            else if (bounds.height == 0.f
+                && (msurf_bounds.left <= bounds.left + bounds.width
+                    || bounds.left <= msurf_bounds.left + msurf_bounds.width))
+            {
+                intersect = (travel_dir > 0.f ? surface.p2 : surface.p1);
+            }
+            else if (bounds.width == 0.f
+                    && (msurf_bounds.top <= bounds.top + bounds.height
+                        || bounds.top <= msurf_bounds.top + msurf_bounds.height))
+            {
+                intersect = (travel_dir > 0.f ? surface.p2 : surface.p1);
+            }
         }
 
         if (!intersect) {
