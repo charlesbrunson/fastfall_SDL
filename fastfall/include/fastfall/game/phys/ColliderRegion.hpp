@@ -59,33 +59,6 @@ public:
 
     QuadArea in_rect(Rectf area) const { return QuadArea{ this, area }; }
 
-    //template<typename OutputIt>
-    //void get_intersecting_surfaces(Linef surface, OutputIt iter) {
-    //    Rectf bounds = math::line_bounds(surface);
-    //    for (auto& quad : in_rect(bounds)) {
-    //        for (auto dir: direction::cardinals) {
-    //            ColliderSurfaceID id{
-    //                .quad_id = quad.getID(),
-    //                .dir     = dir
-    //            };
-
-    //            if (auto surf = quad.getSurface(dir)) {
-    //                Linef msurf = math::shift(surf->surface, getPosition());
-    //                Vec2f inter = math::intersection(msurf, surface);
-    //                bool in_bounds = inter != Vec2f{NAN, NAN} && bounds.contains(inter);
-    //                if (in_bounds) {
-    //                    *iter = touching_surface_t{
-    //                        .id        = id,
-    //                        .surface   = msurf,
-    //                        .intersect = inter,
-    //                    };
-    //                    ++iter;
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
-
 	virtual void update(secs deltaTime) = 0;
 
 	virtual const ColliderQuad* get_quad(QuadID quad_id) const noexcept = 0;
