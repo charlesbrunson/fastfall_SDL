@@ -18,7 +18,7 @@ bool SurfaceFollow::compare_paths(float travel_dir, const surface_path& from, co
     Angle curr_ang  = math::angle(pick.line)      - ang;
     Angle cand_ang  = math::angle(candidate.line) - ang;
 
-    if (travel_dir > 0.f  ? cand_ang > curr_ang : cand_ang < curr_ang) {
+    if (travel_dir > 0.f  ? cand_ang < curr_ang : cand_ang > curr_ang) {
         return true;
     }
 
