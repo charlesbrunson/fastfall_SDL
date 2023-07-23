@@ -19,6 +19,7 @@ target_sources(fastfall PRIVATE
     phys/Raycast.cpp
     phys/Arbiter.cpp
     phys/collidable/SurfaceTracker.cpp
+    phys/collidable/SurfaceFollow.cpp
     phys/collision/Response.cpp
     phys/collision/CollisionContinuous.cpp
     phys/collision/CollisionDiscrete.cpp

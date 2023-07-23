@@ -3,6 +3,7 @@
 #include "fastfall/render/DebugDraw.hpp"
 
 #include "fastfall/game/phys/ColliderRegion.hpp"
+#include "fastfall/game/phys/collidable/SurfaceFollow.hpp"
 
 #include <set>
 #include <algorithm>
@@ -262,44 +263,25 @@ CollidablePreMove SurfaceTracker::do_max_speed(CollidablePreMove in, secs deltaT
 
 Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec2f wish_pos, Vec2f prev_pos) const
 {
-    if (!has_contact() || !currentContact->id)
+    if (!has_contact() || !currentContact->id) {
         return {};
+    }
 
-    struct travel_surface_t {
-        ID<ColliderRegion>     region_id;
-        ColliderSurfaceID      surf_id;
-        const ColliderRegion*  region  = nullptr;
-        const ColliderSurface* surface = nullptr;
-        Vec2f region_pos;
-        Vec2f region_delta;
-        Vec2f collider_n;
-        Linef line;
-        Vec2f pos;
+    auto init_region_id = currentContact->id->collider;
+    auto init_surf_id   = currentContact->collider.id;
+    auto init_region    = colliders->get(init_region_id);
+    auto init_surface   = init_region ? init_region->get_surface_collider(init_surf_id) : nullptr;
 
-        Angle vel_ang;
-        float vel_mag;
-    };
+    if (!init_surface) {
+        return {};
+    }
 
-    travel_surface_t curr;
-    curr.region_id      = currentContact->id->collider;
-    curr.surf_id        = currentContact->collider.id;
-    curr.region         = colliders->get(curr.region_id);
-    if (!curr.region) return {};
-    curr.surface        = curr.region->get_surface_collider(curr.surf_id);
-    if (!curr.surface) return {};
-    curr.region_pos     = curr.region->getPosition();
-    curr.region_delta   = curr.region->getDeltaPosition();
-    curr.collider_n     = math::normal(curr.surface->surface);
-    curr.line           = math::shift(curr.surface->surface, curr.region_pos);
-    curr.pos            = prev_pos;
-
-    std::vector<Vec2f> path {
-        curr.pos
-    };
+    Linef init_path = math::shift(init_surface->surface, init_region->getPosition());
+    Vec2f init_pos  = prev_pos;
 
     float travel_dir = 0.f;
     {
-        Vec2f curr_vec = math::vector(curr.line);
+        Vec2f curr_vec = math::vector(init_path);
         float dir_dot  = math::dot(math::projection(wish_pos - prev_pos, curr_vec), curr_vec);
         if (dir_dot > 0.f) {
             travel_dir = 1.f;
@@ -309,235 +291,87 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         }
     }
 
-    std::vector<travel_surface_t> touching_surfaces;
-
-    auto valid_surface =
-        [&]
-        (ID<ColliderRegion> region_id, ColliderSurfaceID surf_id, const ColliderRegion* region, const ColliderSurface* surf, Rectf bounds, Linef surface) -> std::optional<travel_surface_t>
-    {
-        if (!surf
-            || (region_id == curr.region_id && surf_id == curr.surf_id))
-        {
-            return {};
-        }
-
-        Linef msurf = math::shift(surf->surface, region->getPosition());
-        Vec2f inter = math::intersection(msurf, surface);
-
-        bool inter_in_bounds = bounds.contains(inter);
-        bool is_collinear = math::collinear(msurf, surface);
-        auto msurf_bounds = math::line_bounds(msurf);
-        bool line_bounds = bounds.touches(msurf_bounds);
-
-        std::optional<Vec2f> intersect;
-        if (inter != Vec2f{NAN, NAN} && bounds.contains(inter))
-        {
-            intersect = inter;
-        }
-        else if (math::collinear(msurf, surface)) {
-            if (bounds.touches(math::line_bounds(msurf))) {
-                LOG_INFO("COLLINEAR A");
-                intersect = (travel_dir > 0.f ? msurf.p1 : msurf.p2);
-            }
-            else if (bounds.height == 0.f
-                && (msurf_bounds.left <= bounds.left + bounds.width
-                    || bounds.left <= msurf_bounds.left + msurf_bounds.width))
-            {
-                LOG_INFO("COLLINEAR B");
-                intersect = (travel_dir > 0.f ? msurf.p1 : msurf.p2);
-            }
-            else if (bounds.width == 0.f
-                    && (msurf_bounds.top <= bounds.top + bounds.height
-                        || bounds.top <= msurf_bounds.top + msurf_bounds.height))
-            {
-                LOG_INFO("COLLINEAR C");
-                intersect = (travel_dir > 0.f ? msurf.p1 : msurf.p2);
-            }
-        }
-
-        if (!intersect) {
-            LOG_INFO("NO INTERSECT: {}->{}, {}->{}", surface.p1, surface.p2, msurf.p1, msurf.p2);
-            return {};
-        }
-        else {
-            LOG_INFO("INTERSECT: {}->{}, {}->{} AT {}", surface.p1, surface.p2, msurf.p1, msurf.p2, *intersect);
-        }
-
-        Angle next_ang = math::angle(math::tangent(surf->surface));
-        Angle curr_ang = math::angle(curr.collider_n.righthand());
-        Angle diff = next_ang - curr_ang;
-
-        if (angle_range.within_range(next_ang - Angle::Degree(90.f))
-            && abs(diff.degrees()) < abs(settings.stick_angle_max.degrees()))
-        {
-            // update velocity
-            Angle gAng = math::angle(msurf);
-            if (travel_dir < 0.f) {
-                gAng += Angle::Degree(180.f);
-            }
-
-            float slow = 1.f - settings.slope_stick_speed_factor * abs(diff.degrees() / settings.stick_angle_max.degrees());
-
-            Angle vang = gAng;
-            float vmag = (owner->get_local_vel() + owner->get_surface_vel()).magnitude() * slow;
-
-            LOG_INFO("ANGLE: {}", vang.degrees());
-
-            travel_surface_t travel;
-            travel.region_id    = region_id;
-            travel.surf_id      = surf_id;
-            travel.region       = region;
-            travel.surface      = surf;
-            travel.region_pos   = region->getPosition();
-            travel.region_delta = region->getDeltaPosition();
-            travel.collider_n   = math::normal(msurf);
-            travel.line         = msurf;
-            travel.pos          = *intersect;
-            travel.vel_ang      = vang;
-            travel.vel_mag      = vmag;
-            return travel;
-        }
-
-        return {};
-    };
-
-    auto get_touching_surfaces =
-        [&]
-        (ID<ColliderRegion> region_id, const ColliderRegion* region, Linef surface)
-    {
-        Rectf bounds = math::line_bounds(surface);
-        for (auto& quad : region->in_rect(bounds)) {
-            for (auto dir: direction::cardinals) {
-                auto* surf = quad.getSurface(dir);
-                ColliderSurfaceID surf_id = { quad.getID(), dir };
-                if (auto travel_surf = valid_surface(region_id, surf_id, region, surf, bounds, surface))
-                {
-                    touching_surfaces.emplace_back(*travel_surf);
-                }
-            }
-        }
-    };
-
-    auto surface_cmp =
-        [&]
-        (const travel_surface_t& curr_pick, const travel_surface_t& candidate) -> bool
-    {
-        float curr_dist = math::dist(curr_pick.pos, curr.pos);
-        float cand_dist = math::dist(candidate.pos, curr.pos);
-
-        if (cand_dist < curr_dist) {
-            return true;
-        }
-
-        Angle ang       = math::angle(curr.line);
-        Angle curr_ang  = math::angle(curr_pick.line) - ang;
-        Angle cand_ang  = math::angle(candidate.line) - ang;
-
-        if (travel_dir > 0.f  ? cand_ang > curr_ang : cand_ang < curr_ang) {
-            return true;
-        }
-
-        return false;
-    };
-
-    auto pick_best_surface =
-        [this, &surface_cmp, &travel_dir]
-        (const travel_surface_t& curr, const std::vector<travel_surface_t>& candidates) -> std::optional<travel_surface_t>
-    {
-        if (travel_dir == 0.f)
-            return {};
-
-        Vec2f curr_dir = travel_dir * math::vector(curr.line);
-
-        const travel_surface_t* curr_pick = nullptr;
-
-        for (auto& candidate : candidates)
-        {
-            // surface intersect is on or behind us
-            float dir_dot = math::dot(curr_dir, candidate.pos - curr.pos);
-            if (dir_dot <= 0) {
-                continue;
-            }
-
-            if (can_make_contact_with(candidate.collider_n))
-            {
-                if (!curr_pick || surface_cmp(curr, candidate)) {
-                    curr_pick   = &candidate;
-                }
-            }
-        }
-
-        return (curr_pick ? std::make_optional(*curr_pick) : std::nullopt);
-    };
-
-    auto travel_to = [&](const travel_surface_t& from, const travel_surface_t& to, float remaining_dist) -> float {
-        Vec2f unit = (to.pos - from.pos).unit();
-        float dist = math::dist(from.pos, to.pos);
-
-        Vec2f npos;
-        if (dist > remaining_dist) {
-            npos = from.pos + (remaining_dist * unit);
-            remaining_dist = 0.f;
-        }
-        else {
-            LOG_INFO("[{}, {}] SWITCH TO {} -> {} AT {}", remaining_dist, travel_dir, to.line.p1, to.line.p2, to.pos);
-            npos = to.pos;
-            remaining_dist -= dist;
-
-            // DO VELOCITY UPDATE SOMEWHERE
-            owner->reset_surface_vel();
-            owner->set_local_vel(Vec2f{
-                    cosf(to.vel_ang.radians()),
-                    sinf(to.vel_ang.radians())
-            } * to.vel_mag);
-
-            if (callbacks.on_stick)
-                callbacks.on_stick(*to.surface);
-        }
-        path.push_back(npos);
-
-        return remaining_dist;
-    };
-
-    //float distance = math::dist(prev_pos, prev_pos + math::projection(wish_pos - prev_pos, math::vector(curr.line)));
     float distance = math::dist(prev_pos, wish_pos);
 
-    if (distance == 0.f)
+    if (distance == 0.f) {
         return {};
+    }
 
-    while (distance > 0.f) {
-        touching_surfaces.clear();
+    struct surface_id {
+        ID<ColliderRegion> region_id;
+        ColliderSurfaceID  surf_id;
+    };
 
-        for (auto [collider_id, ptr] : *colliders) {
-            get_touching_surfaces(collider_id, ptr.get(), curr.line);
+    std::map<SurfaceFollow::surface_id, surface_id> surface_map;
+    SurfaceFollow follower { init_path, init_pos, travel_dir, distance, angle_range, settings.stick_angle_max };
+
+    Vec2f curr_pos = init_pos;
+    LOG_INFO("path follow");
+    size_t interations = 0;
+    while (follower.remaining_distance() > 0.f) {
+        LOG_INFO("iter {} at {}->{}", interations++, follower.current_path().line.p1, follower.current_path().line.p2);
+        surface_map.clear();
+
+        size_t tried = 0;
+        for (auto [region_id, region_ptr] : *colliders) {
+            Rectf bounds = math::line_bounds(follower.current_path().line);
+
+            for (auto& quad : region_ptr->in_rect(bounds)) {
+                for (auto dir: direction::cardinals) {
+                    if (auto* surf = quad.getSurface(dir)) {
+
+                        ColliderSurfaceID surf_id = { quad.getID(), dir };
+                        Linef line = math::shift(surf->surface, region_ptr->getPosition());
+                        ++tried;
+                        bool good = false;
+                        if (auto id = follower.add_surface(line)) {
+                            good = true;
+                            surface_map.emplace(*id, surface_id{ region_id, surf_id });
+                        }
+                        LOG_INFO("\t[{}] candidate: {}->{}", (good ? "good" : "bad "), line.p1, line.p2 );
+                    }
+                }
+            }
         }
 
-        if (touching_surfaces.size() > 0) {
-            LOG_INFO("SURFACES: {}", touching_surfaces.size());
-        }
+        if (auto id = follower.pick_surface_to_follow()) {
+            auto result = follower.travel_to(*id);
 
-        if (auto surf = pick_best_surface(curr, touching_surfaces)) {
-            distance = travel_to(curr, *surf, distance);
-            curr = *surf;
-            curr.pos = path.back();
+            curr_pos = result.pos;
+            LOG_INFO("\ttravel to {}->{} at {}", result.path.line.p1, result.path.line.p2, curr_pos);
+
+            if (result.on_new_surface) {
+                float slow = 1.f - settings.slope_stick_speed_factor *
+                                   abs(result.path.diff_angle.degrees() / settings.stick_angle_max.degrees());
+
+                owner->reset_surface_vel();
+
+                float vmag = owner->get_local_vel().magnitude() * slow;
+
+                owner->set_local_vel(Vec2f{
+                        cosf(result.path.angle.radians()),
+                        sinf(result.path.angle.radians())
+                } * vmag);
+
+                if (callbacks.on_stick) {
+                    auto surface = surface_map.at(result.path.id);
+                    if (auto region = colliders->get(surface.region_id)) {
+                        if (auto surf = region->get_surface_collider(surface.surf_id)) {
+                            callbacks.on_stick(*surf);
+                        }
+                    }
+                }
+            }
         }
         else {
+            LOG_INFO("\ttravel break");
+            auto result = follower.finish();
+            curr_pos = result.pos;
             break;
         }
     }
 
-    size_t i = 0;
-    for (auto p : path) {
-        LOG_INFO("PATH[{}]: {}", i, p);
-        ++i;
-    }
-
-    if (distance == 0.f) {
-        return curr.pos - wish_pos;
-    }
-    else {
-        return (curr.pos + ( distance * travel_dir * math::vector(curr.line).unit() )) - wish_pos;
-    }
+    return curr_pos - wish_pos;
 }
 
 CollidablePostMove SurfaceTracker::postmove_update(

@@ -69,17 +69,16 @@ void InputState::process_events()
 {
     if (input_source) {
         for (const auto &event: input_source->get_events()) {
-            auto &input = at(event.type);
-
-            if (event.activate_or_deactivate) {
-                if (event.magnitude > 0) {
-                    input.activate();
-                } else {
-                    input.deactivate();
+            if (auto input = get(event.type)) {
+                if (event.activate_or_deactivate) {
+                    if (event.magnitude > 0) {
+                        input->activate();
+                    } else {
+                        input->deactivate();
+                    }
                 }
+                input->set_magnitude(event.magnitude);
             }
-
-            input.set_magnitude(event.magnitude);
         }
     }
 }

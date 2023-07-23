@@ -208,34 +208,34 @@ template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::valu
 [[nodiscard]] 
 constexpr Vec2<T> intersection(const Line<T>& a, const Line<T>& b) {
 
-	T detA = a.p1.x * a.p2.y - a.p1.y * a.p2.x;
-	T detB = b.p1.x * b.p2.y - b.p1.y * b.p2.x;
+	double detA = (double)a.p1.x * (double)a.p2.y - (double)a.p1.y * (double)a.p2.x;
+    double detB = (double)b.p1.x * (double)b.p2.y - (double)b.p1.y * (double)b.p2.x;
 
-	T mxA = a.p1.x - a.p2.x;
-	T mxB = b.p1.x - b.p2.x;
+    double mxA = (double)a.p1.x - (double)a.p2.x;
+    double mxB = (double)b.p1.x - (double)b.p2.x;
 
-	T myA = a.p1.y - a.p2.y;
-	T myB = b.p1.y - b.p2.y;
+    double myA = (double)a.p1.y - (double)a.p2.y;
+    double myB = (double)b.p1.y - (double)b.p2.y;
 
-	T xnom = detA * mxB - detB * mxA;
-	T ynom = detA * myB - detB * myA;
+    double xnom = detA * mxB - detB * mxA;
+    double ynom = detA * myB - detB * myA;
 
-	T denom = mxA * myB - myA * mxB;
+    double denom = mxA * myB - myA * mxB;
 
 	if (denom == static_cast<T>(0)) {
 		// is parallel
 		return Vec2<T>(NAN, NAN);
 	}
 
-	T ixOut = xnom / denom;
-	T iyOut = ynom / denom;
+	double ixOut = xnom / denom;
+    double iyOut = ynom / denom;
 
 	if (!std::isfinite(ixOut) || !std::isfinite(iyOut)) {
 		//numerical issue?
 		return Vec2<T>(NAN, NAN);
 	}
 
-	return Vec2<T>(ixOut, iyOut);
+	return Vec2<T>(static_cast<T>(ixOut), static_cast<T>(iyOut));
 }
 
 
@@ -243,15 +243,15 @@ template<typename T, typename = std::enable_if_t<std::is_floating_point<T>::valu
 [[nodiscard]]
 constexpr bool collinear(const Line<T>& a, const Line<T>& b) {
 
-    float x1 = a.p1.x;
-    float x2 = a.p2.x;
-    float x3 = b.p2.x;
+    double x1 = a.p1.x;
+    double x2 = a.p2.x;
+    double x3 = b.p2.x;
 
-    float y1 = a.p1.y;
-    float y2 = a.p2.y;
-    float y3 = b.p2.y;
+    double y1 = a.p1.y;
+    double y2 = a.p2.y;
+    double y3 = b.p2.y;
 
-    float d = x1 * (y2 - y3)
+    double d = x1 * (y2 - y3)
             + x2 * (y3 - y1)
             + x3 * (y1 - y2);
 
