@@ -18,11 +18,15 @@ bool SurfaceFollow::compare_paths(float travel_dir, const surface_path& from, co
     Angle curr_ang  = math::angle(pick.line)      - ang;
     Angle cand_ang  = math::angle(candidate.line) - ang;
 
-    if (travel_dir > 0.f  ? cand_ang < curr_ang : cand_ang > curr_ang) {
+    /*
+    if (travel_dir > 0.f ? cand_ang < curr_ang : cand_ang < curr_ang) {
         return true;
     }
+    */
 
-    return false;
+    return cand_ang < curr_ang;
+
+    //return false;
 }
 
 SurfaceFollow::SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, float distance, SurfaceTracker::applicable_ang_t angle_ranges, Angle max_angle)
@@ -60,15 +64,24 @@ SurfaceFollow::pick_surface_to_follow()
 
     for (auto& candidate : candidate_paths)
     {
+        if ((travel_dir > 0.f && candidate.start_pos == candidate.line.p2)
+         || (travel_dir < 0.f && candidate.start_pos == candidate.line.p1))
+        {
+            LOG_INFO("\tpick: start_pos is line end {}->{}", candidate.line.p1, candidate.line.p2);
+            continue;
+        }
+
         for (auto& visited : path_taken) {
             if (visited.line == candidate.line) {
+                LOG_INFO("\tpick: prev visited {}->{}", candidate.line.p1, candidate.line.p2);
                 continue;
             }
         }
 
         // surface intersect is on or behind us
         float dir_dot = math::dot(curr_dir, candidate.start_pos - curr_path.start_pos);
-        if (dir_dot < 0 || (candidate.start_pos - curr_path.start_pos == Vec2f{})) {
+        if (dir_dot <= 0) {
+            LOG_INFO("\tpick: is behind {}->{}, dot:{}, dir:{}", candidate.line.p1, candidate.line.p2, dir_dot, curr_dir);
             continue;
         }
 
@@ -140,7 +153,7 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
 
     Vec2f inter;
     if ((travel_dir < 0.f && curr_path.line.p1 == path.p2)
-        || (curr_path.line.p2 == path.p1))
+     || (travel_dir > 0.f && curr_path.line.p2 == path.p1))
     {
         inter = travel_dir < 0.f ? curr_path.line.p1 : curr_path.line.p2;
     }
@@ -152,10 +165,19 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
 
     std::optional<Vec2f> intersect;
 
-    if (inter != Vec2f{NAN, NAN} && (inter == (travel_dir < 0.f ? curr_path.line.p1 : curr_path.line.p2) || bounds.contains(inter)))
+    if (inter != Vec2f{NAN, NAN})
     {
-        //LOG_INFO("\t\thas intersect");
-        intersect = inter;
+        if (inter == (travel_dir < 0.f ? curr_path.line.p1 : curr_path.line.p2)) {
+            // connected at the end
+            intersect = inter;
+        }
+        else if (bounds.contains(inter)
+            && (travel_dir > 0.f ? math::angle(path) - math::angle(curr_path.line) < 0.f : math::angle(path) - math::angle(curr_path.line) > 0.f))
+        {
+            // connects in the middle somewhere
+            // remove if below the line
+            intersect = inter;
+        }
     }
     else if (math::collinear(path, curr_path.line))
     {

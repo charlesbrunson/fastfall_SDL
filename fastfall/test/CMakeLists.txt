@@ -33,6 +33,8 @@ create_ff_test(ff_test_utils
 	utils/copyable-unique.cpp
 	utils/dmessage.cpp
 )
+
+
 create_ff_test(ff_test_phys 
 	phys/collision.cpp
 	phys/surfacetracker.cpp
@@ -40,6 +42,11 @@ create_ff_test(ff_test_phys
 
 	phys/TestPhysRenderer.cpp
 )
+
+create_ff_test(ff_test_pathfollow
+	phys/path_follow.cpp
+)
+
 create_ff_test(ff_test_engine
 	engine/statehandler.cpp
 	engine/input.cpp
