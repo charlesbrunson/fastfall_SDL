@@ -106,6 +106,7 @@ namespace plr::anim {
 
 	AnimIDRef idle("player.sax", "idle");
 	AnimIDRef land("player.sax", "land");
+    AnimIDRef land_soft("player.sax", "land_soft");
 	AnimIDRef idle_to_run("player.sax", "idle_to_run");
 	AnimIDRef run("player.sax", "running");
 

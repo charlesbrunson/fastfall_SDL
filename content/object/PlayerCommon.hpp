@@ -11,6 +11,7 @@ namespace plr::anim {
 
 	extern ff::AnimIDRef idle;
 	extern ff::AnimIDRef land;
+    extern ff::AnimIDRef land_soft;
 	extern ff::AnimIDRef idle_to_run;
 	extern ff::AnimIDRef run;
 

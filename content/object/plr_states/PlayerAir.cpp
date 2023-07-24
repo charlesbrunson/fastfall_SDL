@@ -131,7 +131,7 @@ PlayerStateID PlayerAirState::post_collision(ff::World& w, plr::members& plr)
 				sprite.set_frame(1);
 		}
 		else if (!sprite.is_playing_any(anim::get_ground_anims())) {
-			sprite.set_anim(anim::idle);
+			sprite.set_anim(anim::land_soft);
 		}
 		ground.settings.slope_sticking = true;
 		return PlayerStateID::Ground;

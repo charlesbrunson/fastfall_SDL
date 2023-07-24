@@ -24,6 +24,16 @@
 		<chainsTo sprite="player.sax" name="idle" frame="0"/>
 	</animation>
 	
+	<animation name="land_soft"> 
+		<area   x="192" y="80" w="32" h="32" />
+		<origin x="16" y="32" />
+		<framerate>
+			<frame>80</frame>
+		</framerate>
+		<loop>1</loop>
+		<chainsTo sprite="player.sax" name="idle" frame="0"/>
+	</animation>
+	
 	<animation name="idle_to_run">
 		<area   x="0" y="32" w="32" h="32" />
 		<origin x="16" y="32" />
