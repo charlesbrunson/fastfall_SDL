@@ -106,7 +106,12 @@ void PlayerDashState::enter(ff::World& w, plr::members& plr, PlayerState* from)
         auto& jetcfg = w.system<SceneSystem>().config(plr.jet_id);
         jetcfg.visible = true;
         jet_spr.set_hflip(sprite.get_hflip());
-        jet_spr.set_anim_if_not(dash_anims.jet_anim.id());
+        if (jet_spr.is_playing_any({})) {
+            jet_spr.set_anim(dash_anims.jet_anim.id(), false);
+        }
+        else {
+            jet_spr.set_anim(dash_anims.jet_anim.id());
+        }
 
         auto* jet_anim = AnimDB::get_animation(dash_anims.dash_anim.id());
 

@@ -26,6 +26,7 @@ namespace plr::anim {
 
 	const std::vector<ff::AnimID>& get_ground_anims();
 	const std::vector<ff::AnimID>& get_air_anims();
+    const std::vector<ff::AnimID>& get_jet_blast_anims();
 
     struct dash_anim_t {
         ff::AnimIDRef   dash_anim;

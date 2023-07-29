@@ -373,18 +373,16 @@ namespace ff {
 
     Recti ColliderTileMap::get_tile_area_for_rect(Rectf area) const {
         Rectf bbox = math::shift(area, -getPosition());
-        Vec2f deltap = getPosition() - getPrevPosition();
-        bbox = math::rect_extend(bbox, (deltap.x < 0.f ? Cardinal::W : Cardinal::E), abs(deltap.x));
-        bbox = math::rect_extend(bbox, (deltap.y < 0.f ? Cardinal::N : Cardinal::S), abs(deltap.y));
 
-        Rectf ts_bbox{
-                bbox.getPosition() / TILESIZE_F,
-                bbox.getSize()     / TILESIZE_F
-        };
+        Rectf ts_bbox;
+        ts_bbox.left   = bbox.left / TILESIZE_F;
+        ts_bbox.top    = bbox.top / TILESIZE_F;
+        ts_bbox.width  = ((bbox.left + bbox.width) / TILESIZE_F) - ts_bbox.left;
+        ts_bbox.height = ((bbox.top + bbox.height) / TILESIZE_F) - ts_bbox.top;
 
         Recti tsi_bbox;
-        tsi_bbox.top    = static_cast<int>( ceilf(ts_bbox.top  - 1));
         tsi_bbox.left   = static_cast<int>( ceilf(ts_bbox.left - 1));
+        tsi_bbox.top    = static_cast<int>( ceilf(ts_bbox.top  - 1));
         tsi_bbox.width  = static_cast<int>(floorf(ts_bbox.left + ts_bbox.width  + 1)) - tsi_bbox.left;
         tsi_bbox.height = static_cast<int>(floorf(ts_bbox.top  + ts_bbox.height + 1)) - tsi_bbox.top;
 
@@ -406,18 +404,37 @@ namespace ff {
     std::optional<QuadID> ColliderTileMap::first_quad_in_rect(Rectf area) const {
         auto tsi_bbox = get_tile_area_for_rect(area);
 
-        Vec2i pos{ tsi_bbox.left, tsi_bbox.top };
+        if (tsi_bbox.width == 0 || tsi_bbox.height == 0)
+            return {};
 
-        // iterate until we get a quad
-        for (; pos.y < tsi_bbox.top + tsi_bbox.height; pos.y++, pos.x = tsi_bbox.left) {
-            for (; pos.x < tsi_bbox.left + tsi_bbox.width; pos.x++) {
-                if (auto* tile = get_quad(pos)) {
-                    return tile->getID();
-                }
+        Vec2i pos = { tsi_bbox.left, tsi_bbox.top };
+
+        // next quadid
+        auto iterate_pos = [&tsi_bbox](Vec2i& pos) -> bool{
+            ++pos.x;
+
+            if (pos.x >= tsi_bbox.left + tsi_bbox.width)
+            {
+                pos.x = tsi_bbox.left;
+                ++pos.y;
             }
+
+            if (pos.y >= tsi_bbox.top + tsi_bbox.height)
+            {
+                return false;
+            }
+            return true;
+        };
+
+        const ColliderQuad* quad = get_quad(pos);
+        bool in_bounds = true;
+
+        while (!quad && in_bounds) {
+            in_bounds = iterate_pos(pos);
+            quad = get_quad(pos);
         }
 
-        return {};
+        return quad ? std::make_optional(quad->getID()) : std::nullopt;
     }
     std::optional<QuadID> ColliderTileMap::next_quad_in_rect(Rectf area, QuadID quadid) const {
         auto tsi_bbox = get_tile_area_for_rect(area);
@@ -425,28 +442,31 @@ namespace ff {
         Vec2i pos = to_pos(quadid);
 
         // next quadid
-        ++pos.x;
-        if (pos.x > tsi_bbox.left + tsi_bbox.width)
-        {
-            pos.x = tsi_bbox.left;
-            ++pos.y;
+        auto iterate_pos = [&tsi_bbox](Vec2i& pos) -> bool{
+            ++pos.x;
 
-            if (pos.y > tsi_bbox.top + tsi_bbox.height)
+            if (pos.x >= tsi_bbox.left + tsi_bbox.width)
             {
-                return {};
+                pos.x = tsi_bbox.left;
+                ++pos.y;
             }
+
+            if (pos.y >= tsi_bbox.top + tsi_bbox.height)
+            {
+                return false;
+            }
+            return true;
+        };
+
+        bool in_bounds = true;
+        const ColliderQuad* quad = nullptr;
+
+        while (!quad && in_bounds) {
+            in_bounds = iterate_pos(pos);
+            quad = get_quad(pos);
         }
 
-        // iterate until we get a quad
-        for (; pos.y < tsi_bbox.top + tsi_bbox.height; pos.y++, pos.x = tsi_bbox.left) {
-            for (; pos.x < tsi_bbox.left + tsi_bbox.width; pos.x++) {
-                if (auto* tile = get_quad(pos)) {
-                    return tile->getID();
-                }
-            }
-        }
-
-        return {};
+        return quad ? std::make_optional(quad->getID()) : std::nullopt;
     }
 
 	void ColliderTileMap::updateGhosts(const Vec2i& position) {

@@ -175,12 +175,23 @@ namespace plr::anim {
 	}
 
 	const std::vector<AnimID>& get_air_anims() {
-		static std::vector<AnimID> air_anims{
-			jump, jump_f,
-			fall, fall_f
-		};
+        static std::vector<AnimID> air_anims{
+                jump, jump_f,
+                fall, fall_f
+        };
 		return air_anims;
 	}
+
+    const std::vector<AnimID>& get_jet_blast_anims() {
+        static std::vector<AnimID> jet_blast_anims{
+                AnimIDRef{ "player.sax", "jet_blast-2" },
+                AnimIDRef{ "player.sax", "jet_blast-1" },
+                AnimIDRef{ "player.sax", "jet_blast0" },
+                AnimIDRef{ "player.sax", "jet_blast+1" },
+                AnimIDRef{ "player.sax", "jet_blast+2" },
+        };
+        return jet_blast_anims;
+    }
 }
 
 namespace plr::constants {

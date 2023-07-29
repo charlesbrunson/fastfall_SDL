@@ -18,8 +18,6 @@
 
 TestState::TestState()
     : insrc_realtime(input_sets::gameplay, 1.0/60.0, ff::RecordInputs::Yes)
-    //, recorded_va(Primitive::LINE_STRIP, 0, VertexUsage::DYNAMIC)
-    //, replay_va  (Primitive::LINE_STRIP, 0, VertexUsage::DYNAMIC)
 {
 	stateID = ff::EngineStateID::TEST_STATE;
 	clearColor = ff::Color{ 0x141013FF };

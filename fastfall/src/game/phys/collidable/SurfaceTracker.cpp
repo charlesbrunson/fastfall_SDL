@@ -4,6 +4,7 @@
 
 #include "fastfall/game/phys/ColliderRegion.hpp"
 #include "fastfall/game/phys/collidable/SurfaceFollow.hpp"
+#include "fastfall/game/phys/collider_regiontypes/ColliderTileMap.hpp"
 
 #include <set>
 #include <algorithm>
@@ -328,7 +329,14 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
                             good = true;
                             surface_map.emplace(*id, surface_id{ region_id, surf_id });
                         }
-                        LOG_INFO("\t[{}] candidate: {}->{}", (good ? "good" : "bad "), line.p1, line.p2 );
+
+                        if (auto* tilemap = dynamic_cast<ColliderTileMap*>(region_ptr.get())) {
+                            LOG_INFO("\t[{}] candidate {}: {}->{}", (good ? "good" : "bad "), tilemap->to_pos(quad.getID()), line.p1, line.p2 );
+                        }
+                        else {
+                            LOG_INFO("\t[{}] candidate {}: {}->{}", (good ? "good" : "bad "), quad.getID().value, line.p1, line.p2 );
+                        }
+
                     }
                 }
             }
