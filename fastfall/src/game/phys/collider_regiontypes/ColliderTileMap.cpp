@@ -386,8 +386,8 @@ namespace ff {
 
         float epsilon = 0.01f;
 
-        if (left_r   < epsilon) left   -= 16.f;
-        if (top_r    < epsilon) top    -= 16.f;
+        if (left_r < epsilon) left -= 16.f;
+        if (top_r  < epsilon) top  -= 16.f;
 
         right  += 16.f;
         bottom += 16.f;
@@ -442,6 +442,7 @@ namespace ff {
             quad = in_bounds ? get_quad(pos) : nullptr;
         }
 
+        /*
         if (quad
             &&  debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_TRACKER))
         {
@@ -458,6 +459,7 @@ namespace ff {
             lines[3].color = ff::Color::Blue;
             lines[4].color = ff::Color::Blue;
         }
+        */
 
         return quad ? std::make_optional(quad->getID()) : std::nullopt;
     }

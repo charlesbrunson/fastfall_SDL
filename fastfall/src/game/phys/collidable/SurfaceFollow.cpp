@@ -156,31 +156,39 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
     Rectf bounds = math::line_bounds(curr_path.line);
 
     std::optional<Vec2f> intersect;
-
     if (inter != Vec2f{NAN, NAN})
     {
-        if (inter == (travel_dir < 0.f ? curr_path.line.p1 : curr_path.line.p2)) {
-            // connected at the end
-            intersect = inter;
-        }
-        else if (bounds.contains(inter)
-            && (travel_dir > 0.f ? math::angle(path) - math::angle(curr_path.line) < 0.f : math::angle(path) - math::angle(curr_path.line) > 0.f))
+        // make sure the intersection lies on both lines
+        if (   math::line_has_point(curr_path.line, inter)
+            && math::line_has_point(path, inter))
         {
-            // connects in the middle somewhere
-            // remove if below the line
-            intersect = inter;
+            if (inter == (travel_dir < 0.f ? curr_path.line.p1 : curr_path.line.p2))
+            {
+                // connected at the end
+                //LOG_INFO("A: {}->{} x {}->{} = {}", curr_path.line.p1, curr_path.line.p2, path.p1, path.p2, inter);
+                intersect = inter;
+            }
+            else if (travel_dir > 0.f
+                        ? math::angle(path) - math::angle(curr_path.line) < 0.f
+                        : math::angle(path) - math::angle(curr_path.line) > 0.f)
+            {
+                // connects in the middle somewhere
+                // remove if below the line
+                //LOG_INFO("B: {}->{} x {}->{} = {}", curr_path.line.p1, curr_path.line.p2, path.p1, path.p2, inter);
+                intersect = inter;
+            }
         }
     }
-    else if (math::collinear(path, curr_path.line))
+    else if (math::collinear(curr_path.line, path))
     {
-        //LOG_INFO("\t\thas collinear");
         Vec2f p1 = travel_dir > 0.f ? curr_path.line.p2 : curr_path.line.p1;
         Vec2f p2 = travel_dir > 0.f ? path.p2 : path.p1;
+        Vec2f collinear_intersect = travel_dir > 0.f ? path.p1 : path.p2;
         bool is_ahead = math::dot(p2 - p1, travel_dir * math::tangent(curr_path.line)) > 0;
-
-        if (is_ahead && bounds.touches(math::line_bounds(path))) {
-            //LOG_INFO("\t\tcollinear in bounds");
-            intersect = (travel_dir > 0.f ? path.p1 : path.p2);
+        if (is_ahead && math::line_has_point(curr_path.line, collinear_intersect))
+        {
+            //LOG_INFO("C: {}->{} x {}->{} = {}", curr_path.line.p1, curr_path.line.p2, path.p1, path.p2, inter);
+            intersect = collinear_intersect;
         }
     }
 
