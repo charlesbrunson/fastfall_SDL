@@ -48,6 +48,7 @@ bool typeEnable[] = {
 	true,	// COLLISION_COLLIDABLE
 	true,	// COLLISION_CONTACT
 	false,	// COLLISION_RAYCAST
+    true,	// COLLISION_TRACKER
 	false,	// TILELAYER_AREA
 	false,	// TILELAYER_CHUNK
 	false,	// CAMERA_VISIBLE

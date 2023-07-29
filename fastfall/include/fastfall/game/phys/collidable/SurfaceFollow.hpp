@@ -43,8 +43,8 @@ namespace ff {
 
         //[[nodiscard]] const surface_path& operator[] (surface_id id) const { return candidate_paths[id]; }
 
-        [[nodiscard]] const std::vector<surface_path>& get_path_taken()      const { path_taken; }
-        [[nodiscard]] const std::vector<surface_path>& get_path_candidates() const { candidate_paths; }
+        [[nodiscard]] const std::vector<surface_path>& get_path_taken()      const { return path_taken; }
+        [[nodiscard]] const std::vector<surface_path>& get_path_candidates() const { return candidate_paths; }
 
         travel_result finish();
 

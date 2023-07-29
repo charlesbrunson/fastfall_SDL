@@ -22,9 +22,9 @@ namespace ff {
 
     std::optional<QuadID> ColliderSimple::first_quad_in_rect(Rectf area) const {
         Rectf bbox = math::shift(area, -getPosition());
-		Vec2f deltap = getPosition() - getPrevPosition();
-		bbox = math::rect_extend(bbox, (deltap.x < 0.f ? Cardinal::W : Cardinal::E), abs(deltap.x));
-		bbox = math::rect_extend(bbox, (deltap.y < 0.f ? Cardinal::N : Cardinal::S), abs(deltap.y));
+		//Vec2f deltap = getPosition() - getPrevPosition();
+		//bbox = math::rect_extend(bbox, (deltap.x < 0.f ? Cardinal::W : Cardinal::E), abs(deltap.x));
+		//bbox = math::rect_extend(bbox, (deltap.y < 0.f ? Cardinal::N : Cardinal::S), abs(deltap.y));
 
         return boundingBox.touches(bbox) ? std::make_optional(quad.getID()) : std::nullopt;
     }

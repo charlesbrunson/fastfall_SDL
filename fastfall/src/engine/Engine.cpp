@@ -1108,6 +1108,7 @@ void DebugDrawImgui::ImGui_getContent(secs deltaTime) {
         "COLLISION_COLLIDABLE",
         "COLLISION_CONTACT",
         "COLLISION_RAYCAST",
+        "COLLISION_TRACKER",
         "TILELAYER_AREA",
         "TILELAYER_CHUNK",
         "CAMERA_VISIBLE",

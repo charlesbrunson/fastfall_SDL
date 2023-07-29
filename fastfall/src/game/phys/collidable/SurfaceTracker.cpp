@@ -306,6 +306,8 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
     std::map<SurfaceFollow::surface_id, surface_id> surface_map;
     SurfaceFollow follower { init_path, init_pos, travel_dir, distance, angle_range, settings.stick_angle_max };
 
+    std::vector<Rectf> quads_visited;
+
     Vec2f curr_pos = init_pos;
     LOG_INFO("path follow");
     size_t interations = 0;
@@ -313,11 +315,25 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         LOG_INFO("iter {} at {}->{}", interations++, follower.current_path().line.p1, follower.current_path().line.p2);
         surface_map.clear();
 
+        // need to grow the bounds a bit,
+        // due to region quads sometimes being excluded
+        // due to floating point funnies
+        Rectf bounds = math::line_bounds(follower.current_path().line);
+        bounds.left   -= 1.f;
+        bounds.top    -= 1.f;
+        bounds.width  += 2.f;
+        bounds.height += 2.f;
+
         size_t tried = 0;
         for (auto [region_id, region_ptr] : *colliders) {
-            Rectf bounds = math::line_bounds(follower.current_path().line);
 
             for (auto& quad : region_ptr->in_rect(bounds)) {
+                if (!quad.hasAnySurface())
+                    continue;
+
+                if (auto quad_bounds = quad.get_bounds())
+                    quads_visited.push_back(math::shift(*quad_bounds, region_ptr->getPosition()));
+
                 for (auto dir: direction::cardinals) {
                     if (auto* surf = quad.getSurface(dir)) {
 
@@ -340,6 +356,28 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
                     }
                 }
             }
+        }
+
+        if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_TRACKER)) {
+            auto& lines = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_TRACKER>(Primitive::TRIANGLES, follower.get_path_candidates().size() * 6);
+            size_t n = 0;
+            for (auto& can : follower.get_path_candidates()) {
+                lines[(n * 6) + 0].pos = can.line.p1;
+                lines[(n * 6) + 1].pos = can.line.p2;
+                lines[(n * 6) + 2].pos = can.line.p1 - math::normal(can.line) * 2.f;
+                lines[(n * 6) + 3].pos = can.line.p1 - math::normal(can.line) * 2.f;
+                lines[(n * 6) + 4].pos = can.line.p2;
+                lines[(n * 6) + 5].pos = can.line.p2 - math::normal(can.line) * 2.f;
+
+                lines[(n * 6) + 0].color = ff::Color::Red;
+                lines[(n * 6) + 1].color = ff::Color::Red;
+                lines[(n * 6) + 2].color = ff::Color::Red;
+                lines[(n * 6) + 3].color = ff::Color::Red;
+                lines[(n * 6) + 4].color = ff::Color::Red;
+                lines[(n * 6) + 5].color = ff::Color::Red;
+                ++n;
+            }
+
         }
 
         if (auto id = follower.pick_surface_to_follow()) {
@@ -376,6 +414,48 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             auto result = follower.finish();
             curr_pos = result.pos;
             break;
+        }
+    }
+
+
+    if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_TRACKER)) {
+
+        auto& quad_lines = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_TRACKER>(Primitive::LINES, quads_visited.size() * 8);
+        size_t n = 0;
+        for (auto& bounds : quads_visited) {
+            quad_lines[(n * 8) + 0].pos = bounds.topleft();
+            quad_lines[(n * 8) + 1].pos = bounds.topright();
+            quad_lines[(n * 8) + 2].pos = bounds.topright();
+            quad_lines[(n * 8) + 3].pos = bounds.botright();
+            quad_lines[(n * 8) + 4].pos = bounds.botright();
+            quad_lines[(n * 8) + 5].pos = bounds.botleft();
+            quad_lines[(n * 8) + 6].pos = bounds.botleft();
+            quad_lines[(n * 8) + 7].pos = bounds.topleft();
+
+            for (int i = 0; i < 8; ++i) {
+                quad_lines[(n * 8) + i].color = ff::Color::White;
+            }
+
+            ++n;
+        }
+
+        auto& lines = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_TRACKER>(Primitive::TRIANGLES, follower.get_path_taken().size() * 6);
+        n = 0;
+        for (auto& can : follower.get_path_taken()) {
+            lines[(n * 6) + 0].pos = can.line.p1;
+            lines[(n * 6) + 1].pos = can.line.p2;
+            lines[(n * 6) + 2].pos = can.line.p1 - math::normal(can.line) * 2.f;
+            lines[(n * 6) + 3].pos = can.line.p1 - math::normal(can.line) * 2.f;
+            lines[(n * 6) + 4].pos = can.line.p2;
+            lines[(n * 6) + 5].pos = can.line.p2 - math::normal(can.line) * 2.f;
+
+            lines[(n * 6) + 0].color = ff::Color::Green;
+            lines[(n * 6) + 1].color = ff::Color::Green;
+            lines[(n * 6) + 2].color = ff::Color::Green;
+            lines[(n * 6) + 3].color = ff::Color::Green;
+            lines[(n * 6) + 4].color = ff::Color::Green;
+            lines[(n * 6) + 5].color = ff::Color::Green;
+            ++n;
         }
     }
 

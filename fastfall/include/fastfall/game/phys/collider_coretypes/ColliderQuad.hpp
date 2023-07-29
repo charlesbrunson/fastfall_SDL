@@ -88,6 +88,19 @@ public:
 			&& lhs.surfaces[Cardinal::W] == rhs.surfaces[Cardinal::W];
 	}
 
+    std::optional<Rectf> get_bounds() const {
+        std::optional<Rectf> bounds{};
+        for (auto& surf : surfaces) {
+            if (!bounds) {
+                bounds = math::line_bounds(surf.collider.surface);
+            }
+            else {
+                *bounds = math::rect_bound(*bounds, math::line_bounds(surf.collider.surface));
+            }
+        }
+        return bounds;
+    }
+
 	bool hasOneWay = false;
 	bool hasBoundary = false;
 	Cardinal oneWayDir = Cardinal::N;

@@ -77,7 +77,7 @@ void debugDrawContact(const AppliedContact& contact) {
 		Color::Yellow
 	);
 
-	auto& line = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(Primitive::LINES, 4);
+	auto& line = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(Primitive::LINES, 2);
 	line[0].pos = contact.position;
 	line[1].pos = contact.position + (contact.ortho_n * contact.separation);
 	line[0].color = Color::Yellow;

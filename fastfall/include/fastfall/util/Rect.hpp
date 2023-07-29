@@ -156,9 +156,9 @@ public:
 		T r2MaxY = std::max(rectangle.top, static_cast<T>(rectangle.top + rectangle.height));
 
 		// Compute the intersection boundaries
-		T interLeft = std::max(r1MinX, r2MinX);
-		T interTop = std::max(r1MinY, r2MinY);
-		T interRight = std::min(r1MaxX, r2MaxX);
+		T interLeft   = std::max(r1MinX, r2MinX);
+		T interTop    = std::max(r1MinY, r2MinY);
+		T interRight  = std::min(r1MaxX, r2MaxX);
 		T interBottom = std::min(r1MaxY, r2MaxY);
 
 		// If the intersection is valid (positive non zero area), then there is an intersection

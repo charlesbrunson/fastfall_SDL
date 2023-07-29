@@ -376,15 +376,15 @@ namespace ff {
 
         Rectf ts_bbox;
         ts_bbox.left   = bbox.left / TILESIZE_F;
-        ts_bbox.top    = bbox.top / TILESIZE_F;
-        ts_bbox.width  = ((bbox.left + bbox.width) / TILESIZE_F) - ts_bbox.left;
-        ts_bbox.height = ((bbox.top + bbox.height) / TILESIZE_F) - ts_bbox.top;
+        ts_bbox.top    = bbox.top  / TILESIZE_F;
+        ts_bbox.width  = ((bbox.left + bbox.width)  / TILESIZE_F) - ts_bbox.left;
+        ts_bbox.height = ((bbox.top  + bbox.height) / TILESIZE_F) - ts_bbox.top;
 
         Recti tsi_bbox;
-        tsi_bbox.left   = static_cast<int>( ceilf(ts_bbox.left - 1));
-        tsi_bbox.top    = static_cast<int>( ceilf(ts_bbox.top  - 1));
-        tsi_bbox.width  = static_cast<int>(floorf(ts_bbox.left + ts_bbox.width  + 1)) - tsi_bbox.left;
-        tsi_bbox.height = static_cast<int>(floorf(ts_bbox.top  + ts_bbox.height + 1)) - tsi_bbox.top;
+        tsi_bbox.left   = static_cast<int>( ceilf(ts_bbox.left - 1.f));
+        tsi_bbox.top    = static_cast<int>( ceilf(ts_bbox.top  - 1.f));
+        tsi_bbox.width  = static_cast<int>(floorf(ts_bbox.left + ts_bbox.width  + 1.f)) - tsi_bbox.left;
+        tsi_bbox.height = static_cast<int>(floorf(ts_bbox.top  + ts_bbox.height + 1.f)) - tsi_bbox.top;
 
         if (tsi_bbox.width == 0) {
             tsi_bbox.left--;
@@ -395,7 +395,7 @@ namespace ff {
             tsi_bbox.height = 2;
         }
 
-        Recti tilemap_bounds{ size_min, size_max - size_min };
+         Recti tilemap_bounds{ size_min, size_max - size_min };
         tilemap_bounds.intersects(tsi_bbox, tsi_bbox);
 
         return tsi_bbox;
@@ -431,7 +431,7 @@ namespace ff {
 
         while (!quad && in_bounds) {
             in_bounds = iterate_pos(pos);
-            quad = get_quad(pos);
+            quad = in_bounds ? get_quad(pos) : nullptr;
         }
 
         return quad ? std::make_optional(quad->getID()) : std::nullopt;
@@ -463,7 +463,7 @@ namespace ff {
 
         while (!quad && in_bounds) {
             in_bounds = iterate_pos(pos);
-            quad = get_quad(pos);
+            quad = in_bounds ? get_quad(pos) : nullptr;
         }
 
         return quad ? std::make_optional(quad->getID()) : std::nullopt;
