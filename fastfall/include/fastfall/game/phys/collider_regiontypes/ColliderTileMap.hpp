@@ -84,8 +84,8 @@ public:
 	}
 
 protected:
-    std::optional<QuadID> first_quad_in_rect(Rectf area) const override;
-    std::optional<QuadID> next_quad_in_rect(Rectf area, QuadID quadid) const override;
+    std::optional<QuadID> first_quad_in_rect(Rectf area, Recti& tile_area) const override;
+    std::optional<QuadID> next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area) const override;
 
 private:
 	void updateGhosts(const Vec2i& position);

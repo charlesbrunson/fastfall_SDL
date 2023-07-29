@@ -20,7 +20,7 @@ namespace ff {
 		return quad_id.value == 0u ? &quad : nullptr;
 	}
 
-    std::optional<QuadID> ColliderSimple::first_quad_in_rect(Rectf area) const {
+    std::optional<QuadID> ColliderSimple::first_quad_in_rect(Rectf area, Recti& tile_area) const {
         Rectf bbox = math::shift(area, -getPosition());
 		//Vec2f deltap = getPosition() - getPrevPosition();
 		//bbox = math::rect_extend(bbox, (deltap.x < 0.f ? Cardinal::W : Cardinal::E), abs(deltap.x));
@@ -28,7 +28,7 @@ namespace ff {
 
         return boundingBox.touches(bbox) ? std::make_optional(quad.getID()) : std::nullopt;
     }
-    std::optional<QuadID> ColliderSimple::next_quad_in_rect(Rectf area, QuadID quadid) const {
+    std::optional<QuadID> ColliderSimple::next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area) const {
         // there's only one
         return {};
     }

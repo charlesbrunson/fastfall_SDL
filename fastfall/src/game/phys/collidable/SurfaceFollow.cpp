@@ -59,13 +59,13 @@ SurfaceFollow::pick_surface_to_follow()
         if ((travel_dir > 0.f && candidate.start_pos == candidate.line.p2)
          || (travel_dir < 0.f && candidate.start_pos == candidate.line.p1))
         {
-            LOG_INFO("\tpick: start_pos is line end {}->{}", candidate.line.p1, candidate.line.p2);
+            //LOG_INFO("\tpick: start_pos is line end {}->{}", candidate.line.p1, candidate.line.p2);
             continue;
         }
 
         for (auto& visited : path_taken) {
             if (visited.line == candidate.line) {
-                LOG_INFO("\tpick: prev visited {}->{}", candidate.line.p1, candidate.line.p2);
+                //LOG_INFO("\tpick: prev visited {}->{}", candidate.line.p1, candidate.line.p2);
                 continue;
             }
         }
@@ -73,7 +73,7 @@ SurfaceFollow::pick_surface_to_follow()
         // surface intersect is on or behind us
         float dir_dot = math::dot(curr_dir, candidate.start_pos - curr_path.start_pos);
         if (dir_dot <= 0) {
-            LOG_INFO("\tpick: is behind {}->{}, dot:{}, dir:{}", candidate.line.p1, candidate.line.p2, dir_dot, curr_dir);
+            //LOG_INFO("\tpick: is behind {}->{}, dot:{}, dir:{}", candidate.line.p1, candidate.line.p2, dir_dot, curr_dir);
             continue;
         }
 
@@ -139,7 +139,7 @@ std::optional<SurfaceFollow::surface_path>
 SurfaceFollow::valid_surface(Linef path, surface_id id) const
 {
     if (path == curr_path.line) {
-        LOG_INFO("\terr -- same line");
+        //LOG_INFO("\terr -- same line");
         return {};
     }
 
@@ -185,7 +185,7 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
     }
 
     if (!intersect) {
-        LOG_INFO("\terr -- no intersect");
+        //LOG_INFO("\terr -- no intersect");
         return {};
     }
 
@@ -208,6 +208,6 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
         return out_path;
     }
 
-    LOG_INFO("\terr -- invalid angle {} && {}", in_range, in_max_angle);
+    //LOG_INFO("\terr -- invalid angle {} && {}", in_range, in_max_angle);
     return {};
 }

@@ -374,95 +374,111 @@ namespace ff {
     Recti ColliderTileMap::get_tile_area_for_rect(Rectf area) const {
         Rectf bbox = math::shift(area, -getPosition());
 
-        Rectf ts_bbox;
-        ts_bbox.left   = bbox.left / TILESIZE_F;
-        ts_bbox.top    = bbox.top  / TILESIZE_F;
-        ts_bbox.width  = ((bbox.left + bbox.width)  / TILESIZE_F) - ts_bbox.left;
-        ts_bbox.height = ((bbox.top  + bbox.height) / TILESIZE_F) - ts_bbox.top;
+        float left   = bbox.left;
+        float top    = bbox.top;
+        float right  = bbox.left + bbox.width;
+        float bottom = bbox.top  + bbox.height;
 
-        Recti tsi_bbox;
-        tsi_bbox.left   = static_cast<int>( ceilf(ts_bbox.left - 1.f));
-        tsi_bbox.top    = static_cast<int>( ceilf(ts_bbox.top  - 1.f));
-        tsi_bbox.width  = static_cast<int>(floorf(ts_bbox.left + ts_bbox.width  + 1.f)) - tsi_bbox.left;
-        tsi_bbox.height = static_cast<int>(floorf(ts_bbox.top  + ts_bbox.height + 1.f)) - tsi_bbox.top;
+        float left_r   = fmodf(left,   TILESIZE_F);
+        float top_r    = fmodf(top,    TILESIZE_F);
+        float right_r  = fmodf(right,  TILESIZE_F);
+        float bottom_r = fmodf(bottom, TILESIZE_F);
 
-        if (tsi_bbox.width == 0) {
-            tsi_bbox.left--;
-            tsi_bbox.width = 2;
-        }
-        if (tsi_bbox.height == 0) {
-            tsi_bbox.top--;
-            tsi_bbox.height = 2;
-        }
+        float epsilon = 0.01f;
 
-         Recti tilemap_bounds{ size_min, size_max - size_min };
+        if (left_r   < epsilon) left   -= 16.f;
+        if (top_r    < epsilon) top    -= 16.f;
+
+        right  += 16.f;
+        bottom += 16.f;
+
+        if (right_r  > TILESIZE_F - epsilon) right  += 16.f;
+        if (bottom_r > TILESIZE_F - epsilon) bottom += 16.f;
+
+        int lefti   = static_cast<int>(left)   / (int)TILESIZE;
+        int topi    = static_cast<int>(top)    / (int)TILESIZE;
+        int righti  = static_cast<int>(right)  / (int)TILESIZE;
+        int bottomi = static_cast<int>(bottom) / (int)TILESIZE;
+
+        int widthi  = righti  - lefti;
+        int heighti = bottomi - topi;
+
+        Recti tsi_bbox {
+            lefti,
+            topi,
+            widthi,
+            heighti
+        };
+
+        Recti tilemap_bounds{ size_min, size_max - size_min };
         tilemap_bounds.intersects(tsi_bbox, tsi_bbox);
 
         return tsi_bbox;
     }
 
-    std::optional<QuadID> ColliderTileMap::first_quad_in_rect(Rectf area) const {
-        auto tsi_bbox = get_tile_area_for_rect(area);
+    std::optional<QuadID> ColliderTileMap::first_quad_in_rect(Rectf area, Recti& tile_area) const {
+        tile_area = get_tile_area_for_rect(area);
 
-        if (tsi_bbox.width == 0 || tsi_bbox.height == 0)
+        if (tile_area.width == 0 || tile_area.height == 0)
             return {};
 
-        Vec2i pos = { tsi_bbox.left, tsi_bbox.top };
+        Vec2i pos = { tile_area.left, tile_area.top };
 
         // next quadid
-        auto iterate_pos = [&tsi_bbox](Vec2i& pos) -> bool{
+        auto iterate_pos = [](Vec2i& pos, const Recti& tile_area) -> bool {
             ++pos.x;
-
-            if (pos.x >= tsi_bbox.left + tsi_bbox.width)
-            {
-                pos.x = tsi_bbox.left;
+            if (pos.x >= tile_area.left + tile_area.width) {
+                pos.x = tile_area.left;
                 ++pos.y;
             }
-
-            if (pos.y >= tsi_bbox.top + tsi_bbox.height)
-            {
-                return false;
-            }
-            return true;
+            return pos.y < tile_area.top + tile_area.height;
         };
 
         const ColliderQuad* quad = get_quad(pos);
         bool in_bounds = true;
 
         while (!quad && in_bounds) {
-            in_bounds = iterate_pos(pos);
+            in_bounds = iterate_pos(pos, tile_area);
             quad = in_bounds ? get_quad(pos) : nullptr;
+        }
+
+        if (quad
+            &&  debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_TRACKER))
+        {
+            auto& lines = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_TRACKER>(Primitive::LINE_STRIP, 5);
+            lines[0].pos = (Vec2f{ tile_area.topleft()  } * TILESIZE_F) + getPosition();
+            lines[1].pos = (Vec2f{ tile_area.topright() } * TILESIZE_F) + getPosition();
+            lines[2].pos = (Vec2f{ tile_area.botright() } * TILESIZE_F) + getPosition();
+            lines[3].pos = (Vec2f{ tile_area.botleft()  } * TILESIZE_F) + getPosition();
+            lines[4].pos = (Vec2f{ tile_area.topleft()  } * TILESIZE_F) + getPosition();
+
+            lines[0].color = ff::Color::Blue;
+            lines[1].color = ff::Color::Blue;
+            lines[2].color = ff::Color::Blue;
+            lines[3].color = ff::Color::Blue;
+            lines[4].color = ff::Color::Blue;
         }
 
         return quad ? std::make_optional(quad->getID()) : std::nullopt;
     }
-    std::optional<QuadID> ColliderTileMap::next_quad_in_rect(Rectf area, QuadID quadid) const {
-        auto tsi_bbox = get_tile_area_for_rect(area);
-
+    std::optional<QuadID> ColliderTileMap::next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area) const {
         Vec2i pos = to_pos(quadid);
 
         // next quadid
-        auto iterate_pos = [&tsi_bbox](Vec2i& pos) -> bool{
+        auto iterate_pos = [](Vec2i& pos, const Recti& tile_area) -> bool {
             ++pos.x;
-
-            if (pos.x >= tsi_bbox.left + tsi_bbox.width)
-            {
-                pos.x = tsi_bbox.left;
+            if (pos.x >= tile_area.left + tile_area.width) {
+                pos.x = tile_area.left;
                 ++pos.y;
             }
-
-            if (pos.y >= tsi_bbox.top + tsi_bbox.height)
-            {
-                return false;
-            }
-            return true;
+            return pos.y < tile_area.top + tile_area.height;
         };
 
         bool in_bounds = true;
         const ColliderQuad* quad = nullptr;
 
         while (!quad && in_bounds) {
-            in_bounds = iterate_pos(pos);
+            in_bounds = iterate_pos(pos, tile_area);
             quad = in_bounds ? get_quad(pos) : nullptr;
         }
 

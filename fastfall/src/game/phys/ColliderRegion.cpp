@@ -96,14 +96,18 @@ void imgui_component(World& w, ID<ColliderRegion> id) {
 }
 
 ColliderRegion::QuadIterator& ColliderRegion::QuadIterator::operator++() {
-    curr_quad = region->next_quad_in_rect(area, *curr_quad);
+    curr_quad = region->next_quad_in_rect(area, *curr_quad, tile_area);
     return *this;
 }
 
 const ColliderRegion::QuadIterator::value_type* ColliderRegion::QuadIterator::operator->() const { return region->get_quad(*curr_quad); }
 const ColliderRegion::QuadIterator::value_type& ColliderRegion::QuadIterator::operator* () const { return *region->get_quad(*curr_quad); }
 
-ColliderRegion::QuadIterator ColliderRegion::QuadArea::begin() const { return QuadIterator{ region, area, region->first_quad_in_rect(area) }; }
-ColliderRegion::QuadIterator ColliderRegion::QuadArea::end()   const { return QuadIterator{ region, area, std::nullopt }; }
+ColliderRegion::QuadIterator ColliderRegion::QuadArea::begin() const {
+    Recti tile_area;
+    auto quad = region->first_quad_in_rect(area, tile_area);
+    return QuadIterator{ region, area, quad, tile_area };
+}
+ColliderRegion::QuadIterator ColliderRegion::QuadArea::end()   const { return QuadIterator{ region, area, std::nullopt, {} }; }
 
 }

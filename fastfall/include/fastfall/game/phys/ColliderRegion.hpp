@@ -12,17 +12,16 @@ namespace ff {
 
 class ColliderRegion {
 protected:
-    virtual std::optional<QuadID> first_quad_in_rect(Rectf area) const = 0;
-    virtual std::optional<QuadID> next_quad_in_rect(Rectf area, QuadID quadid) const = 0;
+    virtual std::optional<QuadID> first_quad_in_rect(Rectf area, Recti& tile_area) const = 0;
+    virtual std::optional<QuadID> next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area) const = 0;
 
 public:
     struct QuadIterator {
     public:
         using value_type = const ColliderQuad;
 
-
-        QuadIterator(const ColliderRegion* t_region, Rectf t_area, std::optional<QuadID> t_quad = {})
-            : region(t_region), area(t_area), curr_quad(t_quad)
+        QuadIterator(const ColliderRegion* t_region, Rectf t_area, std::optional<QuadID> t_quad, Recti t_tile_area)
+            : region(t_region), area(t_area), curr_quad(t_quad), tile_area(t_tile_area)
         {};
 
         QuadIterator(const QuadIterator&) = default;
@@ -44,6 +43,7 @@ public:
         const ColliderRegion* region    = nullptr;
         Rectf area                      = {};
         std::optional<QuadID> curr_quad = {};
+        Recti tile_area                 = {};
     };
 
     struct QuadArea {
