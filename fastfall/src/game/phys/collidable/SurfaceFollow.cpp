@@ -18,15 +18,7 @@ bool SurfaceFollow::compare_paths(float travel_dir, const surface_path& from, co
     Angle curr_ang  = math::angle(pick.line)      - ang;
     Angle cand_ang  = math::angle(candidate.line) - ang;
 
-    /*
-    if (travel_dir > 0.f ? cand_ang < curr_ang : cand_ang < curr_ang) {
-        return true;
-    }
-    */
-
-    return cand_ang < curr_ang;
-
-    //return false;
+    return travel_dir > 0.f ? cand_ang < curr_ang : cand_ang > curr_ang;
 }
 
 SurfaceFollow::SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, float distance, SurfaceTracker::applicable_ang_t angle_ranges, Angle max_angle)
