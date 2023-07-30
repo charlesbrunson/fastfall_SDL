@@ -153,7 +153,7 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
         inter  = math::intersection(path, curr_path.line);
     }
 
-    Rectf bounds = math::line_bounds(curr_path.line);
+    //Rectf bounds = math::line_bounds(curr_path.line);
 
     std::optional<Vec2f> intersect;
     if (inter != Vec2f{NAN, NAN})

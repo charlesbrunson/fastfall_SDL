@@ -430,7 +430,6 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             for (int i = 0; i < 8; ++i) {
                 quad_lines[(n * 8) + i].color = ff::Color::White;
             }
-
             ++n;
         }
 
@@ -444,12 +443,9 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             lines[(n * 6) + 4].pos = can.line.p2;
             lines[(n * 6) + 5].pos = can.line.p2 - math::normal(can.line) * 2.f;
 
-            lines[(n * 6) + 0].color = ff::Color::Green;
-            lines[(n * 6) + 1].color = ff::Color::Green;
-            lines[(n * 6) + 2].color = ff::Color::Green;
-            lines[(n * 6) + 3].color = ff::Color::Green;
-            lines[(n * 6) + 4].color = ff::Color::Green;
-            lines[(n * 6) + 5].color = ff::Color::Green;
+            for (int i = 0; i < 6; ++i) {
+                lines[(n * 6) + i].color = ff::Color::Green;
+            }
             ++n;
         }
     }
