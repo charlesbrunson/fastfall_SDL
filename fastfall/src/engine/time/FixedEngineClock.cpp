@@ -15,19 +15,18 @@ void FixedEngineClock::setFPS(unsigned fps) noexcept
 	target_fps = fps;
 	reset();
 }
-FixedEngineClock::Tick FixedEngineClock::tick() noexcept
+FixedEngineClock::Tick FixedEngineClock::tick(float timescale) noexcept
 {
 	using namespace std::chrono;
 
-	updateTickWindow();
+	updateTickWindow(timescale);
 
 	last_now = curr_now;
 	curr_now = engineClock.now();
 
-	auto ups_delta = time_res{ 1s } / target_ups;
-
+	auto     ups_delta    = duration_cast<time_res>(sec_rep{ 1.f / timescale }) / target_ups;
 	unsigned update_count = (unsigned)std::min(size_t{ 3 }, fixed_tick - fixed_tick_prev);
-	float interp = sec_rep{ curr_now - fixed_start } / ups_delta;
+	float    interp       = sec_rep{ curr_now - fixed_start } / ups_delta;
 
 	tickCount += update_count;
 
@@ -57,7 +56,6 @@ void FixedEngineClock::sleep() noexcept
 	}
 }
 
-
 secs FixedEngineClock::upsDuration() const noexcept {
 	using namespace std::chrono;
 	return sec_rep{ time_res{ 1s } / target_ups }.count();
@@ -82,30 +80,39 @@ void FixedEngineClock::reset() noexcept
 	updateTickWindow();
 }
 
-void FixedEngineClock::updateTickWindow() noexcept 
+void FixedEngineClock::updateTickWindow(float timescale) noexcept
 {
 	using namespace std::chrono;
 	auto now = engineClock.now();
 
+    bool n_timescale = time_scale != timescale;
+    time_scale = timescale;
+
 	if (target_ups > 0) {
-		auto ups_delta = time_res{ 1s } / target_ups;
+        auto ups_delta  = duration_cast<time_res>(sec_rep{ 1.f / timescale }) / target_ups;
 		fixed_tick_prev = fixed_tick;
-		fixed_tick = (now.time_since_epoch() / ups_delta);
-		fixed_start = time_point{ (now.time_since_epoch() / ups_delta) * ups_delta };
-		fixed_end = fixed_start + ups_delta;
+		fixed_tick      = (now.time_since_epoch() / ups_delta);
+
+        if (n_timescale || updated_target_ups) {
+            fixed_tick_prev = fixed_tick - 1;
+        }
+
+		fixed_start     = time_point{ (now.time_since_epoch() / ups_delta) * ups_delta };
+		fixed_end       = fixed_start + ups_delta;
 	}
+    updated_target_ups = false;
 
 	if (target_fps != FPS_UNLIMITED) {
-		auto fps_delta = time_res{ 1s } / target_fps;
+		auto fps_delta  = time_res{ 1s } / target_fps;
 		frame_tick_prev = frame_tick;
-		frame_tick = (now.time_since_epoch() / fps_delta);
-		frame_start = time_point{ (now.time_since_epoch() / fps_delta) * fps_delta };
-		frame_end = frame_start + fps_delta;
+		frame_tick      = (now.time_since_epoch() / fps_delta);
+		frame_start     = time_point{ (now.time_since_epoch() / fps_delta) * fps_delta };
+		frame_end       = frame_start + fps_delta;
 	}
 	else {
 		frame_tick_prev = frame_tick;
 		frame_tick++;
 		frame_start =  now;
-		frame_end =  now;
+		frame_end   =  now;
 	}
 }

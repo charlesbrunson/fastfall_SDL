@@ -310,7 +310,7 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
 
     Vec2f curr_pos = init_pos;
     //LOG_INFO("path follow");
-    size_t interations = 0;
+    //size_t interations = 0;
     while (follower.remaining_distance() > 0.f) {
         //LOG_INFO("iter {} at {}->{}", interations++, follower.current_path().line.p1, follower.current_path().line.p2);
         surface_map.clear();

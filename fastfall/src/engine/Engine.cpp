@@ -447,19 +447,19 @@ void Engine::close() {
 
 void Engine::updateTimer() {
 
-    tick = clock.tick();
+    tick = clock.tick(gamespeed);
 
     if (window) {
         bool resetTimers = false;
         handleEvents(&resetTimers);
         if (resetTimers) {
-			tick = clock.tick();
+			tick = clock.tick(gamespeed);
         }
     }
 
     if (ResourceWatcher::is_watch_running()) {
         if (Resources::reloadOutOfDateAssets()) {
-           clock.tick();
+           clock.tick(gamespeed);
         }
     }
 
@@ -1075,6 +1075,8 @@ void Engine::ImGui_getContent(secs deltaTime) {
     if (ImGui::DragInt("UPS", &ups, 5, 10, 500, "%d")) {
         clock.setTargetUPS(ups);
     }
+
+    ImGui::DragFloat("Timescale", &gamespeed, 0.05f, 0.1f, 3.0);
 }
 
 void Engine::ImGui_getExtraContent() {

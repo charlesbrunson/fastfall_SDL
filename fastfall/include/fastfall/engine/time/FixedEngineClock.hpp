@@ -13,8 +13,8 @@ private:
 		std::chrono::steady_clock >::type;
 
 	using time_point = std::chrono::time_point<clock_type>;
-	using time_res = std::chrono::nanoseconds;
-	using sec_rep = std::chrono::duration<double>;
+	using time_res   = std::chrono::nanoseconds;
+	using sec_rep    = std::chrono::duration<double>;
 
 public:
 	constexpr static unsigned MIN_UPS = 10;
@@ -33,7 +33,7 @@ public:
 
 public:
 	void setFPS(unsigned fps) noexcept;
-	Tick tick() noexcept;
+	Tick tick(float timescale = 1.f) noexcept;
 	void sleep() noexcept;
 
 	void reset() noexcept;
@@ -42,7 +42,11 @@ public:
 
 public:
 	inline void setTargetFPS(unsigned fps)  noexcept { target_fps = fps; }
-	inline void setTargetUPS(unsigned ups)  noexcept { target_ups = (std::max)(ups, MIN_UPS); }
+	inline void setTargetUPS(unsigned ups)  noexcept {
+        auto prev_ups = target_ups;
+        target_ups = (std::max)(ups, MIN_UPS);
+        updated_target_ups |= target_ups != prev_ups;
+    }
 
 	inline unsigned getTargetFPS()  const noexcept { return target_fps; }
 	inline unsigned getTargetUPS()  const noexcept { return target_ups; }
@@ -54,10 +58,14 @@ public:
 	secs fpsDuration() const noexcept;
 
 private:
-	void updateTickWindow() noexcept;
+	void updateTickWindow(float timescale = 1.f) noexcept;
 
 	unsigned target_ups;
 	unsigned target_fps;
+
+    float time_scale = 1.f;
+
+    bool updated_target_ups = false;
 
 	clock_type engineClock;
 	time_res tickDuration;
