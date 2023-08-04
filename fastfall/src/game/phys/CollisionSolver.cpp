@@ -348,34 +348,9 @@ GhostEdge isGhostEdge(const ContinuousContact& basis, const ContinuousContact& c
 
 	float dotp1 = math::dot(basisNormal, candLine.p1 - basisLine.p2);
 	float dotp2 = math::dot(basisNormal, candLine.p2 - basisLine.p1);
-    //LOG_INFO("dot1:{} dot2:{}", dotp1, dotp2);
-	 
-	//bool is_ghost = false;
-
-    bool shares_p1 = basisLine.p1 == candLine.p2;
-    bool shares_p2 = basisLine.p2 == candLine.p1;
 
 	// candidate is full *behind* basis surface
-	bool opt1;
-
-	if (shares_p1) {
-		// surfaces share a point
-		opt1 = (dotp1 < 0.f && dotp2 <= 0.f);
-	}
-    else if (shares_p2) {
-        // surfaces share a point
-        opt1 = (dotp1 <= 0.f && dotp2 < 0.f);
-    }
-
-
-    /*
-    if (shares_p1 || shares_p2) {
-        opt1 = (dotp1 < 0.f && dotp2 < 0.f);
-    }
-    */
-	else {
-		opt1 = (dotp1 <= 0.f && dotp2 < 0.f) || (dotp1 < 0.f && dotp2 <= 0.f);
-	}
+	bool opt1 = (dotp1 <= 0.f && dotp2 < 0.f) || (dotp1 < 0.f && dotp2 <= 0.f);
 
 	// prefer selecting verticals as the ghost edge
 	bool opt2 = (!math::is_vertical(basisLine) && math::is_vertical(candLine) && dotp1 <= 0.f && dotp2 <= 0.f);

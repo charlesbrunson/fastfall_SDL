@@ -391,22 +391,6 @@ bool line_has_point(const Line<T> &a, const Vec2<T>& p, float tolerance = 0.f) {
 
     return b_dist <= a_dist + tolerance
        &&  b_dist >= a_dist - tolerance;
-
-    /*
-    if (    b_dist <= a_dist + tolerance
-        &&  b_dist >= a_dist - tolerance)
-    {
-        if (is_vertical(a)) {
-            return p.y >= std::min(a.p1.y, a.p2.y)
-                && p.y <= std::max(a.p1.y, a.p2.y);
-        }
-        else {
-            return p.x >= std::min(a.p1.x, a.p2.x)
-                && p.x <= std::max(a.p1.x, a.p2.x);
-        }
-    }
-    return false;
-    */
 }
 
 }
