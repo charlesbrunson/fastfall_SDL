@@ -18,8 +18,17 @@ std::string_view contactTypeToString(ContactType t) {
 std::weak_ordering compare_contact(const ContinuousContact& lhs, const ContinuousContact& rhs) {
 
     // favor valid contact
+    /*
     if (lhs.hasContact != rhs.hasContact) {
         return lhs.hasContact ? std::weak_ordering::less : std::weak_ordering::greater;
+    }
+    */
+
+    // favor centered contact if floor/ceiling
+    if (math::is_vertical(lhs.ortho_n) && math::is_vertical(rhs.ortho_n)
+        && lhs.on_center != rhs.on_center)
+    {
+        return lhs.on_center ? std::weak_ordering::less : std::weak_ordering::greater;
     }
 
     // favor contact with impact time
@@ -27,12 +36,12 @@ std::weak_ordering compare_contact(const ContinuousContact& lhs, const Continuou
         return lhs.hasImpactTime ? std::weak_ordering::less : std::weak_ordering::greater;
     }
 
-    // favor earliest impact time
+    // favor the earliest impact time
     if (lhs.hasImpactTime && rhs.hasImpactTime && lhs.impactTime != rhs.impactTime) {
         return lhs.impactTime < rhs.impactTime ? std::weak_ordering::less : std::weak_ordering::greater;
     }
 
-    // favor least separation
+    // favor the least separation
     if (lhs.separation != rhs.separation) {
         return lhs.separation < rhs.separation ? std::weak_ordering::less : std::weak_ordering::greater;
     }

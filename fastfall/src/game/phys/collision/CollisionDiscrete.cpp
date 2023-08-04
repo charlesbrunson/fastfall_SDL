@@ -292,6 +292,7 @@ void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
 
 			axis.contact.separation = -Y + (cMid.y + cHalf.y);
 			axis.contact.position = Vec2f(math::clamp(cMid.x, tArea.left, tArea.left + tArea.width), Y);
+            axis.contact.on_center = axis.contact.position.x == cMid.x;
 
 			// calc stick
 			Vec2f pMid = math::rect_mid(cPrev);
@@ -346,6 +347,7 @@ void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
 
 			axis.contact.separation = Y - (cMid.y - cHalf.y);
 			axis.contact.position = Vec2f(math::clamp(cMid.x, tArea.left, tArea.left + tArea.width), Y);
+            axis.contact.on_center = axis.contact.position.x == cMid.x;
 
 			// calc stick
 			Vec2f pMid = math::rect_mid(cPrev);

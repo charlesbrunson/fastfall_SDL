@@ -709,7 +709,7 @@ TEST_F(surfacetracker, move_up_slope_to_oneway)
         collider->delta_velocity = nVel - collider->velocity;
         collider->velocity = nVel;
 
-        LOG_INFO("{} : {} + {} = {}", colMan->getFrameCount(), box->get_local_vel(), box->get_parent_vel(), box->get_global_vel());
+        //LOG_INFO("{} : {} + {} = {}", colMan->getFrameCount(), box->get_local_vel(), box->get_parent_vel(), box->get_global_vel());
         update();
         render.draw();
 

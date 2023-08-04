@@ -600,17 +600,19 @@ void imgui_status(World* w) {
 
     //const char* label, float v[2], float v_speed, float v_min, float v_max, const char* format, ImGuiSliderFlags flags
     float v[2] = {
-            w->system<CameraSystem>().currentPosition.x,
-            w->system<CameraSystem>().currentPosition.y,
+        w->system<CameraSystem>().currentPosition.x,
+        w->system<CameraSystem>().currentPosition.y,
     };
+
     if (ImGui::DragFloat2("Cam Pos", v)) {
         w->system<CameraSystem>().currentPosition.x = floor(v[0]);
         w->system<CameraSystem>().currentPosition.y = floor(v[1]);
     }
+
     float zoom = w->system<CameraSystem>().zoomFactor;
-    if (ImGui::DragFloat("Cam Zoom", &zoom, 0.01f, 0.25f, 2.f))
+    if (ImGui::DragFloat("Cam Zoom", &zoom, 0.025f, 0.25f, 2.f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
     {
-        w->system<CameraSystem>().zoomFactor = floorf(zoom * 4.f) / 4.f;
+        w->system<CameraSystem>().zoomFactor = zoom;
     }
 }
 
