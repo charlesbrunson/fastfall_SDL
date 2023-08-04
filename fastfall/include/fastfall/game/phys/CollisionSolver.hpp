@@ -110,4 +110,6 @@ public:
 
 };
 
+CollisionSolver::CompResult compare(const ContinuousContact* lhs, const ContinuousContact* rhs);
+
 }

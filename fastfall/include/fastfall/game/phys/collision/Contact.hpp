@@ -110,7 +110,7 @@ struct ContinuousContact : public DiscreteContact {
 
 };
 
-bool compare_contact(const ContinuousContact& lhs, const ContinuousContact& rhs);
+std::weak_ordering compare_contact(const ContinuousContact& lhs, const ContinuousContact& rhs);
 
 
 struct AppliedContact : public ContinuousContact {

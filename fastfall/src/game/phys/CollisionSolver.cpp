@@ -309,16 +309,25 @@ CollisionSolver::CompResult compare(const ContinuousContact* lhs, const Continuo
 			if (g2_isGhost && g1_isGhost) {
 				// pick one
 				if (g1 == g2) {
-					// double ghost, pick the one with least separation
-					g1_isGhost = !compare_contact(*lhs, *rhs);
+					// double ghost, pick the one with the least separation
+                    //g1_isGhost = !compare_contact(*lhs, *rhs);
+                    auto order = compare_contact(*lhs, *rhs);
+                    if (order == std::weak_ordering::equivalent) {
+                        g1_isGhost = false;
+                        g2_isGhost = false;
+                    }
+                    else {
+                        g1_isGhost = order == std::weak_ordering::greater;
+                        g2_isGhost = !g1_isGhost;
+                    }
 				}
 				else {
 					g1_isGhost = g2 < g1;
+                    g2_isGhost = !g1_isGhost;
 				}
-				g2_isGhost = !g1_isGhost;
 			}
 
-			comp.discardFirst = g1_isGhost;
+			comp.discardFirst  = g1_isGhost;
 			comp.discardSecond = g2_isGhost;
 		}
 	}
@@ -339,17 +348,31 @@ GhostEdge isGhostEdge(const ContinuousContact& basis, const ContinuousContact& c
 
 	float dotp1 = math::dot(basisNormal, candLine.p1 - basisLine.p2);
 	float dotp2 = math::dot(basisNormal, candLine.p2 - basisLine.p1);
+    //LOG_INFO("dot1:{} dot2:{}", dotp1, dotp2);
 	 
-	bool is_ghost = false;
+	//bool is_ghost = false;
+
+    bool shares_p1 = basisLine.p1 == candLine.p2;
+    bool shares_p2 = basisLine.p2 == candLine.p1;
 
 	// candidate is full *behind* basis surface
 	bool opt1;
-	if (candLine.p1 == basisLine.p2
-		|| candLine.p2 == basisLine.p1)
-	{
+
+	if (shares_p1) {
 		// surfaces share a point
-		opt1 = (dotp1 < 0.f && dotp2 < 0.f); // always false?
+		opt1 = (dotp1 < 0.f && dotp2 <= 0.f);
 	}
+    else if (shares_p2) {
+        // surfaces share a point
+        opt1 = (dotp1 <= 0.f && dotp2 < 0.f);
+    }
+
+
+    /*
+    if (shares_p1 || shares_p2) {
+        opt1 = (dotp1 < 0.f && dotp2 < 0.f);
+    }
+    */
 	else {
 		opt1 = (dotp1 <= 0.f && dotp2 < 0.f) || (dotp1 < 0.f && dotp2 <= 0.f);
 	}
@@ -542,7 +565,7 @@ std::vector<AppliedContact>&& CollisionSolver::solve(nlohmann::ordered_json* dum
 	north_alt.clear();
 	south_alt.clear();
 
-    auto cmp_contact_ptrs = [](auto* lhs, auto* rhs) { return compare_contact(*lhs, *rhs); };
+    auto cmp_contact_ptrs = [](auto* lhs, auto* rhs) { return compare_contact(*lhs, *rhs) == std::weak_ordering::less; };
 
 	std::sort(east.begin(), east.end(), cmp_contact_ptrs);
 	std::sort(west.begin(), west.end(), cmp_contact_ptrs);

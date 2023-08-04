@@ -310,7 +310,7 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
 		}
 
         local_vel += gravity_acc * deltaTime;
-		next_pos += gravity_acc * deltaTime * deltaTime;
+		next_pos  += gravity_acc * deltaTime * deltaTime;
 
 		local_precollision_vel = local_vel;
 		setPosition(next_pos);
