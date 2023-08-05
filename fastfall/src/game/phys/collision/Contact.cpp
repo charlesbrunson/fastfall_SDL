@@ -32,7 +32,7 @@ std::weak_ordering compare_contact(const ContinuousContact& lhs, const Continuou
     }
 
     // favor contact with impact time
-    if (lhs.hasImpactTime != rhs.hasImpactTime) {
+    if (lhs.ortho_n != rhs.ortho_n && lhs.hasImpactTime != rhs.hasImpactTime) {
         return lhs.hasImpactTime ? std::weak_ordering::less : std::weak_ordering::greater;
     }
 

@@ -82,20 +82,46 @@ TEST(ghostedge, slope_to_oneway) {
 
 }
 
-/*
-TEST(ghostedge, slope_to_oneway) {
-    ContinuousContact basis;
-    ContinuousContact cand;
+TEST(ghostedge, slopeceil_to_wall) {
+    ContinuousContact c1;
+    ContinuousContact c2;
 
-    basis.ortho_n    = Vec2f{ 0.f, -1.f };
-    basis.hasContact = true;
-    basis.separation = 1.f;
-    basis.impactTime = 0.0;
+    c1.hasContact       = true;
+    c1.separation       = 4.f;
+    c1.collider.surface = Linef{ {16, 0}, {16, 16} };
+    c1.ortho_n          = Vec2f{ 1, 0 };
+    c1.collider_n       = Vec2f{ 1, 0 };
+    c1.hasImpactTime    = false;
+    c1.impactTime       = -1.0;
+    c1.velocity         = Vec2f{ 0, 0 };
+    c1.is_transposed    = false;
+    c1.stickOffset      = 0.0;
+    c1.stickLine        = Linef{};
 
-    basis.collider.surface = Linef{ {0.f, 16.f}, {16.f, 0.f} };
-    cand.collider.surface  = Linef{ {16.f, 0.f}, {32.f, 0.f} };
+    c2.hasContact       = true;
+    c2.separation       = 4.f;
+    c2.collider.surface = Linef{ {16, 16}, {0, 32} };
+    c2.ortho_n          = Vec2f{ 0, 1 };
+    c2.collider_n       = Vec2f{ 0.70710677, 0.70710677 };
+    c2.hasImpactTime    = true;
+    c2.impactTime       = 0.5;
+    c2.velocity         = Vec2f{ 0, 0 };
+    c2.is_transposed    = false;
+    c2.stickOffset      = 0.0;
+    c2.stickLine        = Linef{};
 
-    auto ghost = isGhostEdge(basis, cand);
-    EXPECT_NE(ghost, GhostEdge::None);
+    auto ghost1 = isGhostEdge(c1, c2);
+    EXPECT_NE(ghost1, GhostEdge::None);
+
+    auto ghost2 = isGhostEdge(c2, c1);
+    EXPECT_NE(ghost2, GhostEdge::None);
+
+    auto result = compare(&c1, &c2);
+
+    EXPECT_EQ(ContactType::NO_SOLUTION, result.type);
+    EXPECT_EQ(false, result.contact.has_value());
+
+    EXPECT_EQ(true, result.discardFirst);
+    EXPECT_EQ(false, result.discardSecond);
+
 }
-*/

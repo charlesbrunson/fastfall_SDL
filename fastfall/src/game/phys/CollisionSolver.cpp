@@ -339,7 +339,7 @@ GhostEdge isGhostEdge(const ContinuousContact& basis, const ContinuousContact& c
 	if (!basis.is_resolvable())
 		return GhostEdge::None;
 
-	bool isOneWay = (!basis.hasContact) && (basis.separation > 0.f) && (basis.impactTime == -1.0);
+	//bool isOneWay = (!basis.hasContact) && (basis.separation > 0.f) && (basis.impactTime == -1.0);
 
 	Linef basisLine = basis.collider.surface;
 	Linef candLine = candidate.collider.surface;
@@ -360,7 +360,7 @@ GhostEdge isGhostEdge(const ContinuousContact& basis, const ContinuousContact& c
 
 	bool candidateBehind = opt1 || opt2 || opt3;
 
-	if (!isOneWay && candidateBehind) {
+	if (candidateBehind) {
 		return (opt1 ? GhostEdge::Full : GhostEdge::Partial);
 	}
 	else {

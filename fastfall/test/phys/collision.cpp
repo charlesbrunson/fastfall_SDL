@@ -186,7 +186,7 @@ TEST_F(collision, ghostcheck_slopedceil_to_wall)
 	EXPECT_EQ(contact.impactTime, 0.5f);
 
 
-	while (render.curr_frame < 8) {
+	while (render.curr_frame < 2) {
 		update();
 		render.draw();
 	}
