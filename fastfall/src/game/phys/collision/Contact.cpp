@@ -18,6 +18,7 @@ std::string_view contactTypeToString(ContactType t) {
 std::weak_ordering compare_contact(const ContinuousContact& lhs, const ContinuousContact& rhs) {
 
     // favor valid contact
+
     /*
     if (lhs.hasContact != rhs.hasContact) {
         return lhs.hasContact ? std::weak_ordering::less : std::weak_ordering::greater;

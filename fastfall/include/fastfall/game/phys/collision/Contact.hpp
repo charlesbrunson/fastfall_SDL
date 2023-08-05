@@ -50,6 +50,7 @@ struct DiscreteContact {
     bool hasValley = false;
 
     bool on_center = true;
+    bool is_solid  = true;
 
     const SurfaceMaterial *material = nullptr;
     std::optional<CollisionID> id;

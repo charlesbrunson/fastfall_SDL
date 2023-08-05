@@ -336,13 +336,26 @@ CollisionSolver::CompResult compare(const ContinuousContact* lhs, const Continuo
 
 GhostEdge isGhostEdge(const ContinuousContact& basis, const ContinuousContact& candidate) noexcept
 {
-	if (!basis.is_resolvable())
-		return GhostEdge::None;
 
-	//bool isOneWay = (!basis.hasContact) && (basis.separation > 0.f) && (basis.impactTime == -1.0);
+    bool can_ghost = basis.is_resolvable();
+
+
+
+	if (!can_ghost) {
+        return GhostEdge::None;
+    }
 
 	Linef basisLine = basis.collider.surface;
-	Linef candLine = candidate.collider.surface;
+	Linef candLine  = candidate.collider.surface;
+
+    // gross but okay
+    if (!basis.is_solid && !basis.hasContact) {
+        if (candLine.p1 != basisLine.p2
+            && candLine.p2 != basisLine.p1)
+        {
+            return GhostEdge::None;
+        }
+    }
 
 	Vec2f basisNormal = math::vector(basis.collider.surface).lefthand().unit();
 
@@ -358,9 +371,7 @@ GhostEdge isGhostEdge(const ContinuousContact& basis, const ContinuousContact& c
 	// candidate is opposite of basis
 	bool opt3 = (basisLine == Linef(candLine.p2, candLine.p1));
 
-	bool candidateBehind = opt1 || opt2 || opt3;
-
-	if (candidateBehind) {
+	if (opt1 || opt2 || opt3) {
 		return (opt1 ? GhostEdge::Full : GhostEdge::Partial);
 	}
 	else {

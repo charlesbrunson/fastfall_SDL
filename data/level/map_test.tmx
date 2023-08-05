@@ -38,7 +38,7 @@
    <property name="collision_border" value="NESW"/>
   </properties>
   <data encoding="base64" compression="zlib">
-   eJztmktKAzEch5MpCOIDilLd+Gx3uhHcCG6q1UrBlU+66EK9gEfwCD2CR/AI3syESWiIeU0mM0nK/4PfZqbNPPJNMskEYwQAAAAAQMtgvAgAtE2By4B/QAxE/2gOMvJwVCB0U+j3z8i+W5J79rtrw2+BOHD/qHeHEdz7JPmSMrf8h3s3ZDExLPQB4sP9Gyjc20+0PaziEfiXNty/0wQ9kzG55BMgPuL7H+0LbX0fAIRE9C/k+98E2hhAAGsi+heyv5qCf4CAzb8Ch38vmoB/AKMJ/75JfhT5Zfun4B/AiNH+mQg9loUxbdqAf0BMqvjHo/o24fJ9woWqPoF/eWPzr0PyEHjskYoP8N03Pi7zLyFJaf6Fngc4GJfQ/tnGvikgr1MQHbyyOCmui9wh2c3g+6TIMLHzbbv9i4Hsm0vo+qyxpW3cw+VaDBHZSZdy2oT6d5dIna6gOP612f/Oao6bq/ojO/nkWU4TjHHp32si/vVQdf9M419b5ii98ehjsXDE5mGIY5g8HDV8X16YfzRvkR3sIL17y9T/zhzr1OZhiDkA8RjyM0yfzecG/dsi9bjO6xSV6ZMMmjukkiOSY2R2b5n8q4rKQ9G9E3ZPzjO6L6J7on8pZ1n865Lz3/a4Bu6h3O7x97vLTO6L7F5u/p1h9Rp8H3w8qEuXPUNNHbuP/495VdtioHIvN/8ucLg1+E16oIP3l7b4npdYPndOta1tdO7l5h/vg+t6E2Pe1lQHctY8rlEuf4NkU7OtrWt+J8f4sFx3bLd8/OPerHpG1+7UKdOUHivfxT0fB6u4LXrIx710vBvSSe4dn18xnUtst1zyB+LMb+w=
+   eJztmklOwzAYRu1UQkIMUgUCNoztDjZIbJDYtHRAlVgxqosugAtwBI7QI3AEjsDNsJVYtYynOHbsRP+Tvk3S2hlePCUYIwAAAAAAagbjVQCgbjKcB/wDYsD7R3PcIA9HGULjTL1/QfZNSO6L391qfgvEgflHvTuJ4N4nyZeQpeE/zLtBER2DTB0gPsy/vsS9o8TaQ51LLgHiw/y7SMgzFeBf++DHf7QvNPV9AOAT3j+f478ZtDEAB1aE989nfzUv8R82l5iAr63F5F+G/Y+LZhZlDQXHYY2knYTw75vkR5LfYv/cUNZY0c6Cg+0jRvtnwvd8Fsab6ZKaf6q2D/xrJ2X8Y5G9m7B5P2FDWZ/Av2Zj8q9D8uB57pGKDzCejI/N+otPyqy/hAbmNPHx7Z9p7psC4ncKvINDg5P8d5H7JAcNeD/JM0jseOtu/2Ig+mYTuuY9NbSNhzj/FoNHdNKmnDqh/t0lck/XUBz/6ux/FxXnzWX9EZ18ciwnBFOc+/eaiH97qLx/uvmvKUuU3nz0MVs5YvLQRx06D0eBr8tL4R/NW2QHO0jtXpv634XlPTV56GMNgK9DfIbps/kc0L8dch832T1FeXok/XBVSjklOUN699rkX1lkHvLunRfX5KpB14V3j/cv5bTFvy45/l2Hc2Aeiu0eG9/dNOS6iO41zb9LLP8G3wUXD6rSLZ6hUHX38P85r2xbDGTuNc2/a+zvG/yQHqhg/aUprsfFl8+ck22rG5V7TfOP9cFVvYmxbqu7B2I2HM5RLH+LZFuxra5zfid1fBjOO7ZbLv4xb9Ydo2p3qpSpy15Rvo17Lg6WcZv3kM176XzXp5PMO7a+ojuW2G7Z5A/lG3YH
   </data>
  </layer>
  <objectgroup id="4" name="OBJ">
@@ -84,7 +84,7 @@
    </properties>
    <polyline points="-542.233,-53.9038 -542.233,-21.9038 -510.233,10.0962 -350,10 -318,-22 -318,-54 -350,-86 -510.233,-85.9038 -542,-54"/>
   </object>
-  <object id="31" type="TilePlatform" x="720" y="80" width="64" height="48">
+  <object id="31" type="TilePlatform" x="720" y="80" width="64" height="32">
    <properties>
     <property name="layer" type="int" value="1"/>
     <property name="path" type="object" value="34"/>
@@ -117,8 +117,8 @@
    </properties>
    <polyline points="-512,-176 -384,-176"/>
   </object>
-  <object id="35" type="JetPlatform" x="624" y="96" width="48" height="16"/>
-  <object id="36" type="TilePlatform" x="880" y="64" width="64" height="64">
+  <object id="35" type="JetPlatform" x="624" y="144" width="48" height="16"/>
+  <object id="36" type="TilePlatform" x="880" y="64" width="64" height="48">
    <properties>
     <property name="layer" type="int" value="1"/>
     <property name="path" type="object" value="37"/>
