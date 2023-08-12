@@ -504,46 +504,26 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
 		Vec2f cpSize = cPrev.getSize() * 0.5f;
         Vec2f cSize  = cBox.getSize() * 0.5f;
 
-        //Linef curr_line;
-		Linef prev_line;
+		Linef prev_line  = axis.contact.collider.surface;
 		bool valid_ghost = true;
 		if (cpMid.x < axis.contact.collider.surface.p1.x - collider_deltap.x)
 		{
 			valid_ghost = !axis.contact.collider.g0virtual;
-            //prev_line = axis.contact.collider.getGhostPrev();
-            prev_line = valid_ghost
-                    ? axis.contact.collider.getGhostPrev()
-                    : Linef{ axis.contact.collider.surface.p1 + Vec2f{-1, 1}, axis.contact.collider.surface.p1 };
-            //curr_line = { axis.contact.collider.surface.p1 + Vec2f{-1, 16}, axis.contact.collider.surface.p1 };
+            prev_line   = axis.contact.collider.getGhostPrev();
 		}
 		else if (cpMid.x > axis.contact.collider.surface.p2.x - collider_deltap.x)
 		{
 			valid_ghost = !axis.contact.collider.g3virtual;
-            //prev_line = axis.contact.collider.getGhostNext();
-            prev_line = valid_ghost
-                    ? axis.contact.collider.getGhostNext()
-                    : Linef{ axis.contact.collider.surface.p2, axis.contact.collider.surface.p2 + Vec2f{1, 1} };
-            //curr_line = { axis.contact.collider.surface.p2, axis.contact.collider.surface.p2 + Vec2f{16, 2} };
-		}
-		else 
-		{
-            prev_line = axis.contact.collider.surface;
-            //curr_line = axis.contact.collider.surface;
+            prev_line   = axis.contact.collider.getGhostNext();
 		}
 
         prev_line = math::shift(prev_line, -collider_deltap);
-        //curr_line = math::shift(curr_line, -collider_deltap);
         float slipv = (cSlip.state == Collidable::SlipState::SlipVertical && cVel.y >= 0.f) ? cSlip.leeway : 0.f;
 
         bool not_vertical = !math::is_vertical(prev_line);
-        //bool can_slip     = valid_ghost || slipv != 0;
         bool prev_above   = getYforX(prev_line, cpMid.x) >= cpMid.y + cpSize.y - slipv;
-        //bool curr_above   = getYforX(curr_line, cMid.x)  >= cMid.y  + cSize.y  - slipv;
-        //bool falling      = cVel.y >= 0.f;
 
-		axis.axisValid = not_vertical
-			//&& can_slip
-			&& prev_above;
+		axis.axisValid = not_vertical && prev_above;
 	}
 
 	return axis;
@@ -566,32 +546,24 @@ CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcep
 		Vec2f cpSize = cPrev.getSize() * 0.5f;
         Vec2f cSize = cBox.getSize() * 0.5f;
 
-		Linef prev_line;
+		Linef prev_line = axis.contact.collider.surface;
 		bool valid_ghost = true;
 		if (cpMid.x < axis.contact.collider.surface.p2.x - collider_deltap.x)
 		{
 			valid_ghost = !axis.contact.collider.g3virtual;
-            prev_line = valid_ghost
-                    ? axis.contact.collider.getGhostNext()
-                    : Linef{ axis.contact.collider.surface.p2 + Vec2f{-1, -1}, axis.contact.collider.surface.p2 };
+            prev_line = axis.contact.collider.getGhostNext();
 		}
 		else if (cpMid.x > axis.contact.collider.surface.p1.x - collider_deltap.x)
 		{
 			valid_ghost = !axis.contact.collider.g0virtual;
-            prev_line = valid_ghost
-                    ? axis.contact.collider.getGhostPrev()
-                    : Linef{ axis.contact.collider.surface.p1, axis.contact.collider.surface.p1 + Vec2f{1, -1} };
+            prev_line = axis.contact.collider.getGhostPrev();
 		}
-		else
-		{
-            prev_line = axis.contact.collider.surface;
-		}
+        
         prev_line = math::shift(prev_line, -collider_deltap);
         float slipv = (cSlip.state == Collidable::SlipState::SlipVertical && cVel.y <= 0.f) ? cSlip.leeway : 0.f;
 
         bool not_vertical = !math::is_vertical(prev_line);
         bool prev_above   = getYforX(prev_line, cpMid.x) <= cpMid.y - cpSize.y + slipv;
-
 
 		axis.axisValid = not_vertical && prev_above;
 	}

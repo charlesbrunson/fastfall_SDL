@@ -108,9 +108,11 @@ JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLe
         {
             auto [attach, collider, collidable] = w.at(aid, cid, c.id->collidable);
 
+            Vec2f precontact_vel = c.collidable_precontact_velocity - attach.global_vel();
+            precontact_vel.y = std::max(0.f, precontact_vel.y);
             Vec2f push_vel{};
             Vec2f push_acc{};
-            push_vel.y += (c.collidable_precontact_velocity - attach.global_vel()).y * 0.9f;
+            push_vel.y += precontact_vel.y * 0.9f;
 
             if (auto& track = collidable.tracker();
                 track && track->has_contact_with(cid))
