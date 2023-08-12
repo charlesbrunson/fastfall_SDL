@@ -43,7 +43,7 @@ PlayerStateID PlayerGroundState::update(ff::World& w, plr::members& plr, secs de
 
 		move_t move{ w, plr };
 
-		bool speeding = false;
+		//bool speeding = false;
 
 		// clamp ground max speed to current speed and normal speed
 		ground.settings.max_speed =
@@ -51,15 +51,17 @@ PlayerStateID PlayerGroundState::update(ff::World& w, plr::members& plr, secs de
 
 		// if we're going faster than normal, force decceleration
 		if (move.speed > constants::norm_speed && ground.settings.has_friction) {
-			speeding = true;
+			//speeding = true;
 			ground.traverse_add_decel(constants::ground_high_decel);
 		}
 
+        /*
 		auto accel = [&](int dir) 
 		{
 			ground.traverse_add_accel(dir * constants::ground_accel);
 			ground.settings.surface_friction = constants::moving;
 		};
+        */
 
 		auto brake = [&](bool is_idle)
 		{
@@ -71,7 +73,7 @@ PlayerStateID PlayerGroundState::update(ff::World& w, plr::members& plr, secs de
 					move.rel_movex < 0 ? anim::brakeb : anim::brakef
 				);
 
-				if (move.speed <= 250.f) {
+				if (move.speed <= 200.f) {
 					sprite.set_frame(1);
 				}
 				heavy_brake = sprite.get_frame() == 0;

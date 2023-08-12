@@ -62,7 +62,11 @@
 	<animation name="brake_back">
 		<area   x="96" y="0" w="32" h="32" />
 		<origin x="16" y="32" />
-		<framerate count="3" defaultMS="83.3333333333"/>
+		<framerate>
+			<frame>120</frame>
+			<frame>80</frame>
+			<frame>80</frame>
+		</framerate>
 		<loop>1</loop>
 		<chainsTo sprite="player.sax" name="idle" frame="0"/>
 	</animation>
@@ -70,7 +74,11 @@
 	<animation name="brake_front">
 		<area   x="192" y="0" w="32" h="32" />
 		<origin x="16" y="32" />
-		<framerate count="3" defaultMS="83.3333333333"/>
+		<framerate>
+			<frame>120</frame>
+			<frame>80</frame>
+			<frame>80</frame>
+		</framerate>
 		<loop>1</loop>
 		<chainsTo sprite="player.sax" name="idle" frame="0"/>
 	</animation>
