@@ -610,7 +610,7 @@ void imgui_status(World* w) {
     }
 
     float zoom = w->system<CameraSystem>().zoomFactor;
-    if (ImGui::DragFloat("Cam Zoom", &zoom, 0.025f, 0.25f, 2.f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+    if (ImGui::DragFloat("Cam Zoom", &zoom, 0.025f, 0.25f, 3.f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
     {
         w->system<CameraSystem>().zoomFactor = zoom;
     }
