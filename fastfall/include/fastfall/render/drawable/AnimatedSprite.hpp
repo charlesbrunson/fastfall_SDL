@@ -39,7 +39,7 @@ public:
 	inline unsigned	get_frame()  noexcept { return current_frame; };
 
 	void update(secs deltaTime) override;
-	void predraw(float interp, bool updated) override;
+	void predraw(predraw_state_t predraw_state) override;
 
 	bool is_complete() const noexcept;
 	bool is_complete(AnimID id) const noexcept;

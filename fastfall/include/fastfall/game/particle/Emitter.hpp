@@ -86,7 +86,7 @@ namespace ff {
         std::vector<Particle>  particles;
 
         void update(secs deltaTime);
-        void predraw(VertexArray& varr, SceneConfig& cfg, float interp, bool updated);
+        void predraw(VertexArray& varr, SceneConfig& cfg, predraw_state_t predraw_state);
 
         void clear_particles();
         void reset(size_t s) {

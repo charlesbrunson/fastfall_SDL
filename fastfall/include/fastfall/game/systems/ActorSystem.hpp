@@ -16,7 +16,7 @@ class World;
 class ActorSystem {
 public:
 	void update(World& world, secs deltaTime);
-	void predraw(World& world, float interp, bool updated);
+	void predraw(World& world, predraw_state_t predraw_state);
 
     void notify_created(World& world, ID<Actor> id);
     void notify_erased(World& world, ID<Actor> id);

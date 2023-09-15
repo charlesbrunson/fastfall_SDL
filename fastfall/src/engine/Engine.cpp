@@ -447,19 +447,24 @@ void Engine::close() {
 
 void Engine::updateTimer() {
 
-    tick = clock.tick(gamespeed);
+    tick = clock.tick();
+
+    if (next_timescale) {
+        clock.setTimescale(*next_timescale);
+        next_timescale.reset();
+    }
 
     if (window) {
         bool resetTimers = false;
         handleEvents(&resetTimers);
         if (resetTimers) {
-			tick = clock.tick(gamespeed);
+			tick = clock.tick();
         }
     }
 
     if (ResourceWatcher::is_watch_running()) {
         if (Resources::reloadOutOfDateAssets()) {
-           clock.tick(gamespeed);
+           clock.tick();
         }
     }
 
@@ -526,26 +531,21 @@ void Engine::updateRunnables()
 }
 void Engine::predrawRunnables() 
 {
-    float interp = tick.interp_value;
-
-    if (pauseUpdate && hasUpdated) {
-        pauseInterpolation = true;
-    }
-    else if (!pauseUpdate) {
-        pauseInterpolation = false;
-    }
-
-    if (pauseInterpolation) {
-        interp = 1.f;
-    }
+    float interp = interpolate ? tick.interp_value : 1.f;
 
     WindowState state {
         .scale = get_window_scale(),
         .window_size = Vec2u{ get_window()->getSize() }
     };
 
+    predraw_state_t predraw_state{
+        .interp    = interp,
+        .updated   = hasUpdated,
+        .update_dt = clock.upsDuration()
+    };
+
     for (auto& run : runnables) {
-        run.getStateHandle().getActiveState()->predraw(interp, hasUpdated, &state);
+        run.getStateHandle().getActiveState()->predraw(predraw_state, &state);
     }
     if (settings.showDebug) {
         if (hasUpdated) {
@@ -1043,12 +1043,17 @@ void Engine::ImGui_getContent(secs deltaTime) {
 
     ImGui::Separator();
 
+    ImGui::Checkbox("Interpolate", &interpolate);
+    ImGui::SameLine();
+    ImGui::Text("%1.3f", tick.interp_value);
+
     if (ImGui::Checkbox("Freeze", &pauseUpdate)) {
         if (!pauseUpdate)
             unfreeze();
         else
             freeze();
     }
+    ImGui::SameLine();
     ImGui::SameLine();
     if (ImGui::Button("Step")) {
         freezeStepOnce();
@@ -1076,7 +1081,10 @@ void Engine::ImGui_getContent(secs deltaTime) {
         clock.setTargetUPS(ups);
     }
 
-    ImGui::DragFloat("Timescale", &gamespeed, 0.05f, 0.1f, 3.0);
+    static float speed = 1.f;
+    if (ImGui::DragFloat("Timescale", &speed, 0.05f, 0.f, 5.0)) {
+        next_timescale = speed;
+    }
 }
 
 void Engine::ImGui_getExtraContent() {

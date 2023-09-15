@@ -33,7 +33,7 @@ public:
 
 public:
 	void setFPS(unsigned fps) noexcept;
-	Tick tick(float timescale = 1.f) noexcept;
+	Tick tick() noexcept;
 	void sleep() noexcept;
 
 	void reset() noexcept;
@@ -41,11 +41,13 @@ public:
 	inline size_t getTickCount() const noexcept { return tickCount; }
 
 public:
+    void setTimescale(double timescale = 1.f) noexcept;
+
 	inline void setTargetFPS(unsigned fps)  noexcept { target_fps = fps; }
 	inline void setTargetUPS(unsigned ups)  noexcept {
         auto prev_ups = target_ups;
-        target_ups = (std::max)(ups, MIN_UPS);
-        updated_target_ups |= target_ups != prev_ups;
+        target_ups    = std::max(MIN_UPS, ups);
+        updated_target_ups = prev_ups != target_ups;
     }
 
 	inline unsigned getTargetFPS()  const noexcept { return target_fps; }
@@ -58,12 +60,13 @@ public:
 	secs fpsDuration() const noexcept;
 
 private:
-	void updateTickWindow(float timescale = 1.f) noexcept;
+	void updateTickWindow(const clock_type::time_point& now) noexcept;
 
+    clock_type::duration getUpsDuration() const noexcept;
+
+    //std::optional<unsigned> next_ups;
 	unsigned target_ups;
 	unsigned target_fps;
-
-    float time_scale = 1.f;
 
     bool updated_target_ups = false;
 
@@ -77,10 +80,13 @@ private:
 	time_point curr_now;
 
 	// for UPS
-	time_point fixed_start;
-	time_point fixed_end;
-	size_t fixed_tick_prev;
-	size_t fixed_tick;
+    double     fixed_timescale = 1.0;
+    bool       fixed_timescale_updated = true;
+    clock_type::time_point fixed_start_offset;
+    clock_type::duration   fixed_start;
+    clock_type::duration   fixed_end;
+	size_t     fixed_tick_prev;
+	size_t     fixed_tick;
 
 	// for FPS
 	time_point frame_start;

@@ -23,7 +23,7 @@ public:
 	TestState();
 
 	void update(secs deltaTime) override;
-	void predraw(float interp, bool updated, const ff::WindowState* win_state) override;
+	void predraw(ff::predraw_state_t predraw_state, const ff::WindowState* win_state) override;
     bool pushEvent(const SDL_Event& event) override;
 
 	inline void setEngineAction(const ff::EngineStateAction& act) noexcept { eAct = act; };

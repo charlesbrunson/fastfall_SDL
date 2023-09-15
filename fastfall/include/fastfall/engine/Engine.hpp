@@ -129,7 +129,7 @@ private:
 	// thread-sync helper
 	bool running = false;
 
-	float gamespeed = 1.f;
+    std::optional<float> next_timescale;
 
 	unsigned int avgFPS = 0;
 	unsigned int avgUPS = 0;
@@ -159,8 +159,8 @@ private:
 	unsigned event_count = 0u;
 
 	bool pauseUpdate = false;
-	bool stepUpdate = false;
-	bool pauseInterpolation = false;
+	bool stepUpdate  = false;
+	bool interpolate = true;
 
 	std::vector<EngineRunnable> runnables;
 

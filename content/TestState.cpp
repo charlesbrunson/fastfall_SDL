@@ -222,7 +222,7 @@ void TestState::update(secs deltaTime) {
 
 }
 
-void TestState::predraw(float interp, bool updated, const WindowState* win_state) {
+void TestState::predraw(predraw_state_t predraw_state, const WindowState* win_state) {
 
     if (to_save) {
         if (save_world) {
@@ -257,8 +257,8 @@ void TestState::predraw(float interp, bool updated, const WindowState* win_state
         LOG_INFO("loaded state");
     }
 
-    world->predraw(interp, updated);
-	viewPos = world->system<CameraSystem>().getPosition(interp);
+    world->predraw(predraw_state);
+	viewPos = world->system<CameraSystem>().getPosition(predraw_state.interp);
 	viewZoom = world->system<CameraSystem>().zoomFactor;
 
 	tile_text.predraw();

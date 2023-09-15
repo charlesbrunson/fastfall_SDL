@@ -29,7 +29,7 @@ void LevelSystem::update(World& world, secs deltaTime) {
     //}
 }
 
-void LevelSystem::predraw(World& world, float interp, bool updated) {
+void LevelSystem::predraw(World& world, predraw_state_t predraw_state) {
     //TODO
     //for (auto [id, tl] : world.all<TileLayer>()) {
     //    tl.predraw(world, interp, updated);

@@ -11,6 +11,7 @@ namespace ff {
         Vec2f prev_position = {};
         Vec2f velocity      = {};
         secs  lifetime      = 0.0;
+        // float interp_offset = 0.f;
         bool  is_alive      = true;
     };
 }

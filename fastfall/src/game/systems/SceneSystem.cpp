@@ -25,20 +25,20 @@ void SceneSystem::update(World& world, secs deltaTime) {
     }
 }
 
-void SceneSystem::predraw(World& world, float interp, bool updated)
+void SceneSystem::predraw(World& world, predraw_state_t predraw_state)
 {
-    if (updated) {
+    if (predraw_state.updated) {
         add_to_scene(world);
     }
 
     for (auto [did, drawable] : world.all<Drawable>()) {
-        drawable->predraw(interp, updated);
+        drawable->predraw(predraw_state);
 
         if (!world.due_to_erase(did)) {
             auto& ucfg = update_configs.at(did);
             Vec2f prev = ucfg.prev_pos;
             Vec2f curr = ucfg.curr_pos;
-            ucfg.rstate.transform.setPosition(prev + (curr - prev) * interp);
+            ucfg.rstate.transform.setPosition(prev + (curr - prev) * predraw_state.interp);
         }
     }
 

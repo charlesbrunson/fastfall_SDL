@@ -37,7 +37,7 @@ public:
 
 	inline bool empty() noexcept { return m_chunks.empty(); };
 
-	void predraw(float interp, bool updated) override;
+	void predraw(predraw_state_t predraw_state) override;
 
 	Vec2f offset;
 	Vec2f scroll;

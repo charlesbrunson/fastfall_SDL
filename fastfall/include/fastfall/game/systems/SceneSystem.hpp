@@ -46,7 +46,7 @@ public:
     void set_config(ID<Drawable> id, SceneConfig cfg);
 
     void update(World& world, secs deltaTime);
-    void predraw(World& world, float interp, bool updated);
+    void predraw(World& world, predraw_state_t predraw_state);
 
     void draw(const World& world, RenderTarget& target, RenderState state = RenderState()) const;
 private:

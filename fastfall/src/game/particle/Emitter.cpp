@@ -60,13 +60,13 @@ void Emitter::update(secs deltaTime) {
         if (strategy.emitter_transform)
             strategy.emitter_transform(*this, deltaTime);
 
-        update_particles(deltaTime);
         destroy_dead_particles();
+        update_particles(deltaTime);
         spawn_particles(deltaTime);
     }
 }
 
-void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, float interp, bool updated)
+void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, predraw_state_t predraw_state)
 {
     if (varr.size() < particles.size() * 6) {
         size_t add_count = (particles.size() * 6) - varr.size();
@@ -80,7 +80,7 @@ void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, float interp, bool up
 
         Vec2f spr_size = Vec2f{ anim->area.getSize() } * 0.5f;
 
-        Vec2f inter_pos = prev_position + (position - prev_position) * interp;
+        Vec2f inter_pos = prev_position + (position - prev_position) * predraw_state.interp;
 
         Vec2f subpixel = {
             floorf(inter_pos.x + 0.5f) - inter_pos.x,
@@ -90,7 +90,38 @@ void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, float interp, bool up
         assert(varr.size() >= particles.size() * 6);
         size_t ndx = 0;
         for (auto& p : particles) {
-            Vec2f center = p.prev_position + (p.position - p.prev_position) * interp;
+
+            secs start_lifetime = p.lifetime - predraw_state.update_dt;
+            secs exact_lifetime = p.lifetime - predraw_state.update_dt * (1.f - predraw_state.interp);
+            secs end_lifetime   = p.lifetime;
+
+
+            if (exact_lifetime < 0.0 || exact_lifetime >= strategy.max_lifetime)
+            {
+                for (size_t n = 0; n < 6; ++n) {
+                    varr[ndx + n] = {};
+                }
+                ndx += 6;
+                continue;
+            }
+
+
+            bool born = start_lifetime < 0.f;
+            //bool dies = end_lifetime >= strategy.max_lifetime;
+
+            float p_interp = predraw_state.interp;
+            if (born) {
+                p_interp = (p_interp * end_lifetime) - start_lifetime;
+                //LOG_INFO("BORN: {} -> {}", predraw_state.interp, p_interp);
+            }
+            /*
+            if (dies) {
+                p_interp = p_interp - (end_lifetime - strategy.max_lifetime) / predraw_state.update_dt;
+                LOG_INFO("DIES: {} -> {}", predraw_state.interp, p_interp);
+            }
+            */
+
+            Vec2f center = p.prev_position + (p.position - p.prev_position) * predraw_state.interp;
 
             // snap to pixel offset of emitter
             center.x = floorf(center.x + 0.5f);
@@ -105,7 +136,7 @@ void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, float interp, bool up
             varr[ndx + 4].pos = center + Vec2f{  spr_size.x, -spr_size.y };
             varr[ndx + 5].pos = center + Vec2f{  spr_size.x,  spr_size.y };
 
-            size_t frame = floor(anim->framerateMS.size() * (float)(p.lifetime / strategy.max_lifetime));
+            size_t frame = floor((float)(anim->framerateMS.size()) * (float)(exact_lifetime / strategy.max_lifetime));
 
             auto area = anim->area;
             area.left += frame * area.width;
@@ -120,7 +151,7 @@ void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, float interp, bool up
             varr[ndx + 4].tex_pos = (points[1] + glm::vec2{-tex_offset,  tex_offset}) * invSize;
             varr[ndx + 5].tex_pos = (points[3] + glm::vec2{-tex_offset, -tex_offset}) * invSize;
 
-            for(size_t n = 0; n < 6; ++n) {
+            for (size_t n = 0; n < 6; ++n) {
                 varr[ndx + n].color = Color::White;
             }
             ndx += 6;
@@ -147,15 +178,12 @@ void Emitter::seed(size_t s) {
 Particle Emitter::update_particle(const Emitter& e, Particle p, secs deltaTime) {
     if (p.is_alive) {
         p.lifetime += deltaTime;
-        if (e.strategy.max_lifetime >= 0 && p.lifetime >= e.strategy.max_lifetime) {
-            p.is_alive = false;
-        } else {
-            if (e.strategy.particle_transform)
-                e.strategy.particle_transform(e, p, deltaTime);
 
-            p.prev_position = p.position;
-            p.position += p.velocity * deltaTime;
-        }
+        if (e.strategy.particle_transform)
+            e.strategy.particle_transform(e, p, deltaTime);
+
+        p.prev_position = p.position;
+        p.position += p.velocity * deltaTime;
     }
     return p;
 }
@@ -184,18 +212,17 @@ void Emitter::update_particles(secs deltaTime)
 }
 
 void Emitter::destroy_dead_particles() {
-    auto it = std::remove_if(particles.begin(), particles.end(), [](Particle& p) {
-        return !p.is_alive;
+    auto it = std::remove_if(particles.begin(), particles.end(), [this](Particle& p) {
+        return !p.is_alive || (strategy.max_lifetime >= 0 && p.lifetime >= strategy.max_lifetime);
     });
     particles.erase(it, particles.end());
 }
 
 void Emitter::spawn_particles(secs deltaTime) {
+
     buffer -= deltaTime;
     while (buffer < 0.0)
     {
-        secs time = 1.f / pick_random(strategy.emit_rate_min, strategy.emit_rate_max, rand);
-        buffer += time;
         size_t created = 0;
         unsigned emit_count = pick_random(strategy.emit_count_min, strategy.emit_count_max, rand);
         for(auto i = emit_count; i > 0; --i)
@@ -205,7 +232,7 @@ void Emitter::spawn_particles(secs deltaTime) {
             {
                 auto p = strategy.spawn(position, velocity, rand);
                 // "catch up" the particle so stream is smoother
-                p = update_particle(*this, p,  -buffer);
+                p = update_particle(*this, p,  deltaTime + buffer);
 
                 if (p.is_alive) {
                     p.id = emit_count;
@@ -215,6 +242,9 @@ void Emitter::spawn_particles(secs deltaTime) {
                 }
             }
         }
+
+        secs time = 1.f / pick_random(strategy.emit_rate_min, strategy.emit_rate_max, rand);
+        buffer += time;
     }
 }
 

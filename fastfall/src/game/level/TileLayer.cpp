@@ -136,7 +136,7 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 	set_scroll(world, layerData.hasScrolling(), layerData.getScrollRate());
 
 	for (auto chunk_id : dyn.chunks) {
-        world.at(chunk_id).predraw(1.f, true);
+        world.at(chunk_id).predraw(predraw_state_t{ .interp = 1.f, .updated = true, .update_dt = 0.0 });
 	}
 
 }
@@ -329,11 +329,11 @@ bool TileLayer::set_scroll(World& world, bool enabled, Vec2f rate)
 	return true;
 }
 
-void TileLayer::predraw(World& world, float interp, bool updated) {
+void TileLayer::predraw(World& world, predraw_state_t predraw_state) {
 	const auto& tile_data = layer_data.getTileData();
 
 	// update tile logic
-	if (updated) {
+	if (predraw_state.updated) {
 		for (auto& logic : dyn.tile_logic) {
 			TileLogic* ptr = logic.get();
 
@@ -368,9 +368,9 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
 
     // update visible area
 	Rectf visible;
-	Vec2f cam_pos    = world.system<CameraSystem>().getPosition(interp);
+	Vec2f cam_pos    = world.system<CameraSystem>().getPosition(predraw_state.interp);
 	float cam_zoom   = world.system<CameraSystem>().zoomFactor;
-    Vec2f attach_pos = world.at(attach_id).interpolate(interp);
+    Vec2f attach_pos = world.at(attach_id).interpolate(predraw_state.interp);
     visible.width  = GAME_W_F * cam_zoom;
     visible.height = GAME_H_F * cam_zoom;
 	visible.left   = -attach_pos.x + cam_pos.x - (visible.width  / 2.f);
@@ -389,11 +389,11 @@ void TileLayer::predraw(World& world, float interp, bool updated) {
         auto& chunk = world.at(chunk_id);
         chunk.visibility = visible;
         if (hasParallax())  { chunk.offset = dyn.parallax.offset; }
-        if (hasScrolling()) { chunk.scroll = math::lerp(dyn.scroll.prev_offset, dyn.scroll.offset, interp); }
-        chunk.predraw(interp, updated);
+        if (hasScrolling()) { chunk.scroll = math::lerp(dyn.scroll.prev_offset, dyn.scroll.offset, predraw_state.interp); }
+        chunk.predraw(predraw_state);
     }
 
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_AREA) && updated)
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_AREA) && predraw_state.updated)
 	{
 		Vec2f pSize = Vec2f{ getLevelSize() } * TILESIZE_F;
 

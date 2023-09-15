@@ -119,7 +119,7 @@ void AnimatedSprite::update(secs deltaTime)
 	}
 }
 
-void AnimatedSprite::predraw(float interp, bool updated)
+void AnimatedSprite::predraw(predraw_state_t predraw_state)
 {
 	if (animation) {
 		if (flag_dirty) {

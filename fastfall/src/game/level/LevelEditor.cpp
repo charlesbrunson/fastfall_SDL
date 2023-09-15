@@ -443,7 +443,7 @@ bool LevelEditor::applyLevelAsset(const LevelAsset* asset)
 		}
 
 		// predraw to apply changes
-        tlayer.predraw(world, 0.0, true);
+        tlayer.predraw(world, predraw_state_t{ .interp = 1.f, .updated = true, .update_dt = 0.0 });
 
 		// increment to next tilelayer ref
 		it++; 

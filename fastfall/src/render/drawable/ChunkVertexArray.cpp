@@ -120,9 +120,9 @@ void ChunkVertexArray::do_clear() {
 	m_chunks.clear();
 }
 
-void ChunkVertexArray::predraw(float interp, bool updated) {
+void ChunkVertexArray::predraw(predraw_state_t predraw_state) {
 
-	if (updated) {
+	if (predraw_state.updated) {
 		while (!commands.empty()) {
 			switch (commands.front().type) {
 			case Command::Type::Set:
@@ -178,7 +178,7 @@ void ChunkVertexArray::predraw(float interp, bool updated) {
 		}
 	}
 
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_CHUNK) && updated) {
+	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_CHUNK) && predraw_state.updated) {
 		for (const auto& chunk : m_chunks) {
 			if (!debug_draw::repeat((void*)&chunk, offset + scroll)) {
 

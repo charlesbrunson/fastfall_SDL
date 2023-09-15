@@ -10,7 +10,7 @@ class World;
 class LevelSystem {
 public:
     void update(World& world, secs deltaTime);
-    void predraw(World& world, float interp, bool updated);
+    void predraw(World& world, predraw_state_t predraw_state);
 
     void notify_created(World& world, ID<Level> id);
     void notify_erased(World& world, ID<Level> id);

@@ -92,7 +92,7 @@ public:
 
 	void initFromAsset(World& world, const TileLayerData& layerData);
 	void update(World& world, secs deltaTime) override;
-	void predraw(World& world, float interp, bool updated) override;
+	void predraw(World& world, predraw_state_t predraw_state) override;
 
 	void setTile(World& world, const Vec2u& position, TileID tile_id, const TilesetAsset& tileset);
 	void removeTile(World& world, const Vec2u& position);

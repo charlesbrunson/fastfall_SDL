@@ -28,7 +28,7 @@ public:
     virtual ~Actor() = default;
 
     virtual void update(World& world, secs deltaTime) {};
-    virtual void predraw(World& world, float interp, bool updated) {};
+    virtual void predraw(World& world, predraw_state_t predraw_state) {};
     virtual dresult message(World&, const dmessage&) { return reject; }
     virtual void ImGui_Inspect() {};
 

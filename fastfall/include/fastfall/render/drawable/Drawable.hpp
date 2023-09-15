@@ -8,12 +8,13 @@ namespace ff {
 
 //class RenderTarget;
 
+
 class Drawable {
 public:
 	virtual ~Drawable() = default;
 
     virtual void update(secs deltaTime) {};
-    virtual void predraw(float interp, bool updated) {};
+    virtual void predraw(predraw_state_t predraw_state) {};
 
 	bool visible = true;
 

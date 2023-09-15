@@ -13,14 +13,13 @@ void EmitterSystem::update(World& world, secs deltaTime) {
     }
 }
 
-void EmitterSystem::predraw(World& world, float interp, bool updated) {
+void EmitterSystem::predraw(World& world, predraw_state_t predraw_state) {
     for (auto [eid, e] : world.all<Emitter>())
     {
         e.predraw(
                 world.at(e.get_drawid()),
                 world.system<SceneSystem>().config(e.get_drawid()),
-                interp,
-                updated);
+                predraw_state);
     }
 }
 

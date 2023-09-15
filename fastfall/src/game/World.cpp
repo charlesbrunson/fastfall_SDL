@@ -79,17 +79,17 @@ void World::update(secs deltaTime) {
     }
 }
 
-void World::predraw(float interp, bool updated)
+void World::predraw(predraw_state_t predraw_state)
 {
     if (auto* active = system<LevelSystem>().get_active(*this))
     {
         system<SceneSystem>().set_bg_color(active->getBGColor());
         system<SceneSystem>().set_size(active->size());
-        system<ActorSystem>().predraw(*this, interp, updated);
-        system<LevelSystem>().predraw(*this, interp, updated);
-        system<EmitterSystem>().predraw(*this, interp, updated);
-        system<SceneSystem>().set_cam_pos(system<CameraSystem>().getPosition(interp));
-        system<SceneSystem>().predraw(*this, interp, updated);
+        system<ActorSystem>().predraw(*this, predraw_state);
+        system<LevelSystem>().predraw(*this, predraw_state);
+        system<EmitterSystem>().predraw(*this, predraw_state);
+        system<SceneSystem>().set_cam_pos(system<CameraSystem>().getPosition(predraw_state.interp));
+        system<SceneSystem>().predraw(*this, predraw_state);
     }
     else
     {

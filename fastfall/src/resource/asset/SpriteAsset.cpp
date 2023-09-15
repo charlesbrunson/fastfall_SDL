@@ -263,7 +263,7 @@ void SpriteAsset::ImGui_getContent(secs deltaTime) {
                             updated = true;
                             buffer -= (frame / playback_speed);
                         }
-                        imgui_anim->predraw(1.f, updated);
+                        imgui_anim->predraw(predraw_state_t{ .interp = 1.f, .updated = updated, .update_dt = 0.0 });
 
 						if (imgui_anim->is_complete() 
 							&& imgui_anim->get_anim()->loop != 0)

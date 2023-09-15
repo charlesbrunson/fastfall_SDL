@@ -15,18 +15,31 @@ void FixedEngineClock::setFPS(unsigned fps) noexcept
 	target_fps = fps;
 	reset();
 }
-FixedEngineClock::Tick FixedEngineClock::tick(float timescale) noexcept
+
+
+
+
+FixedEngineClock::clock_type::duration FixedEngineClock::getUpsDuration() const noexcept {
+    using namespace std::chrono;
+    return duration_cast<clock_type::duration>( duration<double>{ 1.0 / (fixed_timescale * static_cast<double>(target_ups)) } );
+}
+
+FixedEngineClock::Tick FixedEngineClock::tick() noexcept
 {
 	using namespace std::chrono;
 
-	updateTickWindow(timescale);
+    auto now = clock_type::now();
+
+	updateTickWindow(now);
 
 	last_now = curr_now;
-	curr_now = engineClock.now();
+	curr_now = now;
 
-	auto     ups_delta    = duration_cast<time_res>(sec_rep{ 1.f / timescale }) / target_ups;
-	unsigned update_count = (unsigned)std::min(size_t{ 3 }, fixed_tick - fixed_tick_prev);
-	float    interp       = sec_rep{ curr_now - fixed_start } / ups_delta;
+    float interp = 0.f;
+	unsigned update_count = (unsigned)std::min(size_t{ 10 }, fixed_tick - fixed_tick_prev);
+    if (fixed_timescale > 0 && target_ups > 0) {
+        interp = duration_cast<duration<float>>(curr_now - (fixed_start_offset + fixed_start)) / getUpsDuration();
+    }
 
 	tickCount += update_count;
 
@@ -45,7 +58,7 @@ FixedEngineClock::Tick FixedEngineClock::tick(float timescale) noexcept
 	return {
 		sec_rep{ curr_now - last_now }.count(),
 		update_count,
-		(target_ups == target_fps) ? 1.f : interp
+		((target_ups == target_fps) && (fixed_timescale == 1.0)) ? 1.f : interp
 	};
 }
 void FixedEngineClock::sleep() noexcept 
@@ -72,35 +85,47 @@ void FixedEngineClock::reset() noexcept
 
 	fixed_tick = 0;
 	frame_tick = 0;
+    fixed_timescale_updated = true;
+    updated_target_ups      = true;
 
-	sec_accum = 0s;
+	sec_accum          = 0s;
 	sec_update_counter = 0;
-	sec_frame_counter = 0;
+	sec_frame_counter  = 0;
 
-	updateTickWindow();
+	updateTickWindow(clock_type::now());
 }
 
-void FixedEngineClock::updateTickWindow(float timescale) noexcept
+void FixedEngineClock::setTimescale(double timescale) noexcept {
+    fixed_timescale_updated |= (fixed_timescale != timescale);
+    fixed_timescale = timescale;
+};
+
+void FixedEngineClock::updateTickWindow(const clock_type::time_point& now) noexcept
 {
 	using namespace std::chrono;
-	auto now = engineClock.now();
 
-    bool n_timescale = time_scale != timescale;
-    time_scale = timescale;
 
-	if (target_ups > 0) {
-        auto ups_delta  = duration_cast<time_res>(sec_rep{ 1.f / timescale }) / target_ups;
-		fixed_tick_prev = fixed_tick;
-		fixed_tick      = (now.time_since_epoch() / ups_delta);
+    if (fixed_timescale_updated || updated_target_ups) {
+        fixed_timescale_updated = false;
+        updated_target_ups      = false;
 
-        if (n_timescale || updated_target_ups) {
-            fixed_tick_prev = fixed_tick - 1;
-        }
+        fixed_tick_prev = 0;
+        fixed_tick      = 0;
 
-		fixed_start     = time_point{ (now.time_since_epoch() / ups_delta) * ups_delta };
-		fixed_end       = fixed_start + ups_delta;
-	}
-    updated_target_ups = false;
+        auto ups_delta = getUpsDuration();
+        fixed_start_offset = time_point{ ( now.time_since_epoch() / ups_delta) * ups_delta };
+    }
+
+    fixed_tick_prev = fixed_tick;
+
+    if (fixed_timescale > 0 && target_ups > 0) {
+        auto ups_delta = getUpsDuration();
+        fixed_tick = (now - fixed_start_offset) / ups_delta;
+
+        fixed_start = fixed_tick  * ups_delta;
+        fixed_end   = fixed_start + ups_delta;
+    }
+
 
 	if (target_fps != FPS_UNLIMITED) {
 		auto fps_delta  = time_res{ 1s } / target_fps;

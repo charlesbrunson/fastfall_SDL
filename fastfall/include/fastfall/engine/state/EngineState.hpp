@@ -58,7 +58,7 @@ public:
 	}
 
 	virtual void update(secs deltaTime) = 0;
-	virtual void predraw(float interp, bool updated, const WindowState* win_state) = 0;
+	virtual void predraw(predraw_state_t predraw_state, const WindowState* win_state) = 0;
 
 	virtual void updateImGUI() {};
 

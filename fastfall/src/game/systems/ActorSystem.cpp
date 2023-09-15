@@ -13,7 +13,7 @@ void ActorSystem::update(World& world, secs deltaTime)
     append_created(world);
 }
 
-void ActorSystem::predraw(World& world, float interp, bool updated)
+void ActorSystem::predraw(World& world, predraw_state_t predraw_state)
 {
     std::vector<ID<Entity>> to_erase;
     for (auto& id : update_order) {
@@ -22,7 +22,7 @@ void ActorSystem::predraw(World& world, float interp, bool updated)
             to_erase.push_back(actor.entity_id);
         }
         else {
-            actor.predraw(world, interp, updated);
+            actor.predraw(world, predraw_state);
         }
     }
     for (auto ent : to_erase) {
