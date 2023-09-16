@@ -128,19 +128,24 @@ void AnimatedSprite::predraw(predraw_state_t predraw_state)
 				sprite.setTexture(&animation->get_sprite_texture());
 			}
 
-			Rectf area = Rectf(
-				animation->area.getPosition(),
-				animation->area.getSize()
-			);
-			area.left += area.width * current_frame;
-
 			sprite.setScale(Vec2f{ (hflip ? -1.f : 1.f), 1.f });
-			sprite.setTextureRect(area);
-			sprite.setSize(area.getSize());
 			sprite.setOrigin(glm::fvec2(animation->origin.x, animation->origin.y));
 			sprite.setColor(Color::White);
 			flag_dirty = false;
 		}
+
+        Rectf area = Rectf(
+                animation->area.getPosition(),
+                animation->area.getSize()
+        );
+
+        secs time_buffer_interp = time_buffer + (predraw_state.update_dt * predraw_state.interp);
+        unsigned int next_frame = time_buffer_interp >= curr_frame_duration ? 1 : 0;
+
+        area.left += area.width * (float)std::min(current_frame + next_frame, (unsigned)animation->framerateMS.size() - 1);
+        sprite.setTextureRect(area);
+        sprite.setSize(area.getSize());
+
 		sprite.setPosition(position);
 	}
 	else {

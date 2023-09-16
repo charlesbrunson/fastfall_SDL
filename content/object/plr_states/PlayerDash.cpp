@@ -127,6 +127,8 @@ void PlayerDashState::enter(ff::World& w, plr::members& plr, PlayerState* from)
             w.create_actor<SimpleEffect>(dash_anims.fx_anim.id(), pos, sprite.get_hflip());
 		}
 		dash_speed = *ground.traverse_get_speed() * (sprite.get_hflip() ? -1.f : 1.f);
+        box.set_gravity(constants::grav_normal);
+        apply_dash_vel(w, plr, get_dash_vel(dash_speed));
 	}
 	ground.settings.slope_wall_stop = false;
 	ground.settings.use_surf_vel = true;
