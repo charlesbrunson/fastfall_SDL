@@ -106,13 +106,17 @@ PlayerStateID PlayerAirState::update(ff::World& w, plr::members& plr, secs delta
 		prevVelY = box.get_local_vel().y;
 	}
 	else {
+
 		if (prevVelY > 150.f + ground.get_contact()->velocity.y) {
-			sprite.set_anim(anim::land);
-			sprite.set_frame(1);
+			//sprite.set_anim(anim::land);
+			//sprite.set_frame(1);
+            plr.land_state = plr::land_state_t::Soft;
 		}
 		else if (!sprite.is_playing_any(anim::get_ground_anims())) {
-			sprite.set_anim(anim::idle);
+			//sprite.set_anim(anim::idle);
+            plr.land_state = plr::land_state_t::None;
 		}
+
 		return PlayerStateID::Ground;
 	}
 	return PlayerStateID::Continue;
@@ -124,15 +128,20 @@ PlayerStateID PlayerAirState::post_collision(ff::World& w, plr::members& plr)
     auto& ground = *box.tracker();
     
 	if (ground.has_contact()) {
-		if (prevVelY > 150.f + ground.get_contact()->velocity.y) {
-			sprite.set_anim(anim::land);
+        //plr.land_state = plr::land_state_t::None;
 
+		if (prevVelY > 150.f + ground.get_contact()->velocity.y) {
+
+            plr.land_state = plr::land_state_t::Hard;
 			if (prevVelY < 350.f)
-				sprite.set_frame(1);
+                plr.land_state = plr::land_state_t::Soft;
+
 		}
 		else if (!sprite.is_playing_any(anim::get_ground_anims())) {
-			sprite.set_anim(anim::land_soft);
+            //sprite.set_next_anim(anim::land_soft);
+            plr.land_state = plr::land_state_t::Flinch;
 		}
+
 		ground.settings.slope_sticking = true;
 		return PlayerStateID::Ground;
 	}

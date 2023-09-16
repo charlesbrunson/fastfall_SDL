@@ -25,8 +25,8 @@ public:
 	}
 
     void reset();
-	bool set_anim(AnimID id, bool reset = true) noexcept;
-	bool set_anim_if_not(AnimID id, bool reset = true) noexcept;
+	bool set_anim(AnimID id, bool reset = true, std::optional<unsigned> start_frame = {}) noexcept;
+	bool set_anim_if_not(AnimID id, bool reset = true, std::optional<unsigned> start_frame = {}) noexcept;
 
 	void restart_anim(bool reset_time_buffer = true);
 

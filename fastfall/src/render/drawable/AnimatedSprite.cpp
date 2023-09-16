@@ -22,14 +22,14 @@ void AnimatedSprite::reset() {
     flag_dirty = false;
 }
 
-bool AnimatedSprite::set_anim_if_not(AnimID id, bool reset) noexcept {
+bool AnimatedSprite::set_anim_if_not(AnimID id, bool reset, std::optional<unsigned> start_frame) noexcept {
 	if (!is_playing(id)) {
-		return set_anim(id, reset);
+		return set_anim(id, reset, start_frame);
 	}
 	return false;
 }
 
-bool AnimatedSprite::set_anim(AnimID id, bool reset) noexcept {
+bool AnimatedSprite::set_anim(AnimID id, bool reset, std::optional<unsigned> start_frame) noexcept {
 
 	const Animation* anim = AnimDB::get_animation(id);
 
@@ -42,6 +42,9 @@ bool AnimatedSprite::set_anim(AnimID id, bool reset) noexcept {
 	else if (animation && current_frame >= animation->framerateMS.size()) {
 		current_frame = current_frame % animation->framerateMS.size();
 	}
+
+    if (start_frame)
+        set_frame(*start_frame);
 
 	flag_dirty = true;
 	return (animation != nullptr);
@@ -65,6 +68,7 @@ void AnimatedSprite::restart_anim(bool reset_time_buffer) {
 
 void AnimatedSprite::update(secs deltaTime)
 {
+
 	if (!animation || deltaTime <= 0.0 || playback_speed == 0.f) {
 		return;
 	}

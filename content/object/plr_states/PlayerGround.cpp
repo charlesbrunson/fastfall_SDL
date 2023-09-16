@@ -35,6 +35,25 @@ PlayerStateID PlayerGroundState::update(ff::World& w, plr::members& plr, secs de
 	sprite.set_playback(1.f);
 	box.set_gravity(constants::grav_normal);
 
+    if (plr.land_state && !sprite.is_playing_any(anim::get_ground_anims()))
+    {
+        switch(*plr.land_state) {
+        case plr::land_state_t::None:
+            sprite.set_anim(anim::idle);
+            break;
+        case plr::land_state_t::Flinch:
+            sprite.set_anim(anim::land_soft);
+            break;
+        case plr::land_state_t::Soft:
+            sprite.set_anim(anim::land, true, 1);
+            break;
+        case plr::land_state_t::Hard:
+            sprite.set_anim(anim::land);
+            break;
+        }
+    }
+    plr.land_state.reset();
+
 	if (ground.has_contact()) {
 
 		box.setSlip({});

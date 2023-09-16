@@ -64,6 +64,14 @@ namespace plr::constants {
 
 
 namespace plr {
+
+    enum class land_state_t {
+        None,
+        Flinch,
+        Soft,
+        Hard
+    };
+
 	struct members {
 		members(ff::ActorInit init, ff::Vec2f position, bool face_dir);
 
@@ -74,6 +82,8 @@ namespace plr {
         ff::ID<ff::Trigger> hitbox_id;
 
         ff::ID<ff::AnimatedSprite> jet_id;
+
+        std::optional<land_state_t> land_state;
 	};
 
 	struct move_t {
