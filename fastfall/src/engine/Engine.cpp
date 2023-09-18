@@ -1082,9 +1082,16 @@ void Engine::ImGui_getContent(secs deltaTime) {
     }
 
     static float speed = 1.f;
-    if (ImGui::DragFloat("Timescale", &speed, 0.05f, 0.f, 5.0)) {
+    if (ImGui::DragFloat("Timescale", &speed, 0.0005f, 0.f, 5.0)) {
         next_timescale = speed;
     }
+
+    if (ImGui::SmallButton("0.01x")) { speed = 0.01f; next_timescale = speed; } ImGui::SameLine();
+    if (ImGui::SmallButton("0.10x")) { speed = 0.10f; next_timescale = speed; } ImGui::SameLine();
+    if (ImGui::SmallButton("0.50x")) { speed = 0.50f; next_timescale = speed; } ImGui::SameLine();
+    if (ImGui::SmallButton("1.00x")) { speed = 1.00f; next_timescale = speed; } ImGui::SameLine();
+    if (ImGui::SmallButton("2.00x")) { speed = 2.00f; next_timescale = speed; } ImGui::SameLine();
+    if (ImGui::SmallButton("5.00x")) { speed = 5.00f; next_timescale = speed; }
 }
 
 void Engine::ImGui_getExtraContent() {

@@ -94,6 +94,8 @@ private:
 	size_t frame_tick_prev;
 	size_t frame_tick;
 
+    float interpolation = 0.f;
+
 	time_res sec_accum;
 	size_t sec_update_counter = 0;
 	size_t sec_frame_counter = 0;
