@@ -8,6 +8,8 @@ set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
 set(OpenGL_GL_PREFERENCE "GLVND" CACHE INTERNAL "")
 
+cmake_policy(SET CMP0135 NEW)
+
 # glm
 FetchContent_Declare(
 	glm
