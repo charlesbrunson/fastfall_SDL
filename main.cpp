@@ -31,12 +31,14 @@ int main(int argc, char* argv[]) {
         }
 #if not defined(__EMSCRIPTEN__)
 
-        delete window;
 
         if (engine)
             delete engine;
 
         ff::Quit();
+
+        delete window;
+
 #endif
     }
 
