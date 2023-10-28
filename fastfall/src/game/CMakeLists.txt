@@ -6,11 +6,18 @@ target_sources(fastfall PRIVATE
     imgui_component.cpp
     WorldImGui.cpp
     actor/ActorType.cpp
+    attach/AttachConstraint.cpp
+    attach/AttachPoint.cpp
+    camera/CameraTarget.cpp
+    drawable/drawable.cpp
+    level/ObjectLayer.cpp
+    level/LevelEditor.cpp
+    level/Level.cpp
+    level/TileLayer.cpp
+    level/TileLogic.cpp
+    particle/Emitter.cpp
     path/PathMover.cpp
     path/Path.cpp
-    camera/CameraTarget.cpp
-    trigger/Trigger.cpp
-    drawable/drawable.cpp
     phys/Collidable.cpp
     phys/CollidableArbiter.cpp
     phys/CollisionSolver.cpp
@@ -29,13 +36,7 @@ target_sources(fastfall PRIVATE
     phys/collider_coretypes/ColliderTile.cpp
     phys/collider_coretypes/ColliderQuad.cpp
     tile/Tile.cpp
-    level/ObjectLayer.cpp
-    level/LevelEditor.cpp
-    level/Level.cpp
-    level/TileLayer.cpp
-    level/TileLogic.cpp
-    attach/AttachConstraint.cpp
-    attach/AttachPoint.cpp
+    trigger/Trigger.cpp
     systems/LevelSystem.cpp
     systems/ActorSystem.cpp
     systems/AttachSystem.cpp
@@ -46,5 +47,5 @@ target_sources(fastfall PRIVATE
     systems/EmitterSystem.cpp
     systems/TriggerSystem.cpp
     systems/AudioSystem.cpp
-    particle/Emitter.cpp
+    systems/ParticleCollisionSystem.cpp
 )

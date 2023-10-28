@@ -23,6 +23,7 @@ const EmitterStrategy jet_emitter_str = {
     .particle_speed_max = 550.f,
     .scatter_max_radius = 0.f,
     .inherits_vel       = false,
+    .has_collision      = true,
     .animation          = AnimIDRef{ "jet_platform.sax", "effect" },
 };
 

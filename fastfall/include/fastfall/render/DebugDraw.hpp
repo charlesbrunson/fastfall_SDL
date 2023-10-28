@@ -26,6 +26,7 @@ namespace debug_draw {
 		TRIGGER_AREA,
         PATHS,
         ATTACH,
+        EMITTER,
 		LAST
 	};
 

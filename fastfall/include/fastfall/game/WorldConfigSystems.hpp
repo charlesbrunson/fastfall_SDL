@@ -10,6 +10,7 @@
 #include "fastfall/game/systems/AttachSystem.hpp"
 #include "fastfall/game/systems/PathSystem.hpp"
 #include "fastfall/game/systems/AudioSystem.hpp"
+#include "fastfall/game/systems/ParticleCollisionSystem.hpp"
 
 #include <tuple>
 #include <variant>
@@ -32,7 +33,8 @@ using Systems = SystemConfig<
     CameraSystem,
     SceneSystem,
     PathSystem,
-    AudioSystem
+    AudioSystem,
+    ParticleCollisionSystem
 >;
 
 constexpr inline static std::string_view SystemNames[Systems::Count] = {
@@ -46,6 +48,7 @@ constexpr inline static std::string_view SystemNames[Systems::Count] = {
     "SceneSystem",
     "PathSystem",
     "AudioSystem",
+    "ParticleCollisionSystem",
 };
 
 }

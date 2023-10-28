@@ -18,7 +18,7 @@ namespace ff {
     class Emitter;
     class SceneConfig;
 
-    // describe how particles should be created
+    // describe how particles should be created/handled
     struct EmitterStrategy {
 
         // number of emissions per second
@@ -56,6 +56,12 @@ namespace ff {
 
         // particles inherit velocity of emitter
         bool inherits_vel = false;
+
+        // collision
+        bool has_collision = false;
+
+        // if it has collision, bounce factor
+        float collision_bounce = 0.f;
 
         // animation for particles to play
         AnimIDRef animation;
@@ -107,6 +113,8 @@ namespace ff {
         void set_drawid(ID<VertexArray> id) { varr_id = id; }
         ID<VertexArray> get_drawid() const { return varr_id; }
 
+        Rectf get_particle_bounds() const { return particle_bounds; }
+
     private:
 
         AnimIDRef curr_anim;
@@ -118,6 +126,8 @@ namespace ff {
         size_t total_emit_count = 0;
         EmitterStrategy strategy_backup;
         ID<VertexArray> varr_id;
+
+        Rectf particle_bounds;
 
         static Particle update_particle(const Emitter& e, Particle p, secs deltaTime);
         void update_particles(secs deltaTime);

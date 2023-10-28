@@ -39,6 +39,8 @@ public:
         bool operator==(const QuadIterator& other) const noexcept { return region == other.region && curr_quad == other.curr_quad; };
         bool operator!=(const QuadIterator& other) const noexcept { return region != other.region || curr_quad != other.curr_quad; };
 
+        Recti get_tile_area() const { return tile_area; }
+
     private:
         const ColliderRegion* region    = nullptr;
         Rectf area                      = {};

@@ -56,6 +56,7 @@ bool typeEnable[] = {
 	false,	// TRIGGER_AREA
     true,	// PATHS
     true,   // ATTACH
+    true,   // EMITTER
 };
 constexpr unsigned typeEnableCount = (sizeof(typeEnable) / sizeof(typeEnable[0]));
 static_assert(typeEnableCount == static_cast<unsigned>(debug_draw::Type::LAST), "debug draw type enum and type enable array count mismatch");

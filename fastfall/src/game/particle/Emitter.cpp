@@ -3,6 +3,7 @@
 
 #include "fastfall/game/World.hpp"
 #include "fastfall/resource/Resources.hpp"
+#include "fastfall/render/DebugDraw.hpp"
 
 #include <algorithm>
 
@@ -11,6 +12,8 @@
 #endif
 
 #include <cmath>
+
+
 
 namespace ff {
 
@@ -63,6 +66,44 @@ void Emitter::update(secs deltaTime) {
         destroy_dead_particles();
         update_particles(deltaTime);
         spawn_particles(deltaTime);
+
+        particle_bounds = Rectf{ position.x, position.y, 0, 0 };
+        for (auto& p : particles) {
+            particle_bounds = math::rect_bound(particle_bounds, Rectf{ p.position.x, p.position.y, 0, 0 });
+        }
+
+        if (debug_draw::hasTypeEnabled(debug_draw::Type::EMITTER)) {
+
+            auto& p_bounds = createDebugDrawable<VertexArray, debug_draw::Type::EMITTER>(
+                    (const void*)this, Primitive::LINE_LOOP, 4);
+
+            for (int i = 0; i < p_bounds.size(); i++) {
+                p_bounds[i].color = Color::Red;
+            }
+            p_bounds[0].pos = math::rect_topleft(particle_bounds);
+            p_bounds[1].pos = math::rect_topright(particle_bounds);
+            p_bounds[2].pos = math::rect_botright(particle_bounds);
+            p_bounds[3].pos = math::rect_botleft(particle_bounds);
+
+
+            auto& part_points = createDebugDrawable<VertexArray, debug_draw::Type::EMITTER>(
+                    (const void*)this, Primitive::LINES, particles.size() * 4);
+
+            size_t ndx = 0;
+            for (auto& p : particles) {
+                part_points[ndx + 0].color = Color::Red;
+                part_points[ndx + 1].color = Color::Red;
+                part_points[ndx + 2].color = Color::Red;
+                part_points[ndx + 3].color = Color::Red;
+
+                part_points[ndx + 0].pos = p.position + Vec2f{ -1.f,  0.f };
+                part_points[ndx + 1].pos = p.position + Vec2f{  1.f,  0.f };
+                part_points[ndx + 2].pos = p.position + Vec2f{  0.f, -1.f };
+                part_points[ndx + 3].pos = p.position + Vec2f{  0.f,  1.f };
+
+                ndx += 4;
+            }
+        }
     }
 }
 

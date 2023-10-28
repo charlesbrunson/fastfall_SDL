@@ -1132,7 +1132,8 @@ void DebugDrawImgui::ImGui_getContent(secs deltaTime) {
         "CAMERA_TARGET",
         "TRIGGER_AREA",
         "PATHS",
-        "ATTACH"
+        "ATTACH",
+        "EMITTER"
     };
     static_assert((sizeof(names) / sizeof(names[0])) == static_cast<unsigned>(debug_draw::Type::LAST), "fix me");
 
