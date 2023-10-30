@@ -15,7 +15,7 @@ public:
     void update(World& world, secs deltaTime);
 
 private:
-    void collide_emitter_particles(World& world, Emitter& emitter);
+    void collide_emitter_particles(const World& world, Emitter& emitter);
     //void collide_particle(const ColliderQuad& quad, Particle& particle);
 };
 

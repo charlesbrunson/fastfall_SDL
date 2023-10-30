@@ -12,13 +12,15 @@
 
 namespace ff {
 
-
 template<class T, class UnderID = T>
 class id_iterator
 {
 public:
+    using iterator_concept  = std::contiguous_iterator_tag;
     using iterator_category = std::random_access_iterator_tag;
     using difference_type   = std::ptrdiff_t;
+    using pointer           = T*;
+    using reference         = T&;
     using base_type         = std::remove_const_t<T>;
     using pair_type         = std::pair<slot_key, base_type>;
     using value_type        = std::conditional_t<std::is_const_v<T>, const pair_type*, pair_type*>;
@@ -26,6 +28,7 @@ public:
 
     id_iterator() = default;
     explicit id_iterator(value_type ptr) : m_ptr(ptr) {}
+    id_iterator(const id_iterator& rhs) : m_ptr(rhs.m_ptr) {}
 
     id_iterator& operator=(value_type ptr) { m_ptr = ptr; return *this; }
     id_iterator& operator=(const id_iterator& other) { m_ptr = other.m_ptr; return *this; }
@@ -35,6 +38,9 @@ public:
 
     auto operator->() requires(!std::is_const_v<T>) { return &m_ptr->second; }
     auto operator->() const { return &m_ptr->second; }
+
+    auto operator[](const int& rhs) requires(!std::is_const_v<T>) { return m_ptr[rhs]; }
+    auto operator[](const int& rhs) const { return m_ptr[rhs]; }
 
     id_type id() const { return {m_ptr->first}; }
 
@@ -47,17 +53,19 @@ public:
     id_iterator& operator++() { ++m_ptr; return *this; }
     id_iterator operator++(int) { id_iterator it{*this}; ++(*this); return it; }
 
-    id_iterator operator--() { --m_ptr; return *this; }
+    id_iterator& operator--() { --m_ptr; return *this; }
     id_iterator operator--(int) { id_iterator it{*this}; --(this); return it; }
 
-    id_iterator operator+(difference_type movement) const { auto it = *this; it.m_ptr + movement; return it; }
-    id_iterator operator-(difference_type movement) const { auto it = *this; it.m_ptr - movement; return it; }
+    id_iterator operator+(difference_type movement) const { auto it = *this; it.m_ptr += movement; return it; }
+    id_iterator operator-(difference_type movement) const { auto it = *this; it.m_ptr -= movement; return it; }
 
     difference_type operator-(const id_iterator& other) const { return std::distance(m_ptr, other.m_ptr); }
 
 private:
     value_type m_ptr = nullptr;
 };
+
+static_assert(std::is_convertible_v<id_iterator<int>::iterator_category, std::random_access_iterator_tag>, "check this");
 
 template<class T>
 class id_map
