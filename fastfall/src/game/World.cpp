@@ -14,6 +14,7 @@ World::World()
 {
     WorldImGui::add(this);
     state._input.set_source(nullptr);
+    state._comp_to_ent.reserve(128);
     system<AudioSystem>().set_destination_bus(&audio::primary_bus());
 }
 
@@ -211,7 +212,15 @@ const std::set<ComponentID>& World::components_of(ID<Entity> id) const {
 }
 
 ID<Entity> World::entity_of(ComponentID id) const {
-    return state._comp_to_ent.at(id);
+
+    auto it = std::lower_bound(state._comp_to_ent.begin(), state._comp_to_ent.end(), state_t::comp_to_ent_t{ id, ID<Entity>{} });
+    if (it != state._comp_to_ent.end() && it->c_id == id) {
+        return it->e_id;
+    }
+    else {
+        assert(false);
+        return {};
+    }
 }
 
 bool World::entity_has_actor(ID<Entity> id) const {
@@ -220,12 +229,25 @@ bool World::entity_has_actor(ID<Entity> id) const {
 
 void World::tie_component_entity(ComponentID cmp, ID<Entity> ent) {
     state._entities.at(ent).components.emplace(cmp);
-    state._comp_to_ent.emplace(cmp, ent);
+
+    auto data = state_t::comp_to_ent_t{ cmp, ent };
+    auto it = std::lower_bound(state._comp_to_ent.begin(), state._comp_to_ent.end(), data);
+    if (it != state._comp_to_ent.end() && it->c_id == data.c_id) {
+        it->e_id = ent;
+    }
+    else {
+        state._comp_to_ent.insert(it, data);
+    }
 }
 
 void World::untie_component_entity(ComponentID cmp, ID<Entity> ent) {
     state._entities.at(ent).components.erase(cmp);
-    state._comp_to_ent.erase(cmp);
+
+    auto data = state_t::comp_to_ent_t{ cmp, ent };
+    auto it = std::lower_bound(state._comp_to_ent.begin(), state._comp_to_ent.end(), data);
+    if (it != state._comp_to_ent.end() && it->c_id == data.c_id) {
+        state._comp_to_ent.erase(it);
+    }
 }
 
 }

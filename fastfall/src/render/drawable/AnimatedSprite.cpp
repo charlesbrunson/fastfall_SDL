@@ -10,16 +10,16 @@
 namespace ff {
 
 void AnimatedSprite::reset() {
-    hflip = false;
-    curr_anim = {};
-    sprite    = {};
-    loop_counter   = 0;
-    current_frame  = 0;
-    playback_speed = 1.f;
+    hflip               = false;
+    curr_anim           = {};
+    // sprite              = {};
+    loop_counter        = 0;
+    current_frame       = 0;
+    playback_speed      = 1.f;
     time_buffer         = 0.0;
     curr_frame_duration = 0.0;
-    animation  = nullptr;
-    flag_dirty = false;
+    animation           = nullptr;
+    flag_dirty          = true;
 }
 
 bool AnimatedSprite::set_anim_if_not(AnimID id, bool reset, std::optional<unsigned> start_frame) noexcept {

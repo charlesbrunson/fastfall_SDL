@@ -8,8 +8,6 @@
 
 class SimpleEffect : public ff::Actor {
 public:
-    //static const ff::ActorType actor_type;
-
 	SimpleEffect(ff::ActorInit init, const ff::AnimID& anim, ff::Vec2f position, bool hflip);
 	void update(ff::World& w, secs deltaTime) override;
 

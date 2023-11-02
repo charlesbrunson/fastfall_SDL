@@ -2,14 +2,7 @@
 
 using namespace ff;
 
-/*
-const ActorType SimpleEffect::actor_type = ActorType::create<SimpleEffect>({
-    .name = "SimpleEffect"
-});
-*/
-
 SimpleEffect::SimpleEffect(ActorInit init, const AnimID& anim, Vec2f position, bool hflip)
-    //: Actor(init.type_or(&actor_type))
     : Actor(init)
 {
     auto spr = init.world.create<ff::AnimatedSprite>(init.entity_id);
@@ -21,6 +14,5 @@ SimpleEffect::SimpleEffect(ActorInit init, const AnimID& anim, Vec2f position, b
 
 void SimpleEffect::update(World& w, secs deltaTime) {
     auto& spr = w.at(anim_spr_id);
-    //spr.update(deltaTime);
     dead |= spr.is_complete();
 };

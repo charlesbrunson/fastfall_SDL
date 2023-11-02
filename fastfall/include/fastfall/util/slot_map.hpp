@@ -298,6 +298,9 @@ namespace ff {
 		}
 
 		void init() {
+            dense_.reserve(128);
+            sparse_.reserve(128);
+
 			assert(dense_.empty());
 			for (uint32_t i = 0; i < sparse_.size(); i++)
 			{

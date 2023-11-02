@@ -66,6 +66,9 @@ void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 
 	varray.glTransfer();
 
+    if (varray.gl.m_array == 0)
+        return;
+
 	bindFramebuffer();
 
 	if (!previousRender) {
@@ -90,8 +93,8 @@ void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 		applyTexture(state.texture);
 	}
 
-	glCheck(glBindVertexArray(varray.gl.m_array));
-	glCheck(glDrawArrays(static_cast<GLenum>(varray.m_primitive), 0, varray.size()));
+    glCheck(glBindVertexArray(varray.gl.m_array));
+    glCheck(glDrawArrays(static_cast<GLenum>(varray.m_primitive), 0, varray.size()));
 
 	vertex_draw_counter += varray.size();
 	draw_call_counter++;

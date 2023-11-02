@@ -126,7 +126,7 @@ void ParticleCollisionSystem::update(World& world, secs deltaTime) {
     auto end = steady_clock::now();
 
     duration<double, std::milli> elapsed = (end - start);
-    LOG_INFO("\t{}ms - {} particles", elapsed.count(), particle_count);
+    // LOG_INFO("\t{}ms - {} particles", elapsed.count(), particle_count);
 }
 
 void ParticleCollisionSystem::collide_emitter_particles(const World& world, Emitter& emitter) {
@@ -135,7 +135,7 @@ void ParticleCollisionSystem::collide_emitter_particles(const World& world, Emit
 
         auto quad_area = region->in_rect(emitter.get_particle_bounds());
 
-        /*
+
         if (debug_draw::hasTypeEnabled(debug_draw::Type::EMITTER)) {
             auto it = quad_area.begin();
             Rectf r_bounds = math::shift(Rectf{ it.get_tile_area() } * TILESIZE, region->getPosition());
@@ -150,7 +150,7 @@ void ParticleCollisionSystem::collide_emitter_particles(const World& world, Emit
             p_bounds[2].pos = math::rect_botright(r_bounds);
             p_bounds[3].pos = math::rect_botleft(r_bounds);
         }
-        */
+
 
         for (const auto& quad : quad_area) {
 
@@ -164,7 +164,7 @@ void ParticleCollisionSystem::collide_emitter_particles(const World& world, Emit
 
             *bounds = math::shift(*bounds, region->getPosition());
 
-            /*
+
             if (debug_draw::hasTypeEnabled(debug_draw::Type::EMITTER)) {
                 auto& q_bounds = createDebugDrawable<VertexArray, debug_draw::Type::EMITTER>(Primitive::LINE_LOOP, 4);
 
@@ -176,13 +176,7 @@ void ParticleCollisionSystem::collide_emitter_particles(const World& world, Emit
                 q_bounds[2].pos = math::rect_botright(*bounds);
                 q_bounds[3].pos = math::rect_botleft(*bounds);
             }
-            */
 
-            /*
-            for (auto &p: emitter.particles) {
-                collide_particle(*region, quad, *bounds, p);
-            }
-            */
 
 #if __cpp_lib_parallel_algorithm
             std::for_each(std::execution::par, emitter.particles.begin(), emitter.particles.end(),

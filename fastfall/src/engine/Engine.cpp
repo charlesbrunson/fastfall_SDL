@@ -1029,6 +1029,7 @@ void Engine::ImGui_getContent(secs deltaTime) {
                 plot("imgui",   &buff[0].imgui_time);
                 plot("draw",    &buff[0].draw_time);
                 plot("predraw", &buff[0].predraw_time);
+                ImPlot::SetNextFillStyle(ImVec4(1.f, 1.f, 1.f, 1.f));
                 plot("update",  &buff[0].update_time);
             }
 

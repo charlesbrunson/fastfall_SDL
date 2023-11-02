@@ -24,7 +24,17 @@ private:
     {
         // entity
         id_map<Entity> _entities;
-        std::map<ComponentID, ID<Entity>> _comp_to_ent;
+
+        struct comp_to_ent_t {
+            ComponentID c_id;
+            ID<Entity>  e_id;
+
+            bool operator<(const comp_to_ent_t& rhs) const {
+                return c_id < rhs.c_id;
+            }
+        };
+
+        std::vector<comp_to_ent_t> _comp_to_ent;
 
         // components
         Components::MapTuple _components;
