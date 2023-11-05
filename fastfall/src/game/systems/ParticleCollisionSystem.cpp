@@ -11,100 +11,35 @@
 
 namespace ff {
 
-struct aabb_t {
-    Cardinal dir;
-    bool has_surface;
-    Linef surface;
-    Vec2f normal;
+bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, Particle& p) {
+    if (!surf) return false;
 
-    float penetration = 0.f;
-};
+    Linef movement = { p.prev_position + region.getDeltaPosition(), p.position };
+    Linef surface  = math::shift(surf->surface, region.getPosition());
+    Vec2f normal   = math::vector(surface).lefthand().unit();
 
-cardinal_array<aabb_t> do_aabb(const ColliderQuad& quad, Rectf quad_bounds, Vec2f position) {
-
-    cardinal_array<aabb_t> AABB;
-
-    for (auto dir : direction::cardinals) {
-        AABB[dir].dir         = dir;
-        AABB[dir].surface     = quad.surfaces[dir].collider.surface;
-        AABB[dir].has_surface = quad.surfaces[dir].hasSurface;
-        AABB[dir].normal      = math::vector(AABB[dir].surface).unit().lefthand();
-    }
-
-    // horizontal
-    AABB[Cardinal::E].penetration = (quad_bounds.left + quad_bounds.width) - position.x;
-    AABB[Cardinal::W].penetration = position.x - quad_bounds.left;
-
-    // vertical
-    Vec2f n_intersection = math::intersection(AABB[Cardinal::N].surface, Linef{position, position + Vec2f{ 0.f, 1.f }});
-    Vec2f s_intersection = math::intersection(AABB[Cardinal::S].surface, Linef{position, position + Vec2f{ 0.f, 1.f }});
-
-    AABB[Cardinal::N].normal = math::vector(AABB[Cardinal::N].surface).unit().lefthand();
-    AABB[Cardinal::S].normal = math::vector(AABB[Cardinal::S].surface).unit().lefthand();
-
-    if (n_intersection.y <= quad_bounds.top) {
-        n_intersection.y = quad_bounds.top;
-        AABB[Cardinal::N].normal = Vec2f{ 0.f, -1.f };
-    }
-
-    if (s_intersection.y >= quad_bounds.top + quad_bounds.height) {
-        s_intersection.y = quad_bounds.top + quad_bounds.height;
-        AABB[Cardinal::S].normal = Vec2f{ 0.f, 1.f };
-    }
-
-    AABB[Cardinal::N].penetration = position.y - n_intersection.y;
-    AABB[Cardinal::S].penetration = s_intersection.y - position.y;
-
-    return AABB;
-}
-
-void collide_particle(const ColliderRegion& region, const ColliderQuad& quad, Rectf quad_bounds, Particle& particle) {
-
-    Vec2f rel_delta_pos = (particle.position - region.getPosition()) - (particle.prev_position - region.getPrevPosition());
-
-    auto prev = do_aabb(quad, math::shift(quad_bounds, -region.getDeltaPosition()), particle.prev_position);
-    auto curr = do_aabb(quad, quad_bounds, particle.position);
-
-    static constexpr cardinal_array<std::pair<Cardinal, Cardinal>> splits = {
-        std::pair<Cardinal, Cardinal>{ Cardinal::E, Cardinal::W }, // Cardinal::N
-        std::pair<Cardinal, Cardinal>{ Cardinal::N, Cardinal::S }, // Cardinal::E
-        std::pair<Cardinal, Cardinal>{ Cardinal::E, Cardinal::W }, // Cardinal::S
-        std::pair<Cardinal, Cardinal>{ Cardinal::N, Cardinal::S }, // Cardinal::W
-    };
-
-    for (auto dir : direction::cardinals) {
-
-        auto [side1, side2] = splits[dir];
-
-        bool valid_axis = (prev[dir].has_surface && curr[dir].has_surface)
-                && (prev[dir].penetration <= 0.f && curr[dir].penetration >= 0.f)
-                && math::dot(rel_delta_pos, curr[dir].normal) <= 0
-                && (curr[side1].penetration >= 0 && curr[side2].penetration >= 0);
-
-        if (valid_axis) {
-            auto& aabb = curr[dir];
-
-            /*
-            if (debug_draw::hasTypeEnabled(debug_draw::Type::EMITTER)) {
-                auto& debug_surf = createDebugDrawable<VertexArray, debug_draw::Type::EMITTER>(Primitive::TRIANGLE_STRIP, 4);
-
-                debug_surf[0].color = Color::Red;
-                debug_surf[1].color = Color::Red;
-                debug_surf[2].color = Color::Red;
-                debug_surf[3].color = Color::Red;
-
-                debug_surf[0].pos = aabb.surface.p1 + region.getPosition();
-                debug_surf[1].pos = aabb.surface.p2 + region.getPosition();
-                debug_surf[2].pos = aabb.surface.p1 + region.getPosition() - aabb.normal;
-                debug_surf[3].pos = aabb.surface.p2 + region.getPosition() - aabb.normal;
-            }
-            */
-
-            particle.position += aabb.normal * aabb.penetration;
-            particle.velocity = math::projection(region.velocity, aabb.normal, true)
-                              + math::projection(particle.velocity, aabb.normal.righthand(), true);
+    if (math::dot(math::vector(movement), normal) < 0.f)
+    {
+        Vec2f intersect = math::intersection(movement, surface);
+        Rectf bounds = math::rect_bound(math::line_bounds(movement), math::line_bounds(surface));
+        if (bounds.contains(intersect)
+            && math::line_has_point(movement, intersect, 0.01f)
+            && math::line_has_point(surface,  intersect, 0.01f))
+        {
+            p.position = intersect;
+            p.velocity = math::projection(region.velocity, normal, true)
+                         + math::projection(p.velocity, normal.righthand(), true);
+            return true;
         }
     }
+    return false;
+}
+
+bool collide_quad(const ColliderRegion& region, const ColliderQuad& quad, Particle& p) {
+   return collide_surface(region, quad.getSurface(Cardinal::N), p)
+       || collide_surface(region, quad.getSurface(Cardinal::E), p)
+       || collide_surface(region, quad.getSurface(Cardinal::S), p)
+       || collide_surface(region, quad.getSurface(Cardinal::W), p);
 }
 
 void ParticleCollisionSystem::update(World& world, secs deltaTime) {
@@ -154,7 +89,7 @@ void ParticleCollisionSystem::collide_emitter_particles(const World& world, Emit
 
         for (const auto& quad : quad_area) {
 
-            if (!quad.hasAnySurface() || quad.hasOneWay)
+            if (!quad.hasAnySurface() /* || quad.hasOneWay */ )
                 continue;
 
             auto bounds = quad.get_bounds();
@@ -177,16 +112,15 @@ void ParticleCollisionSystem::collide_emitter_particles(const World& world, Emit
                 q_bounds[3].pos = math::rect_botleft(*bounds);
             }
 
-
 #if __cpp_lib_parallel_algorithm
             std::for_each(std::execution::par, emitter.particles.begin(), emitter.particles.end(),
                   [&](Particle& p){
-                      collide_particle(*region, quad, *bounds, p);
+                      collide_quad(*region, quad, p);
                   }
             );
 #else
             for (auto &p: emitter.particles) {
-                collide_particle(*region, quad, *bounds, p);
+                collide_quad(*region, quad, p);
             }
 #endif
 
