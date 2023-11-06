@@ -9,6 +9,7 @@
 #include "fastfall/resource/asset/AnimAssetTypes.hpp"
 #include "fastfall/resource/asset/AnimAsset.hpp"
 #include "fastfall/util/id.hpp"
+#include "fastfall/util/id_map.hpp"
 
 #include <concepts>
 #include <random>
@@ -17,6 +18,7 @@ namespace ff {
 
     class Emitter;
     class SceneConfig;
+    class ColliderRegion;
 
     // describe how particles should be created/handled
     struct EmitterStrategy {
@@ -110,13 +112,14 @@ namespace ff {
 
         secs get_lifetime() const { return lifetime; };
 
+        void apply_collision(const poly_id_map<ColliderRegion>& colliders);
+
         void set_drawid(ID<VertexArray> id) { varr_id = id; }
         ID<VertexArray> get_drawid() const { return varr_id; }
 
         Rectf get_particle_bounds() const { return particle_bounds; }
 
     private:
-
         AnimIDRef curr_anim;
         const Animation* animation = nullptr;
 
@@ -129,10 +132,11 @@ namespace ff {
 
         Rectf particle_bounds;
 
-        static Particle update_particle(const Emitter& e, Particle p, secs deltaTime);
+        static void update_particle(const Emitter& e, Particle& p, secs deltaTime);
         void update_particles(secs deltaTime);
         void destroy_dead_particles();
         void spawn_particles(secs deltaTime);
+        void update_bounds();
     };
 
     class World;

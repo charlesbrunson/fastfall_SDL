@@ -47,5 +47,4 @@ target_sources(fastfall PRIVATE
     systems/EmitterSystem.cpp
     systems/TriggerSystem.cpp
     systems/AudioSystem.cpp
-    systems/ParticleCollisionSystem.cpp
 )

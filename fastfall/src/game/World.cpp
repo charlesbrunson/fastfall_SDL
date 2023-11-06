@@ -68,7 +68,6 @@ void World::update(secs deltaTime) {
 
         system<CameraSystem>().update(*this, deltaTime);
         system<EmitterSystem>().update(*this, deltaTime);
-        system<ParticleCollisionSystem>().update(*this, deltaTime);
 
         system<AudioSystem>().update(deltaTime);
 

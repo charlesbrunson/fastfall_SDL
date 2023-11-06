@@ -2,6 +2,7 @@
 #include "fastfall/util/log.hpp"
 
 #include "fastfall/game/World.hpp"
+#include "fastfall/game/phys/ColliderRegion.hpp"
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/render/DebugDraw.hpp"
 
@@ -57,6 +58,13 @@ Emitter::Emitter(EmitterStrategy str)
 {
 }
 
+void Emitter::update_bounds() {
+    particle_bounds = Rectf{ position.x, position.y, 0, 0 };
+    for (auto& p : particles) {
+        particle_bounds = math::rect_bound(particle_bounds, math::line_bounds( Linef{ p.prev_position, p.position } ));
+    }
+}
+
 void Emitter::update(secs deltaTime) {
     if (deltaTime > 0.0) {
         lifetime += deltaTime;
@@ -66,11 +74,7 @@ void Emitter::update(secs deltaTime) {
         destroy_dead_particles();
         update_particles(deltaTime);
         spawn_particles(deltaTime);
-
-        particle_bounds = Rectf{ position.x, position.y, 0, 0 };
-        for (auto& p : particles) {
-            particle_bounds = math::rect_bound(particle_bounds, Rectf{ p.position.x, p.position.y, 0, 0 });
-        }
+        update_bounds();
 
         if (debug_draw::hasTypeEnabled(debug_draw::Type::EMITTER)) {
 
@@ -216,7 +220,7 @@ void Emitter::seed(size_t s) {
     rand.seed(s);
 }
 
-Particle Emitter::update_particle(const Emitter& e, Particle p, secs deltaTime) {
+void Emitter::update_particle(const Emitter& e, Particle& p, secs deltaTime) {
     if (p.is_alive) {
         p.lifetime += deltaTime;
 
@@ -226,23 +230,22 @@ Particle Emitter::update_particle(const Emitter& e, Particle p, secs deltaTime) 
         p.prev_position = p.position;
         p.position += p.velocity * deltaTime;
     }
-    return p;
 }
 
 void Emitter::update_particles(secs deltaTime)
 {
 #if __cpp_lib_parallel_algorithm
     if (parallelize) {
-        std::transform(
+        std::for_each(
                 std::execution::par,
-                particles.cbegin(),
-                particles.cend(),
                 particles.begin(),
-                [this, &deltaTime](Particle p){ return update_particle(*this, p, deltaTime); });
+                particles.end(),
+                [this, &deltaTime](Particle& p){ update_particle(*this, p, deltaTime); }
+                );
     }
     else {
         for (auto &p: particles) {
-            p = update_particle(*this, p, deltaTime);
+            update_particle(*this, p, deltaTime);
         }
     }
 #else
@@ -273,10 +276,10 @@ void Emitter::spawn_particles(secs deltaTime) {
             {
                 auto p = strategy.spawn(position, velocity, rand);
                 // "catch up" the particle so stream is smoother
-                p = update_particle(*this, p,  deltaTime + buffer);
+                update_particle(*this, p,  deltaTime + buffer);
 
                 if (p.is_alive) {
-                    p.id = emit_count;
+                    // p.id = emit_count;
                     particles.push_back(p);
                     ++created;
                     ++emit_count;
@@ -300,6 +303,94 @@ void Emitter::reset_strategy() {
 
 void Emitter::backup_strategy() {
     strategy_backup = strategy;
+}
+
+bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, Particle& p) {
+    if (!surf) return false;
+
+    Linef movement = { p.prev_position + region.getDeltaPosition(), p.position };
+    Linef surface  = math::shift(surf->surface, region.getPosition());
+    Vec2f normal   = math::vector(surface).lefthand().unit();
+
+    if (math::dot(math::vector(movement), normal) < 0.f)
+    {
+        Vec2f intersect = math::intersection(movement, surface);
+        Rectf bounds = math::rect_bound(math::line_bounds(movement), math::line_bounds(surface));
+        if (bounds.contains(intersect)
+            && math::line_has_point(movement, intersect, 0.01f)
+            && math::line_has_point(surface,  intersect, 0.01f))
+        {
+            p.position = intersect;
+            p.velocity = math::projection(region.velocity, normal, true)
+                         + math::projection(p.velocity, normal.righthand(), true);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool collide_quad(const ColliderRegion& region, const ColliderQuad& quad, Particle& p) {
+    return collide_surface(region, quad.getSurface(Cardinal::N), p)
+           || collide_surface(region, quad.getSurface(Cardinal::E), p)
+           || collide_surface(region, quad.getSurface(Cardinal::S), p)
+           || collide_surface(region, quad.getSurface(Cardinal::W), p);
+}
+
+void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders) {
+    for (const auto [rid, region] : colliders) {
+        auto quad_area = region->in_rect(get_particle_bounds());
+
+        if (debug_draw::hasTypeEnabled(debug_draw::Type::EMITTER)) {
+            auto it = quad_area.begin();
+            Rectf r_bounds = math::shift(Rectf{ it.get_tile_area() } * TILESIZE, region->getPosition());
+
+            auto& p_bounds = createDebugDrawable<VertexArray, debug_draw::Type::EMITTER>(Primitive::LINE_LOOP, 4);
+
+            for (int i = 0; i < p_bounds.size(); i++) {
+                p_bounds[i].color = Color::White;
+            }
+            p_bounds[0].pos = math::rect_topleft(r_bounds);
+            p_bounds[1].pos = math::rect_topright(r_bounds);
+            p_bounds[2].pos = math::rect_botright(r_bounds);
+            p_bounds[3].pos = math::rect_botleft(r_bounds);
+        }
+
+        for (const auto& quad : quad_area) {
+            if (!quad.hasAnySurface() /* || quad.hasOneWay */ )
+                continue;
+
+            auto bounds = quad.get_bounds();
+
+            if (!bounds)
+                continue;
+
+            *bounds = math::shift(*bounds, region->getPosition());
+
+            if (debug_draw::hasTypeEnabled(debug_draw::Type::EMITTER)) {
+                auto& q_bounds = createDebugDrawable<VertexArray, debug_draw::Type::EMITTER>(Primitive::LINE_LOOP, 4);
+
+                for (int i = 0; i < q_bounds.size(); i++) {
+                    q_bounds[i].color = Color::Green;
+                }
+                q_bounds[0].pos = math::rect_topleft(*bounds);
+                q_bounds[1].pos = math::rect_topright(*bounds);
+                q_bounds[2].pos = math::rect_botright(*bounds);
+                q_bounds[3].pos = math::rect_botleft(*bounds);
+            }
+
+#if __cpp_lib_parallel_algorithm
+            std::for_each(std::execution::par, particles.begin(), particles.end(),
+                  [&](Particle& p){
+                      collide_quad(*region, quad, p);
+                  }
+            );
+#else
+            for (auto &p: particles) {
+                collide_quad(*region, quad, p);
+            }
+#endif
+        }
+    }
 }
 
 void imgui_component(World& w, ID<Emitter> id) {
