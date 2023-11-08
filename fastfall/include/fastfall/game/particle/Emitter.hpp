@@ -35,7 +35,7 @@ namespace ff {
         secs max_lifetime = 10.0;
 
         // max particles at any time, <0 is infinite
-        long int max_particles = 10;
+        int max_particles = 10;
 
         // direction of the particles
         Angle direction = Angle::Radian(0.f);
@@ -64,6 +64,9 @@ namespace ff {
 
         // if it has collision, bounce factor
         float collision_bounce = 0.f;
+        float collision_bounce_scatter_degrees = 0.f;
+        // dampening applied after collisions
+        float collision_damping = 0.f;
 
         // animation for particles to play
         AnimIDRef animation;

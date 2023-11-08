@@ -229,6 +229,7 @@ void Emitter::update_particle(const Emitter& e, Particle& p, secs deltaTime) {
 
         p.prev_position = p.position;
         p.position += p.velocity * deltaTime;
+        p.velocity *= (1.f - e.strategy.particle_damping);
     }
 }
 
@@ -287,7 +288,7 @@ void Emitter::spawn_particles(secs deltaTime) {
             }
         }
 
-        secs time = 1.f / pick_random(strategy.emit_rate_min, strategy.emit_rate_max, rand);
+        secs time = 1.0 / pick_random(strategy.emit_rate_min, strategy.emit_rate_max, rand);
         buffer += time;
     }
 }
@@ -305,7 +306,7 @@ void Emitter::backup_strategy() {
     strategy_backup = strategy;
 }
 
-bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, Particle& p) {
+bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, Particle& p, float collision_bounce, float collision_damping) {
     if (!surf) return false;
 
     Linef movement = { p.prev_position + region.getDeltaPosition(), p.position };
@@ -321,22 +322,30 @@ bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, 
             && math::line_has_point(surface,  intersect, 0.01f))
         {
             p.position = intersect;
+
+            auto bounce = (collision_bounce > 0 ? -math::projection(p.velocity, normal, true) * collision_bounce : Vec2f{});
+
             p.velocity = math::projection(region.velocity, normal, true)
-                         + math::projection(p.velocity, normal.righthand(), true);
+                    + math::projection(p.velocity * (1.f - collision_damping), normal.righthand(), true)
+                    + bounce;
+
             return true;
         }
     }
     return false;
 }
 
-bool collide_quad(const ColliderRegion& region, const ColliderQuad& quad, Particle& p) {
-    return collide_surface(region, quad.getSurface(Cardinal::N), p)
-           || collide_surface(region, quad.getSurface(Cardinal::E), p)
-           || collide_surface(region, quad.getSurface(Cardinal::S), p)
-           || collide_surface(region, quad.getSurface(Cardinal::W), p);
+bool collide_quad(const ColliderRegion& region, const ColliderQuad& quad, Particle& p, float collision_bounce, float collision_damping) {
+    return collide_surface(region, quad.getSurface(Cardinal::N), p, collision_bounce, collision_damping)
+        || collide_surface(region, quad.getSurface(Cardinal::E), p, collision_bounce, collision_damping)
+        || collide_surface(region, quad.getSurface(Cardinal::S), p, collision_bounce, collision_damping)
+        || collide_surface(region, quad.getSurface(Cardinal::W), p, collision_bounce, collision_damping);
 }
 
 void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders) {
+    if (!strategy.has_collision)
+        return;
+
     for (const auto [rid, region] : colliders) {
         auto quad_area = region->in_rect(get_particle_bounds());
 
@@ -380,13 +389,13 @@ void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders) {
 
 #if __cpp_lib_parallel_algorithm
             std::for_each(std::execution::par, particles.begin(), particles.end(),
-                  [&](Particle& p){
-                      collide_quad(*region, quad, p);
+                  [&](Particle& p) {
+                      collide_quad(*region, quad, p, strategy.collision_bounce, strategy.collision_damping);
                   }
             );
 #else
             for (auto &p: particles) {
-                collide_quad(*region, quad, p);
+                collide_quad(*region, quad, p, strategy.collision_bounce, strategy.collision_damping);
             }
 #endif
         }
@@ -395,6 +404,48 @@ void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders) {
 
 void imgui_component(World& w, ID<Emitter> id) {
     // TODO
+    auto& cmp = w.at(id);
+    auto& cfg = cmp.strategy;
+
+    if (ImGui::CollapsingHeader("Emitter Configuration", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+        float emit_min = static_cast<float>(cfg.emit_rate_min);
+        float emit_max = static_cast<float>(cfg.emit_rate_max);
+        if (ImGui::DragFloatRange2("Emit Rate", &emit_min, &emit_max, 0.5f, 0.f, 10000.f)) {
+            cfg.emit_rate_min = static_cast<secs>(emit_min);
+            cfg.emit_rate_max = static_cast<secs>(emit_max);
+        }
+
+        int count_min = static_cast<int>(cfg.emit_count_min);
+        int count_max = static_cast<int>(cfg.emit_count_max);
+        if (ImGui::DragIntRange2("Emit Count", &count_min, &count_max, 1, 0, 20)) {
+            cfg.emit_count_min = static_cast<unsigned>(count_min);
+            cfg.emit_count_max = static_cast<unsigned>(count_max);
+        }
+
+        constexpr static secs lifetime_max_min = 0.0;
+        constexpr static secs lifetime_max_max = 10.0;
+        ImGui::DragScalar("Max lifetime", ImGuiDataType_Double, (void*)&cfg.max_lifetime, 0.01f, (void*)&lifetime_max_min, (void*)&lifetime_max_max);
+
+        ImGui::DragInt("Max particles", &cfg.max_particles, 1, -1, 1000);
+
+        float degrees = cfg.direction.degrees();
+        if (ImGui::DragFloat("Direction", &degrees, 1, -180, 180)) {
+            cfg.direction = Angle::Degree(degrees);
+        }
+
+        ImGui::DragFloat("Opening", &cfg.open_angle_degrees, 1, 0, 180);
+        ImGui::DragFloatRange2("Particle speed", &cfg.particle_speed_min, &cfg.particle_speed_max);
+        ImGui::DragFloat("Particle dampening", &cfg.particle_damping, 0.01f, -1.f, 1.f);
+        ImGui::DragFloat4("Particle spawn area", &cfg.local_spawn_area.left);
+        ImGui::DragFloat("Particle spawn radius", &cfg.scatter_max_radius, 0.1f, 0.f);
+        ImGui::Checkbox("Inherit parent velocity", &cfg.inherits_vel);
+        ImGui::Checkbox("Has collision", &cfg.has_collision);
+        ImGui::DragFloat("Collision bounce", &cfg.collision_bounce, 0.01f, 0.f, 1.f);
+        ImGui::DragFloat("Collision damping", &cfg.collision_damping, 0.01f, 0.f, 1.f);
+    }
+
+
 }
 
 }
