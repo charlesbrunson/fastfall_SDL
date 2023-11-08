@@ -39,7 +39,7 @@ void ActorSystem::notify_erased(World& world, ID<Actor> id) {
     std::erase(created_actors, id);
 }
 
-void ActorSystem::append_created(World& world) {
+void ActorSystem::append_created(const World& world) {
     if (!created_actors.empty())
     {
         for (ID<Actor> id : created_actors)
@@ -48,7 +48,7 @@ void ActorSystem::append_created(World& world) {
                update_order.begin(),
                update_order.end(),
                id,
-               [world](ID<Actor> id, ID<Actor> actor) {
+               [&world](ID<Actor> id, ID<Actor> actor) {
                    return world.at(id).priority < world.at(actor).priority;
                }
             );

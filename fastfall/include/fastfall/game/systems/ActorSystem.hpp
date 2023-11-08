@@ -22,7 +22,7 @@ public:
     void notify_erased(World& world, ID<Actor> id);
 
 protected:
-    void append_created(World& world);
+    void append_created(const World& world);
 
     std::vector<ID<Actor>> update_order;
     std::vector<ID<Actor>> created_actors;

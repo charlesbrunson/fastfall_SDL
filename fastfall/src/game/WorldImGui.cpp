@@ -711,7 +711,7 @@ void WorldImGui::ImGui_getContent(secs deltaTime)
 
 
 void WorldImGui::add(World* w) {
-    bool exists = std::find_if(worlds.begin(), worlds.end(), [w](auto& data) {
+    bool exists = std::find_if(worlds.begin(), worlds.end(), [&](auto& data) {
         return data.world == w;
     }) != worlds.end();
 
@@ -725,7 +725,7 @@ void WorldImGui::add(World* w) {
 }
 
 void WorldImGui::remove(World* w) {
-    std::erase_if(worlds, [w](auto& data) {
+    std::erase_if(worlds, [&](auto& data) {
         return data.world == w;
     });
 }
