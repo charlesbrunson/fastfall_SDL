@@ -84,6 +84,10 @@ public:
 	{ 
 		return glm::vec<2, T>{width, height}; 
 	};
+    inline T getArea() const
+    {
+        return width * height;
+    };
 
 	Rect<T>& operator* (T value) {
 		left	*= value;

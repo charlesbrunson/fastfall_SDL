@@ -20,6 +20,11 @@ namespace ff {
     class SceneConfig;
     class ColliderRegion;
 
+    enum class ParticleDrawOrder {
+        NewestFirst,
+        OldestFirst,
+    };
+
     // describe how particles should be created/handled
     struct EmitterStrategy {
 
@@ -68,6 +73,10 @@ namespace ff {
         // dampening applied after collisions
         float collision_damping = 0.f;
 
+        ParticleDrawOrder draw_order = ParticleDrawOrder::NewestFirst;
+
+        std::array<Vec2f, 4> constant_accel = {};
+
         // animation for particles to play
         AnimIDRef animation;
 
@@ -91,7 +100,7 @@ namespace ff {
         Vec2f prev_position;
         Vec2f velocity;
         bool is_enabled = true;
-        bool parallelize = true;
+        // bool parallelize = true;
         EmitterStrategy strategy;
 
         std::vector<Particle>  particles;

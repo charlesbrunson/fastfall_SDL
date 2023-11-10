@@ -5,6 +5,7 @@
 #include "fastfall/game/phys/ColliderRegion.hpp"
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/render/DebugDraw.hpp"
+#include "fastfall/util/enumerating_iterator.hpp"
 
 #include <algorithm>
 
@@ -13,7 +14,7 @@
 #endif
 
 #include <cmath>
-
+#include <ranges>
 
 
 namespace ff {
@@ -133,38 +134,26 @@ void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, predraw_state_t predr
         };
 
         assert(varr.size() >= particles.size() * 6);
-        size_t ndx = 0;
-        for (auto& p : particles) {
 
-            secs start_lifetime = p.lifetime - predraw_state.update_dt;
+        // TODO this really should just be a vert shader
+        auto predraw_particle = [&](const auto& pair) {
+
+            auto& p = pair.second;
+            size_t ndx = pair.first * 6;
+
+            // secs start_lifetime = p.lifetime - predraw_state.update_dt;
             secs exact_lifetime = p.lifetime - predraw_state.update_dt * (1.f - predraw_state.interp);
-            secs end_lifetime   = p.lifetime;
-
 
             if (exact_lifetime < 0.0 || exact_lifetime >= strategy.max_lifetime)
             {
-                for (size_t n = 0; n < 6; ++n) {
-                    varr[ndx + n] = {};
-                }
-                ndx += 6;
-                continue;
+                varr[ndx + 0] = {};
+                varr[ndx + 1] = {};
+                varr[ndx + 2] = {};
+                varr[ndx + 3] = {};
+                varr[ndx + 4] = {};
+                varr[ndx + 5] = {};
+                return;
             }
-
-
-            bool born = start_lifetime < 0.f;
-            //bool dies = end_lifetime >= strategy.max_lifetime;
-
-            float p_interp = predraw_state.interp;
-            if (born) {
-                p_interp = (p_interp * end_lifetime) - start_lifetime;
-                //LOG_INFO("BORN: {} -> {}", predraw_state.interp, p_interp);
-            }
-            /*
-            if (dies) {
-                p_interp = p_interp - (end_lifetime - strategy.max_lifetime) / predraw_state.update_dt;
-                LOG_INFO("DIES: {} -> {}", predraw_state.interp, p_interp);
-            }
-            */
 
             Vec2f center = p.prev_position + (p.position - p.prev_position) * predraw_state.interp;
 
@@ -188,22 +177,46 @@ void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, predraw_state_t predr
 
             auto points = Rectf{ area }.toPoints();
             constexpr float tex_offset = 1.f / 16384.f;
+
+            // triange 1
             varr[ndx + 0].tex_pos = (points[0] + glm::vec2{ tex_offset,  tex_offset}) * invSize;
             varr[ndx + 1].tex_pos = (points[1] + glm::vec2{-tex_offset,  tex_offset}) * invSize;
             varr[ndx + 2].tex_pos = (points[2] + glm::vec2{ tex_offset, -tex_offset}) * invSize;
 
+            // triange 2
             varr[ndx + 3].tex_pos = (points[2] + glm::vec2{ tex_offset, -tex_offset}) * invSize;
             varr[ndx + 4].tex_pos = (points[1] + glm::vec2{-tex_offset,  tex_offset}) * invSize;
             varr[ndx + 5].tex_pos = (points[3] + glm::vec2{-tex_offset, -tex_offset}) * invSize;
 
-            for (size_t n = 0; n < 6; ++n) {
-                varr[ndx + n].color = Color::White;
-            }
-            ndx += 6;
+            varr[ndx + 0].color = Color::White;
+            varr[ndx + 1].color = Color::White;
+            varr[ndx + 2].color = Color::White;
+            varr[ndx + 3].color = Color::White;
+            varr[ndx + 4].color = Color::White;
+            varr[ndx + 5].color = Color::White;
+        };
+
+        if (strategy.draw_order == ParticleDrawOrder::NewestFirst) {
+            std::for_each(
+#if __cpp_lib_parallel_algorithm
+                    std::execution::par,
+#endif
+                    make_enumerator(particles.cbegin()),
+                    make_enumerator(particles.cend()),
+                    predraw_particle);
         }
-        while (ndx < varr.size()) {
+        else {
+            std::for_each(
+#if __cpp_lib_parallel_algorithm
+                    std::execution::par,
+#endif
+                    make_enumerator(particles.crbegin()),
+                    make_enumerator(particles.crend()),
+                    predraw_particle);
+        }
+
+        for (size_t ndx = particles.size() * 6; ndx < varr.size(); ndx++) {
             varr[ndx] = {};
-            ++ndx;
         }
     }
     else {
@@ -228,6 +241,10 @@ void Emitter::update_particle(const Emitter& e, Particle& p, secs deltaTime) {
             e.strategy.particle_transform(e, p, deltaTime);
 
         p.prev_position = p.position;
+        for (auto& acc : e.strategy.constant_accel) {
+            p.velocity += acc * deltaTime;
+            p.position += acc * deltaTime * deltaTime;
+        }
         p.position += p.velocity * deltaTime;
         p.velocity *= (1.f - e.strategy.particle_damping);
     }
@@ -235,25 +252,14 @@ void Emitter::update_particle(const Emitter& e, Particle& p, secs deltaTime) {
 
 void Emitter::update_particles(secs deltaTime)
 {
+    std::for_each(
 #if __cpp_lib_parallel_algorithm
-    if (parallelize) {
-        std::for_each(
-                std::execution::par,
-                particles.begin(),
-                particles.end(),
-                [this, &deltaTime](Particle& p){ update_particle(*this, p, deltaTime); }
-                );
-    }
-    else {
-        for (auto &p: particles) {
-            update_particle(*this, p, deltaTime);
-        }
-    }
-#else
-    for (auto &p: particles) {
-        p = update_particle(*this, p, deltaTime);
-    }
+            std::execution::par,
 #endif
+            particles.begin(),
+            particles.end(),
+            [this, &deltaTime](Particle& p) { update_particle(*this, p, deltaTime); }
+            );
 }
 
 void Emitter::destroy_dead_particles() {
@@ -387,17 +393,16 @@ void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders) {
                 q_bounds[3].pos = math::rect_botleft(*bounds);
             }
 
+            std::for_each(
 #if __cpp_lib_parallel_algorithm
-            std::for_each(std::execution::par, particles.begin(), particles.end(),
-                  [&](Particle& p) {
-                      collide_quad(*region, quad, p, strategy.collision_bounce, strategy.collision_damping);
-                  }
-            );
-#else
-            for (auto &p: particles) {
-                collide_quad(*region, quad, p, strategy.collision_bounce, strategy.collision_damping);
-            }
+                    std::execution::par,
 #endif
+                    particles.begin(),
+                    particles.end(),
+                    [&](Particle& p) {
+                        collide_quad(*region, quad, p, strategy.collision_bounce, strategy.collision_damping);
+                    }
+            );
         }
     }
 }
@@ -430,11 +435,11 @@ void imgui_component(World& w, ID<Emitter> id) {
         ImGui::DragInt("Max particles", &cfg.max_particles, 1, -1, 1000);
 
         float degrees = cfg.direction.degrees();
-        if (ImGui::DragFloat("Direction", &degrees, 1, -180, 180)) {
+        if (ImGui::DragFloat("Direction", &degrees, 1, -180, 181)) {
             cfg.direction = Angle::Degree(degrees);
         }
 
-        ImGui::DragFloat("Opening", &cfg.open_angle_degrees, 1, 0, 180);
+        ImGui::DragFloat("Opening", &cfg.open_angle_degrees, 1, 0, 360);
         ImGui::DragFloatRange2("Particle speed", &cfg.particle_speed_min, &cfg.particle_speed_max);
         ImGui::DragFloat("Particle dampening", &cfg.particle_damping, 0.01f, -1.f, 1.f);
         ImGui::DragFloat4("Particle spawn area", &cfg.local_spawn_area.left);
@@ -443,9 +448,41 @@ void imgui_component(World& w, ID<Emitter> id) {
         ImGui::Checkbox("Has collision", &cfg.has_collision);
         ImGui::DragFloat("Collision bounce", &cfg.collision_bounce, 0.01f, 0.f, 1.f);
         ImGui::DragFloat("Collision damping", &cfg.collision_damping, 0.01f, 0.f, 1.f);
+
+        ImGui::DragFloat2("Force 1", &cfg.constant_accel[0].x, 10.f);
+        ImGui::SameLine();
+        if (ImGui::Button("Reset")) {
+            cfg.constant_accel[0] = Vec2f{};
+        }
+
+        ImGui::DragFloat2("Force 2", &cfg.constant_accel[1].x, 10.f);
+        ImGui::SameLine();
+        if (ImGui::Button("Reset")) {
+            cfg.constant_accel[1] = Vec2f{};
+        }
+
+        ImGui::DragFloat2("Force 3", &cfg.constant_accel[2].x, 10.f);
+        ImGui::SameLine();
+        if (ImGui::Button("Reset")) {
+            cfg.constant_accel[2] = Vec2f{};
+        }
+
+        ImGui::DragFloat2("Force 4", &cfg.constant_accel[3].x, 10.f);
+        ImGui::SameLine();
+        if (ImGui::Button("Reset")) {
+            cfg.constant_accel[3] = Vec2f{};
+        }
+
+        ImGui::Text("Particle Count: %zu", cmp.particles.size());
+        float density = cmp.particles.size() / (cmp.get_particle_bounds().getArea() / TILESIZE_F);
+        ImGui::Text("Particle Density: %f", density);
+
+        ImGui::Text("Particle Draw Order: %s", (cfg.draw_order == ParticleDrawOrder::NewestFirst ? "Newest First" : "Oldest First" ));
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Switch")) {
+            cfg.draw_order = (cfg.draw_order == ParticleDrawOrder::NewestFirst ? ParticleDrawOrder::OldestFirst : ParticleDrawOrder::NewestFirst);
+        }
     }
-
-
 }
 
 }

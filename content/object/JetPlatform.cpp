@@ -15,15 +15,16 @@ const EmitterStrategy jet_emitter_str = {
     .emit_rate_max      = 100,
     .emit_count_min     = 1,
     .emit_count_max     = 1,
-    .max_lifetime       = 0.08,
+    .max_lifetime       = 0.120,
     .max_particles      = -1,
     .direction          = Angle::Degree(90.f),
-    .open_angle_degrees = 3.f,
-    .particle_speed_min = 450.f,
-    .particle_speed_max = 550.f,
+    .open_angle_degrees = 4.f,
+    .particle_speed_min = 250.f,
+    .particle_speed_max = 350.f,
     .scatter_max_radius = 0.f,
-    .inherits_vel       = false,
+    .inherits_vel       = true,
     .has_collision      = true,
+    .constant_accel     = {},
     .animation          = AnimIDRef{ "jet_platform.sax", "effect" },
 };
 
@@ -60,7 +61,7 @@ JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLe
     sprite->set_anim(anim_platform[tile_width - platform_width_min]);
     w.system<SceneSystem>().config(sprite) = {
         .layer_id = 0,
-        .type = scene_type::Object,
+        .type     = scene_type::Object,
         .priority = scene_priority::Low
     };
 
@@ -69,7 +70,7 @@ JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLe
     emitter->strategy = jet_emitter_str;
     w.system<SceneSystem>().config(emitter->get_drawid()) = {
         .layer_id = 0,
-        .type = scene_type::Object,
+        .type     = scene_type::Object,
         .priority = scene_priority::Lowest,
     };
 
@@ -118,7 +119,7 @@ JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLe
             if (auto& track = collidable.tracker();
                 track && track->has_contact_with(cid))
             {
-                auto& contact = track->get_contact();
+                // auto& contact = track->get_contact();
                 push_vel.x += collidable.get_friction().x;
                 push_acc.x -= collidable.get_acc().x * 0.5f;
             }
