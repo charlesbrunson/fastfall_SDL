@@ -13,7 +13,9 @@ public:
 
     void notify_created(World &world, ID<Emitter> id);
     void notify_erased(World &world, ID<Emitter> id);
-
+private:
+    std::vector<ParticleEvent> events;
+    std::vector<int>           events_per_emitter;
 };
 
 }

@@ -23,9 +23,10 @@ const EmitterStrategy jet_emitter_str = {
     .particle_speed_max = 350.f,
     .scatter_max_radius = 0.f,
     .inherits_vel       = true,
-    .has_collision      = true,
+    .collision_enabled  = true,
     .constant_accel     = {},
     .animation          = AnimIDRef{ "jet_platform.sax", "effect" },
+    .event_captures     = {}
 };
 
 const ActorType JetPlatform::actor_type = ActorType::create<JetPlatform>({
@@ -73,6 +74,16 @@ JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLe
         .type     = scene_type::Object,
         .priority = scene_priority::Lowest,
     };
+
+    /*
+    emitter->strategy.events_callback = [](std::span<const ParticleEvent> events) {
+        for (auto &e : events) {
+            if (e.type == ParticleEventType::Collide) {
+                LOG_INFO("{} {}", e.particle.position, e.particle.velocity);
+            }
+        }
+    };
+    */
 
     // spring attachpoint
     auto attach = w.create<AttachPoint>(entity_id, id_placeholder);

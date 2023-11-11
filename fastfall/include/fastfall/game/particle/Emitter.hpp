@@ -25,8 +25,20 @@ namespace ff {
         OldestFirst,
     };
 
+    enum class ParticleEventType : uint8_t {
+        Destroy = 0,
+        Collide = 1
+    };
+
+    struct ParticleEvent {
+        ParticleEventType type;
+        Particle particle;
+    };
+
     // describe how particles should be created/handled
     struct EmitterStrategy {
+
+        bool emission_enabled = true;
 
         // number of emissions per second
         secs emit_rate_min = 10;
@@ -35,6 +47,10 @@ namespace ff {
         // number of particles per emission
         unsigned emit_count_min = 1;
         unsigned emit_count_max = 1;
+
+        // number of particles per burst
+        unsigned burst_count_min = 1;
+        unsigned burst_count_max = 1;
 
         // max lifetime of each particle, <0 is infinite
         secs max_lifetime = 10.0;
@@ -65,13 +81,20 @@ namespace ff {
         bool inherits_vel = false;
 
         // collision
-        bool has_collision = false;
+        bool collision_enabled = false;
 
         // if it has collision, bounce factor
-        float collision_bounce = 0.f;
-        float collision_bounce_scatter_degrees = 0.f;
+        float collision_bounce_min = 0.f;
+        float collision_bounce_max = 0.f;
+        // random force applied after a collision
+        float collision_scatter_force_min = 0.f;
+        float collision_scatter_force_max = 0.f;
+
+        float collision_scatter_angle_max = 0.f;
         // dampening applied after collisions
         float collision_damping = 0.f;
+        // particle is destroyed after any collision
+        bool collision_destroys = false;
 
         ParticleDrawOrder draw_order = ParticleDrawOrder::NewestFirst;
 
@@ -88,13 +111,44 @@ namespace ff {
         using EmitterTransformFn = std::function<void(Emitter&, secs)>;
         EmitterTransformFn emitter_transform;
 
+        struct event_captures_t {
+            event_captures_t() = default;
+
+            template<typename ...E>
+            requires(sizeof...(E) > 0 && (std::same_as<E, ParticleEventType> && ...))
+            event_captures_t(E... event_types) {
+                (set(event_types), ...);
+            }
+
+            uint8_t event_types = 0;
+
+            inline bool operator[](ParticleEventType type) const {
+                return (event_types & (1 << static_cast<uint8_t>(type))) > 1;
+            }
+
+            void set(ParticleEventType type) {
+                event_types |= (1 << static_cast<uint8_t>(type));
+            }
+            void unset(ParticleEventType type) {
+                event_types &= ~(1 << static_cast<uint8_t>(type));
+            }
+
+        } event_captures;
+
+        // function applied to the emitter each tick
+        using EventsCallbackFn = std::function<void(std::span<const ParticleEvent> events)>;
+        EventsCallbackFn events_callback;
+
+
         Particle spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::default_random_engine& rand) const;
     };
 
     class Emitter {
     public:
+        using event_out_iter = std::back_insert_iterator<std::vector<ParticleEvent>>;
+
         Emitter() = default;
-        Emitter(EmitterStrategy str);
+        explicit Emitter(EmitterStrategy str);
 
         Vec2f position;
         Vec2f prev_position;
@@ -104,9 +158,10 @@ namespace ff {
         // bool parallelize = true;
         EmitterStrategy strategy;
 
-        std::vector<Particle>  particles;
+        std::vector<Particle>      particles;
+        // std::vector<ParticleEvent> events;
 
-        void update(secs deltaTime);
+        void update(secs deltaTime, event_out_iter events_out);
         void predraw(VertexArray& varr, SceneConfig& cfg, predraw_state_t predraw_state);
 
         void clear_particles();
@@ -119,27 +174,31 @@ namespace ff {
         };
         void seed(size_t s);
 
+        void burst(Vec2f pos, Vec2f vel);
+
         void set_strategy(EmitterStrategy strat);
         void reset_strategy();
         void backup_strategy();
 
         secs get_lifetime() const { return lifetime; };
 
-        void apply_collision(const poly_id_map<ColliderRegion>& colliders);
+        void apply_collision(const poly_id_map<ColliderRegion>& colliders, event_out_iter events_out);
 
         void set_drawid(ID<VertexArray> id) { varr_id = id; }
         ID<VertexArray> get_drawid() const { return varr_id; }
 
         Rectf get_particle_bounds() const { return particle_bounds; }
 
+
+
     private:
         AnimIDRef curr_anim;
         const Animation* animation = nullptr;
 
-        std::default_random_engine rand{};
+        std::default_random_engine rand = {};
         secs buffer = 0.0;
         secs lifetime = 0.0;
-        size_t total_emit_count = 0;
+        unsigned total_emit_count = 0;
         EmitterStrategy strategy_backup;
         ID<VertexArray> varr_id;
 
@@ -147,7 +206,7 @@ namespace ff {
 
         static void update_particle(const Emitter& e, Particle& p, secs deltaTime);
         void update_particles(secs deltaTime);
-        void destroy_dead_particles();
+        void destroy_dead_particles(event_out_iter events_out);
         void spawn_particles(secs deltaTime);
         void update_bounds();
     };

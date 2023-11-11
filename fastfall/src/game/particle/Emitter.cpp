@@ -66,13 +66,15 @@ void Emitter::update_bounds() {
     }
 }
 
-void Emitter::update(secs deltaTime) {
+void Emitter::update(secs deltaTime, event_out_iter events_out) {
     if (deltaTime > 0.0) {
+        //events.clear();
+
         lifetime += deltaTime;
         if (strategy.emitter_transform)
             strategy.emitter_transform(*this, deltaTime);
 
-        destroy_dead_particles();
+        destroy_dead_particles(events_out);
         update_particles(deltaTime);
         spawn_particles(deltaTime);
         update_bounds();
@@ -199,20 +201,20 @@ void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, predraw_state_t predr
         if (strategy.draw_order == ParticleDrawOrder::NewestFirst) {
             std::for_each(
 #if __cpp_lib_parallel_algorithm
-                    std::execution::par,
+                std::execution::par,
 #endif
-                    make_enumerator(particles.cbegin()),
-                    make_enumerator(particles.cend()),
-                    predraw_particle);
+                make_enumerator(particles.cbegin()),
+                make_enumerator(particles.cend()),
+                predraw_particle);
         }
         else {
             std::for_each(
 #if __cpp_lib_parallel_algorithm
-                    std::execution::par,
+                std::execution::par,
 #endif
-                    make_enumerator(particles.crbegin()),
-                    make_enumerator(particles.crend()),
-                    predraw_particle);
+                make_enumerator(particles.crbegin()),
+                make_enumerator(particles.crend()),
+                predraw_particle);
         }
 
         for (size_t ndx = particles.size() * 6; ndx < varr.size(); ndx++) {
@@ -262,16 +264,24 @@ void Emitter::update_particles(secs deltaTime)
             );
 }
 
-void Emitter::destroy_dead_particles() {
-    auto it = std::remove_if(particles.begin(), particles.end(), [this](Particle& p) {
-        return !p.is_alive || (strategy.max_lifetime >= 0 && p.lifetime >= strategy.max_lifetime);
+void Emitter::destroy_dead_particles(event_out_iter events_out) {
+    auto it = std::remove_if(particles.begin(), particles.end(), [&](Particle& p) {
+        auto destroy = !p.is_alive || (strategy.max_lifetime >= 0 && p.lifetime >= strategy.max_lifetime);
+        if (destroy && strategy.event_captures[ParticleEventType::Destroy]) {
+            events_out = { ParticleEventType::Destroy, p };
+        }
+        return destroy;
     });
     particles.erase(it, particles.end());
 }
 
+
+
 void Emitter::spawn_particles(secs deltaTime) {
 
-    if (strategy.emit_rate_min <= 0 &&  strategy.emit_rate_max <= 0) {
+    if ((strategy.emit_rate_min <= 0 && strategy.emit_rate_max <= 0)
+        || !strategy.emission_enabled)
+    {
         buffer = 0.0;
         return;
     }
@@ -281,7 +291,6 @@ void Emitter::spawn_particles(secs deltaTime) {
     while (buffer < 0.0)
     {
         float lerp = 1.f - ((deltaTime + buffer) / deltaTime);
-        size_t created = 0;
         unsigned emit_count = pick_random(strategy.emit_count_min, strategy.emit_count_max, rand);
         for(auto i = emit_count; i > 0; --i)
         {
@@ -291,20 +300,32 @@ void Emitter::spawn_particles(secs deltaTime) {
                 auto curr_pos = prev_position + ((position - prev_position) * lerp);
                 auto curr_vel = prev_velocity + ((velocity - prev_velocity) * lerp);
                 auto p = strategy.spawn(curr_pos, curr_vel, rand);
-                // "catch up" the particle so stream is smoother
                 update_particle(*this, p,  deltaTime + buffer);
 
                 if (p.is_alive) {
-                    // p.id = emit_count;
+                    p.id = total_emit_count++;
                     particles.push_back(p);
-                    ++created;
-                    ++emit_count;
                 }
             }
         }
 
         secs time = 1.0 / pick_random(strategy.emit_rate_min, strategy.emit_rate_max, rand);
         buffer += time;
+    }
+}
+
+void Emitter::burst(Vec2f pos, Vec2f vel) {
+    unsigned burst_count = pick_random(strategy.burst_count_min, strategy.burst_count_max, rand);
+    for(auto i = burst_count; i > 0; --i)
+    {
+        if (strategy.max_particles < 0
+            || particles.size() < strategy.max_particles)
+        {
+            auto p = strategy.spawn(pos, vel, rand);
+            if (p.is_alive) {
+                particles.push_back(p);
+            }
+        }
     }
 }
 
@@ -321,7 +342,7 @@ void Emitter::backup_strategy() {
     strategy_backup = strategy;
 }
 
-bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, Particle& p, float collision_bounce, float collision_damping) {
+bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, const EmitterStrategy& cfg, Particle& p) {
     if (!surf) return false;
 
     Linef movement = { p.prev_position + region.getDeltaPosition(), p.position };
@@ -338,11 +359,16 @@ bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, 
         {
             p.position = intersect;
 
-            auto bounce = (collision_bounce > 0 ? -math::projection(p.velocity, normal, true) * collision_bounce : Vec2f{});
+            std::default_random_engine rand{ p.id };
+
+            auto bounce = -math::projection(p.velocity, normal, true) * pick_random(cfg.collision_bounce_min, cfg.collision_bounce_max, rand);
+            auto scatter_ang = math::angle(normal) + Angle::Degree(pick_random(-cfg.collision_scatter_angle_max, cfg.collision_scatter_angle_max, rand));
+            auto scatter = Vec2f{ cosf(scatter_ang.radians()), sinf(scatter_ang.radians()) } * pick_random(cfg.collision_scatter_force_min, cfg.collision_scatter_force_max, rand);
 
             p.velocity = math::projection(region.velocity, normal, true)
-                    + math::projection(p.velocity * (1.f - collision_damping), normal.righthand(), true)
-                    + bounce;
+                    + math::projection(p.velocity, normal.righthand(), true) * (1.f - cfg.collision_damping)
+                    + bounce
+                    + scatter;
 
             return true;
         }
@@ -350,16 +376,24 @@ bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, 
     return false;
 }
 
-bool collide_quad(const ColliderRegion& region, const ColliderQuad& quad, Particle& p, float collision_bounce, float collision_damping) {
-    return collide_surface(region, quad.getSurface(Cardinal::N), p, collision_bounce, collision_damping)
-        || collide_surface(region, quad.getSurface(Cardinal::E), p, collision_bounce, collision_damping)
-        || collide_surface(region, quad.getSurface(Cardinal::S), p, collision_bounce, collision_damping)
-        || collide_surface(region, quad.getSurface(Cardinal::W), p, collision_bounce, collision_damping);
+bool collide_quad(const ColliderRegion& region, const ColliderQuad& quad, const EmitterStrategy& cfg, Particle& p) {
+    return collide_surface(region, quad.getSurface(Cardinal::N), cfg, p)
+        || collide_surface(region, quad.getSurface(Cardinal::E), cfg, p)
+        || collide_surface(region, quad.getSurface(Cardinal::S), cfg, p)
+        || collide_surface(region, quad.getSurface(Cardinal::W), cfg, p);
 }
 
-void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders) {
-    if (!strategy.has_collision)
+void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders, event_out_iter events_out) {
+    if (!strategy.collision_enabled) {
+        std::for_each(
+            std::execution::par,
+            particles.begin(),
+            particles.end(),
+            [&](Particle& p) {
+                p.collided = false;
+            });
         return;
+    }
 
     for (const auto [rid, region] : colliders) {
         auto quad_area = region->in_rect(get_particle_bounds());
@@ -404,14 +438,23 @@ void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders) {
 
             std::for_each(
 #if __cpp_lib_parallel_algorithm
-                    std::execution::par,
+                std::execution::par,
 #endif
-                    particles.begin(),
-                    particles.end(),
-                    [&](Particle& p) {
-                        collide_quad(*region, quad, p, strategy.collision_bounce, strategy.collision_damping);
-                    }
+                particles.begin(),
+                particles.end(),
+                [&](Particle& p) {
+                    p.collided = collide_quad(*region, quad, strategy, p);
+                    p.is_alive &= !(strategy.collision_destroys && p.collided);
+                }
             );
+
+            if (strategy.event_captures[ParticleEventType::Collide]) {
+                for (auto &p: particles) {
+                    if (p.collided) {
+                        events_out = { ParticleEventType::Collide, p };
+                    }
+                }
+            }
         }
     }
 }
@@ -421,77 +464,82 @@ void imgui_component(World& w, ID<Emitter> id) {
     auto& cmp = w.at(id);
     auto& cfg = cmp.strategy;
 
-    if (ImGui::CollapsingHeader("Emitter Configuration", ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::SeparatorText("Emitter Configuration");
+    ImGui::Checkbox("Emission Enabled", &cfg.emission_enabled);
 
-        float emit_min = static_cast<float>(cfg.emit_rate_min);
-        float emit_max = static_cast<float>(cfg.emit_rate_max);
-        if (ImGui::DragFloatRange2("Emit Rate", &emit_min, &emit_max, 0.5f, 0.f, 10000.f)) {
-            cfg.emit_rate_min = static_cast<secs>(emit_min);
-            cfg.emit_rate_max = static_cast<secs>(emit_max);
-        }
-
-        int count_min = static_cast<int>(cfg.emit_count_min);
-        int count_max = static_cast<int>(cfg.emit_count_max);
-        if (ImGui::DragIntRange2("Emit Count", &count_min, &count_max, 1, 0, 20)) {
-            cfg.emit_count_min = static_cast<unsigned>(count_min);
-            cfg.emit_count_max = static_cast<unsigned>(count_max);
-        }
-
-        constexpr static secs lifetime_max_min = 0.0;
-        constexpr static secs lifetime_max_max = 10.0;
-        ImGui::DragScalar("Max lifetime", ImGuiDataType_Double, (void*)&cfg.max_lifetime, 0.01f, (void*)&lifetime_max_min, (void*)&lifetime_max_max);
-
-        ImGui::DragInt("Max particles", &cfg.max_particles, 1, -1, 1000);
-
-        float degrees = cfg.direction.degrees();
-        if (ImGui::DragFloat("Direction", &degrees, 1, -180, 181)) {
-            cfg.direction = Angle::Degree(degrees);
-        }
-
-        ImGui::DragFloat("Opening", &cfg.open_angle_degrees, 1, 0, 360);
-        ImGui::DragFloatRange2("Particle speed", &cfg.particle_speed_min, &cfg.particle_speed_max);
-        ImGui::DragFloat("Particle dampening", &cfg.particle_damping, 0.01f, -1.f, 1.f);
-        ImGui::DragFloat4("Particle spawn area", &cfg.local_spawn_area.left);
-        ImGui::DragFloat("Particle spawn radius", &cfg.scatter_max_radius, 0.1f, 0.f);
-        ImGui::Checkbox("Inherit parent velocity", &cfg.inherits_vel);
-        ImGui::Checkbox("Has collision", &cfg.has_collision);
-        ImGui::DragFloat("Collision bounce", &cfg.collision_bounce, 0.01f, 0.f, 1.f);
-        ImGui::DragFloat("Collision damping", &cfg.collision_damping, 0.01f, 0.f, 1.f);
-
-        ImGui::DragFloat2("Force 1", &cfg.constant_accel[0].x, 10.f);
-        ImGui::SameLine();
-        if (ImGui::Button("Reset")) {
-            cfg.constant_accel[0] = Vec2f{};
-        }
-
-        ImGui::DragFloat2("Force 2", &cfg.constant_accel[1].x, 10.f);
-        ImGui::SameLine();
-        if (ImGui::Button("Reset")) {
-            cfg.constant_accel[1] = Vec2f{};
-        }
-
-        ImGui::DragFloat2("Force 3", &cfg.constant_accel[2].x, 10.f);
-        ImGui::SameLine();
-        if (ImGui::Button("Reset")) {
-            cfg.constant_accel[2] = Vec2f{};
-        }
-
-        ImGui::DragFloat2("Force 4", &cfg.constant_accel[3].x, 10.f);
-        ImGui::SameLine();
-        if (ImGui::Button("Reset")) {
-            cfg.constant_accel[3] = Vec2f{};
-        }
-
-        ImGui::Text("Particle Count: %zu", cmp.particles.size());
-        float density = cmp.particles.size() / (cmp.get_particle_bounds().getArea() / TILESIZE_F);
-        ImGui::Text("Particle Density: %f", density);
-
-        ImGui::Text("Particle Draw Order: %s", (cfg.draw_order == ParticleDrawOrder::NewestFirst ? "Newest First" : "Oldest First" ));
-        ImGui::SameLine();
-        if (ImGui::SmallButton("Switch")) {
-            cfg.draw_order = (cfg.draw_order == ParticleDrawOrder::NewestFirst ? ParticleDrawOrder::OldestFirst : ParticleDrawOrder::NewestFirst);
-        }
+    float emit_min = static_cast<float>(cfg.emit_rate_min);
+    float emit_max = static_cast<float>(cfg.emit_rate_max);
+    if (ImGui::DragFloatRange2("Emit Rate", &emit_min, &emit_max, 0.5f, 0.f, 10000.f)) {
+        cfg.emit_rate_min = static_cast<secs>(emit_min);
+        cfg.emit_rate_max = static_cast<secs>(emit_max);
     }
+
+    int count_min = static_cast<int>(cfg.emit_count_min);
+    int count_max = static_cast<int>(cfg.emit_count_max);
+    if (ImGui::DragIntRange2("Emit Count", &count_min, &count_max, 1, 0, 20)) {
+        cfg.emit_count_min = static_cast<unsigned>(count_min);
+        cfg.emit_count_max = static_cast<unsigned>(count_max);
+    }
+
+    constexpr static secs lifetime_max_min = 0.0;
+    constexpr static secs lifetime_max_max = 10.0;
+    ImGui::DragScalar("Max lifetime", ImGuiDataType_Double, (void*)&cfg.max_lifetime, 0.01f, (void*)&lifetime_max_min, (void*)&lifetime_max_max);
+
+    ImGui::DragInt("Max particles", &cfg.max_particles, 1, -1, 1000);
+
+    float degrees = cfg.direction.degrees();
+    if (ImGui::DragFloat("Direction", &degrees, 1, -180, 181)) {
+        cfg.direction = Angle::Degree(degrees);
+    }
+
+    ImGui::DragFloat("Opening", &cfg.open_angle_degrees, 1, 0, 360);
+    ImGui::DragFloatRange2("Particle speed", &cfg.particle_speed_min, &cfg.particle_speed_max);
+    ImGui::DragFloat("Particle dampening", &cfg.particle_damping, 0.01f, -1.f, 1.f);
+    ImGui::DragFloat4("Particle spawn area", &cfg.local_spawn_area.left);
+    ImGui::DragFloat("Particle spawn radius", &cfg.scatter_max_radius, 0.1f, 0.f);
+    ImGui::Checkbox("Inherit parent velocity", &cfg.inherits_vel);
+    ImGui::Checkbox("Collision enabled", &cfg.collision_enabled);
+    ImGui::Checkbox("Collision destroys", &cfg.collision_destroys);
+    ImGui::DragFloatRange2("Collision bounce", &cfg.collision_bounce_min, &cfg.collision_bounce_max, 0.005f, 0.f, 1.f);
+    ImGui::DragFloat("Collision damping", &cfg.collision_damping, 0.005f, 0.f, 1.f);
+    ImGui::DragFloat("Collision scatter angle", &cfg.collision_scatter_angle_max, 1.f, 0.f, 90.f);
+    ImGui::DragFloatRange2("Collision scatter force", &cfg.collision_scatter_force_min, &cfg.collision_scatter_force_max, 1.f, 0.f, FLT_MAX);
+
+    ImGui::DragFloat2("Force 1", &cfg.constant_accel[0].x, 10.f);
+    ImGui::SameLine();
+    if (ImGui::Button("Reset")) {
+        cfg.constant_accel[0] = Vec2f{};
+    }
+
+    ImGui::DragFloat2("Force 2", &cfg.constant_accel[1].x, 10.f);
+    ImGui::SameLine();
+    if (ImGui::Button("Reset")) {
+        cfg.constant_accel[1] = Vec2f{};
+    }
+
+    ImGui::DragFloat2("Force 3", &cfg.constant_accel[2].x, 10.f);
+    ImGui::SameLine();
+    if (ImGui::Button("Reset")) {
+        cfg.constant_accel[2] = Vec2f{};
+    }
+
+    ImGui::DragFloat2("Force 4", &cfg.constant_accel[3].x, 10.f);
+    ImGui::SameLine();
+    if (ImGui::Button("Reset")) {
+        cfg.constant_accel[3] = Vec2f{};
+    }
+
+
+    ImGui::Text("Particle Draw Order: %s", (cfg.draw_order == ParticleDrawOrder::NewestFirst ? "Newest First" : "Oldest First" ));
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Switch")) {
+        cfg.draw_order = (cfg.draw_order == ParticleDrawOrder::NewestFirst ? ParticleDrawOrder::OldestFirst : ParticleDrawOrder::NewestFirst);
+    }
+
+    ImGui::SeparatorText("Emitter State");
+    ImGui::Text("Particle Count: %zu", cmp.particles.size());
+    float density = cmp.particles.size() / (cmp.get_particle_bounds().getArea() / TILESIZE_F);
+    ImGui::Text("Particle Density: %f", density);
 }
 
 }
