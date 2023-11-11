@@ -79,7 +79,7 @@ void PathMover::update(AttachPoint& attach, secs deltaTime)
                 next_segment();
             }
         } else if (!stopped) {
-            progress += _path.speed * (float) deltaTime;
+            progress += _path.speed * speed_multiplier * (float) deltaTime;
             if (progress >= dist_to_next_waypoint) {
                 ++prev_ndx;
                 progress -= dist_to_next_waypoint;
@@ -172,6 +172,8 @@ void imgui_component(World& w, ID<PathMover> id) {
         }
         ImGui::TreePop();
     }
+
+    ImGui::DragFloat("Speed Multiplier", &cmp.speed_multiplier, 0.1f, 0.f, 10.f);
 }
 
 }

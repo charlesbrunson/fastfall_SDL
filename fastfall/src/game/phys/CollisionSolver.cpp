@@ -137,6 +137,7 @@ CollisionSolver::CompResult pickH(const ContinuousContact* east, const Continuou
 		r.discardFirst = true;
 		r.discardSecond = true;
 
+
 		if (eSep > wSep) {
 			r.contact = *east;
 			r.contact->separation -= wSep;
@@ -147,6 +148,9 @@ CollisionSolver::CompResult pickH(const ContinuousContact* east, const Continuou
 			r.contact->separation -= eSep;
 			r.contact->separation /= 2.f;
 		}
+
+        // average vel
+        r.contact->velocity = Vec2f{ 0.f, (east->velocity.y * 0.5f) + (west->velocity.y * 0.5f)};
 		return r;
 	}
 
@@ -202,6 +206,9 @@ CollisionSolver::CompResult pickV(const ContinuousContact* north, const Continuo
 			r.contact->separation -= nSep;
 			r.contact->separation /= 2.f;
 		}
+
+        // average vel
+        r.contact->velocity = Vec2f{ (north->velocity.x * 0.5f) + (south->velocity.x * 0.5f), 0.f};
 		return r;
 	}
 	// pick the one with contact
@@ -451,7 +458,8 @@ std::optional<ContinuousContact> CollisionSolver::detectWedge(const ContinuousCo
             contact->ortho_n	= Vec2f{ side, 0.f },
             contact->collider_n = Vec2f{ side, 0.f },
             contact->velocity	= Vec2f{
-                intersect - math::intersection(
+                intersect
+                - math::intersection(
                     math::shift(floorLine, -north->velocity),
                     math::shift(ceilLine, -south->velocity))
             };

@@ -108,6 +108,7 @@ namespace ff {
 
         // Emitter
         void attach_update(World& w, ID<Emitter> id, Emitter& cmp, const AttachState& st) {
+            cmp.prev_velocity = st.parent.prev_global_vel();
             cmp.velocity = st.parent.global_vel();
             cmp.prev_position = st.ppos;
             cmp.position = st.cpos;

@@ -142,7 +142,7 @@ void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, predraw_state_t predr
             size_t ndx = pair.first * 6;
 
             // secs start_lifetime = p.lifetime - predraw_state.update_dt;
-            secs exact_lifetime = p.lifetime - predraw_state.update_dt * (1.f - predraw_state.interp);
+            secs exact_lifetime = p.lifetime + predraw_state.update_dt * (predraw_state.interp - 1.f);
 
             if (exact_lifetime < 0.0 || exact_lifetime >= strategy.max_lifetime)
             {
@@ -271,9 +271,16 @@ void Emitter::destroy_dead_particles() {
 
 void Emitter::spawn_particles(secs deltaTime) {
 
+    if (strategy.emit_rate_min <= 0 &&  strategy.emit_rate_max <= 0) {
+        buffer = 0.0;
+        return;
+    }
+
     buffer -= deltaTime;
+
     while (buffer < 0.0)
     {
+        float lerp = 1.f - ((deltaTime + buffer) / deltaTime);
         size_t created = 0;
         unsigned emit_count = pick_random(strategy.emit_count_min, strategy.emit_count_max, rand);
         for(auto i = emit_count; i > 0; --i)
@@ -281,7 +288,9 @@ void Emitter::spawn_particles(secs deltaTime) {
             if (strategy.max_particles < 0
                 || particles.size() < strategy.max_particles)
             {
-                auto p = strategy.spawn(position, velocity, rand);
+                auto curr_pos = prev_position + ((position - prev_position) * lerp);
+                auto curr_vel = prev_velocity + ((velocity - prev_velocity) * lerp);
+                auto p = strategy.spawn(curr_pos, curr_vel, rand);
                 // "catch up" the particle so stream is smoother
                 update_particle(*this, p,  deltaTime + buffer);
 

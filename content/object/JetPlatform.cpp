@@ -11,8 +11,8 @@ AnimIDRef anim_platform[] = {
 };
 
 const EmitterStrategy jet_emitter_str = {
-    .emit_rate_min      = 100,
-    .emit_rate_max      = 100,
+    .emit_rate_min      = 60,
+    .emit_rate_max      = 60,
     .emit_count_min     = 1,
     .emit_count_max     = 1,
     .max_lifetime       = 0.120,

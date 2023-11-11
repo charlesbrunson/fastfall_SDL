@@ -99,6 +99,7 @@ namespace ff {
         Vec2f position;
         Vec2f prev_position;
         Vec2f velocity;
+        Vec2f prev_velocity;
         bool is_enabled = true;
         // bool parallelize = true;
         EmitterStrategy strategy;

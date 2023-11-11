@@ -385,7 +385,7 @@ void Collidable::applyContact(const AppliedContact& contact, ContactType type)
 
 	if ((type == ContactType::CRUSH_VERTICAL) || (type == ContactType::CRUSH_HORIZONTAL) || (type == ContactType::WEDGE))
     {
-		set_local_vel(Vec2f{});
+		set_local_vel(contact.velocity);
 	}
 	else if (math::dot(get_global_vel() - contact.velocity, contact.collider_n) <= 0.f)
     {

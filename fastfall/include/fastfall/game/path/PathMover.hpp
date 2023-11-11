@@ -38,6 +38,8 @@ public:
     bool is_stopped() const { return stopped; }
     void set_stopped(bool stop) { stopped = stop; }
 
+    float speed_multiplier = 1.f;
+
 private:
     ID<AttachPoint> _attach_id;
     Path _path;
