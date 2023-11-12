@@ -33,7 +33,7 @@ T pick_random(T min, T max, std::default_random_engine& engine)
     }
 }
 
-Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::default_random_engine& rand) const
+Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, Angle emit_angle, std::default_random_engine& rand) const
 {
     Particle p;
     float dist      = pick_random(0.f, scatter_max_radius, rand);
@@ -45,7 +45,7 @@ Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::defau
     p.prev_position = p.position;
 
     Vec2f vel = Vec2f{pick_random(particle_speed_min, particle_speed_max, rand), 0.f};
-    vel = math::rotate(vel, direction);
+    vel = math::rotate(vel, emit_angle);
 
     auto ang_offset = pick_random(-open_angle_degrees * 0.5f, open_angle_degrees * 0.5f, rand);
     vel = math::rotate(vel, Angle::Degree(ang_offset));
@@ -60,13 +60,19 @@ Emitter::Emitter(EmitterStrategy str)
 }
 
 void Emitter::update_bounds() {
-    particle_bounds = Rectf{ position.x, position.y, 0, 0 };
+    particle_bounds = {};
     for (auto& p : particles) {
-        particle_bounds = math::rect_bound(particle_bounds, math::line_bounds( Linef{ p.prev_position, p.position } ));
+        [[likely]]
+        if (particle_bounds) {
+            particle_bounds = math::rect_bound(*particle_bounds, math::line_bounds( Linef{ p.prev_position, p.position } ));
+        }
+        else {
+            particle_bounds = math::line_bounds( Linef{ p.prev_position, p.position } );
+        }
     }
 }
 
-void Emitter::update(secs deltaTime, event_out_iter events_out) {
+void Emitter::update(secs deltaTime, event_out_iter& events_out) {
     if (deltaTime > 0.0) {
         //events.clear();
 
@@ -81,16 +87,18 @@ void Emitter::update(secs deltaTime, event_out_iter events_out) {
 
         if (debug_draw::hasTypeEnabled(debug_draw::Type::EMITTER)) {
 
-            auto& p_bounds = createDebugDrawable<VertexArray, debug_draw::Type::EMITTER>(
-                    (const void*)this, Primitive::LINE_LOOP, 4);
+            if (particle_bounds) {
+                auto &p_bounds = createDebugDrawable<VertexArray, debug_draw::Type::EMITTER>(
+                        (const void *) this, Primitive::LINE_LOOP, 4);
 
-            for (int i = 0; i < p_bounds.size(); i++) {
-                p_bounds[i].color = Color::Red;
+                for (int i = 0; i < p_bounds.size(); i++) {
+                    p_bounds[i].color = Color::Red;
+                }
+                p_bounds[0].pos = math::rect_topleft(*particle_bounds);
+                p_bounds[1].pos = math::rect_topright(*particle_bounds);
+                p_bounds[2].pos = math::rect_botright(*particle_bounds);
+                p_bounds[3].pos = math::rect_botleft(*particle_bounds);
             }
-            p_bounds[0].pos = math::rect_topleft(particle_bounds);
-            p_bounds[1].pos = math::rect_topright(particle_bounds);
-            p_bounds[2].pos = math::rect_botright(particle_bounds);
-            p_bounds[3].pos = math::rect_botleft(particle_bounds);
 
 
             auto& part_points = createDebugDrawable<VertexArray, debug_draw::Type::EMITTER>(
@@ -299,7 +307,7 @@ void Emitter::spawn_particles(secs deltaTime) {
             {
                 auto curr_pos = prev_position + ((position - prev_position) * lerp);
                 auto curr_vel = prev_velocity + ((velocity - prev_velocity) * lerp);
-                auto p = strategy.spawn(curr_pos, curr_vel, rand);
+                auto p = strategy.spawn(curr_pos, curr_vel, emit_angle, rand);
                 update_particle(*this, p,  deltaTime + buffer);
 
                 if (p.is_alive) {
@@ -314,18 +322,21 @@ void Emitter::spawn_particles(secs deltaTime) {
     }
 }
 
-void Emitter::burst(Vec2f pos, Vec2f vel) {
+void Emitter::burst(Vec2f pos, Vec2f vel, Angle ang) {
     unsigned burst_count = pick_random(strategy.burst_count_min, strategy.burst_count_max, rand);
-    for(auto i = burst_count; i > 0; --i)
+    for(auto i = 0; i < burst_count; ++i)
     {
-        if (strategy.max_particles < 0
-            || particles.size() < strategy.max_particles)
-        {
-            auto p = strategy.spawn(pos, vel, rand);
-            if (p.is_alive) {
-                particles.push_back(p);
+        if (strategy.burst_chance > pick_random(0.f, 1.f, rand)) {
+            if (strategy.max_particles < 0
+                || particles.size() < strategy.max_particles) {
+                auto p = strategy.spawn(pos, vel, ang, rand);
+                if (p.is_alive) {
+                    p.id = total_emit_count++;
+                    particles.push_back(p);
+                }
             }
         }
+
     }
 }
 
@@ -370,6 +381,8 @@ bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, 
                     + bounce
                     + scatter;
 
+            p.collision_normal = normal;
+
             return true;
         }
     }
@@ -383,20 +396,24 @@ bool collide_quad(const ColliderRegion& region, const ColliderQuad& quad, const 
         || collide_surface(region, quad.getSurface(Cardinal::W), cfg, p);
 }
 
-void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders, event_out_iter events_out) {
-    if (!strategy.collision_enabled) {
+void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders, event_out_iter& events_out) {
+
+    if (!strategy.collision_enabled || !get_particle_bounds()) {
+        /*
         std::for_each(
             std::execution::par,
             particles.begin(),
             particles.end(),
             [&](Particle& p) {
-                p.collided = false;
+                p.collision_normal.reset();
             });
+        */
         return;
     }
 
+
     for (const auto [rid, region] : colliders) {
-        auto quad_area = region->in_rect(get_particle_bounds());
+        auto quad_area = region->in_rect(*get_particle_bounds());
 
         if (debug_draw::hasTypeEnabled(debug_draw::Type::EMITTER)) {
             auto it = quad_area.begin();
@@ -443,15 +460,16 @@ void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders, even
                 particles.begin(),
                 particles.end(),
                 [&](Particle& p) {
-                    p.collided = collide_quad(*region, quad, strategy, p);
-                    p.is_alive &= !(strategy.collision_destroys && p.collided);
+                    collide_quad(*region, quad, strategy, p);
+                    p.is_alive &= !(strategy.collision_destroys && p.collision_normal);
                 }
             );
 
             if (strategy.event_captures[ParticleEventType::Collide]) {
                 for (auto &p: particles) {
-                    if (p.collided) {
+                    if (p.collision_normal) {
                         events_out = { ParticleEventType::Collide, p };
+                        p.collision_normal.reset();
                     }
                 }
             }
@@ -487,10 +505,6 @@ void imgui_component(World& w, ID<Emitter> id) {
 
     ImGui::DragInt("Max particles", &cfg.max_particles, 1, -1, 1000);
 
-    float degrees = cfg.direction.degrees();
-    if (ImGui::DragFloat("Direction", &degrees, 1, -180, 181)) {
-        cfg.direction = Angle::Degree(degrees);
-    }
 
     ImGui::DragFloat("Opening", &cfg.open_angle_degrees, 1, 0, 360);
     ImGui::DragFloatRange2("Particle speed", &cfg.particle_speed_min, &cfg.particle_speed_max);
@@ -538,8 +552,13 @@ void imgui_component(World& w, ID<Emitter> id) {
 
     ImGui::SeparatorText("Emitter State");
     ImGui::Text("Particle Count: %zu", cmp.particles.size());
-    float density = cmp.particles.size() / (cmp.get_particle_bounds().getArea() / TILESIZE_F);
+    float density = cmp.get_particle_bounds() ? (cmp.particles.size() / (cmp.get_particle_bounds()->getArea() / TILESIZE_F)) : -1.f;
     ImGui::Text("Particle Density: %f", density);
+
+    float degrees = cmp.emit_angle.degrees();
+    if (ImGui::DragFloat("Direction", &degrees, 1, -180, 181)) {
+        cmp.emit_angle = Angle::Degree(degrees);
+    }
 }
 
 }

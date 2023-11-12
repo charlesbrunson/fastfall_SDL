@@ -17,17 +17,56 @@ const EmitterStrategy jet_emitter_str = {
     .emit_count_max     = 1,
     .max_lifetime       = 0.120,
     .max_particles      = -1,
-    .direction          = Angle::Degree(90.f),
+    //.direction          = Angle::Degree(90.f),
     .open_angle_degrees = 4.f,
     .particle_speed_min = 250.f,
     .particle_speed_max = 350.f,
     .scatter_max_radius = 0.f,
     .inherits_vel       = true,
     .collision_enabled  = true,
+    .collision_destroys  = true,
     .constant_accel     = {},
     .animation          = AnimIDRef{ "jet_platform.sax", "effect" },
-    .event_captures     = {}
+    .event_captures     = { ParticleEventType::Collide }
 };
+
+const EmitterStrategy smoke_emitter_str = {
+        .emission_enabled               = false,
+
+        .emit_rate_min                  = 0,
+        .emit_rate_max                  = 0,
+
+        .emit_count_min                 = 1,
+        .emit_count_max                 = 1,
+
+        .burst_count_min                = 1,
+        .burst_count_max                = 1,
+        .burst_chance                   = 1.f,
+
+        .max_lifetime                   = 0.25,
+        .max_particles                  = -1,
+
+        //.direction                      = Angle::Radian(0.f),
+        .open_angle_degrees             = 60.f,
+
+        .particle_speed_min             = 0.f,
+        .particle_speed_max             = 50.f,
+
+        .particle_damping               = 0.5f,
+
+        .local_spawn_area               = {},
+        .scatter_max_radius             = 0.f,
+
+        .inherits_vel                   = false,
+
+        .collision_enabled              = false,
+
+        .draw_order                     = ParticleDrawOrder::NewestFirst,
+        .constant_accel                 = { Vec2f{ 0.f, -250.f } },
+        .animation                      = AnimIDRef{ "jet_platform.sax", "smoke" },
+};
+
+
 
 const ActorType JetPlatform::actor_type = ActorType::create<JetPlatform>({
     .name       = "JetPlatform",
@@ -66,24 +105,32 @@ JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLe
         .priority = scene_priority::Low
     };
 
-    // emitter
-    auto emitter = w.create<Emitter>(entity_id);
-    emitter->strategy = jet_emitter_str;
-    w.system<SceneSystem>().config(emitter->get_drawid()) = {
+    // emitters
+    auto jet_emitter = w.create<Emitter>(entity_id);
+    jet_emitter->strategy   = jet_emitter_str;
+    jet_emitter->emit_angle = Angle::Degree(90.f);
+    w.system<SceneSystem>().config(jet_emitter->get_drawid()) = {
         .layer_id = 0,
         .type     = scene_type::Object,
         .priority = scene_priority::Lowest,
     };
 
-    /*
-    emitter->strategy.events_callback = [](std::span<const ParticleEvent> events) {
+    auto smoke_emitter = w.create<Emitter>(entity_id);
+    smoke_emitter->strategy = smoke_emitter_str;
+    w.system<SceneSystem>().config(smoke_emitter->get_drawid()) = {
+        .layer_id = 0,
+        .type     = scene_type::Object,
+        .priority = scene_priority::Low,
+    };
+
+    jet_emitter->strategy.events_callback = [ s_id = smoke_emitter.id ](World& w, std::span<const ParticleEvent> events) {
+        auto& smoke_emitter = w.at(s_id);
         for (auto &e : events) {
-            if (e.type == ParticleEventType::Collide) {
-                LOG_INFO("{} {}", e.particle.position, e.particle.velocity);
+            if (e.particle.id % 6 == 0) {
+                smoke_emitter.burst(e.particle.position, e.particle.velocity, math::angle(*e.particle.collision_normal));
             }
         }
     };
-    */
 
     // spring attachpoint
     auto attach = w.create<AttachPoint>(entity_id, id_placeholder);
@@ -91,7 +138,7 @@ JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLe
     attach->constraint = makeSpringConstraint({30, 50}, {8, 3}, 48.f);
     w.system<AttachSystem>().create(w, attach, sprite);
     w.system<AttachSystem>().create(w, attach, collider);
-    w.system<AttachSystem>().create(w, attach, emitter, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
+    w.system<AttachSystem>().create(w, attach, jet_emitter, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
     attach->sched = AttachPoint::Schedule::PostCollision;
 
     // base attachpoint

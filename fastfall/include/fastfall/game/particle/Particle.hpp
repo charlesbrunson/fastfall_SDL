@@ -11,7 +11,8 @@ namespace ff {
         Vec2f prev_position = {};
         Vec2f velocity      = {};
         secs  lifetime      = 0.0;
-        bool  collided      = false;
+        //bool  collided      = false;
+        std::optional<Vec2f> collision_normal;
         bool  is_alive      = true;
     };
 }

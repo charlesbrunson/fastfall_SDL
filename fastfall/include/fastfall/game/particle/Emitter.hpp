@@ -19,6 +19,7 @@ namespace ff {
     class Emitter;
     class SceneConfig;
     class ColliderRegion;
+    class World;
 
     enum class ParticleDrawOrder {
         NewestFirst,
@@ -52,6 +53,8 @@ namespace ff {
         unsigned burst_count_min = 1;
         unsigned burst_count_max = 1;
 
+        float burst_chance = 1.f;
+
         // max lifetime of each particle, <0 is infinite
         secs max_lifetime = 10.0;
 
@@ -59,7 +62,7 @@ namespace ff {
         int max_particles = 10;
 
         // direction of the particles
-        Angle direction = Angle::Radian(0.f);
+        // Angle direction = Angle::Radian(0.f);
 
         // variation of direction, in degrees
         float open_angle_degrees = 0.f;
@@ -136,11 +139,10 @@ namespace ff {
         } event_captures;
 
         // function applied to the emitter each tick
-        using EventsCallbackFn = std::function<void(std::span<const ParticleEvent> events)>;
+        using EventsCallbackFn = std::function<void(World& w, std::span<const ParticleEvent> events)>;
         EventsCallbackFn events_callback;
 
-
-        Particle spawn(Vec2f emitter_pos, Vec2f emitter_vel, std::default_random_engine& rand) const;
+        Particle spawn(Vec2f emitter_pos, Vec2f emitter_vel, Angle emit_angle, std::default_random_engine& rand) const;
     };
 
     class Emitter {
@@ -150,6 +152,8 @@ namespace ff {
         Emitter() = default;
         explicit Emitter(EmitterStrategy str);
 
+        Angle emit_angle;
+
         Vec2f position;
         Vec2f prev_position;
         Vec2f velocity;
@@ -158,10 +162,9 @@ namespace ff {
         // bool parallelize = true;
         EmitterStrategy strategy;
 
-        std::vector<Particle>      particles;
-        // std::vector<ParticleEvent> events;
+        std::vector<Particle> particles;
 
-        void update(secs deltaTime, event_out_iter events_out);
+        void update(secs deltaTime, event_out_iter& events_out);
         void predraw(VertexArray& varr, SceneConfig& cfg, predraw_state_t predraw_state);
 
         void clear_particles();
@@ -174,7 +177,7 @@ namespace ff {
         };
         void seed(size_t s);
 
-        void burst(Vec2f pos, Vec2f vel);
+        void burst(Vec2f pos, Vec2f vel, Angle ang);
 
         void set_strategy(EmitterStrategy strat);
         void reset_strategy();
@@ -182,14 +185,12 @@ namespace ff {
 
         secs get_lifetime() const { return lifetime; };
 
-        void apply_collision(const poly_id_map<ColliderRegion>& colliders, event_out_iter events_out);
+        void apply_collision(const poly_id_map<ColliderRegion>& colliders, event_out_iter& events_out);
 
         void set_drawid(ID<VertexArray> id) { varr_id = id; }
         ID<VertexArray> get_drawid() const { return varr_id; }
 
-        Rectf get_particle_bounds() const { return particle_bounds; }
-
-
+        const std::optional<Rectf>& get_particle_bounds() const { return particle_bounds; }
 
     private:
         AnimIDRef curr_anim;
@@ -202,7 +203,7 @@ namespace ff {
         EmitterStrategy strategy_backup;
         ID<VertexArray> varr_id;
 
-        Rectf particle_bounds;
+        std::optional<Rectf> particle_bounds;
 
         static void update_particle(const Emitter& e, Particle& p, secs deltaTime);
         void update_particles(secs deltaTime);

@@ -27,7 +27,7 @@ void EmitterSystem::update(World& world, secs deltaTime) {
             auto event_span = std::span{events_it, events_it + count};
 
             if (!event_span.empty() && e.strategy.events_callback) {
-                e.strategy.events_callback(event_span);
+                e.strategy.events_callback(world, event_span);
             }
 
             events_it += count;
