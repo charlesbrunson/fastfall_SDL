@@ -80,8 +80,12 @@ namespace ff {
         // max distance to scatter particles, radially (note: combine with local_spawn_area for a bezelled area)
         float scatter_max_radius = 0.f;
 
-        // particles inherit velocity of emitter
-        bool inherits_vel = false;
+        // particles inherit part of velocity of the emitter
+        float inherits_vel = 0.f;
+        //float inherits_acc = 0.f;
+
+        // add delta position of emitter each tick
+        bool move_with_emitter = false;
 
         // collision
         bool collision_enabled = false;
@@ -159,6 +163,7 @@ namespace ff {
         Vec2f velocity;
         Vec2f prev_velocity;
         bool is_enabled = true;
+
         // bool parallelize = true;
         EmitterStrategy strategy;
 
@@ -193,7 +198,7 @@ namespace ff {
         const std::optional<Rectf>& get_particle_bounds() const { return particle_bounds; }
 
     private:
-        AnimIDRef curr_anim;
+        // AnimIDRef curr_anim;
         const Animation* animation = nullptr;
 
         std::default_random_engine rand = {};
@@ -205,7 +210,7 @@ namespace ff {
 
         std::optional<Rectf> particle_bounds;
 
-        static void update_particle(const Emitter& e, Particle& p, secs deltaTime);
+        static void update_particle(const Emitter& e, Particle& p, secs deltaTime, bool born);
         void update_particles(secs deltaTime);
         void destroy_dead_particles(event_out_iter events_out);
         void spawn_particles(secs deltaTime);

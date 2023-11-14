@@ -50,7 +50,7 @@ Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, Angle emit
     auto ang_offset = pick_random(-open_angle_degrees * 0.5f, open_angle_degrees * 0.5f, rand);
     vel = math::rotate(vel, Angle::Degree(ang_offset));
 
-    p.velocity = vel + (inherits_vel ? emitter_vel : Vec2f{});
+    p.velocity = vel + inherits_vel * emitter_vel /* + inherits_acc * emitter_acc */;
     return p;
 }
 
@@ -75,6 +75,8 @@ void Emitter::update_bounds() {
 void Emitter::update(secs deltaTime, event_out_iter& events_out) {
     if (deltaTime > 0.0) {
         //events.clear();
+
+        //delta_position = position - prev_position;
 
         lifetime += deltaTime;
         if (strategy.emitter_transform)
@@ -243,7 +245,7 @@ void Emitter::seed(size_t s) {
     rand.seed(s);
 }
 
-void Emitter::update_particle(const Emitter& e, Particle& p, secs deltaTime) {
+void Emitter::update_particle(const Emitter& e, Particle& p, secs deltaTime, bool born) {
     if (p.is_alive) {
         p.lifetime += deltaTime;
 
@@ -254,6 +256,10 @@ void Emitter::update_particle(const Emitter& e, Particle& p, secs deltaTime) {
         for (auto& acc : e.strategy.constant_accel) {
             p.velocity += acc * deltaTime;
             p.position += acc * deltaTime * deltaTime;
+        }
+        if (!born && e.strategy.move_with_emitter) {
+            p.position += e.position - e.prev_position;
+            // p.velocity += e.velocity - e.prev_velocity;
         }
         p.position += p.velocity * deltaTime;
         p.velocity *= (1.f - e.strategy.particle_damping);
@@ -268,7 +274,7 @@ void Emitter::update_particles(secs deltaTime)
 #endif
             particles.begin(),
             particles.end(),
-            [this, &deltaTime](Particle& p) { update_particle(*this, p, deltaTime); }
+            [this, &deltaTime](Particle& p) { update_particle(*this, p, deltaTime, false); }
             );
 }
 
@@ -300,7 +306,7 @@ void Emitter::spawn_particles(secs deltaTime) {
     {
         float lerp = 1.f - ((deltaTime + buffer) / deltaTime);
         unsigned emit_count = pick_random(strategy.emit_count_min, strategy.emit_count_max, rand);
-        for(auto i = emit_count; i > 0; --i)
+        while (emit_count-- > 0)
         {
             if (strategy.max_particles < 0
                 || particles.size() < strategy.max_particles)
@@ -308,7 +314,7 @@ void Emitter::spawn_particles(secs deltaTime) {
                 auto curr_pos = prev_position + ((position - prev_position) * lerp);
                 auto curr_vel = prev_velocity + ((velocity - prev_velocity) * lerp);
                 auto p = strategy.spawn(curr_pos, curr_vel, emit_angle, rand);
-                update_particle(*this, p,  deltaTime + buffer);
+                update_particle(*this, p,  deltaTime + buffer, true);
 
                 if (p.is_alive) {
                     p.id = total_emit_count++;
@@ -511,7 +517,9 @@ void imgui_component(World& w, ID<Emitter> id) {
     ImGui::DragFloat("Particle dampening", &cfg.particle_damping, 0.01f, -1.f, 1.f);
     ImGui::DragFloat4("Particle spawn area", &cfg.local_spawn_area.left);
     ImGui::DragFloat("Particle spawn radius", &cfg.scatter_max_radius, 0.1f, 0.f);
-    ImGui::Checkbox("Inherit parent velocity", &cfg.inherits_vel);
+    ImGui::DragFloat("Inherit parent velocity", &cfg.inherits_vel, 0.01f, -1.f, 1.f);
+    //ImGui::DragFloat("Inherit parent acceleration", &cfg.inherits_acc, 0.01f, -100.f, 100.f);
+    ImGui::Checkbox("Move with emitter", &cfg.move_with_emitter);
     ImGui::Checkbox("Collision enabled", &cfg.collision_enabled);
     ImGui::Checkbox("Collision destroys", &cfg.collision_destroys);
     ImGui::DragFloatRange2("Collision bounce", &cfg.collision_bounce_min, &cfg.collision_bounce_max, 0.005f, 0.f, 1.f);
