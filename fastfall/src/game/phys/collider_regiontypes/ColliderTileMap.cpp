@@ -2,6 +2,7 @@
 
 #include "fastfall/engine/config.hpp"
 #include "fastfall/util/log.hpp"
+#include "fastfall/util/PlotLine.hpp"
 
 #include <algorithm>
 #include <stdlib.h>
@@ -442,25 +443,6 @@ namespace ff {
             quad = in_bounds ? get_quad(pos) : nullptr;
         }
 
-        /*
-        if (quad
-            &&  debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_TRACKER))
-        {
-            auto& lines = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_TRACKER>(Primitive::LINE_STRIP, 5);
-            lines[0].pos = (Vec2f{ tile_area.topleft()  } * TILESIZE_F) + getPosition();
-            lines[1].pos = (Vec2f{ tile_area.topright() } * TILESIZE_F) + getPosition();
-            lines[2].pos = (Vec2f{ tile_area.botright() } * TILESIZE_F) + getPosition();
-            lines[3].pos = (Vec2f{ tile_area.botleft()  } * TILESIZE_F) + getPosition();
-            lines[4].pos = (Vec2f{ tile_area.topleft()  } * TILESIZE_F) + getPosition();
-
-            lines[0].color = ff::Color::Blue;
-            lines[1].color = ff::Color::Blue;
-            lines[2].color = ff::Color::Blue;
-            lines[3].color = ff::Color::Blue;
-            lines[4].color = ff::Color::Blue;
-        }
-        */
-
         return quad ? std::make_optional(quad->getID()) : std::nullopt;
     }
     std::optional<QuadID> ColliderTileMap::next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area) const {
@@ -488,6 +470,13 @@ namespace ff {
     }
 
     std::optional<QuadID> ColliderTileMap::first_quad_in_line(Linef line, Recti& tile_area) const {
+        line = math::shift(line, -getPosition());
+        auto plot_line = PlotLine{ line, TILESIZE_F };
+        for (auto pos : plot_line) {
+            if (validPosition(pos)) {
+                return getTileID(pos);
+            }
+        }
         return {};
     }
     std::optional<QuadID> ColliderTileMap::next_quad_in_line(Linef line, QuadID quadid, const Recti& tile_area) const {
