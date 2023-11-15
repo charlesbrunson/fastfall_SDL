@@ -15,8 +15,8 @@ void EmitterSystem::update(World& world, secs deltaTime) {
         for (auto [eid, e]: world.all<Emitter>()) {
             size_t init_events_count = events.size();
             auto output_it = std::back_inserter(events);
-            e.update(deltaTime, output_it);
-            e.apply_collision(collider_regions, output_it);
+            e.update(deltaTime, &output_it);
+            e.apply_collision(collider_regions, &output_it);
             events_per_emitter.push_back(events.size() - init_events_count);
         }
 

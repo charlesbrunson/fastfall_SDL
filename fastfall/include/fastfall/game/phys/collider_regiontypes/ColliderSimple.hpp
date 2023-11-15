@@ -26,6 +26,8 @@ public:
 protected:
     std::optional<QuadID> first_quad_in_rect(Rectf area, Recti& tile_area) const override;
     std::optional<QuadID> next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area) const override;
+    std::optional<QuadID> first_quad_in_line(Linef line, Recti& tile_area) const override;
+    std::optional<QuadID> next_quad_in_line(Linef line, QuadID quadid, const Recti& tile_area) const override;
 
 private:
 	std::function<bool(World&, const ContinuousContact&, secs)> callback_on_precontact;

@@ -487,6 +487,13 @@ namespace ff {
         return quad ? std::make_optional(quad->getID()) : std::nullopt;
     }
 
+    std::optional<QuadID> ColliderTileMap::first_quad_in_line(Linef line, Recti& tile_area) const {
+        return {};
+    }
+    std::optional<QuadID> ColliderTileMap::next_quad_in_line(Linef line, QuadID quadid, const Recti& tile_area) const {
+        return {};
+    }
+
 	void ColliderTileMap::updateGhosts(const Vec2i& position) {
 		auto [quad, tile] = get_tile(position);
 		if (!quad)

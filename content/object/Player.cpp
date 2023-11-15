@@ -2,6 +2,7 @@
 #include "PlayerCommon.hpp"
 
 #include "fastfall/game/trigger/Trigger.hpp"
+#include "fastfall/game/phys/Raycast.hpp"
 
 
 #include <functional>
@@ -73,7 +74,15 @@ void Player::manage_state(World& w, PlayerStateID n_id)
 
 void Player::update(World& w, secs deltaTime) {
 	manage_state(w, get_state().update(w, *this, deltaTime));
-    //w.at(sprite_id).update(deltaTime);
+
+    static secs time_buf = 0.0;
+    time_buf += deltaTime;
+
+    Linef path;
+    path.p1 = w.at(collidable_id).getPosition() + Vec2f{ 0.f, -16.f };
+    path.p2 = path.p1 + Vec2f{ cosf(time_buf), sinf(time_buf) } * 128.f;
+
+    raycast(w.all<ColliderRegion>(), path);
 }
 
 Actor::dresult Player::message(World& w, const dmessage& msg) {

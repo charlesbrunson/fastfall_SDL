@@ -72,12 +72,8 @@ void Emitter::update_bounds() {
     }
 }
 
-void Emitter::update(secs deltaTime, event_out_iter& events_out) {
+void Emitter::update(secs deltaTime, event_out_iter* events_out) {
     if (deltaTime > 0.0) {
-        //events.clear();
-
-        //delta_position = position - prev_position;
-
         lifetime += deltaTime;
         if (strategy.emitter_transform)
             strategy.emitter_transform(*this, deltaTime);
@@ -278,11 +274,12 @@ void Emitter::update_particles(secs deltaTime)
             );
 }
 
-void Emitter::destroy_dead_particles(event_out_iter events_out) {
+void Emitter::destroy_dead_particles(event_out_iter* events_out) {
     auto it = std::remove_if(particles.begin(), particles.end(), [&](Particle& p) {
         auto destroy = !p.is_alive || (strategy.max_lifetime >= 0 && p.lifetime >= strategy.max_lifetime);
         if (destroy && strategy.event_captures[ParticleEventType::Destroy]) {
-            events_out = { ParticleEventType::Destroy, p };
+            if (events_out)
+                *events_out = { ParticleEventType::Destroy, p };
         }
         return destroy;
     });
@@ -402,7 +399,7 @@ bool collide_quad(const ColliderRegion& region, const ColliderQuad& quad, const 
         || collide_surface(region, quad.getSurface(Cardinal::W), cfg, p);
 }
 
-void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders, event_out_iter& events_out) {
+void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders, event_out_iter* events_out) {
 
     if (!strategy.collision_enabled || !get_particle_bounds()) {
         /*
@@ -474,7 +471,9 @@ void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders, even
             if (strategy.event_captures[ParticleEventType::Collide]) {
                 for (auto &p: particles) {
                     if (p.collision_normal) {
-                        events_out = { ParticleEventType::Collide, p };
+                        if (events_out)
+                            *events_out = { ParticleEventType::Collide, p };
+
                         p.collision_normal.reset();
                     }
                 }

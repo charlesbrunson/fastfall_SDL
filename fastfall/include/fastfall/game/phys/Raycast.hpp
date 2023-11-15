@@ -9,10 +9,6 @@
 
 namespace ff {
 
-class World;
-
-constexpr static float RAY_MAX_DIST = 500.f;
-
 struct RaycastHit {
 	float distance;
 	Vec2f origin;
@@ -20,9 +16,18 @@ struct RaycastHit {
 	const ColliderRegion* region;
 	const ColliderSurface* surface;
 
-	Linef get_line() const { return {origin, impact}; };
+    [[nodiscard]]
+	inline Linef line() const { return { origin, impact }; };
 };
 
-std::optional<RaycastHit> raycast(World& world, const Vec2f& origin, Cardinal direction, float dist = 100.f, float backoff = -1.f);
+std::optional<RaycastHit> raycast(const poly_id_map<ColliderRegion>& regions, Linef path, float backoff = -1.f);
+
+//std::optional<RaycastHit> raycast(const poly_id_map<ColliderRegion>& regions, const Vec2f& origin, Cardinal direction, float distance, float backoff = -1.f) {
+//    return raycast(regions, Linef{ origin, origin + direction::to_vector<float>(direction) * distance }, backoff);
+//}
+//
+//std::optional<RaycastHit> raycast(const poly_id_map<ColliderRegion>& regions, Vec2f start, Vec2f end, float backoff = -1.f) {
+//    return raycast(regions, Linef{ start, end }, backoff);
+//}
 
 }

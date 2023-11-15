@@ -22,13 +22,17 @@ namespace ff {
 
     std::optional<QuadID> ColliderSimple::first_quad_in_rect(Rectf area, Recti& tile_area) const {
         Rectf bbox = math::shift(area, -getPosition());
-		//Vec2f deltap = getPosition() - getPrevPosition();
-		//bbox = math::rect_extend(bbox, (deltap.x < 0.f ? Cardinal::W : Cardinal::E), abs(deltap.x));
-		//bbox = math::rect_extend(bbox, (deltap.y < 0.f ? Cardinal::N : Cardinal::S), abs(deltap.y));
-
         return boundingBox.touches(bbox) ? std::make_optional(quad.getID()) : std::nullopt;
     }
     std::optional<QuadID> ColliderSimple::next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area) const {
+        // there's only one
+        return {};
+    }
+    std::optional<QuadID> ColliderSimple::first_quad_in_line(Linef line, Recti& tile_area) const {
+        bool contained = boundingBox.contains(math::shift(line, -getPosition()));
+        return contained ? std::make_optional(quad.getID()) : std::nullopt;
+    }
+    std::optional<QuadID> ColliderSimple::next_quad_in_line(Linef line, QuadID quadid, const Recti& tile_area) const {
         // there's only one
         return {};
     }

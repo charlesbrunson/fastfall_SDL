@@ -167,7 +167,7 @@ inline T distSquared(const Line<T>& line) {
 	return math::distSquared(line.p1, line.p2);
 }
 
-template<typename T, typename>
+template<typename T>
 [[nodiscard]]
 inline T dist(const Line<T>& line) {
 	return math::dist(line.p1, line.p2);

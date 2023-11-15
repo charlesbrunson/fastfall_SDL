@@ -169,7 +169,7 @@ namespace ff {
 
         std::vector<Particle> particles;
 
-        void update(secs deltaTime, event_out_iter& events_out);
+        void update(secs deltaTime, event_out_iter* events_out = nullptr);
         void predraw(VertexArray& varr, SceneConfig& cfg, predraw_state_t predraw_state);
 
         void clear_particles();
@@ -190,7 +190,7 @@ namespace ff {
 
         secs get_lifetime() const { return lifetime; };
 
-        void apply_collision(const poly_id_map<ColliderRegion>& colliders, event_out_iter& events_out);
+        void apply_collision(const poly_id_map<ColliderRegion>& colliders, event_out_iter* events_out = nullptr);
 
         void set_drawid(ID<VertexArray> id) { varr_id = id; }
         ID<VertexArray> get_drawid() const { return varr_id; }
@@ -212,7 +212,7 @@ namespace ff {
 
         static void update_particle(const Emitter& e, Particle& p, secs deltaTime, bool born);
         void update_particles(secs deltaTime);
-        void destroy_dead_particles(event_out_iter events_out);
+        void destroy_dead_particles(event_out_iter* events_out = nullptr);
         void spawn_particles(secs deltaTime);
         void update_bounds();
     };
