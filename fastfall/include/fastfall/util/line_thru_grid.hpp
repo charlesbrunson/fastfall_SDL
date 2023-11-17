@@ -27,7 +27,7 @@ namespace ff {
             using pointer         = value_type*;
             using reference       = value_type &;
 
-            iterator(Line<T> line_t, Vec2i grid_di, Vec2<T> cell_di, Vec2i pos)
+            iterator(Line<T> line_t, Recti grid_di, Vec2<T> cell_di, Vec2i pos)
                 : line(line_t), value{.pos = pos}, grid_size(grid_di), cell_size(cell_di)
             {
                 m = (line.p2.y - line.p1.y) / (line.p2.x - line.p1.x);
@@ -44,7 +44,7 @@ namespace ff {
                 };
             }
 
-            iterator(Line<T> line_t, Vec2i grid_di, Vec2<T> cell_di)
+            iterator(Line<T> line_t, Recti grid_di, Vec2<T> cell_di)
             : line(line_t), value(), grid_size(grid_di), cell_size(cell_di)
             {
                 m = (line.p2.y - line.p1.y) / (line.p2.x - line.p1.x);
@@ -55,20 +55,22 @@ namespace ff {
                     line.p1.y < line.p2.y ? 1 : -1
                 };
 
-                auto right = grid_size.x * cell_size.x;
-                auto bottom = grid_size.y * cell_size.y;
+                auto left   = grid_size.left * cell_size.x;
+                auto top    = grid_size.top * cell_size.y;
+                auto right  = (grid_size.left + grid_size.width) * cell_size.x;
+                auto bottom = (grid_size.top + grid_size.height) * cell_size.y;
 
-                if (sign.x > 0 && line.p1.x < 0) {
-                    line.p1.y += (0 - line.p1.x) * m;
-                    line.p1.x = 0;
+                if (sign.x > 0 && line.p1.x < left) {
+                    line.p1.y += (left - line.p1.x) * m;
+                    line.p1.x = left;
                 } else if (sign.x < 0 && line.p1.x > right) {
                     line.p1.y += (right - line.p1.x) * m;
                     line.p1.x = right;
                 }
 
-                if (sign.y > 0 && line.p1.y < 0) {
-                    line.p1.x += (0 - line.p1.y) * m_inv;
-                    line.p1.y = 0;
+                if (sign.y > 0 && line.p1.y < top) {
+                    line.p1.x += (top - line.p1.y) * m_inv;
+                    line.p1.y = top;
                 } else if (sign.y < 0 && line.p1.y > bottom) {
                     line.p1.x += (bottom - line.p1.y) * m_inv;
                     line.p1.y = bottom;
@@ -79,13 +81,13 @@ namespace ff {
                     (std::floor(line.p1.y / cell_size.y) * cell_size.y) + (sign.y > 0 ? 1 : 0) * cell_size.y
                 };
 
-                value.pos.x = line.p1.x / cell_size.x;
-                value.pos.y = line.p1.y / cell_size.y;
+                value.pos.x = floorf(line.p1.x / cell_size.x);
+                value.pos.y = floorf(line.p1.y / cell_size.y);
             }
 
 
             bool operator!=(sentinel end) const {
-                return in_grid() && past_sentinel(end);
+                return in_grid() && !past_sentinel(end);
             }
 
             iterator &operator++() {
@@ -132,21 +134,22 @@ namespace ff {
         private:
             [[nodiscard]]
             inline bool in_grid() const {
-                return value.pos.x >= 0 && value.pos.x < grid_size.x
-                       && value.pos.y >= 0 && value.pos.y < grid_size.y;
+                return value.pos.x >= grid_size.left
+                    && value.pos.x <  grid_size.left + grid_size.width
+                    && value.pos.y >= grid_size.top
+                    && value.pos.y <  grid_size.top + grid_size.height;
             }
 
             [[nodiscard]]
             inline bool past_sentinel(sentinel end) const {
-                return (value.pos.x != end.x + sign.x || value.pos.y != end.y + sign.y)
-                       && (value.pos.x != end.x + sign.x || value.pos.y != end.y)
-                       && (value.pos.x != end.x || value.pos.y != end.y + sign.y);
+                return (sign.x > 0 ? value.pos.x > end.x : value.pos.x < end.x)
+                    || (sign.y > 0 ? value.pos.y > end.y : value.pos.y < end.y);
             }
 
             Line<T> line;
             iter_value value;
 
-            Vec2i grid_size;
+            Recti grid_size;
             Vec2<T> cell_size;
 
             float m;
@@ -154,17 +157,16 @@ namespace ff {
 
             Vec2i sign;
             Vec2<T> scan;
-
         };
 
     private:
         Line<T> line;
-        Vec2i grid_size;
+        Recti grid_size;
         Vec2<T> cell_size;
 
     public:
         line_thru_grid() = default;
-        line_thru_grid(Line<T> line_t, Vec2i grid_di, Vec2<T> cell_di)
+        line_thru_grid(Line<T> line_t, Recti grid_di, Vec2<T> cell_di)
         : line(line_t), grid_size(grid_di), cell_size(cell_di)
         {
         }

@@ -2,7 +2,7 @@
 
 #include "fastfall/engine/config.hpp"
 #include "fastfall/util/log.hpp"
-#include "fastfall/util/PlotLine.hpp"
+#include "fastfall/util/line_thru_grid.hpp"
 
 #include <algorithm>
 #include <stdlib.h>
@@ -34,8 +34,8 @@ namespace ff {
 
 		//debug_dirtyFlag = true;
 		boundingBox = Rectf(
-			Vec2f(size_min * TILESIZE_F),
-			Vec2f(size_max * TILESIZE_F)
+			Vec2f(size_min) * TILESIZE_F,
+			Vec2f(size_max - size_min) * TILESIZE_F
 		);
 		prevBoundingBox = boundingBox;
 	}
@@ -470,17 +470,44 @@ namespace ff {
     }
 
     std::optional<QuadID> ColliderTileMap::first_quad_in_line(Linef line, Recti& tile_area) const {
+        line = math::shift(line, -getPosition());
 
         if (!boundingBox.contains(line))
             return {};
 
-        line = math::shift(line, -getPosition());
-        auto beg = line_thru_grid<float>::iterator{ line, Vec2i{ collisionMapSize }, Vec2f{TILESIZE_F, TILESIZE_F}};
-        auto end = Vec2i{ line.p2 / TILESIZE_F };
+        auto beg = line_thru_grid<float>::iterator{ line, Recti{ size_min, size_max - size_min }, Vec2f{TILESIZE_F, TILESIZE_F}};
+        auto end = Vec2i( floorf(line.p2.x / TILESIZE_F), floorf(line.p2.y / TILESIZE_F) );
+
+        if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_RAYCAST)) {
+            debug_draw::set_offset(getPosition());
+            auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINE_LOOP, 4);
+            draw[0].color = Color::Red;
+            draw[1].color = Color::Red;
+            draw[2].color = Color::Red;
+            draw[3].color = Color::Red;
+            draw[0].pos = Vec2f{ end } * TILESIZE_F;
+            draw[1].pos = Vec2f{ end + Vec2i{1, 0} } * TILESIZE_F;
+            draw[2].pos = Vec2f{ end + Vec2i{1, 1} } * TILESIZE_F;
+            draw[3].pos = Vec2f{ end + Vec2i{0, 1} } * TILESIZE_F;
+            debug_draw::set_offset();
+        }
 
         while (beg != end) {
+            if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_RAYCAST)) {
+                debug_draw::set_offset(getPosition());
+                auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINE_LOOP, 4);
+                draw[0].color = Color::White;
+                draw[1].color = Color::White;
+                draw[2].color = Color::White;
+                draw[3].color = Color::White;
+                draw[0].pos = Vec2f{ beg->pos } * TILESIZE_F;
+                draw[1].pos = Vec2f{ beg->pos + Vec2i{1, 0} } * TILESIZE_F;
+                draw[2].pos = Vec2f{ beg->pos + Vec2i{1, 1} } * TILESIZE_F;
+                draw[3].pos = Vec2f{ beg->pos + Vec2i{0, 1} } * TILESIZE_F;
+                debug_draw::set_offset();
+            }
+
             if (get_quad(beg->pos)) {
-                // LOG_INFO("{}", beg->pos);
                 return getTileID(beg->pos);
             }
             else {
@@ -493,14 +520,27 @@ namespace ff {
     }
     std::optional<QuadID> ColliderTileMap::next_quad_in_line(Linef line, QuadID quadid, const Recti& tile_area) const {
         line = math::shift(line, -getPosition());
-        auto beg = line_thru_grid<float>::iterator{ line, Vec2i{ collisionMapSize }, Vec2f{TILESIZE_F, TILESIZE_F}, to_pos(quadid)};
-        auto end = Vec2i{ line.p2 / TILESIZE_F };
+        auto beg = line_thru_grid<float>::iterator{ line, Recti{ size_min, size_max - size_min }, Vec2f{TILESIZE_F, TILESIZE_F}, to_pos(quadid)};
+        auto end = Vec2i( floorf(line.p2.x / TILESIZE_F), floorf(line.p2.y / TILESIZE_F) );
 
         ++beg;
 
         while (beg != end) {
+            if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_RAYCAST)) {
+                debug_draw::set_offset(getPosition());
+                auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINE_LOOP, 4);
+                draw[0].color = Color::White;
+                draw[1].color = Color::White;
+                draw[2].color = Color::White;
+                draw[3].color = Color::White;
+                draw[0].pos = Vec2f{ beg->pos } * TILESIZE_F;
+                draw[1].pos = Vec2f{ beg->pos + Vec2i{1, 0} } * TILESIZE_F;
+                draw[2].pos = Vec2f{ beg->pos + Vec2i{1, 1} } * TILESIZE_F;
+                draw[3].pos = Vec2f{ beg->pos + Vec2i{0, 1} } * TILESIZE_F;
+                debug_draw::set_offset();
+            }
+
             if (get_quad(beg->pos)) {
-                // LOG_INFO("{}", beg->pos);
                 return getTileID(beg->pos);
             }
             else {

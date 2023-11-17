@@ -3,7 +3,6 @@
 #include "fastfall/util/math.hpp"
 #include "fastfall/game/phys/Collidable.hpp"
 #include "fastfall/game/phys/collider_coretypes/ColliderQuad.hpp"
-#include "fastfall/util/line_thru_grid.hpp"
 
 #include <assert.h>
 #include <math.h>

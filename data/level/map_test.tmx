@@ -38,11 +38,11 @@
    <property name="collision_border" value="NESW"/>
   </properties>
   <data encoding="base64" compression="zlib">
-   eJztmktOwzAUReMUgRAfqQK1TPi2M5ggMUFiQmmhqtQRH0ElugeWwBK6BJbAEtgZjsiDV2PHjuPETvSOdAdNG8dpTuzYMWMRQRAEQRAVw9hfCKJqYvYT8o/wAfYvyWGNPBzGUTSK5d/N+fZbnmn6mzHPjeK3hD/Av8S7Iw/uvfG8C1lo9gHvrtOouEa/eY6XP2ftR1QH+NeXuHcQWHso+lM0hH/Av7OAPFNB/jUP/PyX9IW6vo8gXIL9c/n8N6E2hkAwRbB/LvurWY59pmic+krONhKdfzFz/1w0MShrIDj+Qv41kjL8++D5lOQr/X6mKWukaGdpnq55+Gj/dGT19cnc8R2qC8z5qZzH3hPhEZp/qraP5lSaSR7/ILJ3EybvJ0wowz3yL1x0/rV47h2PPULxgZ4n/WMy/+KSPPMvZUNjGv+49k839g0BcZ0CdnCgcRKvi+zy7NXg/SQmlHsfqLr984Hom0nEcbaMffazFgMjOmlSTpUk57bmuxIpq5Ef/6q8B+cFxy15/RGdfLQspwzGaV26fqvxSyfK71/W+FeXRRTeePQh/nNE56GLY2R5ODQ4xrhAvWCtY3JJV8x3K4VWpHavSf3v3PD66Dx0MQeAjyHew8m9+WRwDNv1svh9JlzjHk/f7lSsOeY5ibLda5J/eZF5iN07Tf+Tixr9L+K7dN21DyFN8a/N679rcQ7godjuwfPdVU3+F9G9uvl3zuRr8G2w8aAo7fQeKuvYPfZ/zCvb5gOZe3Xz75K5W4NfpgcqoL/UxbZeuHxwTratalTu1c0/6IOLeuNj3naHH2OTLZ+LKhsW5yiWv8Wzrdjm6pzBK9U42mSu07dbNv6BN+uWUbU7RcrMSict38Q9GwfzuI09hHFvMt7VOWkzb24S326Z5Bu5HYkR
+   eJztmktOwzAUReMWgRAfqQK1TPi2M5ggMUFiQmmhqtQRH0ElugeWwBK6BJbAEtgZjppHH8aOHceJnfCOdCeB2k5yYseOGYsIgiAIgigZxpYhiLJpsEX+u3/XDbMQbsH+xTmskIcD7sNQ4cSMH7/lmST/M+K5IX+CA/yLvTvy4N4bz7uQueY34J2uT8L91jP1ZUEC/vUk7h0E1h+ajpE0llYH8O8sIM9UkH/1A7//xWOhbuwjCJdg/1y+/42pjyEQTBHsn8vxaprhNxM0T30lZ2uJzr8Gc/9eNDYoqy84/kL+1ZIi/Pvg+ZTkK/n7VFPWUNHP0jpd/fDR/+lIG+vjteM71BZY81M5j70nwiM0/1R9H62p1JMs/kFk3yZMvk+YUIR75F+46Pxr8tw7nnuE4gO9T/rHZP3FJVnWX4qG5jT+ce2fbu4bAuI+BexgX+Mk3hfZ4dmrwPdJTCjPPlB2/+cD0TeTiPNsGftssRcDIzppUk6ZxOe25rsRCauRH//KfAZnOectWf0RnXy0LKcIRklbOn6b8UM7yu5f2vxXl3kU3nz0obF0ROehizrSPBwY1DHK0S7Y6xjf0hXznxVCM1K7V6fxd2Z4f3QeulgDwHWIz3D8bD4Z1GG7XxZ/z4R73OXp2Z2KNcc8J1G6e3XyLysyD7F7p8k1uajQdRG/pevufQipi38t3v5di3MAD8V+D97vripyXUT3qubfOZPvwbfBxoO8tJJnqKi6u+zvnFd2zAcy96rm3yVztwe/SA9UwHipi227cPngnOxY2ajcq5p/MAbn9cbHuu0Or2OT/T4XVTYszlEsf4tnW3HM1TmDV6p5tMlap2+3bPwDb9Yto+p38pSZlnZSvol7Ng5mcRt7CPPeeL6rc9Jm3dwkvt0yyTf+xouv
   </data>
  </layer>
  <objectgroup id="4" name="OBJ">
-  <object id="7" type="Player" x="704" y="192" width="16" height="32">
+  <object id="7" type="Player" x="1120" y="32" width="16" height="32">
    <properties>
     <property name="anotherprop" value="Foo"/>
     <property name="faceleft" type="bool" value="true"/>

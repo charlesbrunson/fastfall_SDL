@@ -80,9 +80,11 @@ void Player::update(World& w, secs deltaTime) {
 
     Linef path;
     path.p1 = w.at(collidable_id).getPosition() + Vec2f{ 0.f, -16.f };
-    path.p2 = path.p1 + Vec2f{ cosf(time_buf), sinf(time_buf) } * 128.f;
+    auto offset = Vec2f{ cosf(time_buf), sinf(time_buf) } * 128.f;
+    path.p2 = path.p1 + offset;
 
     raycast(w.all<ColliderRegion>(), path);
+    // raycast(w.all<ColliderRegion>(), {path.p1, path.p1 - offset });
 }
 
 Actor::dresult Player::message(World& w, const dmessage& msg) {
