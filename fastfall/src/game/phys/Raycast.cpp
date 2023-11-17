@@ -186,11 +186,6 @@ std::optional<RaycastHit> raycast_quad_ortho(const ColliderRegion& region, const
 
 std::optional<RaycastHit> raycastRegion(const ColliderRegion& region, const Linef& raycastLine, float backoff) {
 
-	// std::vector<const ColliderQuad*> buffer;
-    // for (auto& quad : region.in_line(raycastLine)) {
-    //     buffer.push_back(&quad);
-    // }
-
     bool is_ortho = direction::from_vector(math::vector(raycastLine)).has_value();
 	std::optional<RaycastHit> result{};
 	for (auto& quad : region.in_line(raycastLine)) {
@@ -199,6 +194,8 @@ std::optional<RaycastHit> raycastRegion(const ColliderRegion& region, const Line
                              ? raycast_quad_ortho(region, &quad, raycastLine, backoff)
                              : raycast_quad_diag(region, &quad, raycastLine, backoff)
                              ));
+        if (result)
+            break;
 	}
 	return result;
 }

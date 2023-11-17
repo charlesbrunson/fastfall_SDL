@@ -76,7 +76,7 @@ void Player::update(World& w, secs deltaTime) {
 	manage_state(w, get_state().update(w, *this, deltaTime));
 
     static secs time_buf = 0.0;
-    time_buf += deltaTime;
+    time_buf += deltaTime * 2.f;
 
     Linef path;
     path.p1 = w.at(collidable_id).getPosition() + Vec2f{ 0.f, -16.f };

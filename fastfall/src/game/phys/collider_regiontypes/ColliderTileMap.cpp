@@ -470,16 +470,44 @@ namespace ff {
     }
 
     std::optional<QuadID> ColliderTileMap::first_quad_in_line(Linef line, Recti& tile_area) const {
+
+        if (!boundingBox.contains(line))
+            return {};
+
         line = math::shift(line, -getPosition());
-        auto plot_line = PlotLine{ line, TILESIZE_F };
-        for (auto pos : plot_line) {
-            if (validPosition(pos)) {
-                return getTileID(pos);
+        auto beg = line_thru_grid<float>::iterator{ line, Vec2i{ collisionMapSize }, Vec2f{TILESIZE_F, TILESIZE_F}};
+        auto end = Vec2i{ line.p2 / TILESIZE_F };
+
+        while (beg != end) {
+            if (get_quad(beg->pos)) {
+                // LOG_INFO("{}", beg->pos);
+                return getTileID(beg->pos);
+            }
+            else {
+                ++beg;
             }
         }
+
         return {};
+
     }
     std::optional<QuadID> ColliderTileMap::next_quad_in_line(Linef line, QuadID quadid, const Recti& tile_area) const {
+        line = math::shift(line, -getPosition());
+        auto beg = line_thru_grid<float>::iterator{ line, Vec2i{ collisionMapSize }, Vec2f{TILESIZE_F, TILESIZE_F}, to_pos(quadid)};
+        auto end = Vec2i{ line.p2 / TILESIZE_F };
+
+        ++beg;
+
+        while (beg != end) {
+            if (get_quad(beg->pos)) {
+                // LOG_INFO("{}", beg->pos);
+                return getTileID(beg->pos);
+            }
+            else {
+                ++beg;
+            }
+        }
+
         return {};
     }
 
@@ -488,7 +516,7 @@ namespace ff {
 		if (!quad)
 			return;
 
-		Rectf tileArea{ Vec2f(position * TILESIZE_F), Vec2f(TILESIZE_F, TILESIZE_F) };
+		// Rectf tileArea{ Vec2f(position * TILESIZE_F), Vec2f(TILESIZE_F, TILESIZE_F) };
 		Recti adjArea{ position - Vec2i(1, 1), Vec2i(3, 3) };
 
         // get adjacent collider quads
