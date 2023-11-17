@@ -320,17 +320,17 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         size_t tried = 0;
         for (auto [region_id, region_ptr] : *colliders) {
 
-            for (auto& quad : region_ptr->in_rect(bounds)) {
-                if (!quad.hasAnySurface())
+            for (auto quad : region_ptr->in_rect(bounds)) {
+                if (!quad->hasAnySurface())
                     continue;
 
-                if (auto quad_bounds = quad.get_bounds())
+                if (auto quad_bounds = quad->get_bounds())
                     quads_visited.push_back(math::shift(*quad_bounds, region_ptr->getPosition()));
 
                 for (auto dir: direction::cardinals) {
-                    if (auto* surf = quad.getSurface(dir)) {
+                    if (auto* surf = quad->getSurface(dir)) {
 
-                        ColliderSurfaceID surf_id = { quad.getID(), dir };
+                        ColliderSurfaceID surf_id = { quad->getID(), dir };
                         Linef line = math::shift(surf->surface, region_ptr->getPosition());
                         ++tried;
                         bool good = false;

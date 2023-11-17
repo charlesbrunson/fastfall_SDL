@@ -236,25 +236,25 @@ public:
         T minY = std::min(top,  static_cast<T>(top + height));
         T maxY = std::max(top,  static_cast<T>(top + height));
 
-        if ((line.p1.x <= minX && line.p2.x <= minX)
-        || (line.p1.y <= minY && line.p2.y <= minY)
-        || (line.p1.x >= maxX && line.p2.x >= maxX)
-        || (line.p1.y >= maxY && line.p2.y >= maxY))
+        if ((line.p1.x < minX && line.p2.x < minX)
+        || (line.p1.y < minY && line.p2.y < minY)
+        || (line.p1.x > maxX && line.p2.x > maxX)
+        || (line.p1.y > maxY && line.p2.y > maxY))
             return false;
 
         float m = (line.p2.y - line.p1.y) / (line.p2.x - line.p1.x);
 
         float y = m * (minX - line.p1.x) + line.p1.y;
-        if (y > minY && y < maxY) return true;
+        if (y >= minY && y <= maxY) return true;
 
         y = m * (maxX - line.p1.x) + line.p1.y;
-        if (y > minY && y < maxY) return true;
+        if (y >= minY && y <= maxY) return true;
 
         float x = (minY - line.p1.y) / m + line.p1.x;
-        if (x > minX && x < maxX) return true;
+        if (x >= minX && x <= maxX) return true;
 
         x = (maxY - line.p1.y) / m + line.p1.x;
-        if (x > minX && x < maxX) return true;
+        if (x >= minX && x <= maxX) return true;
 
         return false;
     }

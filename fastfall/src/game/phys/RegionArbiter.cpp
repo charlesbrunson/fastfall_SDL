@@ -10,8 +10,8 @@ void RegionArbiter::updateRegion(CollisionContext ctx, Rectf bounds)
     bounds = math::rect_extend(bounds, deltap.x < 0.f ? Cardinal::W : Cardinal::E, abs(deltap.x));
     bounds = math::rect_extend(bounds, deltap.y < 0.f ? Cardinal::N : Cardinal::S, abs(deltap.y));
 
-    for (auto& quad : ctx.collider->in_rect(bounds)) {
-        currQuads.push_back(quad.getID());
+    for (auto quad : ctx.collider->in_rect(bounds)) {
+        currQuads.push_back(quad.id);
     }
 
 	// check for stale (out of bounds) quads to remove

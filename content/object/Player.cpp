@@ -75,16 +75,27 @@ void Player::manage_state(World& w, PlayerStateID n_id)
 void Player::update(World& w, secs deltaTime) {
 	manage_state(w, get_state().update(w, *this, deltaTime));
 
-    static secs time_buf = 0.0;
-    time_buf += deltaTime * 2.f;
+    static float ang = 0.0;
+    ang += deltaTime * 2.f;
 
-    Linef path;
-    path.p1 = w.at(collidable_id).getPosition() + Vec2f{ 0.f, -16.f };
-    auto offset = Vec2f{ cosf(time_buf), sinf(time_buf) } * 128.f;
-    path.p2 = path.p1 + offset;
+    //auto ang = Angle::Degree(45).radians();
 
-    raycast(w.all<ColliderRegion>(), path);
-    // raycast(w.all<ColliderRegion>(), {path.p1, path.p1 - offset });
+
+    /*
+    for (auto i = 0; i < 360; i += 1) {
+        auto ang1 = Angle::Degree((float)i + ang).radians() ;
+
+        Linef path;
+        path.p1 = w.at(collidable_id).getPosition() + Vec2f{0.f, -16.f};
+        auto offset = Vec2f{cosf(ang1), sinf(ang1)} * 128.f;
+        path.p2 = path.p1 + offset;
+        raycast(w.all<ColliderRegion>(), path);
+    }
+    */
+
+    auto origin = w.at(collidable_id).getPosition() + Vec2f{0.f, -16.f};
+    auto offset = Vec2f{cosf(ang), sinf(ang)} * 128.f;
+    raycast(w.all<ColliderRegion>(), { origin, origin + offset });
 }
 
 Actor::dresult Player::message(World& w, const dmessage& msg) {

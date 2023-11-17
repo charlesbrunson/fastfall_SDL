@@ -96,33 +96,45 @@ void imgui_component(World& w, ID<ColliderRegion> id) {
 }
 
 ColliderRegion::QuadAreaIterator& ColliderRegion::QuadAreaIterator::operator++() {
-    curr_quad = region->next_quad_in_rect(area, *curr_quad, tile_area);
+    curr_quad = region->next_quad_in_rect(area, *curr_quad, tile_area, skip_empty);
+
+    value = {
+        .id = curr_quad ? *curr_quad : QuadID{},
+        .ptr = curr_quad ? region->get_quad(*curr_quad) : nullptr
+    };
+
     return *this;
 }
 
-const ColliderRegion::QuadAreaIterator::value_type* ColliderRegion::QuadAreaIterator::operator->() const { return region->get_quad(*curr_quad); }
-const ColliderRegion::QuadAreaIterator::value_type& ColliderRegion::QuadAreaIterator::operator* () const { return *region->get_quad(*curr_quad); }
+const ColliderRegion::QuadAreaIterator::value_type* ColliderRegion::QuadAreaIterator::operator->() const { return &value; }
+const ColliderRegion::QuadAreaIterator::value_type& ColliderRegion::QuadAreaIterator::operator* () const { return value; }
 
 ColliderRegion::QuadAreaIterator ColliderRegion::QuadArea::begin() const {
     Recti tile_area;
-    auto quad = region->first_quad_in_rect(area, tile_area);
-    return QuadAreaIterator{ region, area, quad, tile_area };
+    auto quad = region->first_quad_in_rect(area, tile_area, skip_empty);
+    return QuadAreaIterator{ region, area, quad, tile_area, skip_empty };
 }
-ColliderRegion::QuadAreaIterator ColliderRegion::QuadArea::end()   const { return QuadAreaIterator{ region, area, std::nullopt, {} }; }
+ColliderRegion::QuadAreaIterator ColliderRegion::QuadArea::end()   const { return QuadAreaIterator{ region, area, std::nullopt, {}, skip_empty }; }
 
 ColliderRegion::QuadLineIterator& ColliderRegion::QuadLineIterator::operator++() {
-    curr_quad = region->next_quad_in_line(line, *curr_quad, tile_area);
+    curr_quad = region->next_quad_in_line(line, *curr_quad, tile_area, skip_empty);
+
+    value = {
+        .id = curr_quad ? *curr_quad : QuadID{},
+        .ptr = curr_quad ? region->get_quad(*curr_quad) : nullptr
+    };
+
     return *this;
 }
 
-const ColliderRegion::QuadLineIterator::value_type* ColliderRegion::QuadLineIterator::operator->() const { return region->get_quad(*curr_quad); }
-const ColliderRegion::QuadLineIterator::value_type& ColliderRegion::QuadLineIterator::operator* () const { return *region->get_quad(*curr_quad); }
+const ColliderRegion::QuadLineIterator::value_type* ColliderRegion::QuadLineIterator::operator->() const { return &value; }
+const ColliderRegion::QuadLineIterator::value_type& ColliderRegion::QuadLineIterator::operator* () const { return value; }
 
 ColliderRegion::QuadLineIterator ColliderRegion::QuadLine::begin() const {
     Recti tile_area;
-    auto quad = region->first_quad_in_line(line, tile_area);
-    return QuadLineIterator{ region, line, quad, tile_area };
+    auto quad = region->first_quad_in_line(line, tile_area, skip_empty);
+    return QuadLineIterator{ region, line, quad, tile_area, skip_empty };
 }
-ColliderRegion::QuadLineIterator ColliderRegion::QuadLine::end()   const { return QuadLineIterator{ region, line, std::nullopt, {} }; }
+ColliderRegion::QuadLineIterator ColliderRegion::QuadLine::end()   const { return QuadLineIterator{ region, line, std::nullopt, {}, skip_empty }; }
 
 }

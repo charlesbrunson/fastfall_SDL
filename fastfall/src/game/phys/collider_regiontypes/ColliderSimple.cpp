@@ -20,19 +20,19 @@ namespace ff {
 		return quad_id.value == 0u ? &quad : nullptr;
 	}
 
-    std::optional<QuadID> ColliderSimple::first_quad_in_rect(Rectf area, Recti& tile_area) const {
+    std::optional<QuadID> ColliderSimple::first_quad_in_rect(Rectf area, Recti& tile_area, bool skip_empty) const {
         Rectf bbox = math::shift(area, -getPosition());
         return boundingBox.touches(bbox) ? std::make_optional(quad.getID()) : std::nullopt;
     }
-    std::optional<QuadID> ColliderSimple::next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area) const {
+    std::optional<QuadID> ColliderSimple::next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area, bool skip_empty) const {
         // there's only one
         return {};
     }
-    std::optional<QuadID> ColliderSimple::first_quad_in_line(Linef line, Recti& tile_area) const {
+    std::optional<QuadID> ColliderSimple::first_quad_in_line(Linef line, Recti& tile_area, bool skip_empty) const {
         bool contained = boundingBox.contains(math::shift(line, -getPosition()));
         return contained ? std::make_optional(quad.getID()) : std::nullopt;
     }
-    std::optional<QuadID> ColliderSimple::next_quad_in_line(Linef line, QuadID quadid, const Recti& tile_area) const {
+    std::optional<QuadID> ColliderSimple::next_quad_in_line(Linef line, QuadID quadid, const Recti& tile_area, bool skip_empty) const {
         // there's only one
         return {};
     }

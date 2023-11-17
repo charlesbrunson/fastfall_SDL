@@ -77,6 +77,13 @@ namespace ff {
 		}
 	}
 
+    Rectf ColliderTileMap::tile_area(QuadID quad_id) const noexcept {
+        if (validPosition(quad_id)) {
+            return Rectf{ to_pos(quad_id) * Vec2f{ TILESIZE_F, TILESIZE_F }, {TILESIZE_F, TILESIZE_F} };
+        }
+        return {};
+    }
+
 	void ColliderTileMap::setBorders(const Vec2u& size, const unsigned cardinalBits) {
 		if (!hasBorder)	return;
 
@@ -417,7 +424,7 @@ namespace ff {
         return tsi_bbox;
     }
 
-    std::optional<QuadID> ColliderTileMap::first_quad_in_rect(Rectf area, Recti& tile_area) const {
+    std::optional<QuadID> ColliderTileMap::first_quad_in_rect(Rectf area, Recti& tile_area, bool skip_empty) const {
         tile_area = get_tile_area_for_rect(area);
 
         if (tile_area.width == 0 || tile_area.height == 0)
@@ -438,14 +445,19 @@ namespace ff {
         const ColliderQuad* quad = get_quad(pos);
         bool in_bounds = true;
 
-        while (!quad && in_bounds) {
-            in_bounds = iterate_pos(pos, tile_area);
-            quad = in_bounds ? get_quad(pos) : nullptr;
-        }
+        if (skip_empty) {
+            while (!quad && in_bounds) {
+                in_bounds = iterate_pos(pos, tile_area);
+                quad = in_bounds ? get_quad(pos) : nullptr;
+            }
 
-        return quad ? std::make_optional(quad->getID()) : std::nullopt;
+            return quad ? std::make_optional(quad->getID()) : std::nullopt;
+        }
+        else {
+            return getTileID(pos);
+        }
     }
-    std::optional<QuadID> ColliderTileMap::next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area) const {
+    std::optional<QuadID> ColliderTileMap::next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area, bool skip_empty) const {
         Vec2i pos = to_pos(quadid);
 
         // next quadid
@@ -461,15 +473,21 @@ namespace ff {
         bool in_bounds = true;
         const ColliderQuad* quad = nullptr;
 
-        while (!quad && in_bounds) {
-            in_bounds = iterate_pos(pos, tile_area);
-            quad = in_bounds ? get_quad(pos) : nullptr;
-        }
+        if (skip_empty) {
+            while (!quad && in_bounds) {
+                in_bounds = iterate_pos(pos, tile_area);
+                quad = in_bounds ? get_quad(pos) : nullptr;
+            }
 
-        return quad ? std::make_optional(quad->getID()) : std::nullopt;
+            return quad ? std::make_optional(quad->getID()) : std::nullopt;
+        }
+        else {
+            in_bounds = iterate_pos(pos, tile_area);
+            return in_bounds ? std::make_optional(getTileID(pos)) : std::nullopt;
+        }
     }
 
-    std::optional<QuadID> ColliderTileMap::first_quad_in_line(Linef line, Recti& tile_area) const {
+    std::optional<QuadID> ColliderTileMap::first_quad_in_line(Linef line, Recti& tile_area, bool skip_empty) const {
         line = math::shift(line, -getPosition());
 
         if (!boundingBox.contains(line))
@@ -478,77 +496,40 @@ namespace ff {
         auto beg = line_thru_grid<float>::iterator{ line, Recti{ size_min, size_max - size_min }, Vec2f{TILESIZE_F, TILESIZE_F}};
         auto end = Vec2i( floorf(line.p2.x / TILESIZE_F), floorf(line.p2.y / TILESIZE_F) );
 
-        if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_RAYCAST)) {
-            debug_draw::set_offset(getPosition());
-            auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINE_LOOP, 4);
-            draw[0].color = Color::Red;
-            draw[1].color = Color::Red;
-            draw[2].color = Color::Red;
-            draw[3].color = Color::Red;
-            draw[0].pos = Vec2f{ end } * TILESIZE_F;
-            draw[1].pos = Vec2f{ end + Vec2i{1, 0} } * TILESIZE_F;
-            draw[2].pos = Vec2f{ end + Vec2i{1, 1} } * TILESIZE_F;
-            draw[3].pos = Vec2f{ end + Vec2i{0, 1} } * TILESIZE_F;
-            debug_draw::set_offset();
+        if (skip_empty) {
+            while (beg != end) {
+                if (get_quad(beg->pos)) {
+                    return getTileID(beg->pos);
+                } else {
+                    ++beg;
+                }
+            }
+            return {};
         }
-
-        while (beg != end) {
-            if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_RAYCAST)) {
-                debug_draw::set_offset(getPosition());
-                auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINE_LOOP, 4);
-                draw[0].color = Color::White;
-                draw[1].color = Color::White;
-                draw[2].color = Color::White;
-                draw[3].color = Color::White;
-                draw[0].pos = Vec2f{ beg->pos } * TILESIZE_F;
-                draw[1].pos = Vec2f{ beg->pos + Vec2i{1, 0} } * TILESIZE_F;
-                draw[2].pos = Vec2f{ beg->pos + Vec2i{1, 1} } * TILESIZE_F;
-                draw[3].pos = Vec2f{ beg->pos + Vec2i{0, 1} } * TILESIZE_F;
-                debug_draw::set_offset();
-            }
-
-            if (get_quad(beg->pos)) {
-                return getTileID(beg->pos);
-            }
-            else {
-                ++beg;
-            }
-        }
-
-        return {};
+        else {
+            return beg != end ? std::make_optional(getTileID(beg->pos)) : std::nullopt;
+         }
 
     }
-    std::optional<QuadID> ColliderTileMap::next_quad_in_line(Linef line, QuadID quadid, const Recti& tile_area) const {
+    std::optional<QuadID> ColliderTileMap::next_quad_in_line(Linef line, QuadID quadid, const Recti& tile_area, bool skip_empty) const {
         line = math::shift(line, -getPosition());
         auto beg = line_thru_grid<float>::iterator{ line, Recti{ size_min, size_max - size_min }, Vec2f{TILESIZE_F, TILESIZE_F}, to_pos(quadid)};
         auto end = Vec2i( floorf(line.p2.x / TILESIZE_F), floorf(line.p2.y / TILESIZE_F) );
 
         ++beg;
-
-        while (beg != end) {
-            if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_RAYCAST)) {
-                debug_draw::set_offset(getPosition());
-                auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINE_LOOP, 4);
-                draw[0].color = Color::White;
-                draw[1].color = Color::White;
-                draw[2].color = Color::White;
-                draw[3].color = Color::White;
-                draw[0].pos = Vec2f{ beg->pos } * TILESIZE_F;
-                draw[1].pos = Vec2f{ beg->pos + Vec2i{1, 0} } * TILESIZE_F;
-                draw[2].pos = Vec2f{ beg->pos + Vec2i{1, 1} } * TILESIZE_F;
-                draw[3].pos = Vec2f{ beg->pos + Vec2i{0, 1} } * TILESIZE_F;
-                debug_draw::set_offset();
+        if (skip_empty) {
+            while (beg != end) {
+                if (get_quad(beg->pos)) {
+                    return getTileID(beg->pos);
+                } else {
+                    ++beg;
+                }
             }
-
-            if (get_quad(beg->pos)) {
-                return getTileID(beg->pos);
-            }
-            else {
-                ++beg;
-            }
+            return {};
         }
-
-        return {};
+        else {
+            return beg != end ? std::make_optional(getTileID(beg->pos)) : std::nullopt;
+        }
     }
 
 	void ColliderTileMap::updateGhosts(const Vec2i& position) {

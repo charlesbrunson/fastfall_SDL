@@ -433,11 +433,11 @@ void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders, even
             p_bounds[3].pos = math::rect_botleft(r_bounds);
         }
 
-        for (const auto& quad : quad_area) {
-            if (!quad.hasAnySurface() /* || quad.hasOneWay */ )
+        for (auto quad : quad_area) {
+            if (!quad->hasAnySurface() /* || quad.hasOneWay */ )
                 continue;
 
-            auto bounds = quad.get_bounds();
+            auto bounds = quad->get_bounds();
 
             if (!bounds)
                 continue;
@@ -463,7 +463,7 @@ void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders, even
                 particles.begin(),
                 particles.end(),
                 [&](Particle& p) {
-                    collide_quad(*region, quad, strategy, p);
+                    collide_quad(*region, *quad, strategy, p);
                     p.is_alive &= !(strategy.collision_destroys && p.collision_normal);
                 }
             );

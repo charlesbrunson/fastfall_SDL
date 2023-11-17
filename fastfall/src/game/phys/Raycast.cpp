@@ -9,7 +9,7 @@
 
 namespace ff {
 
-void debugDrawRaycast(std::optional<RaycastHit> result, Linef raycastLine) {
+void debugDrawRaycast(std::optional<RaycastHit> result, Linef raycastLine, std::vector<Rectf>* visited) {
 
     auto color = result.has_value() ? Color::Green : Color::Red;
 	if (result.has_value()) {
@@ -77,6 +77,29 @@ void debugDrawRaycast(std::optional<RaycastHit> result, Linef raycastLine) {
         empty[8].pos = raycastLine.p1;
         empty[9].pos = raycastLine.p2;
 	}
+
+
+    if (visited) {
+        auto &quads = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINES,
+                                                                                            8 * visited->size());
+        size_t i = 0;
+        for (auto& q : *visited) {
+            for (auto j = i; j < i + 8; ++j) {
+                quads[j].color = Color::White;
+            }
+            quads[i + 0].pos = q.topleft();
+            quads[i + 1].pos = q.topright();
+            quads[i + 2].pos = q.topright();
+            quads[i + 3].pos = q.botright();
+            quads[i + 4].pos = q.botright();
+            quads[i + 5].pos = q.botleft();
+            quads[i + 6].pos = q.botleft();
+            quads[i + 7].pos = q.topleft();
+            i += 8;
+        }
+
+    }
+
 }
 
 
@@ -202,16 +225,22 @@ std::optional<RaycastHit> raycast_quad_ortho(const ColliderRegion& region, const
 	return result;
 }
 
-std::optional<RaycastHit> raycastRegion(const ColliderRegion& region, const Linef& raycastLine, float backoff) {
+std::optional<RaycastHit> raycastRegion(const ColliderRegion& region, const Linef& raycastLine, float backoff, std::vector<Rectf>* visited) {
 
-    bool is_ortho = direction::from_vector(math::vector(raycastLine)).has_value();
 	std::optional<RaycastHit> result{};
-	for (auto& quad : region.in_line(raycastLine)) {
-		result = compareHits(result,
-                             (is_ortho
-                             ? raycast_quad_ortho(region, &quad, raycastLine, backoff)
-                             : raycast_quad_diag(region, &quad, raycastLine, backoff)
-                             ));
+	for (auto quad : region.in_line( raycastLine, (visited == nullptr) )) {
+
+        if (visited) {
+            if (auto area = region.tile_area(quad.id); area.getArea() > 0) {
+                visited->push_back(math::shift(area, region.getPosition()));
+            }
+
+            if (!quad.ptr)
+                continue;
+        }
+
+		result = compareHits(result, raycast_quad_diag(region, quad.ptr, raycastLine, backoff));
+
         if (result)
             break;
 	}
@@ -225,8 +254,10 @@ std::optional<RaycastHit> raycast(const poly_id_map<ColliderRegion>& regions, Li
     std::vector<std::pair<Rectf, const ColliderQuad*>> buffer;
     std::optional<RaycastHit> result{};
 
+    std::vector<Rectf> visited;
     for (auto [id, region_ptr] : regions) {
-        result = compareHits(result, raycastRegion(*region_ptr, path, backoff));
+        result = compareHits(result, raycastRegion(*region_ptr, path, backoff,
+                                                   debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_RAYCAST) ? &visited : nullptr ));
     }
 
     if (result.has_value() && result->distance >= distance) {
@@ -234,7 +265,7 @@ std::optional<RaycastHit> raycast(const poly_id_map<ColliderRegion>& regions, Li
     }
 
     if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_RAYCAST)) {
-        debugDrawRaycast(result, path);
+        debugDrawRaycast(result, path, &visited);
     }
 
     return result;

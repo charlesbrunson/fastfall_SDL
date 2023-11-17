@@ -12,20 +12,33 @@ namespace ff {
 
 class ColliderRegion {
 protected:
-    virtual std::optional<QuadID> first_quad_in_rect(Rectf area, Recti& tile_area) const = 0;
-    virtual std::optional<QuadID> next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area) const = 0;
+    virtual std::optional<QuadID> first_quad_in_rect(Rectf area, Recti& tile_area, bool skip_empty) const = 0;
+    virtual std::optional<QuadID> next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area, bool skip_empty) const = 0;
 
-    virtual std::optional<QuadID> first_quad_in_line(Linef line, Recti& tile_area) const = 0;
-    virtual std::optional<QuadID> next_quad_in_line(Linef line, QuadID quadid, const Recti& tile_area) const = 0;
+    virtual std::optional<QuadID> first_quad_in_line(Linef line, Recti& tile_area, bool skip_empty) const = 0;
+    virtual std::optional<QuadID> next_quad_in_line(Linef line, QuadID quadid, const Recti& tile_area, bool skip_empty) const = 0;
 
 public:
+    struct quad_iter {
+        QuadID id = {};
+        const ColliderQuad* ptr = nullptr;
+
+        const ColliderQuad& operator*()  const { return *ptr; };
+        const ColliderQuad* operator->() const { return ptr; };
+    };
+
     struct QuadAreaIterator {
     public:
-        using value_type = const ColliderQuad;
+        using value_type = quad_iter;
 
-        QuadAreaIterator(const ColliderRegion* t_region, Rectf t_area, std::optional<QuadID> t_quad, Recti t_tile_area)
-            : region(t_region), area(t_area), curr_quad(t_quad), tile_area(t_tile_area)
-        {};
+        QuadAreaIterator(const ColliderRegion* t_region, Rectf t_area, std::optional<QuadID> t_quad, Recti t_tile_area, bool t_skip_empty)
+            : region(t_region), area(t_area), curr_quad(t_quad), tile_area(t_tile_area), skip_empty(t_skip_empty)
+        {
+            if (t_quad) {
+                value.id  = *t_quad;
+                value.ptr = region->get_quad(*t_quad);
+            }
+        };
 
         QuadAreaIterator(const QuadAreaIterator&) = default;
         QuadAreaIterator(QuadAreaIterator&&) = default;
@@ -36,8 +49,8 @@ public:
         QuadAreaIterator& operator++();
         QuadAreaIterator operator++(int) { auto cpy = *this; ++(*this); return cpy; }
 
-        const value_type* operator->() const;
-        const value_type& operator* () const;
+        const quad_iter* operator->() const;
+        const quad_iter& operator* () const;
 
         bool operator==(const QuadAreaIterator& other) const noexcept { return region == other.region && curr_quad == other.curr_quad; };
         bool operator!=(const QuadAreaIterator& other) const noexcept { return region != other.region || curr_quad != other.curr_quad; };
@@ -49,11 +62,14 @@ public:
         Rectf area                      = {};
         std::optional<QuadID> curr_quad = {};
         Recti tile_area                 = {};
+        bool skip_empty;
+        value_type value;
     };
 
     struct QuadArea {
         const ColliderRegion* region    = nullptr;
         Rectf area                      = {};
+        bool skip_empty;
 
         [[nodiscard]] QuadAreaIterator begin() const;
         [[nodiscard]] QuadAreaIterator end() const;
@@ -61,11 +77,16 @@ public:
 
     struct QuadLineIterator {
     public:
-        using value_type = const ColliderQuad;
+        using value_type = quad_iter;
 
-        QuadLineIterator(const ColliderRegion* t_region, Linef t_line, std::optional<QuadID> t_quad, Recti t_tile_area)
-                : region(t_region), line(t_line), curr_quad(t_quad), tile_area(t_tile_area)
-        {};
+        QuadLineIterator(const ColliderRegion* t_region, Linef t_line, std::optional<QuadID> t_quad, Recti t_tile_area, bool t_skip_empty)
+                : region(t_region), line(t_line), curr_quad(t_quad), tile_area(t_tile_area), skip_empty(t_skip_empty)
+        {
+            if (t_quad) {
+                value.id  = *t_quad;
+                value.ptr = region->get_quad(*t_quad);
+            }
+        };
 
         QuadLineIterator(const QuadLineIterator&) = default;
         QuadLineIterator(QuadLineIterator&&) = default;
@@ -89,11 +110,14 @@ public:
         Linef line                      = {};
         std::optional<QuadID> curr_quad = {};
         Recti tile_area                 = {};
+        bool skip_empty;
+        value_type value;
     };
 
     struct QuadLine {
         const ColliderRegion* region    = nullptr;
         Linef line                      = {};
+        bool skip_empty;
 
         [[nodiscard]] QuadLineIterator begin() const;
         [[nodiscard]] QuadLineIterator end() const;
@@ -102,12 +126,15 @@ public:
 	explicit ColliderRegion(Vec2i initialPosition = Vec2i(0, 0));
 	virtual ~ColliderRegion() = default;
 
-    [[nodiscard]] QuadArea in_rect(Rectf area) const { return { this, area }; }
-    [[nodiscard]] QuadLine in_line(Linef line) const { return { this, line }; }
+    [[nodiscard]] QuadArea in_rect(Rectf area, bool skip_empty = true) const { return { this, area, skip_empty }; }
+    [[nodiscard]] QuadLine in_line(Linef line, bool skip_empty = true) const { return { this, line, skip_empty }; }
 
 	virtual void update(secs deltaTime) = 0;
 
 	virtual const ColliderQuad* get_quad(QuadID quad_id) const noexcept = 0;
+    virtual Rectf tile_area(QuadID quad_id) const noexcept { return {}; };
+
+
 
 	[[nodiscard]] const ColliderSurface* get_surface_collider(ColliderSurfaceID id) const noexcept;
     [[nodiscard]] const ColliderSurface* get_surface_collider(std::optional<ColliderSurfaceID> id) const noexcept;

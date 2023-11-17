@@ -83,11 +83,13 @@ public:
 		callback_on_postcontact = func;
 	}
 
+    Rectf tile_area(QuadID quad_id) const noexcept override;
+
 protected:
-    std::optional<QuadID> first_quad_in_rect(Rectf area, Recti& tile_area) const override;
-    std::optional<QuadID> next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area) const override;
-    std::optional<QuadID> first_quad_in_line(Linef line, Recti& tile_area) const override;
-    std::optional<QuadID> next_quad_in_line(Linef line, QuadID quadid, const Recti& tile_area) const override;
+    [[nodiscard]] std::optional<QuadID> first_quad_in_rect(Rectf area, Recti& tile_area, bool skip_empty) const override;
+    [[nodiscard]] std::optional<QuadID> next_quad_in_rect(Rectf area, QuadID quadid, const Recti& tile_area, bool skip_empty) const override;
+    [[nodiscard]] std::optional<QuadID> first_quad_in_line(Linef line, Recti& tile_area, bool skip_empty) const override;
+    [[nodiscard]] std::optional<QuadID> next_quad_in_line(Linef line, QuadID quadid, const Recti& tile_area, bool skip_empty) const override;
 
 private:
 	void updateGhosts(const Vec2i& position);
