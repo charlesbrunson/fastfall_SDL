@@ -92,13 +92,6 @@
   </object>
   <object id="32" type="TilePlatform" x="512" y="96" width="96" height="16.6667">
    <properties>
-    <property name="1" type="bool" value="false"/>
-    <property name="2" type="color" value="#ffe01b24"/>
-    <property name="3" type="float" value="0"/>
-    <property name="4" type="file" value=""/>
-    <property name="5" type="int" value="0"/>
-    <property name="6" type="object" value="0"/>
-    <property name="7" value=""/>
     <property name="layer" type="int" value="1"/>
     <property name="path" type="object" value="33"/>
    </properties>

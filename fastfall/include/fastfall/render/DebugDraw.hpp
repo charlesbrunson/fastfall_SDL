@@ -38,6 +38,8 @@ namespace debug_draw {
 	void setTypeEnabled(Type type, bool enable);
 	bool hasTypeEnabled(Type type);
 
+    bool& type_state(Type type);
+
 	void add(std::unique_ptr<Drawable>&& drawable, Type type = Type::NONE, const void* signature = nullptr);
 	void swapDrawLists();
 

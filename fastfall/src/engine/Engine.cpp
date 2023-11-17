@@ -1138,17 +1138,29 @@ void DebugDrawImgui::ImGui_getContent(secs deltaTime) {
     };
     static_assert((sizeof(names) / sizeof(names[0])) == static_cast<unsigned>(debug_draw::Type::LAST), "fix me");
 
+    bool debug_enabled = debug_draw::hasEnabled();
+    if (ImGui::Checkbox("Show Debug", &debug_enabled)) {
+        debug_draw::enable(debug_enabled);
+    }
+
     bool dark = debug_draw::is_darken();
-    if (ImGui::Checkbox("Darken", &dark)) {
+    if (ImGui::Checkbox("Darken Screen", &dark)) {
         debug_draw::set_darken(dark);
     }
 
-    for (int i = 0; i < static_cast<unsigned>(debug_draw::Type::LAST); i++) {
-        debug_draw::Type type = static_cast<debug_draw::Type>(i);
-        bool draw = debug_draw::hasTypeEnabled(type);
-        if (ImGui::Checkbox(names[i].data(), &draw)) {
-            debug_draw::setTypeEnabled(type, draw);
-        }
+    ImGui::Separator();
+    if (ImGui::Button("Enable All")) {
+        debug_draw::setAllTypeEnabled(true);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Disable All")) {
+        debug_draw::setAllTypeEnabled(false);
+    }
+
+
+
+    for (int i = 1; i < static_cast<unsigned>(debug_draw::Type::LAST); i++) {
+        ImGui::Checkbox(names[i].data(), &debug_draw::type_state(static_cast<debug_draw::Type>(i)));
     }
 }
 
