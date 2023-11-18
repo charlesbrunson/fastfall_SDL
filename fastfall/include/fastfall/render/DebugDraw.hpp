@@ -1,15 +1,117 @@
 #pragma once
 
-//#include <SFML/Graphics.hpp>
-
 #include "fastfall/util/math.hpp"
 #include "fastfall/render/drawable/Drawable.hpp"
 #include "fastfall/render/target/RenderTarget.hpp"
 #include "fastfall/render/drawable/VertexArray.hpp"
 
 #include <memory>
+#include <array>
+#include <span>
 
 namespace ff {
+
+namespace debug {
+    namespace detail {
+        struct draw_call_t {
+            size_t id;
+            size_t vertex_offset;
+            size_t vertex_count;
+            ff::Primitive primitive;
+            Vec2f draw_offset;
+        };
+
+        struct state_t {
+            std::vector<std::pair<const void*, size_t>> signatures;
+            std::vector<draw_call_t> calls;
+            std::vector<draw_call_t> compressed_calls;
+            std::vector<Vertex> vertices;
+            size_t repeat_calls = 0;
+
+            void clear() {
+                signatures.clear();
+                calls.clear();
+                compressed_calls.clear();
+                vertices.clear();
+                repeat_calls = 0;
+            }
+        };
+
+        struct gpu_state_t {
+            GLuint m_array   = 0;
+            GLuint m_buffer  = 0;
+            size_t m_bufsize = 0;
+
+            bool m_bound = false;
+            bool m_sync  = false;
+        };
+    }
+
+    enum type {
+        Collision_Collider,
+        Collision_Collidable,
+        Collision_Contact,
+        Collision_Raycast,
+        Collision_Tracker,
+        Tilelayer_Area,
+        Tilelayer_Chunk,
+        Camera_Visible,
+        Camera_Target,
+        Trigger_Area,
+        Path,
+        Attach,
+        Emitter,
+    };
+
+    inline constexpr static std::array types = {
+        Collision_Collider,
+        Collision_Collidable,
+        Collision_Contact,
+        Collision_Raycast,
+        Collision_Tracker,
+        Tilelayer_Area,
+        Tilelayer_Chunk,
+        Camera_Visible,
+        Camera_Target,
+        Trigger_Area,
+        Path,
+        Attach,
+        Emitter,
+    };
+    std::string_view to_str(type t);
+
+
+    void set(type t, bool set);
+    void set_all(bool set);
+    bool enabled(type t);
+
+    bool type_enabled(type t);
+
+    std::span<Vertex> draw(ff::Primitive primitive, size_t vertex_count, Vec2f offset = {});
+    std::span<Vertex> draw(const void* signature, ff::Primitive primitive, size_t vertex_count, Vec2f offset = {});
+    bool repeat(const void* signature, Vec2f offset = {});
+
+    void reset();
+
+    void predraw(bool updated);
+    void draw(RenderTarget& target, RenderState states = RenderState());
+
+    void init();
+    void cleanup();
+
+    struct stats_t {
+        size_t draw_calls;
+        size_t vertices;
+        size_t repeat_calls;
+    };
+
+    extern bool show;
+    extern bool darken;
+    extern stats_t stats;
+}
+
+
+/*
 
 namespace debug_draw {
 	enum class Type {
@@ -74,5 +176,6 @@ T& createDebugDrawable(Args&&...args) {
 	debug_draw::add(std::move(ptr), type);
 	return *t;
 };
+*/
 
 }

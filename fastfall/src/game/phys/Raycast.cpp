@@ -15,7 +15,9 @@ void debugDrawRaycast(std::optional<RaycastHit> result, Linef raycastLine, std::
 	if (result.has_value()) {
 		const auto& hit = result.value();
 
-		auto& rayX = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINES, 16);
+        auto rayX = debug::draw(Primitive::LINES, 16);
+
+		// auto& rayX = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINES, 16);
 
 		rayX[0].color = color;
 		rayX[1].color = color;
@@ -26,8 +28,8 @@ void debugDrawRaycast(std::optional<RaycastHit> result, Linef raycastLine, std::
 		rayX[6].color = color;
 		rayX[7].color = color;
 
-        rayX[ 8].color = Color::Red;
-        rayX[ 9].color = Color::Red;
+        rayX[8].color = Color::Red;
+        rayX[9].color = Color::Red;
         rayX[10].color = Color::Red;
         rayX[11].color = Color::Red;
         rayX[12].color = Color::Red;
@@ -54,7 +56,7 @@ void debugDrawRaycast(std::optional<RaycastHit> result, Linef raycastLine, std::
         rayX[15].pos = raycastLine.p2 + Vec2f(-2.f, -2.f);
 	}
 	else {
-		auto& empty = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINES, 10);
+		auto empty = debug::draw(Primitive::LINES, 10);
 		empty[0].color = color;
 		empty[1].color = color;
 		empty[2].color = color;
@@ -80,8 +82,7 @@ void debugDrawRaycast(std::optional<RaycastHit> result, Linef raycastLine, std::
 
 
     if (visited) {
-        auto &quads = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_RAYCAST>(Primitive::LINES,
-                                                                                            8 * visited->size());
+        auto quads = debug::draw(Primitive::LINES, 8 * visited->size());
         size_t i = 0;
         for (auto& q : *visited) {
             for (auto j = i; j < i + 8; ++j) {
@@ -247,7 +248,7 @@ std::optional<RaycastHit> raycastRegion(const ColliderRegion& region, const Line
 	return result;
 }
 
-std::optional<RaycastHit> raycast(const poly_id_map<ColliderRegion>& regions, Linef path, float backoff) {
+std::optional<RaycastHit> raycast(const World& world, Linef path, float backoff) {
     float distance = math::dist(path);
     backoff = -abs(backoff);
 
@@ -255,16 +256,17 @@ std::optional<RaycastHit> raycast(const poly_id_map<ColliderRegion>& regions, Li
     std::optional<RaycastHit> result{};
 
     std::vector<Rectf> visited;
-    for (auto [id, region_ptr] : regions) {
+
+    for (auto [id, region_ptr] : world.all<ColliderRegion>()) {
         result = compareHits(result, raycastRegion(*region_ptr, path, backoff,
-                                                   debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_RAYCAST) ? &visited : nullptr ));
+                                                   debug::enabled(debug::Collision_Raycast) ? &visited : nullptr ));
     }
 
     if (result.has_value() && result->distance >= distance) {
         result = std::nullopt;
     }
 
-    if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_RAYCAST)) {
+    if (debug::enabled(debug::Collision_Raycast)) {
         debugDrawRaycast(result, path, &visited);
     }
 

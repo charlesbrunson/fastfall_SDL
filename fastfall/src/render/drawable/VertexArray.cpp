@@ -20,12 +20,11 @@ VertexArray::~VertexArray() {
 }
 
 VertexArray::VertexArray(const VertexArray& varray) {
-
 	m_usage = varray.m_usage;
 	m_primitive = varray.m_primitive;
 	m_vec = varray.m_vec;
-	//gl.sync = false;
 }
+
 VertexArray& VertexArray::operator= (const VertexArray& varray) {
 
 	m_usage = varray.m_usage;
@@ -75,8 +74,8 @@ void VertexArray::glTransfer() const {
 
 		glCheck(glBindVertexArray(gl.m_array));
 		glCheck(glBindBuffer(GL_ARRAY_BUFFER, gl.m_buffer));
-		glCheck(glBufferData(GL_ARRAY_BUFFER, m_vec.size() * sizeof(Vertex), NULL, static_cast<GLenum>(m_usage)));
-		gl.m_bufsize = m_vec.size();
+		// glCheck(glBufferData(GL_ARRAY_BUFFER, m_vec.size() * sizeof(Vertex), NULL, static_cast<GLenum>(m_usage)));
+		// gl.m_bufsize = m_vec.size();
 
 		size_t position = 0lu;
 

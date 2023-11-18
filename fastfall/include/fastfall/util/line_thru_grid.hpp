@@ -81,7 +81,6 @@ namespace ff {
                     (std::floor(line.p1.y / cell_size.y) * cell_size.y) + (sign.y > 0 ? 1 : 0) * cell_size.y
                 };
 
-
                 value.pos.x = floorf(line.p1.x / cell_size.x);
                 value.pos.y = floorf(line.p1.y / cell_size.y);
 

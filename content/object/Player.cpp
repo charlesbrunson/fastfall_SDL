@@ -80,22 +80,19 @@ void Player::update(World& w, secs deltaTime) {
 
     //auto ang = Angle::Degree(45).radians();
 
-
-    /*
     for (auto i = 0; i < 360; i += 1) {
         auto ang1 = Angle::Degree((float)i + ang).radians() ;
 
-        Linef path;
-        path.p1 = w.at(collidable_id).getPosition() + Vec2f{0.f, -16.f};
+        auto origin = w.at(collidable_id).getPosition() + Vec2f{0.f, -16.f};
         auto offset = Vec2f{cosf(ang1), sinf(ang1)} * 128.f;
-        path.p2 = path.p1 + offset;
-        raycast(w.all<ColliderRegion>(), path);
+        raycast(w, { origin, origin + offset });
     }
-    */
 
+    /*
     auto origin = w.at(collidable_id).getPosition() + Vec2f{0.f, -16.f};
     auto offset = Vec2f{cosf(ang), sinf(ang)} * 128.f;
-    raycast(w.all<ColliderRegion>(), { origin, origin + offset });
+    raycast(w, { origin, origin + offset });
+    */
 }
 
 Actor::dresult Player::message(World& w, const dmessage& msg) {

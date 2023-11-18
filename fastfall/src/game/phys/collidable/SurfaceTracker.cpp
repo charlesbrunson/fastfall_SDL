@@ -353,8 +353,8 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             }
         }
 
-        if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_TRACKER)) {
-            auto& lines = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_TRACKER>(Primitive::TRIANGLES, follower.get_path_candidates().size() * 6);
+        if (debug::enabled(debug::Collision_Tracker)) {
+            auto lines = debug::draw(Primitive::TRIANGLES, follower.get_path_candidates().size() * 6);
             size_t n = 0;
             for (auto& can : follower.get_path_candidates()) {
                 lines[(n * 6) + 0].pos = can.line.p1;
@@ -413,9 +413,8 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
     }
 
 
-    if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_TRACKER)) {
-
-        auto& quad_lines = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_TRACKER>(Primitive::LINES, quads_visited.size() * 8);
+    if (debug::enabled(debug::Collision_Tracker)) {
+        auto quad_lines = debug::draw(Primitive::LINES, quads_visited.size() * 8);
         size_t n = 0;
         for (auto& bounds : quads_visited) {
             quad_lines[(n * 8) + 0].pos = bounds.topleft();
@@ -433,7 +432,7 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             ++n;
         }
 
-        auto& lines = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_TRACKER>(Primitive::TRIANGLES, follower.get_path_taken().size() * 6);
+        auto lines = debug::draw(Primitive::TRIANGLES, follower.get_path_taken().size() * 6);
         n = 0;
         for (auto& can : follower.get_path_taken()) {
             lines[(n * 6) + 0].pos = can.line.p1;

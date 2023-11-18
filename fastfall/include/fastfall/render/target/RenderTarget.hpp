@@ -17,6 +17,11 @@ class VertexArray;
 class TileArray;
 class Text;
 
+namespace debug::detail {
+    struct state_t;
+    struct gpu_state_t;
+}
+
 class RenderTarget {
 public:
 	RenderTarget();
@@ -37,6 +42,7 @@ public:
 	void draw(const VertexArray& varray, const RenderState& state = RenderState());
 	void draw(const TileArray& varray, RenderState state = RenderState());
 	void draw(const Text& text, RenderState state = RenderState());
+    void draw(debug::detail::state_t& debug, debug::detail::gpu_state_t& gl, RenderState state = RenderState());
 
 	size_t getVertexCounter() { return vertex_draw_counter; }
 	void resetVertexCounter() { vertex_draw_counter = 0; }

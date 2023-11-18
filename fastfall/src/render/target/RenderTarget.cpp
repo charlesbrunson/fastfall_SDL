@@ -4,6 +4,7 @@
 #include "fastfall/render/drawable/VertexArray.hpp"
 #include "fastfall/render/drawable/TileArray.hpp"
 #include "fastfall/render/drawable/Text.hpp"
+#include "fastfall/render/DebugDraw.hpp"
 #include "fastfall/resource/Resources.hpp"
 
 #include "../detail/error.hpp"
@@ -216,6 +217,45 @@ void RenderTarget::draw(const Text& text, RenderState state) {
 
 	previousRender = state;
 	justCleared = false;
+}
+
+void RenderTarget::draw(debug::detail::state_t& debug, debug::detail::gpu_state_t& gl, RenderState state) {
+    if (debug.vertices.empty())
+        return;
+
+    if (gl.m_array == 0)
+        return;
+
+    bindFramebuffer();
+
+    if (!previousRender) {
+        previousRender = RenderState{};
+    }
+
+    if (state.blend != previousRender->blend || !hasBlend) {
+        applyBlend(state.blend);
+        hasBlend = true;
+    }
+
+    if (state.program != previousRender->program || !hasShader) {
+        applyShader(state.program);
+        hasShader = (state.program != nullptr);
+    }
+
+    glCheck(glBindVertexArray(gl.m_array));
+
+    for (auto& call : debug.compressed_calls) {
+        if (state.program) {
+            applyUniforms(Transform::combine(Transform{}.translate(call.draw_offset), state.transform), state);
+        }
+        glCheck(glDrawArrays(static_cast<GLenum>(call.primitive), call.vertex_offset, call.vertex_count));
+    }
+
+    vertex_draw_counter += debug.vertices.size();
+    draw_call_counter++;
+
+    previousRender = state;
+    justCleared = false;
 }
 
 // ------------------------------------------------------

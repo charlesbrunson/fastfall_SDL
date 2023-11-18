@@ -76,7 +76,7 @@ Engine::Engine(Window* window, const Vec2u init_window_size, EngineSettings sett
         initialized = false;
     }
 
-    debug_draw::enable(settings.showDebug);
+    debug::show = settings.showDebug;
 
     if (initialized) {
         LOG_INFO("Engine initialized");
@@ -88,7 +88,7 @@ Engine::Engine(Window* window, const Vec2u init_window_size, EngineSettings sett
 
 Engine::~Engine() {
     LOG_INFO("Shutting down engine");
-    debug_draw::clear();
+    debug::cleanup();
 }
 
 void Engine::push_runnable(EngineRunnable&& toRun) {
@@ -548,12 +548,10 @@ void Engine::predrawRunnables()
         run.getStateHandle().getActiveState()->predraw(predraw_state, &state);
     }
     if (settings.showDebug) {
-        if (hasUpdated) {
-            debug_draw::swapDrawLists();
-        }
+        debug::predraw(hasUpdated);
     }
     else {
-        debug_draw::clear();
+        debug::reset();
     }
 }
 
@@ -561,8 +559,9 @@ void Engine::drawRunnables() {
     for (auto& run : runnables) {
         drawRunnable(run);
     }
-    if (settings.showDebug)
-        debug_draw::draw(*window);
+    if (settings.showDebug) {
+        debug::draw(*window);
+    }
 }
 
 void Engine::updateImGui() {
@@ -717,7 +716,7 @@ void Engine::handleEvents(bool* timeWasted)
                 unsigned scale = settings.showDebug ? 2 : 1;
                 IF_N_EMSCRIPTEN(SDL_SetWindowMinimumSize(window->getSDL_Window(), GAME_W * scale, GAME_H * scale));
                 resizeWindow(Vec2u(window->getSize()));
-                debug_draw::enable(settings.showDebug);
+                debug::show = settings.showDebug;
                 LOG_INFO("Toggling debug mode");
                 break;
             }
@@ -1119,49 +1118,30 @@ DebugDrawImgui::DebugDrawImgui() :
 
 }
 void DebugDrawImgui::ImGui_getContent(secs deltaTime) {
-
-    constexpr std::string_view names[] = {
-        "NONE",
-        "COLLISION_COLLIDER",
-        "COLLISION_COLLIDABLE",
-        "COLLISION_CONTACT",
-        "COLLISION_RAYCAST",
-        "COLLISION_TRACKER",
-        "TILELAYER_AREA",
-        "TILELAYER_CHUNK",
-        "CAMERA_VISIBLE",
-        "CAMERA_TARGET",
-        "TRIGGER_AREA",
-        "PATHS",
-        "ATTACH",
-        "EMITTER"
-    };
-    static_assert((sizeof(names) / sizeof(names[0])) == static_cast<unsigned>(debug_draw::Type::LAST), "fix me");
-
-    bool debug_enabled = debug_draw::hasEnabled();
-    if (ImGui::Checkbox("Show Debug", &debug_enabled)) {
-        debug_draw::enable(debug_enabled);
-    }
-
-    bool dark = debug_draw::is_darken();
-    if (ImGui::Checkbox("Darken Screen", &dark)) {
-        debug_draw::set_darken(dark);
-    }
+    ImGui::Checkbox("Show Debug", &debug::show);
+    ImGui::Checkbox("Darken Screen", &debug::darken);
 
     ImGui::Separator();
     if (ImGui::Button("Enable All")) {
-        debug_draw::setAllTypeEnabled(true);
+        debug::set_all(true);
     }
     ImGui::SameLine();
     if (ImGui::Button("Disable All")) {
-        debug_draw::setAllTypeEnabled(false);
+        debug::set_all(false);
     }
 
-
-
-    for (int i = 1; i < static_cast<unsigned>(debug_draw::Type::LAST); i++) {
-        ImGui::Checkbox(names[i].data(), &debug_draw::type_state(static_cast<debug_draw::Type>(i)));
+    for (auto t : debug::types) {
+        bool on = debug::type_enabled(t);
+        if (ImGui::Checkbox(debug::to_str(t).data(), &on)) {
+            debug::set(t, on);
+        }
     }
+
+    ImGui::Separator();
+    ImGui::Text("Draw calls: %zu", debug::stats.draw_calls);
+    ImGui::Text("Vertices:   %zu", debug::stats.vertices);
+    ImGui::Text("Repeats:    %zu", debug::stats.repeat_calls);
+
 }
 
 

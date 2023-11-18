@@ -282,25 +282,20 @@ namespace ff {
                 update_attachments(world, std::get<ID<AttachPoint>>(id), visited);
             }
 
-            if (debug_draw::hasTypeEnabled(debug_draw::Type::ATTACH)  /*&& !debug_draw::repeat((void *) &at, p) */ ) {
+            if (debug::enabled(debug::Attach)) {
+                auto draw = debug::draw((const void *)&data, Primitive::LINES, 6);
 
-                //debug_draw::set_offset(p);
-                auto &attach = createDebugDrawable<VertexArray, debug_draw::Type::ATTACH>(
-                        (const void *)&data, Primitive::LINES, 6);
-
-                for (auto ndx = 0; ndx < attach.size(); ++ndx) {
-                    attach[ndx].color = Color::Green;
+                for (auto & ndx : draw) {
+                    ndx.color = Color::Green;
                 }
 
-                attach[0].pos = ap.curr_pos() + Vec2f{-2, -2};
-                attach[1].pos = ap.curr_pos() + Vec2f{ 2,  2};
-                attach[2].pos = ap.curr_pos() + Vec2f{-2,  2};
-                attach[3].pos = ap.curr_pos() + Vec2f{ 2, -2};
-                attach[4].pos = ap.curr_pos();
-                attach[5].pos = p;
-                //debug_draw::set_offset();
+                draw[0].pos = ap.curr_pos() + Vec2f{-2, -2};
+                draw[1].pos = ap.curr_pos() + Vec2f{ 2,  2};
+                draw[2].pos = ap.curr_pos() + Vec2f{-2,  2};
+                draw[3].pos = ap.curr_pos() + Vec2f{ 2, -2};
+                draw[4].pos = ap.curr_pos();
+                draw[5].pos = p;
             }
-
         }
     }
 

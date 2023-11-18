@@ -83,10 +83,10 @@ void Emitter::update(secs deltaTime, event_out_iter* events_out) {
         spawn_particles(deltaTime);
         update_bounds();
 
-        if (debug_draw::hasTypeEnabled(debug_draw::Type::EMITTER)) {
+        if (debug::enabled(debug::Emitter)) {
 
             if (particle_bounds) {
-                auto &p_bounds = createDebugDrawable<VertexArray, debug_draw::Type::EMITTER>(
+                auto p_bounds = debug::draw(
                         (const void *) this, Primitive::LINE_LOOP, 4);
 
                 for (int i = 0; i < p_bounds.size(); i++) {
@@ -99,7 +99,7 @@ void Emitter::update(secs deltaTime, event_out_iter* events_out) {
             }
 
 
-            auto& part_points = createDebugDrawable<VertexArray, debug_draw::Type::EMITTER>(
+            auto part_points = debug::draw(
                     (const void*)this, Primitive::LINES, particles.size() * 4);
 
             size_t ndx = 0;
@@ -418,14 +418,14 @@ void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders, even
     for (const auto [rid, region] : colliders) {
         auto quad_area = region->in_rect(*get_particle_bounds());
 
-        if (debug_draw::hasTypeEnabled(debug_draw::Type::EMITTER)) {
+        if (debug::enabled(debug::Emitter)) {
             auto it = quad_area.begin();
             Rectf r_bounds = math::shift(Rectf{ it.get_tile_area() } * TILESIZE, region->getPosition());
 
-            auto& p_bounds = createDebugDrawable<VertexArray, debug_draw::Type::EMITTER>(Primitive::LINE_LOOP, 4);
+            auto p_bounds = debug::draw(Primitive::LINE_LOOP, 4);
 
-            for (int i = 0; i < p_bounds.size(); i++) {
-                p_bounds[i].color = Color::White;
+            for (auto & p_bound : p_bounds) {
+                p_bound.color = Color::White;
             }
             p_bounds[0].pos = math::rect_topleft(r_bounds);
             p_bounds[1].pos = math::rect_topright(r_bounds);
@@ -444,11 +444,11 @@ void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders, even
 
             *bounds = math::shift(*bounds, region->getPosition());
 
-            if (debug_draw::hasTypeEnabled(debug_draw::Type::EMITTER)) {
-                auto& q_bounds = createDebugDrawable<VertexArray, debug_draw::Type::EMITTER>(Primitive::LINE_LOOP, 4);
+            if (debug::enabled(debug::Emitter)) {
+                auto q_bounds = debug::draw(Primitive::LINE_LOOP, 4);
 
-                for (int i = 0; i < q_bounds.size(); i++) {
-                    q_bounds[i].color = Color::Green;
+                for (auto & q_bound : q_bounds) {
+                    q_bound.color = Color::Green;
                 }
                 q_bounds[0].pos = math::rect_topleft(*bounds);
                 q_bounds[1].pos = math::rect_topright(*bounds);

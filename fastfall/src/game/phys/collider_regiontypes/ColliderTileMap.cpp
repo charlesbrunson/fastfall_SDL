@@ -43,7 +43,7 @@ namespace ff {
 	void ColliderTileMap::update(secs deltaTime) {
 		applyChanges();
 
-		if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER)) {
+		if (debug::enabled(debug::Collision_Collider)) {
 			bool is_redrawn = debugDrawQuad(validCollisionSize, &tileCollisionMap[0], getPosition(), this, update_debugDraw);
 			if (update_debugDraw)
 				update_debugDraw = !is_redrawn;

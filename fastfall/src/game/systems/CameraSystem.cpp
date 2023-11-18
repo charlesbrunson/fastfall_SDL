@@ -56,17 +56,14 @@ void CameraSystem::update(World& world, secs deltaTime) {
 		}
 	}
 
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::CAMERA_VISIBLE) && !debug_draw::repeat((void*)this, currentPosition)) {
-
-		debug_draw::set_offset(currentPosition);
-
+	if (debug::enabled(debug::Camera_Visible) && !debug::repeat((void*)this, currentPosition)) {
 		constexpr Rectf area{
 			Vec2f{GAME_W_F * -0.5f, GAME_H_F * -0.5f},
 			Vec2f{GAME_W_F, GAME_H_F}
 		};
 
-		auto& visible_box = createDebugDrawable<VertexArray, debug_draw::Type::CAMERA_VISIBLE>(
-			(const void*)this, Primitive::LINE_LOOP, 4);
+		auto visible_box = debug::draw(
+			(const void*)this, Primitive::LINE_LOOP, 4, currentPosition);
 
 		for (int i = 0; i < visible_box.size(); i++) {
 			visible_box[i].color = Color::White;
@@ -75,20 +72,14 @@ void CameraSystem::update(World& world, secs deltaTime) {
 		visible_box[1].pos = math::rect_topright(area);
 		visible_box[2].pos = math::rect_botright(area);
 		visible_box[3].pos = math::rect_botleft(area);
-
-		debug_draw::set_offset();
 	}
 
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::CAMERA_TARGET)) {
+	if (debug::enabled(debug::Camera_Target)) {
 
-		if (!debug_draw::repeat((void*)this, currentPosition)) {
+		if (!debug::repeat((void*)this, currentPosition)) {
+			auto current_crosshair = debug::draw(
+				(const void*)this, Primitive::LINE_LOOP, 4, currentPosition);
 
-			debug_draw::set_offset(currentPosition);
-
-			auto& current_crosshair = createDebugDrawable<VertexArray, debug_draw::Type::CAMERA_TARGET>(
-				(const void*)this, Primitive::LINE_LOOP, 4);
-
-			//LOG_INFO("{}", (void*)this);
 			for (int i = 0; i < current_crosshair.size(); i++) {
 				current_crosshair[i].color = Color::White;
 			}
@@ -96,7 +87,6 @@ void CameraSystem::update(World& world, secs deltaTime) {
 			current_crosshair[1].pos = Vec2f{ 0.f, -2.f };
 			current_crosshair[2].pos = Vec2f{ 2.f,  0.f };
 			current_crosshair[3].pos = Vec2f{ 0.f,  2.f };
-
 		}
 
 		for (auto& target_id : ordered_targets) 
@@ -105,13 +95,9 @@ void CameraSystem::update(World& world, secs deltaTime) {
 			auto& camtarget = world.at(target_id);
 			Vec2f pos = camtarget.get_target_pos();
 
-			if (!debug_draw::repeat((void*)&camtarget, pos)) {
-				//LOG_INFO("{}", (void*)target);
-
-				debug_draw::set_offset(pos);
-
-				auto& target_crosshair = createDebugDrawable<VertexArray, debug_draw::Type::CAMERA_TARGET>(
-					(const void*)&camtarget, Primitive::LINES, 4);
+			if (!debug::repeat((void*)&camtarget, pos)) {
+				auto target_crosshair = debug::draw(
+					(const void*)&camtarget, Primitive::LINES, 4, pos);
 
 				for (int i = 0; i < target_crosshair.size(); i++) {
 					target_crosshair[i].color = Color::White;
@@ -120,8 +106,6 @@ void CameraSystem::update(World& world, secs deltaTime) {
 				target_crosshair[1].pos = Vec2f{  2.f,  0.f };
 				target_crosshair[2].pos = Vec2f{  0.f, -2.f };
 				target_crosshair[3].pos = Vec2f{  0.f,  2.f };
-
-				debug_draw::set_offset();
 			}
 		}
 	}

@@ -251,7 +251,7 @@ void TestState::predraw(predraw_state_t predraw_state, const WindowState* win_st
                 world->input().set_source(&*insrc_record);
             }
 
-            debug_draw::clear();
+            debug::reset();
         }
         to_load = false;
         LOG_INFO("loaded state");

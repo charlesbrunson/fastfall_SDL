@@ -178,51 +178,44 @@ void ChunkVertexArray::predraw(predraw_state_t predraw_state) {
 		}
 	}
 
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_CHUNK) && predraw_state.updated) {
+	if (debug::enabled(debug::Tilelayer_Chunk) && predraw_state.updated) {
 		for (const auto& chunk : m_chunks) {
-			if (!debug_draw::repeat((void*)&chunk, offset + scroll)) {
-
-				debug_draw::set_offset(offset + scroll);
+			if (!debug::repeat((void*)&chunk, offset + scroll)) {
 
 				Rectf bound{
 					Vec2f{(float)chunk.chunk_pos.x * m_chunk_size.x, (float)chunk.chunk_pos.y * m_chunk_size.y} *TILESIZE_F,
 					Vec2f{chunk.chunk_size} *TILESIZE_F
 				};
 
-				auto& chunk_box = createDebugDrawable<VertexArray, debug_draw::Type::TILELAYER_CHUNK>((const void*)&chunk, Primitive::LINE_LOOP, 4);
+				auto chunk_box = debug::draw((const void*)&chunk, Primitive::LINE_LOOP, 4, offset + scroll);
 
-				for (int i = 0; i < chunk_box.size(); i++) {
-					chunk_box[i].color = Color(255, 0, 0, 200);
+				for (auto & i : chunk_box) {
+					i.color = Color(255, 0, 0, 200);
 				}
 				chunk_box[0].pos = math::rect_topleft(bound);
 				chunk_box[1].pos = math::rect_topright(bound);
 				chunk_box[2].pos = math::rect_botright(bound);
 				chunk_box[3].pos = math::rect_botleft(bound);
-
-				debug_draw::set_offset();
 			}
 		}
 
-		if (!debug_draw::repeat((void*)this, offset)) {
-
-			debug_draw::set_offset(offset);
+		if (!debug::repeat((void*)this, offset)) {
 
 			Rectf bound{
 				Vec2f{},
 				Vec2f{m_size} *TILESIZE_F
 			};
 
-			auto& size_box = createDebugDrawable<VertexArray, debug_draw::Type::TILELAYER_CHUNK>((const void*)this, Primitive::LINE_LOOP, 4);
+			auto size_box = debug::draw((const void*)this, Primitive::LINE_LOOP, 4, offset);
 
-			for (int i = 0; i < size_box.size(); i++) {
-				size_box[i].color = Color::White;
+			for (auto & i : size_box) {
+				i.color = Color::White;
 			}
 			size_box[0].pos = math::rect_topleft(bound);
 			size_box[1].pos = math::rect_topright(bound);
 			size_box[2].pos = math::rect_botright(bound);
 			size_box[3].pos = math::rect_botleft(bound);
 
-			debug_draw::set_offset();
 		}
 	}
 }

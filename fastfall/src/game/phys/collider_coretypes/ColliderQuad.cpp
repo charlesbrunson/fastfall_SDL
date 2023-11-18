@@ -8,7 +8,7 @@
 namespace ff {
 
 
-constexpr void debug_impl(ColliderQuad* quad, VertexArray& array, size_t startNdx) {
+constexpr void debug_impl(ColliderQuad* quad, std::span<Vertex> array, size_t startNdx) {
 	constexpr auto normal = [](Line<float> line) -> Vec2f {
 		Vec2f v = (line.p2 - line.p1);
 
@@ -59,36 +59,31 @@ constexpr void debug_impl(ColliderQuad* quad, VertexArray& array, size_t startNd
 
 bool debugDrawQuad(ColliderQuad& quad, Vec2f offset, const void* sign, bool always_redraw) {
 	
-	if (!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER))
+	if (!debug::enabled(debug::Collision_Collider))
 		return false;
 
-	if (!always_redraw && sign && debug_draw::repeat(sign, offset)) {
+	if (!always_redraw && sign && debug::repeat(sign, offset)) {
 		return false;
 	}
 
-	debug_draw::set_offset(offset);
-
-	auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDER>(sign, Primitive::TRIANGLES, 24);
-
+	auto draw = debug::draw(sign, Primitive::TRIANGLES, 24, offset);
 	debug_impl(&quad, draw, 0);
 
-	debug_draw::set_offset();
 	return true;
 }
 
 bool debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset, const void* sign, bool always_redraw) {
 		
 
-	if (!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDER))
+	if (!debug::enabled(debug::Collision_Collider))
 		return false;
 
-	if (!always_redraw && sign && debug_draw::repeat(sign, offset)) {
+	if (!always_redraw && sign && debug::repeat(sign, offset)) {
 		return false;
 	}
 
-	debug_draw::set_offset(offset);
 
-	auto& draw = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDER>(sign, Primitive::TRIANGLES, count * 24);
+	auto draw = debug::draw(sign, Primitive::TRIANGLES, count * 24, offset);
 
 	size_t ndx = 0;
 	for (size_t i = 0; i < count; ndx++) {
@@ -99,7 +94,6 @@ bool debugDrawQuad(size_t count, ColliderQuad* quad, Vec2f offset, const void* s
 		debug_impl(quad + ndx, draw, i * 24);
 		i++;
 	}
-	debug_draw::set_offset();
 	return true;
 }
 

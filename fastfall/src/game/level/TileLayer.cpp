@@ -393,24 +393,26 @@ void TileLayer::predraw(World& world, predraw_state_t predraw_state) {
         chunk.predraw(predraw_state);
     }
 
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::TILELAYER_AREA) && predraw_state.updated)
+	if (debug::enabled(debug::Tilelayer_Area) && predraw_state.updated)
 	{
 		Vec2f pSize = Vec2f{ getLevelSize() } * TILESIZE_F;
 
 		size_t ptr = (size_t)this;
-		if (!debug_draw::repeat((void*)(ptr), get_parallax_offset())) {
-			debug_draw::set_offset(get_parallax_offset());
-			auto& drawable1 = createDebugDrawable<ShapeRectangle, debug_draw::Type::TILELAYER_AREA>(
-				(const void*)(ptr), Rectf({ 0, 0 }, pSize), Color::Transparent, Color::Red
-			);
-			debug_draw::set_offset();
+		if (!debug::repeat((void*)(ptr), get_parallax_offset())) {
+            auto rect = debug::draw((const void*)(ptr), ff::Primitive::LINE_LOOP, 4, get_parallax_offset());
+            for (auto& i : rect) { i.color = Color::Red; }
+            rect[0].pos = {};
+            rect[1].pos = { pSize.x, 0.f };
+            rect[2].pos = pSize;
+            rect[3].pos = { 0.f, pSize.y };
 		}
-		if (!debug_draw::repeat((void*)(ptr + 1), get_total_offset())) {
-			debug_draw::set_offset(get_total_offset());
-			auto& drawable2 = createDebugDrawable<ShapeRectangle, debug_draw::Type::TILELAYER_AREA>(
-				(const void*)(ptr + 1), Rectf({ 0, 0 }, pSize), Color::Transparent, Color::Green
-			);
-			debug_draw::set_offset();
+		if (!debug::repeat((void*)(ptr + 1), get_total_offset())) {
+            auto rect = debug::draw((const void*)(ptr + 1), ff::Primitive::LINE_LOOP, 4, get_total_offset());
+            for (auto& i : rect) { i.color = Color::Green; }
+            rect[0].pos = {};
+            rect[1].pos = { pSize.x, 0.f };
+            rect[2].pos = pSize;
+            rect[3].pos = { 0.f, pSize.y };
 		}
 	}
 }

@@ -9,7 +9,7 @@ namespace ff {
 
 void debugDrawTrigger(const Trigger& tr) {
 
-	auto& varr = createDebugDrawable<VertexArray, debug_draw::Type::TRIGGER_AREA>(Primitive::TRIANGLE_STRIP, 4);
+	auto varr = debug::draw(Primitive::TRIANGLE_STRIP, 4);
 	varr[0].pos = math::rect_topleft( tr.get_area());
 	varr[1].pos = math::rect_topright(tr.get_area());
 	varr[2].pos = math::rect_botleft(tr.get_area());
@@ -42,7 +42,7 @@ void TriggerSystem::update(World& world, secs deltaTime)
 		}
 	}
 
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::TRIGGER_AREA)) {
+	if (debug::enabled(debug::Trigger_Area)) {
 		for (auto [id, trigger] : triggers) {
 			debugDrawTrigger(trigger);
 		}

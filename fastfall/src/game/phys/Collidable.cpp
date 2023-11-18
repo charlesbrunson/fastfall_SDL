@@ -18,33 +18,30 @@
 namespace ff {
 
 void drawDrawCollidable(const Collidable& c) {
-	if (!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDABLE))
+	if (!debug::enabled(debug::Collision_Collidable))
 		return;
 	
 	Rectf curRect = c.getBox();
 	Rectf prevRect = c.getPrevBox();
 
-	auto& curShape  = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDABLE>(Primitive::TRIANGLE_STRIP, 4);
-	auto& prevShape = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDABLE>(Primitive::LINE_LOOP, 4);
-	auto& bounding  = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_COLLIDABLE>(Primitive::LINE_LOOP, 4);
+	auto curShape  = debug::draw(Primitive::TRIANGLE_STRIP, 4);
+	auto prevShape = debug::draw(Primitive::LINE_LOOP, 4);
+	auto bounding  = debug::draw(Primitive::LINE_LOOP, 4);
 
-	for (int i = 0; i < curShape.size(); i++) {
-		curShape[i].color = Color(0, 255, 0, 100);
+	for (auto& i : curShape) {
+		i.color = Color(0, 255, 0, 100);
 	}
-	for (int i = 0; i < prevShape.size(); i++) {
-		prevShape[i].color = Color(0, 255, 0, 200);
+	for (auto& i : prevShape) {
+		i.color = Color(0, 255, 0, 200);
 	}
-	for (int i = 0; i < bounding.size(); i++) {
-		bounding[i].color = Color(255, 255, 0, 200);
+	for (auto& i : bounding) {
+		i.color = Color(255, 255, 0, 200);
 	}
 
-	
 	prevShape[0].pos = math::rect_topleft(prevRect);
 	prevShape[1].pos = math::rect_topright(prevRect);
 	prevShape[2].pos = math::rect_botright(prevRect);
 	prevShape[3].pos = math::rect_botleft(prevRect);
-	//prevShape[4].position = prevShape[0].position;
-	
 
 	curShape[0].pos = math::rect_topleft(curRect);
 	curShape[1].pos = math::rect_topright(curRect);
@@ -59,16 +56,16 @@ void drawDrawCollidable(const Collidable& c) {
 	bounding[1].pos = math::rect_topright(r);
 	bounding[2].pos = math::rect_botright(r);
 	bounding[3].pos = math::rect_botleft(r);
-	//bounding[4].position = bounding[0].position;
 	
 }
 
 void debugDrawContact(const AppliedContact& contact) {
 
 	if (contact.position == Vec2f() ||
-		!debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_CONTACT))
+		!debug::enabled(debug::Collision_Contact))
 		return;
 
+    /*
 	auto& pos = createDebugDrawable<ShapeCircle, debug_draw::Type::COLLISION_CONTACT>(
 		contact.position, 
 		1.5f, 
@@ -76,8 +73,16 @@ void debugDrawContact(const AppliedContact& contact) {
 		Color::Transparent, 
 		Color::Yellow
 	);
+    */
 
-	auto& line = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(Primitive::LINES, 2);
+    auto pos = debug::draw(Primitive::LINE_LOOP, 4);
+    for (auto i : pos) { i.color = Color::Yellow; }
+    pos[0].pos = contact.position + Vec2f{ -1.5f, 0.f };
+    pos[1].pos = contact.position + Vec2f{ 0.f, -1.5f };
+    pos[2].pos = contact.position + Vec2f{ 1.5f, 0.f };
+    pos[3].pos = contact.position + Vec2f{ 0.f, 1.5f };
+
+	auto line = debug::draw(Primitive::LINES, 2);
 	line[0].pos = contact.position;
 	line[1].pos = contact.position + (contact.ortho_n * contact.separation);
 	line[0].color = Color::Yellow;
@@ -85,7 +90,7 @@ void debugDrawContact(const AppliedContact& contact) {
 
 	if (contact.collider.surface.p1 == contact.collider.surface.p2) {
 
-		auto& corner = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(Primitive::TRIANGLES, 3);
+		auto corner = debug::draw(Primitive::TRIANGLES, 3);
 		corner[0].color = Color::White;
 		corner[1].color = Color::White;
 		corner[2].color = Color::White;
@@ -95,7 +100,7 @@ void debugDrawContact(const AppliedContact& contact) {
 		corner[2].pos = contact.collider.surface.p1 - (contact.ortho_n + contact.ortho_n.lefthand()) * 2.f;
 	}
 	else {
-		auto& surf = createDebugDrawable<VertexArray, debug_draw::Type::COLLISION_CONTACT>(Primitive::TRIANGLES, 18);
+		auto surf = debug::draw(Primitive::TRIANGLES, 18);
 
 		Linef g1 = { contact.collider.ghostp0, contact.collider.surface.p1 };
 		Linef g2 = { contact.collider.surface.p2, contact.collider.ghostp3 };
@@ -477,10 +482,10 @@ bool Collidable::erase_tracker() {
 
 void Collidable::debug_draw() const 
 {
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_COLLIDABLE))
+	if (debug::enabled(debug::Collision_Collidable))
 		drawDrawCollidable(*this);
 
-	if (debug_draw::hasTypeEnabled(debug_draw::Type::COLLISION_CONTACT)) {
+	if (debug::enabled(debug::Collision_Contact)) {
 		for (auto& contact : currContacts) {
 			debugDrawContact(contact);
 		}
