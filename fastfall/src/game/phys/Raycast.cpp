@@ -255,7 +255,8 @@ std::optional<RaycastHit> raycast(const World& world, Linef path, float backoff)
     std::vector<std::pair<Rectf, const ColliderQuad*>> buffer;
     std::optional<RaycastHit> result{};
 
-    std::vector<Rectf> visited;
+    static std::vector<Rectf> visited;
+    visited.clear();
 
     for (auto [id, region_ptr] : world.all<ColliderRegion>()) {
         result = compareHits(result, raycastRegion(*region_ptr, path, backoff,

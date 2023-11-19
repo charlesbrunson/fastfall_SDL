@@ -15,40 +15,6 @@ namespace ff {
 
         constexpr std::strong_ordering operator<=>(const slot_key& other) const = default;
 
-		//constexpr bool operator==(const slot_key& other) const {
-		//	return other.generation == generation
-		//		&& other.sparse_index == sparse_index;
-		//}
-
-		//constexpr bool operator!=(const slot_key& other) const {
-		//	return other.generation != generation
-		//		|| other.sparse_index != sparse_index;
-		//}
-
-        //constexpr bool operator<(const slot_key& other) const {
-        //    return other.generation == generation
-        //        ? other.sparse_index < sparse_index
-        //       : other.generation < generation;
-        //}
-
-        //constexpr bool operator<=(const slot_key& other) const {
-        //    return other.generation == generation
-        //           ? other.sparse_index <= sparse_index
-        //           : other.generation <= generation;
-        //}
-
-        //constexpr bool operator>(const slot_key& other) const {
-        //    return other.generation == generation
-        //           ? other.sparse_index > sparse_index
-        //           : other.generation > generation;
-        //}
-
-        //constexpr bool operator>=(const slot_key& other) const {
-        //    return other.generation == generation
-        //           ? other.sparse_index >= sparse_index
-        //           : other.generation >= generation;
-        //}
-
 		constexpr uint64_t raw() const {
 			return *((uint64_t*)this);
 		}
@@ -80,7 +46,7 @@ namespace ff {
 		};
 
 		using sparse_vector = std::vector<sparse_t>;
-		using dense_vector = std::vector<std::pair<slot_key, T>>;
+		using dense_vector  = std::vector<std::pair<slot_key, T>>;
 
 		// sentinal value for the empty list
 		static constexpr size_t EmptyLast = (std::numeric_limits<uint32_t>::max)();
@@ -196,17 +162,21 @@ namespace ff {
 			auto s_ndx = (size_t)k.sparse_index;
 			auto d_ndx = sparse_[s_ndx].dense_index;
 
-			auto r = dense_.erase(dense_.begin() + d_ndx);
-			sparse_[s_ndx].valid = false;
-            // update dense index for sparse entries that pointed past this one
-            while (d_ndx < dense_.size())
-            {
-                sparse_[dense_[d_ndx].first.sparse_index].dense_index = d_ndx;
-                ++d_ndx;
+            iterator r;
+            if (d_ndx < dense_.size() - 1) {
+                // not the last element
+                auto back_s_ndx = dense_.back().first.sparse_index;
+                sparse_[back_s_ndx].dense_index = d_ndx;
+                std::swap(dense_.back(), dense_[d_ndx]);
+                r = dense_.begin() + d_ndx + 1;
             }
-
-			push_empty(k.sparse_index);
-			return r;
+            else {
+                r = dense_.end();
+            }
+            dense_.pop_back();
+            sparse_[s_ndx].valid = false;
+            push_empty(s_ndx);
+            return r;
 		}
 
 		constexpr iterator erase(const T& value) {

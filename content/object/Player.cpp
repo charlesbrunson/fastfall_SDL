@@ -74,25 +74,6 @@ void Player::manage_state(World& w, PlayerStateID n_id)
 
 void Player::update(World& w, secs deltaTime) {
 	manage_state(w, get_state().update(w, *this, deltaTime));
-
-    static float ang = 0.0;
-    ang += deltaTime * 2.f;
-
-    //auto ang = Angle::Degree(45).radians();
-
-    for (auto i = 0; i < 360; i += 1) {
-        auto ang1 = Angle::Degree((float)i + ang).radians() ;
-
-        auto origin = w.at(collidable_id).getPosition() + Vec2f{0.f, -16.f};
-        auto offset = Vec2f{cosf(ang1), sinf(ang1)} * 128.f;
-        raycast(w, { origin, origin + offset });
-    }
-
-    /*
-    auto origin = w.at(collidable_id).getPosition() + Vec2f{0.f, -16.f};
-    auto offset = Vec2f{cosf(ang), sinf(ang)} * 128.f;
-    raycast(w, { origin, origin + offset });
-    */
 }
 
 Actor::dresult Player::message(World& w, const dmessage& msg) {
@@ -110,8 +91,6 @@ Actor::dresult Player::message(World& w, const dmessage& msg) {
             return SetPos.accept();
         }
         case Hurt: {
-            // float [damage] = objHurt.unwrap(msg);
-            //LOG_INFO("OUCH: {}", objHurt.unwrap_as<float>(msg));
             return Hurt.accept();
         }
     }
@@ -129,8 +108,6 @@ void Player::ImGui_Inspect() {
 	auto name = pair.second;
 
 	ImGui::Text("Current State: %d %s", (int)id, name.data());
-	//ImGui::Text("Position(%3.2f, %3.2f)", box->getPosition().x, box->getPosition().y);
-	//ImGui::Text("Velocity(%3.2f, %3.2f)", box->get_vel().x, box->get_vel().y);
 
 	Separator();
 
