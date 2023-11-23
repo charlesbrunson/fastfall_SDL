@@ -10,7 +10,7 @@ const ActorType BasicPlatform::actor_type = ActorType::create<BasicPlatform>({
     .tile_size  = {0, 0},
     .group_tags = {	"platform" },
     .properties = {
-        { "path",  ff::ObjLevelID::NO_ID }
+        { "path",  ObjLevelID{ ObjLevelID::NO_ID } }
     },
 });
 

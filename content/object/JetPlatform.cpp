@@ -68,15 +68,13 @@ const EmitterStrategy smoke_emitter_str = {
         .animation                      = AnimIDRef{ "jet_platform.sax", "smoke" },
 };
 
-
-
 const ActorType JetPlatform::actor_type = ActorType::create<JetPlatform>({
     .name       = "JetPlatform",
     .anim       = {},
     .tile_size  = { 0, 1 },
     .group_tags = {	"platform" },
     .properties = {
-        { "path",  ObjLevelID{} }
+        { "path",  ObjLevelID{ ObjLevelID::NO_ID } }
     },
 });
 

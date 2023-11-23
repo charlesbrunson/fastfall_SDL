@@ -6,6 +6,7 @@
 #include "content/types.hpp"
 #include "content/TestState.hpp"
 
+
 int main(int argc, char* argv[]) {
     register_types();
 
@@ -14,7 +15,6 @@ int main(int argc, char* argv[]) {
     {
         // create an opengl context
         auto* window = new ff::Window{ true };
-
         ff::Engine* engine = nullptr;
 
         // load resources from file

@@ -34,10 +34,6 @@ struct Color {
 		r = (value >> 24) & 0xFF;
 	}
 
-    constexpr glm::uvec4 toVec4() const {
-        return glm::fvec4{ r,g,b,a };
-    }
-
     constexpr inline Color& red  (uint8_t amount) { r = amount; return *this; };
     constexpr inline Color& green(uint8_t amount) { g = amount; return *this; };
     constexpr inline Color& blue (uint8_t amount) { b = amount; return *this; };

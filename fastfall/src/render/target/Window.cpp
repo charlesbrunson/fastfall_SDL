@@ -4,6 +4,8 @@
 
 #include "../detail/error.hpp"
 
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 namespace ff {
 
@@ -60,14 +62,16 @@ Window::Window(std::string_view title, unsigned initWidth, unsigned initHeight, 
 void Window::init() {
 	assert(ff::render::is_init());
 
-	m_context = SDL_GL_CreateContext(m_window);
-	checkSDL(m_context);
+    m_context = SDL_GL_CreateContext(m_window);
+    checkSDL(m_context);
 
 	if (!ff::render::glew_init()) {
 		SDL_DestroyWindow(m_window);
 		m_window = nullptr;
 		return;
 	}
+
+    TracyGpuContext;
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplSDL2_InitForOpenGL(m_window, m_context);
@@ -184,8 +188,11 @@ glm::ivec2 Window::getPosition() {
 }
 
 void Window::display() {
+    ZoneScoped;
+    TracyGpuZone("Display");
 	glFinish();
 	SDL_GL_SwapWindow(m_window);
+    TracyGpuCollect;
 }
 
 glm::ivec2 Window::getSize() const {

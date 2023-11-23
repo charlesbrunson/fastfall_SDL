@@ -2,6 +2,8 @@
 
 #include "fastfall/game/World.hpp"
 
+#include "tracy/Tracy.hpp"
+
 namespace ff {
 
 
@@ -13,16 +15,19 @@ void EmitterSystem::update(World& world, secs deltaTime) {
 
         const poly_id_map<ColliderRegion>& collider_regions = world.all<ColliderRegion>();
         for (auto [eid, e]: world.all<Emitter>()) {
+            ZoneScopedN("Update Emitter");
             size_t init_events_count = events.size();
             auto output_it = std::back_inserter(events);
             e.update(deltaTime, &output_it);
             e.apply_collision(collider_regions, &output_it);
             events_per_emitter.push_back(events.size() - init_events_count);
+
         }
 
         auto count_it  = events_per_emitter.begin();
         auto events_it = events.begin();
         for (auto [eid, e]: world.all<Emitter>()) {
+            ZoneScopedN("Process Emitter Events");
             auto count = *count_it;
             auto event_span = std::span{events_it, events_it + count};
 

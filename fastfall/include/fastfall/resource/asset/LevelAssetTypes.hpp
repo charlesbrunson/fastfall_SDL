@@ -88,6 +88,8 @@ struct ObjectData {
     template<typename T>
     [[nodiscard]] T get_prop(std::string_view name) const {
         auto it = properties.find(name);
+        bool valid = it != properties.end()
+                && (it->second.get_type() != ObjectProperty::Type::String || it->second.str_value != "");
         if (it != properties.end()) {
             if (std::holds_alternative<T>(it->second.value)) {
                 return std::get<T>(it->second.value);

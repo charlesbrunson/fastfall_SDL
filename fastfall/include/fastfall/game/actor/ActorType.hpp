@@ -84,6 +84,8 @@ class ActorType : public ActorTypeInfo {
 
     using builder_fn = copyable_unique_ptr<Actor>(*)(ActorInit, const LevelObjectData&);
     builder_fn builder = nullptr;
+
+    using user_builder_fn = void(*)(ActorInit, const LevelObjectData&);
 public:
 
     template <std::derived_from<Actor> T>

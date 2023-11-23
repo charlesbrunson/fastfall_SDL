@@ -6,7 +6,11 @@
 #include "fastfall/user_types.hpp"
 #include "fastfall/engine/audio.hpp"
 
+#include "tracy/Tracy.hpp"
+
 //#include "fastfall/game/actor/Actor.hpp"
+
+
 
 namespace ff {
 
@@ -49,30 +53,26 @@ World::~World() {
 }
 
 void World::update(secs deltaTime) {
-    if (deltaTime > 0.0 && system<LevelSystem>().get_active(*this))
-    {
-        //LOG_INFO("{:.25f}", deltaTime);
-        system<SceneSystem>().update(*this, deltaTime);
-        system<AttachSystem>().update(*this, deltaTime);
-        state._input.update(deltaTime);
+    if (deltaTime > 0.0 && system<LevelSystem>().get_active(*this)) {
+        { ZoneScopedN("Update Scene System");       system<SceneSystem>().update(*this, deltaTime); }
+        { ZoneScopedN("Update Attach System");      system<AttachSystem>().update(*this, deltaTime); }
+        { ZoneScopedN("Update Input");              state._input.update(deltaTime); }
+        { ZoneScopedN("Update Level System");       system<LevelSystem>().update(*this, deltaTime); }
+        { ZoneScopedN("Update Actor System");       system<ActorSystem>().update(*this, deltaTime); }
+        { ZoneScopedN("Update Trigger System");     system<TriggerSystem>().update(*this, deltaTime); }
+        { ZoneScopedN("Update Path System");        system<PathSystem>().update(*this, deltaTime); }
+        { ZoneScopedN("Update Attachpoints Pre");   system<AttachSystem>().update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostUpdate); }
+        { ZoneScopedN("Update Collision");          system<CollisionSystem>().update(*this, deltaTime); }
+        { ZoneScopedN("Update Attachpoints Post");  system<AttachSystem>().update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostCollision); }
+        { ZoneScopedN("Update Camera System");      system<CameraSystem>().update(*this, deltaTime); }
+        { ZoneScopedN("Update Emitter System");     system<EmitterSystem>().update(*this, deltaTime); }
+        { ZoneScopedN("Update Audio System");       system<AudioSystem>().update(deltaTime); }
 
-        system<LevelSystem>().update(*this,deltaTime);
-        system<ActorSystem>().update(*this,deltaTime);
-
-        system<TriggerSystem>().update(*this,deltaTime);
-        system<PathSystem>().update(*this,deltaTime);
-        system<AttachSystem>().update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostUpdate);
-
-        system<CollisionSystem>().update(*this,deltaTime);
-        system<AttachSystem>().update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostCollision);
-
-        system<CameraSystem>().update(*this, deltaTime);
-        system<EmitterSystem>().update(*this, deltaTime);
-
-        system<AudioSystem>().update(deltaTime);
-
-        for (auto [did, drawable] : all<Drawable>()) {
-            drawable->update(deltaTime);
+        {
+            ZoneScopedN("Update Drawables");
+            for (auto [did, drawable]: all<Drawable>()) {
+                drawable->update(deltaTime);
+            }
         }
 
         state.update_counter++;
@@ -110,6 +110,11 @@ ID<Entity> World::create_entity() {
 
 
 std::optional<ID_ptr<Actor>> World::create_actor_from_data(LevelObjectData& data) {
+    if (data.has_prop<bool>("template") && data.get_prop<bool>("template")) {
+        // do not create template objects
+        return {};
+    }
+
     auto id = create_entity();
     auto actor_id = components<Actor>().emplace(copyable_unique_ptr<Actor>());
     state._entities.at(id).actor = actor_id;

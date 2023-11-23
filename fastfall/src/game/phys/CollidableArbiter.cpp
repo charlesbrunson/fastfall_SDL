@@ -6,6 +6,8 @@
 
 #include "nlohmann/json.hpp"
 
+#include "tracy/Tracy.hpp"
+
 #include <algorithm>
 
 namespace ff {
@@ -19,6 +21,8 @@ namespace ff {
 			secs deltaTime,
 			nlohmann::ordered_json* dump_ptr)
 	{
+        ZoneScoped;
+
         auto& collidable = world.at(collidable_id);
 
 		if (dump_ptr) {
@@ -116,6 +120,7 @@ namespace ff {
 
 	void CollidableArbiter::update_region_arbiters(World& world, Rectf bounds)
 	{
+        ZoneScoped;
         auto& collidable = world.at(collidable_id);
 		for (auto [cid, region] : world.all<ColliderRegion>()) {
 
@@ -141,6 +146,7 @@ namespace ff {
 
 	Rectf CollidableArbiter::push_bounds_for_contact(Rectf init_push_bound, const cardinal_array<float>& boundDist, const ContinuousContact& contact)
 	{
+        ZoneScoped;
 		if (!contact.hasContact || !direction::from_vector(contact.ortho_n).has_value())
 			return init_push_bound;
 
@@ -176,6 +182,7 @@ namespace ff {
             secs deltaTime,
             nlohmann::ordered_json* dump_ptr)
 	{
+        ZoneScoped;
         auto& colliders = world.all<ColliderRegion>();
         auto& collidable = world.at(collidable_id);
 		CollisionSolver solver{ &colliders, &collidable };

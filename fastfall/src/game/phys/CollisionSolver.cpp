@@ -7,6 +7,8 @@
 
 #include "nlohmann/json.hpp"
 
+#include "tracy/Tracy.hpp"
+
 namespace ff 
 {
 
@@ -113,7 +115,7 @@ bool is_diverging_V(Linef A, Linef B)
 
 CollisionSolver::CompResult pickH(const ContinuousContact* east, const ContinuousContact* west, const Collidable* box)
 {
-
+    ZoneScoped;
 	float eSep = east->separation;
 	float wSep = west->separation;
 
@@ -169,6 +171,7 @@ CollisionSolver::CompResult pickH(const ContinuousContact* east, const Continuou
 CollisionSolver::CompResult pickV(const ContinuousContact* north, const ContinuousContact* south, const Collidable* box)
 {
 
+    ZoneScoped;
 	float nSep = north->separation;
 	float sSep = south->separation;
 
@@ -292,6 +295,7 @@ void CollisionSolver::pushToAStack(std::vector<ContinuousContact*>& t_contacts)
 }
 
 CollisionSolver::CompResult compare(const ContinuousContact* lhs, const ContinuousContact* rhs) {
+    ZoneScoped;
 	CollisionSolver::CompResult comp;
 
 	if (lhs == rhs)
@@ -343,6 +347,7 @@ CollisionSolver::CompResult compare(const ContinuousContact* lhs, const Continuo
 
 GhostEdge isGhostEdge(const ContinuousContact& basis, const ContinuousContact& candidate) noexcept
 {
+    ZoneScoped;
 
     bool can_ghost = basis.is_resolvable();
 
@@ -389,6 +394,7 @@ GhostEdge isGhostEdge(const ContinuousContact& basis, const ContinuousContact& c
 
 void CollisionSolver::compareAll() 
 {
+    ZoneScoped;
 
 	size_t cmp_count = 0;
 	for (size_t i = 0; i < contacts.size() - 1; i++) {
@@ -428,6 +434,7 @@ void CollisionSolver::compareAll()
 
 std::optional<ContinuousContact> CollisionSolver::detectWedge(const ContinuousContact* north, const ContinuousContact* south)
 {
+    ZoneScoped;
 	std::optional<ContinuousContact> contact;
 
 	if (is_squeezing(north, south)
@@ -478,6 +485,7 @@ std::optional<ContinuousContact> CollisionSolver::detectWedge(const ContinuousCo
 }
 
 void CollisionSolver::detectWedges() {
+    ZoneScoped;
 	for (const auto* north_arb : north)
 	{
 		for (const auto* south_arb : south)
@@ -496,6 +504,7 @@ void CollisionSolver::detectWedges() {
 
 std::vector<AppliedContact>&& CollisionSolver::solve(nlohmann::ordered_json* dump_ptr)
 {
+    ZoneScoped;
 	frame.clear();
 
 	json_dump = dump_ptr;
@@ -604,6 +613,7 @@ std::vector<AppliedContact>&& CollisionSolver::solve(nlohmann::ordered_json* dum
 
 bool CollisionSolver::solveAxis(std::deque<ContinuousContact*>& stackA, std::deque<ContinuousContact*>& stackB, PickerFn picker)
 {
+    ZoneScoped;
 	bool any_applied = false;
 
 	while (!stackA.empty() && !stackB.empty()) {

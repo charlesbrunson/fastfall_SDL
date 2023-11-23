@@ -56,8 +56,21 @@ FetchContent_Declare(
 FetchContent_Declare(
 	implot
 	GIT_REPOSITORY	https://github.com/epezent/implot.git
-	#GIT_TAG			v0.13
     SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/implot
+)
+
+# tracy
+if (NOT ${FF_TRACE})
+	set(TRACY_ENABLE OFF CACHE INTERNAL "Disable Tracy")
+endif()
+
+FetchContent_Declare(
+	tracy
+	GIT_REPOSITORY	https://github.com/wolfpld/tracy.git
+	GIT_TAG			v0.10
+	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/tracy
+	GIT_SHALLOW 	TRUE
+	GIT_PROGRESS 	TRUE
 )
 
 FetchContent_MakeAvailable(
@@ -67,6 +80,7 @@ FetchContent_MakeAvailable(
 	rapidxml
 	imgui
 	implot
+	tracy
 )
 
 # compile imgui and implot as library
@@ -249,6 +263,7 @@ target_include_directories(fastfall PUBLIC
 	imgui
 	implot
 	soloud/include
+	tracy/public/
 )
 
 
@@ -273,6 +288,7 @@ target_link_libraries(fastfall PUBLIC
 	fmt::fmt
 	soloud
 	imgui
+	Tracy::TracyClient
 )
 if(NOT EMSCRIPTEN)
 	target_link_libraries(fastfall PUBLIC

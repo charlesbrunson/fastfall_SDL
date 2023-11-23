@@ -24,6 +24,9 @@
 
 #include "fmt/format.h"
 
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
+
 #if defined(__EMSCRIPTEN__)
 #define FF_HAS_EMSCRIPTEN 1
 #include <emscripten.h>
@@ -96,6 +99,8 @@ void Engine::push_runnable(EngineRunnable&& toRun) {
 }
 
 void Engine::drawRunnable(EngineRunnable& run) {
+    ZoneScoped;
+    TracyGpuZone("Draw Runnable");
     RenderTarget* target =
         run.getRTexture() ?
         static_cast<RenderTarget*>(run.getRTexture()) :
@@ -251,7 +256,6 @@ bool Engine::run_doubleThread()
     prerun_init();
     SDL_SetThreadPriority(SDL_ThreadPriority::SDL_THREAD_PRIORITY_HIGH);
 
-
     std::barrier<> bar{ 2 };
 
     running = true;
@@ -295,6 +299,7 @@ bool Engine::run_doubleThread()
             first_frame = false;
             window->showWindow();
         }
+        FrameMark;
         profiler::curr_duration.display_time = profiler::frame_timer.elapsed();
 
         sleep();
@@ -446,6 +451,7 @@ void Engine::close() {
 // -------------------------------------------
 
 void Engine::updateTimer() {
+    ZoneScoped;
 
     tick = clock.tick();
 
@@ -474,6 +480,7 @@ void Engine::updateTimer() {
 }
 
 void Engine::updateStateHandler() {
+    ZoneScoped;
     for (auto& run : runnables) {
         run.getStateHandle().update();
     }
@@ -481,6 +488,7 @@ void Engine::updateStateHandler() {
 
 void Engine::updateView() {
 
+    ZoneScoped;
     if (window) {
         if (!runnables.empty()) {
             View v = window->getView();
@@ -504,6 +512,7 @@ void Engine::updateView() {
 
 void Engine::updateRunnables() 
 {
+    ZoneScoped;
     hasUpdated = tick.update_count > 0;
     while (tick.update_count > 0) {
 
@@ -531,6 +540,7 @@ void Engine::updateRunnables()
 }
 void Engine::predrawRunnables() 
 {
+    ZoneScoped;
     float interp = interpolate ? tick.interp_value : 1.f;
 
     WindowState state {
@@ -556,6 +566,7 @@ void Engine::predrawRunnables()
 }
 
 void Engine::drawRunnables() {
+    // ZoneScoped;
     for (auto& run : runnables) {
         drawRunnable(run);
     }
@@ -566,6 +577,7 @@ void Engine::drawRunnables() {
 
 void Engine::updateImGui() {
 #ifdef DEBUG
+    ZoneScoped;
     if (window && settings.showDebug) {
         ImGuiNewFrame(*window);
         ImGuiFrame::getInstance().display(tick.elapsed);
@@ -575,6 +587,7 @@ void Engine::updateImGui() {
 }
 
 void Engine::cleanRunnables() {
+    ZoneScoped;
     runnables.erase(
         std::remove_if(
             runnables.begin(), runnables.end(),
@@ -592,6 +605,7 @@ void Engine::cleanRunnables() {
 
 void Engine::display()
 {
+    // ZoneScoped;
     if (window) {
         window->display();
     }
@@ -599,8 +613,7 @@ void Engine::display()
 
 void Engine::sleep() 
 {
-
-
+    ZoneScoped;
 #if not defined(__EMSCRIPTEN__)
     clock.sleep();
 #endif
@@ -610,7 +623,7 @@ void Engine::sleep()
 
 void Engine::handleEvents(bool* timeWasted)
 {
-
+    ZoneScoped;
     // no window to handle inputs from
     if (window == nullptr)
         return;
@@ -802,8 +815,8 @@ void Engine::initRenderTarget(bool fullscreen)
         window->setWindowCentered();
         window->setWindowResizable();
     }
-
     window->setActive();
+
     // browser handles vsync if emscripten
     IF_N_EMSCRIPTEN(window->setVsyncEnabled(settings.vsyncEnabled));
 

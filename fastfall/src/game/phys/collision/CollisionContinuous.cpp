@@ -3,6 +3,8 @@
 #include "fastfall/util/log.hpp"
 #include "fastfall/util/math.hpp"
 
+#include "tracy/Tracy.hpp"
+
 namespace ff {
 
 CollisionContinuous::CollisionContinuous(CollisionContext ctx, CollisionID t_id)
@@ -16,6 +18,7 @@ CollisionContinuous::CollisionContinuous(CollisionContext ctx, CollisionID t_id)
 
 void CollisionContinuous::update(CollisionContext ctx, secs deltaTime)
 {
+    ZoneScoped;
     auto& curr_quad = *ctx.collider->get_quad(id.quad);
 	if (deltaTime > 0.0) {
 
@@ -44,6 +47,7 @@ void CollisionContinuous::update(CollisionContext ctx, secs deltaTime)
 }
 
 void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
+    ZoneScoped;
 	auto getRoot = [](float y0, float y1) {
 		return -1.f * (y0 / (y1 - y0));
 	};
@@ -204,6 +208,7 @@ void CollisionContinuous::evalContact(CollisionContext ctx, secs deltaTime) {
 
 
 void CollisionContinuous::slipUpdate(CollisionContext ctx) {
+    ZoneScoped;
 
 	// vertical slip
 	if (ctx.collidable->hasSlipV())
@@ -219,6 +224,7 @@ void CollisionContinuous::slipUpdate(CollisionContext ctx) {
 }
 
 std::optional<ContinuousContact> CollisionContinuous::getVerticalSlipContact(float leeway) {
+    ZoneScoped;
 	// contact must be evaluated first
 	if (!evaluated)
 		throw "contact must be evaluated first";

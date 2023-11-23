@@ -1,9 +1,12 @@
 #include "fastfall/game/phys/RegionArbiter.hpp"
 
+#include "tracy/Tracy.hpp"
+
 namespace ff {
 
 void RegionArbiter::updateRegion(CollisionContext ctx, Rectf bounds)
 {
+    ZoneScoped;
 	currQuads.clear();
 
     Vec2f deltap = ctx.collider->getDeltaPosition();

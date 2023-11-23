@@ -14,15 +14,25 @@ std::map<std::string, ObjectProperty, std::less<>> parseProperties(xml_node<>* p
 		xml_node<>* propNode = propGroupNode->first_node("property");
 		while (propNode) {
 			std::string_view name  = propNode->first_attribute("name")->value();
-            std::string_view value = propNode->first_attribute("value")->value();
+
+            std::string_view value;
+            if (auto* ptr = propNode->first_attribute("value")) {
+                value = ptr->value();
+            }
+            else {
+                value = "";
+            }
             std::string_view type  = "string";
 
             if (auto* node = propNode->first_attribute("type"); node && node->value()) {
                 type = node->value();
             }
+            if (type == "class") {
+                type = "object";
+            }
 
-            size_t ndx = 0;
-            for (auto& str : ObjectProperty::string) {
+            unsigned ndx = 0;
+            for (auto &str: ObjectProperty::string) {
                 if (str == type) {
                     break;
                 }
@@ -54,17 +64,16 @@ std::map<std::string, ObjectProperty, std::less<>> parseProperties(xml_node<>* p
                     break;
                 case ObjectProperty::Type::Float:
                     v.emplace<float>(0.f);
-		    // emscripten doesn't like this :(
+		            // emscripten doesn't like this :(
                     //std::from_chars(
                     //        value.data(),
                     //        value.data() + value.size(),
                     //        std::get<float>(v));
-		    try {
-		        float f = std::stof(value.data());
-			v.emplace<float>(f);
-		    }
-		    catch(std::exception& e) {}
-
+                    try {
+                        float f = std::stof(value.data());
+                        v.emplace<float>(f);
+                    }
+                    catch(std::exception& e) {}
                     break;
                 case ObjectProperty::Type::File:
                     v = std::filesystem::path{ value };

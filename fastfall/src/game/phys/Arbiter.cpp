@@ -1,9 +1,6 @@
 #include "fastfall/game/phys/Arbiter.hpp"
 
-#include "fastfall/util/log.hpp"
-
-#include <sstream>
-#include <iomanip>
+#include "tracy/Tracy.hpp"
 
 namespace ff {
 
@@ -19,6 +16,7 @@ void Arbiter::setApplied() {
 
 void Arbiter::update(CollisionContext ctx, secs deltaTime)
 {
+    ZoneScoped;
 	if (deltaTime > 0.0) {
 		recalcCounter = 0;
 	}

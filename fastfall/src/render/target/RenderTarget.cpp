@@ -8,6 +8,8 @@
 #include "fastfall/resource/Resources.hpp"
 
 #include "../detail/error.hpp"
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 namespace ff {
 
@@ -19,10 +21,17 @@ RenderTarget::RenderTarget()
 };
 
 void RenderTarget::clear(Color clearColor) {
-	bindFramebuffer();
-	auto clamped = glm::fvec4{ clearColor.toVec4() } / 255.f;
-	glClearColor(clamped[0], clamped[1], clamped[2], clamped[3]);
-	glClear(GL_COLOR_BUFFER_BIT);
+    ZoneScoped;
+    TracyGpuZone("RenderTarget::Clear");
+
+    glCheck(bindFramebuffer());
+    glCheck(glClearColor(
+            static_cast<float>(clearColor.r) / 255.f,
+            static_cast<float>(clearColor.g) / 255.f,
+            static_cast<float>(clearColor.b) / 255.f,
+            static_cast<float>(clearColor.a) / 255.f));
+
+    glCheck(glClear(GL_COLOR_BUFFER_BIT));
 	justCleared = true;
 
 	resetVertexCounter();
@@ -47,11 +56,11 @@ void RenderTarget::setDefaultView() {
 
 void RenderTarget::setView(const View& view) {
 	m_view = view;
-	glViewport(
+    glCheck(glViewport(
 		m_view.getViewport()[0],
 		m_view.getViewport()[1],
 		m_view.getViewport()[2],
-		m_view.getViewport()[3]);
+		m_view.getViewport()[3]));
 }
 
 void RenderTarget::draw(const Drawable& drawable, const RenderState& state) {
@@ -61,6 +70,8 @@ void RenderTarget::draw(const Drawable& drawable, const RenderState& state) {
 }
 
 void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
+    ZoneScoped;
+    TracyGpuZone("RenderTarget::Draw Vertex Array");
 
 	if (varray.size() == 0)
 		return;
@@ -105,6 +116,8 @@ void RenderTarget::draw(const VertexArray& varray, const RenderState& state) {
 }
 
 void RenderTarget::draw(const TileArray& tarray, RenderState state) {
+    ZoneScoped;
+    TracyGpuZone("RenderTarget::Draw TileArray");
 	if (tarray.tile_count == 0)
 		return;
 
@@ -162,6 +175,8 @@ void RenderTarget::draw(const TileArray& tarray, RenderState state) {
 
 
 void RenderTarget::draw(const Text& text, RenderState state) {
+    ZoneScoped;
+    TracyGpuZone("RenderTarget::Draw Text");
 	if (text.gl_text.size() == 0)
 		return;
 
@@ -220,6 +235,8 @@ void RenderTarget::draw(const Text& text, RenderState state) {
 }
 
 void RenderTarget::draw(debug::detail::state_t& debug, debug::detail::gpu_state_t& gl, RenderState state) {
+    ZoneScoped;
+    TracyGpuZone("RenderTarget::Draw Debug");
     if (debug.vertices.empty())
         return;
 
@@ -306,13 +323,12 @@ void RenderTarget::applyBlend(const BlendMode& blend) const {
 	glCheck(glEnable(GL_BLEND));
 
 	if (blend.hasConstantColor()) {
-		glm::fvec4 clamped = glm::fvec4{ blend.getColor().toVec4() } / 255.f;
-		glCheck(glBlendColor(
-			clamped[0],
-			clamped[1],
-			clamped[2],
-			clamped[3]
-		));
+        auto blend_color = blend.getColor();
+        glCheck(glClearColor(
+            static_cast<float>(blend_color.r) / 255.f,
+            static_cast<float>(blend_color.g) / 255.f,
+            static_cast<float>(blend_color.b) / 255.f,
+            static_cast<float>(blend_color.a) / 255.f));
 	}
 
 	if (blend.hasSeparateFactor()) {

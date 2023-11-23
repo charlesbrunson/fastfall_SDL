@@ -48,7 +48,7 @@ const TextureRef& TileVertexArray::getTexture() const noexcept {
 void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 	assert(at.x <= m_size.x && at.y <= m_size.y);
 
-	constexpr std::array<glm::fvec2, 6> offsets{
+	static const std::array<glm::fvec2, 6> offsets{
 		glm::fvec2(0.f, 0.f),
 		glm::fvec2(1.f, 0.f),
 		glm::fvec2(0.f, 1.f),
@@ -59,7 +59,7 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 
 	// terrible awful no good uv mapping hack
 	constexpr float uv_bias = 1.f / 16384.f;
-	constexpr std::array<glm::fvec2, 6> bias{
+    static const std::array<glm::fvec2, 6> bias{
 		glm::fvec2( uv_bias,  uv_bias),
 		glm::fvec2(-uv_bias,  uv_bias),
 		glm::fvec2( uv_bias, -uv_bias),

@@ -224,7 +224,7 @@ namespace ff::debug {
         if (!gl.m_sync && !state.vertices.empty()) {
             glCheck(glBindBuffer(GL_ARRAY_BUFFER, gl.m_buffer));
             if (!gl.m_bound || state.vertices.size() > gl.m_bufsize) {
-                glCheck(glBufferData(GL_ARRAY_BUFFER, state.vertices.size() * sizeof(Vertex), state.vertices.data(), GL_STREAM_DRAW));
+                glCheck(glBufferData(GL_ARRAY_BUFFER, state.vertices.size() * sizeof(Vertex), state.vertices.data(), GL_DYNAMIC_DRAW));
                 gl.m_bufsize = state.vertices.size();
                 gl.m_bound = true;
             }

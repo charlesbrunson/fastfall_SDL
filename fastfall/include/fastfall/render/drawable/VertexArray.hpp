@@ -15,9 +15,9 @@ namespace ff {
 class RenderTarget;
 
 enum class VertexUsage {
-	STATIC = GL_STATIC_DRAW,
+	STATIC  = GL_STATIC_DRAW,
 	DYNAMIC = GL_DYNAMIC_DRAW,
-	STREAM = GL_STREAM_DRAW,
+	STREAM  = GL_STREAM_DRAW,
 };
 
 class VertexArray : public Transformable, public Drawable {
