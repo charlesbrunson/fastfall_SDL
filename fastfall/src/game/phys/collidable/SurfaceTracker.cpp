@@ -304,15 +304,11 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
     };
 
     std::map<SurfaceFollow::surface_id, surface_id> surface_map;
-    SurfaceFollow follower { init_path, init_pos, travel_dir, distance, angle_range, settings.stick_angle_max };
-
+    SurfaceFollow follower { init_path, init_pos, travel_dir, distance, angle_range, settings.stick_angle_max, owner->getBox().getSize() };
     std::vector<Rectf> quads_visited;
 
     Vec2f curr_pos = init_pos;
-    //LOG_INFO("path follow");
-    //size_t interations = 0;
     while (follower.remaining_distance() > 0.f) {
-        //LOG_INFO("iter {} at {}->{}", interations++, follower.current_path().line.p1, follower.current_path().line.p2);
         surface_map.clear();
 
         Rectf bounds = math::line_bounds(follower.current_path().line);
@@ -338,16 +334,6 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
                             good = true;
                             surface_map.emplace(*id, surface_id{ region_id, surf_id });
                         }
-
-                        /*
-                        if (auto* tilemap = dynamic_cast<ColliderTileMap*>(region_ptr.get())) {
-                            LOG_INFO("\t[{}] candidate {}: {}->{}", (good ? "good" : "bad "), tilemap->to_pos(quad.getID()), line.p1, line.p2 );
-                        }
-                        else {
-                            LOG_INFO("\t[{}] candidate {}: {}->{}", (good ? "good" : "bad "), quad.getID().value, line.p1, line.p2 );
-                        }
-                        */
-
                     }
                 }
             }
@@ -372,14 +358,12 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
                 lines[(n * 6) + 5].color = ff::Color::Red;
                 ++n;
             }
-
         }
 
         if (auto id = follower.pick_surface_to_follow()) {
             auto result = follower.travel_to(*id);
 
             curr_pos = result.pos;
-            //LOG_INFO("\ttravel to {}->{} at {}", result.path.line.p1, result.path.line.p2, curr_pos);
 
             if (result.on_new_surface) {
                 float slow = 1.f - settings.slope_stick_speed_factor *
@@ -405,7 +389,6 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             }
         }
         else {
-            //LOG_INFO("\ttravel break");
             auto result = follower.finish();
             curr_pos = result.pos;
             break;

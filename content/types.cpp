@@ -4,6 +4,7 @@
 #include "object/JetPlatform.hpp"
 #include "object/SimpleEffect.hpp"
 #include "object/TilePlatform.hpp"
+#include "object/Crawler.hpp"
 #include "tilelogic/AnimLogic.hpp"
 #include "TestState.hpp"
 
@@ -24,6 +25,7 @@ void register_types()
     ff::user_types::register_actor<JetPlatform>();
     //ff::user_types::register_actor<SimpleEffect>();
     ff::user_types::register_actor<TilePlatform>();
+    ff::user_types::register_actor<Crawler>();
 
     // tile logic
     ff::user_types::register_tile_logic<AnimLogic>("anim");

@@ -22,6 +22,8 @@ add_subdirectory ("fastfall")
 
 add_executable(test_project	
 	"main.cpp"
+	"content/camera/SimpleCamTarget.hpp"
+	"content/camera/SimpleCamTarget.cpp"
 	"content/object/Player.cpp"
 	"content/object/Player.hpp" 
 	"content/object/PlayerCommon.hpp" 
@@ -36,18 +38,18 @@ add_executable(test_project
 	"content/object/BasicPlatform.cpp"
 	"content/object/JetPlatform.hpp"
 	"content/object/JetPlatform.cpp"
-	"content/TestState.cpp"
-	"content/TestState.hpp" 
-	"content/tilelogic/AnimLogic.hpp"
-	"content/tilelogic/AnimLogic.cpp"
-	"content/types.hpp"
-	"content/types.cpp"
-	"content/camera/SimpleCamTarget.hpp"
-	"content/camera/SimpleCamTarget.cpp" 
-	"content/object/SimpleEffect.hpp" 
+	"content/object/Crawler.hpp"
+	"content/object/Crawler.cpp"
+	"content/object/SimpleEffect.hpp"
 	"content/object/SimpleEffect.cpp"
 	"content/object/TilePlatform.hpp"
-	"content/object/TilePlatform.cpp")
+	"content/object/TilePlatform.cpp"
+	"content/tilelogic/AnimLogic.hpp"
+	"content/tilelogic/AnimLogic.cpp"
+	"content/TestState.cpp"
+	"content/TestState.hpp"
+	"content/types.hpp"
+	"content/types.cpp")
 
 target_link_libraries(test_project PRIVATE 
 	fastfall

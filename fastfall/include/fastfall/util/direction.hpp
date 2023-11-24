@@ -182,6 +182,26 @@ namespace ff {
 			return {};
 		}
 
+        inline std::optional<Cardinal> cardinal_from_str(std::string_view str) {
+            if (!str.empty()) {
+                switch(str.at(0)) {
+                case 'n':
+                case 'N':
+                    return Cardinal::N;
+                case 'e':
+                case 'E':
+                    return Cardinal::E;
+                case 's':
+                case 'S':
+                    return Cardinal::S;
+                case 'w':
+                case 'W':
+                    return Cardinal::W;
+                }
+            }
+            return {};
+        }
+
 	}
 
 }

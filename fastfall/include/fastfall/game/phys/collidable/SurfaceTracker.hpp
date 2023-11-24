@@ -111,6 +111,7 @@ public:
     float accel_accum = 0.f;
 
 private:
+
 	// the best suited contact for this recorder
 	// from the current contact frame
 	// based on angle and contact duration

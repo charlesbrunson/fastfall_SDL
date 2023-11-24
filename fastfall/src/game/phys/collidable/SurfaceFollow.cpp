@@ -21,12 +21,13 @@ bool SurfaceFollow::compare_paths(float travel_dir, const surface_path& from, co
     return travel_dir > 0.f ? cand_ang < curr_ang : cand_ang > curr_ang;
 }
 
-SurfaceFollow::SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, float distance, SurfaceTracker::applicable_ang_t angle_ranges, Angle max_angle)
+SurfaceFollow::SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, float distance, SurfaceTracker::applicable_ang_t angle_ranges, Angle max_angle, Vec2f collidable_size)
     : curr_path     { 0, init_path, init_pos}
     , travel_dir    { travel_dir }
     , travel_dist   { distance }
     , angle_range   { angle_ranges }
     , angle_max     { max_angle }
+    , collidable_size { collidable_size }
 {
     path_taken.push_back(curr_path);
 }
@@ -59,13 +60,11 @@ SurfaceFollow::pick_surface_to_follow()
         if ((travel_dir > 0.f && candidate.start_pos == candidate.line.p2)
          || (travel_dir < 0.f && candidate.start_pos == candidate.line.p1))
         {
-            //LOG_INFO("\tpick: start_pos is line end {}->{}", candidate.line.p1, candidate.line.p2);
             continue;
         }
 
         for (auto& visited : path_taken) {
             if (visited.line == candidate.line) {
-                //LOG_INFO("\tpick: prev visited {}->{}", candidate.line.p1, candidate.line.p2);
                 continue;
             }
         }
@@ -73,7 +72,6 @@ SurfaceFollow::pick_surface_to_follow()
         // surface intersect is on or behind us
         float dir_dot = math::dot(curr_dir, candidate.start_pos - curr_path.start_pos);
         if (dir_dot <= 0) {
-            //LOG_INFO("\tpick: is behind {}->{}, dot:{}, dir:{}", candidate.line.p1, candidate.line.p2, dir_dot, curr_dir);
             continue;
         }
 
@@ -139,11 +137,10 @@ std::optional<SurfaceFollow::surface_path>
 SurfaceFollow::valid_surface(Linef path, surface_id id) const
 {
     if (path == curr_path.line) {
-        //LOG_INFO("\terr -- same line");
         return {};
     }
 
-    Vec2f inter;
+    auto inter = Vec2f{NAN, NAN};
     if ((travel_dir < 0.f && curr_path.line.p1 == path.p2)
      || (travel_dir > 0.f && curr_path.line.p2 == path.p1))
     {
@@ -153,8 +150,6 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
         inter  = math::intersection(path, curr_path.line);
     }
 
-    //Rectf bounds = math::line_bounds(curr_path.line);
-
     std::optional<Vec2f> intersect;
     if (inter != Vec2f{NAN, NAN})
     {
@@ -162,19 +157,14 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
         if (   math::line_has_point(curr_path.line, inter)
             && math::line_has_point(path, inter))
         {
-            if (inter == (travel_dir < 0.f ? curr_path.line.p1 : curr_path.line.p2))
+            bool connect_at_end = inter == (travel_dir < 0.f ? curr_path.line.p1 : curr_path.line.p2);
+            bool connect_in_middle = travel_dir > 0.f
+                                     ? math::angle(path) - math::angle(curr_path.line) < 0.f
+                                     : math::angle(path) - math::angle(curr_path.line) > 0.f;
+
+            if (connect_at_end || connect_in_middle)
             {
                 // connected at the end
-                //LOG_INFO("A: {}->{} x {}->{} = {}", curr_path.line.p1, curr_path.line.p2, path.p1, path.p2, inter);
-                intersect = inter;
-            }
-            else if (travel_dir > 0.f
-                        ? math::angle(path) - math::angle(curr_path.line) < 0.f
-                        : math::angle(path) - math::angle(curr_path.line) > 0.f)
-            {
-                // connects in the middle somewhere
-                // remove if below the line
-                //LOG_INFO("B: {}->{} x {}->{} = {}", curr_path.line.p1, curr_path.line.p2, path.p1, path.p2, inter);
                 intersect = inter;
             }
         }
@@ -187,13 +177,11 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
         bool is_ahead = math::dot(p2 - p1, travel_dir * math::tangent(curr_path.line)) > 0;
         if (is_ahead && math::line_has_point(curr_path.line, collinear_intersect))
         {
-            //LOG_INFO("C: {}->{} x {}->{} = {}", curr_path.line.p1, curr_path.line.p2, path.p1, path.p2, inter);
             intersect = collinear_intersect;
         }
     }
 
     if (!intersect) {
-        //LOG_INFO("\terr -- no intersect");
         return {};
     }
 
