@@ -4,6 +4,7 @@
 
 #include <unordered_map>
 #include <array>
+#include <random>
 
 namespace ff {
 
@@ -385,9 +386,9 @@ namespace ff {
 			}
 
 			// multiple valid matches, pick random one
-			srand(seed);
-			TileID tID = (matches.rbegin() + (rand() % count))->tile_id;
-			srand(1);
+            std::mt19937 gen(seed);
+            std::uniform_int_distribution<> distrib(0, count - 1);
+			TileID tID = (matches.rbegin() + distrib(gen))->tile_id;
 
 			return tID;
 		}
