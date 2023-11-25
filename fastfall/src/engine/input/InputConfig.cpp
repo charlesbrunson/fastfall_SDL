@@ -1,6 +1,6 @@
 #include "fastfall/engine/input/InputConfig.hpp"
 
-#include "fastfall/engine/input/Input.hpp"
+#include "fastfall/engine/input/InputHandle.hpp"
 #include "fastfall/engine/input/GamepadInput.hpp"
 #include "fastfall/resource/Resources.hpp"
 
@@ -26,49 +26,49 @@ namespace InputConfig {
 
         short _deadzone = (SHRT_MAX / 5); //(short)(0.2 * (double)SHRT_MAX);
 
-        InputType waitingForInput = InputType::NONE;
+        Input waitingForInput = Input::None;
 
         std::set<InputState*> listening_states;
 
         // default input mapping for keyboards
-        std::map<SDL_Keycode, InputType> keyMap = {
-            {SDLK_w,      {InputType::UP}},
-            {SDLK_a,      {InputType::LEFT}},
-            {SDLK_s,      {InputType::DOWN}},
-            {SDLK_d,      {InputType::RIGHT}},
-            {SDLK_SPACE,  {InputType::JUMP}},
-            {SDLK_LSHIFT, {InputType::DASH}},
-            {SDLK_k,      {InputType::ATTACK}},
+        std::map<SDL_Keycode, Input> keyMap = {
+            {SDLK_w,      {Input::Up}},
+            {SDLK_a,      {Input::Left}},
+            {SDLK_s,      {Input::Down}},
+            {SDLK_d,      {Input::Right}},
+            {SDLK_SPACE,  {Input::Jump}},
+            {SDLK_LSHIFT, {Input::Dash}},
+            {SDLK_k,      {Input::Attack}},
         };
 
         constexpr
-        std::pair<GamepadInput, InputType>
-        button_map(Button button, InputType input)
+        std::pair<GamepadInput, Input>
+        button_map(Button button, Input input)
         {
             return { GamepadInput::makeButton(button), { input } };
         }
 
         constexpr
-        std::pair<GamepadInput, InputType>
-        axis_map(JoystickAxis axis, bool positive, InputType input)
+        std::pair<GamepadInput, Input>
+        axis_map(JoystickAxis axis, bool positive, Input input)
         {
             return { GamepadInput::makeAxis(axis, positive), { input } };
         }
 
         // default input mapping for joysticks
-        std::map<GamepadInput, InputType> joystickMap = {
-            axis_map(SDL_CONTROLLER_AXIS_LEFTY, GamepadInput::AXIS_DIR_U, InputType::UP),
-            axis_map(SDL_CONTROLLER_AXIS_LEFTX, GamepadInput::AXIS_DIR_L, InputType::LEFT),
-            axis_map(SDL_CONTROLLER_AXIS_LEFTY, GamepadInput::AXIS_DIR_D, InputType::DOWN),
-            axis_map(SDL_CONTROLLER_AXIS_LEFTX, GamepadInput::AXIS_DIR_R, InputType::RIGHT),
-            button_map(SDL_CONTROLLER_BUTTON_DPAD_UP,      InputType::UP),
-            button_map(SDL_CONTROLLER_BUTTON_DPAD_LEFT,    InputType::LEFT),
-            button_map(SDL_CONTROLLER_BUTTON_DPAD_DOWN,    InputType::DOWN),
-            button_map(SDL_CONTROLLER_BUTTON_DPAD_RIGHT,   InputType::RIGHT),
-            button_map(SDL_CONTROLLER_BUTTON_A,            InputType::JUMP),
-            button_map(SDL_CONTROLLER_BUTTON_B,            InputType::DASH),
-            button_map(SDL_CONTROLLER_BUTTON_LEFTSHOULDER, InputType::DASH),
-            button_map(SDL_CONTROLLER_BUTTON_X,            InputType::ATTACK),
+        std::map<GamepadInput, Input> joystickMap = {
+            axis_map(SDL_CONTROLLER_AXIS_LEFTY, GamepadInput::AXIS_DIR_U, Input::Up),
+            axis_map(SDL_CONTROLLER_AXIS_LEFTX, GamepadInput::AXIS_DIR_L, Input::Left),
+            axis_map(SDL_CONTROLLER_AXIS_LEFTY, GamepadInput::AXIS_DIR_D, Input::Down),
+            axis_map(SDL_CONTROLLER_AXIS_LEFTX, GamepadInput::AXIS_DIR_R, Input::Right),
+            button_map(SDL_CONTROLLER_BUTTON_DPAD_UP, Input::Up),
+            button_map(SDL_CONTROLLER_BUTTON_DPAD_LEFT, Input::Left),
+            button_map(SDL_CONTROLLER_BUTTON_DPAD_DOWN, Input::Down),
+            button_map(SDL_CONTROLLER_BUTTON_DPAD_RIGHT, Input::Right),
+            button_map(SDL_CONTROLLER_BUTTON_A, Input::Jump),
+            button_map(SDL_CONTROLLER_BUTTON_B, Input::Dash),
+            button_map(SDL_CONTROLLER_BUTTON_LEFTSHOULDER, Input::Dash),
+            button_map(SDL_CONTROLLER_BUTTON_X, Input::Attack),
         };
 
         void clearBinds() {
@@ -90,26 +90,26 @@ namespace InputConfig {
 
     //////////////////////////////////////////////////////////////////////////////////////////
 
-    std::optional<InputType> is_waiting_for_bind() {
-        return waitingForInput != InputType::NONE
+    std::optional<Input> is_waiting_for_bind() {
+        return waitingForInput != Input::None
             ? std::make_optional(waitingForInput)
             : std::nullopt;
     }
-    void bindInput(InputType input, SDL_Keycode key) {
+    void bindInput(Input input, SDL_Keycode key) {
         keyMap[key] = { input };
         if (waitingForInput == input) {
-            waitingForInput = InputType::NONE;
+            waitingForInput = Input::None;
         }
     }
-    void bindInput(InputType input, GamepadInput gamepad) {
+    void bindInput(Input input, GamepadInput gamepad) {
         joystickMap[gamepad] = { input };
         if (waitingForInput == input) {
-            waitingForInput = InputType::NONE;
+            waitingForInput = Input::None;
         }
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
-    void unbind(InputType input) {
+    void unbind(Input input) {
         bool unbound_any = false;
         for (auto it = keyMap.begin(); it != keyMap.end();) {
             if (it->second == input) {
@@ -172,15 +172,15 @@ namespace InputConfig {
         return it != map.end() ? std::make_optional(it->second) : std::nullopt;
     }
 
-    std::optional<InputType> get_type_key(SDL_Keycode key) {
+    std::optional<Input> get_type_key(SDL_Keycode key) {
         return opt_find_type(keyMap, key);
     }
 
-    std::optional<InputType> get_type_jbutton(Button jbutton) {
+    std::optional<Input> get_type_jbutton(Button jbutton) {
         return opt_find_type(joystickMap, GamepadInput::makeButton(jbutton));
     }
 
-    std::pair<std::optional<InputType>, std::optional<InputType>>
+    std::pair<std::optional<Input>, std::optional<Input>>
     get_type_jaxis(JoystickAxis axis) {
         return {
             opt_find_type(joystickMap, GamepadInput::makeAxis(axis, false)),
@@ -210,14 +210,14 @@ namespace InputConfig {
         "attack",
     };
 
-    const std::map<std::string_view, InputType> inputStrToType = {
-        {"up",      InputType::UP},
-        {"left",    InputType::LEFT},
-        {"down",    InputType::DOWN},
-        {"right",   InputType::RIGHT},
-        {"jump",    InputType::JUMP},
-        {"dash",    InputType::DASH},
-        {"attack",  InputType::ATTACK},
+    const std::map<std::string_view, Input> inputStrToType = {
+        {"up",     Input::Up},
+        {"left",   Input::Left},
+        {"down",   Input::Down},
+        {"right",  Input::Right},
+        {"jump",   Input::Jump},
+        {"dash",   Input::Dash},
+        {"attack", Input::Attack},
     };
 
     bool configExists() {
@@ -243,28 +243,28 @@ namespace InputConfig {
         };
 
         // keyboard mappings
-        std::vector<std::pair<SDL_Keycode, InputType>> sorted_keys{
+        std::vector<std::pair<SDL_Keycode, Input>> sorted_keys{
             keyMap.begin(),
             keyMap.end()
         };
         std::sort(sorted_keys.begin(), sorted_keys.end(), sort_by_second_first);
 
         for (auto [key, val] : sorted_keys) {
-            if (val == InputType::NONE)
+            if (val == Input::None)
                 continue;
 
             config_json["keyboard"][SDL_GetKeyName(key)] = inputTypeToStr[(int)val];
         }
 
         // controller mappings
-        std::vector<std::pair<GamepadInput, InputType>> sorted_joys{
+        std::vector<std::pair<GamepadInput, Input>> sorted_joys{
             joystickMap.begin(),
             joystickMap.end()
         };
         std::sort(sorted_joys.begin(), sorted_joys.end(), sort_by_second_first);
 
         for (auto [key, val] : sorted_joys) {
-            if (val == InputType::NONE)
+            if (val == Input::None)
                 continue;
 
             std::string name;
@@ -303,14 +303,14 @@ namespace InputConfig {
             if (config_json.empty())
                 return false;
 
-            std::vector<std::pair<InputType, SDL_Keycode>> keys_to_bind;
-            std::vector<std::pair<InputType, GamepadInput>> joys_to_bind;
+            std::vector<std::pair<Input, SDL_Keycode>> keys_to_bind;
+            std::vector<std::pair<Input, GamepadInput>> joys_to_bind;
             short n_deadzone = (short)(config_json["deadzone"].get<float>() * (float)(std::numeric_limits<short>::max)());
             bool has_error = false;
 
             for (auto& [key, val] : config_json["keyboard"].items())
             {
-                InputType type;
+                Input type;
                 if (auto it = inputStrToType.find(val.get<std::string>()); it != inputStrToType.end()) {
                     type = it->second;
                 }
@@ -348,7 +348,7 @@ namespace InputConfig {
                     continue;
                 }
 
-                InputType type;
+                Input type;
                 if (auto it = inputStrToType.find(val.get<std::string>()); it != inputStrToType.end()) {
                     type = it->second;
                 }
@@ -377,7 +377,7 @@ namespace InputConfig {
 
             for (auto& [key, val] : config_json["controller"]["button"].items())
             {
-                InputType type;
+                Input type;
                 if (auto it = inputStrToType.find(val.get<std::string>()); it != inputStrToType.end()) {
                     type = it->second;
                 }
@@ -470,7 +470,7 @@ namespace InputConfig {
 
             ImGui::Separator();
             for (unsigned int i = 0; i < INPUT_COUNT; i++) {
-                InputType in = static_cast<InputType>(i);
+                Input in = static_cast<Input>(i);
 
                 ImGui::Columns(3);
                 ImGui::Text("%s", inputNames[i]);
@@ -481,14 +481,14 @@ namespace InputConfig {
                 static char cancelbindbuf[32];
                 sprintf(cancelbindbuf, "Waiting...##%d", i);
 
-                if (waitingForInput == InputType::NONE) {
+                if (waitingForInput == Input::None) {
                     if (ImGui::SmallButton(bindbuf)) {
-                        waitingForInput = InputType(i);
+                        waitingForInput = Input(i);
                     }
                 }
                 else {
                     if (ImGui::SmallButton(cancelbindbuf)) {
-                        waitingForInput = InputType::NONE;
+                        waitingForInput = Input::None;
                     }
                 }
 
@@ -496,7 +496,7 @@ namespace InputConfig {
                 static char unbindbuf[32];
                 sprintf(unbindbuf, "Clear Binds##%d", i);
                 if (ImGui::SmallButton(unbindbuf)) {
-                    unbind(InputType(i));
+                    unbind(Input(i));
                 }
                 ImGui::NextColumn();
                 ImGui::Separator();

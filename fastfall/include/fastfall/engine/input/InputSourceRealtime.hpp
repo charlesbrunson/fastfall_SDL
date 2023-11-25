@@ -25,7 +25,7 @@ namespace ff {
         };
 
     public:
-        InputSourceRealtime(const std::set<InputType>& accept_inputs, secs deltaTime, RecordInputs record_inputs);
+        InputSourceRealtime(const std::set<Input>& accept_inputs, secs deltaTime, RecordInputs record_inputs);
 
         bool push_event(SDL_Event e);
         const std::vector<InputEvent>& get_events() const override;
@@ -38,7 +38,7 @@ namespace ff {
         bool is_recording() const { return record.has_value(); }
 
     private:
-        void process_axis(InputType type, AxisData& data, int16_t axis_pos, int16_t alt_axis_pos);
+        void process_axis(Input type, AxisData& data, int16_t axis_pos, int16_t alt_axis_pos);
 
 
         secs deltaTime;
@@ -47,10 +47,10 @@ namespace ff {
         std::optional<InputRecord> record;
 
         std::vector<InputEvent> events;
-        std::set<InputType> listening;
+        std::set<Input> listening;
 
         // need to store some intermediate data for analog inputs
-        std::map<InputType, AxisData> axes;
+        std::map<Input, AxisData> axes;
     };
 
 }

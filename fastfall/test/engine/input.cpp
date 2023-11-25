@@ -1,12 +1,12 @@
 #include "gtest/gtest.h"
 
-#include "fastfall/engine/input/Input.hpp"
+#include "fastfall/engine/input/InputHandle.hpp"
 
 using namespace ff;
 
 TEST(input, input)
 {
-	Input state{InputType::JUMP};
+	InputHandle state{InputHandle::Jump};
 	state.activate();
 	EXPECT_TRUE(state.is_active());
 	EXPECT_TRUE(state.is_held());
@@ -31,7 +31,7 @@ TEST(input, input)
 
 TEST(input, input_buffer)
 {
-	Input state{ InputType::JUMP };
+    InputHandle state{Input::Jump };
 	state.activate();
 	state.update(1.0);
 	EXPECT_TRUE(state.is_pressed(0.0));
@@ -43,8 +43,8 @@ TEST(input, input_buffer)
 
 TEST(input, input_deactivated_buffer)
 {
-	Input state{ InputType::JUMP };
-    Input cmp{ InputType::ATTACK };
+    InputHandle state{Input::Jump };
+    InputHandle cmp{Input::Attack };
 	state.activate();
 	state.deactivate();
 	state.update(1.0);

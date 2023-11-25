@@ -9,16 +9,16 @@
 
 namespace ff {
 
-class Input {
+class InputHandle {
 public:
     constexpr static uint8_t MAG_ZERO = 0x0;
     constexpr static uint8_t MAG_FULL = 0xFF;
 
-    Input(InputType t);
-    Input(const Input& t) = default;
-    Input(Input&& t) = default;
-    Input& operator=(const Input& t) = default;
-    Input& operator=(Input&& t) = default;
+    InputHandle(Input t);
+    InputHandle(const InputHandle& t) = default;
+    InputHandle(InputHandle&& t) = default;
+    InputHandle& operator=(const InputHandle& t) = default;
+    InputHandle& operator=(InputHandle&& t) = default;
 
 	void update(secs deltaTime);
 
@@ -37,7 +37,7 @@ public:
 	int num_activators()	const { return activeCounter; };
 	secs get_last_pressed() const { return lastPressed; }
 
-    InputType type() const { return m_type; }
+    Input type() const { return m_type; }
 
     void set_magnitude(uint8_t mag) { curr_magnitude = mag; }
     uint8_t magnitude() const { return curr_magnitude; }
@@ -45,7 +45,7 @@ public:
     int velocity() const { return curr_velocity; }
 
 private:
-    InputType m_type;
+    Input m_type;
 	int activeCounter = 0; // num of inputs activating this
 
 	bool active = false;

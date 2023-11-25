@@ -9,7 +9,7 @@ target_sources(fastfall PRIVATE
     imgui/ImGuiFrame.cpp
     imgui/ImGuiContent.cpp
     time/FixedEngineClock.cpp
-    input/Input.cpp
+    input/InputHandle.cpp
     input/GamepadInput.cpp
     input/InputSourceRealtime.cpp
     input/InputConfig.cpp

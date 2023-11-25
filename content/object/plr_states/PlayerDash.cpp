@@ -158,9 +158,9 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
             AnimDB::get_animation(dash_anims.dash_anim)->get_offset( "jet", sprite.get_hflip() ).value()
         );
 
-		if (w.input()[InputType::JUMP].is_pressed(0.1))
+		if (w.input()[Input::Jump].is_pressed(0.1))
 		{
-			w.input()[InputType::JUMP].confirm_press();
+			w.input()[Input::Jump].confirm_press();
 			return dash_jump(w, plr, move_t(w, plr));
 		}
 
@@ -168,9 +168,9 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
 		dash_time += deltaTime;
 		if (dash_time >= dash_duration) {
 			if (ground.has_contact()) {
-                if (w.input()[InputType::DASH].is_pressed(0.25))
+                if (w.input()[Input::Dash].is_pressed(0.25))
                 {
-                    w.input()[InputType::DASH].confirm_press();
+                    w.input()[Input::Dash].confirm_press();
                     Vec2f pos = w.at(box.get_attach_id()).curr_pos();
                     w.create_actor<SimpleEffect>(dash_anims.fx_anim.id(), pos, sprite.get_hflip());
                     return action::dash(w, plr, move_t{ w, plr });
@@ -190,9 +190,9 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
 		box.set_gravity(Vec2f{});
 		if (ground_flag) {
 
-            if (w.input()[InputType::JUMP].is_pressed(0.1))
+            if (w.input()[Input::Jump].is_pressed(0.1))
             {
-                w.input()[InputType::JUMP].confirm_press();
+                w.input()[Input::Jump].confirm_press();
 				return dash_jump(w, plr, move_t(w, plr));
 			}
 

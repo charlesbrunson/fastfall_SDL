@@ -26,10 +26,15 @@ cardinal_array<AnimIDRef> anims = {
     AnimIDRef{ "crawler.sax", "west"  },
 };
 
+constexpr Vec2f grav_falling  = {0.f, 500.f};
+constexpr float grav_attached = 10.f;
+constexpr float move_speed    = 50.f;
+constexpr float air_slow_rate = 150.f;
+
 Crawler::Crawler(ActorInit init, Vec2f position, Cardinal surface_dir, bool face_left)
     : Actor(init.type_or(&actor_type))
     , spr_id(init.world.create<AnimatedSprite>(init.entity_id))
-    , col_id(init.world.create<Collidable>(init.entity_id, position, Vec2f{ 14.f, 14.f }, Vec2f{ 0.f, 500.f }))
+    , col_id(init.world.create<Collidable>(init.entity_id, position, Vec2f{ 14.f, 14.f }, grav_falling))
 {
     World& w = init.world;
     auto [spr, col] = w.at(spr_id, col_id);
@@ -45,8 +50,8 @@ Crawler::Crawler(ActorInit init, Vec2f position, Cardinal surface_dir, bool face
         .slope_wall_stop     = false,
         .has_friction        = false,
         .use_surf_vel        = true,
-        .stick_angle_max = Angle::Degree(180.f),
-        .max_speed = 100.f,
+        .stick_angle_max     = Angle::Degree(180.f),
+        .max_speed           = move_speed,
         .slope_stick_speed_factor = 0.f,
     };
 
@@ -77,18 +82,34 @@ Crawler::Crawler(ActorInit init, const LevelObjectData& data)
 
 void Crawler::update(ff::World& w, secs deltaTime)
 {
-    auto& col = w.at(col_id);
-    auto& tracker = *col.tracker();
+    auto [col, spr] = w.at(col_id, spr_id);
+    auto& tracker   = *col.tracker();
+
+    if (w.input()[Input::Left].is_pressed(0.1)) {
+        move_dir = -1;
+    }
+    else if (w.input()[Input::Right].is_pressed(0.1)) {
+        move_dir = 1;
+    }
 
     if (tracker.has_contact()) {
-        col.set_gravity(tracker.get_contact()->ortho_n * -500.f );
-        tracker.traverse_set_speed(100.f * move_dir);
+        auto& contact = *tracker.get_contact();
+        col.set_gravity(contact.ortho_n * -grav_attached );
+        tracker.traverse_add_accel(500.f * move_dir);
+        // tracker.traverse_set_speed(move_speed * move_dir);
+
+        if (w.input()[Input::Jump].is_pressed(0.1)) {
+            col.set_local_vel(contact.ortho_n * 50.f);
+        }
+        spr.set_anim(anims[*direction::from_vector(contact.ortho_n)]);
     }
     else {
+        spr.set_anim(anims[Cardinal::N]);
+
         Vec2f vel = col.get_local_vel();
-        vel.x = math::reduce(vel.x, static_cast<float>(deltaTime * 100.f), 0.f);
+        vel.x = math::reduce(vel.x, static_cast<float>(deltaTime * air_slow_rate), 0.f);
         col.set_local_vel(vel);
 
-        col.set_gravity({ 0, 500.f });
+        col.set_gravity(grav_falling);
     }
 }

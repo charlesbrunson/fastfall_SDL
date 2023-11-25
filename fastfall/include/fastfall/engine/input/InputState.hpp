@@ -4,7 +4,7 @@
 //#include "SDL_keycode.h"
 
 #include "fastfall/engine/time/time.hpp"
-#include "fastfall/engine/input/Input.hpp"
+#include "fastfall/engine/input/InputHandle.hpp"
 #include "fastfall/engine/input/InputSource.hpp"
 #include "fastfall/engine/input/Input_Def.hpp"
 #include "fastfall/engine/input/GamepadInput.hpp"
@@ -35,33 +35,33 @@ public:
 
     void update(secs deltaTime);
 
-    Input& operator[](InputType in) { return input_states.at(in); }
-    const Input& operator[](InputType in) const { return input_states.at(in); }
+    InputHandle& operator[](Input in) { return input_states.at(in); }
+    const InputHandle& operator[](Input in) const { return input_states.at(in); }
 
-    Input& at(InputType in) { return input_states.at(in); }
-    const Input& at(InputType in) const { return input_states.at(in); }
+    InputHandle& at(Input in) { return input_states.at(in); }
+    const InputHandle& at(Input in) const { return input_states.at(in); }
 
-    Input* get(InputType in) { return input_states.contains(in) ? &at(in) : nullptr; }
-    const Input* get(InputType in) const { return input_states.contains(in) ? &at(in) : nullptr; }
+    InputHandle* get(Input in) { return input_states.contains(in) ? &at(in) : nullptr; }
+    const InputHandle* get(Input in) const { return input_states.contains(in) ? &at(in) : nullptr; }
 
-    bool is_listening(InputType in) const;
-    bool is_listening(std::optional<InputType> in) const;
+    bool is_listening(Input in) const;
+    bool is_listening(std::optional<Input> in) const;
 
-    void notify_unbind(InputType in);
+    void notify_unbind(Input in);
 
     //void set_tick(size_t tick);
     size_t get_tick() const;
 
-    const std::map<InputType, Input> all_inputs() const { return input_states; }
+    const std::map<Input, InputHandle> all_inputs() const { return input_states; }
 
 private:
-    Input* get_state(InputType input);
+    InputHandle* get_state(Input input);
 
     void process_events();
-    void process_axis(const InputConfig::GamepadInput* gamepad, Input* input, int16_t axis_pos, int16_t alt_axis_pos);
+    void process_axis(const InputConfig::GamepadInput* gamepad, InputHandle* input, int16_t axis_pos, int16_t alt_axis_pos);
 
     InputSource* input_source = nullptr;
-    std::map<InputType, Input> input_states;
+    std::map<Input, InputHandle> input_states;
     size_t input_tick = 0;
 };
 

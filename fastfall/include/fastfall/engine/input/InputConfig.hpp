@@ -25,16 +25,16 @@ namespace ff::InputConfig {
 	void setAxisDeadzone(short deadzone);
 	short getAxisDeadzone();
 
-    std::optional<InputType> is_waiting_for_bind();
-	void bindInput(InputType input, SDL_Keycode key);
-	void bindInput(InputType input, GamepadInput gamepad);
+    std::optional<Input> is_waiting_for_bind();
+	void bindInput(Input input, SDL_Keycode key);
+	void bindInput(Input input, GamepadInput gamepad);
 
-	void unbind(InputType input);
+	void unbind(Input input);
 
-    std::optional<InputType> get_type_key(SDL_Keycode code);
-    std::optional<InputType> get_type_jbutton(Button jbutton);
+    std::optional<Input> get_type_key(SDL_Keycode code);
+    std::optional<Input> get_type_jbutton(Button jbutton);
 
-    std::pair<std::optional<InputType>, std::optional<InputType>>
+    std::pair<std::optional<Input>, std::optional<Input>>
     get_type_jaxis(JoystickAxis axis);
 
     void add_listener(InputState& listen);

@@ -11,7 +11,7 @@ using namespace ff;
 
 constexpr secs one_frame = 1.0 / 60.0;
 
-void cmp_input(const Input& lhs, const Input& rhs)
+void cmp_input(const InputHandle& lhs, const InputHandle& rhs)
 {
     assert(lhs.type() == rhs.type());
     EXPECT_EQ(lhs.is_held(),      rhs.is_held());
@@ -54,7 +54,7 @@ SDL_Event axis(SDL_GameControllerAxis axis, int16_t position)
     return e;
 }
 
-void expect_matching_inputs(InputSourceRealtime& realtime, InputState& state_realtime, InputType type) {
+void expect_matching_inputs(InputSourceRealtime& realtime, InputState& state_realtime, Input type) {
     auto inputrecord = *realtime.get_record();
 
     InputSourceRecord record{ inputrecord };
@@ -82,7 +82,7 @@ TEST(inputstate, realtime_matches_record_source)
         state_realtime.update(one_frame);
         realtime.next();
 
-        expect_matching_inputs(realtime, state_realtime, InputType::JUMP);
+        expect_matching_inputs(realtime, state_realtime, Input::Jump);
     }
     LOG_INFO("--------------");
     {
@@ -95,7 +95,7 @@ TEST(inputstate, realtime_matches_record_source)
         state_realtime.update(one_frame);
         realtime.next();
 
-        expect_matching_inputs(realtime, state_realtime, InputType::JUMP);
+        expect_matching_inputs(realtime, state_realtime, Input::Jump);
     }
     LOG_INFO("--------------");
     {
@@ -114,7 +114,7 @@ TEST(inputstate, realtime_matches_record_source)
         state_realtime.update(one_frame);
         realtime.next();
 
-        expect_matching_inputs(realtime, state_realtime, InputType::JUMP);
+        expect_matching_inputs(realtime, state_realtime, Input::Jump);
     }
     LOG_INFO("--------------");
     {
@@ -138,7 +138,7 @@ TEST(inputstate, realtime_matches_record_source)
         state_realtime.update(one_frame);
         realtime.next();
 
-        expect_matching_inputs(realtime, state_realtime, InputType::RIGHT);
+        expect_matching_inputs(realtime, state_realtime, Input::Right);
     }
 }
 

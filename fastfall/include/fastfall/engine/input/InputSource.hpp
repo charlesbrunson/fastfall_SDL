@@ -9,11 +9,11 @@
 namespace ff {
 
 namespace input_sets {
-    extern const std::set<InputType> gameplay;
+    extern const std::set<Input> gameplay;
 }
 
 struct InputEvent {
-    InputType type;
+    Input type;
     bool activate_or_deactivate = false;
     uint8_t magnitude;
 };
@@ -24,7 +24,7 @@ class InputSourceNull;
 
 class InputSource {
 public:
-    explicit InputSource(const std::set<InputType>& listen_to)
+    explicit InputSource(const std::set<Input>& listen_to)
         : listening(listen_to)
     {
     };
@@ -35,18 +35,18 @@ public:
         {
             bool val = listen_to & i;
             if (val)
-                listening.insert(static_cast<InputType>(i));
+                listening.insert(static_cast<Input>(i));
         }
     };
 
     virtual const std::vector<InputEvent>& get_events() const = 0;
 
-    bool is_listening(InputType in) const { return listening.contains(in); }
-    const std::set<InputType>& get_listening() const { return listening; }
+    bool is_listening(Input in) const { return listening.contains(in); }
+    const std::set<Input>& get_listening() const { return listening; }
 
     virtual void next() = 0;
 private:
-    std::set<InputType> listening;
+    std::set<Input> listening;
     InputState* consumer = nullptr;
 };
 

@@ -1,6 +1,6 @@
 #include "fastfall/engine/input/InputSourceRealtime.hpp"
 
-#include "fastfall/engine/input/Input.hpp"
+#include "fastfall/engine/input/InputHandle.hpp"
 #include "fastfall/engine/input/InputConfig.hpp"
 #include "fastfall/util/log.hpp"
 
@@ -8,7 +8,7 @@
 
 using namespace ff;
 
-void InputSourceRealtime::process_axis(InputType type, AxisData& data, int16_t axis_pos, int16_t alt_axis_pos) {
+void InputSourceRealtime::process_axis(Input type, AxisData& data, int16_t axis_pos, int16_t alt_axis_pos) {
     bool curr_in_range = false;
 
     constexpr int16_t max = std::numeric_limits<int16_t>::max();
@@ -32,7 +32,7 @@ void InputSourceRealtime::process_axis(InputType type, AxisData& data, int16_t a
     data.prev_in_range = curr_in_range;
 }
 
-InputSourceRealtime::InputSourceRealtime(const std::set<InputType>& accept_inputs, secs deltaTime, RecordInputs record_inputs)
+InputSourceRealtime::InputSourceRealtime(const std::set<Input>& accept_inputs, secs deltaTime, RecordInputs record_inputs)
     : InputSource(accept_inputs)
 {
     assert(deltaTime > 0.0);
@@ -43,7 +43,7 @@ InputSourceRealtime::InputSourceRealtime(const std::set<InputType>& accept_input
         record->deltaTime = deltaTime;
         record->listening = 0;
 
-        for (InputType type : accept_inputs) {
+        for (Input type : accept_inputs) {
             record->listening |= 1 << static_cast<uint8_t>(type);
         }
     }
@@ -59,7 +59,7 @@ bool InputSourceRealtime::push_event(SDL_Event e) {
             } else if (auto input_type = InputConfig::get_type_key(e.key.keysym.sym);
                     input_type && listening.contains(*input_type))
             {
-                events.push_back({*input_type, true, Input::MAG_FULL});
+                events.push_back({*input_type, true, InputHandle::MAG_FULL});
                 caught = true;
             }
         }
@@ -68,7 +68,7 @@ bool InputSourceRealtime::push_event(SDL_Event e) {
             if (auto input_type = InputConfig::get_type_key(e.key.keysym.sym);
                     input_type && listening.contains(*input_type))
             {
-                events.push_back({*input_type, true, Input::MAG_ZERO});
+                events.push_back({*input_type, true, InputHandle::MAG_ZERO});
                 caught = true;
             }
         }
@@ -77,7 +77,7 @@ bool InputSourceRealtime::push_event(SDL_Event e) {
             if (auto input_type = InputConfig::get_type_jbutton(e.cbutton.button);
                     input_type && listening.contains(*input_type))
             {
-                events.push_back({*input_type, true, Input::MAG_FULL});
+                events.push_back({*input_type, true, InputHandle::MAG_FULL});
                 caught = true;
             }
         }
@@ -86,7 +86,7 @@ bool InputSourceRealtime::push_event(SDL_Event e) {
             if (auto input_type = InputConfig::get_type_jbutton(e.cbutton.button);
                     input_type && listening.contains(*input_type))
             {
-                events.push_back({*input_type, true, Input::MAG_ZERO});
+                events.push_back({*input_type, true, InputHandle::MAG_ZERO});
                 caught = true;
             }
         }
@@ -116,7 +116,7 @@ bool InputSourceRealtime::push_event(SDL_Event e) {
                 alt_axis_pos = SDL_JoystickGetAxis(SDL_JoystickFromInstanceID(e.caxis.which), *alt_axis);
             }
 
-            auto opt_process_axis = [this](std::optional<InputType> in_opt, bool side, uint16_t pos, uint16_t alt_pos) {
+            auto opt_process_axis = [this](std::optional<Input> in_opt, bool side, uint16_t pos, uint16_t alt_pos) {
                 if (in_opt) {
                     auto &data = axes[*in_opt];
                     data.positive_side = side;

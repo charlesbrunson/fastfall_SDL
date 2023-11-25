@@ -1,13 +1,13 @@
-#include "fastfall/engine/input/Input.hpp"
+#include "fastfall/engine/input/InputHandle.hpp"
 
 namespace ff {
 
-Input::Input(InputType t) :
+InputHandle::InputHandle(Input t) :
 	m_type(t)
 {
 }
 
-void Input::update(secs deltaTime)
+void InputHandle::update(secs deltaTime)
 {
     if (firstFrame && lastPressed > 0.0) {
         firstFrame = false;
@@ -24,7 +24,7 @@ void Input::update(secs deltaTime)
     prev_magnitude = curr_magnitude;
 }
 
-void Input::reset() {
+void InputHandle::reset() {
 	activeCounter = 0;
 	active = false;
 	confirmed = true;
@@ -33,7 +33,7 @@ void Input::reset() {
 	lastPressed = DBL_MAX;
 }
 
-void Input::activate() {
+void InputHandle::activate() {
 	if (activeCounter == 0) {
 		active = true;
 		confirmed = false;
@@ -43,7 +43,7 @@ void Input::activate() {
 	activeCounter++;
 }
 
-void Input::deactivate() {
+void InputHandle::deactivate() {
 	activeCounter--;
 	if (activeCounter <= 0) {
 		activeCounter = 0;
@@ -53,16 +53,16 @@ void Input::deactivate() {
 	}
 }
 
-bool Input::is_pressed(secs bufferWindow) const {
+bool InputHandle::is_pressed(secs bufferWindow) const {
 	return is_confirmable()
 		&& ((lastPressed <= bufferWindow) || (firstFrame && bufferWindow == 0.0));
 }
 
-bool Input::is_held() const {
+bool InputHandle::is_held() const {
 	return active;
 }
 
-void Input::confirm_press() {
+void InputHandle::confirm_press() {
 	confirmed = true;
 }
 

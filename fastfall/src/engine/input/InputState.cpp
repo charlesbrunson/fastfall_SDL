@@ -45,7 +45,7 @@ void InputState::set_source(InputSource* source)
                 input_states.emplace(in, tmp_state.at(in));
             }
             else {
-                input_states.emplace(in, Input{in});
+                input_states.emplace(in, InputHandle{in});
             }
         }
     }
@@ -85,10 +85,10 @@ void InputState::process_events()
 
 // ------------------------------------------------------
 
-bool InputState::is_listening(InputType in) const { return input_states.contains(in); }
-bool InputState::is_listening(std::optional<InputType> in) const { return in && input_states.contains(*in); }
+bool InputState::is_listening(Input in) const { return input_states.contains(in); }
+bool InputState::is_listening(std::optional<Input> in) const { return in && input_states.contains(*in); }
 
-void InputState::notify_unbind(InputType in) {
+void InputState::notify_unbind(Input in) {
     if (is_listening(in)) {
         at(in).reset();
     }

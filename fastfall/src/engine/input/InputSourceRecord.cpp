@@ -27,7 +27,7 @@ void InputSourceRecord::make_events(const InputFrame& frame)
     //LOG_INFO("playback {:5d} {}", position, frame.to_string());
     for (size_t ndx = 0; ndx < INPUT_COUNT; ++ndx)
     {
-        auto type       = static_cast<InputType>(ndx);
+        auto type       = static_cast<Input>(ndx);
         bool pressed    = (frame.pressed & (1 << ndx)) > 0;
         uint8_t mag     = frame.magnitudes.at(ndx);
         bool can_switch = (frame.activation_change & (1 << ndx)) > 0;

@@ -3,13 +3,13 @@
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/util/math.hpp"
 
-#include "fastfall/engine/input/Input.hpp"
+#include "fastfall/engine/input/InputHandle.hpp"
 #include "fastfall/render/util/View.hpp"
 
 namespace ff {
-    class MouseInput : public Input {
+    class MouseInput : public InputHandle {
     public:
-        MouseInput() : Input(InputType::NONE)
+        MouseInput() : InputHandle(Input::None)
         {};
 
         Vec2i mouse_press_pos;

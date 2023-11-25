@@ -5,14 +5,14 @@
 namespace ff {
 
 namespace input_sets {
-    const std::set<InputType> gameplay = {
-            InputType::UP,
-            InputType::LEFT,
-            InputType::DOWN,
-            InputType::RIGHT,
-            InputType::JUMP,
-            InputType::DASH,
-            InputType::ATTACK,
+    const std::set<Input> gameplay = {
+            Input::Up,
+            Input::Left,
+            Input::Down,
+            Input::Right,
+            Input::Jump,
+            Input::Dash,
+            Input::Attack,
     };
 }
 
