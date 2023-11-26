@@ -14,6 +14,7 @@ public:
 
 private:
     int8_t move_dir = 1;
+    ff::Cardinal surface_dir;
     ff::ID<ff::AnimatedSprite> spr_id;
     ff::ID<ff::Collidable>     col_id;
 };

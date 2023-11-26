@@ -31,10 +31,11 @@ constexpr float grav_attached = 10.f;
 constexpr float move_speed    = 50.f;
 constexpr float air_slow_rate = 150.f;
 
-Crawler::Crawler(ActorInit init, Vec2f position, Cardinal surface_dir, bool face_left)
+Crawler::Crawler(ActorInit init, Vec2f position, Cardinal t_surface_dir, bool face_left)
     : Actor(init.type_or(&actor_type))
     , spr_id(init.world.create<AnimatedSprite>(init.entity_id))
     , col_id(init.world.create<Collidable>(init.entity_id, position, Vec2f{ 14.f, 14.f }, grav_falling))
+    , surface_dir(t_surface_dir)
 {
     World& w = init.world;
     auto [spr, col] = w.at(spr_id, col_id);
@@ -96,22 +97,19 @@ void Crawler::update(ff::World& w, secs deltaTime)
         auto& contact = *tracker.get_contact();
 
         if (w.input(Input::Jump).is_pressed(0.1)) {
-            col.set_local_vel(contact.ortho_n * 50.f);
+            tracker.force_end_contact();
+            col.set_local_vel(col.get_local_vel() + (contact.collider_n * 50.f));
             col.set_gravity(grav_falling);
         }
         else {
             col.set_gravity(contact.ortho_n * -grav_attached );
             tracker.traverse_add_accel(500.f * move_dir);
         }
-
-        spr.set_anim(anims[*direction::from_vector(contact.ortho_n)]);
+        surface_dir = *direction::from_vector(contact.ortho_n);
     }
     else {
-        spr.set_anim(anims[Cardinal::N]);
-
-        Vec2f vel = col.get_local_vel();
-        vel.x = math::reduce(vel.x, static_cast<float>(deltaTime * air_slow_rate), 0.f);
-        col.set_local_vel(vel);
         col.set_gravity(grav_falling);
+        surface_dir = Cardinal::N;
     }
+    spr.set_anim_if_not(anims[surface_dir]);
 }

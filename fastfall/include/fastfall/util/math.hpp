@@ -74,6 +74,9 @@ inline Vec2<T> clamp(const Vec2<T>& vec, const Rect<T>& area) {
 
 template<typename T>
 [[nodiscard]]
+// < 0 means angle >90
+// > 0 means angle <90
+// ==0 means angle==90
 inline T dot(const Vec2<T>& a, const Vec2<T>& b) {
 	return (a.x * b.x) + (a.y * b.y);
 }

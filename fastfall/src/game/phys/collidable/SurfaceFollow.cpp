@@ -21,21 +21,20 @@ bool SurfaceFollow::compare_paths(float travel_dir, const surface_path& from, co
     return travel_dir > 0.f ? cand_ang < curr_ang : cand_ang > curr_ang;
 }
 
-Linef get_travel_line(Linef line, Vec2f body_size) {
+Vec2f get_travel_offset(Linef line, Vec2f body_size) {
     if (math::is_vertical(line)) {
         // is wall
-        auto offset = Vec2f{ (body_size.x * 0.5f) * (line.p1.y < line.p2.y ? 1.f : -1.f), 0.f };
-        line = math::shift(line, offset);
+        return Vec2f{ (body_size.x * 0.5f) * (line.p1.y < line.p2.y ? 1.f : -1.f), 0.f };
     }
     else if (line.p1.x > line.p2.x) {
         // is ceil
-        line = math::shift(line, Vec2f{ 0.f, body_size.y });
+        return Vec2f{ 0.f, body_size.y };
     }
-    return line;
+    return Vec2f{};
 }
 
 SurfaceFollow::SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, float distance, SurfaceTracker::applicable_ang_t angle_ranges, Angle max_angle, Vec2f collidable_size)
-    : curr_path     { 0, init_path, get_travel_line(init_path, collidable_size), init_pos}
+    : curr_path     { 0, init_path, math::shift(init_path, get_travel_offset(init_path, collidable_size)), init_pos}
     , travel_dir    { travel_dir }
     , travel_dist   { distance }
     , angle_range   { angle_ranges }
@@ -153,15 +152,17 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
         return {};
     }
 
+
+
+    Linef travel_line = math::shift(path, get_travel_offset(path, body_size));
+
     // reverse lines if travel_dir < 0.f
-    auto dir_curr = travel_dir > 0.f ? curr_path.surface_line : curr_path.surface_line.reverse();
-    auto dir_path = travel_dir > 0.f ? path : path.reverse();
+    auto dir_curr = travel_dir > 0.f ? curr_path.travel_line : curr_path.travel_line.reverse();
+    auto dir_path = travel_dir > 0.f ? travel_line : travel_line.reverse();
 
     Vec2f inter = dir_curr.p2 == dir_path.p1
-            ? dir_curr.p2
-            : math::intersection(dir_path, dir_curr);
-
-    Linef travel_line = get_travel_line(path, body_size);
+                  ? dir_curr.p2
+                  : math::intersection(dir_path, dir_curr);
 
     std::optional<Vec2f> intersect;
     if (inter != Vec2f{NAN, NAN})

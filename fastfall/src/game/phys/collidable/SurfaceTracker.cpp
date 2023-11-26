@@ -247,12 +247,10 @@ CollidablePreMove SurfaceTracker::do_max_speed(CollidablePreMove in, secs deltaT
 		float speed   = *traverse_get_speed();
 		Vec2f acc_vec = math::projection(owner->get_acc(), currentContact->collider_n.righthand(), true);
 		float acc_mag = acc_vec.magnitude();
+        float acc_dir = math::dot(owner->get_acc(), currentContact->collider_n.righthand()) > 0 ? 1.f : -1.f;
+        float nSpeed  = speed + (acc_dir * acc_mag * deltaTime);
 
-		if (owner->get_acc().x < 0.f) {
-			acc_mag *= -1.f;
-		}
-
-		if (abs(speed + (acc_mag * deltaTime)) > settings.max_speed) {
+		if (abs(nSpeed) > settings.max_speed) {
 			traverse_set_speed(settings.max_speed * (speed < 0.f ? -1.f : 1.f));
 			in.acc_offset -= acc_vec;
 		}
@@ -425,7 +423,7 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             ++n;
         }
 
-        auto travel_lines = debug::draw(Primitive::LINES, follower.get_path_taken().size() * 2);
+        auto travel_lines = debug::draw(Primitive::LINES, follower.get_path_taken().size() * 10);
         n = 0;
         for (auto& can : follower.get_path_taken()) {
             travel_lines[n].color = Color::Blue;
@@ -433,6 +431,30 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             ++n;
             travel_lines[n].color = Color::Blue;
             travel_lines[n].pos   = can.travel_line.p2;
+            ++n;
+            travel_lines[n].color = Color::Blue;
+            travel_lines[n].pos   = can.start_pos + Vec2f{-1, -1};
+            ++n;
+            travel_lines[n].color = Color::Blue;
+            travel_lines[n].pos   = can.start_pos + Vec2f{ 1, -1};
+            ++n;
+            travel_lines[n].color = Color::Blue;
+            travel_lines[n].pos   = can.start_pos + Vec2f{ 1, -1};
+            ++n;
+            travel_lines[n].color = Color::Blue;
+            travel_lines[n].pos   = can.start_pos + Vec2f{ 1,  1};
+            ++n;
+            travel_lines[n].color = Color::Blue;
+            travel_lines[n].pos   = can.start_pos + Vec2f{ 1,  1};
+            ++n;
+            travel_lines[n].color = Color::Blue;
+            travel_lines[n].pos   = can.start_pos + Vec2f{-1,  1};
+            ++n;
+            travel_lines[n].color = Color::Blue;
+            travel_lines[n].pos   = can.start_pos + Vec2f{-1,  1};
+            ++n;
+            travel_lines[n].color = Color::Blue;
+            travel_lines[n].pos   = can.start_pos + Vec2f{-1, -1};
             ++n;
         }
     }
@@ -520,13 +542,14 @@ void SurfaceTracker::traverse_add_decel(float decel) {
 std::optional<float> SurfaceTracker::traverse_get_speed() const {
 	std::optional<float> speed;
 	if (has_contact()) {
-		Vec2f surf = currentContact->collider_n.righthand();
+		Vec2f surf = currentContact->collider_n.righthand().unit();
 		Vec2f proj = math::projection(owner->get_local_vel(), surf, true);
+        float dot  = math::dot(owner->get_local_vel(), surf);
 
-		if (proj.x == 0.f) {
+		if (dot == 0.f) {
 			speed = 0.f;
 		}
-		else if (proj.x < 0.f != surf.x < 0.f) {
+		else if (dot < 0.f) {
 			speed = -proj.magnitude();
 		}
 		else {
