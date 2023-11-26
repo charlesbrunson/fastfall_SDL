@@ -216,6 +216,7 @@ public:
     inline size_t tick_count() const { return state.update_counter; }
     inline secs uptime() const { return state.update_time; }
     inline InputState& input() { return state._input; }
+    inline InputHandle& input(Input in) { return state._input[in]; }
 
     bool due_to_erase(ID<Drawable> id) const;
 

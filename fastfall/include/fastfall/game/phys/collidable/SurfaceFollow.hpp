@@ -28,7 +28,7 @@ namespace ff {
             bool         on_new_surface = false;
         };
 
-        SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, float distance, SurfaceTracker::applicable_ang_t angle_ranges, Angle max_angle, Vec2f collidable_size = {});
+        SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, float distance, SurfaceTracker::applicable_ang_t angle_ranges, Angle max_angle, Vec2f collidable_size);
 
         void reset();
 

@@ -85,22 +85,25 @@ void Crawler::update(ff::World& w, secs deltaTime)
     auto [col, spr] = w.at(col_id, spr_id);
     auto& tracker   = *col.tracker();
 
-    if (w.input()[Input::Left].is_pressed(0.1)) {
+    if (w.input(Input::Left).is_pressed(0.1)) {
         move_dir = -1;
     }
-    else if (w.input()[Input::Right].is_pressed(0.1)) {
+    else if (w.input(Input::Right).is_pressed(0.1)) {
         move_dir = 1;
     }
 
     if (tracker.has_contact()) {
         auto& contact = *tracker.get_contact();
-        col.set_gravity(contact.ortho_n * -grav_attached );
-        tracker.traverse_add_accel(500.f * move_dir);
-        // tracker.traverse_set_speed(move_speed * move_dir);
 
-        if (w.input()[Input::Jump].is_pressed(0.1)) {
+        if (w.input(Input::Jump).is_pressed(0.1)) {
             col.set_local_vel(contact.ortho_n * 50.f);
+            col.set_gravity(grav_falling);
         }
+        else {
+            col.set_gravity(contact.ortho_n * -grav_attached );
+            tracker.traverse_add_accel(500.f * move_dir);
+        }
+
         spr.set_anim(anims[*direction::from_vector(contact.ortho_n)]);
     }
     else {
@@ -109,7 +112,6 @@ void Crawler::update(ff::World& w, secs deltaTime)
         Vec2f vel = col.get_local_vel();
         vel.x = math::reduce(vel.x, static_cast<float>(deltaTime * air_slow_rate), 0.f);
         col.set_local_vel(vel);
-
         col.set_gravity(grav_falling);
     }
 }

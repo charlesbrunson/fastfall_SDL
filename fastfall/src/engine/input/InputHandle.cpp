@@ -66,4 +66,12 @@ void InputHandle::confirm_press() {
 	confirmed = true;
 }
 
+bool InputHandle::if_confirm_press(secs bufferWindow) {
+    auto r = is_pressed(bufferWindow);
+    if (r) {
+        confirm_press();
+    }
+    return r;
+}
+
 }

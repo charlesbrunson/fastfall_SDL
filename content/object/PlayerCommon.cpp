@@ -11,8 +11,8 @@ plr::move_t::move_t(World& w, const plr::members& plr)
     auto& ground = *box.tracker();
 
 	wishx = 0;
-    if (w.input()[Input::Right].is_held()) wishx++;
-    if (w.input()[Input::Left].is_held()) wishx--;
+    if (w.input(Input::Right).is_held()) wishx++;
+    if (w.input(Input::Left).is_held()) wishx--;
 
 	int flipper = (sprite.get_hflip() ? -1 : 1);
 

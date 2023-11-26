@@ -29,6 +29,7 @@ public:
 	bool is_pressed(secs bufferWindow) const;
 	bool is_held() const;
 	void confirm_press();
+    bool if_confirm_press(secs bufferWindow);
 
 	bool is_active()		const { return active; };
 	bool is_confirmed()		const { return confirmed; };
