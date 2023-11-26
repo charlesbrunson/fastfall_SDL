@@ -331,6 +331,7 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             }
         }
 
+        /*
         if (debug::enabled(debug::Collision_Tracker)) {
             auto lines = debug::draw(Primitive::TRIANGLES, follower.get_path_candidates().size() * 6);
             size_t n = 0;
@@ -351,6 +352,7 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
                 ++n;
             }
         }
+        */
 
         if (auto id = follower.pick_surface_to_follow()) {
             auto result = follower.travel_to(*id);
@@ -387,9 +389,8 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         }
     }
 
-
-    if (debug::enabled(debug::Collision_Tracker)) {
-        auto quad_lines = debug::draw(Primitive::LINES, quads_visited.size() * 8);
+    if (debug::enabled(debug::Collision_Follow)) {
+        auto quad_lines = debug::draw(Primitive::LINES, quads_visited.size() * 8, {}, { .color = Color::White });
         size_t n = 0;
         for (auto& bounds : quads_visited) {
             quad_lines[(n * 8) + 0].pos = bounds.topleft();
@@ -400,61 +401,6 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             quad_lines[(n * 8) + 5].pos = bounds.botleft();
             quad_lines[(n * 8) + 6].pos = bounds.botleft();
             quad_lines[(n * 8) + 7].pos = bounds.topleft();
-
-            for (int i = 0; i < 8; ++i) {
-                quad_lines[(n * 8) + i].color = ff::Color::White;
-            }
-            ++n;
-        }
-
-        auto lines = debug::draw(Primitive::TRIANGLES, follower.get_path_taken().size() * 6);
-        n = 0;
-        for (auto& can : follower.get_path_taken()) {
-            lines[(n * 6) + 0].pos = can.surface_line.p1;
-            lines[(n * 6) + 1].pos = can.surface_line.p2;
-            lines[(n * 6) + 2].pos = can.surface_line.p1 - math::normal(can.surface_line) * 2.f;
-            lines[(n * 6) + 3].pos = can.surface_line.p1 - math::normal(can.surface_line) * 2.f;
-            lines[(n * 6) + 4].pos = can.surface_line.p2;
-            lines[(n * 6) + 5].pos = can.surface_line.p2 - math::normal(can.surface_line) * 2.f;
-
-            for (int i = 0; i < 6; ++i) {
-                lines[(n * 6) + i].color = ff::Color::Green;
-            }
-            ++n;
-        }
-
-        auto travel_lines = debug::draw(Primitive::LINES, follower.get_path_taken().size() * 10);
-        n = 0;
-        for (auto& can : follower.get_path_taken()) {
-            travel_lines[n].color = Color::Blue;
-            travel_lines[n].pos   = can.travel_line.p1;
-            ++n;
-            travel_lines[n].color = Color::Blue;
-            travel_lines[n].pos   = can.travel_line.p2;
-            ++n;
-            travel_lines[n].color = Color::Blue;
-            travel_lines[n].pos   = can.start_pos + Vec2f{-1, -1};
-            ++n;
-            travel_lines[n].color = Color::Blue;
-            travel_lines[n].pos   = can.start_pos + Vec2f{ 1, -1};
-            ++n;
-            travel_lines[n].color = Color::Blue;
-            travel_lines[n].pos   = can.start_pos + Vec2f{ 1, -1};
-            ++n;
-            travel_lines[n].color = Color::Blue;
-            travel_lines[n].pos   = can.start_pos + Vec2f{ 1,  1};
-            ++n;
-            travel_lines[n].color = Color::Blue;
-            travel_lines[n].pos   = can.start_pos + Vec2f{ 1,  1};
-            ++n;
-            travel_lines[n].color = Color::Blue;
-            travel_lines[n].pos   = can.start_pos + Vec2f{-1,  1};
-            ++n;
-            travel_lines[n].color = Color::Blue;
-            travel_lines[n].pos   = can.start_pos + Vec2f{-1,  1};
-            ++n;
-            travel_lines[n].color = Color::Blue;
-            travel_lines[n].pos   = can.start_pos + Vec2f{-1, -1};
             ++n;
         }
     }

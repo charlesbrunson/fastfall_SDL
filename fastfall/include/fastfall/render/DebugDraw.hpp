@@ -53,6 +53,7 @@ namespace debug {
         Collision_Contact,
         Collision_Raycast,
         Collision_Tracker,
+        Collision_Follow,
         Tilelayer_Area,
         Tilelayer_Chunk,
         Camera_Visible,
@@ -69,6 +70,7 @@ namespace debug {
         Collision_Contact,
         Collision_Raycast,
         Collision_Tracker,
+        Collision_Follow,
         Tilelayer_Area,
         Tilelayer_Chunk,
         Camera_Visible,
@@ -87,8 +89,8 @@ namespace debug {
 
     bool type_enabled(type t);
 
-    std::span<Vertex> draw(ff::Primitive primitive, size_t vertex_count, Vec2f offset = {});
-    std::span<Vertex> draw(const void* signature, ff::Primitive primitive, size_t vertex_count, Vec2f offset = {});
+    std::span<Vertex> draw(ff::Primitive primitive, size_t vertex_count, Vec2f offset = {}, Vertex vertex = {});
+    std::span<Vertex> draw(const void* signature, ff::Primitive primitive, size_t vertex_count, Vec2f offset = {}, Vertex vertex = {});
     bool repeat(const void* signature, Vec2f offset = {});
 
     void reset();

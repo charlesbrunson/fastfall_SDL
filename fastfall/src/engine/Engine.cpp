@@ -136,7 +136,7 @@ void Engine::prerun_init()
 
 #ifdef DEBUG
     if (window != nullptr) {
-        ImGui::GetIO().IniFilename = NULL; // disable saving window positions
+        // ImGui::GetIO().IniFilename = NULL; // disable saving window positions
 
 
         ImGui::GetStyle().WindowRounding = 0.0f;

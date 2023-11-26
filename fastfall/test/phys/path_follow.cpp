@@ -128,7 +128,7 @@ TEST(pathfollow, floor_down_wall)
     ASSERT_TRUE(pick_id.has_value());
 
     auto result = follow.travel_to(*pick_id);
-    EXPECT_EQ(result.pos.x, next_line.p1.x);
+    EXPECT_EQ(result.pos.x, 40);
     EXPECT_EQ(result.pos.y, next_line.p1.y);
     EXPECT_EQ(result.dist, 24.f);
     EXPECT_TRUE(result.on_new_surface);
