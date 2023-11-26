@@ -27,6 +27,7 @@ constexpr TypeSurfaceArray make_prototype(TileShape::Type shape, std::array<Vec2
 		Cardinal dir = static_cast<Cardinal>(i);
 		auto& surface = tsa.surfaces[dir];
 
+        surface.collider.id.dir     = dir;
 		surface.collider.surface.p1 = points[i] * TILESIZE_F;
 		surface.collider.surface.p2 = points[(i + 1) % 4] * TILESIZE_F;
 		surface.hasSurface = (has_surface_bits & direction::to_bits(dir)) > 0;
@@ -93,7 +94,6 @@ ColliderQuad ColliderTile::toQuad(QuadID id) const {
 		auto& lhs = q.surfaces[dir];
 		auto& rhs = q.surfaces[direction::opposite(dir)];
 
-
 		if ((lhs.hasSurface) && (rhs.hasSurface)) {
 			std::swap(lhs.collider, rhs.collider);
 		}
@@ -105,6 +105,8 @@ ColliderQuad ColliderTile::toQuad(QuadID id) const {
 			lhs = rhs;
 			rhs.hasSurface = false;
 		}
+        lhs.collider.id.dir = dir;
+        rhs.collider.id.dir = direction::opposite(dir);
 	};
 
 	if (shape.flip_h) {

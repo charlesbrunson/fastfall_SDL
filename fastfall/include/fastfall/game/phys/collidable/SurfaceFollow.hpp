@@ -13,7 +13,8 @@ namespace ff {
 
         struct surface_path {
             surface_id  id;
-            Linef       line;
+            Linef       surface_line;
+            Linef       travel_line;
             Vec2f       start_pos;
             Angle       angle;
             Angle       diff_angle;
@@ -57,7 +58,7 @@ namespace ff {
         float travel_dir;
         float travel_dist = 0.f;
 
-        Vec2f collidable_size = {};
+        Vec2f body_size = {};
 
         Angle angle_max;
         SurfaceTracker::applicable_ang_t angle_range;

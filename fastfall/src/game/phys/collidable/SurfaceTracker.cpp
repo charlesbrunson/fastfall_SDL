@@ -311,11 +311,9 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
     while (follower.remaining_distance() > 0.f) {
         surface_map.clear();
 
-        Rectf bounds = math::line_bounds(follower.current_path().line);
+        Rectf bounds = math::line_bounds(follower.current_path().surface_line);
 
-        size_t tried = 0;
         for (auto [region_id, region_ptr] : *colliders) {
-
             for (auto quad : region_ptr->in_rect(bounds)) {
                 if (!quad->hasAnySurface())
                     continue;
@@ -325,13 +323,9 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
 
                 for (auto dir: direction::cardinals) {
                     if (auto* surf = quad->getSurface(dir)) {
-
-                        ColliderSurfaceID surf_id = { quad->getID(), dir };
-                        Linef line = math::shift(surf->surface, region_ptr->getPosition());
-                        ++tried;
-                        bool good = false;
+                        auto surf_id = ColliderSurfaceID{ quad->getID(), dir };
+                        auto line = math::shift(surf->surface, region_ptr->getPosition());
                         if (auto id = follower.add_surface(line)) {
-                            good = true;
                             surface_map.emplace(*id, surface_id{ region_id, surf_id });
                         }
                     }
@@ -343,12 +337,12 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             auto lines = debug::draw(Primitive::TRIANGLES, follower.get_path_candidates().size() * 6);
             size_t n = 0;
             for (auto& can : follower.get_path_candidates()) {
-                lines[(n * 6) + 0].pos = can.line.p1;
-                lines[(n * 6) + 1].pos = can.line.p2;
-                lines[(n * 6) + 2].pos = can.line.p1 - math::normal(can.line) * 2.f;
-                lines[(n * 6) + 3].pos = can.line.p1 - math::normal(can.line) * 2.f;
-                lines[(n * 6) + 4].pos = can.line.p2;
-                lines[(n * 6) + 5].pos = can.line.p2 - math::normal(can.line) * 2.f;
+                lines[(n * 6) + 0].pos = can.surface_line.p1;
+                lines[(n * 6) + 1].pos = can.surface_line.p2;
+                lines[(n * 6) + 2].pos = can.surface_line.p1 - math::normal(can.surface_line) * 2.f;
+                lines[(n * 6) + 3].pos = can.surface_line.p1 - math::normal(can.surface_line) * 2.f;
+                lines[(n * 6) + 4].pos = can.surface_line.p2;
+                lines[(n * 6) + 5].pos = can.surface_line.p2 - math::normal(can.surface_line) * 2.f;
 
                 lines[(n * 6) + 0].color = ff::Color::Red;
                 lines[(n * 6) + 1].color = ff::Color::Red;
@@ -418,16 +412,27 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         auto lines = debug::draw(Primitive::TRIANGLES, follower.get_path_taken().size() * 6);
         n = 0;
         for (auto& can : follower.get_path_taken()) {
-            lines[(n * 6) + 0].pos = can.line.p1;
-            lines[(n * 6) + 1].pos = can.line.p2;
-            lines[(n * 6) + 2].pos = can.line.p1 - math::normal(can.line) * 2.f;
-            lines[(n * 6) + 3].pos = can.line.p1 - math::normal(can.line) * 2.f;
-            lines[(n * 6) + 4].pos = can.line.p2;
-            lines[(n * 6) + 5].pos = can.line.p2 - math::normal(can.line) * 2.f;
+            lines[(n * 6) + 0].pos = can.surface_line.p1;
+            lines[(n * 6) + 1].pos = can.surface_line.p2;
+            lines[(n * 6) + 2].pos = can.surface_line.p1 - math::normal(can.surface_line) * 2.f;
+            lines[(n * 6) + 3].pos = can.surface_line.p1 - math::normal(can.surface_line) * 2.f;
+            lines[(n * 6) + 4].pos = can.surface_line.p2;
+            lines[(n * 6) + 5].pos = can.surface_line.p2 - math::normal(can.surface_line) * 2.f;
 
             for (int i = 0; i < 6; ++i) {
                 lines[(n * 6) + i].color = ff::Color::Green;
             }
+            ++n;
+        }
+
+        auto travel_lines = debug::draw(Primitive::LINES, follower.get_path_taken().size() * 2);
+        n = 0;
+        for (auto& can : follower.get_path_taken()) {
+            travel_lines[n].color = Color::Blue;
+            travel_lines[n].pos   = can.travel_line.p1;
+            ++n;
+            travel_lines[n].color = Color::Blue;
+            travel_lines[n].pos   = can.travel_line.p2;
             ++n;
         }
     }
