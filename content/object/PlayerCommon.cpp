@@ -57,7 +57,6 @@ plr::members::members(ActorInit init, Vec2f position, bool face_dir)
         .slope_stick_speed_factor = 0.f,
     };
 
-    /*
     cameratarget_id = w.create<SimpleCamTarget>(
         init.entity_id,
         ff::CamTargetPriority::Medium,
@@ -65,7 +64,6 @@ plr::members::members(ActorInit init, Vec2f position, bool face_dir)
             return w.at(id).getPosition() - Vec2f{0.f, 16.f};
         }
     );
-    */
 
     auto& hitbox = w.at(hitbox_id);
     hitbox.set_area(box.getBox());

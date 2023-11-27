@@ -182,6 +182,15 @@ void parseObjectRefs(xml_node<>* objectNode, ObjectLayerData& objLayer) {
 			objdata.name = "";
 		}
 
+        // skip invisible objects
+        auto* visible = objectNode->first_attribute("visible");
+        if (visible && visible->value()) {
+            if (atoi(visible->value()) == 0) {
+                objectNode = objectNode->next_sibling();
+                continue;
+            }
+        }
+
 		Rectu area;
 		area.left = atoi(objectNode->first_attribute("x")->value());
 		area.top = atoi(objectNode->first_attribute("y")->value());

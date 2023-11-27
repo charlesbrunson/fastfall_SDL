@@ -64,6 +64,7 @@ Crawler::Crawler(ActorInit init, Vec2f position, Cardinal t_surface_dir, bool fa
     w.system<AttachSystem>().create(w, col.get_attach_id(), spr_id);
 
     // DEBUG
+
     w.create<SimpleCamTarget>(
         init.entity_id,
         ff::CamTargetPriority::Medium,
@@ -71,6 +72,7 @@ Crawler::Crawler(ActorInit init, Vec2f position, Cardinal t_surface_dir, bool fa
             return w.at(id).getPosition() - Vec2f{0.f, 16.f};
         }
     );
+
 }
 
 Crawler::Crawler(ActorInit init, const LevelObjectData& data)

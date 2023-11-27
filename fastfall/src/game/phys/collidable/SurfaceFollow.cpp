@@ -23,22 +23,49 @@ bool SurfaceFollow::compare_paths(float travel_dir, const surface_path& from, co
     return travel_dir > 0.f ? cand_ang < curr_ang : cand_ang > curr_ang;
 }
 
-Linef travel_form(Linef curr_line, Linef line, Vec2f body_size) {
-    if (math::is_vertical(line)) {
-        // is wall
-        auto offset = Vec2f{ (body_size.x * 0.5f) * (line.p1.y < line.p2.y ? 1.f : -1.f), 0.f };
-        return math::shift(line, offset);
+Linef travel_form(Linef line, Vec2f body_size)
+{
+    Vec2f n     = math::normal(line);
+    float halfx = body_size.x * 0.5f;
+    float ang   = math::angle(line).radians();
+
+    if (!math::is_vertical(line)) {
+        if (n.y < 0) {
+            // floor
+            line.p1.x -= halfx;
+            line.p2.x += halfx;
+            if (!math::is_horizontal(line)) {
+                line.p1.y -= tanf(ang) * halfx;
+                line.p2.y += tanf(ang) * halfx;
+            }
+        }
+        else {
+            // ceil
+            line = math::shift(line, Vec2f{0.f, body_size.y});
+            line.p2.x -= halfx;
+            line.p1.x += halfx;
+            if (!math::is_horizontal(line)) {
+                line.p2.y -= tanf(ang) * halfx;
+                line.p1.y += tanf(ang) * halfx;
+            }
+        }
     }
-    else if (line.p1.x > line.p2.x) {
-        // is ceil
-        auto offset = Vec2f{ 0.f, body_size.y };
-        return math::shift(line, offset);
+    else {
+        line = math::shift(line, { n.x * halfx, 0 });
+        if (n.x < 0) {
+            // west wall
+            line.p1.y += body_size.y;
+        }
+        else {
+            // east wall
+            line.p2.y += body_size.y;
+        }
     }
     return line;
 }
 
 SurfaceFollow::SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, float distance, SurfaceTracker::applicable_ang_t angle_ranges, Angle max_angle, Vec2f collidable_size)
-    : curr_path     { 0, init_path, travel_form(init_path, init_path, collidable_size), init_pos}
+    : curr_path     { 0, init_path, travel_form(init_path, collidable_size), init_pos}
     , travel_dir    { travel_dir }
     , travel_dist   { distance }
     , angle_range   { angle_ranges }
@@ -108,7 +135,7 @@ SurfaceFollow::pick_surface_to_follow()
                 continue;
             }
         }
-        // skip if surface intersect is on or behind us
+        // skip if surface intersect is behind us
         float dir_dot = math::dot(curr_dir, candidate.start_pos - curr_path.start_pos);
         if (dir_dot <= 0) {
             continue;
@@ -118,6 +145,21 @@ SurfaceFollow::pick_surface_to_follow()
             curr_pick = &candidate;
         }
     }
+
+    if (curr_pick) {
+        if (debug::enabled(debug::Collision_Follow)) {
+            auto lines = debug::draw(Primitive::TRIANGLES, 6, {}, {.color = Color::Green});
+            float depth = 2.f;
+            lines[0].pos = curr_pick->surface_line.p1;
+            lines[1].pos = curr_pick->surface_line.p2;
+            lines[2].pos = curr_pick->surface_line.p1 - math::normal(curr_pick->surface_line) * depth;
+            lines[3].pos = curr_pick->surface_line.p1 - math::normal(curr_pick->surface_line) * depth;
+            lines[4].pos = curr_pick->surface_line.p2;
+            lines[5].pos = curr_pick->surface_line.p2 - math::normal(curr_pick->surface_line) * depth;
+        }
+    }
+
+
     return (curr_pick ? std::make_optional(curr_pick->id) : std::nullopt);
 }
 
@@ -171,6 +213,28 @@ SurfaceFollow::travel_result SurfaceFollow::finish() {
     };
 }
 
+enum class surface_type {
+    Floor,
+    Wall,
+    Ceil
+};
+
+
+surface_type get_surface_type(const Linef& line) {
+    if (!math::is_vertical(line)) {
+        Vec2f n = math::normal(line);
+        if (n.y < 0) {
+            return surface_type::Floor;
+        }
+        else {
+            return surface_type::Ceil;
+        }
+    }
+    else {
+        return surface_type::Wall;
+    }
+}
+
 std::optional<SurfaceFollow::surface_path>
 SurfaceFollow::valid_surface(Linef path, surface_id id) const
 {
@@ -179,59 +243,98 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
         return {};
     }
 
-    Linef travel_line = travel_form(curr_path.travel_line, path, body_size);
+    Linef travel_line = travel_form(path, body_size);
 
     // reverse lines if travel_dir < 0.f
-    auto dir_curr = travel_dir > 0.f ? curr_path.travel_line : curr_path.travel_line.reverse();
-    auto dir_path = travel_dir > 0.f ? travel_line : travel_line.reverse();
+
+    auto dir_curr = curr_path.travel_line;
+    auto dir_path = travel_line;
 
     Vec2f inter = dir_curr.p2 == dir_path.p1
                   ? dir_curr.p2
                   : math::intersection(dir_path, dir_curr);
 
+    surface_type curr_type = get_surface_type(curr_path.travel_line);
+    surface_type path_type = get_surface_type(travel_line);
+
+    // apply curr line transform depending on the proposed path
+    // constexpr static std::string_view type_names[] = { "floor", "wall", "ceil" };
+    // LOG_INFO("{} to {}", type_names[static_cast<int>(curr_type)], type_names[static_cast<int>(path_type)]);
+
+    dir_curr = travel_dir > 0.f ? dir_curr : dir_curr.reverse();
+    dir_path = travel_dir > 0.f ? dir_path : dir_path.reverse();
+
+    Vec2f ahead_pos = travel_dir > 0.f ? curr_path.surface_line.p1 : curr_path.surface_line.p2;
+
+
     std::optional<Vec2f> intersect;
-    if (inter != Vec2f{NAN, NAN})
+    if (!std::isnan(inter.x) && !std::isnan(inter.y))
     {
         bool curr_has_inter = math::line_has_point(dir_curr, inter);
         bool path_has_inter = math::line_has_point(dir_path, inter);
+        float dot = math::dot(inter - ahead_pos, math::tangent(dir_curr));
+        bool is_ahead = dot > 0;
 
         // make sure the intersection lies on both lines
-        if (curr_has_inter && path_has_inter)
+        if (is_ahead && (curr_has_inter || path_has_inter))
         {
+            /*
             // surface connects at the end of curr_path
             bool connect_at_end = inter == dir_curr.p2;
 
             // surface forms a ramp on curr_path
-            bool connect_in_middle = math::angle(dir_path) - math::angle(dir_curr) < 0.f;
+            auto dir_path_ang = math::angle(dir_path);
+            auto dir_curr_ang = math::angle(dir_curr);
+            auto diff         = dir_path_ang - dir_curr_ang;
+            bool connect_in_middle = diff < 0.f;
 
             if (connect_at_end || connect_in_middle) {
                 intersect = inter;
             }
+            */
+            intersect = inter;
         }
     }
-    else if (math::collinear(dir_path, dir_curr))
+    else
     {
-        bool is_ahead = math::dot(dir_path.p1 - dir_curr.p1, math::tangent(dir_path)) > 0;
-        Vec2f collinear_intersect = dir_path.p2;
+        bool collinear = math::collinear(path, curr_path.surface_line);
+        if (collinear) {
+            /*
+            bool is_ahead = math::dot(dir_path.p1 - dir_curr.p1, math::tangent(dir_curr)) > 0;
+            */
 
-        if (is_ahead && math::line_has_point(dir_curr, collinear_intersect)) {
-            intersect = collinear_intersect;
+            Vec2f collinear_intersect = (travel_dir > 0.f ? path.p1 : path.p2);
+            if (path_type == surface_type::Ceil) {
+                collinear_intersect += Vec2f{0, body_size.y};
+            }
+            else if (path_type == surface_type::Wall) {
+                collinear_intersect += math::normal(path) * body_size.x * 0.5f;
+            }
+            bool has_point = math::line_has_point(dir_curr, collinear_intersect);
+
+            float dot = math::dot(collinear_intersect - ahead_pos, math::tangent(dir_curr));
+            bool is_ahead = dot > 0;
+
+            if (is_ahead && has_point) {
+                intersect = collinear_intersect;
+            }
         }
     }
 
-    Angle next_ang = math::angle(math::tangent(dir_path));
-    Angle curr_ang = math::angle(math::tangent(dir_curr));
-    Angle diff = next_ang - curr_ang;
+    Angle next_ang  = math::angle(math::tangent(dir_path));
+    Angle curr_ang  = math::angle(math::tangent(dir_curr));
 
-    Angle normal = math::angle(math::normal(path));
-    bool in_range = angle_range.within_range(normal);
-    bool in_max_angle = abs(diff.degrees()) < abs(angle_max.degrees());
+    Angle diff      = next_ang - curr_ang;
+    Angle normal    = math::angle(math::normal(path));
 
-    bool good = intersect && in_range && in_max_angle;
+    bool in_range   = angle_range.within_range(normal);
+    bool in_max_ang = abs(diff.degrees()) < abs(angle_max.degrees());
+
+    bool is_valid = intersect && in_range && in_max_ang;
 
     if (debug::enabled(debug::Collision_Follow)) {
-        auto lines = debug::draw(Primitive::TRIANGLES, 6, {}, { .color = (good ? Color::Green : Color::Red) });
-        float depth = good ? 2.f : 0.5f;
+        auto lines = debug::draw(Primitive::TRIANGLES, 6, {}, { .color = (is_valid ? Color::Green().green(128) : Color::Red) });
+        float depth = is_valid ? 2.f : 0.5f;
         lines[0].pos = path.p1;
         lines[1].pos = path.p2;
         lines[2].pos = path.p1 - math::normal(path) * depth;
@@ -256,7 +359,7 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
         }
     }
 
-    if (good) {
+    if (is_valid) {
         return surface_path {
             .id           = id,
             .surface_line = path,

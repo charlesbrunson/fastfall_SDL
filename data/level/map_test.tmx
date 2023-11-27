@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="160" height="30" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#a2a2a2" nextlayerid="13" nextobjectid="53">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="160" height="30" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#a2a2a2" nextlayerid="13" nextobjectid="54">
  <tileset firstgid="1" source="tileset/tile_test.tsx"/>
  <tileset firstgid="257" source="tileset/tile_basic_purple.tsx"/>
  <tileset firstgid="321" source="tileset/autotile_test.tsx"/>
@@ -38,7 +38,7 @@
    <property name="collision_border" value="NESW"/>
   </properties>
   <data encoding="base64" compression="zlib">
-   eJztm+1RwzAMhnvZrKGFUtpfUD7KkR0YgRE6AiMwApsRX6M7nXFiWXFi2dFzpz9p49jWG1ly3XW1Wjzrdg4eGfOw1rlTIsDVkepPiUGIjsx3sSnj0Lm8jv2GMP66Uv3FRufyv6ZCTBmHPZ/PGc3ppu3rtqe/TXv9trVj950dMcYp84J195LAP5+tfVl28dwDuvPFIPxevWrsEgn44t7hj5OweDhmndS1Uybgi7cM/KH6Kw/sD7MW+tY+RYkJ1l/M/G+vMUZBzL1enQPuOaI69UM1WyQp8qI9oS17TzeHPFQJZwr9fbf247Df7vOzp61tz/N1n648JNaFQ30we8d3qC+w59eneax7RR7S9NcX+3RPpUw4vnT9NkH5fWKq/qj+8oXiO84ZzD4k7b9oPpmeuWNHyP7L1GhNk57Y+vPVvhKwzylgDdYeTQ7VQjkg5d0HlpA72XqjGEVbT9X1LAbGvk+aRs3YXGdKUrBLlLvPqelmZN0Sqh9bkydBsRL8LWUv33X2zae/ofrXZ5eVvJgKeqHoMMYzhnS4ITzDjhkh/cL+Tp33uv6zUOL62xD779NhjD0A/Az7HTbvJuVMJfe8rMvfKWIyJxdaEi4dYu2B/x8ympeQWCPRcubAXGtAh3bcg+vvmcxL7tozJqVe4nDoxjBVvmPyMXsdc11LQQnaMyalXuJArbG4+sTtg+Zc1+amFO2N9U9KQn0QOsaQ9mPpsPa0x8nvczH432wOxvUBVYPc+AJ1r6l3fZosWUs++wNWSSO6
+   eJztm21uwjAMhlFvBoONMfi1sQ+m9Q47wo7AEXaEHYGbrRFYsqKkcdy0cVI/kv8U2ibxW8dO02WzmDXL5mrPjHGAcxWFyxANqf6UocRqCP6PTeEz93GEvt8R+r9yaG+u45aKuY+jS0+xpvCxx/K1oPFcd23deNrbdsfvOzvc/rP1xDjVX16w7t4yjOV3Zz+WnQPngO5C/scaeVfdiAR88ejwx1FYPEwRq1R/sgBffBTgD9VffWB/mLkwNPcpSkqw/lLmfzuNMQpi6vnqFHHOAdWpX6rZKsmRF+0I17LXdEvIQ5V4xtDfb2d/Drvcfj8FrrXx3J/yLkIpC4l1YV8bzNrxA2oLrPn5NI91r8hDmv58sU/XVOqE40vXuwnK+4mx2qP6KxeK7zh7MH1IWn/RfDI/U8eOmPWXsdGaJj+p9ReqfSVg71PAGlwFNNlXC5WAlGcfmEPuZOuNYhRtvTTXvRgY+zxpGjV9c+0pycE2U+4+pabbgXVLrH5sTR4FxUrwt5S1fNfet5D++urfkJ0X8mIq6IWiwxT36NPhmnAPO2bEtAv7O3fe6/tmobb5tyW2P6TDFGsA+B72M2yeTcqeSu5+WZe/c8RkTi40J1w6xNoD/z8VNC4xsUailcyeOdeADu24B8c/CxmX0rVnTEq9xGF/68NY+Y7Jx+x5zHUsBzVoz5iUeokDtcbi6hNfHzTnOjY1tWhvqH9yEuuD2D7GXD+VDleB63Hy+1IMvpstwbg+oGqQG1+g7jX1bkiTNWspZP/E/irL
   </data>
  </layer>
  <objectgroup id="4" name="OBJ">
@@ -141,6 +141,12 @@
    <properties>
     <property name="face_left" type="bool" value="false"/>
     <property name="surface_dir" value="n"/>
+   </properties>
+  </object>
+  <object id="53" type="Player" x="976" y="64" width="16" height="32" visible="0">
+   <properties>
+    <property name="anotherprop" value="Foo"/>
+    <property name="faceleft" type="bool" value="false"/>
    </properties>
   </object>
  </objectgroup>

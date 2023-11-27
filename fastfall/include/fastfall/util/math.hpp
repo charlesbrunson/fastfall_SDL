@@ -255,8 +255,8 @@ constexpr bool collinear(const Line<T>& a, const Line<T>& b) {
     double y3 = b.p2.y;
 
     double d = x1 * (y2 - y3)
-            + x2 * (y3 - y1)
-            + x3 * (y1 - y2);
+             + x2 * (y3 - y1)
+             + x3 * (y1 - y2);
 
     return d == 0.f;
 }
