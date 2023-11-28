@@ -363,20 +363,19 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
                 float slow = 1.f - settings.slope_stick_speed_factor *
                                    abs(result.path.diff_angle.degrees() / settings.stick_angle_max.degrees());
 
+                const auto& surface = surface_map.at(result.path.id);
+
                 owner->reset_surface_vel();
-
                 float vmag = owner->get_local_vel().magnitude() * slow;
-
-                owner->set_local_vel(Vec2f{
-                        cosf(result.path.angle.radians()),
-                        sinf(result.path.angle.radians())
-                } * vmag);
+                Vec2f n_vel = math::unit(result.path.angle) * vmag;
+                owner->set_local_vel(n_vel);
 
                 if (callbacks.on_stick) {
-                    auto surface = surface_map.at(result.path.id);
                     if (auto region = colliders->get(surface.region_id)) {
-                        if (auto surf = region->get_surface_collider(surface.surf_id)) {
-                            callbacks.on_stick(*surf);
+                        if (auto quad = region->get_quad(surface.surf_id.quad_id)) {
+                            if (auto surf = quad->getSurface(surface.surf_id.dir)) {
+                                callbacks.on_stick(*owner, result, *surf);
+                            }
                         }
                     }
                 }
@@ -440,7 +439,7 @@ void SurfaceTracker::start_touch(AppliedContact& contact) {
 	}
 
 	if (callbacks.on_start_touch)
-		callbacks.on_start_touch(contact);
+		callbacks.on_start_touch(*owner, contact);
 }
 
 void SurfaceTracker::continue_touch(AppliedContact& contact) {
@@ -459,7 +458,7 @@ void SurfaceTracker::end_touch(AppliedContact& contact) {
 	}
 
 	if (callbacks.on_end_touch)
-		callbacks.on_end_touch(contact);
+		callbacks.on_end_touch(*owner, contact);
 }
 
 

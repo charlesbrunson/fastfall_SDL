@@ -63,6 +63,17 @@ Crawler::Crawler(ActorInit init, Vec2f position, Cardinal t_surface_dir, bool fa
 
     w.system<AttachSystem>().create(w, col.get_attach_id(), spr_id);
 
+    col.tracker()->callbacks.on_stick = [](Collidable& c, auto result, const ColliderSurface& surf) {
+        auto ang = result.path.diff_angle.degrees();
+        if (ang != 0.f && ((result.travel_dir > 0.f) == (ang > 0.f))) {
+            // outer corner
+            c.set_gravity(Vec2f{});
+        } else {
+            // inner corner
+            c.set_gravity(direction::to_vector<float>(surf.id.dir) * -grav_attached);
+        }
+    };
+
     // DEBUG
 
     w.create<SimpleCamTarget>(

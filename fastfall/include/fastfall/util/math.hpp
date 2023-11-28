@@ -65,6 +65,11 @@ inline Vec2<T> unit(const Vec2<T>& a) {
 	return a / a.magnitude();
 }
 
+[[nodiscard]]
+inline Vec2f unit(const Angle& ang) {
+    return { cosf(ang.radians()), sinf(ang.radians()) };
+}
+
 template<typename T>
 [[nodiscard]]
 inline Vec2<T> clamp(const Vec2<T>& vec, const Rect<T>& area) {

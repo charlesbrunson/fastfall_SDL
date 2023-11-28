@@ -64,7 +64,7 @@ Linef travel_form(Linef line, Vec2f body_size)
     return line;
 }
 
-SurfaceFollow::SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, float distance, SurfaceTracker::applicable_ang_t angle_ranges, Angle max_angle, Vec2f collidable_size)
+SurfaceFollow::SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, float distance, AngleRange angle_ranges, Angle max_angle, Vec2f collidable_size)
     : curr_path     { 0, init_path, travel_form(init_path, collidable_size), init_pos}
     , travel_dir    { travel_dir }
     , travel_dist   { distance }
@@ -190,6 +190,7 @@ SurfaceFollow::travel_to(surface_id id)
         .path           = curr_path,
         .dist           = travel_dist,
         .pos            = npos,
+        .travel_dir     = travel_dir,
         .on_new_surface = can_get_to_new_path
     };
 }
@@ -209,6 +210,7 @@ SurfaceFollow::travel_result SurfaceFollow::finish() {
         .path           = curr_path,
         .dist           = travel_dist,
         .pos            = npos,
+        .travel_dir     = travel_dir,
         .on_new_surface = false
     };
 }

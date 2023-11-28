@@ -113,6 +113,23 @@ protected:
 	}
 };
 
+struct AngleRange {
+    Angle min;
+    Angle max;
+    bool  inclusive;
+
+    inline bool within_range(Angle ang) const {
+        return ang.isBetween(min, max, inclusive);
+    };
+
+    inline void set_angle_range(Angle ang_min, Angle ang_max, bool inclusive = true) {
+        min = ang_min;
+        max = ang_max;
+        inclusive = inclusive;
+    };
+};
+
+
 }
 
 constexpr bool operator< (const ff::Angle& lhs, const ff::Angle& rhs) noexcept {

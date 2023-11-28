@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "fastfall/util/math.hpp"
-#include "fastfall/game/phys/collidable/SurfaceTracker.hpp"
 
 namespace ff {
 
@@ -20,16 +19,17 @@ namespace ff {
             Angle       diff_angle;
         };
 
-        static bool compare_paths(float travel_dir, const surface_path& from, const surface_path& pick, const surface_path& candidate);
-
         struct travel_result {
             surface_path path = {};
             float        dist = {};
             Vec2f        pos  = {};
+            float        travel_dir = 1.f;
             bool         on_new_surface = false;
         };
 
-        SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, float distance, SurfaceTracker::applicable_ang_t angle_ranges, Angle max_angle, Vec2f collidable_size);
+        static bool compare_paths(float travel_dir, const surface_path& from, const surface_path& pick, const surface_path& candidate);
+
+        SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, float distance, AngleRange angle_ranges, Angle max_angle, Vec2f collidable_size);
 
         void reset();
 
@@ -41,8 +41,6 @@ namespace ff {
         [[nodiscard]] float remaining_distance() const { return travel_dist; }
         [[nodiscard]] explicit operator bool() const { return travel_dist > 0; }
         [[nodiscard]] const surface_path& current_path() const { return curr_path; }
-
-        //[[nodiscard]] const surface_path& operator[] (surface_id id) const { return candidate_paths[id]; }
 
         [[nodiscard]] const std::vector<surface_path>& get_path_taken()      const { return path_taken; }
         [[nodiscard]] const std::vector<surface_path>& get_path_candidates() const { return candidate_paths; }
@@ -61,7 +59,7 @@ namespace ff {
         Vec2f body_size = {};
 
         Angle angle_max;
-        SurfaceTracker::applicable_ang_t angle_range;
+        AngleRange angle_range;
 
         std::vector<surface_path> candidate_paths;
         std::vector<surface_path> path_taken;

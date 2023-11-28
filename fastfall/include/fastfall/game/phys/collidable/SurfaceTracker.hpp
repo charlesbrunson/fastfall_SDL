@@ -5,6 +5,7 @@
 #include "fastfall/game/phys/collision/Contact.hpp"
 
 #include "fastfall/util/id_map.hpp"
+#include "SurfaceFollow.hpp"
 
 #include <optional>
 #include <functional>
@@ -73,9 +74,9 @@ public:
 	secs air_time = 0.0;
 
 	struct callbacks_t {
-		std::function<void(AppliedContact&)> on_start_touch;
-		std::function<void(AppliedContact&)> on_end_touch;
-		std::function<void(const ColliderSurface&)> on_stick;
+		std::function<void(Collidable&, AppliedContact&)> on_start_touch;
+		std::function<void(Collidable&, AppliedContact&)> on_end_touch;
+		std::function<void(Collidable&, const SurfaceFollow::travel_result&, const ColliderSurface& surface)> on_stick;
 	} callbacks;
 
 	struct Settings {
@@ -92,20 +93,7 @@ public:
 		float slope_stick_speed_factor = 0.25f;
 	} settings;
 
-	struct applicable_ang_t {
-		Angle min;
-		Angle max;
-		bool  inclusive;
-
-		inline bool within_range(Angle ang) const { 
-			return ang.isBetween(min, max, inclusive); 
-		};
-		inline void set_angle_range(Angle ang_min, Angle ang_max, bool inclusive = true) { 
-			min = ang_min; 
-			max = ang_max; 
-			inclusive = inclusive;
-		};
-	} angle_range;
+	AngleRange angle_range;
 
     Vec2f calc_friction(Vec2f prevVel) const;
     float accel_accum = 0.f;
