@@ -406,7 +406,7 @@ void Collidable::applyContact(const AppliedContact& contact, ContactType type)
 // will return nullptr if no contact in the given range, or no record for that range
 const AppliedContact* Collidable::get_contact(Angle angle) const noexcept {
 
-	if (_tracker && _tracker->angle_range.within_range(angle)) {
+	if (_tracker && _tracker->angle_range.contains(angle)) {
         return _tracker->get_contact().has_value() ? &_tracker->get_contact().value() : nullptr;
 	}
 

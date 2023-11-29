@@ -12,7 +12,6 @@ const ff::ActorType Crawler::actor_type = ff::ActorType::create<Crawler>({
    .anim       = { "crawler.sax", "north" },
    .tile_size  = { 1u, 1u },
    .priority   = 0,
-   .group_tags = { "player" },
    .properties = {
        { "face_left",   false },
        { "surface_dir", ff::ObjectProperty::Type::String }
@@ -26,10 +25,10 @@ cardinal_array<AnimIDRef> anims = {
     AnimIDRef{ "crawler.sax", "west"  },
 };
 
-constexpr Vec2f grav_falling  = {0.f, 500.f};
-constexpr float grav_attached = 10.f;
-constexpr float move_speed    = 50.f;
-constexpr float air_slow_rate = 150.f;
+constexpr Vec2f grav_falling   = {0.f, 500.f};
+constexpr float grav_attached  = 100.f;
+constexpr float move_max_speed = 100.f;
+constexpr float move_accel     = 500.f;
 
 Crawler::Crawler(ActorInit init, Vec2f position, Cardinal t_surface_dir, bool face_left)
     : Actor(init.type_or(&actor_type))
@@ -52,14 +51,14 @@ Crawler::Crawler(ActorInit init, Vec2f position, Cardinal t_surface_dir, bool fa
         .has_friction        = false,
         .use_surf_vel        = true,
         .stick_angle_max     = Angle::Degree(180.f),
-        .max_speed           = move_speed,
+        .max_speed           = move_max_speed,
         .slope_stick_speed_factor = 0.f,
     };
 
     spr.set_anim(anims[surface_dir]);
     spr.set_hflip(face_left);
 
-    move_dir = (!face_left ? 1 : -1);
+    move_dir = !face_left ? 1 : -1;
 
     w.system<AttachSystem>().create(w, col.get_attach_id(), spr_id);
 
@@ -67,7 +66,7 @@ Crawler::Crawler(ActorInit init, Vec2f position, Cardinal t_surface_dir, bool fa
         auto ang = result.path.diff_angle.degrees();
         if (ang != 0.f && ((result.travel_dir > 0.f) == (ang > 0.f))) {
             // outer corner
-            c.set_gravity(Vec2f{});
+            c.set_gravity(direction::to_vector<float>(surf.id.dir) * -grav_attached);
         } else {
             // inner corner
             c.set_gravity(direction::to_vector<float>(surf.id.dir) * -grav_attached);
@@ -116,7 +115,7 @@ void Crawler::update(ff::World& w, secs deltaTime)
         }
         else {
             col.set_gravity(contact.ortho_n * -grav_attached );
-            tracker.traverse_add_accel(500.f * move_dir);
+            tracker.traverse_add_accel(move_accel * move_dir);
         }
         surface_dir = *direction::from_vector(contact.ortho_n);
     }

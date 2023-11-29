@@ -39,7 +39,7 @@ bool SurfaceTracker::can_make_contact_with(Vec2f collider_normal) const noexcept
 
         withinStickMax = abs(diff.degrees()) < abs(settings.stick_angle_max.degrees());
     }
-    return angle_range.within_range(angle) && withinStickMax;
+    return angle_range.contains(angle) && withinStickMax;
 }
 
 bool SurfaceTracker::can_make_contact_with(const AppliedContact& contact) const noexcept
@@ -331,29 +331,6 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
             }
         }
 
-        /*
-        if (debug::enabled(debug::Collision_Tracker)) {
-            auto lines = debug::draw(Primitive::TRIANGLES, follower.get_path_candidates().size() * 6);
-            size_t n = 0;
-            for (auto& can : follower.get_path_candidates()) {
-                lines[(n * 6) + 0].pos = can.surface_line.p1;
-                lines[(n * 6) + 1].pos = can.surface_line.p2;
-                lines[(n * 6) + 2].pos = can.surface_line.p1 - math::normal(can.surface_line) * 2.f;
-                lines[(n * 6) + 3].pos = can.surface_line.p1 - math::normal(can.surface_line) * 2.f;
-                lines[(n * 6) + 4].pos = can.surface_line.p2;
-                lines[(n * 6) + 5].pos = can.surface_line.p2 - math::normal(can.surface_line) * 2.f;
-
-                lines[(n * 6) + 0].color = ff::Color::Red;
-                lines[(n * 6) + 1].color = ff::Color::Red;
-                lines[(n * 6) + 2].color = ff::Color::Red;
-                lines[(n * 6) + 3].color = ff::Color::Red;
-                lines[(n * 6) + 4].color = ff::Color::Red;
-                lines[(n * 6) + 5].color = ff::Color::Red;
-                ++n;
-            }
-        }
-        */
-
         if (auto id = follower.pick_surface_to_follow()) {
             auto result = follower.travel_to(*id);
 
@@ -369,6 +346,8 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
                 float vmag = owner->get_local_vel().magnitude() * slow;
                 Vec2f n_vel = math::unit(result.path.angle) * vmag;
                 owner->set_local_vel(n_vel);
+
+                owner->setPosition(result.path.start_pos);
 
                 if (callbacks.on_stick) {
                     if (auto region = colliders->get(surface.region_id)) {

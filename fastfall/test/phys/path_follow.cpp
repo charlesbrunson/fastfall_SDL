@@ -17,11 +17,7 @@ TEST(pathfollow, basic)
 
     auto init_pos  = Vec2f{ 8.f, 0.f };
 
-    auto angle_range = SurfaceTracker::applicable_ang_t{
-        .min = Angle::Degree(-90) - Angle::Degree(45),
-        .max = Angle::Degree(-90) + Angle::Degree(45),
-        .inclusive = true
-    };
+    auto angle_range = AngleRange::Any;
 
     {
         SurfaceFollow follow(init_line, init_pos, 1.f, 32.f, angle_range, Angle::Degree(180), {});
@@ -96,11 +92,7 @@ TEST(pathfollow, basic)
 
 TEST(pathfollow, floor_up_wall)
 {
-     auto angle_range = SurfaceTracker::applicable_ang_t{
-            .min = Angle::Degree(std::nextafterf(-180.f, 0.f)),
-            .max = Angle::Degree(180.f),
-            .inclusive = true
-    };
+     auto angle_range = AngleRange::Any;
 
     auto init_line = Linef{ {0.f,  0.f}, {32.f, 0.f} };
     auto next_line = Linef{ init_line.p2, init_line.p2 + Vec2f{ 0.f, -32.f} };
@@ -134,11 +126,7 @@ TEST(pathfollow, floor_up_wall)
 
 TEST(pathfollow, floor_down_wall)
 {
-    auto angle_range = SurfaceTracker::applicable_ang_t{
-        .min = Angle::Degree(std::nextafterf(-180.f, 0.f)),
-        .max = Angle::Degree(180.f),
-        .inclusive = true
-    };
+    auto angle_range = AngleRange::Any;
 
     auto init_line = Linef{ {0.f,  0.f}, {32.f, 0.f} };
     auto next_line = Linef{ init_line.p2, init_line.p2 + Vec2f{ 0.f, 32.f} };
@@ -174,11 +162,7 @@ TEST(pathfollow, floor_down_wall)
 
 TEST(pathfollow, ceil_down_wall)
 {
-    auto angle_range = SurfaceTracker::applicable_ang_t{
-            .min = Angle::Degree(std::nextafterf(-180.f, 0.f)),
-            .max = Angle::Degree(180.f),
-            .inclusive = true
-    };
+    auto angle_range = AngleRange::Any;
 
     auto init_line = Linef{ {32.f,  0.f}, { 0.f, 0.f} };
     auto next_line = Linef{ {32.f, 32.f}, {32.f, 0.f} };
@@ -215,11 +199,7 @@ TEST(pathfollow, ceil_down_wall)
 TEST(pathfollow, ceil_up_wall)
 {
 
-    auto angle_range = SurfaceTracker::applicable_ang_t{
-            .min = Angle::Degree(std::nextafterf(-180.f, 0.f)),
-            .max = Angle::Degree(180.f),
-            .inclusive = true
-    };
+    auto angle_range = AngleRange::Any;
 
     auto init_line = Linef{ {0.f,  32.f}, {32.f, 32.f} };
     auto next_line = Linef{ init_line.p2, init_line.p2 + Vec2f{ 0.f, -32.f} };
@@ -244,11 +224,7 @@ TEST(pathfollow, ceil_up_wall)
 
 TEST(pathfollow, wall_up_floor)
 {
-    auto angle_range = SurfaceTracker::applicable_ang_t{
-        .min = Angle::Degree(std::nextafterf(-180.f, 0.f)),
-        .max = Angle::Degree(180.f),
-        .inclusive = true
-    };
+    auto angle_range = AngleRange::Any;
 
     auto init_line = Linef{ {0.f,  32.f}, {0.f, 0.f} };
     auto next_line = Linef{ init_line.p2, init_line.p2 + Vec2f{ 32.f, 0.f} };
@@ -273,11 +249,7 @@ TEST(pathfollow, wall_up_floor)
 
 TEST(pathfollow, wall_up_ceil)
 {
-    auto angle_range = SurfaceTracker::applicable_ang_t{
-            .min = Angle::Degree(std::nextafterf(-180.f, 0.f)),
-            .max = Angle::Degree(180.f),
-            .inclusive = true
-    };
+    auto angle_range = AngleRange::Any;
 
     auto init_line = Linef{ {32.f,  32.f}, {32.f, 0.f} };
     auto next_line = Linef{ init_line.p2, init_line.p2 + Vec2f{ -32.f, 0.f} };
@@ -303,11 +275,7 @@ TEST(pathfollow, wall_up_ceil)
 TEST(pathfollow, wall_down_ceil)
 {
 
-    auto angle_range = SurfaceTracker::applicable_ang_t{
-            .min = Angle::Degree(std::nextafterf(-180.f, 0.f)),
-            .max = Angle::Degree(180.f),
-            .inclusive = true
-    };
+    auto angle_range = AngleRange::Any;
 
     auto init_line = Linef{ {32.f,  0.f}, {32.f, 32.f} };
     auto next_line = Linef{ init_line.p2, init_line.p2 + Vec2f{ -32.f, 0.f} };
@@ -333,11 +301,7 @@ TEST(pathfollow, wall_down_ceil)
 TEST(pathfollow, wall_down_floor)
 {
 
-    auto angle_range = SurfaceTracker::applicable_ang_t{
-        .min = Angle::Degree(std::nextafterf(-180.f, 0.f)),
-        .max = Angle::Degree(180.f),
-        .inclusive = true
-    };
+    auto angle_range = AngleRange::Any;
 
     auto init_line = Linef{ {0.f,  0.f}, {0.f, 32.f} };
     auto next_line = Linef{ init_line.p2, init_line.p2 + Vec2f{ 32.f, 0.f} };

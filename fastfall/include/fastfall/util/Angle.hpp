@@ -22,15 +22,6 @@ public:
 		deg = a.degrees();
 	}
 
-	bool isBetween(const Angle& angStart, const Angle& angEnd, bool inclusive = true) const {
-		if (inclusive) {
-			return rad >= angStart.rad && rad <= angEnd.rad;
-		}
-		else {
-			return rad > angStart.rad && rad < angEnd.rad;
-		}
-	}
-
 	constexpr void setRad(float radians) {
 		rad = radians;
 		calcDeg();
@@ -116,19 +107,20 @@ protected:
 struct AngleRange {
     Angle min;
     Angle max;
-    bool  inclusive;
+    bool  inclusive = true;
 
-    inline bool within_range(Angle ang) const {
-        return ang.isBetween(min, max, inclusive);
+    [[nodiscard]]
+    inline bool contains(Angle ang) const {
+        if (inclusive) {
+            return ang.radians() >= min.radians() && ang.radians() <= max.radians();
+        }
+        else {
+            return ang.radians() > min.radians() && ang.radians() < max.radians();
+        }
     };
 
-    inline void set_angle_range(Angle ang_min, Angle ang_max, bool inclusive = true) {
-        min = ang_min;
-        max = ang_max;
-        inclusive = inclusive;
-    };
+    const static AngleRange Any;
 };
-
 
 }
 

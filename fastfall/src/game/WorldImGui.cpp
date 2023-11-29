@@ -605,8 +605,11 @@ void imgui_status(World* w) {
     };
 
     if (ImGui::DragFloat2("Cam Pos", v)) {
+        w->system<CameraSystem>().prevPosition.x    = floor(v[0]);
+        w->system<CameraSystem>().prevPosition.y    = floor(v[1]);
         w->system<CameraSystem>().currentPosition.x = floor(v[0]);
         w->system<CameraSystem>().currentPosition.y = floor(v[1]);
+        w->system<CameraSystem>().deltaPosition     = Vec2f{};
     }
 
     float zoom = w->system<CameraSystem>().zoomFactor;

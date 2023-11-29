@@ -329,7 +329,7 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
     Angle diff      = next_ang - curr_ang;
     Angle normal    = math::angle(math::normal(path));
 
-    bool in_range   = angle_range.within_range(normal);
+    bool in_range   = angle_range.contains(normal);
     bool in_max_ang = abs(diff.degrees()) < abs(angle_max.degrees());
 
     bool is_valid = intersect && in_range && in_max_ang;
