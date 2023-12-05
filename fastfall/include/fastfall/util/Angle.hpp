@@ -122,6 +122,12 @@ struct AngleRange {
     const static AngleRange Any;
 };
 
+inline const AngleRange AngleRange::Any = {
+    .min = Angle::Degree(std::nextafterf(-180.f, 0.f)),
+    .max = Angle::Degree(180.f),
+    .inclusive = true
+};
+
 }
 
 constexpr bool operator< (const ff::Angle& lhs, const ff::Angle& rhs) noexcept {

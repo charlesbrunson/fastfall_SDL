@@ -266,7 +266,8 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
     dir_curr = travel_dir > 0.f ? dir_curr : dir_curr.reverse();
     dir_path = travel_dir > 0.f ? dir_path : dir_path.reverse();
 
-    Vec2f ahead_pos = travel_dir > 0.f ? curr_path.surface_line.p1 : curr_path.surface_line.p2;
+    // Vec2f ahead_pos = travel_dir > 0.f ? curr_path.surface_line.p1 : curr_path.surface_line.p2;
+    Vec2f ahead_pos = curr_path.start_pos;
 
 
     std::optional<Vec2f> intersect;

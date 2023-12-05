@@ -521,9 +521,9 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
         float slipv = (cSlip.state == Collidable::SlipState::SlipVertical && cVel.y >= 0.f) ? cSlip.leeway : 0.f;
 
         bool not_vertical = !math::is_vertical(prev_line);
-        bool prev_above   = getYforX(prev_line, cpMid.x) >= cpMid.y + cpSize.y - slipv;
+        bool prev_above   = not_vertical && getYforX(prev_line, cpMid.x) >= cpMid.y + cpSize.y - slipv;
 
-		axis.axisValid = not_vertical && prev_above;
+		axis.axisValid = prev_above;
 	}
 
 	return axis;
@@ -563,9 +563,9 @@ CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcep
         float slipv = (cSlip.state == Collidable::SlipState::SlipVertical && cVel.y <= 0.f) ? cSlip.leeway : 0.f;
 
         bool not_vertical = !math::is_vertical(prev_line);
-        bool prev_above   = getYforX(prev_line, cpMid.x) <= cpMid.y - cpSize.y + slipv;
+        bool prev_above   = not_vertical && getYforX(prev_line, cpMid.x) <= cpMid.y - cpSize.y + slipv;
 
-		axis.axisValid = not_vertical && prev_above;
+		axis.axisValid = prev_above;
 	}
 
 	return axis;

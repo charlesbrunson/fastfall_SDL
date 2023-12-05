@@ -101,7 +101,7 @@ void SurfaceTracker::process_contacts(
                     ? colliders->get(currentContact->id->collider)
                     : nullptr;
 
-            if (region) {
+            if (region && currentContact->collider.id) {
                 auto surf = region->get_surface_collider(currentContact->collider.id);
                 if (surf) {
                     Vec2f rpos = region->getPosition();
@@ -269,7 +269,7 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
     auto init_region_id = currentContact->id->collider;
     auto init_surf_id   = currentContact->collider.id;
     auto init_region    = colliders->get(init_region_id);
-    auto init_surface   = init_region ? init_region->get_surface_collider(init_surf_id) : nullptr;
+    auto init_surface   = init_surf_id && init_region ? init_region->get_surface_collider(init_surf_id) : nullptr;
 
     if (!init_surface) {
         return {};
@@ -347,14 +347,17 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
                 Vec2f n_vel = math::unit(result.path.angle) * vmag;
                 owner->set_local_vel(n_vel);
 
-                owner->setPosition(result.path.start_pos);
+                auto pos = result.path.start_pos;
+                auto region = colliders->get(surface.region_id);
+                if (region) {
+                    pos -= region->getDeltaPosition();
+                }
+                owner->setPosition(pos);
 
-                if (callbacks.on_stick) {
-                    if (auto region = colliders->get(surface.region_id)) {
-                        if (auto quad = region->get_quad(surface.surf_id.quad_id)) {
-                            if (auto surf = quad->getSurface(surface.surf_id.dir)) {
-                                callbacks.on_stick(*owner, result, *surf);
-                            }
+                if (callbacks.on_stick && region) {
+                    if (auto quad = region->get_quad(surface.surf_id.quad_id)) {
+                        if (auto surf = quad->getSurface(surface.surf_id.dir)) {
+                            callbacks.on_stick(*owner, result, *surf);
                         }
                     }
                 }

@@ -10,6 +10,10 @@ struct ColliderSurfaceID
 	QuadID quad_id;
 	Cardinal dir = Cardinal::N;
     std::strong_ordering operator<=>(const ColliderSurfaceID& other) const = default;
+
+    explicit operator bool() const {
+        return quad_id != QuadID{};
+    }
 };
 
 class ColliderSurface {

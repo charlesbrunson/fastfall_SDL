@@ -27,8 +27,9 @@ cardinal_array<AnimIDRef> anims = {
 
 constexpr Vec2f grav_falling   = {0.f, 500.f};
 constexpr float grav_attached  = 100.f;
-constexpr float move_max_speed = 100.f;
-constexpr float move_accel     = 500.f;
+constexpr float move_max_speed = 125.f;
+constexpr float move_accel     = 750.f;
+constexpr float jump_vel       = 150.f;
 
 Crawler::Crawler(ActorInit init, Vec2f position, Cardinal t_surface_dir, bool face_left)
     : Actor(init.type_or(&actor_type))
@@ -48,9 +49,13 @@ Crawler::Crawler(ActorInit init, Vec2f position, Cardinal t_surface_dir, bool fa
         .move_with_platforms = true,
         .slope_sticking      = true,
         .slope_wall_stop     = false,
-        .has_friction        = false,
+        .has_friction        = true,
         .use_surf_vel        = true,
         .stick_angle_max     = Angle::Degree(180.f),
+        .surface_friction = {
+            .stationary = 3.0f,
+            .kinetic = 2.0f
+        },
         .max_speed           = move_max_speed,
         .slope_stick_speed_factor = 0.f,
     };
@@ -98,24 +103,27 @@ void Crawler::update(ff::World& w, secs deltaTime)
     auto [col, spr] = w.at(col_id, spr_id);
     auto& tracker   = *col.tracker();
 
-    if (w.input(Input::Left).is_pressed(0.1)) {
-        move_dir = -1;
+    move_dir = 0;
+    if (w.input(Input::Left).is_held()) {
+        move_dir += -1;
     }
-    else if (w.input(Input::Right).is_pressed(0.1)) {
-        move_dir = 1;
+    else if (w.input(Input::Right).is_held()) {
+        move_dir += 1;
     }
 
     if (tracker.has_contact()) {
         auto& contact = *tracker.get_contact();
 
-        if (w.input(Input::Jump).is_pressed(0.1)) {
+        if (w.input(Input::Jump).if_confirm_press(0.1)) {
             tracker.force_end_contact();
-            col.set_local_vel(col.get_local_vel() + (contact.collider_n * 50.f));
+            col.set_local_vel(math::projection(col.get_local_vel(), contact.collider_n.righthand()) + (contact.collider_n * jump_vel));
             col.set_gravity(grav_falling);
         }
         else {
             col.set_gravity(contact.ortho_n * -grav_attached );
-            tracker.traverse_add_accel(move_accel * move_dir);
+            if (move_dir != 0) {
+                tracker.traverse_add_accel(move_accel * move_dir);
+            }
         }
         surface_dir = *direction::from_vector(contact.ortho_n);
     }

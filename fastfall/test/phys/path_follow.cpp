@@ -82,6 +82,20 @@ TEST(pathfollow, basic)
     }
 }
 
+TEST(pathfollow, wall)
+{
+
+    auto init_line = Linef{
+            {0.f,  0.f},
+            {0.f, 16.f}
+    };
+
+    auto init_pos  = Vec2f{ 0.f, 14.f };
+    SurfaceFollow follow(init_line, init_pos, 1.f, 32.f, AngleRange::Any, Angle::Degree(180), {8, 8});
+
+    EXPECT_EQ(add_path(follow, {{16.f, -16.f},
+                                {0.f,    0.f}}), false);
+}
 
 /*
  *    ^|
