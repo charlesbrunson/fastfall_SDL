@@ -69,7 +69,7 @@
   </object>
   <object id="26" type="BasicPlatform" x="848" y="240" width="48" height="16">
    <properties>
-    <property name="path" type="class" propertytype="Path"/>
+    <property name="path" value=""/>
    </properties>
   </object>
   <object id="27" type="JetPlatform" x="1552" y="272" width="80" height="16">
@@ -115,7 +115,7 @@
   </object>
   <object id="35" type="JetPlatform" x="624" y="144" width="48" height="16">
    <properties>
-    <property name="path" type="class" propertytype="Path"/>
+    <property name="path" value=""/>
    </properties>
   </object>
   <object id="36" type="TilePlatform" x="864" y="64" width="64" height="48">
@@ -134,16 +134,16 @@
   </object>
   <object id="38" type="JetPlatform" x="480" y="48" width="48" height="16">
    <properties>
-    <property name="path" type="class" propertytype="Path"/>
+    <property name="path" value=""/>
    </properties>
   </object>
-  <object id="52" type="Crawler" x="1120" y="48" width="16" height="16">
+  <object id="52" type="Crawler" x="1120" y="48" width="16" height="16" visible="0">
    <properties>
     <property name="face_left" type="bool" value="false"/>
     <property name="surface_dir" value="n"/>
    </properties>
   </object>
-  <object id="53" type="Player" x="976" y="64" width="16" height="32" visible="0">
+  <object id="53" type="Player" x="976" y="64" width="16" height="32">
    <properties>
     <property name="anotherprop" value="Foo"/>
     <property name="faceleft" type="bool" value="false"/>

@@ -82,6 +82,7 @@ FetchContent_MakeAvailable(
 	implot
 	tracy
 )
+target_compile_definitions(glm PUBLIC GLM_ENABLE_EXPERIMENTAL)
 
 # compile imgui and implot as library
 add_library(imgui STATIC
