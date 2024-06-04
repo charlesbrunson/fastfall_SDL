@@ -1,0 +1,91 @@
+ff
+	dependencies
+		fmt
+		spdlog
+		imterm
+		freetype
+		glew
+		glm
+		imgui [docking branch]
+		implot
+		# json
+		# rapidxml [replace with json?]
+		sol3 [lua!?]
+		sdl
+		sdl_image
+		sdl_mixer
+		# soloud [not in conan]
+		zlib
+		emsdk [wasm build only]
+		gtest
+		magic_enum
+		zpp_bits
+	# 3rdparty
+		# soloud
+	
+	util [glm]
+		types
+		containers
+		math
+		time
+	engine
+		log
+		clock
+		state
+		loop
+		window
+		render
+			vertex
+			vertex_buffer
+			element_buffer
+			shader
+			program
+			# texture
+			render_target
+			render_texture
+			# window
+			view
+		input
+			binding (keyboard/controller)
+			record
+		audio
+			effects
+			mixer
+		resource
+			asset_hotreload
+			assets
+				data
+				texture
+				shader
+				sound
+				music
+				font
+		ui
+			[widgets]
+	platformer [engine plugin]
+		ecs
+			entity
+			component
+			system
+		resource
+			assets
+				level
+					tilelayer
+					objectlayer
+				tileset
+				sprite
+				animation
+		states
+			level_edit_state
+		world
+		actor
+		attach
+		camera
+		level
+		particle
+		path
+		phys
+		trigger
+	frontend (interchangeable, contains a main)
+		minimal
+		editor
