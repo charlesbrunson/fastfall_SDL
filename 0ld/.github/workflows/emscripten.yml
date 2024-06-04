@@ -1,0 +1,109 @@
+name: Build, Test, Release Just WASM
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        compiler: [emscripten]
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      BUILD_TYPE: Release
+      BUILD_NAME: build-${{matrix.os}}-${{matrix.compiler}}-Release
+      TESTS_NAME: build-${{matrix.os}}-${{matrix.compiler}}-Release_tests.xml
+
+    steps:
+    # checkout repo
+    - uses: actions/checkout@v3
+    
+    - name: Print Env
+      run: env 
+
+    # linux only, get required packages
+    - name: Install Linux Packages
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y gcc-multilib python3 curl zip unzip
+        sudo apt-get install -y mesa-common-dev libglu1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libgl1-mesa-dev libasound2-dev libpulse-dev
+
+    - name: Create Build Directory
+      run: cmake -E make_directory ${{env.BUILD_NAME}}
+
+    # emscripten only, get emscripten
+    - name: Get Emscripten
+      if: matrix.compiler == 'emscripten'
+      shell: bash
+      working-directory: ${{github.workspace}}
+      run: git clone https://github.com/emscripten-core/emsdk.git
+        
+    # emscripten only, config emscripten
+    - name: Configure Emscripten
+      if: matrix.compiler == 'emscripten'
+      shell: bash
+      working-directory: ${{github.workspace}}/emsdk
+      run: |
+          ./emsdk install latest
+          ./emsdk activate latest
+          
+    # desktop only, use specified compiler
+    - name: Configure CMake (Desktop)
+      if: matrix.compiler != 'emscripten'
+      run: cmake -B ${{github.workspace}}/${{env.BUILD_NAME}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
+      
+    # emscripten only, use emscripten toolchain
+    - name: Configure CMake (Web)
+      if: matrix.compiler == 'emscripten'
+      run: cmake -B ${{github.workspace}}/${{env.BUILD_NAME}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Wno-dev -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+
+    - name: Build
+      id: build-id
+      run: cmake --build ${{env.BUILD_NAME}} --config ${{env.BUILD_TYPE}}
+
+    - name: Test
+      id: test-id
+      if: steps.build-id.outcome == 'success'
+      working-directory: ${{github.workspace}}/${{env.BUILD_NAME}}
+      run: ctest -C ${{env.BUILD_TYPE}} --output-junit ${{env.TESTS_NAME}}
+      
+    - name: Upload Test Results
+      if: steps.test-id.outcome != 'skipped'
+      uses: actions/upload-artifact@v2
+      with:
+        name: Test Results (${{matrix.os}} ${{ matrix.compiler }})
+        path: ${{env.BUILD_NAME}}/${{env.TESTS_NAME}}
+
+    - name: Upload Release
+      uses: actions/upload-artifact@v2
+      if: steps.test-id.outcome == 'success'
+      with:
+        name: ${{env.BUILD_NAME}}
+        path: ${{github.workspace}}/${{env.BUILD_NAME}}/test_project_*.zip
+  
+  release:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+    - name: Download Release
+      uses: actions/download-artifact@v3
+      with:
+        path: releases/
+        
+    - name: Display structure of downloaded files
+      run: ls -R
+      working-directory: releases/
+      
+    - name: Create Release
+      uses: ncipollo/release-action@v1.10.0
+      with:
+        name: fastfall_SDL
+        artifacts: "releases/build-*/*.zip"
+        allowUpdates: true
+        removeArtifacts: true
+        tag: release

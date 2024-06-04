@@ -1,0 +1,62 @@
+Player States/Controls/Whatever
+
+Controls
+	Left	- Go left
+	Right	- Go right
+	Up		- Go up? may not be needed
+	Down	- Go down
+	
+	Jump	- Upward instant movement
+	Dash 	- Lateral instant movement
+	Punch	- Hurt things
+
+Resources
+	Air charge
+		Determines availability of second jump or air boost when in the air, resets upon ground state
+
+States
+	Ground
+		Idle {}
+			On the ground not moving
+		Run {left OR right}
+			On the ground holding left or right
+		Punch {punch}
+			Hurting things
+		Jump {jump}
+			Jumping off the ground and into the air
+		Dash {dash}
+			Instantly accelerates left or right
+		Boost {dash(hold)}
+			Accelerates left or right, retains momentum at higher speeds, more effective going downhill
+		
+	Air
+		Idle {left OR right OR nothing}
+			In the air, with some air control with left or right
+		Punch {punch}
+			Hurting things
+		Boost {dash(hold)}
+			Accelerates left or right
+		Dash {dash AND HAS air charge}
+			Instantly accelerates left or right, zeroes y-velocity, consumes air charge
+		Jump {jump AND HAS air charge}
+			Jumping further into the air, consumes air charge
+		Down Dash {down AND dash AND vel.y >= 0}
+			Instantly accelerates down
+		Down Boost {down AND dash(hold)}
+			Accelerates downwards, for bombing a slope
+			
+	Wall
+		Cling {}
+			Holds onto a wall, slowly slides down. two poses for clinging before/after a wall boost
+		Slide {down(hold)}
+			slides down wall faster
+		Jump {jump}
+			Jumps off wall
+		Dash {dash AND away from wall}
+			Dashes off wall
+		Wall Dash {dash AND NOT away from wall AND NOT down}
+			Runs up wall, can transition into if you ground boost up a slope into the wall (this can allow you to go very high up the wall)
+		Down Boost (ungrabs) {down AND dash}
+			ungrabs into a air down boost
+		Ungrab {away from wall(hold)}
+			Releases the wall, into air idle
