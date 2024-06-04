@@ -1,5 +1,6 @@
 ff
 	dependencies
+
 		fmt
 		spdlog
 		imterm
@@ -23,45 +24,45 @@ ff
 	# 3rdparty
 		# soloud
 	
-	util [glm]
-		types
-		containers
-		math
-		time
-	engine
-		log
+    log
+    state
+    window
+    util [glm]
+        types
+        containers
+        math
+        time
+	core
 		clock
-		state
 		loop
-		window
-		render
-			vertex
-			vertex_buffer
-			element_buffer
-			shader
-			program
-			# texture
-			render_target
-			render_texture
-			# window
-			view
-		input
-			binding (keyboard/controller)
-			record
-		audio
-			effects
-			mixer
-		resource
-			asset_hotreload
-			assets
-				data
-				texture
-				shader
-				sound
-				music
-				font
-		ui
-			[widgets]
+    render
+        vertex
+        vertex_buffer
+        element_buffer
+        shader
+        program
+        # texture
+        render_target
+        render_texture
+        # window
+        view
+    input
+        binding (keyboard/controller)
+        record
+    audio
+        effects
+        mixer
+    resource
+        asset_hotreload
+        assets
+            data
+            texture
+            shader
+            sound
+            music
+            font
+    ui
+        [widgets]
 	platformer [engine plugin]
 		ecs
 			entity
