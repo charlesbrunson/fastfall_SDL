@@ -1,0 +1,17 @@
+#pragma once
+
+#include "GL/glew.h"
+
+namespace ff {
+
+enum class Primitive {
+	POINT = GL_POINTS,
+	LINES = GL_LINES,
+	LINE_STRIP = GL_LINE_STRIP,
+	LINE_LOOP = GL_LINE_LOOP,
+	TRIANGLES = GL_TRIANGLES,
+	TRIANGLE_STRIP = GL_TRIANGLE_STRIP,
+	TRIANGLE_FAN = GL_TRIANGLE_FAN
+};
+
+}
