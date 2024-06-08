@@ -1,5 +1,5 @@
-#include <spdlog/spdlog.h>
+#include "ff/util/log.hpp"
 
 int main(int argc, char* argv[]) {
-   spdlog::info("huh");
+   ff::info("huh");
 }

@@ -1,9 +1,7 @@
 cmake_minimum_required (VERSION 3.22)
 
-add_subdirectory(util)
-add_subdirectory(gfx)
-
 target_sources(ffengine
         PRIVATE
-        engine.cpp
+        window.cpp
+        view.cpp
 )

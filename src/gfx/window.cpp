@@ -1,4 +1,4 @@
-#include "ff/window.hpp"
+#include "ff/gfx/window.hpp"
 
 #include <SDL2/SDL.h>
 
