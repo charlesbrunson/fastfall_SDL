@@ -2,3 +2,8 @@ cmake_minimum_required (VERSION 3.22)
 
 add_subdirectory(util)
 add_subdirectory(core)
+
+target_sources(ffengine
+        PRIVATE
+        window.cpp
+)

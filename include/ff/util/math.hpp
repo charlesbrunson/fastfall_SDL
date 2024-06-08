@@ -25,7 +25,6 @@ using vec3f = glm::vec<3, float>;
 using vec3d = glm::vec<3, double>;
 
 
-
 template<typename T>
 using mat3 = glm::mat<3, 3, T>;
 
