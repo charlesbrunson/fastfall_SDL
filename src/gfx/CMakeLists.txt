@@ -4,4 +4,5 @@ target_sources(ffengine
         PRIVATE
         window.cpp
         view.cpp
+        render_target.cpp
 )

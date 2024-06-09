@@ -1,5 +1,11 @@
 #pragma once
 
 #include "imgui.h"
-#include "imgui_impl_sdl2.h"
-#include "imgui_impl_opengl3.h"
+
+namespace ff {
+
+bool imgui_init(void* window, void* gl_context, const char* glsl_version);
+void imgui_new_frame();
+void imgui_quit();
+
+}

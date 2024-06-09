@@ -106,7 +106,7 @@ bool glew_init() {
         ff::error("Unable to init glew: {}", err);
         return glew_is_init;
     }
-    ff::info("{:>10} {}", "GLEW", (const char*)glewGetString(GLEW_VERSION));
+    ff::info("{}: {}", "GLEW", (const char*)glewGetString(GLEW_VERSION));
 
     GLint glvmajor, glvminor;
     glGetIntegerv(GL_MAJOR_VERSION, &glvmajor);
@@ -114,12 +114,12 @@ bool glew_init() {
 #if defined(__EMSCRIPTEN__)
     ff::info("{:>10} {}.{}", "OpenGL ES", glvmajor, glvminor);
 #else
-    ff::info("{:>10} {}.{}", "OpenGL", glvmajor, glvminor);
+    ff::info("{}: {}.{}", "OpenGL", glvmajor, glvminor);
 #endif
 
-    ff::info("OpenGL Vendor:         {}", (const char*)glGetString(GL_VENDOR));
-    ff::info("OpenGL Renderer:       {}", (const char*)glGetString(GL_RENDERER));
-    ff::info("OpenGL Version:        {}", (const char*)glGetString(GL_VERSION));
+    ff::info("OpenGL Vendor:  {}", (const char*)glGetString(GL_VENDOR));
+    ff::info("OpenGL Renderer: {}", (const char*)glGetString(GL_RENDERER));
+    ff::info("OpenGL Version: {}", (const char*)glGetString(GL_VERSION));
     ff::info("OpenGL Shader Version: {}", (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 #if not defined(__EMSCRIPTEN__)

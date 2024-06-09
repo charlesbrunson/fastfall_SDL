@@ -3,7 +3,6 @@
 
 namespace ff
 {
-
 	FT_Library library;
 
 	FT_Library freetype_get_library()
@@ -20,7 +19,7 @@ namespace ff
 
 		FT_Int ft_major, ft_minor, ft_patch;
 		FT_Library_Version(library, &ft_major, &ft_minor, &ft_patch);
-        ff::info("{:>10} {}.{}.{}", "FreeType", ft_major, ft_minor, ft_patch);
+        ff::info("{}: {}.{}.{}", "FreeType", ft_major, ft_minor, ft_patch);
 	}
 
 	void freetype_quit()

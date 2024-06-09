@@ -3,6 +3,10 @@
 #include <SDL2/SDL.h>
 #include "ff/util/log.hpp"
 
+namespace ff {
+class sdl_error : public std::runtime_error {};
+}
+
 #if defined(DEBUG) && not defined(__EMSCRIPTEN__)
 
 namespace ff {
@@ -10,7 +14,7 @@ namespace ff {
         if (result < 0) {
             std::string err = SDL_GetError();
             ff::error("checkSDL: {}", err);
-            throw std::runtime_error(err);
+            throw sdl_error(err);
         }
     }
 
@@ -19,7 +23,7 @@ namespace ff {
         if (pObject == nullptr) {
             std::string err = SDL_GetError();
             ff::error("checkSDL: {}", err);
-            throw std::runtime_error(err);
+            throw sdl_error(err);
         }
         return pObject;
     }
@@ -28,3 +32,8 @@ namespace ff {
 #else
 #define checkSDL(expr) (expr)
 #endif
+
+namespace ff {
+    bool sdl_init();
+    void sdl_quit();
+}

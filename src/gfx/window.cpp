@@ -1,6 +1,6 @@
 #include "ff/gfx/window.hpp"
 
-#include "../external/SDL.hpp"
+#include "../external/sdl.hpp"
 #include "../external/glew.hpp"
 #include "../external/imgui.hpp"
 
@@ -64,15 +64,12 @@ void window::init() {
 		return;
 	}
 
-    //TracyGpuContext;
-
-	// Setup Platform/Renderer backends
-	ImGui_ImplSDL2_InitForOpenGL((SDL_Window*)window_impl, m_gl_context);
+    SDL_GL_MakeCurrent((SDL_Window*)window_impl, m_gl_context);
 
 #if defined(__EMSCRIPTEN__)
-	glCheck(ImGui_ImplOpenGL3_Init("#version 300 es"));
+    imgui_init(window_impl, m_gl_context, "#version 300 es");
 #else
-	glCheck(ImGui_ImplOpenGL3_Init("#version 330"));
+    imgui_init(window_impl, m_gl_context, "#version 330");
 #endif
 
 	set_default_view();
@@ -80,7 +77,7 @@ void window::init() {
 
 window::~window()
 {
-	SDL_GL_DeleteContext(window_impl);
+	SDL_GL_DeleteContext(m_gl_context);
 
 	if (window_impl)
 		SDL_DestroyWindow((SDL_Window*)window_impl);

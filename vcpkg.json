@@ -23,7 +23,8 @@
     "features" : [
       "freetype",
       "opengl3-binding",
-      "sdl2-binding"
+      "sdl2-binding",
+      "docking-experimental"
     ]
   }, {
     "name" : "implot",

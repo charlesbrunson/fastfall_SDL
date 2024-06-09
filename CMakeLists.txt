@@ -48,5 +48,6 @@ target_include_directories(ffengine PUBLIC include)
 
 
 add_executable(ffexample)
+target_compile_definitions(ffexample PUBLIC DEBUG)
 target_sources(ffexample PRIVATE main.cpp)
 target_link_libraries(ffexample PRIVATE ffengine)
