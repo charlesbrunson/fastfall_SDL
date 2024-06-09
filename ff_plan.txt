@@ -45,7 +45,7 @@ ff
         render_target
         render_texture
         # window
-        view
+        camera
     input
         binding (keyboard/controller)
         record

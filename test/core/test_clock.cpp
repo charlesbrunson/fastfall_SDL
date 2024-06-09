@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "ff/core/clock.hpp"
+#include "core/clock.hpp"
 
 #include <chrono>
 #include <numeric>

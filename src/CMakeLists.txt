@@ -5,6 +5,6 @@ add_subdirectory(gfx)
 add_subdirectory(external)
 
 target_sources(ffengine
-        PRIVATE
-        engine.cpp
+    PRIVATE
+    engine.cpp
 )

@@ -26,19 +26,19 @@ void render_target::clear(color clearColor) {
 	reset_draw_call_count();
 }
 
-view render_target::get_view() const {
+camera render_target::get_view() const {
 	return m_view;
 }
 
-view render_target::get_default_view() const {
-	return view{ {0, 0}, get_size() };
+camera render_target::get_default_view() const {
+	return camera{{0, 0}, get_size() };
 }
 
 void render_target::set_default_view() {
 	set_view(get_default_view());
 }
 
-void render_target::set_view(const view& n_view) {
+void render_target::set_view(const camera& n_view) {
 	m_view = n_view;
 
     auto viewport = m_view.get_viewport();
@@ -65,7 +65,7 @@ glm::ivec2 render_target::world_pos_to_coord(glm::fvec2 worldCoord) {
 }
 
 glm::fvec2 render_target::coord_to_world_pos(int windowCoordX, int windowCoordY) {
-    const view& v = get_view();
+    const camera& v = get_view();
     glm::fvec2 vsize = v.get_size();
 
     auto vp = v.get_viewport();
@@ -82,7 +82,7 @@ glm::fvec2 render_target::coord_to_world_pos(int windowCoordX, int windowCoordY)
 }
 
 glm::ivec2 render_target::world_pos_to_coord(float worldCoordX, float worldCoordY) {
-    const view& v = get_view();
+    const camera& v = get_view();
     glm::fvec2 vsize = v.get_size();
 
     auto vp = v.get_viewport();

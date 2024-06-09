@@ -285,7 +285,7 @@ namespace ff {
 			if (left + columns > src.column_size()
 				|| top + rows > src.row_size())
 			{
-				throw std::invalid_argument("invalid grid view");
+				throw std::invalid_argument("invalid grid camera");
 			}
 		}
 
@@ -697,7 +697,7 @@ namespace ff {
 		if (left + columns > src.column_count()
 			|| top + rows > src.row_count())
 		{
-			throw std::invalid_argument("invalid grid view");
+			throw std::invalid_argument("invalid grid camera");
 		}
 	}
 

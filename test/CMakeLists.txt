@@ -4,7 +4,7 @@ macro(create_ff_test TESTNAME)
 
     add_executable(${TESTNAME} ${ARGN})
 	target_link_libraries(${TESTNAME} PRIVATE GTest::gtest GTest::gtest_main ffengine)
-	# target_include_directories(${TESTNAME} PRIVATE "google_test/googletest/include")
+	target_include_directories(${TESTNAME} PRIVATE ../src)
 
 	gtest_discover_tests(${TESTNAME}
 		WORKING_DIRECTORY ${PROJECT_DIR}

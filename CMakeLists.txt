@@ -28,7 +28,7 @@ target_link_libraries(ffengine PRIVATE fmt::fmt)
 target_link_libraries(ffengine PRIVATE Freetype::Freetype)
 target_link_libraries(ffengine PRIVATE GLEW::GLEW)
 target_link_libraries(ffengine
-        PRIVATE
+        PUBLIC
         $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
         $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
 )

@@ -1751,7 +1751,7 @@ more convenient when you have long chains of sequential calls, as it doesn't
 require you to come up with different names for the expectations in the chains.
 Here's how it works:
 
-If we view `EXPECT_CALL()` statements as nodes in a graph, and add an edge from
+If we camera `EXPECT_CALL()` statements as nodes in a graph, and add an edge from
 node A to node B wherever A must occur before B, we can get a DAG. We use the
 term "sequence" to mean a directed path in this DAG. Now, if we decompose the
 DAG into sequences, we just need to know which sequences each `EXPECT_CALL()`
@@ -3522,7 +3522,7 @@ would generate a failure that contains the text:
   Expected: in closed range (4, 6)
 ```
 
-For the purpose of typing, you can view
+For the purpose of typing, you can camera
 
 ```cpp
 MATCHER_Pk(Foo, p1, ..., pk, description_string) { ... }
@@ -4009,7 +4009,7 @@ lets you write
 ... WillOnce(ReturnDistanceTo(5.0, 26.5));
 ```
 
-You can view `ACTION` as a degenerated parameterized action where the number of
+You can camera `ACTION` as a degenerated parameterized action where the number of
 parameters is 0.
 
 You can also easily define actions overloaded on the number of parameters:

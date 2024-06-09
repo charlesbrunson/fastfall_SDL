@@ -5,10 +5,10 @@
 
 namespace ff {
 
-class view {
+class camera {
 public:
-    view();
-    view(vec2f botleft, vec2f size, vec2f scale = {1.f, 1.f});
+    camera();
+    camera(vec2f botleft, vec2f size, vec2f scale = {1.f, 1.f});
 
     void set_center(vec2f center);
     void set_viewport(rectf viewport);
