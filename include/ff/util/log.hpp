@@ -1,6 +1,5 @@
 #pragma once
-
-#include <spdlog/spdlog-inl.h>
+#include "spdlog/spdlog.h"
 
 namespace ff {
     using namespace spdlog;

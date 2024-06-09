@@ -19,7 +19,12 @@
     "version>=" : "1.0.1#2"
   }, {
     "name" : "imgui",
-    "version>=" : "1.90.7"
+    "version>=" : "1.90.7",
+    "features" : [
+      "freetype",
+      "opengl3-binding",
+      "sdl2-binding"
+    ]
   }, {
     "name" : "implot",
     "version>=" : "0.16"

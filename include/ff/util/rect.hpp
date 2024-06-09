@@ -57,13 +57,13 @@ struct rect {
         width = size[0]; height = size[1];
     }
 
-    inline glm::vec<2, T> getPosition() const
+    inline vec2<T> get_position() const
     {
-        return glm::vec<2, T>{left, top};
+        return vec2<T>{left, top};
     };
-    inline glm::vec<2, T> getSize() const
+    inline vec2<T> get_size() const
     {
-        return glm::vec<2, T>{width, height};
+        return vec2<T>{width, height};
     };
     inline T getArea() const
     {
@@ -147,7 +147,7 @@ struct rect {
 
     bool touches(const rect<T>& rectangle) const
     {
-        Rect<T> intersection;
+        rect<T> intersection;
         return touches(rectangle, intersection);
     }
 

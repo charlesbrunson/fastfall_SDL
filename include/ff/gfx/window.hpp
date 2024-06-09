@@ -3,13 +3,15 @@
 #include <string_view>
 #include <memory>
 
-#include "util/math.hpp"
+#include "ff/util/math.hpp"
+
+#include "render_target.hpp"
 
 namespace ff {
 
 // wrapper for a sdl opengl window
 
-class window {
+class window : public render_target {
 public:
 	enum class mode {
 		Fullscreen,
@@ -26,10 +28,10 @@ public:
 	void set_resizeable(bool enable = true);
 	void set_borderless(bool enable = true);
 
-	void set_size(const glm::uvec2& size);
+	void set_size(const vec2u& size);
 	void set_size(unsigned W = 0, unsigned H = 0);
 
-	void set_position(const glm::ivec2& pos);
+	void set_position(const vec2i& pos);
 	void set_position(int X, int Y);
 
 	void set_centered();
@@ -40,12 +42,12 @@ public:
 
 	void set_vsync(bool enable = true);
 
-	glm::ivec2 get_position();
+	vec2i get_position();
 	void show(bool visible = true);
 
 	//SDL_Window* getSDL_Window() const;
 
-	glm::ivec2 get_size() const;
+	vec2i get_size() const;
 	void set_active();
 
 	void display();

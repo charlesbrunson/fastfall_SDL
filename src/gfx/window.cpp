@@ -1,6 +1,12 @@
 #include "ff/gfx/window.hpp"
 
-#include <SDL2/SDL.h>
+#include "../external/SDL.hpp"
+#include "../external/glew.hpp"
+#include "../external/imgui.hpp"
+
+#include "ff/util/log.hpp"
+
+#include <cassert>
 
 namespace ff {
 
@@ -48,21 +54,20 @@ window::window(std::string_view title, unsigned initWidth, unsigned initHeight, 
 }
 
 void window::init() {
-	assert(ff::gfx_init());
+    m_gl_context = SDL_GL_CreateContext((SDL_Window*)window_impl);
+    checkSDL(m_gl_context);
 
-    m_context = SDL_GL_CreateContext(window_impl);
-    checkSDL(m_context);
-
-	if (!ff::render::glew_init()) {
+	if (!ff::glew_init()) {
 		SDL_DestroyWindow((SDL_Window*)window_impl);
 		window_impl = nullptr;
+        ff::error("{}", "glew failed to init");
 		return;
 	}
 
     //TracyGpuContext;
 
 	// Setup Platform/Renderer backends
-	ImGui_ImplSDL2_InitForOpenGL((SDL_Window*)window_impl, m_context);
+	ImGui_ImplSDL2_InitForOpenGL((SDL_Window*)window_impl, m_gl_context);
 
 #if defined(__EMSCRIPTEN__)
 	glCheck(ImGui_ImplOpenGL3_Init("#version 300 es"));
@@ -99,7 +104,7 @@ void window::set_borderless(bool enable) {
 #endif
 }
 
-void window::set_size(const glm::uvec2& size) {
+void window::set_size(const vec2u& size) {
 	assert(size.x > 0 && size.y > 0);
 	SDL_SetWindowSize((SDL_Window*)window_impl, size.x, size.y);
 }
@@ -108,7 +113,7 @@ void window::set_size(unsigned W, unsigned H) {
 	SDL_SetWindowSize((SDL_Window*)window_impl, W, H);
 }
 
-void window::set_position(const glm::ivec2& pos) {
+void window::set_position(const vec2i& pos) {
 	SDL_SetWindowPosition((SDL_Window*)window_impl, pos.x, pos.y);
 }
 void window::set_position(int X, int Y) {
@@ -124,7 +129,7 @@ void window::set_vsync(bool enable)
 	set_active();
 
 	if (SDL_GL_SetSwapInterval(enable ? 1 : 0) != 0) {
-		LOG_WARN("Vsync not supported");
+		ff::warn("Vsync not supported");
 	}
 }
 
@@ -167,7 +172,7 @@ void window::show(bool visible)
 
 void window::set_active()
 {
-	checkSDL(SDL_GL_MakeCurrent((SDL_Window*)window_impl, m_context));
+	checkSDL(SDL_GL_MakeCurrent((SDL_Window*)window_impl, m_gl_context));
 }
 
 

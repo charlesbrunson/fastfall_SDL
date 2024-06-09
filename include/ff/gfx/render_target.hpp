@@ -3,78 +3,53 @@
 #include "ff/gfx/color.hpp"
 #include "ff/gfx/view.hpp"
 #include "ff/gfx/draw_call.hpp"
-// #include "ff/gfx/render_state.hpp"
 
 #include <optional>
 
 namespace ff {
 
-class Drawable;
-class VertexArray;
-class TileArray;
-class Text;
-
-namespace debug::detail {
-struct state_t;
-struct gpu_state_t;
-}
-
-class RenderTarget {
+class render_target {
 public:
-    RenderTarget();
-    virtual ~RenderTarget() = default;
+    render_target();
+    virtual ~render_target() = default;
 
-    virtual glm::ivec2 getSize() const = 0;
+    virtual vec2i get_size() const = 0;
 
-    // SDL_GLContext getSDLContext() const;
     void clear(color clearColor = color::black);
 
-    view getView() const;
-    virtual view getDefaultView() const;
+    view get_view() const;
+    virtual view get_default_view() const;
 
-    void setView(const view& view);
-    void setDefaultView();
-
-    //void draw(const Drawable& drawable, const RenderState& state = RenderState());
-    //void draw(const VertexArray& varray, const RenderState& state = RenderState());
-    //void draw(const TileArray& varray, RenderState state = RenderState());
-    //void draw(const Text& text, RenderState state = RenderState());
-    //void draw(debug::detail::state_t& debug, debug::detail::gpu_state_t& gl, RenderState state = RenderState());
+    void set_view(const view& view);
+    void set_default_view();
 
     void draw(const draw_call& draw);
 
-    size_t getVertexCounter() { return vertex_draw_counter; }
-    void resetVertexCounter() { vertex_draw_counter = 0; }
+    size_t get_vertex_draw_count() { return m_vertex_draw_counter; }
+    void reset_vertex_draw_count() { m_vertex_draw_counter = 0; }
 
-    size_t getDrawCallCounter() { return draw_call_counter; }
-    void resetDrawCallCounter() { draw_call_counter = 0; }
+    size_t get_draw_call_count() { return m_draw_call_counter; }
+    void reset_draw_call_count() { m_draw_call_counter = 0; }
 
-    glm::fvec2 coordToWorldPos(int windowCoordX, int windowCoordY);
-    glm::fvec2 coordToWorldPos(glm::ivec2 windowCoord);
-    glm::ivec2 worldPosToCoord(float worldCoordX, float worldCoordY);
-    glm::ivec2 worldPosToCoord(glm::fvec2 worldCoord);
+    vec2f coord_to_world_pos(int windowCoordX, int windowCoordY);
+    vec2f coord_to_world_pos(vec2i windowCoord);
+    vec2i world_pos_to_coord(float worldCoordX, float worldCoordY);
+    vec2i world_pos_to_coord(vec2f worldCoord);
 
 protected:
-    bool hasShader = false;
-    bool hasBlend = false;
-    std::optional<draw_info> previousRender;
+    std::optional<draw_call> m_prev_draw_call;
 
-    bool justCleared = true;
+    bool m_just_cleared = true;
     view m_view;
 
-    SDL_GLContext m_context;
-    GLuint m_FBO = 0; // default framebuffer
+    void* m_gl_context;
+    unsigned m_framebuffer = 0; // default framebuffer
 
 private:
-    void bindFramebuffer() const;
+    void bind_framebuffer() const;
 
-    // void applyBlend(const BlendMode& blend) const;
-    // void applyShader(const ShaderProgram* shader) const;
-    // void applyUniforms(const Transform& transform, const RenderState& state) const;
-    // void applyTexture(const TextureRef& texture) const;
-
-    size_t vertex_draw_counter = 0;
-    size_t draw_call_counter = 0;
+    size_t m_vertex_draw_counter = 0;
+    size_t m_draw_call_counter = 0;
 };
 
 }

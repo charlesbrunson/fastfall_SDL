@@ -2,7 +2,7 @@
 
 #include "ff/util/log.hpp"
 
-#include <SDL2/SDL.h>
+#include "external/SDL.hpp"
 #include <SDL_image.h>
 
 #include "external/glew.hpp"
@@ -40,48 +40,15 @@ bool initialize() {
     int outflags = IMG_Init(flags);
     if (outflags != flags) {
         ff::error("IMG init failed: {}", IMG_GetError());
+        return false;
     }
 
     freetype_init();
-
-    GLenum glew_err = glewInit();
-    if (GLEW_OK != glew_err) {
-        std::string err = (char *)glewGetErrorString(glew_err);
-        ff::error("Unable to init glew: {}", err);
-        return false;
-    }
-    ff::info("{:>10} {}", "GLEW", (const char*)glewGetString(GLEW_VERSION));
-
-
-    GLint glvmajor, glvminor;
-    glGetIntegerv(GL_MAJOR_VERSION, &glvmajor);
-    glGetIntegerv(GL_MINOR_VERSION, &glvminor);
-#if defined(__EMSCRIPTEN__)
-    ff::info("{:>10} {}.{}", "OpenGL ES", glvmajor, glvminor);
-#else
-    ff::info("{:>10} {}.{}", "OpenGL", glvmajor, glvminor);
-#endif
-
-    ff::info("OpenGL Vendor:         {}", (const char*)glGetString(GL_VENDOR));
-    ff::info("OpenGL Renderer:       {}", (const char*)glGetString(GL_RENDERER));
-    ff::info("OpenGL Version:        {}", (const char*)glGetString(GL_VERSION));
-    ff::info("OpenGL Shader Version: {}", (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
-
-    //ShaderProgram::getDefaultProgram();
-    //ff::info("Loaded default shader");
-
-#if not defined(__EMSCRIPTEN__)
-    glCheck(glEnable(GL_DEBUG_OUTPUT));
-    glDebugMessageCallback(MessageCallback, 0);
-#endif
-
-    glCheck(glDisable(GL_CULL_FACE));
-    glCheck(glDisable(GL_DEPTH_TEST));
-    glCheck(glEnable(GL_BLEND));
+    return true;
 }
 
 bool shutdown() {
-
+    return true;
 }
 
 }
