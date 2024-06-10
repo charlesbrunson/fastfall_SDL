@@ -20,6 +20,15 @@ bool imgui_init(void* window, void* gl_context, const char* glsl_version) {
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.WindowRounding    = 0.0f;
+    style.ChildRounding     = 0.0f;
+    style.FrameRounding     = 0.0f;
+    style.GrabRounding      = 0.0f;
+    style.PopupRounding     = 0.0f;
+    style.ScrollbarRounding = 0.0f;
+    style.TabRounding       = 0.0f;
+    style.WindowBorderSize  = 0.0f;
 
     // Setup Platform/Renderer backends
     auto sdl2_r = ImGui_ImplSDL2_InitForOpenGL((SDL_Window*)window, gl_context);

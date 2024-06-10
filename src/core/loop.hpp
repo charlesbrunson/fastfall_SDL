@@ -9,6 +9,10 @@
 #include <mutex>
 #include <barrier>
 
+#include <concepts>
+
+#include "ff/core/application.hpp"
+
 namespace ff {
 namespace loop {
 
@@ -24,10 +28,19 @@ namespace loop {
     }
 */
 
+    bool init();
+
     bool run();
 
+    template<std::derived_from<application> App, class... Args>
+    bool run_with_app(Args&&... args) {
+        push_app(std::make_unique<App>(std::forward<Args>(args)...));
+        run();
+    }
+
+    void push_app(std::unique_ptr<application> app);
+
     bool is_running();
-    bool is_init();
 
 /*
     int get_window_scale() const noexcept;
