@@ -1,6 +1,8 @@
 #pragma once
 
-#include "ff/util/math.hpp"
+#include <glm/vec2.hpp>
+#include <glm/mat3x3.hpp>
+
 #include "ff/util/rect.hpp"
 
 namespace ff {
@@ -8,28 +10,27 @@ namespace ff {
 class camera {
 public:
     camera();
-    camera(vec2f botleft, vec2f size, vec2f scale = {1.f, 1.f});
+    camera(glm::vec2 botleft, glm::vec2 size, glm::vec2 scale = {1.f, 1.f});
 
-    void set_center(vec2f center);
+    void set_center(glm::vec2 center);
     void set_viewport(rectf viewport);
-    void set_size(vec2f size);
+    void set_size(glm::vec2 size);
     void set_zoom(float zoom);
 
-    vec2f get_center() const;
+    glm::vec2 get_center() const;
     rectf get_viewport() const;
-    vec2f get_size() const;
+    glm::vec2 get_size() const;
     float get_zoom() const;
 
-    mat3f matrix() const;
-    mat3f inv_matrix() const;
+    glm::mat3 matrix() const;
+    glm::mat3 inv_matrix() const;
 
 private:
-    vec2f center;
+    glm::vec2 center;
     rectf viewport;
-    vec2f size;
+    glm::vec2 size;
     float zoom = 1.f;
-
-    vec2f scale;
+    glm::vec2 scale;
 };
 
 }

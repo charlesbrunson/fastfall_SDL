@@ -8,14 +8,13 @@
 
 #include "ff/core/time.hpp"
 #include "ff/core/event.hpp"
-#include "ff/util/math.hpp"
 #include "ff/gfx/color.hpp"
 
 namespace ff {
 
 struct window_info {
     int scale;
-    vec2u window_size;
+    glm::uvec2 window_size;
 };
 
 enum class application_action {
@@ -49,7 +48,7 @@ public:
 
     virtual bool push_event(const SDL_Event& event) { return false; };
 
-	inline vec2f get_view_pos() const noexcept { return viewPos; };
+	inline glm::vec2 get_view_pos() const noexcept { return viewPos; };
 	inline float get_view_zoom() const noexcept { return viewZoom; };
 
 	inline const color& get_clear_color() const noexcept { return clear_color; };
@@ -73,7 +72,7 @@ public:
 protected:
 	color clear_color;
 
-	vec2f viewPos;
+	glm::vec2 viewPos;
 	float viewZoom = 1.f;
 
     inline void get_app_action(application_action n_act) { action = n_act; };

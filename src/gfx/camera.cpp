@@ -16,7 +16,7 @@ camera::camera()
 	scale = {1.f, 1.f};
 }
 
-camera::camera(vec2f botleft, vec2f size, vec2f n_scale)
+camera::camera(glm::vec2 botleft, glm::vec2 size, glm::vec2 n_scale)
 {
 	set_viewport({ botleft, size });
 	set_center({ 0.f, 0.f });
@@ -24,19 +24,19 @@ camera::camera(vec2f botleft, vec2f size, vec2f n_scale)
 	scale = n_scale;
 }
 
-void camera::set_center(vec2f n_center) {
+void camera::set_center(glm::vec2 n_center) {
 	center = n_center;
 }
 
 void camera::set_viewport(rectf n_viewport) {
 	viewport = n_viewport;
-	size = vec2f{
+	size = glm::vec2{
 		viewport.width,
 		viewport.height
 	};
 }
 
-void camera::set_size(vec2f n_size) {
+void camera::set_size(glm::vec2 n_size) {
 	size = n_size;
 }
 
@@ -44,7 +44,7 @@ void camera::set_zoom(float n_zoom) {
 	zoom = n_zoom;
 }
 
-vec2f camera::get_center() const {
+glm::vec2 camera::get_center() const {
 	return center;
 }
 
@@ -52,7 +52,7 @@ rectf camera::get_viewport() const {
 	return viewport;
 }
 
-vec2f camera::get_size() const {
+glm::vec2 camera::get_size() const {
 	return size;
 }
 

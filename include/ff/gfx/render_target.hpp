@@ -13,7 +13,7 @@ public:
     render_target();
     virtual ~render_target() = default;
 
-    virtual vec2i get_size() const = 0;
+    virtual glm::ivec2 get_size() const = 0;
 
     void clear(color clearColor = color::black);
 
@@ -31,10 +31,10 @@ public:
     size_t get_draw_call_count() { return m_draw_call_counter; }
     void reset_draw_call_count() { m_draw_call_counter = 0; }
 
-    vec2f coord_to_world_pos(int windowCoordX, int windowCoordY);
-    vec2f coord_to_world_pos(vec2i windowCoord);
-    vec2i world_pos_to_coord(float worldCoordX, float worldCoordY);
-    vec2i world_pos_to_coord(vec2f worldCoord);
+    glm::vec2 coord_to_world_pos(int windowCoordX, int windowCoordY);
+    glm::vec2 coord_to_world_pos(glm::ivec2 windowCoord);
+    glm::ivec2 world_pos_to_coord(float worldCoordX, float worldCoordY);
+    glm::ivec2 world_pos_to_coord(glm::vec2 worldCoord);
 
 protected:
     std::optional<draw_call> m_prev_draw_call;

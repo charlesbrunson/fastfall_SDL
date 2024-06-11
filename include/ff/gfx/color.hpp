@@ -6,7 +6,7 @@
 
 namespace ff {
 
-struct color : glm::vec<4, uint8_t> {
+struct color : glm::u8vec4 {
 
 	constexpr color()
 		: color(0, 0, 0, 255u)

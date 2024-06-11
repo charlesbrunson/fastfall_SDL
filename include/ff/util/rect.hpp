@@ -3,6 +3,7 @@
 #include "line.hpp"
 
 #include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
 
 namespace ff {
 
@@ -95,7 +96,7 @@ struct rect {
 
     }
 
-    constexpr vec4<T> as_vec4() const {
+    constexpr glm::vec<4, T> as_vec4() const {
         return {
                 left,
                 top,

@@ -101,7 +101,7 @@ void window::set_borderless(bool enable) {
 #endif
 }
 
-void window::set_size(const vec2u& size) {
+void window::set_size(const glm::uvec2& size) {
 	assert(size.x > 0 && size.y > 0);
 	SDL_SetWindowSize((SDL_Window*)window_impl, size.x, size.y);
 }
@@ -110,7 +110,7 @@ void window::set_size(unsigned W, unsigned H) {
 	SDL_SetWindowSize((SDL_Window*)window_impl, W, H);
 }
 
-void window::set_position(const vec2i& pos) {
+void window::set_position(const glm::ivec2& pos) {
 	SDL_SetWindowPosition((SDL_Window*)window_impl, pos.x, pos.y);
 }
 void window::set_position(int X, int Y) {
