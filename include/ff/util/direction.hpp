@@ -1,11 +1,12 @@
 #pragma once
+
 #include <optional>
 #include <concepts>
 #include <array>
 #include <fmt/format.h>
+#include <glm/vec2.hpp>
 
 #include "angle.hpp"
-#include "math.hpp"
 
 namespace ff {
 enum class Cardinal : uint8_t { N, E, S, W };
@@ -109,30 +110,30 @@ inline std::pair<Ordinal, Ordinal> split(Cardinal ord)
 
 template<typename T = int>
 requires (std::signed_integral<T> || std::floating_point<T>)
-inline vec2<T> to_vector(Cardinal card)
+inline glm::vec<2, T> to_vector(Cardinal card)
 {
-    vec2<T> v;
+    glm::vec<2, T> v;
     switch (card)
     {
-        case Cardinal::N: v = vec2<T>{ 0, -1 }; break;
-        case Cardinal::E: v = vec2<T>{ 1,  0 }; break;
-        case Cardinal::S: v = vec2<T>{ 0,  1 }; break;
-        case Cardinal::W: v = vec2<T>{-1,  0 }; break;
+        case Cardinal::N: v = glm::vec<2, T>{ 0, -1 }; break;
+        case Cardinal::E: v = glm::vec<2, T>{ 1,  0 }; break;
+        case Cardinal::S: v = glm::vec<2, T>{ 0,  1 }; break;
+        case Cardinal::W: v = glm::vec<2, T>{-1,  0 }; break;
     }
     return v;
 }
 
 template<typename T = int>
 requires (std::signed_integral<T> || std::floating_point<T>)
-inline vec2<T> to_vector(Ordinal card)
+inline glm::vec<2, T> to_vector(Ordinal card)
 {
-    vec2<T> v;
+    glm::vec<2, T> v;
     switch (card)
     {
-        case Ordinal::NW: v = vec2<T>{-1, -1 }; break;
-        case Ordinal::NE: v = vec2<T>{ 1, -1 }; break;
-        case Ordinal::SE: v = vec2<T>{ 1,  1 }; break;
-        case Ordinal::SW: v = vec2<T>{-1,  1 }; break;
+        case Ordinal::NW: v = glm::vec<2, T>{-1, -1 }; break;
+        case Ordinal::NE: v = glm::vec<2, T>{ 1, -1 }; break;
+        case Ordinal::SE: v = glm::vec<2, T>{ 1,  1 }; break;
+        case Ordinal::SW: v = glm::vec<2, T>{-1,  1 }; break;
     }
     return v;
 }
@@ -164,7 +165,7 @@ constexpr unsigned to_bits(Directions... dir) noexcept {
 
 template<typename T>
 requires (std::signed_integral<T> || std::floating_point<T>)
-std::optional<Cardinal> from_vector(const vec2<T>& v)
+std::optional<Cardinal> from_vector(const glm::vec<2, T>& v)
 {
     if (v.x == 0)
     {

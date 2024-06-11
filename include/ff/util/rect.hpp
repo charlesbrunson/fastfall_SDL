@@ -1,7 +1,8 @@
 #pragma once
 
-#include "math.hpp"
 #include "line.hpp"
+
+#include <glm/vec2.hpp>
 
 namespace ff {
 
@@ -23,7 +24,7 @@ struct rect {
         height = r_height;
     }
 
-    constexpr rect(vec2<T> topleft, vec2<T> size)
+    constexpr rect(glm::vec<2, T> topleft, glm::vec<2, T> size)
     {
         left = topleft.x;
         top = topleft.y;
@@ -44,7 +45,7 @@ struct rect {
     {
         left = X; top = Y;
     }
-    inline void set_position(vec2<T> position)
+    inline void set_position(glm::vec<2, T> position)
     {
         left = position.x; top = position.y;
     }
@@ -52,18 +53,18 @@ struct rect {
     {
         width = W; height = H;
     }
-    inline void set_size(vec2<T> size)
+    inline void set_size(glm::vec<2, T> size)
     {
         width = size[0]; height = size[1];
     }
 
-    inline vec2<T> get_position() const
+    inline glm::vec<2, T> get_position() const
     {
-        return vec2<T>{left, top};
+        return glm::vec<2, T>{left, top};
     };
-    inline vec2<T> get_size() const
+    inline glm::vec<2, T> get_size() const
     {
-        return vec2<T>{width, height};
+        return glm::vec<2, T>{width, height};
     };
     inline T getArea() const
     {
@@ -183,7 +184,7 @@ struct rect {
         }
     }
 
-    bool contains(const vec2<T>& pos) const
+    bool contains(const glm::vec<2, T>& pos) const
     {
         T MinX = std::min(left, static_cast<T>(left + width));
         T MaxX = std::max(left, static_cast<T>(left + width));
@@ -224,22 +225,20 @@ struct rect {
         return false;
     }
 
-    [[nodiscard]] constexpr vec2<T> topleft () const { return vec2<T>(left,                top); }
-    [[nodiscard]] constexpr vec2<T> topmid  () const { return vec2<T>(left + width / T{2}, top); }
-    [[nodiscard]] constexpr vec2<T> topright() const { return vec2<T>(left + width,        top); }
-    [[nodiscard]] constexpr vec2<T> leftmid () const { return vec2<T>(left,                top + height / T{2}); }
-    [[nodiscard]] constexpr vec2<T> center  () const { return vec2<T>(left + width / T{2}, top + height / T{2}); }
-    [[nodiscard]] constexpr vec2<T> rightmid() const { return vec2<T>(left + width,        top + height / T{2}); }
-    [[nodiscard]] constexpr vec2<T> botright() const { return vec2<T>(left + width,        top + height); }
-    [[nodiscard]] constexpr vec2<T> botmid  () const { return vec2<T>(left + width / T{2}, top + height); }
-    [[nodiscard]] constexpr vec2<T> botleft () const { return vec2<T>(left,                top + height); }
+    [[nodiscard]] constexpr glm::vec<2, T> topleft () const { return glm::vec<2, T>(left,                top); }
+    [[nodiscard]] constexpr glm::vec<2, T> topmid  () const { return glm::vec<2, T>(left + width / T{2}, top); }
+    [[nodiscard]] constexpr glm::vec<2, T> topright() const { return glm::vec<2, T>(left + width,        top); }
+    [[nodiscard]] constexpr glm::vec<2, T> leftmid () const { return glm::vec<2, T>(left,                top + height / T{2}); }
+    [[nodiscard]] constexpr glm::vec<2, T> center  () const { return glm::vec<2, T>(left + width / T{2}, top + height / T{2}); }
+    [[nodiscard]] constexpr glm::vec<2, T> rightmid() const { return glm::vec<2, T>(left + width,        top + height / T{2}); }
+    [[nodiscard]] constexpr glm::vec<2, T> botright() const { return glm::vec<2, T>(left + width,        top + height); }
+    [[nodiscard]] constexpr glm::vec<2, T> botmid  () const { return glm::vec<2, T>(left + width / T{2}, top + height); }
+    [[nodiscard]] constexpr glm::vec<2, T> botleft () const { return glm::vec<2, T>(left,                top + height); }
 
     T left;
     T top;
     T width;
     T height;
-
-
 };
 
 using rectu = rect<unsigned>;

@@ -1,13 +1,14 @@
 #pragma once
 
-#include "../util/math.hpp"
 #include "color.hpp"
+#include "glm/vec2.hpp"
+#include "glm/vec3.hpp"
 
 namespace ff {
 
 struct vertex {
-    vec3f pos;
-    vec2f tex_pos;
+    glm::vec<3, float> pos;
+    glm::vec<2, float> tex_pos;
     color col;
 };
 

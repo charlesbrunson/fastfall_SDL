@@ -3,9 +3,9 @@
 #include <string_view>
 #include <memory>
 
-#include "ff/util/math.hpp"
-
 #include "render_target.hpp"
+
+#include "glm/vec2.hpp"
 
 namespace ff {
 
@@ -28,10 +28,10 @@ public:
 	void set_resizeable(bool enable = true);
 	void set_borderless(bool enable = true);
 
-	void set_size(const vec2u& size);
+	void set_size(const glm::vec<2, unsigned>& size);
 	void set_size(unsigned W = 0, unsigned H = 0);
 
-	void set_position(const vec2i& pos);
+	void set_position(const glm::vec<2, int>& pos);
 	void set_position(int X, int Y);
 
 	void set_centered();
@@ -42,12 +42,12 @@ public:
 
 	void set_vsync(bool enable = true);
 
-	vec2i get_position();
+    glm::vec<2, int> get_position();
 	void show(bool visible = true);
 
 	//SDL_Window* getSDL_Window() const;
 
-	vec2i get_size() const;
+    [[nodiscard]] glm::vec<2, int> get_size() const;
 	void set_active();
 
 	void display();

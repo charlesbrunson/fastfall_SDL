@@ -6,7 +6,7 @@
 
 namespace ff {
 
-struct color {
+struct color : glm::vec<4, uint8_t> {
 
 	constexpr color()
 		: color(0, 0, 0, 255u)
@@ -19,10 +19,7 @@ struct color {
 	}
 
 	constexpr color(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha)
-		: r(red)
-        , g(green)
-        , b(blue)
-        , a(alpha)
+		: glm::vec<4, uint8_t>{ red, green, blue, alpha }
 	{
 	}
 
@@ -58,11 +55,6 @@ struct color {
     static const color yellow;
     static const color cyan;
     static const color magenta;
-
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-	uint8_t a;
 };
 
 constexpr inline color color::transparent  { 0x00000000 };

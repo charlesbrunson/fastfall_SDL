@@ -1,7 +1,7 @@
 #pragma once
 
 #include "slot_map.hpp"
-#include "../copyable_unique_ptr.hpp"
+#include "copyable_unique_ptr.hpp"
 #include "slot_map.hpp"
 #include "id.hpp"
 
