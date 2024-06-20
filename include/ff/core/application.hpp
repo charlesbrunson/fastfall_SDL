@@ -13,7 +13,7 @@
 namespace ff {
 
 struct window_info {
-    int scale;
+    float scale;
     glm::uvec2 window_size;
 };
 

@@ -27,15 +27,33 @@ class loop {
 public:
     explicit loop(std::unique_ptr<application>&& t_app, window&& t_window = window{});
 
-    void run(loop_mode t_loop_mode = loop_mode::DualThread);
+    bool run(loop_mode t_loop_mode);
+    inline void stop() { m_running = false; }
 
     [[nodiscard]] inline bool is_running() const { return m_running; };
 
+    window& get_window() { return m_window; }
+    const window& get_window() const { return m_window; }
+
+    clock<>& get_clock() { return m_clock; }
+    const clock<>& get_clock() const { return m_clock; }
+
 private:
+
+    bool run_single_thread();
+    bool run_dual_thread();
+    bool run_web();
+
+
+    // bool m_interpolate  = true;
+    // bool m_pause_update = false;
+    // bool m_step_update  = false;
+
     bool m_running = false;
     window m_window;
     application_list m_app_list;
     clock<> m_clock;
+    seconds m_uptime = 0.0;
 };
 
 }

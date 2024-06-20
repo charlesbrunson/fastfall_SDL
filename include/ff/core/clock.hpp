@@ -26,7 +26,6 @@ public:
     constexpr static unsigned FPS_UNLIMITED = 0;
     constexpr static size_t   UPDATE_MAX    = 3;
 
-public:
     clock(unsigned ups = 60, unsigned fps = FPS_UNLIMITED) noexcept
         : m_target_ups (std::max(ups, MIN_UPS))
         , m_target_fps (fps)
@@ -34,7 +33,6 @@ public:
         reset();
     }
 
-public:
     void setFPS(unsigned fps) noexcept {
         m_target_fps = fps;
         reset();
@@ -75,7 +73,7 @@ public:
 
         return {
             update_count,
-            interp,
+            m_interpolate ? interp : 1.f,
             deltatime
         };
     }
@@ -104,7 +102,6 @@ public:
 
     inline size_t getTickCount() const noexcept { return m_tick_count; }
 
-public:
     void setTimescale(double timescale = 1.f) noexcept {
         m_fixed_timescale_updated |= (m_fixed_timescale != timescale);
         m_fixed_timescale = timescale;
@@ -131,6 +128,10 @@ public:
         using namespace std::chrono;
         return sec_rep{time_res{1s} / m_target_fps}.count();
     }
+
+    bool m_interpolate  = true;
+    bool m_pause_update = false;
+    bool m_step_update  = false;
 
 private:
     void updateTickWindow(const time_point& now) noexcept {

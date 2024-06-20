@@ -16,6 +16,6 @@ public:
 
 int main(int argc, char* argv[]) {
     ff::initialize();
-    ff::loop{ std::make_unique<test_app>() }.run();
+    ff::loop{ std::make_unique<test_app>() }.run(ff::loop_mode::SingleThread);
     ff::shutdown();
 }
