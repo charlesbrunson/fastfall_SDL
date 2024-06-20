@@ -27,15 +27,15 @@ public:
 
 public:
     clock(unsigned ups = 60, unsigned fps = FPS_UNLIMITED) noexcept
-        : target_ups (std::max(ups, MIN_UPS))
-        , target_fps (fps)
+        : m_target_ups (std::max(ups, MIN_UPS))
+        , m_target_fps (fps)
     {
         reset();
     }
 
 public:
     void setFPS(unsigned fps) noexcept {
-        target_fps = fps;
+        m_target_fps = fps;
         reset();
     }
 
@@ -46,31 +46,31 @@ public:
 
         updateTickWindow(now);
 
-        last_now = curr_now;
-        curr_now = now;
+        m_last_now = m_curr_now;
+        m_curr_now = now;
 
         //float interp = 0.f;
-        unsigned update_count = (unsigned)std::min(size_t{ 10 }, fixed_tick - fixed_tick_prev);
-        if (fixed_timescale > 0 && target_ups > 0) {
-            interpolation = duration_cast<duration<float>>(curr_now - (fixed_start_offset + fixed_start)) / getUpsDuration();
+        unsigned update_count = (unsigned)std::min(size_t{ 10 }, m_fixed_tick - m_fixed_tick_prev);
+        if (m_fixed_timescale > 0 && m_target_ups > 0) {
+            m_interpolation = duration_cast<duration<float>>(m_curr_now - (m_fixed_start_offset + m_fixed_start)) / getUpsDuration();
         }
 
-        tickCount += update_count;
+        m_tick_count += update_count;
 
-        sec_update_counter += update_count;
-        sec_frame_counter++;
+        m_sec_update_counter += update_count;
+        m_sec_frame_counter++;
 
-        sec_accum += curr_now - last_now;
-        while (sec_accum >= 1s) {
-            info.avgFps = sec_frame_counter;
-            info.avgUps = sec_update_counter;
-            sec_frame_counter = 0;
-            sec_update_counter = 0;
-            sec_accum -= 1s;
+        m_sec_accum += m_curr_now - m_last_now;
+        while (m_sec_accum >= 1s) {
+            m_info.avgFps = m_sec_frame_counter;
+            m_info.avgUps = m_sec_update_counter;
+            m_sec_frame_counter = 0;
+            m_sec_update_counter = 0;
+            m_sec_accum -= 1s;
         }
 
-        float interp = ((target_ups == target_fps) && (fixed_timescale == 1.0)) ? 1.f : interpolation;
-        float deltatime = static_cast<float>(sec_rep{curr_now - last_now}.count());
+        float interp = ((m_target_ups == m_target_fps) && (m_fixed_timescale == 1.0)) ? 1.f : m_interpolation;
+        float deltatime = static_cast<float>(sec_rep{m_curr_now - m_last_now}.count());
 
         return {
             update_count,
@@ -80,145 +80,145 @@ public:
     }
 
     void sleep() noexcept {
-        if (target_fps != FPS_UNLIMITED) {
-            std::this_thread::sleep_until(frame_end);
+        if (m_target_fps != FPS_UNLIMITED) {
+            std::this_thread::sleep_until(m_frame_end);
         }
     }
 
     void reset() noexcept {
         using namespace std::chrono;
-        fixed_tick = 0;
-        frame_tick = 0;
-        fixed_timescale_updated = true;
-        updated_target_ups = true;
+        m_fixed_tick = 0;
+        m_frame_tick = 0;
+        m_fixed_timescale_updated = true;
+        m_updated_target_ups = true;
 
-        sec_accum = 0s;
-        sec_update_counter = 0;
-        sec_frame_counter = 0;
+        m_sec_accum = 0s;
+        m_sec_update_counter = 0;
+        m_sec_frame_counter = 0;
 
-        interpolation = 0.f;
+        m_interpolation = 0.f;
 
         updateTickWindow(clock_type::now());
     }
 
-    inline size_t getTickCount() const noexcept { return tickCount; }
+    inline size_t getTickCount() const noexcept { return m_tick_count; }
 
 public:
     void setTimescale(double timescale = 1.f) noexcept {
-        fixed_timescale_updated |= (fixed_timescale != timescale);
-        fixed_timescale = timescale;
+        m_fixed_timescale_updated |= (m_fixed_timescale != timescale);
+        m_fixed_timescale = timescale;
     }
 
-    inline void setTargetFPS(unsigned fps) noexcept { target_fps = fps; }
+    inline void setTargetFPS(unsigned fps) noexcept { m_target_fps = fps; }
     inline void setTargetUPS(unsigned ups) noexcept {
-        auto prev_ups = target_ups;
-        target_ups = std::max(MIN_UPS, ups);
-        updated_target_ups = prev_ups != target_ups;
+        auto prev_ups = m_target_ups;
+        m_target_ups = std::max(MIN_UPS, ups);
+        m_updated_target_ups = prev_ups != m_target_ups;
     }
 
-    inline unsigned getTargetFPS() const noexcept { return target_fps; }
-    inline unsigned getTargetUPS() const noexcept { return target_ups; }
+    inline unsigned getTargetFPS() const noexcept { return m_target_fps; }
+    inline unsigned getTargetUPS() const noexcept { return m_target_ups; }
 
-    inline unsigned getAvgFPS() const noexcept { return info.avgFps; }
-    inline unsigned getAvgUPS() const noexcept { return info.avgUps; }
+    inline unsigned getAvgFPS() const noexcept { return m_info.avg_fps; }
+    inline unsigned getAvgUPS() const noexcept { return m_info.avg_ups; }
 
     seconds upsDuration() const noexcept {
         using namespace std::chrono;
-        return sec_rep{time_res{1s} / target_ups}.count();
+        return sec_rep{time_res{1s} / m_target_ups}.count();
     }
     seconds fpsDuration() const noexcept {
         using namespace std::chrono;
-        return sec_rep{time_res{1s} / target_fps}.count();
+        return sec_rep{time_res{1s} / m_target_fps}.count();
     }
 
 private:
     void updateTickWindow(const time_point& now) noexcept {
         using namespace std::chrono;
 
-        if (fixed_timescale_updated || updated_target_ups) {
-            fixed_timescale_updated = false;
-            updated_target_ups = false;
+        if (m_fixed_timescale_updated || m_updated_target_ups) {
+            m_fixed_timescale_updated = false;
+            m_updated_target_ups = false;
 
-            fixed_tick_prev = 0;
-            fixed_tick = 0;
+            m_fixed_tick_prev = 0;
+            m_fixed_tick = 0;
 
             auto ups_delta = getUpsDuration();
-            fixed_start_offset = time_point{((now.time_since_epoch() / ups_delta) * ups_delta)};
+            m_fixed_start_offset = time_point{((now.time_since_epoch() / ups_delta) * ups_delta)};
             //fixed_start_offset -= duration_cast<steady_clock::duration>( duration_cast<sec_rep>(ups_delta) * (1.f - interpolation) );
         }
 
-        fixed_tick_prev = fixed_tick;
+        m_fixed_tick_prev = m_fixed_tick;
 
-        if (fixed_timescale > 0 && target_ups > 0) {
+        if (m_fixed_timescale > 0 && m_target_ups > 0) {
             auto ups_delta = getUpsDuration();
-            fixed_tick = (now - fixed_start_offset) / ups_delta;
+            m_fixed_tick = (now - m_fixed_start_offset) / ups_delta;
 
-            fixed_start = fixed_tick * ups_delta;
-            fixed_end = fixed_start + ups_delta;
+            m_fixed_start = m_fixed_tick * ups_delta;
+            m_fixed_end = m_fixed_start + ups_delta;
         }
 
-        if (target_fps != FPS_UNLIMITED) {
-            auto fps_delta = time_res{1s} / target_fps;
-            frame_tick_prev = frame_tick;
-            frame_tick = (now.time_since_epoch() / fps_delta);
-            frame_start = time_point{(now.time_since_epoch() / fps_delta) * fps_delta};
-            frame_end = frame_start + fps_delta;
+        if (m_target_fps != FPS_UNLIMITED) {
+            auto fps_delta = time_res{1s} / m_target_fps;
+            m_frame_tick_prev = m_frame_tick;
+            m_frame_tick = (now.time_since_epoch() / fps_delta);
+            m_frame_start = time_point{(now.time_since_epoch() / fps_delta) * fps_delta};
+            m_frame_end = m_frame_start + fps_delta;
         } else {
-            frame_tick_prev = frame_tick;
-            frame_tick++;
-            frame_start = now;
-            frame_end = now;
+            m_frame_tick_prev = m_frame_tick;
+            m_frame_tick++;
+            m_frame_start = now;
+            m_frame_end = now;
         }
     }
 
     clock_type::duration getUpsDuration() const noexcept {
         // using namespace std::chrono;
         return std::chrono::duration_cast<typename clock_type::duration>(
-            std::chrono::duration<double>{ 1.0 / (fixed_timescale * static_cast<double>(target_ups)) }
+            std::chrono::duration<double>{ 1.0 / (m_fixed_timescale * static_cast<double>(m_target_ups)) }
         );
     }
 
     //std::optional<unsigned> next_ups;
-    unsigned target_ups;
-    unsigned target_fps;
+    unsigned m_target_ups;
+    unsigned m_target_fps;
 
-    bool updated_target_ups = false;
+    bool m_updated_target_ups = false;
 
-    clock_type engineClock;
-    time_res tickDuration;
+    clock_type m_engine_clock;
+    time_res m_tick_duration;
 
-    size_t tickCount = 0;
+    size_t m_tick_count = 0;
 
-    time_point clock_start;
-    time_point last_now;
-    time_point curr_now;
+    time_point m_clock_start;
+    time_point m_last_now;
+    time_point m_curr_now;
 
     // for UPS
-    double fixed_timescale = 1.0;
-    bool fixed_timescale_updated = true;
-    time_point fixed_start_offset;
-    clock_type::duration fixed_start;
-    clock_type::duration fixed_end;
-    size_t fixed_tick_prev;
-    size_t fixed_tick;
+    double m_fixed_timescale = 1.0;
+    bool m_fixed_timescale_updated = true;
+    time_point m_fixed_start_offset;
+    clock_type::duration m_fixed_start;
+    clock_type::duration m_fixed_end;
+    size_t m_fixed_tick_prev;
+    size_t m_fixed_tick;
 
     // for FPS
-    time_point frame_start;
-    time_point frame_end;
-    size_t frame_tick_prev;
-    size_t frame_tick;
+    time_point m_frame_start;
+    time_point m_frame_end;
+    size_t m_frame_tick_prev;
+    size_t m_frame_tick;
 
-    float interpolation = 0.f;
+    float m_interpolation = 0.f;
 
-    time_res sec_accum;
-    size_t sec_update_counter = 0;
-    size_t sec_frame_counter = 0;
+    time_res m_sec_accum;
+    size_t m_sec_update_counter = 0;
+    size_t m_sec_frame_counter = 0;
 
     struct info {
-        unsigned avgFps = 0;
-        unsigned avgUps = 0;
+        unsigned avg_fps = 0;
+        unsigned avg_ups = 0;
     };
-    info info;
+    info m_info;
 };
 
 }

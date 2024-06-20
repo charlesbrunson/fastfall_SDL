@@ -31,7 +31,7 @@ camera render_target::get_view() const {
 }
 
 camera render_target::get_default_view() const {
-	return camera{{0, 0}, get_size() };
+	return camera{{0, 0}, size() };
 }
 
 void render_target::set_default_view() {
@@ -56,15 +56,7 @@ void render_target::draw(const draw_call& draw) {
 
 // ------------------------------------------------------
 
-glm::fvec2 render_target::coord_to_world_pos(glm::ivec2 windowCoord) {
-    return coord_to_world_pos(windowCoord.x, windowCoord.y);
-}
-
-glm::ivec2 render_target::world_pos_to_coord(glm::fvec2 worldCoord) {
-    return world_pos_to_coord(worldCoord.x, worldCoord.y);
-}
-
-glm::fvec2 render_target::coord_to_world_pos(int windowCoordX, int windowCoordY) {
+glm::fvec2 render_target::coord_to_world_pos(glm::ivec2 t_window_coord) {
     const camera& v = get_view();
     glm::fvec2 vsize = v.get_size();
 
@@ -72,16 +64,13 @@ glm::fvec2 render_target::coord_to_world_pos(int windowCoordX, int windowCoordY)
     glm::fvec2 vzoom = glm::fvec2(vp.width / vsize.x, vp.height / vsize.y);
     glm::fvec2 viewcenter{ vp.left + vp.width / 2, vp.top + vp.height / 2 };
 
-    glm::fvec2 world_coord{
-            ((float)windowCoordX - viewcenter.x) / vzoom.x,
-            ((float)windowCoordY - viewcenter.y) / vzoom.y
-    };
+    glm::fvec2 world_coord = (glm::fvec2{ t_window_coord } - viewcenter) / vzoom;
     world_coord += v.get_center();
 
     return world_coord;
 }
 
-glm::ivec2 render_target::world_pos_to_coord(float worldCoordX, float worldCoordY) {
+glm::ivec2 render_target::world_pos_to_coord(glm::fvec2 t_world_coord) {
     const camera& v = get_view();
     glm::fvec2 vsize = v.get_size();
 
@@ -89,13 +78,14 @@ glm::ivec2 render_target::world_pos_to_coord(float worldCoordX, float worldCoord
     glm::fvec2 vzoom = glm::fvec2(vp.width / vsize.x, vp.height / vsize.y);
     glm::fvec2 viewcenter{ vp.left + vp.width / 2, vp.left + vp.height / 2 };
 
-    glm::fvec2 world_coord{ worldCoordX, worldCoordY };
+    glm::fvec2 world_coord{ t_world_coord };
     world_coord -= v.get_center();
     world_coord *= vzoom;
     world_coord += viewcenter;
 
     return glm::ivec2{ roundf(world_coord.x), roundf(world_coord.y) };
 }
+
 // ------------------------------------------------------
 
 void render_target::bind_framebuffer() const {

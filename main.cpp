@@ -1,8 +1,6 @@
 #include "ff/engine.hpp"
 
-#include "ff/gfx/window.hpp"
-#include "ff/core/application.hpp"
-// #include "ff/core/loop.hpp"
+#include "ff/core/loop.hpp"
 
 #include "ff/gfx/vertex.hpp"
 
@@ -10,23 +8,14 @@
 #include <chrono>
 
 class test_app : public ff::application {
-
+public:
+    test_app() : ff::application{ "test_app" } {};
+    virtual void update(ff::seconds deltaTime) {};
+    virtual void predraw(ff::tick_info predraw_state, const ff::window_info* win_info) {};
 };
-
-
 
 int main(int argc, char* argv[]) {
     ff::initialize();
-
-
-    auto vinfo = ff::get_vertex_attribute_info<ff::vertex>();
-
-    {
-        auto window = ff::window();
-        window.show(true);
-
-    }
-
+    ff::loop{ std::make_unique<test_app>() }.run();
     ff::shutdown();
-
 }

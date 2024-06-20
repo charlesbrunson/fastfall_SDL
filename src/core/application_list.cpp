@@ -1,47 +1,48 @@
-#include "application_list.hpp"
+#include "ff/core/application_list.hpp"
 
 namespace ff {
 
-application_list::application_list(std::unique_ptr<application> st) {
-	root = std::move(st);
+application_list::application_list(std::unique_ptr<application>&& t_app)
+: m_root(std::move(t_app))
+{
 }
 
 void application_list::update() {
 
 	auto st = get_active_app();
-	while (st && st->action != application_action::Continue) {
-		switch (st->action) {
+	while (st && st->m_action != application_action::Continue) {
+		switch (st->m_action) {
 		case application_action::Next:
-			if (st->next_app) {
-				st->active = false;
-				st->next_app->active = true;
+			if (st->m_next_app) {
+				st->m_active = false;
+				st->m_next_app->m_active = true;
 			}
-			st->action = application_action::Continue;
+			st->m_action = application_action::Continue;
 			break;
 
 		case application_action::ExitNext:
-			if (!st->next_app) {
-				st->action = application_action::Continue;
+			if (!st->m_next_app) {
+				st->m_action = application_action::Continue;
 				break;
 			}
-			st->next_app->prev_app = st->prev_app;
-			if (st->prev_app) {
-				st->prev_app->next_app.reset(st->next_app.release());
+			st->m_next_app->m_prev_app = st->m_prev_app;
+			if (st->m_prev_app) {
+				st->m_prev_app->m_next_app.reset(st->m_next_app.release());
 			}
 			else {
-				root.reset(st->next_app.release());
-				st = root.get();
+				m_root.reset(st->m_next_app.release());
+				st = m_root.get();
 			}
             continue;
 
 		case application_action::ExitPrev:
-			if (st->prev_app) {
+			if (st->m_prev_app) {
 				// ask prev to free us
-				st->prev_app->next_app.reset();
+				st->m_prev_app->m_next_app.reset();
 			}
 			else {
 				// we're root
-				root.reset();
+				m_root.reset();
 			}
 			break;
 
@@ -54,15 +55,15 @@ void application_list::update() {
 		st = get_active_app();
 	}
 	if (st)
-		st->active = true;
+		st->m_active = true;
 }
 
 bool application_list::empty() const {
-	return root.get() == nullptr;
+	return m_root.get() == nullptr;
 };
 
 void application_list::clear() {
-	root.reset();
+	m_root.reset();
 };
 
 color application_list::get_clear_color() const {
@@ -74,19 +75,21 @@ color application_list::get_clear_color() const {
 }
 
 application* application_list::get_active_app() const {
-	application* st = root.get();
+	application* st = m_root.get();
 	while (st) {
-		if (st->active)
+		if (st->m_active)
 			break;
 
-		if (st->next_app.get()) {
-			st = st->next_app.get();
+		if (st->m_next_app.get()) {
+			st = st->m_next_app.get();
 		}
 		else {
 			break;
 		}
 	}
-	if (st) st->active = true;
+	if (st) {
+        st->m_active = true;
+    }
 	return st;
 
 };

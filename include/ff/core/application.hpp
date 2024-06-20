@@ -34,61 +34,56 @@ enum class application_action {
 
 class application {
     friend class application_list;
-public:
 
-    application(std::string_view app_name);
+public:
+    application(std::string_view t_app_name)
+    : m_app_name(t_app_name)
+    {
+    }
+
     application(const application&) = delete;
     application& operator=(const application&) = delete;
     application(application&&) = delete;
     application& operator=(application&&) = delete;
     virtual ~application() = default;
 
-	virtual void update(seconds deltaTime) = 0;
-	virtual void predraw(tick_info predraw_state, const window_info* win_info) = 0;
+	virtual void update(seconds t_deltatime) = 0;
+	virtual void predraw(tick_info t_tick, const window_info* t_win_info) = 0;
 
-    virtual bool push_event(const SDL_Event& event) { return false; };
+    virtual bool push_event(const SDL_Event& t_event) { return false; };
 
-	inline glm::vec2 get_view_pos() const noexcept { return viewPos; };
-	inline float get_view_zoom() const noexcept { return viewZoom; };
-
-	inline const color& get_clear_color() const noexcept { return clear_color; };
-
-	inline application* get_prev_app() const noexcept { return prev_app; };
-	inline application* get_next_app() const noexcept { return next_app.get(); };
-
-	inline const application_action& get_app_action() noexcept { return action; };
+	[[nodiscard]] inline glm::vec2 get_view_pos() const noexcept { return m_view_pos; };
+	[[nodiscard]] inline float get_view_zoom() const noexcept { return m_view_zoom; };
+	[[nodiscard]] inline color get_clear_color() const noexcept { return m_clear_color; };
+	[[nodiscard]] inline application* get_prev_app() const noexcept { return m_prev_app; };
+	[[nodiscard]] inline application* get_next_app() const noexcept { return m_next_app.get(); };
+	[[nodiscard]] inline application_action get_app_action() const noexcept { return m_action; };
 
 	template<typename T, typename... Ts>
 		requires std::is_base_of_v<application, std::decay_t<T>>
 			&& (!std::is_same_v<application, std::decay_t<T>>)
 	void create(Ts&&... params) {
 		// protect states down chain from getting dropped
-        auto tmp = std::move(next_app);
-        next_app = std::make_unique<T>(std::forward<Ts>(params)...);
-        next_app->next_app = std::move(tmp);
-        next_app.get()->prev_app = this;
+        auto tmp = std::move(m_next_app);
+        m_next_app = std::make_unique<T>(std::forward<Ts>(params)...);
+        m_next_app->m_next_app = std::move(tmp);
+        m_next_app.get()->m_prev_app = this;
 	}
 
 protected:
-	color clear_color;
+    inline void set_app_action(application_action t_act) { m_action = t_act; };
+	inline bool is_active() const { return m_active; };
 
-	glm::vec2 viewPos;
-	float viewZoom = 1.f;
-
-    inline void get_app_action(application_action n_act) { action = n_act; };
-	inline bool is_active() { return active; };
+    color m_clear_color;
+    glm::vec2 m_view_pos;
+    float m_view_zoom = 1.f;
 
 private:
-    std::string application_name = "";
-
-	std::unique_ptr<application> next_app;
-    application* prev_app = nullptr;
-
-    application_action action = application_action::Continue;
-	bool active = false;
-
-	int stateIGID;
-	static int stateIGIDCounter;
+    bool m_active = false;
+    std::string m_app_name;
+	std::unique_ptr<application> m_next_app;
+    application* m_prev_app = nullptr;
+    application_action m_action = application_action::Continue;
 };
 
 }

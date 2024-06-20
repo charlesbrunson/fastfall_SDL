@@ -104,7 +104,7 @@ struct attribute_info {
     type        cmp_type   = type::Uint8;
     bool        normalized = false;
     uint32_t    stride     = 0;
-    const void* offset     = 0;
+    const void* offset     = (void*)0;
 };
 
 template<is_vertex V>

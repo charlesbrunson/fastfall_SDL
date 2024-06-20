@@ -10,7 +10,7 @@ namespace ff {
 
 class application_list {
 public:
-    application_list(std::unique_ptr<application> st);
+    explicit application_list(std::unique_ptr<application>&& t_app);
 
 	void update();
 	bool empty() const;
@@ -20,7 +20,7 @@ public:
     application* get_active_app() const;
 
 protected:
-	std::unique_ptr<application> root;
+	std::unique_ptr<application> m_root;
 };
 
 }
