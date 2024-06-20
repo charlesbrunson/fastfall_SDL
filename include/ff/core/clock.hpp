@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <thread>
 
 namespace ff {
 
@@ -62,8 +63,8 @@ public:
 
         m_sec_accum += m_curr_now - m_last_now;
         while (m_sec_accum >= 1s) {
-            m_info.avgFps = m_sec_frame_counter;
-            m_info.avgUps = m_sec_update_counter;
+            m_info.avg_fps = m_sec_frame_counter;
+            m_info.avg_ups = m_sec_update_counter;
             m_sec_frame_counter = 0;
             m_sec_update_counter = 0;
             m_sec_accum -= 1s;
