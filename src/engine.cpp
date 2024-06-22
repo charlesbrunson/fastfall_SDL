@@ -18,7 +18,6 @@ bool initialize() {
 
 bool shutdown() {
     info("Shutting down ffengine");
-    imgui_quit();
     freetype_quit();
     sdl_quit();
     return true;

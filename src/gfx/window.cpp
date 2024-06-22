@@ -38,7 +38,28 @@ window::window(std::string_view t_title, glm::uvec2 t_size, bool t_start_hidden)
 	init();
 }
 
+window::window(window&& t_window) noexcept
+: m_window_impl{t_window.m_window_impl}
+, m_has_imgui{t_window.m_has_imgui}
+, m_id{t_window.m_id}
+{
+    t_window.m_window_impl = nullptr;
+    t_window.m_has_imgui = false;
+    t_window.m_id = 0;
+}
+
+window& window::operator=(window&& t_window) noexcept {
+    m_window_impl = t_window.m_window_impl;
+    m_has_imgui = t_window.m_has_imgui;
+    m_id = t_window.m_id;
+    t_window.m_window_impl = nullptr;
+    t_window.m_has_imgui = false;
+    t_window.m_id = 0;
+    return *this;
+}
+
 void window::init() {
+    m_id = SDL_GetWindowID((SDL_Window*)m_window_impl);
     m_gl_context = SDL_GL_CreateContext((SDL_Window*)m_window_impl);
     checkSDL(m_gl_context);
 
@@ -52,9 +73,9 @@ void window::init() {
     SDL_GL_MakeCurrent((SDL_Window*)m_window_impl, m_gl_context);
 
 #if defined(__EMSCRIPTEN__)
-    imgui_init(window_impl, m_gl_context, "#version 300 es");
+    m_has_imgui = imgui_init(window_impl, m_gl_context, "#version 300 es");
 #else
-    imgui_init(m_window_impl, m_gl_context, "#version 330");
+    m_has_imgui = imgui_init(m_window_impl, m_gl_context, "#version 330");
 #endif
 
 	set_default_view();
@@ -62,6 +83,9 @@ void window::init() {
 
 window::~window()
 {
+    if (m_has_imgui) {
+        imgui_quit();
+    }
     if (m_gl_context) {
         SDL_GL_DeleteContext(m_gl_context);
     }
@@ -170,6 +194,10 @@ glm::ivec2 window::size() const {
 	glm::ivec2 size;
 	SDL_GetWindowSize((SDL_Window*)m_window_impl, &size.x, &size.y);
 	return size;
+}
+
+unsigned window::id() const {
+    return m_id;
 }
 
 /*

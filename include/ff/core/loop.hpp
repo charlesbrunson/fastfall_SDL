@@ -44,16 +44,16 @@ private:
     bool run_dual_thread();
     bool run_web();
 
-
     // bool m_interpolate  = true;
     // bool m_pause_update = false;
     // bool m_step_update  = false;
 
     bool m_running = false;
-    window m_window;
-    application_list m_app_list;
-    clock<> m_clock;
     seconds m_uptime = 0.0;
+
+    clock<> m_clock;
+    application_list m_app_list;
+    window m_window;
 };
 
 }

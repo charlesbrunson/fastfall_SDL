@@ -22,9 +22,9 @@ public:
 	window(std::string_view t_title, glm::uvec2 t_size, bool t_start_hidden = true);
     window(const window&) = delete;
     window& operator=(const window&) = delete;
-    window(window&&) = default;
-    window& operator=(window&&) = default;
-	~window();
+    window(window&&) noexcept;
+    window& operator=(window&&) noexcept;
+	~window() override;
 
 	void set_resizeable(bool t_enable = true);
 	void set_borderless(bool t_enable = true);
@@ -39,6 +39,7 @@ public:
 
     [[nodiscard]] glm::ivec2 position();
     [[nodiscard]] glm::ivec2 size() const override;
+    [[nodiscard]] unsigned id() const;
 
 	void make_active();
 	void display();
@@ -48,7 +49,9 @@ public:
 private:
 	void init();
 
-    void* m_window_impl;
+    void* m_window_impl = nullptr;
+    unsigned m_id = 0;
+    bool m_has_imgui = false;
 };
 
 }

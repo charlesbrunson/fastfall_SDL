@@ -11,7 +11,7 @@ class test_app : public ff::application {
 public:
     test_app() : ff::application{ "test_app" } {};
     virtual void update(ff::seconds deltaTime) {};
-    virtual void predraw(ff::tick_info predraw_state, const ff::window_info* win_info) {};
+    virtual void predraw(ff::tick_info predraw_state, ff::window_info win_info) {};
 };
 
 int main(int argc, char* argv[]) {

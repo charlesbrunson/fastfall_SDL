@@ -1,6 +1,7 @@
 #include "ff/core/loop.hpp"
 
 #include "ff/util/log.hpp"
+
 #include "../external/imgui.hpp"
 #include <imgui_impl_sdl2.h>
 
@@ -22,10 +23,9 @@ void update_apps(tick_info& t_tick, application_list& t_app_list, seconds update
 
 void predraw(tick_info& t_tick, application_list& t_app_list, window& t_window) {
     window_info win_info {
-        .scale       = t_window.get_view().get_zoom(),
         .window_size = t_window.size()
     };
-    t_app_list.get_active_app()->predraw(t_tick, &win_info);
+    t_app_list.get_active_app()->predraw(t_tick, win_info);
 }
 
 void draw(application_list& t_app_list, window& t_window) {
@@ -53,6 +53,7 @@ void update_app_list(application_list& t_app_list) {
 }
 
 void display(window& t_window) {
+    imgui_display();
     t_window.display();
 }
 
@@ -63,28 +64,49 @@ void sleep(clock<>& t_clock) {
 bool process_events(clock<>& t_clock, application_list& t_app_list, window& t_window) {
     bool discardAllMousePresses = false;
 
+    bool should_close = false;
+
     SDL_Event event;
     auto event_count = 0u;
 
+    auto& imgui_io = ImGui::GetIO();
+
+    auto is_mouse_event = [](unsigned type) {
+        return type == SDL_MOUSEBUTTONDOWN
+            || type == SDL_MOUSEBUTTONUP
+            || type == SDL_MOUSEWHEEL;
+    };
+
+    auto is_key_event = [](unsigned type) {
+        return type == SDL_KEYDOWN
+            || type == SDL_KEYUP;
+    };
 
     while (SDL_PollEvent(&event)) {
         event_count++;
-        if (ImGui_ImplSDL2_ProcessEvent(&event)) {
-            if (ImGui::GetIO().WantCaptureMouse && (event.type & SDL_MOUSEMOTION) > 0) {
-                continue;
-            }
+        ImGui_ImplSDL2_ProcessEvent(&event);
+        if (imgui_io.WantCaptureMouse && is_mouse_event(event.type)) {
+            continue;
         }
-
+        if (imgui_io.WantCaptureKeyboard && is_key_event(event.type)) {
+            continue;
+        }
         if (discardAllMousePresses && (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP)) {
             continue;
         }
 
-
         switch (event.type) {
+        case SDL_QUIT:
+            should_close = true;
+            break;
         case SDL_WINDOWEVENT:
+            if (event.window.windowID != t_window.id()) {
+                break;
+            }
             switch (event.window.event) {
             case SDL_WINDOWEVENT_CLOSE:
-                return false;
+                should_close = true;
+                break;
             case SDL_WINDOWEVENT_FOCUS_GAINED:
                 discardAllMousePresses = true;
                 break;
@@ -92,7 +114,15 @@ bool process_events(clock<>& t_clock, application_list& t_app_list, window& t_wi
             break;
         }
     }
-    return true;
+    return !should_close;
+}
+
+void update_imgui(window& t_win) {
+    static bool show_demo = true;
+    imgui_new_frame();
+    ImGui::ShowDemoWindow(&show_demo);
+    imgui_render();
+
 }
 
 // -----------------------------------------------------------------------------
@@ -106,6 +136,7 @@ bool loop::run_single_thread() {
 
     m_window.show(true);
 
+    m_running = true;
     while (is_running() && !m_app_list.empty()) {
         tick = update_timer(m_clock);
         m_uptime += tick.deltatime;
@@ -114,12 +145,14 @@ bool loop::run_single_thread() {
         predraw(tick, m_app_list, m_window);
         update_view(m_app_list, m_window);
         draw(m_app_list, m_window);
+        update_imgui(m_window);
         update_app_list(m_app_list);
         display(m_window);
         sleep(m_clock);
     }
 
     m_window.show(false);
+    m_running = false;
     return true;
 }
 
@@ -130,6 +163,8 @@ bool loop::run_dual_thread() {
 
 bool loop::run_web() {
 #if FF_HAS_EMSCRIPTEN
+
+
 
     return true;
 #else
@@ -146,10 +181,6 @@ loop::loop(std::unique_ptr<application>&& t_app, window&& t_window)
 
 bool loop::run(loop_mode t_loop_mode) {
 
-    if (m_app_list.empty())
-        return false;
-
-    m_running = true;
 
 #if FF_HAS_EMSCRIPTEN
     ff::info("Engine loop config: emscripten");
@@ -166,7 +197,6 @@ bool loop::run(loop_mode t_loop_mode) {
             return false;
     }
 #endif
-    m_running = false;
 }
 
 }

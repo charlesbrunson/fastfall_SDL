@@ -13,7 +13,6 @@
 namespace ff {
 
 struct window_info {
-    float scale;
     glm::uvec2 window_size;
 };
 
@@ -48,7 +47,7 @@ public:
     virtual ~application() = default;
 
 	virtual void update(seconds t_deltatime) = 0;
-	virtual void predraw(tick_info t_tick, const window_info* t_win_info) = 0;
+	virtual void predraw(tick_info t_tick, window_info t_win_info) = 0;
 
     virtual bool push_event(const SDL_Event& t_event) { return false; };
 
