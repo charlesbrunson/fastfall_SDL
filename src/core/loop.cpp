@@ -37,14 +37,12 @@ void draw(application_list& t_app_list, window& t_window) {
 
 void update_view(application_list& t_app_list, window& t_window) {
     if (!t_app_list.empty()) {
-        view cam = t_window.get_view();
+        view v = t_window.get_view();
         application* app = t_app_list.get_active_app();
-        auto cam_pos = app->get_view_pos();
-        auto cam_zoom = app->get_view_zoom();
-
-        cam.set_center(cam_pos);
-        cam.set_size({800, 600});
-        t_window.set_view(cam);
+        if (auto opt_v = app->get_view()) {
+            v = *opt_v;
+        }
+        t_window.set_view(v);
     }
 }
 
@@ -113,11 +111,10 @@ bool process_events(clock<>& t_clock, application_list& t_app_list, window& t_wi
     return !should_close;
 }
 
-void update_imgui(window& t_win) {
+void update_imgui(application_list& t_app_list) {
     static bool show_demo = true;
     imgui_new_frame();
-    if (show_demo)
-        ImGui::ShowDemoWindow(&show_demo);
+    t_app_list.get_active_app()->update_imgui();
     imgui_render();
 }
 
@@ -141,7 +138,7 @@ bool loop::run_single_thread() {
         predraw(tick, m_app_list, m_window);
         update_view(m_app_list, m_window);
         draw(m_app_list, m_window);
-        update_imgui(m_window);
+        update_imgui(m_app_list);
         update_app_list(m_app_list);
         display(m_window);
         sleep(m_clock);
@@ -184,7 +181,7 @@ bool loop::run_dual_thread() {
         update_view(m_app_list, m_window);
         draw(m_app_list, m_window);
         bar.arrive_and_wait();
-        update_imgui(m_window);
+        update_imgui(m_app_list);
         display(m_window);
         sleep(m_clock);
     }

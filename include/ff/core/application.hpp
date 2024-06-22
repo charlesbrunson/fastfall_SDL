@@ -1,14 +1,16 @@
 #pragma once
 
+#include "ff/core/time.hpp"
+#include "ff/core/event.hpp"
+#include "ff/gfx/color.hpp"
+#include "ff/gfx/view.hpp"
+
 #include <assert.h>
 #include <type_traits>
 #include <memory>
 #include <string>
 #include <string_view>
-
-#include "ff/core/time.hpp"
-#include "ff/core/event.hpp"
-#include "ff/gfx/color.hpp"
+#include <optional>
 
 namespace ff {
 
@@ -50,9 +52,9 @@ public:
 	virtual void predraw(tick_info t_tick, window_info t_win_info) = 0;
 
     virtual bool push_event(const SDL_Event& t_event) { return false; };
+    virtual void update_imgui() {};
+    virtual std::optional<view> get_view() const noexcept { return {}; };
 
-	[[nodiscard]] inline glm::vec2 get_view_pos() const noexcept { return m_view_pos; };
-	[[nodiscard]] inline float get_view_zoom() const noexcept { return m_view_zoom; };
 	[[nodiscard]] inline color get_clear_color() const noexcept { return m_clear_color; };
 	[[nodiscard]] inline application* get_prev_app() const noexcept { return m_prev_app; };
 	[[nodiscard]] inline application* get_next_app() const noexcept { return m_next_app.get(); };
@@ -74,8 +76,6 @@ protected:
 	inline bool is_active() const { return m_active; };
 
     color m_clear_color;
-    glm::vec2 m_view_pos;
-    float m_view_zoom = 1.f;
 
 private:
     bool m_active = false;
