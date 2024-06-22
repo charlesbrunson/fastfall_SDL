@@ -2,10 +2,7 @@
 
 #include "ff/core/loop.hpp"
 
-#include "ff/gfx/vertex.hpp"
-
 #include <thread>
-#include <chrono>
 
 class test_app : public ff::application {
 public:
@@ -16,6 +13,10 @@ public:
 
 int main(int argc, char* argv[]) {
     ff::initialize();
-    ff::loop{ std::make_unique<test_app>() }.run(ff::loop_mode::SingleThread);
+    ff::loop loop{
+        std::make_unique<test_app>(),
+        ff::window{ "ffengine", { 800, 600 } }
+    };
+    loop.run(ff::loop_mode::DualThread);
     ff::shutdown();
 }

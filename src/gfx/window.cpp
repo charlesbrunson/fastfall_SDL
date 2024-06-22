@@ -43,18 +43,40 @@ window::window(window&& t_window) noexcept
 , m_has_imgui{t_window.m_has_imgui}
 , m_id{t_window.m_id}
 {
+    m_just_cleared = t_window.m_just_cleared;
+    m_view = t_window.m_view;
+    m_gl_context = t_window.m_gl_context;
+    m_framebuffer = t_window.m_framebuffer;
+    m_prev_draw_call = t_window.m_prev_draw_call;
+
     t_window.m_window_impl = nullptr;
     t_window.m_has_imgui = false;
     t_window.m_id = 0;
+    t_window.m_just_cleared = false;
+    t_window.m_view = {};
+    t_window.m_gl_context = nullptr;
+    t_window.m_framebuffer = 0;
+    t_window.m_prev_draw_call = {};
 }
 
 window& window::operator=(window&& t_window) noexcept {
     m_window_impl = t_window.m_window_impl;
     m_has_imgui = t_window.m_has_imgui;
     m_id = t_window.m_id;
+    m_just_cleared = t_window.m_just_cleared;
+    m_view = t_window.m_view;
+    m_gl_context = t_window.m_gl_context;
+    m_framebuffer = t_window.m_framebuffer;
+    m_prev_draw_call = t_window.m_prev_draw_call;
+
     t_window.m_window_impl = nullptr;
     t_window.m_has_imgui = false;
     t_window.m_id = 0;
+    t_window.m_just_cleared = false;
+    t_window.m_view = {};
+    t_window.m_gl_context = nullptr;
+    t_window.m_framebuffer = 0;
+    t_window.m_prev_draw_call = {};
     return *this;
 }
 

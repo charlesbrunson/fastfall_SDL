@@ -7,10 +7,10 @@
 
 namespace ff {
 
-class camera {
+class view {
 public:
-    camera();
-    camera(glm::vec2 t_botleft, glm::vec2 t_size, glm::vec2 t_scale = {1.f, 1.f});
+    view();
+    view(glm::vec2 t_botleft, glm::vec2 t_size, glm::vec2 t_scale = {1.f, 1.f});
 
     void set_center(glm::vec2 t_center);
     void set_viewport(rectf t_viewport);

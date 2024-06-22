@@ -8,7 +8,6 @@ render_target::render_target()
 	: m_view{ {0, 0}, {0, 0} },
 	m_gl_context{ nullptr }
 {
-
 };
 
 void render_target::clear(color clearColor) {
@@ -21,24 +20,21 @@ void render_target::clear(color clearColor) {
 
     glCheck(glClear(GL_COLOR_BUFFER_BIT));
 	m_just_cleared = true;
-
-	reset_vertex_draw_count();
-	reset_draw_call_count();
 }
 
-camera render_target::get_view() const {
+view render_target::get_view() const {
 	return m_view;
 }
 
-camera render_target::get_default_view() const {
-	return camera{{0, 0}, size() };
+view render_target::get_default_view() const {
+	return view{{0, 0}, size() };
 }
 
 void render_target::set_default_view() {
 	set_view(get_default_view());
 }
 
-void render_target::set_view(const camera& n_view) {
+void render_target::set_view(const view& n_view) {
 	m_view = n_view;
 
     auto viewport = m_view.get_viewport();
@@ -57,7 +53,7 @@ void render_target::draw(const draw_call& draw) {
 // ------------------------------------------------------
 
 glm::fvec2 render_target::coord_to_world_pos(glm::ivec2 t_window_coord) {
-    const camera& v = get_view();
+    const view& v = get_view();
     glm::fvec2 vsize = v.get_size();
 
     auto vp = v.get_viewport();
@@ -71,7 +67,7 @@ glm::fvec2 render_target::coord_to_world_pos(glm::ivec2 t_window_coord) {
 }
 
 glm::ivec2 render_target::world_pos_to_coord(glm::fvec2 t_world_coord) {
-    const camera& v = get_view();
+    const view& v = get_view();
     glm::fvec2 vsize = v.get_size();
 
     auto vp = v.get_viewport();

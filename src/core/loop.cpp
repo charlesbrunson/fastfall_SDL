@@ -37,7 +37,7 @@ void draw(application_list& t_app_list, window& t_window) {
 
 void update_view(application_list& t_app_list, window& t_window) {
     if (!t_app_list.empty()) {
-        camera cam = t_window.get_view();
+        view cam = t_window.get_view();
         application* app = t_app_list.get_active_app();
         auto cam_pos = app->get_view_pos();
         auto cam_zoom = app->get_view_zoom();
@@ -62,12 +62,11 @@ void sleep(clock<>& t_clock) {
 }
 
 bool process_events(clock<>& t_clock, application_list& t_app_list, window& t_window) {
-    bool discardAllMousePresses = false;
-
-    bool should_close = false;
-
     SDL_Event event;
     auto event_count = 0u;
+
+    bool gained_focus = false;
+    bool should_close = false;
 
     auto& imgui_io = ImGui::GetIO();
 
@@ -85,13 +84,10 @@ bool process_events(clock<>& t_clock, application_list& t_app_list, window& t_wi
     while (SDL_PollEvent(&event)) {
         event_count++;
         ImGui_ImplSDL2_ProcessEvent(&event);
-        if (imgui_io.WantCaptureMouse && is_mouse_event(event.type)) {
+        if ((imgui_io.WantCaptureMouse || gained_focus) && is_mouse_event(event.type)) {
             continue;
         }
         if (imgui_io.WantCaptureKeyboard && is_key_event(event.type)) {
-            continue;
-        }
-        if (discardAllMousePresses && (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP)) {
             continue;
         }
 
@@ -108,7 +104,7 @@ bool process_events(clock<>& t_clock, application_list& t_app_list, window& t_wi
                 should_close = true;
                 break;
             case SDL_WINDOWEVENT_FOCUS_GAINED:
-                discardAllMousePresses = true;
+                gained_focus = true;
                 break;
             }
             break;
@@ -120,9 +116,9 @@ bool process_events(clock<>& t_clock, application_list& t_app_list, window& t_wi
 void update_imgui(window& t_win) {
     static bool show_demo = true;
     imgui_new_frame();
-    ImGui::ShowDemoWindow(&show_demo);
+    if (show_demo)
+        ImGui::ShowDemoWindow(&show_demo);
     imgui_render();
-
 }
 
 // -----------------------------------------------------------------------------
@@ -135,8 +131,8 @@ bool loop::run_single_thread() {
     draw(m_app_list, m_window);
 
     m_window.show(true);
-
     m_running = true;
+
     while (is_running() && !m_app_list.empty()) {
         tick = update_timer(m_clock);
         m_uptime += tick.deltatime;
@@ -153,11 +149,50 @@ bool loop::run_single_thread() {
 
     m_window.show(false);
     m_running = false;
+
     return true;
 }
 
 bool loop::run_dual_thread() {
 
+    tick_info tick{};
+    predraw(tick, m_app_list, m_window);
+    update_view(m_app_list, m_window);
+    draw(m_app_list, m_window);
+
+    m_window.show(true);
+    m_running = true;
+
+    std::barrier<> bar{ 2 };
+
+    m_clock.reset();
+    std::thread update_thread{[&]{
+        while (is_running() && !m_app_list.empty()) {
+            bar.arrive_and_wait();
+            update_apps(tick, m_app_list, m_clock.upsDuration());
+            bar.arrive_and_wait();
+            predraw(tick, m_app_list, m_window);
+            update_app_list(m_app_list);
+        }
+    }};
+
+    while (is_running() && !m_app_list.empty()) {
+        tick = update_timer(m_clock);
+        m_uptime += tick.deltatime;
+        m_running &= process_events(m_clock, m_app_list, m_window);
+        bar.arrive_and_wait();
+        update_view(m_app_list, m_window);
+        draw(m_app_list, m_window);
+        bar.arrive_and_wait();
+        update_imgui(m_window);
+        display(m_window);
+        sleep(m_clock);
+    }
+
+    m_window.show(false);
+    m_running = false;
+
+    update_thread.join();
     return true;
 }
 
