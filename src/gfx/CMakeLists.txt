@@ -5,4 +5,5 @@ target_sources(ffengine
     window.cpp
     view.cpp
     render_target.cpp
+    shader.cpp
 )
