@@ -52,34 +52,34 @@ void render_target::draw(const draw_call& draw) {
 
 // ------------------------------------------------------
 
-glm::fvec2 render_target::coord_to_world_pos(glm::ivec2 t_window_coord) {
+fvec2 render_target::coord_to_world_pos(ivec2 t_window_coord) {
     const view& v = get_view();
-    glm::fvec2 vsize = v.get_size();
+    fvec2 vsize = v.get_size();
 
     auto vp = v.get_viewport();
-    glm::fvec2 vzoom = glm::fvec2(vp.width / vsize.x, vp.height / vsize.y);
-    glm::fvec2 viewcenter{ vp.left + vp.width / 2, vp.top + vp.height / 2 };
+    fvec2 vzoom = fvec2(vp.width / vsize.x, vp.height / vsize.y);
+    fvec2 viewcenter{ vp.left + vp.width / 2, vp.top + vp.height / 2 };
 
-    glm::fvec2 world_coord = (glm::fvec2{ t_window_coord } - viewcenter) / vzoom;
+    fvec2 world_coord = (fvec2{ t_window_coord } - viewcenter) / vzoom;
     world_coord += v.get_center();
 
     return world_coord;
 }
 
-glm::ivec2 render_target::world_pos_to_coord(glm::fvec2 t_world_coord) {
+ivec2 render_target::world_pos_to_coord(fvec2 t_world_coord) {
     const view& v = get_view();
-    glm::fvec2 vsize = v.get_size();
+    fvec2 vsize = v.get_size();
 
     auto vp = v.get_viewport();
-    glm::fvec2 vzoom = glm::fvec2(vp.width / vsize.x, vp.height / vsize.y);
-    glm::fvec2 viewcenter{ vp.left + vp.width / 2, vp.left + vp.height / 2 };
+    fvec2 vzoom = fvec2(vp.width / vsize.x, vp.height / vsize.y);
+    fvec2 viewcenter{ vp.left + vp.width / 2, vp.left + vp.height / 2 };
 
-    glm::fvec2 world_coord{ t_world_coord };
+    fvec2 world_coord{ t_world_coord };
     world_coord -= v.get_center();
     world_coord *= vzoom;
     world_coord += viewcenter;
 
-    return glm::ivec2{ roundf(world_coord.x), roundf(world_coord.y) };
+    return ivec2{ roundf(world_coord.x), roundf(world_coord.y) };
 }
 
 // ------------------------------------------------------

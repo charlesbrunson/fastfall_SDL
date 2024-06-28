@@ -1,7 +1,5 @@
 #pragma once
 
-#include "glm/glm.hpp"
-
 #include <string>
 #include <string_view>
 #include <vector>
@@ -15,30 +13,15 @@ enum class uniform_type {
     Float,
 };
 
-enum class uniform_format {
-    Vec1,
-    Vec2,
-    Vec3,
-    Vec4,
-
-    Mat2x2,
-    Mat3x3,
-    Mat4x4,
-
-    Mat2x3,
-    Mat3x2,
-    Mat2x4,
-    Mat4x2,
-    Mat3x4,
-    Mat4x3,
-};
 
 struct uniform {
     char parameter_name[32];
     unsigned location;
 
     uniform_type type;
-    uniform_format format;
+    uint8_t extent1;
+    uint8_t extent2;
+
     unsigned count;
     bool transpose = false;
 };

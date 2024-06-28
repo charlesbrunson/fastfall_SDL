@@ -3,9 +3,8 @@
 #include <string_view>
 #include <memory>
 
+#include "ff/util/math.hpp"
 #include "render_target.hpp"
-
-#include "glm/vec2.hpp"
 
 namespace ff {
 
@@ -19,7 +18,7 @@ enum class display_mode {
 class window : public render_target {
 public:
 	window(bool t_start_hidden = true);
-	window(std::string_view t_title, glm::uvec2 t_size, bool t_start_hidden = true);
+	window(std::string_view t_title, uvec2 t_size, bool t_start_hidden = true);
     window(const window&) = delete;
     window& operator=(const window&) = delete;
     window(window&&) noexcept;
@@ -31,14 +30,14 @@ public:
     void set_vsync(bool t_enable = true);
     void show(bool t_visible = true);
 
-	void set_size(glm::uvec2 t_size);
-	void set_position(glm::ivec2 t_pos);
+	void set_size(uvec2 t_size);
+	void set_position(ivec2 t_pos);
 	void set_centered();
 	void set_display_mode(display_mode t_set);
 	void set_title(std::string_view title);
 
-    [[nodiscard]] glm::ivec2 position();
-    [[nodiscard]] glm::ivec2 size() const override;
+    [[nodiscard]] ivec2 position();
+    [[nodiscard]] ivec2 size() const override;
     [[nodiscard]] unsigned id() const;
 
 	void make_active();

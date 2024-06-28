@@ -2,11 +2,11 @@
 
 #include <cstdint>
 
-#include "glm/glm.hpp"
+#include "ff/util/math.hpp"
 
 namespace ff {
 
-struct color : glm::u8vec4 {
+struct color : u8vec4 {
 
 	constexpr color()
 		: color(0, 0, 0, 255u)
@@ -14,7 +14,7 @@ struct color : glm::u8vec4 {
 
 	}
 	constexpr color(uint8_t t_red, uint8_t t_green, uint8_t t_blue, uint8_t t_alpha = 255)
-		: glm::u8vec4{ t_red, t_green, t_blue, t_alpha }
+		: u8vec4{ t_red, t_green, t_blue, t_alpha }
 	{
 	}
 

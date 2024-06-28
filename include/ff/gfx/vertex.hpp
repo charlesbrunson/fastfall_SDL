@@ -1,8 +1,6 @@
 #pragma once
 
 #include "color.hpp"
-#include "glm/vec2.hpp"
-#include "glm/vec3.hpp"
 
 #include <tuple>
 #include <array>
@@ -135,8 +133,8 @@ std::array<attribute_info, V::attributes::size> get_vertex_attribute_info() {
 // ---------------------------------------------------------------------------------------------------------------------
 
 struct vertex {
-    glm::vec<3, float> pos;
-    glm::vec<2, float> tex_pos;
+    vec<3, float> pos;
+    vec<2, float> tex_pos;
     color col;
 
     using attributes = v_attr_list<

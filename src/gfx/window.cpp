@@ -24,7 +24,7 @@ window::window(bool start_hidden)
 	init();
 }
 
-window::window(std::string_view t_title, glm::uvec2 t_size, bool t_start_hidden)
+window::window(std::string_view t_title, uvec2 t_size, bool t_start_hidden)
 	: // RenderTarget(),
 	m_window_impl{ SDL_CreateWindow(
 		t_title.data(),
@@ -134,12 +134,12 @@ void window::set_borderless(bool t_enable) {
 #endif
 }
 
-void window::set_size(glm::uvec2 size) {
+void window::set_size(uvec2 size) {
 	assert(size.x > 0 && size.y > 0);
 	SDL_SetWindowSize((SDL_Window*)m_window_impl, size.x, size.y);
 }
 
-void window::set_position(glm::ivec2 pos) {
+void window::set_position(ivec2 pos) {
 	SDL_SetWindowPosition((SDL_Window*)m_window_impl, pos.x, pos.y);
 }
 
@@ -198,8 +198,8 @@ void window::make_active()
 }
 
 
-glm::ivec2 window::position() {
-	glm::ivec2 r;
+ivec2 window::position() {
+	ivec2 r;
 	SDL_GetWindowPosition((SDL_Window*)m_window_impl, &r.x, &r.y);
 	return r;
 }
@@ -212,8 +212,8 @@ void window::display() {
     //TracyGpuCollect;
 }
 
-glm::ivec2 window::size() const {
-	glm::ivec2 size;
+ivec2 window::size() const {
+	ivec2 size;
 	SDL_GetWindowSize((SDL_Window*)m_window_impl, &size.x, &size.y);
 	return size;
 }

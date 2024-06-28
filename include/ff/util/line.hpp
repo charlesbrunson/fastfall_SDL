@@ -1,7 +1,8 @@
 #pragma once
 
 #include <stdexcept>
-#include <glm/vec2.hpp>
+
+#include "math.hpp"
 
 namespace ff {
 
@@ -14,7 +15,7 @@ public:
 	{
 
 	};
-	constexpr line(glm::vec<2, T> point1, glm::vec<2, T> point2) :
+	constexpr line(vec<2, T> point1, vec<2, T> point2) :
 		p1(point1),
 		p2(point2)
 	{
@@ -29,16 +30,16 @@ public:
 
 	};
 
-    glm::vec<2, T> p1;
-    glm::vec<2, T> p2;
+    vec<2, T> p1;
+    vec<2, T> p2;
 
-	constexpr inline glm::vec<2, T>& operator[](std::size_t ndx) {
+	constexpr inline vec<2, T>& operator[](std::size_t ndx) {
 		if (ndx >= 2)
 			throw std::out_of_range("out of range");
 
 		return ndx == 0 ? p1 : p2;
 	};
-	constexpr inline const glm::vec<2, T>& operator[](std::size_t ndx) const {
+	constexpr inline const vec<2, T>& operator[](std::size_t ndx) const {
 		if (ndx >= 2)
 			throw std::out_of_range("out of range");
 

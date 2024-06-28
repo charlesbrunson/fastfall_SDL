@@ -17,7 +17,7 @@ public:
     render_target& operator=(render_target&&) noexcept;
     virtual ~render_target() = default;
 
-    virtual glm::ivec2 size() const = 0;
+    virtual ivec2 size() const = 0;
 
     void clear(color t_color = color::black);
 
@@ -35,8 +35,8 @@ public:
     // size_t get_draw_call_count() { return m_draw_call_counter; }
     // void reset_draw_call_count() { m_draw_call_counter = 0; }
 
-    glm::vec2 coord_to_world_pos(glm::ivec2 t_window_coord);
-    glm::ivec2 world_pos_to_coord(glm::vec2 t_world_coord);
+    vec2 coord_to_world_pos(ivec2 t_window_coord);
+    ivec2 world_pos_to_coord(vec2 t_world_coord);
 
 protected:
     bool m_just_cleared = true;
