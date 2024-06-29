@@ -44,45 +44,6 @@ concept is_vertex = requires (Vertex a) {
 } && sizeof(Vertex) == Vertex::attributes::memsize;
 
 struct attribute_info {
-    enum class type {
-        Uint8,
-        Uint16,
-        Uint32,
-        Int8,
-        Int16,
-        Int32,
-        Float,
-        Double
-    };
-
-    template<class T>
-    requires v_attr<1, T>::value
-    static constexpr type get_type_ndx() {
-        if      constexpr (std::same_as<T, u8>) {
-            return type::Uint8;
-        }
-        else if constexpr (std::same_as<T, u16>) {
-            return type::Uint16;
-        }
-        else if constexpr (std::same_as<T, u32>) {
-            return type::Uint32;
-        }
-        else if constexpr (std::same_as<T, i8>) {
-            return type::Int8;
-        }
-        else if constexpr (std::same_as<T, i16>) {
-            return type::Int16;
-        }
-        else if constexpr (std::same_as<T, i32>) {
-            return type::Int32;
-        }
-        else if constexpr (std::same_as<T, f32>) {
-            return type::Float;
-        }
-        else if constexpr (std::same_as<T, f64>) {
-            return type::Double;
-        }
-    }
 
     attribute_info() = default;
 
@@ -90,18 +51,18 @@ struct attribute_info {
     attribute_info(uint32_t ndx, v_attr<S, T, N>, uint32_t strd, const void* off)
         : index{ndx}
         , size{static_cast<int32_t>(S)}
-        , cmp_type{get_type_ndx<T>()}
+        , cmp_type{type_value_v<T>}
         , normalized{N}
         , stride{strd}
         , offset{off}
     {
     }
 
-    uint32_t    index      = 0;
-    int32_t     size       = 0;
-    type        cmp_type   = type::Uint8;
-    bool        normalized = false;
-    uint32_t    stride     = 0;
+    u32  index      = 0;
+    i32  size       = 0;
+    i32  cmp_type   = 0;
+    bool normalized = false;
+    u32  stride     = 0;
     const void* offset     = (void*)0;
 };
 

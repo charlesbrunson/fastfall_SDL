@@ -1,6 +1,6 @@
 #pragma once
 
-class vertex_buffer {
+class element_buffer {
 public:
     void bind() const;
 };

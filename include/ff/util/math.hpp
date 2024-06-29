@@ -25,6 +25,7 @@ template<> struct type_value<u16> { constexpr static auto value = 0x1403; };
 template<> struct type_value<i32> { constexpr static auto value = 0x1404; };
 template<> struct type_value<u32> { constexpr static auto value = 0x1405; };
 template<> struct type_value<f32> { constexpr static auto value = 0x1406; };
+template<> struct type_value<f64> { constexpr static auto value = 0x140A; };
 
 template<class T>
 constexpr static auto type_value_v = type_value<T>::value;
