@@ -1,5 +1,6 @@
 #pragma once
 
+#define SDL_MAIN_HANDLED
 #include "GL/glew.h"
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_opengl.h"

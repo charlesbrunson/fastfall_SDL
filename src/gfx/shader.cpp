@@ -47,7 +47,7 @@ i32 shader::get_loc(std::string_view t_param) const {
     return -1;
 }
 
-void shader::set(std::string_view t_param, void* t_valueptr, uniform_type t_type, u8vec2 t_extents, bool transpose, i32 t_size) const {
+void shader::set(std::string_view t_param, void* t_valueptr, int t_type, u8vec2 t_extents, bool transpose, i32 t_size) const {
     glUseProgram(m_id);
 
     i32 loc = get_loc(t_param);
@@ -57,7 +57,7 @@ void shader::set(std::string_view t_param, void* t_valueptr, uniform_type t_type
     }
 
     struct code {
-        uniform_type type;
+        int type;
         u8vec2 extents;
 
         constexpr operator u64() const {
@@ -70,75 +70,75 @@ void shader::set(std::string_view t_param, void* t_valueptr, uniform_type t_type
 
     switch (code{ t_type, t_extents }) {
         // float
-        case code{ uniform_type::Float, { 1, 1 } }:
+        case code{ type_value_v<f32>, { 1, 1 } }:
             glUniform1fv(loc, t_size, (float*)t_valueptr);
             break;
-        case code{ uniform_type::Float, { 2, 1 } }:
+        case code{ type_value_v<f32>, { 2, 1 } }:
             glUniform2fv(loc, t_size, (float*)t_valueptr);
             break;
-        case code{ uniform_type::Float, { 3, 1 } }:
+        case code{ type_value_v<f32>, { 3, 1 } }:
             glUniform3fv(loc, t_size, (float*)t_valueptr);
             break;
-        case code{ uniform_type::Float, { 4, 1 } }:
+        case code{ type_value_v<f32>, { 4, 1 } }:
             glUniform4fv(loc, t_size, (float*)t_valueptr);
             break;
-        case code{ uniform_type::Float, { 2, 2 } }:
+        case code{ type_value_v<f32>, { 2, 2 } }:
             glUniformMatrix2fv(loc, t_size, tp, (float*)t_valueptr);
             break;
-        case code{ uniform_type::Float, { 3, 3 } }:
+        case code{ type_value_v<f32>, { 3, 3 } }:
             glUniformMatrix3fv(loc, t_size, tp, (float*)t_valueptr);
             break;
-        case code{ uniform_type::Float, { 4, 4 } }:
+        case code{ type_value_v<f32>, { 4, 4 } }:
             glUniformMatrix4fv(loc, t_size, tp, (float*)t_valueptr);
             break;
-        case code{ uniform_type::Float, { 2, 3 } }:
+        case code{ type_value_v<f32>, { 2, 3 } }:
             glUniformMatrix2x3fv(loc, t_size, tp, (float*)t_valueptr);
             break;
-        case code{ uniform_type::Float, { 3, 2 } }:
+        case code{ type_value_v<f32>, { 3, 2 } }:
             glUniformMatrix3x2fv(loc, t_size, tp, (float*)t_valueptr);
             break;
-        case code{ uniform_type::Float, { 2, 4 } }:
+        case code{ type_value_v<f32>, { 2, 4 } }:
             glUniformMatrix2x4fv(loc, t_size, tp, (float*)t_valueptr);
             break;
-        case code{ uniform_type::Float, { 4, 2 } }:
+        case code{ type_value_v<f32>, { 4, 2 } }:
             glUniformMatrix4x2fv(loc, t_size, tp, (float*)t_valueptr);
             break;
-        case code{ uniform_type::Float, { 3, 4 } }:
+        case code{ type_value_v<f32>, { 3, 4 } }:
             glUniformMatrix4x2fv(loc, t_size, tp, (float*)t_valueptr);
             break;
-        case code{ uniform_type::Float, { 4, 3 } }:
+        case code{ type_value_v<f32>, { 4, 3 } }:
             glUniformMatrix4x2fv(loc, t_size, tp, (float*)t_valueptr);
             break;
 
         // int
-        case code{ uniform_type::Int, { 1, 1 } }:
+        case code{ type_value_v<i32>, { 1, 1 } }:
             glUniform1iv(loc, t_size, (i32*)t_valueptr);
             break;
-        case code{ uniform_type::Int, { 2, 1 } }:
+        case code{ type_value_v<i32>, { 2, 1 } }:
             glUniform2iv(loc, t_size, (i32*)t_valueptr);
             break;
-        case code{ uniform_type::Int, { 3, 1 } }:
+        case code{ type_value_v<i32>, { 3, 1 } }:
             glUniform3iv(loc, t_size, (i32*)t_valueptr);
             break;
-        case code{ uniform_type::Int, { 4, 1 } }:
+        case code{ type_value_v<i32>, { 4, 1 } }:
             glUniform4iv(loc, t_size, (i32*)t_valueptr);
 
         // uint
-        case code{ uniform_type::Uint, { 1, 1 } }:
+        case code{ type_value_v<u32>, { 1, 1 } }:
             glUniform1uiv(loc, t_size, (u32*)t_valueptr);
             break;
-        case code{ uniform_type::Uint, { 2, 1 } }:
+        case code{ type_value_v<u32>, { 2, 1 } }:
             glUniform2uiv(loc, t_size, (u32*)t_valueptr);
             break;
-        case code{ uniform_type::Uint, { 3, 1 } }:
+        case code{ type_value_v<u32>, { 3, 1 } }:
             glUniform3uiv(loc, t_size, (u32*)t_valueptr);
             break;
-        case code{ uniform_type::Uint, { 4, 1 } }:
+        case code{ type_value_v<u32>, { 4, 1 } }:
             glUniform4uiv(loc, t_size, (u32*)t_valueptr);
             break;
         default:
             ff::warn("no uniform set function for type {}, with extents {}",
-                     magic_enum::enum_name(t_type),
+                     typeid(t_type).name(),
                      glm::to_string(t_extents));
     }
 }

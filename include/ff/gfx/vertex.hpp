@@ -58,28 +58,28 @@ struct attribute_info {
     template<class T>
     requires v_attr<1, T>::value
     static constexpr type get_type_ndx() {
-        if      constexpr (std::same_as<T, uint8_t>) {
+        if      constexpr (std::same_as<T, u8>) {
             return type::Uint8;
         }
-        else if constexpr (std::same_as<T, uint16_t>) {
+        else if constexpr (std::same_as<T, u16>) {
             return type::Uint16;
         }
-        else if constexpr (std::same_as<T, uint32_t>) {
+        else if constexpr (std::same_as<T, u32>) {
             return type::Uint32;
         }
-        else if constexpr (std::same_as<T, int8_t>) {
+        else if constexpr (std::same_as<T, i8>) {
             return type::Int8;
         }
-        else if constexpr (std::same_as<T, int16_t>) {
+        else if constexpr (std::same_as<T, i16>) {
             return type::Int16;
         }
-        else if constexpr (std::same_as<T, int32_t>) {
+        else if constexpr (std::same_as<T, i32>) {
             return type::Int32;
         }
-        else if constexpr (std::same_as<T, float>) {
+        else if constexpr (std::same_as<T, f32>) {
             return type::Float;
         }
-        else if constexpr (std::same_as<T, double>) {
+        else if constexpr (std::same_as<T, f64>) {
             return type::Double;
         }
     }
@@ -133,18 +133,18 @@ std::array<attribute_info, V::attributes::size> get_vertex_attribute_info() {
 // ---------------------------------------------------------------------------------------------------------------------
 
 struct vertex {
-    vec<3, float> pos;
-    vec<2, float> tex_pos;
+    vec3 pos;
+    u16vec2 tex_pos;
     color col;
 
     using attributes = v_attr_list<
         v_attr<3, float>,
-        v_attr<2, float>,
+        v_attr<2, u16,     true>,
         v_attr<4, uint8_t, true>
     >;
 };
 static_assert(is_vertex<vertex>);
 static_assert(vertex::attributes::size == 3);
-static_assert(vertex::attributes::memsize == 24);
+static_assert(vertex::attributes::memsize == 20);
 
 }
