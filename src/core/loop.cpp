@@ -14,10 +14,10 @@ tick_info update_timer(clock<>& t_clock) {
 }
 
 void update_apps(tick_info& t_tick, application_list& t_app_list, seconds update_time) {
-    bool update = t_tick.update_count > 0;
-    while (t_tick.update_count > 0) {
+    auto update_count = t_tick.update_count;
+    while (update_count > 0) {
         t_app_list.get_active_app()->update(update_time);
-        --t_tick.update_count;
+        --update_count;
     }
 }
 
@@ -29,7 +29,8 @@ void predraw(tick_info& t_tick, application_list& t_app_list, window& t_window) 
 }
 
 void draw(application_list& t_app_list, window& t_window) {
-    if (application* app = t_app_list.get_active_app()) {
+    application* app = t_app_list.get_active_app();
+    if (app) {
         t_window.clear(app->get_clear_color());
         app->draw(t_window);
     }
@@ -127,7 +128,9 @@ bool loop::run_single_thread() {
     update_view(m_app_list, m_window);
     draw(m_app_list, m_window);
 
-    m_window.show(true);
+    if (!m_hidden)
+        m_window.show(true);
+
     m_running = true;
 
     while (is_running() && !m_app_list.empty()) {
@@ -144,7 +147,9 @@ bool loop::run_single_thread() {
         sleep(m_clock);
     }
 
-    m_window.show(false);
+    if (!m_hidden)
+        m_window.show(false);
+
     m_running = false;
 
     return true;
@@ -153,17 +158,19 @@ bool loop::run_single_thread() {
 bool loop::run_dual_thread() {
 
     tick_info tick{};
+    std::barrier<> bar{ 2 };
+
     predraw(tick, m_app_list, m_window);
     update_view(m_app_list, m_window);
     draw(m_app_list, m_window);
 
-    m_window.show(true);
+    if (!m_hidden)
+        m_window.show(true);
+
     m_running = true;
 
-    std::barrier<> bar{ 2 };
-
     m_clock.reset();
-    std::thread update_thread{[&]{
+    std::thread update_thread{[this, &tick, & bar]{
         while (is_running() && !m_app_list.empty()) {
             bar.arrive_and_wait();
             update_apps(tick, m_app_list, m_clock.upsDuration());
@@ -186,7 +193,9 @@ bool loop::run_dual_thread() {
         sleep(m_clock);
     }
 
-    m_window.show(false);
+    if (!m_hidden)
+        m_window.show(false);
+
     m_running = false;
 
     update_thread.join();
@@ -205,13 +214,12 @@ bool loop::run_web() {
 }
 
 
-loop::loop(std::unique_ptr<application>&& t_app, window&& t_window)
-: m_window{ std::move(t_window) }
-, m_app_list{ std::move(t_app) }
+loop::loop(window& t_window)
+: m_window{t_window}
 {
 }
 
-bool loop::run(loop_mode t_loop_mode) {
+bool loop::run(loop_mode t_loop_mode, bool hidden) {
 
 
 #if FF_HAS_EMSCRIPTEN

@@ -71,10 +71,10 @@ public:
         float interp = ((m_target_ups == m_target_fps) && (m_fixed_timescale == 1.0)) ? 1.f : m_interpolation;
         float deltatime = static_cast<float>(sec_rep{m_curr_now - m_last_now}.count());
 
-        return {
-            update_count,
-            m_interpolate ? interp : 1.f,
-            deltatime
+        return tick_info{
+            .update_count = update_count,
+            .interp       = m_interpolate ? interp : 1.f,
+            .deltatime    = deltatime
         };
     }
 

@@ -97,6 +97,7 @@ inline static constinit std::array<attribute_info, V::attributes::size> attribut
 // ---------------------------------------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
+/*
 struct vertex {
     vec3 pos;
     u16vec2 tex_pos;
@@ -111,5 +112,6 @@ struct vertex {
 static_assert(is_vertex<vertex>);
 static_assert(vertex::attributes::size == 3);
 static_assert(vertex::attributes::memsize == 20);
+*/
 
 }

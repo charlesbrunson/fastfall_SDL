@@ -2,6 +2,10 @@
 
 namespace ff {
 
+application_list::application_list()
+{
+}
+
 application_list::application_list(std::unique_ptr<application>&& t_app)
 : m_root(std::move(t_app))
 {
@@ -91,7 +95,6 @@ application* application_list::get_active_app() const {
         st->m_active = true;
     }
 	return st;
-
-};
+}
 
 }

@@ -9,6 +9,28 @@
 
 namespace ff {
 
+bool has_engine = false;
+
+engine::engine() {
+    if (has_engine)
+        throw std::runtime_error("engine already running");
+
+    info("Initializing ffengine");
+    sdl_init();
+    freetype_init();
+    has_engine = true;
+}
+
+engine::~engine() {
+    if (has_engine) {
+        info("Shutting down ffengine");
+        freetype_quit();
+        sdl_quit();
+        has_engine = false;
+    }
+}
+
+/*
 bool initialize() {
     info("Initializing ffengine");
     sdl_init();
@@ -22,5 +44,6 @@ bool shutdown() {
     sdl_quit();
     return true;
 }
+*/
 
 }

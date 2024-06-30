@@ -10,6 +10,7 @@ namespace ff {
 
 class application_list {
 public:
+    application_list();
     explicit application_list(std::unique_ptr<application>&& t_app);
 
 	void update();

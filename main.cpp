@@ -56,38 +56,60 @@ vertex vertices[] = {
     { {  0.0f,  0.5f, 0.0f }, ff::color::blue }  // top
 };
 
-class test_app : public ff::application {
+using namespace ff;
+
+class test_app : public application {
 public:
     test_app()
-    : ff::application{ "test_app" }
+    : application{ "test_app" }
     , vbuf{ vertices }
     , varr{ vbuf }
     {
-        test_shader = *ff::shader_factory{}
+        test_shader = *shader_factory{}
             .add_vertex("vert.glsl", vert_src)
             .add_fragment("frag.glsl", frag_src)
             .build();
 
-        m_clear_color = ff::color::from_floats(0.2f, 0.3f, 0.3f, 1.0f);
+        m_clear_color = color::from_floats(0.2f, 0.3f, 0.3f, 1.0f);
     };
 
-    void update(ff::seconds deltaTime) override {
-        time_prev = time_next;
-        time_next += deltaTime;
+    void update(seconds deltatime) override {
+
     };
 
-    void predraw(ff::tick_info predraw_state, ff::render_info win_info) override {
+    void predraw(tick_info predraw_state, render_info win_info) override {
+        if (predraw_state.update_count) {
+            time_prev = time_next;
+            time_next += predraw_state.deltatime;
+        }
         time = std::lerp(time_prev, time_next, predraw_state.interp);
     };
 
-    void draw(const ff::render_target& t_target) override {
+    void draw(const render_target& t_target) override {
 
-        glViewport(0, 0, t_target.size().x, t_target.size().y);
+        auto size = t_target.size();
+        glViewport(0, 0, size.x, size.y);
+
+        fvec2 sizef = size;
+
+        auto model = mat4{ 1.f };
+        model = translate(model, vec3{ 100, 200, 0 });
+        model = rotate(   model, (float)time * 2.f, vec3{ 0.f, 1.f, 0.f });
+        model = scale(    model, vec3{ 100, -100, 0 });
+
+        mat4 view = lookAt(
+                vec3{0.f, 0.f, -1.f},
+                vec3{0.f, 0.f, 0.f},
+                vec3{0.f, -1.f, 0.f});
+
+        mat4 proj = ortho(
+                -0.5f * sizef.x, 0.5f * sizef.x, -0.5f * sizef.y, 0.5f * sizef.y,
+                -1000.f, 1000.f);
 
         test_shader.bind();
-        test_shader.set("uView",  glm::mat4{ 1 });
-        test_shader.set("uModel", glm::rotate(glm::mat4{ 1 }, (float)time, glm::vec3(0.f, 1.f, 0.f)));
-        test_shader.set("uProj",  glm::ortho(-1.f, 1.f, -1.f, 1.f));
+        test_shader.set("uView",  view);
+        test_shader.set("uModel", model);
+        test_shader.set("uProj",  proj);
 
         varr.bind();
         glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -100,25 +122,19 @@ public:
 private:
     bool show_demo = true;
 
-    ff::seconds time_prev = 0.f;
-    ff::seconds time_next = 0.f;
-    ff::seconds time = 0.f;
+    seconds time_prev = 0.f;
+    seconds time_next = 0.f;
+    seconds time = 0.f;
 
-
-    ff::shader test_shader;
-    ff::vertex_buffer vbuf;
-    ff::vertex_array<vertex> varr;
-
+    shader test_shader;
+    vertex_buffer vbuf;
+    vertex_array<vertex> varr;
 };
 
 int main(int argc, char* argv[]) {
-    ff::initialize();
-    {
-        ff::loop loop{
-            std::make_unique<test_app>(),
-            ff::window{"ffengine", {800, 600}}
-        };
-        loop.run(ff::loop_mode::SingleThread);
-    }
-    ff::shutdown();
+    engine engine;
+    window window{ "ffengine", { 800, 600 } };
+    loop loop{ window };
+    loop.set_app<test_app>();
+    loop.run(loop_mode::DualThread);
 }
