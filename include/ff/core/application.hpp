@@ -4,6 +4,7 @@
 #include "ff/core/event.hpp"
 #include "ff/gfx/color.hpp"
 #include "ff/gfx/view.hpp"
+#include "ff/gfx/render_target.hpp"
 
 #include <assert.h>
 #include <type_traits>
@@ -14,8 +15,8 @@
 
 namespace ff {
 
-struct window_info {
-    glm::uvec2 window_size;
+struct render_info {
+    uvec2 window_size;
 };
 
 enum class application_action {
@@ -49,7 +50,8 @@ public:
     virtual ~application() = default;
 
 	virtual void update(seconds t_deltatime) = 0;
-	virtual void predraw(tick_info t_tick, window_info t_win_info) = 0;
+	virtual void predraw(tick_info t_tick, render_info t_win_info) = 0;
+    virtual void draw(const render_target& t_target) {};
 
     virtual bool push_event(const SDL_Event& t_event) { return false; };
     virtual void update_imgui() {};

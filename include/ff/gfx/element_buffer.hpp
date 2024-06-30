@@ -2,5 +2,5 @@
 
 class element_buffer {
 public:
-    void bind() const;
+    void bind() const {};
 };

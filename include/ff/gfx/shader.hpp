@@ -18,6 +18,7 @@ concept uniform_datatype = (std::same_as<T, f32> || std::same_as<T, i32> || std:
 struct shader_uniform {
     char name[32] = {};
     i32 id   = -1;
+    i32 loc  = -1;
     u32 type = 0;
     i32 size = 0;
 };
@@ -41,45 +42,46 @@ public:
     shader& operator=(shader&& t_shader) noexcept;
     ~shader();
 
+    void bind() const;
     inline u32 id() const { return m_id; }
     i32 get_loc(std::string_view t_param) const;
 
     template<detail::uniform_datatype T>
     inline void set(std::string_view t_param, const T& t_value) {
-        set(t_param, &t_value, type_value_v<T>, { 1, 1 }, false, 1);
+        set(t_param, (const void*)&t_value, type_value_v<T>, { 1, 1 }, false, 1);
     }
 
     template<detail::uniform_datatype T>
-    inline void set(std::string_view t_param, const std::span<T> t_value) {
-        set(t_param, &t_value[0], type_value_v<T>, { 1, 1 }, false, t_value.size());
+    inline void set(std::string_view t_param, std::span<T> t_value) {
+        set(t_param, (const void*)&t_value[0], type_value_v<T>, { 1, 1 }, false, t_value.size());
     }
 
-    template<detail::uniform_datatype T, u8 Extent1>
+    template<detail::uniform_datatype T, i32 Extent1>
     requires (Extent1 > 0 && Extent1 <= 4)
     inline void set(std::string_view t_param, const vec<Extent1, T>& t_value) {
-        set(t_param, &t_value, type_value_v<T>, { Extent1, 1 }, false, 1);
+        set(t_param, (const void*)value_ptr(t_value), type_value_v<T>, { Extent1, 1 }, false, 1);
     }
 
-    template<detail::uniform_datatype T, u8 Extent1>
+    template<detail::uniform_datatype T, i32 Extent1>
     requires (Extent1 > 0 && Extent1 <= 4)
-    inline void set(std::string_view t_param, const std::span<vec<Extent1, T>> t_value) {
-        set(t_param, &t_value[0], type_value_v<T>, { Extent1, 1 }, false, t_value.size());
+    inline void set(std::string_view t_param, std::span<vec<Extent1, T>> t_value) {
+        set(t_param, (const void*)value_ptr(t_value[0]), type_value_v<T>, { Extent1, 1 }, false, t_value.size());
     }
 
-    template<detail::uniform_datatype T, u8 Extent1, u8 Extent2>
+    template<detail::uniform_datatype T, i32 Extent1, i32 Extent2>
     requires (Extent1 > 1 && Extent1 <= 4 && Extent2 > 1 && Extent2 <= 4)
     inline void set(std::string_view t_param, const mat<Extent1, Extent2, T>& t_value) {
-        set(t_param, &t_value, type_value_v<T>, { Extent1, Extent2 }, false, 1);
+        set(t_param, (const void*)value_ptr(t_value), type_value_v<T>, { Extent1, Extent2 }, false, 1);
     }
 
-    template<detail::uniform_datatype T, u8 Extent1, u8 Extent2>
+    template<detail::uniform_datatype T, i32 Extent1, i32 Extent2>
     requires (Extent1 > 1 && Extent1 <= 4 && Extent2 > 1 && Extent2 <= 4)
-    inline void set(std::string_view t_param, const std::span<mat<Extent1, Extent2, T>> t_value) {
-        set(t_param, &t_value[0], type_value_v<T>, { Extent1, Extent2 }, false, t_value.size());
+    inline void set(std::string_view t_param, std::span<mat<Extent1, Extent2, T>> t_value) {
+        set(t_param, (const void*)value_ptr(t_value[0]), type_value_v<T>, { Extent1, Extent2 }, false, t_value.size());
     }
 
 private:
-    void set(std::string_view t_param, void* t_valueptr, int t_type, u8vec2 t_extents, bool transpose, i32 t_size) const;
+    void set(std::string_view t_param, const void* t_valueptr, i32 t_type, u16vec2 t_extents, bool transpose, i32 t_size) const;
 
     std::vector<shader_uniform> m_uniforms;
     std::vector<shader_attribute> m_attributes;

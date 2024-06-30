@@ -38,6 +38,7 @@ void render_target::set_view(const view& n_view) {
 	m_view = n_view;
 
     auto viewport = m_view.get_viewport();
+
     glCheck(glViewport(
         viewport.left,
         viewport.top,

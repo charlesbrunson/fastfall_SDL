@@ -37,7 +37,7 @@ bool sdl_init() {
 #endif
 
     }
-    catch (sdl_error& err) {
+    catch (std::runtime_error& err) {
         ff::error("SDL2 init failed: {}", err.what());
         sdl_is_init = false;
         return sdl_is_init;

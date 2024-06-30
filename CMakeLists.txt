@@ -11,6 +11,8 @@ add_library(ffengine)
 add_subdirectory(src)
 add_subdirectory(test)
 
+target_compile_definitions(ffengine PUBLIC DEBUG)
+
 find_package(fmt        CONFIG REQUIRED)
 find_package(Freetype   CONFIG REQUIRED)
 find_package(GLEW       CONFIG REQUIRED)
@@ -43,9 +45,6 @@ target_link_libraries(ffengine PRIVATE spdlog::spdlog)
 target_link_libraries(ffengine PUBLIC glm::glm)
 target_compile_features(ffengine PUBLIC cxx_std_20)
 target_include_directories(ffengine PUBLIC include)
-
-
-
 
 add_executable(ffexample)
 target_compile_definitions(ffexample PUBLIC DEBUG)

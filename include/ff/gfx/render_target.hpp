@@ -43,7 +43,7 @@ protected:
     view m_view;
     void* m_gl_context;
     unsigned m_framebuffer = 0; // default framebuffer
-    std::optional<draw_call> m_prev_draw_call;
+    // std::optional<draw_call> m_prev_draw_call;
 
 private:
     void bind_framebuffer() const;

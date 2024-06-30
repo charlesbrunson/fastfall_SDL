@@ -4,7 +4,7 @@
 
 #include "ff/util/log.hpp"
 
-#if defined(DEBUG) && not defined(__EMSCRIPTEN__)
+#if not defined(__EMSCRIPTEN__)
 void glCheckError(const char* file, unsigned int line, const char* expression) {
     // Get the last error
 
@@ -76,7 +76,7 @@ void glCheckError(const char* file, unsigned int line, const char* expression) {
 #endif
 
 void GLAPIENTRY
-MessageCallback(GLenum source,
+gl_debug_callback(GLenum source,
                 GLenum type,
                 GLuint id,
                 GLenum severity,
@@ -124,7 +124,7 @@ bool glew_init() {
 
 #if not defined(__EMSCRIPTEN__)
     glCheck(glEnable(GL_DEBUG_OUTPUT));
-    glDebugMessageCallback(MessageCallback, 0);
+    glCheck(glDebugMessageCallback(gl_debug_callback, 0));
 #endif
 
     glCheck(glDisable(GL_CULL_FACE));

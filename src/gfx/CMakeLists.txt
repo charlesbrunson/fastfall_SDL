@@ -6,4 +6,6 @@ target_sources(ffengine
     view.cpp
     render_target.cpp
     shader.cpp
+    vertex_array.cpp
+    vertex_buffer.cpp
 )

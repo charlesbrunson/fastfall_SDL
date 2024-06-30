@@ -22,7 +22,7 @@ void update_apps(tick_info& t_tick, application_list& t_app_list, seconds update
 }
 
 void predraw(tick_info& t_tick, application_list& t_app_list, window& t_window) {
-    window_info win_info {
+    render_info win_info {
         .window_size = t_window.size()
     };
     t_app_list.get_active_app()->predraw(t_tick, win_info);
@@ -31,7 +31,7 @@ void predraw(tick_info& t_tick, application_list& t_app_list, window& t_window) 
 void draw(application_list& t_app_list, window& t_window) {
     if (application* app = t_app_list.get_active_app()) {
         t_window.clear(app->get_clear_color());
-        // t_target.draw(*app);
+        app->draw(t_window);
     }
 }
 

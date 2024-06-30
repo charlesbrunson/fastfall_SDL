@@ -4,6 +4,7 @@
 
 #include <tuple>
 #include <array>
+#include <span>
 
 namespace ff {
 
@@ -45,10 +46,10 @@ concept is_vertex = requires (Vertex a) {
 
 struct attribute_info {
 
-    attribute_info() = default;
+    constexpr attribute_info() = default;
 
     template<size_t S, class T, bool N = false>
-    attribute_info(uint32_t ndx, v_attr<S, T, N>, uint32_t strd, const void* off)
+    constexpr attribute_info(uint32_t ndx, v_attr<S, T, N>, uint32_t strd, size_t off)
         : index{ndx}
         , size{static_cast<int32_t>(S)}
         , cmp_type{type_value_v<T>}
@@ -63,21 +64,24 @@ struct attribute_info {
     i32  cmp_type   = 0;
     bool normalized = false;
     u32  stride     = 0;
-    const void* offset     = (void*)0;
+    size_t offset   = 0;
 };
 
 template<is_vertex V>
-std::array<attribute_info, V::attributes::size> get_vertex_attribute_info() {
+inline static constinit std::array<attribute_info, V::attributes::size> attribute_info_array_v = []() constexpr {
     std::array<attribute_info, V::attributes::size> array;
 
     using attr_list_type = typename V::attributes;
-    [&]<class... Ts>(v_attr_list<Ts...>) {
+    [&array]<class... Ts>(v_attr_list<Ts...>) constexpr {
         uint32_t index = 0;
         size_t offset = 0;
-        ([&]<size_t S, class T, bool N>(v_attr<S, T, N>) {
+        ([&array, &index, &offset]<size_t S, class T, bool N>(v_attr<S, T, N>) constexpr {
 
             array[index] = attribute_info{
-                index, v_attr<S, T, N>{}, static_cast<uint32_t>(sizeof(V)), (const void*)offset
+                index,
+                v_attr<S, T, N>{},
+                static_cast<uint32_t>(sizeof(V)),
+                offset
             };
 
             ++index;
@@ -87,7 +91,7 @@ std::array<attribute_info, V::attributes::size> get_vertex_attribute_info() {
     }(attr_list_type{});
 
     return array;
-}
+}();
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------

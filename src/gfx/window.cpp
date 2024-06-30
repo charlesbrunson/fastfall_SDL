@@ -47,7 +47,7 @@ window::window(window&& t_window) noexcept
     m_view = t_window.m_view;
     m_gl_context = t_window.m_gl_context;
     m_framebuffer = t_window.m_framebuffer;
-    m_prev_draw_call = t_window.m_prev_draw_call;
+    //m_prev_draw_call = t_window.m_prev_draw_call;
 
     t_window.m_window_impl = nullptr;
     t_window.m_has_imgui = false;
@@ -56,7 +56,7 @@ window::window(window&& t_window) noexcept
     t_window.m_view = {};
     t_window.m_gl_context = nullptr;
     t_window.m_framebuffer = 0;
-    t_window.m_prev_draw_call = {};
+    //t_window.m_prev_draw_call = {};
 }
 
 window& window::operator=(window&& t_window) noexcept {
@@ -67,7 +67,7 @@ window& window::operator=(window&& t_window) noexcept {
     m_view = t_window.m_view;
     m_gl_context = t_window.m_gl_context;
     m_framebuffer = t_window.m_framebuffer;
-    m_prev_draw_call = t_window.m_prev_draw_call;
+    //m_prev_draw_call = t_window.m_prev_draw_call;
 
     t_window.m_window_impl = nullptr;
     t_window.m_has_imgui = false;
@@ -76,7 +76,7 @@ window& window::operator=(window&& t_window) noexcept {
     t_window.m_view = {};
     t_window.m_gl_context = nullptr;
     t_window.m_framebuffer = 0;
-    t_window.m_prev_draw_call = {};
+    //t_window.m_prev_draw_call = {};
     return *this;
 }
 

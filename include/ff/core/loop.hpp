@@ -26,6 +26,9 @@ enum class loop_mode {
 class loop {
 public:
     explicit loop(std::unique_ptr<application>&& t_app, window&& t_window = window{});
+    ~loop() {
+        m_app_list.clear();
+    }
 
     bool run(loop_mode t_loop_mode);
     inline void stop() { m_running = false; }
