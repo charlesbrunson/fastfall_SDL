@@ -22,10 +22,13 @@ void update_apps(tick_info& t_tick, application_list& t_app_list, seconds update
 }
 
 void predraw(tick_info& t_tick, application_list& t_app_list, window& t_window) {
-    render_info win_info {
-        .window_size = t_window.size()
-    };
-    t_app_list.get_active_app()->predraw(t_tick, win_info);
+    if (auto app = t_app_list.get_active_app()) {
+        render_info win_info {
+                .window_size = t_window.size()
+        };
+
+        app->predraw(t_tick, win_info);
+    }
 }
 
 void draw(application_list& t_app_list, window& t_window) {
@@ -219,8 +222,9 @@ loop::loop(window& t_window)
 {
 }
 
-bool loop::run(loop_mode t_loop_mode, bool hidden) {
+bool loop::run(loop_mode t_loop_mode, bool t_hidden) {
 
+    m_hidden = t_hidden;
 
 #if FF_HAS_EMSCRIPTEN
     ff::info("Engine loop config: emscripten");
