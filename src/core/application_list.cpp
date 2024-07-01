@@ -70,14 +70,6 @@ void application_list::clear() {
 	m_root.reset();
 };
 
-color application_list::get_clear_color() const {
-	if (auto state = get_active_app()) {
-		return state->get_clear_color();
-	}
-	return color::black;
-
-}
-
 application* application_list::get_active_app() const {
 	application* st = m_root.get();
 	while (st) {

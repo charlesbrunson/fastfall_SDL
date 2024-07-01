@@ -17,7 +17,6 @@ public:
 	bool empty() const;
 	void clear();
 
-	color get_clear_color() const;
     application* get_active_app() const;
 
 protected:

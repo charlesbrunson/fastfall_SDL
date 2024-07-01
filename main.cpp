@@ -61,16 +61,11 @@ using namespace ff;
 class test_app : public application {
 public:
     test_app()
-    : application{ "test_app" }
+    : application{ "test_app", color::from_floats(0.2f, 0.3f, 0.3f, 1.0f) }
     , vbuf{ vertices }
     , varr{ vbuf }
+    , test_shader{ vert_src, frag_src }
     {
-        test_shader = *shader_factory{}
-            .add_vertex("vert.glsl", vert_src)
-            .add_fragment("frag.glsl", frag_src)
-            .build();
-
-        m_clear_color = color::from_floats(0.2f, 0.3f, 0.3f, 1.0f);
     };
 
     void update(seconds deltatime) override {
