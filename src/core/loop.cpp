@@ -108,6 +108,13 @@ bool process_events(clock<>& t_clock, application_list& t_app_list, window& t_wi
                 break;
             }
             break;
+        case SDL_KEYDOWN:
+            if (event.key.windowID == t_window.id()
+             && event.key.keysym.sym == SDL_KeyCode::SDLK_ESCAPE)
+            {
+                should_close = true;
+            }
+            break;
         }
     }
     return !should_close;
