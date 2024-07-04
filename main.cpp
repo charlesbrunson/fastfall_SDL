@@ -8,6 +8,7 @@
 
 #include "ff/gfx/shader.hpp"
 #include "ff/gfx/gpu_buffer.hpp"
+#include "ff/gfx/vertex_array.hpp"
 
 #include "ff/util/log.hpp"
 
@@ -48,7 +49,6 @@ struct vertex {
     using normalized = std::index_sequence<1>;
 };
 
-
 vertex vertices[] = {
     { { -0.5f, -0.5f, 0.0f }, ff::color::red }, // left
     { {  0.5f, -0.5f, 0.0f }, ff::color::green }, // right
@@ -61,17 +61,11 @@ public:
     : ff::application{ "test_app" }
     , vbuf{ vertices }
     , varr{}
+    , test_shader{ vert_src, frag_src }
     {
-        test_shader = *ff::shader_factory{}
-            .add_vertex("vert.glsl", vert_src)
-            .add_fragment("frag.glsl", frag_src)
-            .build();
-
         m_clear_color = ff::color::from_floats(0.2f, 0.3f, 0.3f, 1.0f);
 
         varr.assign_vertex_buffer(0, vbuf);
-
-        ff::info("{}", "lmao");
     };
 
     void update(ff::seconds deltaTime) override {
@@ -115,13 +109,9 @@ private:
 };
 
 int main(int argc, char* argv[]) {
-    ff::initialize();
-    {
-        ff::loop loop{
-            std::make_unique<test_app>(),
-            ff::window{"ffengine", {800, 600}}
-        };
-        loop.run(ff::loop_mode::SingleThread);
-    }
-    ff::shutdown();
+    ff::engine engine;
+    ff::window window{ "ffengine", {800, 600} };
+    ff::loop loop{ window };
+    loop.set_app<test_app>();
+    loop.run(ff::loop_mode::SingleThread);
 }

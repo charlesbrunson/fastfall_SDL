@@ -29,8 +29,6 @@ struct shader_attribute {
     i32 size = 0;
 };
 
-class shader_factory;
-
 class shader {
 public:
     shader();
@@ -91,27 +89,5 @@ private:
     std::vector<shader_attribute> m_attributes;
     uint32_t m_id = 0;
 };
-
-/*
-class shader_factory {
-    struct compiled_shader {
-        bool compiled = false;
-        u32 id = 0;
-        std::string name;
-        std::string source;
-        std::string error;
-    };
-public:
-    shader_factory& add_vertex(std::string_view t_name, std::string_view t_src);
-    shader_factory& add_fragment(std::string_view t_name, std::string_view t_src);
-    std::optional<shader> build();
-
-private:
-    shader_factory& add_shader(std::string_view t_name, std::string_view t_src, int shader_type, std::optional<compiled_shader>& dest);
-
-    std::optional<compiled_shader> m_vertex_src;
-    std::optional<compiled_shader> m_fragment_src;
-};
-*/
 
 }
