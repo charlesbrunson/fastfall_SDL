@@ -7,19 +7,70 @@
 
 namespace ff {
 
+namespace detail {
+
+struct compiled_shader {
+    u32 id = 0;
+    std::string source;
+    std::string error;
+};
+
+std::optional<compiled_shader> add_shader(std::string_view t_src, int shader_type) {
+    compiled_shader shader_info{
+        .id       = glCreateShader(shader_type),
+        .source   = std::string{t_src},
+        .error    = {}
+    };
+
+    char *src = shader_info.source.data();
+    i32 len = static_cast<i32>(shader_info.source.length());
+    glCheck(glShaderSource(shader_info.id, 1, &src, &len));
+    glCheck(glCompileShader(shader_info.id));
+
+    i32 result;
+    glCheck(glGetShaderiv(shader_info.id, GL_COMPILE_STATUS, &result));
+    if (!result) {
+        constexpr u32 log_len = 1024;
+        char log_info[log_len];
+        i32 out_len;
+        glCheck(glGetShaderInfoLog(shader_info.id, log_len, &out_len, &log_info[0]));
+
+        shader_info.error = {&log_info[0], static_cast<u32>(out_len)};
+        ff::error("shader compilation: {}", shader_info.error);
+
+        glCheck(glDeleteShader(shader_info.id));
+        return {};
+    }
+    return shader_info;
+}
+
+}
+
 shader::shader()
-    : m_id{ 0 }
-    , m_uniforms{}
-    , m_attributes{}
+: m_id{ 0 }
+, m_uniforms{}
+, m_attributes{}
 {
 }
 
+shader::shader(std::string_view t_vert_src, std::string_view t_frag_src)
+{
+    auto vert_shader = detail::add_shader(t_vert_src, GL_VERTEX_SHADER);
+    auto frag_shader = detail::add_shader(t_frag_src, GL_FRAGMENT_SHADER);
+
+    if (vert_shader && frag_shader) {
+        build(vert_shader->id, frag_shader->id);
+    }
+}
+
+/*
 shader::shader(u32 t_id, std::vector<shader_uniform>&& t_uniforms, std::vector<shader_attribute>&& t_attributes)
 : m_id{ t_id }
 , m_uniforms{ std::move(t_uniforms) }
 , m_attributes{ std::move(t_attributes) }
 {
 }
+*/
 
 shader::shader(shader&& t_shader) noexcept {
     *this = std::move(t_shader);
@@ -146,6 +197,65 @@ void shader::set(std::string_view t_param, const void* t_valueptr, i32 t_type, u
     }
 }
 
+bool shader::build(u32 t_vert_id, u32 t_frag_id) {
+
+    m_id = glCreateProgram();
+    glCheck(glAttachShader(m_id, t_vert_id));
+    glCheck(glAttachShader(m_id, t_frag_id));
+    glCheck(glLinkProgram(m_id));
+
+    i32 result;
+    bool linked = true;
+    glCheck(glGetProgramiv(m_id, GL_LINK_STATUS, &result));
+    if (!result) {
+        constexpr u32 log_len = 1024;
+        char log_info[log_len];
+        i32 out_len;
+        glCheck(glGetProgramInfoLog(m_id, log_len, &out_len, &log_info[0]));
+
+        std::string_view log_msg{ &log_info[0], static_cast<u32>(out_len) };
+        ff::error("shader linker: {}", log_msg);
+
+        glCheck(glDeleteProgram(m_id));
+        m_id = 0;
+        linked = false;
+    }
+
+    glCheck(glDeleteShader(t_vert_id));
+    glCheck(glDeleteShader(t_frag_id));
+
+    if (linked) {
+        int count;
+        constexpr int bufsize = 32;
+        int buflen = 0;
+
+        shader_uniform uni_info;
+        glCheck(glGetProgramiv(m_id, GL_ACTIVE_UNIFORMS, &count));
+        m_uniforms = std::vector<shader_uniform>(count);
+        for (uni_info.id = 0; uni_info.id < count; uni_info.id++) {
+            memset(uni_info.name, 0, sizeof(uni_info.name));
+            glCheck(glGetActiveUniform(m_id, (GLuint)uni_info.id, bufsize, &buflen, &uni_info.size, &uni_info.type, uni_info.name));
+            uni_info.loc = glGetUniformLocation(m_id, uni_info.name);
+            m_uniforms[uni_info.id] = uni_info;
+            ff::info("uniform   {} - {}: {}[{}]", uni_info.id, uni_info.name, uni_info.type, uni_info.size);
+        }
+
+        shader_attribute attr_info;
+        glCheck(glGetProgramiv(m_id, GL_ACTIVE_ATTRIBUTES, &count));
+        m_attributes = std::vector<shader_attribute>(count);
+        for (attr_info.id = 0; attr_info.id < count; attr_info.id++) {
+            memset(attr_info.name, 0, sizeof(attr_info.name));
+            glCheck(glGetActiveAttrib(m_id, (GLuint)attr_info.id, bufsize, &buflen, &attr_info.size, &attr_info.type, attr_info.name));
+            m_attributes[attr_info.id] = attr_info;
+            ff::info("attribute {} - {}: {}[{}]", attr_info.id, attr_info.name, attr_info.type, attr_info.size);
+        }
+        return true;
+    }
+    return false;
+}
+
+/*
+
 shader_factory& shader_factory::add_vertex(std::string_view t_name, std::string_view t_src) {
     return add_shader(t_name, t_src, GL_VERTEX_SHADER, m_vertex_src);
 }
@@ -254,5 +364,7 @@ std::optional<shader> shader_factory::build() {
     }
     return {};
 }
+
+*/
 
 }

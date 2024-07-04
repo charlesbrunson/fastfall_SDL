@@ -32,10 +32,9 @@ struct shader_attribute {
 class shader_factory;
 
 class shader {
-    friend class shader_factory;
-    shader(u32 t_id, std::vector<shader_uniform>&& t_uniforms, std::vector<shader_attribute>&& t_attributes);
 public:
     shader();
+    shader(std::string_view t_vert_src, std::string_view t_frag_src);
     shader(const shader& t_shader) = delete;
     shader& operator=(const shader& t_shader) = delete;
     shader(shader&& t_shader) noexcept;
@@ -45,6 +44,9 @@ public:
     void bind() const;
     inline u32 id() const { return m_id; }
     i32 get_loc(std::string_view t_param) const;
+
+    [[nodiscard]] inline bool valid() const { return m_id != 0; }
+    [[nodiscard]] inline explicit operator bool() const { return m_id != 0; }
 
     template<detail::uniform_datatype T>
     inline void set(std::string_view t_param, const T& t_value) {
@@ -83,11 +85,14 @@ public:
 private:
     void set(std::string_view t_param, const void* t_valueptr, i32 t_type, u16vec2 t_extents, bool transpose, i32 t_size) const;
 
+    bool build(u32 t_vert_id, u32 t_frag_id);
+
     std::vector<shader_uniform> m_uniforms;
     std::vector<shader_attribute> m_attributes;
     uint32_t m_id = 0;
 };
 
+/*
 class shader_factory {
     struct compiled_shader {
         bool compiled = false;
@@ -107,5 +112,6 @@ private:
     std::optional<compiled_shader> m_vertex_src;
     std::optional<compiled_shader> m_fragment_src;
 };
+*/
 
 }

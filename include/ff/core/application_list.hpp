@@ -10,13 +10,13 @@ namespace ff {
 
 class application_list {
 public:
+    application_list();
     explicit application_list(std::unique_ptr<application>&& t_app);
 
 	void update();
 	bool empty() const;
 	void clear();
 
-	color get_clear_color() const;
     application* get_active_app() const;
 
 protected:

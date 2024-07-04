@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ff/gfx/vertex_array.hpp"
-
 #include <variant>
 
 namespace ff {

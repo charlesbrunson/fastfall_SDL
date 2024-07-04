@@ -25,12 +25,14 @@ enum class loop_mode {
 
 class loop {
 public:
-    explicit loop(std::unique_ptr<application>&& t_app, window&& t_window = window{});
-    ~loop() {
-        m_app_list.clear();
+    loop(window& t_window);
+
+    template<std::derived_from<application> App, class... Args>
+    void set_app(Args&&... args) {
+        m_app_list = application_list{ std::make_unique<App>(std::forward<Args>(args)...) };
     }
 
-    bool run(loop_mode t_loop_mode);
+    bool run(loop_mode t_loop_mode, bool t_hidden = false);
     inline void stop() { m_running = false; }
 
     [[nodiscard]] inline bool is_running() const { return m_running; };
@@ -51,12 +53,13 @@ private:
     // bool m_pause_update = false;
     // bool m_step_update  = false;
 
+    bool m_hidden = false;
     bool m_running = false;
     seconds m_uptime = 0.0;
 
     clock<> m_clock;
     application_list m_app_list;
-    window m_window;
+    window& m_window;
 };
 
 }

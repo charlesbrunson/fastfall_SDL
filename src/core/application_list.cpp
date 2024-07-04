@@ -2,6 +2,10 @@
 
 namespace ff {
 
+application_list::application_list()
+{
+}
+
 application_list::application_list(std::unique_ptr<application>&& t_app)
 : m_root(std::move(t_app))
 {
@@ -66,14 +70,6 @@ void application_list::clear() {
 	m_root.reset();
 };
 
-color application_list::get_clear_color() const {
-	if (auto state = get_active_app()) {
-		return state->get_clear_color();
-	}
-	return color::black;
-
-}
-
 application* application_list::get_active_app() const {
 	application* st = m_root.get();
 	while (st) {
@@ -91,7 +87,6 @@ application* application_list::get_active_app() const {
         st->m_active = true;
     }
 	return st;
-
-};
+}
 
 }
