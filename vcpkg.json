@@ -20,12 +20,7 @@
   }, {
     "name" : "imgui",
     "version>=" : "1.90.7",
-    "features" : [
-      "freetype",
-      "opengl3-binding",
-      "sdl2-binding",
-      "docking-experimental"
-    ]
+    "features" : [ "freetype", "opengl3-binding", "sdl2-binding", "docking-experimental" ]
   }, {
     "name" : "implot",
     "version>=" : "0.16"
@@ -47,5 +42,8 @@
   }, {
     "name" : "rapidxml",
     "version>=" : "1.13#6"
+  }, {
+    "name" : "boost-pfr",
+    "version>=" : "1.85.0#2"
   } ]
 }

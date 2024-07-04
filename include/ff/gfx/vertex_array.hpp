@@ -1,60 +1,52 @@
 #pragma once
 
-#include "vertex_buffer.hpp"
-
 #include "ff/util/math.hpp"
 
 #include "vertex.hpp"
-#include "vertex_buffer.hpp"
-#include "element_buffer.hpp"
+#include "gpu_buffer.hpp"
 
 #include <vector>
 #include <span>
 
 namespace ff {
 
-class vertex_array_base {
+
+class vertex_array {
 public:
-    vertex_array_base(const vertex_array_base&) = delete;
-    vertex_array_base& operator=(const vertex_array_base&) = delete;
+    struct loc_attr {
+        u32 loc;
+        const vertex_attribute* attr;
+    };
 
-    vertex_array_base(vertex_array_base&& t_vertbuf) noexcept;
-    vertex_array_base& operator=(vertex_array_base&& t_vertbuf) noexcept;
-    ~vertex_array_base();
+    vertex_array();
 
-    [[nodiscard]] u32 id() const { return m_id; }
-    [[nodiscard]] auto attributes() const { return std::span{ m_attributes }; }
-    [[nodiscard]] const vertex_buffer* vertex_buffer_ptr() const { return m_vertbuf; }
-    [[nodiscard]] const element_buffer* element_buffer_ptr() const { return m_elembuf; }
+    vertex_array(const vertex_array&) = delete;
+    vertex_array& operator=(const vertex_array&) = delete;
+
+    vertex_array(vertex_array&& t_vertbuf) noexcept;
+    vertex_array& operator=(vertex_array&& t_vertbuf) noexcept;
+
+    ~vertex_array();
 
     void bind() const;
+    inline u32 id() const { return m_id; }
+    inline const auto attributes() const { return std::span{m_attributes}; };
 
-protected:
-    vertex_array_base(const std::span<const attribute_info> t_attrs, vertex_buffer* t_vertbuf, element_buffer* t_elembuf);
+    template<is_vertex V, class I>
+    void assign_vertex_buffer(u32 start_loc, const gpu_buffer<V, I>& buf, u32 divisor = 0) {
+        assign_vertex_buffer(start_loc, buf.subspan(), divisor);
+    }
+
+    template<is_vertex V, class I>
+    void assign_vertex_buffer(u32 start_loc, gpu_span<V, I> buf, u32 divisor = 0) {
+        impl_assign_vertex_buffer(start_loc, buf.id(), vertex_traits<V>::attributes, divisor);
+    }
 
 private:
+    void impl_assign_vertex_buffer(u32 start_loc, u32 buf_id, std::span<const vertex_attribute> vattrs, u32 divisor);
+
     u32 m_id = 0;
-    std::vector<attribute_info> m_attributes;
-    vertex_buffer*  m_vertbuf = nullptr;
-    element_buffer* m_elembuf = nullptr;
-};
-
-template<is_vertex Vertex>
-class vertex_array : public vertex_array_base {
-public:
-    using vertex_type = Vertex;
-    constexpr static size_t component_count = Vertex::attributes::size;
-
-    // assume vertex data is interleaved
-    explicit vertex_array(vertex_buffer& t_vertbuf)
-    : vertex_array_base( attribute_info_array_v<Vertex>, &t_vertbuf, nullptr )
-    {
-    }
-
-    vertex_array(vertex_buffer& t_vertbuf, element_buffer& t_elembuf)
-    : vertex_array_base( attribute_info_array_v<Vertex>, &t_vertbuf, &t_elembuf )
-    {
-    }
+    std::vector<loc_attr> m_attributes;
 };
 
 }

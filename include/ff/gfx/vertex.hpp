@@ -1,64 +1,92 @@
 #pragma once
 
-#include "color.hpp"
+#include "ff/util/math.hpp"
+#include "ff/gfx/color.hpp"
 
-#include <tuple>
+#include <type_traits>
 #include <array>
-#include <span>
+#include <tuple>
+
+#include <boost/pfr/core.hpp>
 
 namespace ff {
 
 template<size_t S>
 concept cmp_size = S > 0 && S <= 4;
 
-template<size_t S, class T, bool N = false>
-requires cmp_size<S>
-struct v_attr : public std::false_type {};
+template<class T> struct is_vertex_attr : public std::false_type {};
 
-template<size_t S, bool N> struct v_attr<S, uint8_t,  N>     : public std::true_type {};
-template<size_t S, bool N> struct v_attr<S, uint16_t, N>     : public std::true_type {};
-template<size_t S, bool N> struct v_attr<S, uint32_t, N>     : public std::true_type {};
-template<size_t S, bool N> struct v_attr<S, int8_t,   N>     : public std::true_type {};
-template<size_t S, bool N> struct v_attr<S, int16_t,  N>     : public std::true_type {};
-template<size_t S, bool N> struct v_attr<S, int32_t,  N>     : public std::true_type {};
-template<size_t S>         struct v_attr<S, float,    false> : public std::true_type {};
-template<size_t S>         struct v_attr<S, double,   false> : public std::true_type {};
+template<> struct is_vertex_attr<i8>  : public std::true_type {};
+template<> struct is_vertex_attr<i16> : public std::true_type {};
+template<> struct is_vertex_attr<i32> : public std::true_type {};
 
-template<class... Ts>
-requires (Ts::value && ...)
-constexpr size_t v_calc_attr_size() {
-    return ([]<size_t S, class T, bool N>(v_attr<S, T, N>) -> size_t {
-        return sizeof(T) * S;
-    }(Ts{}) + ... + 0);
+template<> struct is_vertex_attr<u8>  : public std::true_type {};
+template<> struct is_vertex_attr<u16> : public std::true_type {};
+template<> struct is_vertex_attr<u32> : public std::true_type {};
+
+template<> struct is_vertex_attr<f32> : public std::true_type {};
+template<> struct is_vertex_attr<f64> : public std::true_type {};
+
+template<> struct is_vertex_attr<color> : public std::true_type {};
+
+template<class T>
+inline constexpr bool is_vertex_attr_v = is_vertex_attr<T>::value;
+
+template<class T, size_t E1>
+requires (is_vertex_attr_v<T> && cmp_size<E1>)
+struct is_vertex_attr<vec<E1, T>> : public std::true_type {};
+
+template<class T, size_t E1, size_t E2>
+requires (is_vertex_attr_v<T> && cmp_size<E1> && cmp_size<E2>)
+struct is_vertex_attr<mat<E1, E2, T>> : public std::true_type {};
+
+template<class T>
+requires is_vertex_attr_v<T>
+struct vertex_attr_traits {
+    constexpr static uvec2 extents = { 1, 1 };
+    constexpr static size_t size = extents.x * extents.y;
+    using component_type = T;
 };
 
-template<class... Ts>
-requires (Ts::value && ...)
-struct v_attr_list {
-    constexpr static size_t size = sizeof...(Ts);
-    constexpr static size_t memsize = v_calc_attr_size<Ts...>();
+template<class T, size_t E1>
+requires is_vertex_attr_v<T>
+struct vertex_attr_traits<vec<E1, T>> {
+    constexpr static uvec2 extents = { E1, 1 };
+    constexpr static size_t size = extents.x * extents.y;
+    using component_type = T;
 };
 
-template<class Vertex, class... Ts>
-concept is_vertex = requires (Vertex a) {
-    std::same_as<typename Vertex::attributes, v_attr_list<Ts...>>;
-} && sizeof(Vertex) == Vertex::attributes::memsize;
+template<>
+struct vertex_attr_traits<color> : public vertex_attr_traits<u8vec4> {};
 
-struct attribute_info {
+template<class T, size_t E1, size_t E2>
+requires is_vertex_attr_v<T>
+struct vertex_attr_traits<mat<E1, E2, T>> {
+    constexpr static uvec2 extents = { E1, E2 };
+    constexpr static size_t size = extents.x * extents.y;
+    using component_type = T;
+};
 
-    constexpr attribute_info() = default;
+template<class T>
+constexpr bool validate_vertex_struct() {
+    using vertex_tuple = decltype(boost::pfr::structure_to_tuple(std::declval<T>()));
+    constexpr size_t size = std::tuple_size_v<vertex_tuple>;
 
-    template<size_t S, class T, bool N = false>
-    constexpr attribute_info(uint32_t ndx, v_attr<S, T, N>, uint32_t strd, size_t off)
-        : index{ndx}
-        , size{static_cast<int32_t>(S)}
-        , cmp_type{type_value_v<T>}
-        , normalized{N}
-        , stride{strd}
-        , offset{off}
-    {
-    }
+    return []<size_t... I>(std::index_sequence<I...> seq) {
+        return (is_vertex_attr_v<std::tuple_element_t<I, vertex_tuple>> && ...);
+    }(std::make_index_sequence<size>{});
+};
 
+template<class T> struct is_vertex_struct : public std::false_type {};
+
+template<class T>
+requires (std::is_standard_layout_v<T> && std::is_aggregate_v<T> && validate_vertex_struct<T>())
+struct is_vertex_struct<T> : public std::true_type {};
+
+template<class T>
+inline constexpr bool is_vertex_struct_v = is_vertex_struct<T>::value;
+
+struct vertex_attribute {
     u32  index      = 0;
     i32  size       = 0;
     i32  cmp_type   = 0;
@@ -67,49 +95,61 @@ struct attribute_info {
     size_t offset   = 0;
 };
 
-template<is_vertex V>
-inline static constinit std::array<attribute_info, V::attributes::size> attribute_info_array_v = []() constexpr {
-    std::array<attribute_info, V::attributes::size> array;
 
-    using attr_list_type = typename V::attributes;
-    [&array]<class... Ts>(v_attr_list<Ts...>) constexpr {
-        uint32_t index = 0;
-        size_t offset = 0;
-        ([&array, &index, &offset]<size_t S, class T, bool N>(v_attr<S, T, N>) constexpr {
-
-            array[index] = attribute_info{
-                index,
-                v_attr<S, T, N>{},
-                static_cast<uint32_t>(sizeof(V)),
-                offset
-            };
-
-            ++index;
-            offset += sizeof(T) * S;
-        }(Ts{}), ...);
-
-    }(attr_list_type{});
-
-    return array;
-}();
-
-// ---------------------------------------------------------------------------------------------------------------------
-// ---------------------------------------------------------------------------------------------------------------------
-// ---------------------------------------------------------------------------------------------------------------------
-
-struct vertex {
-    vec3 pos;
-    u16vec2 tex_pos;
-    color col;
-
-    using attributes = v_attr_list<
-        v_attr<3, float>,
-        v_attr<2, u16,     true>,
-        v_attr<4, uint8_t, true>
-    >;
+template<class T>
+concept has_normalized_attributes = requires(T x) {
+    { T::normalized::size() > 0 };
 };
-static_assert(is_vertex<vertex>);
-static_assert(vertex::attributes::size == 3);
-static_assert(vertex::attributes::memsize == 20);
+
+
+template<class T>
+requires is_vertex_struct_v<T>
+struct vertex_traits {
+    using tuple_t = decltype(boost::pfr::structure_to_tuple(std::declval<T>()));
+    constexpr static size_t size = std::tuple_size_v<tuple_t>;
+
+    constexpr static std::array<vertex_attribute, size> attributes = []() {
+        std::array<vertex_attribute, size> array;
+
+        auto is_normalized = [](size_t N) -> bool {
+            if constexpr ( has_normalized_attributes<T> ) {
+                return [N]<size_t... I>(std::index_sequence<I...> seq) {
+                    return ((N == I) || ...);
+                }( typename T::normalized{} );
+            }
+            else {
+                return false;
+            }
+        };
+
+        [&]<size_t... I>(std::index_sequence<I...> seq) {
+
+            uint32_t index = 0;
+            size_t offset = 0;
+            ([&]() {
+                size_t size = vertex_attr_traits<std::tuple_element_t<I, tuple_t>>::size;
+                i32 cmp_type = type_value_v<typename vertex_attr_traits<std::tuple_element_t<I, tuple_t>>::component_type>;
+
+                array[index] = vertex_attribute{
+                    .index      = index,
+                    .size       = (i32)size,
+                    .cmp_type   = cmp_type,
+                    .normalized = is_normalized(I),
+                    .stride     = sizeof(T),
+                    .offset     = offset,
+                };
+
+                ++index;
+                offset += sizeof(std::tuple_element_t<I, tuple_t>);
+            }(), ...);
+
+        }(std::make_index_sequence<size>{});
+
+        return array;
+    }();
+};
+
+template<class T>
+concept is_vertex = is_vertex_struct_v<T>;
 
 }

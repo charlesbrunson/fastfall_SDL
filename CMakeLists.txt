@@ -22,11 +22,11 @@ find_package(SDL2_image CONFIG REQUIRED)
 find_package(imgui      CONFIG REQUIRED)
 find_package(implot     CONFIG REQUIRED)
 find_package(spdlog     CONFIG REQUIRED)
+find_package(boost_pfr  CONFIG REQUIRED)
 
 find_path(RAPIDXML_INCLUDE_DIRS "rapidxml/rapidxml.hpp")
 target_include_directories(ffengine PRIVATE ${RAPIDXML_INCLUDE_DIRS})
 
-target_link_libraries(ffengine PRIVATE fmt::fmt)
 target_link_libraries(ffengine PRIVATE Freetype::Freetype)
 target_link_libraries(ffengine PRIVATE GLEW::GLEW)
 target_link_libraries(ffengine
@@ -38,11 +38,14 @@ target_link_libraries(ffengine
         PRIVATE
         $<IF:$<TARGET_EXISTS:SDL2_image::SDL2_image>,SDL2_image::SDL2_image,SDL2_image::SDL2_image-static>
 )
-target_link_libraries(ffengine PRIVATE imgui::imgui)
-target_link_libraries(ffengine PRIVATE implot::implot)
-target_link_libraries(ffengine PRIVATE spdlog::spdlog)
 
+target_link_libraries(ffengine PUBLIC fmt::fmt)
+target_link_libraries(ffengine PUBLIC imgui::imgui)
+target_link_libraries(ffengine PUBLIC implot::implot)
+target_link_libraries(ffengine PUBLIC spdlog::spdlog)
+target_link_libraries(ffengine PUBLIC Boost::pfr)
 target_link_libraries(ffengine PUBLIC glm::glm)
+
 target_compile_features(ffengine PUBLIC cxx_std_20)
 target_include_directories(ffengine PUBLIC include)
 

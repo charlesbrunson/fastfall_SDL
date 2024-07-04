@@ -7,7 +7,7 @@
 namespace ff {
 
 struct draw_call {
-    vertex_array_base& varr;
+
 };
 
 }

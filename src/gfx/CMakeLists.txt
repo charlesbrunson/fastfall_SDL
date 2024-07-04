@@ -7,5 +7,5 @@ target_sources(ffengine
     render_target.cpp
     shader.cpp
     vertex_array.cpp
-    vertex_buffer.cpp
+    gpu_buffer.cpp
 )

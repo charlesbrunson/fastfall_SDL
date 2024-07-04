@@ -5,9 +5,11 @@
 
 #include "ff/engine.hpp"
 #include "ff/core/loop.hpp"
+
 #include "ff/gfx/shader.hpp"
-#include "ff/gfx/vertex_array.hpp"
-#include "ff/gfx/vertex_buffer.hpp"
+#include "ff/gfx/gpu_buffer.hpp"
+
+#include "ff/util/log.hpp"
 
 constexpr std::string_view vert_src = R"(
 #version 330 core
@@ -41,14 +43,11 @@ void main()
 )";
 
 struct vertex {
-    ff::vec3 pos;
+    ff::fvec3 pos;
     ff::color col;
-
-    using attributes = ff::v_attr_list<
-        ff::v_attr<3, float>,
-        ff::v_attr<4, ff::u8, true>
-    >;
+    using normalized = std::index_sequence<1>;
 };
+
 
 vertex vertices[] = {
     { { -0.5f, -0.5f, 0.0f }, ff::color::red }, // left
@@ -61,7 +60,7 @@ public:
     test_app()
     : ff::application{ "test_app" }
     , vbuf{ vertices }
-    , varr{ vbuf }
+    , varr{}
     {
         test_shader = *ff::shader_factory{}
             .add_vertex("vert.glsl", vert_src)
@@ -69,6 +68,10 @@ public:
             .build();
 
         m_clear_color = ff::color::from_floats(0.2f, 0.3f, 0.3f, 1.0f);
+
+        varr.assign_vertex_buffer(0, vbuf);
+
+        ff::info("{}", "lmao");
     };
 
     void update(ff::seconds deltaTime) override {
@@ -90,7 +93,7 @@ public:
         test_shader.set("uProj",  glm::ortho(-1.f, 1.f, -1.f, 1.f));
 
         varr.bind();
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, vbuf.size());
     };
 
     void update_imgui() override {
@@ -106,8 +109,8 @@ private:
 
 
     ff::shader test_shader;
-    ff::vertex_buffer vbuf;
-    ff::vertex_array<vertex> varr;
+    ff::gpu_buffer<vertex> vbuf;
+    ff::vertex_array varr;
 
 };
 
