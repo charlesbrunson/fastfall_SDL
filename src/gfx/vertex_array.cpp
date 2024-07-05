@@ -4,52 +4,6 @@
 
 namespace ff {
 
-/*
-vertex_array_base::vertex_array_base(
-    const std::span<const attribute_info> t_attrs,
-    vertex_buffer*  t_vertbuf,
-    element_buffer* t_elembuf)
-: m_id{}
-, m_attributes{ t_attrs.begin(), t_attrs.end() }
-, m_vertbuf{ t_vertbuf }
-, m_elembuf{ t_elembuf }
-{
-    glCheck(glGenVertexArrays(1, &m_id));
-    bind();
-
-    if (t_vertbuf) t_vertbuf->bind();
-    if (t_elembuf) t_elembuf->bind();
-
-    for (auto& attr : m_attributes) {
-        glCheck(glVertexAttribPointer(attr.index, attr.size, attr.cmp_type, (u8)attr.normalized, attr.stride, (const void*)attr.offset));
-        glCheck(glEnableVertexAttribArray(attr.index));
-    }
-}
-
-vertex_array_base::vertex_array_base(vertex_array_base&& t_vertbuf) noexcept {
-    *this = std::move(t_vertbuf);
-}
-
-vertex_array_base& vertex_array_base::operator=(vertex_array_base&& t_vertbuf) noexcept {
-    std::swap(m_id, t_vertbuf.m_id);
-    std::swap(m_attributes, t_vertbuf.m_attributes);
-    std::swap(m_vertbuf, t_vertbuf.m_vertbuf);
-    std::swap(m_elembuf, t_vertbuf.m_elembuf);
-    return *this;
-}
-
-vertex_array_base::~vertex_array_base() {
-    if (m_id) {
-        glCheck(glDeleteVertexArrays(1, &m_id));
-    }
-}
-
-void vertex_array_base::bind() const {
-    glCheck(glBindVertexArray(m_id));
-}
-*/
-
-
 vertex_array::vertex_array() {
     glCheck(glGenVertexArrays(1, &m_id));
 }
@@ -74,7 +28,7 @@ void vertex_array::bind() const {
     glCheck(glBindVertexArray(m_id));
 }
 
-void vertex_array::impl_assign_vertex_buffer(u32 start_loc, u32 buf_id, std::span<const vertex_attribute> vattrs, u32 divisor) {
+void vertex_array::impl_assign_vertex_buffer(u32 start_loc, u32 buf_id, size_t buf_offset, u32 buf_size, std::span<const vertex_attribute> vattrs, u32 divisor) {
     bind();
     glCheck(glBindBuffer(GL_ARRAY_BUFFER, buf_id));
 
@@ -85,7 +39,7 @@ void vertex_array::impl_assign_vertex_buffer(u32 start_loc, u32 buf_id, std::spa
                                       attr.cmp_type,
                                       (u8)attr.normalized,
                                       attr.stride,
-                                      (const void*)attr.offset));
+                                      (const void*)(buf_offset + attr.offset)));
 
         glCheck(glEnableVertexAttribArray(loc));
         glCheck(glVertexAttribDivisor(loc, divisor));
@@ -94,19 +48,33 @@ void vertex_array::impl_assign_vertex_buffer(u32 start_loc, u32 buf_id, std::spa
             return t_attr.loc < t_loc;
         });
 
+        auto n_attr = loc_attr{ loc, buf_size, divisor, true, &attr };
         if (it == m_attributes.end()) {
-            m_attributes.push_back({ loc, &attr });
+            m_attributes.push_back(n_attr);
         }
         else if (it->loc == loc) {
-            it->attr = &attr;
+            *it = n_attr;
         }
         else {
-            m_attributes.insert(it, { loc, &attr });
+            m_attributes.insert(it, n_attr);
         }
     }
 }
 
-
+void vertex_array::impl_assign_element_buffer(u32 buf_id, size_t buf_offset, u32 buf_size, u32 index_type) {
+    bind();
+    glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buf_id));
+    if (buf_id > 0) {
+        m_elements_info = elements_info{
+            .index_type    = index_type,
+            .element_count = buf_size,
+            .offset        = (const void*)buf_offset
+        };
+    }
+    else {
+        m_elements_info.reset();
+    }
+}
 
 
 

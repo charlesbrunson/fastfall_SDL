@@ -55,17 +55,29 @@ vertex vertices[] = {
     { {  0.0f,  0.5f, 0.0f }, ff::color::blue }  // top
 };
 
+ff::u32 indices[] = {
+    2, 1, 0
+};
+
 class test_app : public ff::application {
 public:
     test_app()
     : ff::application{ "test_app" }
-    , vbuf{ vertices }
+    , buf{ sizeof(vertices) + sizeof(indices) }
     , varr{}
     , test_shader{ vert_src, frag_src }
     {
         m_clear_color = ff::color::from_floats(0.2f, 0.3f, 0.3f, 1.0f);
 
-        varr.assign_vertex_buffer(0, vbuf);
+        size_t offset = 0;
+        auto verts = buf.subspan<vertex>(offset, 3);
+        offset += verts.copy(vertices);
+
+        auto ndxs = buf.subspan<ff::u32>(offset, 3 );
+        offset += ndxs.copy(indices);
+
+        varr.assign_vertex_buffer(0, verts);
+        varr.assign_element_buffer(ndxs);
     };
 
     void update(ff::seconds deltaTime) override {
@@ -84,10 +96,11 @@ public:
         test_shader.bind();
         test_shader.set("uView",  glm::mat4{ 1 });
         test_shader.set("uModel", glm::rotate(glm::mat4{ 1 }, (float)time, glm::vec3(0.f, 1.f, 0.f)));
+        // test_shader.set("uModel", glm::mat4{ 1 });
         test_shader.set("uProj",  glm::ortho(-1.f, 1.f, -1.f, 1.f));
 
         varr.bind();
-        glDrawArrays(GL_TRIANGLES, 0, vbuf.size());
+        glDrawElements(GL_TRIANGLES, 3, varr.elements()->index_type, varr.elements()->offset);
     };
 
     void update_imgui() override {
@@ -101,9 +114,8 @@ private:
     ff::seconds time_next = 0.f;
     ff::seconds time = 0.f;
 
-
     ff::shader test_shader;
-    ff::gpu_buffer<vertex> vbuf;
+    ff::gpu_buffer<> buf;
     ff::vertex_array varr;
 
 };

@@ -18,9 +18,10 @@ void gpu_interface::delete_buffer(u32 t_id) {
     }
 };
 
-void gpu_interface::copy_buffer(u32 t_id, const void* t_data_ptr, i64 t_size_bytes, i64 t_offset_bytes) {
+size_t gpu_interface::copy_buffer(u32 t_id, const void* t_data_ptr, i64 t_size_bytes, i64 t_offset_bytes) {
     glCheck(glBindBuffer(target, t_id));
     glCheck(glBufferSubData(target, (i64)t_offset_bytes, (i64)t_size_bytes, t_data_ptr));
+    return t_size_bytes;
 };
 
 void gpu_interface::reset_buffer(u32 t_id, i64 t_size_bytes, gpu_usage t_usage) {
