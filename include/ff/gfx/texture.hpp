@@ -45,8 +45,10 @@ public:
     texture& operator=(texture&&);
     ~texture();
 
+    inline u32 id() const { return m_id; };
+    [[nodiscard]] inline uvec2 size() const { return m_size; };
+
     void bind(u32 t_unit = 0) const;
-    [[nodiscard]] uvec2 size() const;
 
 private:
     u32 m_id;

@@ -8,4 +8,5 @@ target_sources(ffengine
     shader.cpp
     vertex_array.cpp
     gpu_buffer.cpp
+    texture.cpp
 )
