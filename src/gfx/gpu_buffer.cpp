@@ -18,10 +18,10 @@ void gpu_interface::delete_buffer(u32 t_id) {
     }
 };
 
-size_t gpu_interface::copy_buffer(u32 t_id, const void* t_data_ptr, i64 t_size_bytes, i64 t_offset_bytes) {
+size_t gpu_interface::copy_buffer(u32 t_id, std::span<const std::byte> data, i64 t_offset_bytes) {
     glCheck(glBindBuffer(target, t_id));
-    glCheck(glBufferSubData(target, (i64)t_offset_bytes, (i64)t_size_bytes, t_data_ptr));
-    return t_size_bytes;
+    glCheck(glBufferSubData(target, (i64)t_offset_bytes, data.size_bytes(), data.data()));
+    return data.size_bytes();
 };
 
 void gpu_interface::reset_buffer(u32 t_id, i64 t_size_bytes, gpu_usage t_usage) {
@@ -29,9 +29,9 @@ void gpu_interface::reset_buffer(u32 t_id, i64 t_size_bytes, gpu_usage t_usage) 
     glCheck(glBufferData(target, t_size_bytes, nullptr, static_cast<u32>(t_usage)));
 };
 
-void gpu_interface::reset_buffer(u32 t_id, const void* t_data_ptr, i64 t_size_bytes, gpu_usage t_usage) {
+void gpu_interface::reset_buffer(u32 t_id, std::span<const std::byte> data, gpu_usage t_usage) {
     glCheck(glBindBuffer(target, t_id));
-    glCheck(glBufferData(target, t_size_bytes, t_data_ptr, static_cast<u32>(t_usage)));
+    glCheck(glBufferData(target, data.size_bytes(), data.data(), static_cast<u32>(t_usage)));
 };
 
 void* gpu_interface::map_buffer(u32 t_id, gpu_mem_access t_access) {

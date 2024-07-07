@@ -67,7 +67,7 @@ void vertex_array::impl_assign_element_buffer(u32 buf_id, size_t buf_offset, u32
     if (buf_id > 0) {
         m_elements_info = elements_info{
             .index_type    = index_type,
-            .element_count = buf_size,
+            .count = buf_size,
             .offset        = (const void*)buf_offset
         };
     }

@@ -31,10 +31,10 @@ public:
     static u32 gen_buffer();
     static void delete_buffer(u32 t_id);
 
-    static size_t copy_buffer(u32 t_id, const void* t_data_ptr, i64 t_size_bytes, i64 t_offset_bytes);
+    static size_t copy_buffer(u32 t_id, std::span<const std::byte> data, i64 t_offset_bytes);
 
     static void reset_buffer(u32 t_id, i64 t_size_bytes, gpu_usage t_usage);
-    static void reset_buffer(u32 t_id, const void* t_data_ptr, i64 t_size_bytes, gpu_usage t_usage);
+    static void reset_buffer(u32 t_id, std::span<const std::byte> data, gpu_usage t_usage);
 
     static void* map_buffer(u32 t_id, gpu_mem_access t_access);
     static void unmap_buffer(u32 t_id);
@@ -84,10 +84,11 @@ public:
 
     // copy to existing buffer
     size_t copy(std::span<const T> elems, size_t t_offset = 0) {
+        size_t offset_bytes = t_offset * base::m_elem_size_bytes;
+        assert( (offset_bytes >= base::offset_bytes()) || (offset_bytes + elems.size_bytes() <= base::offset_bytes() + base::size_bytes()) );
         return I::copy_buffer(
             base::id(),
-            (const void*)elems.data(),
-            elems.size_bytes(),
+            std::as_bytes(elems),
             base::m_offset_bytes + t_offset * base::m_elem_size_bytes);
     }
 
@@ -198,11 +199,11 @@ public:
         I::reset_buffer(base::id(), t_size * sizeof(T), t_usage);
     }
 
-    explicit gpu_buffer(std::span<T> data, gpu_usage t_usage = gpu_usage::StaticDraw)
+    explicit gpu_buffer(std::span<const T> data, gpu_usage t_usage = gpu_usage::StaticDraw)
     : gpu_span<T, I>{ I::gen_buffer(), 0, data.size() }
     , m_usage{ t_usage }
     {
-        I::reset_buffer(base::id(), (const void*)data.data(), data.size_bytes(), t_usage);
+        I::reset_buffer(base::id(), std::as_bytes(data), t_usage);
     }
 
     gpu_buffer<T, I>(const gpu_buffer<T, I>&) = delete;
@@ -251,8 +252,8 @@ public:
     }
 
     // new non-empty buffer
-    void reset(std::span<T> data, gpu_usage t_usage = gpu_usage::StaticDraw) {
-        I::reset_buffer(base::id(), data.data(), data.size_bytes(), t_usage);
+    void reset(std::span<const T> data, gpu_usage t_usage = gpu_usage::StaticDraw) {
+        I::reset_buffer(base::id(), std::as_bytes(data), t_usage);
     }
 
 private:

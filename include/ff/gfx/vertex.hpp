@@ -101,7 +101,6 @@ concept has_normalized_attributes = requires(T x) {
     { T::normalized::size() > 0 };
 };
 
-
 template<class T>
 requires is_vertex_struct_v<T>
 struct vertex_traits {

@@ -23,7 +23,7 @@ public:
     };
     struct elements_info {
         u32 index_type;
-        u32 element_count;
+        u32 count;
         const void* offset;
     };
 
@@ -68,7 +68,6 @@ public:
     void unassign_element_buffer() {
         impl_assign_element_buffer(0, 0, 0, 0);
     }
-
 
 private:
     void impl_assign_vertex_buffer(u32 start_loc, u32 buf_id, size_t buf_offset, u32 buf_size, std::span<const vertex_attribute> vattrs, u32 divisor);
