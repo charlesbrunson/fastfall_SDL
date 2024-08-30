@@ -4,6 +4,8 @@
 #include "../external/sdl.hpp"
 #include "ff/util/log.hpp"
 
+#include <span>
+
 #include <SDL_image.h>
 
 namespace ff {
@@ -44,8 +46,7 @@ void set_texture_param(u32 pname, texture_filter filter_type) {
     }
 }
 
-texture_init init_from_surface(SDL_Surface* t_surface, const texture_info& t_format) {
-
+u32 create_texture_from_info(const texture_info& t_format) {
     u32 id;
     glCheck(glGenTextures(1, &id));
     glCheck(glBindTexture(GL_TEXTURE_2D, id));
@@ -55,29 +56,19 @@ texture_init init_from_surface(SDL_Surface* t_surface, const texture_info& t_for
     set_texture_param(GL_TEXTURE_MIN_FILTER, t_format.filter_min);
     set_texture_param(GL_TEXTURE_MAG_FILTER, t_format.filter_mag);
 
-    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    return id;
+}
 
-    // determine SDL surface image format
+std::optional<texture_init> init_color_texture(uvec2 t_size, std::span<color> t_pixels, const texture_info& t_info) {
+    u32 id = create_texture_from_info(t_info);
     GLenum mode;
-    switch (t_format.format) {
-    case texture_format::RGB:          mode = GL_RGB;             break;
-    case texture_format::RGBA:         mode = GL_RGBA;            break;
-    case texture_format::Depth:        mode = GL_DEPTH_COMPONENT; break;
-    case texture_format::DepthStencil: mode = GL_DEPTH_STENCIL;   break;
+    switch (t_info.format) {
+        case texture_format::RGB:  mode = GL_RGB;  break;
+        case texture_format::RGBA: mode = GL_RGBA; break;
+        default: assert(false);
     }
-    SDL_Surface* conv_surface = SDL_ConvertSurfaceFormat(t_surface, SDL_PIXELFORMAT_RGBA32, 0);
-    checkSDL(conv_surface);
-
-    glCheck(glTexImage2D(GL_TEXTURE_2D, 0, mode, t_surface->w, t_surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, conv_surface->pixels));
-
-    texture_init tex;
-    tex.id   = id;
-    tex.size = { t_surface->w, t_surface->h };
-    SDL_FreeSurface(conv_surface);
-    return tex;
+    glCheck(glTexImage2D(GL_TEXTURE_2D, 0, mode, t_size.y, t_size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, t_pixels.data()));
+    return texture_init{ id, t_size };
 }
 
 texture::texture(std::filesystem::path t_image, texture_info t_info) {
@@ -86,31 +77,54 @@ texture::texture(std::filesystem::path t_image, texture_info t_info) {
         return;
     }
 
-    SDL_Surface* surface = IMG_Load(t_image.c_str());
+    std::string path = t_image.string();
+    SDL_Surface* surface = IMG_Load(path.c_str());
     checkSDL(surface);
 
-    auto init_info = init_from_surface(surface, t_info);
-    SDL_FreeSurface(surface);
+    SDL_Surface* source = nullptr;
+    uvec2 size;
+    std::optional<texture_init> init;
+    if (surface) {
+        source = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+        checkSDL(source);
+        if (!source) {
+            throw std::runtime_error(std::string{"failed to convert image to RGBA: "} + t_image.string());
+        }
+        else {
+            size = { source->w, source->h };
+            init = init_color_texture(size, std::span{ (color*)source->pixels, size.x * size.y }, t_info);
+            SDL_FreeSurface(source);
+        }
+        SDL_FreeSurface(surface);
+    }
+
+    if (init) {
+        m_id   = init->id;
+        m_size = init->size;
+    }
 }
 
-texture::texture(uvec2 t_size, texture_info t_info) {
+texture::texture(uvec2 t_size, color t_color, texture_info t_info) {
 
 }
 
 texture::texture(texture&& t_texture) {
-
+    *this = std::move(t_texture);
 }
 
 texture& texture::operator=(texture&& t_texture) {
-
+    std::swap(m_id,   t_texture.m_id);
+    std::swap(m_size, t_texture.m_size);
 }
 
 texture::~texture() {
-
+    if (m_id) {
+        glCheck(glDeleteTextures(1, &m_id));
+    }
 }
 
 void texture::bind(u32 t_unit) const {
-
+    glCheck(glBindTexture(GL_TEXTURE0 + t_unit, m_id));
 }
 
 }

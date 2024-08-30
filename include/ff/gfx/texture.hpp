@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ff/util/math.hpp"
+#include "ff/gfx/color.hpp"
 
 #include <filesystem>
 
@@ -22,8 +23,8 @@ enum class texture_wrap {
 enum class texture_format {
     RGB,
     RGBA,
-    Depth,
-    DepthStencil
+    Depth32,
+    Depth24Stencil8
 };
 
 struct texture_info {
@@ -37,7 +38,7 @@ struct texture_info {
 class texture {
 public:
     texture(std::filesystem::path t_image, texture_info t_info = {});
-    texture(uvec2 t_size, texture_info t_info = {});
+    texture(uvec2 t_size, u32 value, texture_info t_info = {});
 
     texture(const texture&) = delete;
     texture& operator=(const texture&) = delete;
