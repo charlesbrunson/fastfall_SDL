@@ -443,7 +443,7 @@ namespace ff {
 			, m_rows(rows)
 		{
 			if (size() > 0) {
-				m_ptr = new T[m_rows * m_columns];
+				m_ptr = new T[m_rows * m_columns]();
 			}
 			else {
 				clear();
@@ -461,8 +461,8 @@ namespace ff {
 			, m_rows(rows)
 		{
 			if (size() > 0) {
-				m_ptr = new T[m_rows * m_columns];
-				std::fill_n(m_ptr, size(), value);
+				m_ptr = new T[m_rows * m_columns](value);
+				// std::fill_n(m_ptr, size(), value);
 			}
 			else {
 				clear();

@@ -57,7 +57,7 @@ void TextureAsset::ImGui_getContent(secs deltaTime) {
 	if (imgui_showTex) {
 		if (ImGui::Begin(imgui_title.c_str(), &imgui_showTex)) {
 			
-			ImGui::Image((void*)(intptr_t)tex.getID(), ImVec2(tex.size().x, tex.size().y));
+			ImGui::Image(tex.getID(), ImVec2(tex.size().x, tex.size().y));
 
 			ImGui::End();
 		}
