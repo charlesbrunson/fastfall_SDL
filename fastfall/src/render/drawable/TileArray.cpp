@@ -129,7 +129,7 @@ void TileArray::glTransfer() const
 
 		glCheck(glBindVertexArray(gl.m_array));
 		glCheck(glBindBuffer(GL_ARRAY_BUFFER, gl.m_buffer));
-		glCheck(glBufferData(GL_ARRAY_BUFFER, tiles.size() * sizeof(TileID), NULL, GL_DYNAMIC_DRAW));
+		glCheck(glBufferData(GL_ARRAY_BUFFER, tiles.size() * sizeof(TileID), nullptr, GL_DYNAMIC_DRAW));
 		gl.m_bufsize = tiles.size();
 		
 		// tile id attribute
@@ -145,12 +145,12 @@ void TileArray::glTransfer() const
 	if (!gl.sync) {
 		glCheck(glBindBuffer(GL_ARRAY_BUFFER, gl.m_buffer));
 		if (!gl.m_bound || tiles.size() > gl.m_bufsize) {
-			glCheck(glBufferData(GL_ARRAY_BUFFER, tiles.size() * sizeof(TileID), &tiles[0], GL_DYNAMIC_DRAW));
+			glCheck(glBufferData(GL_ARRAY_BUFFER, tiles.size() * sizeof(TileID), tiles.data(), GL_DYNAMIC_DRAW));
 			gl.m_bufsize = tiles.size();
 			gl.m_bound = true;
 		}
 		else {
-			glCheck(glBufferSubData(GL_ARRAY_BUFFER, 0, tiles.size() * sizeof(TileID), &tiles[0]));
+			glCheck(glBufferSubData(GL_ARRAY_BUFFER, 0, tiles.size() * sizeof(TileID), tiles.data()));
 		}
 		gl.sync = true;
 	}

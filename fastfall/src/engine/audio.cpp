@@ -15,6 +15,7 @@ float master_v = 0.5f;
 bool init_state = false;
 
 bool init(AudioBackends backend) {
+
     auto r = audio_engine.init(
         SoLoud::Soloud::CLIP_ROUNDOFF,
         static_cast<SoLoud::Soloud::BACKENDS>(backend),

@@ -6,14 +6,14 @@
 #include <chrono>
 #include <utility>
 #include <string_view>
+#include <filesystem>
 
 //#include <source_location>
 
 //#include "fmt/core.h"
 #include "fmt/format.h"
 
-
-
+#include <source_location>
 
 #if not defined(__FILENAME__)
     #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__))
@@ -68,23 +68,21 @@ public:
 
 	// log internal call, use appropriate LOG_ macros instead
 	template<class... Args>
-	static void _log(level lvl, const std::string_view& file, int line, const std::string_view& format, Args&&...args) noexcept {
+	static void _log(level lvl, std::source_location loc, const std::string_view& format, Args&&...args) noexcept {
 
-
-
-
-		if (lvl < get_verbosity()) 
+		if (lvl < get_verbosity())
 			return;
 
+		std::filesystem::path path(loc.file_name());
 		std::string msgContent = fmt::format(format, std::forward<Args>(args)...);
-		detail_log(lvl, file, line, msgContent);
+		detail_log(lvl, path.filename().c_str(), loc.line(), msgContent);
 	}
 
 
 	static void set_tick(unsigned tick) { currentTick = tick; }
 
 private:
-	static void detail_log(level lvl, const std::string_view& file, int line, std::string& msg) noexcept;
+	static void detail_log(level lvl, const std::string_view& file, uint32_t line, std::string& msg) noexcept;
 
 	static unsigned currentTick;
 
@@ -97,11 +95,11 @@ private:
 };
 
 #ifdef DEBUG
-	#define LOG_STEP( ... ) log::_log( log::level::STEP, __FILENAME__, __LINE__, __VA_ARGS__ )
-	#define LOG_VERB( ... ) log::_log( log::level::VERB, __FILENAME__, __LINE__, __VA_ARGS__ )
-	#define LOG_INFO( ... ) log::_log( log::level::INFO, __FILENAME__, __LINE__, __VA_ARGS__ )
-	#define LOG_WARN( ... ) log::_log( log::level::WARN, __FILENAME__, __LINE__, __VA_ARGS__ )
-	#define LOG_ERR_( ... ) log::_log( log::level::ERR,  __FILENAME__, __LINE__, __VA_ARGS__ )
+	#define LOG_STEP( ... ) log::_log( log::level::STEP, std::source_location::current(), __VA_ARGS__ )
+	#define LOG_VERB( ... ) log::_log( log::level::VERB, std::source_location::current(), __VA_ARGS__ )
+	#define LOG_INFO( ... ) log::_log( log::level::INFO, std::source_location::current(), __VA_ARGS__ )
+	#define LOG_WARN( ... ) log::_log( log::level::WARN, std::source_location::current(), __VA_ARGS__ )
+	#define LOG_ERR_( ... ) log::_log( log::level::ERR,  std::source_location::current(), __VA_ARGS__ )
 #else
 	#define LOG_NONE( ... )
 	#define LOG_STEP( ... )

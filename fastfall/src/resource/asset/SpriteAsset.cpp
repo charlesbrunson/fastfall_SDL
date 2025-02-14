@@ -318,7 +318,7 @@ void SpriteAsset::ImGui_getContent(secs deltaTime) {
 						snprintf(anim_child, 32, "##%p", this);
 						ImGui::PushStyleColor(ImGuiCol_ChildBg, bg_color);
 						if (ImGui::BeginChild(anim_child)) {
-							ImGui::Image((void*)(intptr_t)tex.get()->getID(), tex_size, uv0, uv1);
+							ImGui::Image(tex.get()->getID(), tex_size, uv0, uv1);
                             ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
                             auto* anim = AnimDB::get_animation(anims[anims_current]);
@@ -370,7 +370,7 @@ void SpriteAsset::ImGui_getContent(secs deltaTime) {
 
 				if (ImGui::BeginTabItem("Texture"))
 				{
-					ImGui::Image((void*)(intptr_t)tex.getID(), ImVec2(tex.size().x, tex.size().y));
+					ImGui::Image(tex.getID(), ImVec2(tex.size().x, tex.size().y));
 					ImGui::EndTabItem();
 				}
 				ImGui::EndTabBar();

@@ -3,6 +3,8 @@
 #include <map>
 #include <string>
 
+#include <cstdint>
+
 namespace ff {
 
 enum class Input : int {

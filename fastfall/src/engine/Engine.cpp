@@ -504,7 +504,21 @@ void Engine::updateView() {
         if (avgFPS != clock.getAvgFPS() || avgUPS != clock.getAvgUPS()) {
             avgFPS = clock.getAvgFPS();
             avgUPS = clock.getAvgUPS();
-            std::string title = fmt::format("game v{}.{}.{} fps={} ups={}", VERSION[0], VERSION[1], VERSION[2], avgFPS, avgUPS);
+
+#ifdef DEBUG
+            std::string_view is_debug = "[DEBUG]";
+#else
+            std::string_view is_debug = "";
+#endif
+
+            std::string title = fmt::format("game v{}.{}.{} fps={} ups={} {}",
+                VERSION[0],
+                VERSION[1],
+                VERSION[2],
+                avgFPS,
+                avgUPS,
+                is_debug);
+
             window->setWindowTitle(title);
         }
     }
