@@ -1,16 +1,16 @@
 #pragma once
 
-#include <SDL_joystick.h>
+#include "SDL3/SDL_joystick.h"
 
 class Gamepad {
 public:
 	Gamepad(int device) {
-		handle = SDL_GameControllerOpen(device);
+		handle = SDL_OpenGamepad(device);
 	}
 	~Gamepad() {
-		if (handle && SDL_GameControllerGetAttached(handle)) 
+		if (handle && SDL_GamepadConnected(handle))
 		{
-			SDL_GameControllerClose(handle);
+			SDL_CloseGamepad(handle);
 		}
 	}
 
@@ -29,13 +29,13 @@ public:
 	}
 
 	inline bool isConnected() {
-		return handle && SDL_GameControllerGetAttached(handle);
+		return handle && SDL_GamepadConnected(handle);
 	}
 
-	inline SDL_GameController* getHandle() {
+	inline SDL_Gamepad* getHandle() {
 		return handle;
 	}
 
 protected:
-	SDL_GameController* handle = nullptr;
+	SDL_Gamepad* handle = nullptr;
 };

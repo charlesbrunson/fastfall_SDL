@@ -52,11 +52,11 @@ InputSourceRealtime::InputSourceRealtime(const std::set<Input>& accept_inputs, s
 bool InputSourceRealtime::push_event(SDL_Event e) {
     bool caught = false;
     switch (e.type) {
-        case SDL_KEYDOWN: {
+        case SDL_EVENT_KEY_DOWN: {
             if (e.key.repeat != 0) {
                 // discard repeats
                 break;
-            } else if (auto input_type = InputConfig::get_type_key(e.key.keysym.sym);
+            } else if (auto input_type = InputConfig::get_type_key(e.key.key);
                     input_type && listening.contains(*input_type))
             {
                 events.push_back({*input_type, true, InputHandle::MAG_FULL});
@@ -64,8 +64,8 @@ bool InputSourceRealtime::push_event(SDL_Event e) {
             }
         }
             break;
-        case SDL_KEYUP: {
-            if (auto input_type = InputConfig::get_type_key(e.key.keysym.sym);
+        case SDL_EVENT_KEY_UP: {
+            if (auto input_type = InputConfig::get_type_key(e.key.key);
                     input_type && listening.contains(*input_type))
             {
                 events.push_back({*input_type, true, InputHandle::MAG_ZERO});
@@ -73,8 +73,8 @@ bool InputSourceRealtime::push_event(SDL_Event e) {
             }
         }
             break;
-        case SDL_CONTROLLERBUTTONDOWN: {
-            if (auto input_type = InputConfig::get_type_jbutton(e.cbutton.button);
+        case SDL_EVENT_GAMEPAD_BUTTON_DOWN: {
+            if (auto input_type = InputConfig::get_type_jbutton(e.gbutton.button);
                     input_type && listening.contains(*input_type))
             {
                 events.push_back({*input_type, true, InputHandle::MAG_FULL});
@@ -82,8 +82,8 @@ bool InputSourceRealtime::push_event(SDL_Event e) {
             }
         }
             break;
-        case SDL_CONTROLLERBUTTONUP: {
-            if (auto input_type = InputConfig::get_type_jbutton(e.cbutton.button);
+        case SDL_EVENT_GAMEPAD_BUTTON_UP: {
+            if (auto input_type = InputConfig::get_type_jbutton(e.gbutton.button);
                     input_type && listening.contains(*input_type))
             {
                 events.push_back({*input_type, true, InputHandle::MAG_ZERO});
@@ -91,29 +91,29 @@ bool InputSourceRealtime::push_event(SDL_Event e) {
             }
         }
             break;
-        case SDL_CONTROLLERAXISMOTION: {
-            JoystickAxis axis = e.caxis.axis;
-            int16_t axis_pos = e.caxis.value;
+        case SDL_EVENT_GAMEPAD_AXIS_MOTION: {
+            JoystickAxis axis = e.gaxis.axis;
+            int16_t axis_pos = e.gaxis.value;
 
             std::optional<JoystickAxis> alt_axis;
             int16_t alt_axis_pos = 0;
 
-            switch (e.caxis.axis) {
-                case SDL_CONTROLLER_AXIS_LEFTX:
-                    alt_axis = SDL_CONTROLLER_AXIS_LEFTY;
+            switch (e.gaxis.axis) {
+                case SDL_GAMEPAD_AXIS_LEFTX:
+                    alt_axis = SDL_GAMEPAD_AXIS_LEFTY;
                     break;
-                case SDL_CONTROLLER_AXIS_LEFTY:
-                    alt_axis = SDL_CONTROLLER_AXIS_LEFTX;
+                case SDL_GAMEPAD_AXIS_LEFTY:
+                    alt_axis = SDL_GAMEPAD_AXIS_LEFTX;
                     break;
-                case SDL_CONTROLLER_AXIS_RIGHTX:
-                    alt_axis = SDL_CONTROLLER_AXIS_RIGHTY;
+                case SDL_GAMEPAD_AXIS_RIGHTX:
+                    alt_axis = SDL_GAMEPAD_AXIS_RIGHTY;
                     break;
-                case SDL_CONTROLLER_AXIS_RIGHTY:
-                    alt_axis = SDL_CONTROLLER_AXIS_RIGHTX;
+                case SDL_GAMEPAD_AXIS_RIGHTY:
+                    alt_axis = SDL_GAMEPAD_AXIS_RIGHTX;
                     break;
             }
             if (alt_axis) {
-                alt_axis_pos = SDL_JoystickGetAxis(SDL_JoystickFromInstanceID(e.caxis.which), *alt_axis);
+                alt_axis_pos = SDL_GetJoystickAxis(SDL_GetJoystickFromID(e.gaxis.which), *alt_axis);
             }
 
             auto opt_process_axis = [this](std::optional<Input> in_opt, bool side, uint16_t pos, uint16_t alt_pos) {

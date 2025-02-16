@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SDL_events.h"
-#include "SDL_keycode.h"
+#include "SDL3/SDL_events.h"
+#include "SDL3/SDL_keycode.h"
 
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/engine/imgui/ImGuiContent.hpp"

@@ -42,23 +42,19 @@ void draw_glyph(FT_Bitmap bm, SDL_Surface* surf, int x, int y)
 		}
 	}
 
-	SDL_Surface* glyph = SDL_CreateRGBSurfaceFrom
-	(
-		&rgba[0],
+
+	SDL_Surface* glyph = SDL_CreateSurfaceFrom(
 		bm.width,
 		bm.rows,
-		32,
-		bm.width * 4,
-		0x000000ff,
-		0x0000ff00,
-		0x00ff0000,
-		0xff000000
+		SDL_PIXELFORMAT_RGBA8888,
+		rgba.data(),
+		bm.width
 	);
 
-	SDL_SetSurfaceBlendMode(glyph, SDL_BlendMode::SDL_BLENDMODE_BLEND);
+	SDL_SetSurfaceBlendMode(glyph, SDL_BLENDMODE_BLEND);
 	SDL_Rect dest = { x, y, 0, 0 };
 	SDL_BlitSurface(glyph, nullptr, surf, &dest);
-	SDL_FreeSurface(glyph);
+	SDL_DestroySurface(glyph);
 }
 
 namespace ff {
@@ -204,7 +200,13 @@ namespace ff {
 			}
 		}
 
-		cache->bitmap_surface = SDL_CreateRGBSurfaceWithFormat(0, cache->glyph_max_size.x * 16, cache->glyph_max_size.y * 8, 32, SDL_PIXELFORMAT_RGBA32);
+		cache->bitmap_surface = SDL_CreateSurface(
+			cache->glyph_max_size.x * 16,
+			cache->glyph_max_size.y * 8,
+			SDL_PIXELFORMAT_RGBA32
+		);
+		// cache->bitmap_surface = SDL_CreateRGBSurfaceWithFormat(0, cache->glyph_max_size.x * 16, cache->glyph_max_size.y * 8, 32, SDL_PIXELFORMAT_RGBA32);
+
 		if (!cache->bitmap_surface) {
 			LOG_ERR_("Failed to create SDL surface for font size");
 			return cache.get();
@@ -251,7 +253,7 @@ namespace ff {
 				{
 					LOG_ERR_("Failed to load texture from surface for font size");
 				}
-				SDL_FreeSurface(cache->bitmap_surface);
+				SDL_DestroySurface(cache->bitmap_surface);
 				cache->bitmap_surface = nullptr;
 
 			}

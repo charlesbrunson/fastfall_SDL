@@ -16,6 +16,8 @@
 
 #include <fstream>
 
+#include "SDL3/SDL.h"
+
 TestState::TestState()
     : insrc_realtime(input_sets::gameplay, 1.0/60.0, ff::RecordInputs::Yes)
 {
@@ -216,7 +218,7 @@ void TestState::update(secs deltaTime) {
 
 	if (currKeys) {
 		if (!prevKeys)
-			prevKeys = std::make_unique<Uint8[]>(key_count);
+			prevKeys = std::make_unique<bool[]>(key_count);
 		std::memcpy(&prevKeys[0], currKeys, key_count);
 	}
 
@@ -291,7 +293,7 @@ void TestState::predraw(predraw_state_t predraw_state, const WindowState* win_st
 			tile_text.setScale( Vec2f{ 1.f, 1.f } * scale * (win_scale > 2 ? 2.f : 1.f) );
 			tile_text.setColor(ff::Color::White);
 
-			int posx, posy;
+			float posx, posy;
 			SDL_GetMouseState(&posx, &posy);
 
 			Vec2f mouse_pos { Mouse::window_pos() };

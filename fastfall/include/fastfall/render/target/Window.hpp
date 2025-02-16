@@ -2,7 +2,7 @@
 
 #include <string_view>
 
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
 #include "glm/glm.hpp"
 

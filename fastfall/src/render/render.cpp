@@ -8,7 +8,7 @@
 
 #include "detail/error.hpp"
 
-#include "SDL_image.h"
+#include "SDL3_image/SDL_image.h"
 #include "imgui.h"
 
 #include <mutex>
@@ -46,11 +46,13 @@ bool init() {
     assert(!renderInitialized);
     renderInitialized = true;
 
-    checkSDL(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO));
+    checkSDL(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | SDL_INIT_AUDIO));
 
-    SDL_version version;
-    SDL_GetVersion(&version);
-    LOG_INFO("{:>10} {}.{}.{}", "SDL", version.major, version.minor, version.patch);
+    auto version = SDL_GetVersion();
+    LOG_INFO("{:>10} {}.{}.{}", "SDL",
+        SDL_VERSIONNUM_MAJOR(version),
+        SDL_VERSIONNUM_MINOR(version),
+        SDL_VERSIONNUM_MICRO(version));
 
     checkSDL(SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
     //checkSDL(SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1));
@@ -71,12 +73,14 @@ bool init() {
     checkSDL(SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE));
 #endif
 
-    int flags = IMG_INIT_PNG;
+    /*
+    int flags = IMG_;
     int outflags = IMG_Init(flags);
     if (outflags != flags) {
         LOG_ERR_("IMG init failed: {}", IMG_GetError());
         renderInitialized = false;
     }
+    */
 
     freetype_init();
 
@@ -88,10 +92,10 @@ void quit() {
     assert(renderInitialized);
 
     ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
 
-    IMG_Quit();
+    // IMG_Quit();
     SDL_Quit();
     freetype_quit();
     renderInitialized = false;
@@ -178,7 +182,7 @@ void ImGuiNewFrame(Window& window) {
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     // ImGui_ImplSDL2_NewFrame(window.getSDL_Window());
-    ImGui_ImplSDL2_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 }
 

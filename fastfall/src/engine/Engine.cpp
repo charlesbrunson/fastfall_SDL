@@ -187,7 +187,7 @@ secs Engine::get_uptime() const { return upTime; }
 bool Engine::run_singleThread()
 {
     prerun_init();
-    SDL_SetThreadPriority(SDL_ThreadPriority::SDL_THREAD_PRIORITY_HIGH);
+    SDL_SetCurrentThreadPriority(SDL_THREAD_PRIORITY_HIGH);
 
     running = true;
     bool first_frame = true;
@@ -254,7 +254,7 @@ bool Engine::run_doubleThread()
 {
 
     prerun_init();
-    SDL_SetThreadPriority(SDL_ThreadPriority::SDL_THREAD_PRIORITY_HIGH);
+    SDL_SetCurrentThreadPriority(SDL_THREAD_PRIORITY_HIGH);
 
     std::barrier<> bar{ 2 };
 
@@ -329,7 +329,7 @@ bool Engine::run_doubleThread()
 
 
 void Engine::runUpdate(std::barrier<>* bar) {
-    SDL_SetThreadPriority(SDL_ThreadPriority::SDL_THREAD_PRIORITY_HIGH);
+    SDL_SetCurrentThreadPriority(SDL_ThreadPriority::SDL_THREAD_PRIORITY_HIGH);
 
     while (is_running() && !runnables.empty()) {
 
@@ -650,16 +650,16 @@ void Engine::handleEvents(bool* timeWasted)
     auto push_to_states = [this](SDL_Event event) {
         if (auto in = InputConfig::is_waiting_for_bind()) {
             switch (event.type) {
-            case SDL_KEYDOWN:
-                InputConfig::bindInput(*in, event.key.keysym.sym);
+            case SDL_EVENT_KEY_DOWN:
+                InputConfig::bindInput(*in, event.key.key);
                 return;
-            case SDL_CONTROLLERBUTTONDOWN:
-                InputConfig::bindInput(*in, InputConfig::GamepadInput::makeButton(event.cbutton.button));
+            case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+                InputConfig::bindInput(*in, InputConfig::GamepadInput::makeButton(event.gbutton.button));
                 return;
-            case SDL_CONTROLLERAXISMOTION:
-                if (abs(event.caxis.value) > InputConfig::getAxisDeadzone()) {
-                    bool which_side = event.caxis.value > 0;
-                    InputConfig::bindInput(*in, InputConfig::GamepadInput::makeAxis(event.caxis.axis, which_side));
+            case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+                if (abs(event.gaxis.value) > InputConfig::getAxisDeadzone()) {
+                    bool which_side = event.gaxis.value > 0;
+                    InputConfig::bindInput(*in, InputConfig::GamepadInput::makeAxis(event.gaxis.axis, which_side));
                     return;
                 }
                 break;
@@ -678,44 +678,45 @@ void Engine::handleEvents(bool* timeWasted)
     while (SDL_PollEvent(&event)) 
     {
         event_count++;
-        if (settings.showDebug && ImGui_ImplSDL2_ProcessEvent(&event)) {
-            if (ImGui::GetIO().WantCaptureMouse && (event.type & SDL_MOUSEMOTION) > 0) {
+        if (settings.showDebug && ImGui_ImplSDL3_ProcessEvent(&event)) {
+            if (ImGui::GetIO().WantCaptureMouse && (event.type & SDL_EVENT_MOUSE_MOTION) > 0) {
                 continue;
             }
         }
 
-        if (discardAllMousePresses && (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP))
+        if (discardAllMousePresses && (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP))
         {
             continue;
         }
 
-        switch (event.type) {
-        case SDL_WINDOWEVENT:
-            switch (event.window.event) {
-            case SDL_WINDOWEVENT_CLOSE:
+        if (event.type >= SDL_EVENT_WINDOW_FIRST && event.type < SDL_EVENT_WINDOW_LAST)
+        {
+            switch (event.type) {
+            case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                 close();
                 break;
-            case SDL_WINDOWEVENT_RESIZED:
+            case SDL_EVENT_WINDOW_RESIZED:
                 if (!settings.fullscreen) {
                     //LOG_INFO("resize: {}", Vec2u(window->getSize()));
                     resizeWindow(Vec2u(window->getSize()));
                     *timeWasted = true;
                 }
                 break;
-            case SDL_WINDOWEVENT_FOCUS_GAINED:
+            case SDL_EVENT_WINDOW_FOCUS_GAINED:
                 hasFocus = true;
                 *timeWasted = true;
                 discardAllMousePresses = true;
                 Mouse::reset();
                 break;
-            case SDL_WINDOWEVENT_FOCUS_LOST:
+            case SDL_EVENT_WINDOW_FOCUS_LOST:
                 hasFocus = false;
                 Mouse::reset();
                 break;
             }
-            break;
-        case SDL_KEYUP:
-            switch (event.key.keysym.sym) {
+        }
+        else if (event.type == SDL_EVENT_KEY_UP)
+        {
+            switch (event.key.key) {
             case SDLK_ESCAPE: 
                 if (!settings.fullscreen) {
                     IF_N_EMSCRIPTEN(close());
@@ -742,52 +743,53 @@ void Engine::handleEvents(bool* timeWasted)
                 break;
             case SDLK_3:
             case SDLK_KP_3: {
-                settings.showDebug = !settings.showDebug;
-                unsigned scale = settings.showDebug ? 2 : 1;
-                IF_N_EMSCRIPTEN(SDL_SetWindowMinimumSize(window->getSDL_Window(), GAME_W * scale, GAME_H * scale));
-                resizeWindow(Vec2u(window->getSize()));
-                debug::show = settings.showDebug;
-                LOG_INFO("Toggling debug mode");
-                break;
+                    settings.showDebug = !settings.showDebug;
+                    unsigned scale = settings.showDebug ? 2 : 1;
+                    IF_N_EMSCRIPTEN(SDL_SetWindowMinimumSize(window->getSDL_Window(), GAME_W * scale, GAME_H * scale));
+                    resizeWindow(Vec2u(window->getSize()));
+                    debug::show = settings.showDebug;
+                    LOG_INFO("Toggling debug mode");
+                    break;
             }
             default:
                 push_to_states(event);
             }
-            break;
-        case SDL_KEYDOWN:
-        case SDL_CONTROLLERBUTTONDOWN:
-        case SDL_CONTROLLERBUTTONUP:
-        case SDL_CONTROLLERAXISMOTION:
+        }
+        else if (event.type == SDL_EVENT_KEY_DOWN
+            || event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN
+            || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP
+            || event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION)
+        {
             push_to_states(event);
-            break;
-        case SDL_JOYDEVICEADDED:
-        case SDL_JOYDEVICEREMOVED:
-        case SDL_CONTROLLERDEVICEADDED:
-        case SDL_CONTROLLERDEVICEREMOVED:
+        }
+        else if (event.type == SDL_EVENT_GAMEPAD_ADDED
+            || event.type == SDL_EVENT_GAMEPAD_REMOVED
+            || event.type == SDL_EVENT_JOYSTICK_ADDED
+            || event.type == SDL_EVENT_JOYSTICK_REMOVED)
+        {
             InputConfig::updateJoystick();
-            break;
-        case SDL_MOUSEMOTION:
-            Mouse::set_window_pos({event.motion.x, event.motion.y});
-            break;
-        case SDL_MOUSEBUTTONDOWN: {
-            Vec2i pos{event.button.x, event.button.y};
+        }
+        else if (event.type == SDL_EVENT_MOUSE_MOTION)
+        {
+            Mouse::set_window_pos({(int)event.motion.x, (int)event.motion.y});
+        }
+        else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+        {
+            Vec2i pos{(int)event.button.x, (int)event.button.y};
             if (event.button.button == SDL_BUTTON_LEFT) {
                 Mouse::notify_down(Mouse::MButton::Left, pos);
             } else if (event.button.button == SDL_BUTTON_RIGHT) {
                 Mouse::notify_down(Mouse::MButton::Right, pos);
             }
-            break;
         }
-        case SDL_MOUSEBUTTONUP: {
-            Vec2i pos{event.button.x, event.button.y};
+        else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP)
+        {
+            Vec2i pos{(int)event.button.x, (int)event.button.y};
             if (event.button.button == SDL_BUTTON_LEFT) {
                 Mouse::notify_up(Mouse::MButton::Left, pos);
             } else if (event.button.button == SDL_BUTTON_RIGHT) {
                 Mouse::notify_up(Mouse::MButton::Right, pos);
             }
-            break;
-        }
-
         }
     }
 
@@ -797,10 +799,10 @@ void Engine::handleEvents(bool* timeWasted)
         if (window_pos.x == 0 || window_pos.x == window->getSize().x - 1
             || window_pos.y == 0 || window_pos.y == window->getSize().y - 1)
         {
-            Vec2i g_mpos;
+            Vec2f g_mpos;
             SDL_GetGlobalMouseState(&g_mpos.x, &g_mpos.y);
 #if !defined(__EMSCRIPTEN__)
-            Mouse::set_window_pos(g_mpos - Vec2i{ window->getPosition() });
+            Mouse::set_window_pos(Vec2i{g_mpos} - Vec2i{ window->getPosition() });
 #else
             Mouse::set_window_pos(g_mpos);
 #endif
@@ -814,11 +816,13 @@ void Engine::initRenderTarget(bool fullscreen)
 {
     settings.fullscreen = fullscreen;
 
-    SDL_DisplayMode mode;
-    int r = SDL_GetCurrentDisplayMode(0, &mode);
-    assert(r == 0);
+    int display_count;
+    const SDL_DisplayID* display_ids = SDL_GetDisplays(&display_count);
+    assert(display_ids);
+    const SDL_DisplayMode* mode = SDL_GetCurrentDisplayMode(display_ids[0]);
+    assert(mode);
 
-    Vec2u displaySize(mode.w, mode.h);
+    Vec2u displaySize(mode->w, mode->h);
 
     window->setWindowTitle("");
 
@@ -860,15 +864,17 @@ bool Engine::setFullscreen(bool fullscreen) {
 
     LOG_INFO(settings.fullscreen ? "Entering fullscreen" : "Exiting fullscreen");
 
-    SDL_DisplayMode mode;
-    int r = SDL_GetCurrentDisplayMode(0, &mode);
-    assert(r == 0);
+    int display_count;
+    const SDL_DisplayID* display_ids = SDL_GetDisplays(&display_count);
+    assert(display_ids);
+    const SDL_DisplayMode* mode = SDL_GetCurrentDisplayMode(display_ids[0]);
+    assert(mode);
 
     if (settings.fullscreen) {
         lastWindowedPos = Vec2i(window->getPosition().x, window->getPosition().y);
         lastWindowedSize = window->getSize();
 
-        Vec2i displaySize{mode.w, mode.h};
+        Vec2i displaySize{mode->w, mode->h};
 
         window->setWindowFullscreen(Window::FullscreenType::FULLSCREEN_DESKTOP);
     }

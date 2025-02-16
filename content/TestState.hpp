@@ -47,9 +47,9 @@ private:
 
 	std::unique_ptr<ff::LevelEditor> edit;
 
-	std::unique_ptr<Uint8[]> prevKeys;
+	std::unique_ptr<bool[]> prevKeys;
 
-	const Uint8* currKeys = nullptr;
+	const bool* currKeys = nullptr;
 	int key_count;
 
 	ff::Sprite tile_ghost;

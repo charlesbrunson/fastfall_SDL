@@ -8,8 +8,8 @@
 #include <optional>
 #include <set>
 
-#include "SDL_events.h"
-#include "SDL_keycode.h"
+#include "SDL3/SDL_events.h"
+#include "SDL3/SDL_keycode.h"
 
 namespace ff {
     enum class RecordInputs : bool {

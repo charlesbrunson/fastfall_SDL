@@ -1,7 +1,7 @@
 #include "fastfall/engine/audio.hpp"
 #include "fastfall/util/log.hpp"
 
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
 namespace ff::audio {
 

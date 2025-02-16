@@ -5,7 +5,7 @@
 
 #include "fastfall/util/log.hpp"
 
-#include <SDL.h>
+#include "SDL3/SDL.h"
 
 namespace ff {
     class Error : public std::runtime_error {
@@ -24,10 +24,21 @@ namespace ff {
 
     template <typename ObjectPtr>
     auto checkSDL(ObjectPtr pObject) {
-        if (pObject == nullptr) {
-            std::string err = SDL_GetError();
-            LOG_ERR_("checkSDL: {}", err);
-            throw Error(err);
+        if constexpr (std::same_as<ObjectPtr, bool>)
+        {
+            if (pObject == false) {
+                std::string err = SDL_GetError();
+                LOG_ERR_("checkSDL: {}", err);
+                throw Error(err);
+            }
+        }
+        else
+        {
+            if (pObject == nullptr) {
+                std::string err = SDL_GetError();
+                LOG_ERR_("checkSDL: {}", err);
+                throw Error(err);
+            }
         }
         return pObject;
     }

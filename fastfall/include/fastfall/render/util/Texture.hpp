@@ -5,7 +5,7 @@
 
 #include "glm/glm.hpp"
 
-#include "SDL_image.h"
+#include "SDL3_image/SDL_image.h"
 
 namespace ff {
 

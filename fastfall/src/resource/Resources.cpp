@@ -185,7 +185,7 @@ void Resources::loadControllerDB() {
 	static bool loadedControllerDB = false;
 	if (!loadedControllerDB) {
 		auto path = (resource.curr_root / "gamecontrollerdb.txt").string();
-		if (SDL_GameControllerAddMappingsFromFile(path.c_str()) >= 0) {
+		if (SDL_AddGamepadMappingsFromFile(path.c_str()) >= 0) {
 			LOG_INFO("Loaded gamecontrollerdb.txt");
 		}
 		else {

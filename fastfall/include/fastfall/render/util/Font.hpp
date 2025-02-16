@@ -64,7 +64,7 @@ private:
 		}
 		~FontCache() {
 			if (bitmap_surface) {
-				SDL_FreeSurface(bitmap_surface);
+				SDL_DestroySurface(bitmap_surface);
 			}
 		}
 

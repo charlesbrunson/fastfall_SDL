@@ -91,7 +91,7 @@ add_library(imgui STATIC
 		imgui/imgui_draw.cpp
 		imgui/imgui_tables.cpp
 		imgui/imgui_widgets.cpp
-		imgui/backends/imgui_impl_sdl2.cpp
+		imgui/backends/imgui_impl_sdl3.cpp
 		imgui/backends/imgui_impl_opengl3.cpp
 
 		implot/implot.cpp
@@ -176,40 +176,41 @@ if (NOT EMSCRIPTEN)
 		set(LIBC ON CACHE INTERNAL "")
 	endif()
 
+	#FetchContent_Declare(
+	#		sdl
+	#		URL			https://github.com/libsdl-org/SDL/releases/download/release-2.32.0/SDL2-2.32.0.tar.gz
+	#		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
+	#)
+	#FetchContent_MakeAvailable(sdl)
+
+	## sdl_image
+	#FetchContent_Declare(
+	#	sdl_image
+	#	URL			https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.5/SDL2_image-2.8.5.tar.gz
+	#	SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_image
+	#)
+	#FetchContent_MakeAvailable(sdl_image)
+
 	FetchContent_Declare(
 			sdl
-			URL			https://github.com/libsdl-org/SDL/releases/download/release-2.32.0/SDL2-2.32.0.tar.gz
 			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
+			GIT_REPOSITORY	https://github.com/libsdl-org/SDL.git
+			GIT_TAG			release-3.2.4
+			GIT_SHALLOW 	TRUE
+			GIT_PROGRESS 	TRUE
 	)
 	FetchContent_MakeAvailable(sdl)
 
-	# sdl_image
 	FetchContent_Declare(
-		sdl_image
-		URL			https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.5/SDL2_image-2.8.5.tar.gz
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_image
+			sdl_image
+			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_image
+			GIT_REPOSITORY	https://github.com/libsdl-org/SDL_image.git
+			GIT_TAG			release-3.2.0
+			GIT_SHALLOW 	TRUE
+			GIT_PROGRESS 	TRUE
 	)
 	FetchContent_MakeAvailable(sdl_image)
 
-
-	# build sdl_image as library
-	#file(GLOB SDLIMG_SOURCES ${sdl_image_SOURCE_DIR}/*.c)
-	#file(GLOB SDLIMG_HEADERS ${sdl_image_SOURCE_DIR}/*.h)
-	#add_library(SDL2image STATIC
-	#	${SDLIMG_SOURCES}
-	#	${SDLIMG_HEADERS}
-	#)
-	#target_include_directories(SDL2image PRIVATE "${sdl_SOURCE_DIR}/include")
-	#target_include_directories(SDL2image PRIVATE "${sdl_image_SOURCE_DIR}")
-	#target_include_directories(SDL2image PRIVATE "${libpng_SOURCE_DIR}")
-	#target_link_libraries(SDL2image PUBLIC png_static)
-	#target_compile_definitions(SDL2image PRIVATE LOAD_PNG LOAD_BMP)
-
-	# set(SDL2_LIBRARY SDL2-static)
-	# set(SDL2_INCLUDE_DIR "${sdl_SOURCE_DIR}/include")
-else()
-	# set(SDL2_LIBRARY SDL2)
-	# set(SDL2_INCLUDE_DIR "${sdl_SOURCE_DIR}/include")
 endif()
 
 #freetype
@@ -226,50 +227,30 @@ FetchContent_MakeAvailable(freetype)
 if (EMSCRIPTEN)
 	target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_ES3)
 
-	target_compile_options(imgui PRIVATE -sUSE_SDL=2)
-	target_link_options(imgui PRIVATE -sUSE_SDL=2)
+	target_compile_options(imgui PRIVATE -sUSE_SDL=3)
+	target_link_options(imgui PRIVATE -sUSE_SDL=3)
 
 	target_compile_options(freetype PRIVATE -sUSE_LIBPNG=1)
 	target_link_options(freetype PRIVATE -sUSE_LIBPNG=1)
 endif()
 
-# soloud
-#set(SOLOUD_STATIC 	ON  CACHE INTERNAL "")
-#set(SOLOUD_BACKEND_SDL2 ON  CACHE INTERNAL "")
-#FetchContent_Declare(
-#		soloud
-#		URL			http://solhsa.com/soloud/soloud_20200207.zip
-#		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/soloud
-#		SOURCE_SUBDIR  contrib
-#)
-#FetchContent_MakeAvailable(soloud)
-#
-#if (EMSCRIPTEN)
-#	target_compile_options(soloud PUBLIC
-#		-sUSE_SDL=2
-#	)
-#
-#	target_link_options(soloud PUBLIC
-#		-sUSE_SDL=2
-#	)
-#endif()
-
 # add all include directories to fastfall
-target_include_directories(fastfall PUBLIC
+target_include_directories(fastfall
+PUBLIC
+	glm
+	imgui
+	implot
 	freetype/include
 	rapidxml
 	json/include
 	fmt/include
-	glm
-	imgui
-	implot
-	# soloud/include
 	tracy/public/
 )
 
 
 if(NOT EMSCRIPTEN)
-	target_include_directories(fastfall PUBLIC
+	target_include_directories(fastfall
+	PUBLIC
 		glew/include
 		sdl_image/include
 		sdl/include
@@ -283,34 +264,20 @@ endif()
 
 
 # add all libraries and includes to fastfall
-target_link_libraries(fastfall PUBLIC
-	freetype
-	glm
-	fmt::fmt
-	# soloud
-	imgui
-	Tracy::TracyClient
+target_link_libraries(fastfall
+	PUBLIC
+		glm
+		fmt::fmt
+		imgui
+		freetype
+		Tracy::TracyClient
 )
 if(NOT EMSCRIPTEN)
-	target_link_libraries(fastfall PUBLIC
-		zlibstatic
-		SDL2_image
-		glew_s
-		SDL2main
-		SDL2-static
+	target_link_libraries(fastfall
+		PUBLIC
+			SDL3_image::SDL3_image
+			SDL3::SDL3
+			zlibstatic
+			glew_s
 	)
 endif()
-
-
-
-
-
-
-
-
-
-
-
-
-
-

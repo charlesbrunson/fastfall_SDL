@@ -27,16 +27,16 @@ if(EMSCRIPTEN)
 	target_compile_options(fastfall PUBLIC
 		-sUSE_ZLIB=1 
 		-sUSE_LIBPNG=1 
-		-sUSE_SDL=2 
-		-sUSE_SDL_IMAGE=2 
+		-sUSE_SDL=3
+		-sUSE_SDL_IMAGE=3
 		-sSDL2_IMAGE_FORMATS=["bmp","png"]
 	)
 
 	target_link_options(fastfall PUBLIC
 		-sUSE_ZLIB=1 
 		-sUSE_LIBPNG=1 
-		-sUSE_SDL=2 
-		-sUSE_SDL_IMAGE=2 
+		-sUSE_SDL=3
+		-sUSE_SDL_IMAGE=3
 		-sSDL2_IMAGE_FORMATS=["bmp","png"]	
 		-sWASM=1
 		-sWASM_BIGINT=1 

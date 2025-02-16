@@ -9,7 +9,7 @@
 #include "Gamepad.hpp"
 #include <optional>
 
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
 #include "nlohmann/json.hpp"
 #include <filesystem>
@@ -32,13 +32,13 @@ namespace InputConfig {
 
         // default input mapping for keyboards
         std::map<SDL_Keycode, Input> keyMap = {
-            {SDLK_w,      {Input::Up}},
-            {SDLK_a,      {Input::Left}},
-            {SDLK_s,      {Input::Down}},
-            {SDLK_d,      {Input::Right}},
+            {SDLK_W,      {Input::Up}},
+            {SDLK_A,      {Input::Left}},
+            {SDLK_S,      {Input::Down}},
+            {SDLK_D,      {Input::Right}},
             {SDLK_SPACE,  {Input::Jump}},
             {SDLK_LSHIFT, {Input::Dash}},
-            {SDLK_k,      {Input::Attack}},
+            {SDLK_K,      {Input::Attack}},
         };
 
         constexpr
@@ -57,18 +57,18 @@ namespace InputConfig {
 
         // default input mapping for joysticks
         std::map<GamepadInput, Input> joystickMap = {
-            axis_map(SDL_CONTROLLER_AXIS_LEFTY, GamepadInput::AXIS_DIR_U, Input::Up),
-            axis_map(SDL_CONTROLLER_AXIS_LEFTX, GamepadInput::AXIS_DIR_L, Input::Left),
-            axis_map(SDL_CONTROLLER_AXIS_LEFTY, GamepadInput::AXIS_DIR_D, Input::Down),
-            axis_map(SDL_CONTROLLER_AXIS_LEFTX, GamepadInput::AXIS_DIR_R, Input::Right),
-            button_map(SDL_CONTROLLER_BUTTON_DPAD_UP, Input::Up),
-            button_map(SDL_CONTROLLER_BUTTON_DPAD_LEFT, Input::Left),
-            button_map(SDL_CONTROLLER_BUTTON_DPAD_DOWN, Input::Down),
-            button_map(SDL_CONTROLLER_BUTTON_DPAD_RIGHT, Input::Right),
-            button_map(SDL_CONTROLLER_BUTTON_A, Input::Jump),
-            button_map(SDL_CONTROLLER_BUTTON_B, Input::Dash),
-            button_map(SDL_CONTROLLER_BUTTON_LEFTSHOULDER, Input::Dash),
-            button_map(SDL_CONTROLLER_BUTTON_X, Input::Attack),
+            axis_map(  SDL_GAMEPAD_AXIS_LEFTY, GamepadInput::AXIS_DIR_U, Input::Up),
+            axis_map(  SDL_GAMEPAD_AXIS_LEFTX, GamepadInput::AXIS_DIR_L, Input::Left),
+            axis_map(  SDL_GAMEPAD_AXIS_LEFTY, GamepadInput::AXIS_DIR_D, Input::Down),
+            axis_map(  SDL_GAMEPAD_AXIS_LEFTX, GamepadInput::AXIS_DIR_R, Input::Right),
+            button_map(SDL_GAMEPAD_BUTTON_DPAD_UP, Input::Up),
+            button_map(SDL_GAMEPAD_BUTTON_DPAD_LEFT, Input::Left),
+            button_map(SDL_GAMEPAD_BUTTON_DPAD_DOWN, Input::Down),
+            button_map(SDL_GAMEPAD_BUTTON_DPAD_RIGHT, Input::Right),
+            button_map(SDL_GAMEPAD_BUTTON_SOUTH, Input::Jump),
+            button_map(SDL_GAMEPAD_BUTTON_EAST, Input::Dash),
+            button_map(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER, Input::Dash),
+            button_map(SDL_GAMEPAD_BUTTON_WEST, Input::Attack),
         };
 
         void clearBinds() {
@@ -141,10 +141,11 @@ namespace InputConfig {
 
     void updateJoystick() {
         if (!controller) {
-            int joycount = SDL_NumJoysticks();
-            for (int i = 0; i < joycount; i++) {
+            int count;
+            auto* joystick_ids = SDL_GetJoysticks(&count);
+            for (int i = 0; i < count; i++) {
 
-                controller = Gamepad(i);
+                controller = Gamepad(joystick_ids[i]);
 
                 if (controller->isConnected()) {
                     LOG_INFO("Connected game controller");
@@ -273,11 +274,11 @@ namespace InputConfig {
                 type = "axis";
                 name = fmt::format("{}{}",
                                    (key.positiveSide ? "+" : "-"),
-                                   SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)key.axis));
+                                   SDL_GetGamepadStringForAxis((SDL_GamepadAxis)key.axis));
             }
             else if (key.type == GamepadInputType::BUTTON) {
                 type = "button";
-                name = SDL_GameControllerGetStringForButton((SDL_GameControllerButton)key.button);
+                name = SDL_GetGamepadStringForButton((SDL_GamepadButton)key.button);
             }
             else {
                 continue;
@@ -358,8 +359,8 @@ namespace InputConfig {
                     continue;
                 }
 
-                auto axis_enum = SDL_GameControllerGetAxisFromString(axis_str.data());
-                if (axis_enum == SDL_CONTROLLER_AXIS_INVALID) {
+                auto axis_enum = SDL_GetGamepadAxisFromString(axis_str.data());
+                if (axis_enum == SDL_GAMEPAD_AXIS_INVALID) {
                     LOG_ERR_("Input config parse error: unknown axis \"{}\"", axis_str.data());
                     has_error = true;
                     continue;
@@ -387,8 +388,8 @@ namespace InputConfig {
                     continue;
                 }
 
-                auto button_enum = SDL_GameControllerGetButtonFromString(key.data());
-                if (button_enum == SDL_CONTROLLER_BUTTON_INVALID) {
+                auto button_enum = SDL_GetGamepadButtonFromString(key.data());
+                if (button_enum == SDL_GAMEPAD_BUTTON_INVALID) {
                     LOG_ERR_("Input config parse error: unknown button \"{}\"", key.data());
                     has_error = true;
                     continue;
@@ -542,10 +543,10 @@ namespace InputConfig {
                 heldKeys.clear();
 
                 int keycount = 1;
-                const Uint8* state = SDL_GetKeyboardState(&keycount);
+                const bool* states = SDL_GetKeyboardState(&keycount);
 
                 for (SDL_Keycode key = 0; key < keycount; key++) {
-                    if (state[SDL_GetScancodeFromKey(key)]) {
+                    if (states[SDL_GetScancodeFromKey(key, nullptr)]) {
                         if (heldKeys.size() < 32) {
                             heldKeys.push_back(key);
                         }
@@ -592,10 +593,10 @@ namespace InputConfig {
             if (controller && controller->isConnected()) {
                 int i = 0;
 
-                SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller->getHandle());
+                SDL_Joystick* joystick = SDL_GetGamepadJoystick(controller->getHandle());
 
-                int buttonCount = SDL_JoystickNumButtons(joystick);
-                SDL_JoystickID id = SDL_JoystickInstanceID(joystick);
+                int buttonCount = SDL_GetNumJoystickButtons(joystick);
+                SDL_JoystickID id = SDL_GetJoystickID(joystick);
                                         
                 static char controllerbuf[32];
                 sprintf(controllerbuf, "Controller %1d", i);
@@ -610,13 +611,13 @@ namespace InputConfig {
                     ImGui::SetColumnWidth(0, 120.f);
                     ImGui::Separator();
                     ImGui::Text("Controller Name"); ImGui::NextColumn();
-                    ImGui::Text("%s", SDL_JoystickNameForIndex(i)); ImGui::NextColumn();
+                    ImGui::Text("%s", SDL_GetJoystickNameForID(i)); ImGui::NextColumn();
                     ImGui::Text("Vendor ID"); ImGui::NextColumn();
-                    ImGui::Text("0x%04x", SDL_JoystickGetVendor(joystick)); ImGui::NextColumn();
+                    ImGui::Text("0x%04x", SDL_GetJoystickVendor(joystick)); ImGui::NextColumn();
                     ImGui::Text("Product ID"); ImGui::NextColumn();
-                    ImGui::Text("0x%04x", SDL_JoystickGetProduct(joystick)); ImGui::NextColumn();
+                    ImGui::Text("0x%04x", SDL_GetJoystickProduct(joystick)); ImGui::NextColumn();
                     ImGui::Text("Product Version"); ImGui::NextColumn();
-                    ImGui::Text("0x%04x", SDL_JoystickGetProductVersion(joystick)); ImGui::NextColumn();
+                    ImGui::Text("0x%04x", SDL_GetJoystickProductVersion(joystick)); ImGui::NextColumn();
                     ImGui::Columns(1);
                     ImGui::Separator();
 
@@ -631,7 +632,7 @@ namespace InputConfig {
 
                         ImGui::Text("Button %2d", j);
                         ImGui::NextColumn();
-                        ImGui::Text("%s", SDL_JoystickGetButton(joystick, j) != 0 ? "PRESSED" : "");
+                        ImGui::Text("%s", SDL_GetJoystickButton(joystick, j) != 0 ? "PRESSED" : "");
                         ImGui::NextColumn();
                     }
                     ImGui::Columns(1);
@@ -639,12 +640,12 @@ namespace InputConfig {
 
                     ImGui::Spacing();
                         
-                    int axiscount = SDL_JoystickNumAxes(joystick);
+                    int axiscount = SDL_GetNumJoystickAxes(joystick);
                     ImGui::Text("Axis Count: %d", axiscount);
                     for (int j = 0; j < axiscount; j++) {
 
                         static char axisbuf[32];
-                        float position = 100.f * (float)SDL_JoystickGetAxis(joystick, j) / (float)(SHRT_MAX);
+                        float position = 100.f * (float)SDL_GetJoystickAxis(joystick, j) / (float)(SHRT_MAX);
                         sprintf(axisbuf, "%d", (int)(position));
 
                         ImGui::Text("%4s: ", axisNames[j]);
@@ -657,10 +658,10 @@ namespace InputConfig {
                     ImGui::Separator();
                     ImGui::Spacing();
 
-                    int hatcount = SDL_JoystickNumHats(joystick);
+                    int hatcount = SDL_GetNumJoystickHats(joystick);
                     for (int j = 0; j < hatcount; j++) {
                         static std::string_view hatstr;
-                        uint8_t hatpos = SDL_JoystickGetHat(joystick, j);
+                        uint8_t hatpos = SDL_GetJoystickHat(joystick, j);
                         switch (hatpos) {
                             case SDL_HAT_CENTERED: 
                                 hatstr = "SDL_HAT_CENTERED";

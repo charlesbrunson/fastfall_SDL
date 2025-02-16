@@ -81,7 +81,7 @@ bool Texture::loadFromFile(std::string_view filename) {
 	checkSDL(surf);
 
 	loadFromSurface(surf);
-	SDL_FreeSurface(surf);
+	SDL_DestroySurface(surf);
 
 	return exists();
 }
@@ -93,21 +93,21 @@ bool Texture::loadFromFile(const std::filesystem::path& filename) {
     checkSDL(surf);
 
     loadFromSurface(surf);
-    SDL_FreeSurface(surf);
+    SDL_DestroySurface(surf);
 
     return exists();
 }
 
 
 bool Texture::loadFromStream(const void* data, short length) {
-	SDL_RWops* io = SDL_RWFromConstMem(data, length);
+	SDL_IOStream* io = SDL_IOFromConstMem(data, length);
 	checkSDL(io);
 
-	SDL_Surface* surf = IMG_Load_RW(io, 1);
+	SDL_Surface* surf = IMG_Load_IO(io, 1);
 	checkSDL(surf);
 
 	loadFromSurface(surf);
-	SDL_FreeSurface(surf);
+	SDL_DestroySurface(surf);
 
 	return exists();
 }
@@ -115,7 +115,8 @@ bool Texture::loadFromStream(const void* data, short length) {
 bool Texture::loadFromSurface(const SDL_Surface* surface) {
 	checkSDL(surface);
 	if (surface) {
-		if (surface->format->Amask > 0) {
+		auto format = SDL_GetPixelFormatDetails(surface->format);
+		if (format->Amask > 0) {
 			load(surface->pixels, surface->w, surface->h, ImageFormat::PNG);
 		}
 		else {

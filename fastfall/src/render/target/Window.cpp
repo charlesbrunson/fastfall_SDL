@@ -13,11 +13,9 @@ Window::Window(bool start_hidden)
 	: RenderTarget(),
 	m_window{ SDL_CreateWindow(
 		"",
-		SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED,
 		480,
 		360,
-		SDL_WINDOW_OPENGL | (start_hidden ? SDL_WINDOW_HIDDEN : SDL_WINDOW_SHOWN) | SDL_WINDOW_RESIZABLE
+		SDL_WINDOW_OPENGL | (start_hidden ? SDL_WINDOW_HIDDEN : 0UL) | SDL_WINDOW_RESIZABLE
 	) }
 {
 	init();
@@ -29,13 +27,11 @@ Window::Window(const char* title, unsigned initWidth, unsigned initHeight, bool 
 	: RenderTarget(),
 	m_window{ SDL_CreateWindow(
 		title,
-		SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED,
 		initWidth,
 		initHeight,
-		SDL_WINDOW_OPENGL | (start_hidden ? SDL_WINDOW_HIDDEN : SDL_WINDOW_SHOWN) | SDL_WINDOW_RESIZABLE
+		SDL_WINDOW_OPENGL | (start_hidden ? SDL_WINDOW_HIDDEN : 0UL) | SDL_WINDOW_RESIZABLE
 	) }
-{	
+{
 	init();
 	if (m_window)
 		m_id = SDL_GetWindowID(m_window);
@@ -46,11 +42,9 @@ Window::Window(std::string_view title, unsigned initWidth, unsigned initHeight, 
 	: RenderTarget(),
 	m_window{ SDL_CreateWindow(
 		title.data(),
-		SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED,
 		initWidth,
 		initHeight,
-		SDL_WINDOW_OPENGL | (start_hidden ? SDL_WINDOW_HIDDEN : SDL_WINDOW_SHOWN) | SDL_WINDOW_RESIZABLE
+		SDL_WINDOW_OPENGL | (start_hidden ? SDL_WINDOW_HIDDEN : 0UL) | SDL_WINDOW_RESIZABLE
 	)}
 {
 	init();
@@ -61,6 +55,8 @@ Window::Window(std::string_view title, unsigned initWidth, unsigned initHeight, 
 
 void Window::init() {
 	assert(ff::render::is_init());
+
+	SDL_SetWindowFullscreenMode(m_window, nullptr);
 
     m_context = SDL_GL_CreateContext(m_window);
     checkSDL(m_context);
@@ -74,7 +70,7 @@ void Window::init() {
     TracyGpuContext;
 
 	// Setup Platform/Renderer backends
-	ImGui_ImplSDL2_InitForOpenGL(m_window, m_context);
+	ImGui_ImplSDL3_InitForOpenGL(m_window, m_context);
 
 #if defined(__EMSCRIPTEN__)
 	glCheck(ImGui_ImplOpenGL3_Init("#version 300 es"));
@@ -87,7 +83,7 @@ void Window::init() {
 
 Window::~Window() 
 {
-	SDL_GL_DeleteContext(m_context);
+	SDL_GL_DestroyContext(m_context);
 
 	if (m_window)
 		SDL_DestroyWindow(m_window);
@@ -100,12 +96,12 @@ SDL_Window* Window::getSDL_Window() const
 
 void Window::setWindowResizable(bool enable) {
 #if not defined(__EMSCRIPTEN__)
-	SDL_SetWindowResizable(m_window, enable ? SDL_TRUE : SDL_FALSE);
+	SDL_SetWindowResizable(m_window, enable);
 #endif
 }
 void Window::setWindowBorderless(bool enable) {
 #if not defined(__EMSCRIPTEN__)
-	SDL_SetWindowBordered(m_window, !enable ? SDL_TRUE : SDL_FALSE);
+	SDL_SetWindowBordered(m_window, !enable);
 #endif
 }
 
@@ -146,21 +142,10 @@ void Window::setWindowTitle(std::string_view title) {
 void Window::setWindowFullscreen(FullscreenType set) {
 	switch (set) {
 	case FullscreenType::FULLSCREEN:
-#if not defined(__EMSCRIPTEN__)
-		SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
-#else
-		SDL_SetWindowFullscreen(m_window, SDL_bool::SDL_TRUE);
-#endif
-		break;
-	case FullscreenType::FULLSCREEN_DESKTOP:
-#if not defined(__EMSCRIPTEN__)
-		SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-#else
-		SDL_SetWindowFullscreen(m_window, SDL_bool::SDL_TRUE);
-#endif
+		SDL_SetWindowFullscreen(m_window, true);
 		break;
 	case FullscreenType::WINDOWED:
-		SDL_SetWindowFullscreen(m_window, SDL_bool::SDL_FALSE);
+		SDL_SetWindowFullscreen(m_window, false);
 		break;
 	}
 }
