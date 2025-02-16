@@ -128,8 +128,7 @@ void Window::setWindowCentered() {
 void Window::setVsyncEnabled(bool enable)
 {
 	setActive();
-	//checkSDL(SDL_GL_SetSwapInterval(enable ? 1 : 0));
-	if (SDL_GL_SetSwapInterval(enable ? 1 : 0) != 0) {
+	if (!SDL_GL_SetSwapInterval(enable ? 1 : 0)) {
 		LOG_WARN("Vsync not supported");
 	}
 }
@@ -142,6 +141,7 @@ void Window::setWindowTitle(std::string_view title) {
 void Window::setWindowFullscreen(FullscreenType set) {
 	switch (set) {
 	case FullscreenType::FULLSCREEN:
+	case FullscreenType::FULLSCREEN_DESKTOP:
 		SDL_SetWindowFullscreen(m_window, true);
 		break;
 	case FullscreenType::WINDOWED:
