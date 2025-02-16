@@ -727,6 +727,7 @@ void Engine::handleEvents(bool* timeWasted)
             case SDLK_F10: 
                 setFullscreen(!settings.fullscreen);
                 break;
+            case SDLK_1:
             case SDLK_KP_1:
                 if (isFrozen()) {
                     unfreeze();
@@ -735,9 +736,11 @@ void Engine::handleEvents(bool* timeWasted)
                     freeze();
                 }
                 break;
+            case SDLK_2:
             case SDLK_KP_2:
                 freezeStepOnce();
                 break;
+            case SDLK_3:
             case SDLK_KP_3: {
                 settings.showDebug = !settings.showDebug;
                 unsigned scale = settings.showDebug ? 2 : 1;

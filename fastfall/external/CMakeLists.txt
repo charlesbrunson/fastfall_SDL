@@ -178,7 +178,7 @@ if (NOT EMSCRIPTEN)
 
 	FetchContent_Declare(
 			sdl
-			URL			https://www.libsdl.org/release/SDL2-2.0.14.tar.gz
+			URL			https://github.com/libsdl-org/SDL/releases/download/release-2.32.0/SDL2-2.32.0.tar.gz
 			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
 	)
 	FetchContent_MakeAvailable(sdl)
@@ -186,30 +186,30 @@ if (NOT EMSCRIPTEN)
 	# sdl_image
 	FetchContent_Declare(
 		sdl_image
-		URL			https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.5.tar.gz
+		URL			https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.5/SDL2_image-2.8.5.tar.gz
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_image
 	)
 	FetchContent_MakeAvailable(sdl_image)
 
 
 	# build sdl_image as library
-	file(GLOB SDLIMG_SOURCES ${sdl_image_SOURCE_DIR}/*.c)
-	file(GLOB SDLIMG_HEADERS ${sdl_image_SOURCE_DIR}/*.h)
-	add_library(SDL2image STATIC 
-		${SDLIMG_SOURCES} 
-		${SDLIMG_HEADERS} 
-	)
-	target_include_directories(SDL2image PRIVATE "${sdl_SOURCE_DIR}/include")
-	target_include_directories(SDL2image PRIVATE "${sdl_image_SOURCE_DIR}")
-	target_include_directories(SDL2image PRIVATE "${libpng_SOURCE_DIR}")
-	target_link_libraries(SDL2image PUBLIC png_static)
-	target_compile_definitions(SDL2image PRIVATE LOAD_PNG LOAD_BMP)
+	#file(GLOB SDLIMG_SOURCES ${sdl_image_SOURCE_DIR}/*.c)
+	#file(GLOB SDLIMG_HEADERS ${sdl_image_SOURCE_DIR}/*.h)
+	#add_library(SDL2image STATIC
+	#	${SDLIMG_SOURCES}
+	#	${SDLIMG_HEADERS}
+	#)
+	#target_include_directories(SDL2image PRIVATE "${sdl_SOURCE_DIR}/include")
+	#target_include_directories(SDL2image PRIVATE "${sdl_image_SOURCE_DIR}")
+	#target_include_directories(SDL2image PRIVATE "${libpng_SOURCE_DIR}")
+	#target_link_libraries(SDL2image PUBLIC png_static)
+	#target_compile_definitions(SDL2image PRIVATE LOAD_PNG LOAD_BMP)
 
-	set(SDL2_LIBRARY SDL2-static)
-	set(SDL2_INCLUDE_DIR "${sdl_SOURCE_DIR}/include")
+	# set(SDL2_LIBRARY SDL2-static)
+	# set(SDL2_INCLUDE_DIR "${sdl_SOURCE_DIR}/include")
 else()
-	set(SDL2_LIBRARY SDL2)
-	set(SDL2_INCLUDE_DIR "${sdl_SOURCE_DIR}/include")
+	# set(SDL2_LIBRARY SDL2)
+	# set(SDL2_INCLUDE_DIR "${sdl_SOURCE_DIR}/include")
 endif()
 
 #freetype
@@ -234,25 +234,25 @@ if (EMSCRIPTEN)
 endif()
 
 # soloud
-set(SOLOUD_STATIC 	ON  CACHE INTERNAL "")
-set(SOLOUD_BACKEND_SDL2 ON  CACHE INTERNAL "")
-FetchContent_Declare(
-		soloud
-		URL			http://solhsa.com/soloud/soloud_20200207.zip
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/soloud
-		SOURCE_SUBDIR  contrib
-)
-FetchContent_MakeAvailable(soloud)
-
-if (EMSCRIPTEN) 
-	target_compile_options(soloud PUBLIC 
-		-sUSE_SDL=2 
-	)
-
-	target_link_options(soloud PUBLIC 
-		-sUSE_SDL=2 
-	)
-endif()
+#set(SOLOUD_STATIC 	ON  CACHE INTERNAL "")
+#set(SOLOUD_BACKEND_SDL2 ON  CACHE INTERNAL "")
+#FetchContent_Declare(
+#		soloud
+#		URL			http://solhsa.com/soloud/soloud_20200207.zip
+#		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/soloud
+#		SOURCE_SUBDIR  contrib
+#)
+#FetchContent_MakeAvailable(soloud)
+#
+#if (EMSCRIPTEN)
+#	target_compile_options(soloud PUBLIC
+#		-sUSE_SDL=2
+#	)
+#
+#	target_link_options(soloud PUBLIC
+#		-sUSE_SDL=2
+#	)
+#endif()
 
 # add all include directories to fastfall
 target_include_directories(fastfall PUBLIC
@@ -263,7 +263,7 @@ target_include_directories(fastfall PUBLIC
 	glm
 	imgui
 	implot
-	soloud/include
+	# soloud/include
 	tracy/public/
 )
 
@@ -271,7 +271,7 @@ target_include_directories(fastfall PUBLIC
 if(NOT EMSCRIPTEN)
 	target_include_directories(fastfall PUBLIC
 		glew/include
-		sdl_image
+		sdl_image/include
 		sdl/include
 		libpng
 		zlib
@@ -287,14 +287,14 @@ target_link_libraries(fastfall PUBLIC
 	freetype
 	glm
 	fmt::fmt
-	soloud
+	# soloud
 	imgui
 	Tracy::TracyClient
 )
 if(NOT EMSCRIPTEN)
 	target_link_libraries(fastfall PUBLIC
 		zlibstatic
-		SDL2image
+		SDL2_image
 		glew_s
 		SDL2main
 		SDL2-static

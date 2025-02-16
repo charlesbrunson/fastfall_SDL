@@ -9,7 +9,9 @@ SoundAsset::SoundAsset(const std::filesystem::path& t_asset_path)
 
 bool SoundAsset::loadFromFile() {
     auto str = asset_path.generic_string();
-    loaded = sound.load(str.data()) == SoLoud::SO_NO_ERROR;
+    // TODO: replace SoLoud
+    // loaded = sound.load(str.data()) == SoLoud::SO_NO_ERROR;
+    loaded = true;
     return loaded;
 }
 
