@@ -10,7 +10,7 @@
 
 namespace ff::debug {
 
-    bool show = false;
+    bool show = true;
     bool darken = false;
     stats_t stats;
 

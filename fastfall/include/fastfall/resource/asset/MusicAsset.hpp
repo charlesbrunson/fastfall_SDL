@@ -1,28 +1,28 @@
 #pragma once
 
 #include "fastfall/resource/Asset.hpp"
-// #include "soloud_wavstream.h"
 
 namespace ff {
 
 class MusicAsset : public Asset {
 public:
-    MusicAsset(const std::filesystem::path& t_asset_path);
+    struct Impl;
+
+    explicit MusicAsset(const std::filesystem::path& t_asset_path);
+    ~MusicAsset() override;
 
     bool loadFromFile() override;
     bool reloadFromFile() override;
 
-    std::vector<std::filesystem::path> getDependencies() const override;
+    [[nodiscard]] std::vector<std::filesystem::path> getDependencies() const override;
 
-    // TODO: replace SoLoud
-    // SoLoud::WavStream& wavstream() { return stream; }
-    // const SoLoud::WavStream& wavstream() const { return stream; }
-
+    [[nodiscard]] Impl* get_data() { return music_ptr; };
+    [[nodiscard]] const Impl* get_data() const { return music_ptr; };
 
     void ImGui_getContent(secs deltaTime) override {};
 
 private:
-    // SoLoud::WavStream stream;
+    Impl* music_ptr;
 };
 
 }

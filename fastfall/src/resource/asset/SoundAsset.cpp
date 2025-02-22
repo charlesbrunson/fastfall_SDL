@@ -1,5 +1,7 @@
 #include "fastfall/resource/asset/SoundAsset.hpp"
 
+#include <SDL3_mixer/SDL_mixer.h>
+
 namespace ff {
 
 SoundAsset::SoundAsset(const std::filesystem::path& t_asset_path)
@@ -7,10 +9,15 @@ SoundAsset::SoundAsset(const std::filesystem::path& t_asset_path)
 {
 }
 
+SoundAsset::~SoundAsset()
+{
+    Mix_FreeChunk(reinterpret_cast<Mix_Chunk*>(sound_ptr));
+}
+
 bool SoundAsset::loadFromFile() {
     auto str = asset_path.generic_string();
-    // TODO: replace SoLoud
-    // loaded = sound.load(str.data()) == SoLoud::SO_NO_ERROR;
+    sound_ptr = reinterpret_cast<Impl*>(Mix_LoadWAV(str.c_str()));
+    loaded = sound_ptr != nullptr;
     loaded = true;
     return loaded;
 }

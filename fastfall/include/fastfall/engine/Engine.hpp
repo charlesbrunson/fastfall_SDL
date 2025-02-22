@@ -58,10 +58,11 @@ public:
 
 
 class Engine : public ImGuiContent {
-private:
 	DebugDrawImgui debugdrawImgui;
 	InputConfig::InputObserver input_cfg;
     WorldImGui worldImgui;
+
+	RenderTexture target;
 
 public:
     explicit Engine(Window* window);

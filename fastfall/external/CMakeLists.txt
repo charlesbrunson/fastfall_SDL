@@ -70,6 +70,12 @@ FetchContent_Declare(
 	GIT_SHALLOW 	TRUE
 	GIT_PROGRESS 	TRUE
 )
+FetchContent_Declare(
+	magic_enum
+	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/magic_enum
+	GIT_REPOSITORY	https://github.com/Neargye/magic_enum.git
+	GIT_TAG			v0.9.7
+)
 
 FetchContent_MakeAvailable(
 	glm
@@ -79,6 +85,7 @@ FetchContent_MakeAvailable(
 	imgui
 	implot
 	tracy
+	magic_enum
 )
 target_compile_definitions(glm PUBLIC GLM_ENABLE_EXPERIMENTAL)
 
@@ -209,6 +216,17 @@ if (NOT EMSCRIPTEN)
 	)
 	FetchContent_MakeAvailable(sdl_image)
 
+	FetchContent_Declare(
+		sdl_mixer
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_mixer
+		GIT_REPOSITORY	https://github.com/libsdl-org/SDL_mixer.git
+		# TODO: update once there's an official release
+		GIT_TAG			bc9c365b86734d4da667b4279faba8721c43ba06
+		GIT_SHALLOW 	TRUE
+		GIT_PROGRESS 	TRUE
+	)
+	FetchContent_MakeAvailable(sdl_mixer)
+
 endif()
 
 #freetype
@@ -269,12 +287,14 @@ target_link_libraries(fastfall
 		imgui
 		freetype
 		Tracy::TracyClient
+		magic_enum::magic_enum
 )
 if(NOT EMSCRIPTEN)
 	target_link_libraries(fastfall
 		PUBLIC
-			SDL3_image::SDL3_image
 			SDL3::SDL3
+			SDL3_image::SDL3_image
+			SDL3_mixer::SDL3_mixer
 			zlibstatic
 			glew_s
 	)

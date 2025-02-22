@@ -1,78 +1,73 @@
 #include "fastfall/engine/audio.hpp"
+
 #include "fastfall/util/log.hpp"
 
 #include "SDL3/SDL.h"
+#include "SDL3_mixer/SDL_mixer.h"
+
+#include "magic_enum/magic_enum.hpp"
 
 namespace ff::audio {
 
-// TODO: replace SoLoud
-// SoLoud::Soloud audio_engine;
-
-game_bus_t primary_mix;
-float game_v  = 1.f;
-float music_v = 1.f;
-float master_v = 0.5f;
-
 bool init_state = false;
 
-bool init(AudioBackends backend) {
-    /*
-    auto r = audio_engine.init(
-        SoLoud::Soloud::CLIP_ROUNDOFF,
-        static_cast<SoLoud::Soloud::BACKENDS>(backend),
-        SoLoud::Soloud::AUTO,
-        SoLoud::Soloud::AUTO
-    );
+bool init() {
+    SDL_AudioSpec spec;
+    spec.channels = MIX_DEFAULT_CHANNELS;
+    spec.freq     = MIX_DEFAULT_FREQUENCY;
+    spec.format   = MIX_DEFAULT_FORMAT;
 
-    if (r != SoLoud::SOLOUD_ERRORS::SO_NO_ERROR) {
-        LOG_ERR_("Failed to initialize audio: {}", r);
-        std::string err = SDL_GetError();
-        LOG_ERR_("SDL: {}", err);
-        init_state = false;
-    } else {
-        LOG_INFO("    SoLoud {}", SOLOUD_VERSION);
-        audio_engine.setMaxActiveVoiceCount(64);
-        audio_engine.setGlobalVolume(master_v);
-        primary_mix.game.setVolume(game_v);
-        primary_mix.music.setVolume(music_v);
-        audio_engine.play(primary_mix.game);
-        audio_engine.play(primary_mix.music);
-        init_state = true;
+    if (Mix_OpenAudio(0, &spec))
+    {
+        Mix_QuerySpec(&spec.freq, &spec.format, &spec.channels);
+        LOG_INFO("Opened audio at {} Hz {} bit{} {}",
+            spec.freq,
+            spec.format&0xFF,
+            (SDL_AUDIO_ISFLOAT(spec.format) ? " (float)" : ""),
+            (spec.channels > 2 ? "surround" : (spec.channels > 1 ? "stereo" : "mono")));
     }
-    return init_state;
-    */
+    else
+    {
+        LOG_INFO("Failed to open audio");
+        return false;
+    }
+
     init_state = true;
     return init_state;
 }
 
-bool quit() {
-    // audio_engine.deinit();
+void quit() {
+    Mix_CloseAudio();
     init_state = false;
-    return !init_state;
 }
 
 bool is_init() { return init_state; }
 
 void set_master_volume(float volume) {
-    master_v = volume;
-    // audio_engine.setGlobalVolume(master_v);
+    auto vol_converted = static_cast<int>(std::clamp(volume, 0.f, 1.f) * MIX_MAX_VOLUME);
+    Mix_MasterVolume(vol_converted);
 }
 
 void set_game_volume(float volume) {
-    game_v = volume;
-    // primary_mix.game.setVolume(game_v);
+    auto vol_converted = static_cast<int>(std::clamp(volume, 0.f, 1.f) * MIX_MAX_VOLUME);
+    Mix_Volume(-1, vol_converted);
 }
 
 void set_music_volume(float volume) {
-    music_v = volume;
-    // primary_mix.game.setVolume(music_v);
+    auto vol_converted = static_cast<int>(std::clamp(volume, 0.f, 1.f) * MIX_MAX_VOLUME);
+    Mix_VolumeMusic(vol_converted);
 }
 
-float get_master_volume() { return master_v; }
-float get_game_volume()   { return game_v;   }
-float get_music_volume()  { return music_v;  }
+float get_master_volume() {
+    return static_cast<float>(Mix_MasterVolume(-1)) / MIX_MAX_VOLUME;
+}
 
-game_bus_t& primary_bus() { return primary_mix; }
-// SoLoud::Soloud& engine() { return audio_engine; }
+float get_game_volume() {
+    return static_cast<float>(Mix_Volume(-1, -1)) / MIX_MAX_VOLUME;
+}
+
+float get_music_volume() {
+    return static_cast<float>(Mix_VolumeMusic(-1)) / MIX_MAX_VOLUME;
+}
 
 }

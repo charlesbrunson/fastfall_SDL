@@ -133,23 +133,6 @@ void Engine::prerun_init()
     if (window) {
         window->setActive();
     }
-
-#ifdef DEBUG
-    if (window != nullptr) {
-        // ImGui::GetIO().IniFilename = NULL; // disable saving window positions
-
-
-        ImGui::GetStyle().WindowRounding = 0.0f;
-        ImGui::GetStyle().ChildRounding = 0.0f;
-        ImGui::GetStyle().FrameRounding = 0.0f;
-        ImGui::GetStyle().GrabRounding = 0.0f;
-        ImGui::GetStyle().PopupRounding = 0.0f;
-        ImGui::GetStyle().ScrollbarRounding = 0.0f;
-        ImGui::GetStyle().TabRounding = 0.0f;
-        ImGui::GetStyle().WindowBorderSize = 0.0f;
-
-    }
-#endif
 }
 
 
@@ -696,11 +679,8 @@ void Engine::handleEvents(bool* timeWasted)
                 close();
                 break;
             case SDL_EVENT_WINDOW_RESIZED:
-                if (!settings.fullscreen) {
-                    //LOG_INFO("resize: {}", Vec2u(window->getSize()));
-                    resizeWindow(Vec2u(window->getSize()));
-                    *timeWasted = true;
-                }
+                resizeWindow(Vec2u(window->getSize()));
+                *timeWasted = true;
                 break;
             case SDL_EVENT_WINDOW_FOCUS_GAINED:
                 hasFocus = true;
