@@ -45,7 +45,7 @@ bool init() {
     assert(!renderInitialized);
     renderInitialized = true;
 
-    checkSDL(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | SDL_INIT_AUDIO));
+    checkSDL(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD));
 
     auto version = SDL_GetVersion();
     LOG_INFO("{:>10} {}.{}.{}", "SDL",

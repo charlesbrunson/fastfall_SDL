@@ -181,21 +181,6 @@ if (NOT EMSCRIPTEN)
 		set(LIBC ON CACHE INTERNAL "")
 	endif()
 
-	#FetchContent_Declare(
-	#		sdl
-	#		URL			https://github.com/libsdl-org/SDL/releases/download/release-2.32.0/SDL2-2.32.0.tar.gz
-	#		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
-	#)
-	#FetchContent_MakeAvailable(sdl)
-
-	## sdl_image
-	#FetchContent_Declare(
-	#	sdl_image
-	#	URL			https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.5/SDL2_image-2.8.5.tar.gz
-	#	SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_image
-	#)
-	#FetchContent_MakeAvailable(sdl_image)
-
 	FetchContent_Declare(
 			sdl
 			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
@@ -217,15 +202,18 @@ if (NOT EMSCRIPTEN)
 	FetchContent_MakeAvailable(sdl_image)
 
 	FetchContent_Declare(
-		sdl_mixer
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_mixer
-		GIT_REPOSITORY	https://github.com/libsdl-org/SDL_mixer.git
-		# TODO: update once there's an official release
-		GIT_TAG			bc9c365b86734d4da667b4279faba8721c43ba06
+		miniaudio
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/miniaudio
+		GIT_REPOSITORY	https://github.com/mackron/miniaudio.git
+		GIT_TAG			0.11.21
 		GIT_SHALLOW 	TRUE
 		GIT_PROGRESS 	TRUE
 	)
-	FetchContent_MakeAvailable(sdl_mixer)
+	FetchContent_MakeAvailable(miniaudio)
+
+	add_library(miniaudio INTERFACE ${miniaudio_SOURCE_DIR}/miniaudio.h)
+	add_library(miniaudio::miniaudio ALIAS miniaudio)
+	target_include_directories(miniaudio INTERFACE ${miniaudio_SOURCE_DIR})
 
 endif()
 
@@ -288,13 +276,13 @@ target_link_libraries(fastfall
 		freetype
 		Tracy::TracyClient
 		magic_enum::magic_enum
+		miniaudio::miniaudio
 )
 if(NOT EMSCRIPTEN)
 	target_link_libraries(fastfall
 		PUBLIC
 			SDL3::SDL3
 			SDL3_image::SDL3_image
-			SDL3_mixer::SDL3_mixer
 			zlibstatic
 			glew_s
 	)

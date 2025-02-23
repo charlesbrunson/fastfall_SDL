@@ -1,12 +1,14 @@
 #pragma once
 
+#include "miniaudio.h"
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/resource/asset/SoundAsset.hpp"
 
 namespace ff {
 
     struct SoundHandle {
-        unsigned int id;
+        unsigned id = 0;
+        ma_sound sound;
     };
 
     namespace audio {
@@ -30,9 +32,6 @@ namespace ff {
 
     class AudioSystem {
     public:
-
-        AudioSystem() = default;
-        explicit AudioSystem(audio::game_bus_t* t_dest);
 
         template<is_audio_property ...AudioProp_Ts>
         SoundHandle play(std::string_view sound_asset_name, AudioProp_Ts&&... props) {
@@ -70,22 +69,15 @@ namespace ff {
 
         void update(secs deltaTime);
 
-        audio::game_bus_t* get_destination_bus() const {
-            return dest;
-        }
-
-        void set_destination_bus(audio::game_bus_t* t_dest) {
-            dest = t_dest;
-        }
-
     private:
         std::vector<SoundHandle> active_sounds; // currently playing ( as of last update() )
 
         SoundHandle play_impl(SoundAsset& sound_asset);
         SoundAsset* get_asset_impl(std::string_view sound_asset_name);
 
-        audio::game_bus_t* dest = nullptr;
         secs upTime = 0.0;
+
+        unsigned id_counter = 0;
     };
 
 }

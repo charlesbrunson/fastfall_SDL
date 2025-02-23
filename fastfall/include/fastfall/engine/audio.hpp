@@ -1,5 +1,5 @@
 #pragma once
-#include "SDL3/SDL_audio.h"
+#include "miniaudio.h"
 
 // TODO: replace SoLoud
 namespace ff::audio {
@@ -15,5 +15,9 @@ void set_music_volume(float volume);
 float get_master_volume();
 float get_game_volume();
 float get_music_volume();
+
+ma_engine& get_engine();
+ma_sound_group& get_game_sound_group();
+ma_sound_group& get_music_sound_group();
 
 }

@@ -1,6 +1,6 @@
 #include "fastfall/resource/asset/SoundAsset.hpp"
 
-#include <SDL3_mixer/SDL_mixer.h>
+#include <fastfall/engine/audio.hpp>
 
 namespace ff {
 
@@ -11,14 +11,23 @@ SoundAsset::SoundAsset(const std::filesystem::path& t_asset_path)
 
 SoundAsset::~SoundAsset()
 {
-    Mix_FreeChunk(reinterpret_cast<Mix_Chunk*>(sound_ptr));
+    if (loaded && audio::is_init()) ma_sound_uninit(&sound);
 }
 
 bool SoundAsset::loadFromFile() {
     auto str = asset_path.generic_string();
-    sound_ptr = reinterpret_cast<Impl*>(Mix_LoadWAV(str.c_str()));
-    loaded = sound_ptr != nullptr;
-    loaded = true;
+
+    if (audio::is_init())
+    {
+        loaded = ma_sound_init_from_file(
+            &audio::get_engine(),
+            str.c_str(),
+            0,
+            &audio::get_game_sound_group(),
+            nullptr,
+            &sound) == MA_SUCCESS;
+    }
+
     return loaded;
 }
 

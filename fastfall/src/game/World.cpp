@@ -19,7 +19,7 @@ World::World()
     WorldImGui::add(this);
     state._input.set_source(nullptr);
     state._comp_to_ent.reserve(128);
-    system<AudioSystem>().set_destination_bus(&audio::primary_bus());
+    // system<AudioSystem>().set_destination_bus(&audio::primary_bus());
 }
 
 World::World(const World& other)

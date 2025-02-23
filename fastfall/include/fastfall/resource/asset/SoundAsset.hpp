@@ -1,5 +1,6 @@
 #pragma once
 
+#include "miniaudio.h"
 #include "fastfall/resource/Asset.hpp"
 
 namespace ff {
@@ -16,13 +17,12 @@ public:
 
     [[nodiscard]] std::vector<std::filesystem::path> getDependencies() const override;
 
-    [[nodiscard]] Impl* get_data() { return sound_ptr; };
-    [[nodiscard]] const Impl* get_data() const { return sound_ptr; };
-
     void ImGui_getContent(secs deltaTime) override {};
 
+    ma_sound& get_sound() { return sound; }
+
 private:
-    Impl* sound_ptr;
+    ma_sound sound;
 };
 
 }

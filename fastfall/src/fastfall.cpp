@@ -59,6 +59,7 @@ void Quit() {
     if (kill_watch)
         ResourceWatcher::stop_watch_thread();
 
+
     Resources::unloadAll();
     ImGuiFrame::getInstance().clear();
 

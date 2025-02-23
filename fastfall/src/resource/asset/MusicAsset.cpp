@@ -1,6 +1,8 @@
 #include "fastfall/resource/asset/MusicAsset.hpp"
 
-#include <SDL3_mixer/SDL_mixer.h>
+#include <fastfall/engine/audio.hpp>
+
+#include "miniaudio.h"
 
 namespace ff {
 
@@ -11,13 +13,20 @@ MusicAsset::MusicAsset(const std::filesystem::path &t_asset_path)
 
 MusicAsset::~MusicAsset()
 {
-    Mix_FreeMusic(reinterpret_cast<Mix_Music*>(music_ptr));
+    if (loaded) ma_sound_uninit(&music);
 }
 
 bool MusicAsset::loadFromFile() {
     auto str = asset_path.generic_string();
-    music_ptr = reinterpret_cast<Impl*>(Mix_LoadMUS(str.c_str()));
-    loaded = music_ptr != nullptr;
+
+    loaded = ma_sound_init_from_file(
+        &audio::get_engine(),
+        str.c_str(),
+        MA_SOUND_FLAG_STREAM,
+        &audio::get_music_sound_group(),
+        nullptr,
+        &music) == MA_SUCCESS;
+
     return loaded;
 }
 
