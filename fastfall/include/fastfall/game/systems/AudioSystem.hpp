@@ -7,8 +7,7 @@
 namespace ff {
 
     struct SoundHandle {
-        unsigned id = 0;
-        ma_sound sound;
+        ma_sound* sound = nullptr;
     };
 
     namespace audio {
@@ -39,15 +38,16 @@ namespace ff {
             {
                 return play(*asset, std::forward<AudioProp_Ts>(props)...);
             }
-            return { 0 };
+            return {};
         }
 
         template<is_audio_property ...AudioProp_Ts>
         SoundHandle play(SoundAsset& sound_asset, AudioProp_Ts&&... props) {
             SoundHandle hdl = play_impl(sound_asset);
-            if (hdl.id) {
+            if (hdl.sound != nullptr) {
                 set(hdl, std::forward<AudioProp_Ts>(props)...);
                 active_sounds.push_back(hdl);
+                // ma_sound_start(hdl.sound);
             }
             return hdl;
         }

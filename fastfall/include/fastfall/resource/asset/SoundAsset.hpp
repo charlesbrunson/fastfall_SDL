@@ -5,12 +5,16 @@
 
 namespace ff {
 
+struct ma_sound_deleter
+{
+    void operator()(ma_sound* sound);
+};
+
 class SoundAsset : public Asset {
 public:
     struct Impl;
 
     explicit SoundAsset(const std::filesystem::path& t_asset_path);
-    ~SoundAsset() override;
 
     bool loadFromFile() override;
     bool reloadFromFile() override;
@@ -19,10 +23,10 @@ public:
 
     void ImGui_getContent(secs deltaTime) override {};
 
-    ma_sound& get_sound() { return sound; }
+    ma_sound& get_sound() { return *sound; }
 
 private:
-    ma_sound sound;
+    std::unique_ptr<ma_sound, ma_sound_deleter> sound = nullptr;
 };
 
 }

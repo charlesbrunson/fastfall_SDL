@@ -8,6 +8,8 @@
 #include "miniaudio.h"
 #undef MINIAUDIO_IMPLEMENTATION
 
+#include <fastfall/resource/Resources.hpp>
+
 #include "magic_enum/magic_enum.hpp"
 
 namespace ff::audio {
@@ -24,7 +26,21 @@ ma_node_graph audio_node_graph;
 ma_sound_group sound_group_game;
 ma_sound_group sound_group_music;
 
-SDL_AudioDeviceID sdl_device = 0;
+SDL_AudioStream* sdl_stream;
+
+void data_callback(void *userdata, SDL_AudioStream *stream, int additional_amount, int total_amount)
+{
+   (void)userdata;
+   if (additional_amount > 0) {
+        Uint8 *data = SDL_stack_alloc(Uint8, additional_amount);
+        if (data) {
+            ma_uint32 bufferSizeInFrames = (ma_uint32)additional_amount / ma_get_bytes_per_frame(ma_format_f32, ma_engine_get_channels(&audio_engine));
+            ma_engine_read_pcm_frames(&audio_engine, data, bufferSizeInFrames, NULL);
+            SDL_PutAudioStreamData(stream, data, additional_amount);
+            SDL_stack_free(data);
+        }
+    }
+}
 
 bool init() {
 
@@ -52,8 +68,8 @@ bool init() {
         .freq       = (int)ma_engine_get_sample_rate(&audio_engine),
     };
 
-    auto sdl_device = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &desired_spec);
-    SDL_ResumeAudioDevice(sdl_device);
+    sdl_stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &desired_spec, data_callback, nullptr);
+    SDL_ResumeAudioDevice(SDL_GetAudioStreamDevice(sdl_stream));
 
     result = ma_sound_group_init(&audio_engine, 0, nullptr, &sound_group_game);
     if (result != MA_SUCCESS)
@@ -69,6 +85,8 @@ bool init() {
         return false;
     }
 
+    LOG_INFO("Initialized audio");
+
     init_state = true;
     return init_state;
 }
@@ -78,8 +96,9 @@ void quit() {
     ma_sound_group_uninit(&sound_group_music);
     ma_engine_uninit(&audio_engine);
 
-    SDL_CloseAudioDevice(sdl_device);
-    sdl_device = 0;
+    SDL_DestroyAudioStream(sdl_stream);
+    sdl_stream = nullptr;
+
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
     init_state = false;
 }
