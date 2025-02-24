@@ -191,6 +191,7 @@ if (NOT EMSCRIPTEN)
 	)
 	FetchContent_MakeAvailable(sdl)
 
+	set(SDLIMAGE_AVIF OFF  CACHE INTERNAL "")
 	FetchContent_Declare(
 			sdl_image
 			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_image

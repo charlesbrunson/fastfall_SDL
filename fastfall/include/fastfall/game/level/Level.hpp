@@ -26,7 +26,7 @@ public:
     const static ActorType actor_type;
 
     struct TileLayerProxy {
-        ID<TileLayer> cmp_id;
+        ID<TileLayer> actor_id;
         unsigned layer_id;
         unsigned getID() const { return layer_id; }
     };
@@ -68,6 +68,8 @@ public:
     bool try_reload_level(World& w);
 
     bool allow_asset_reload = true;
+
+    void ImGui_Inspect() override;
 
 private:
     // asset

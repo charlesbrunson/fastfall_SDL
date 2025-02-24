@@ -84,6 +84,8 @@ private:
 
     static constexpr secs FrameTime = secs{ 1.0 / 60.0 };
 
+    void ImGui_Inspect() override;
+
 public:
     const static ActorType actor_type;
 

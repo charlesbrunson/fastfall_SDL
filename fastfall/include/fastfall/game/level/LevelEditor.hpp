@@ -17,7 +17,7 @@ public:
     struct SelectedTileLayer {
         SelectedTileLayer(const Level::Layers::TileEntry& tile_entry)
           : position(tile_entry.position)
-          , tile_layer_id(tile_entry.tilelayer.cmp_id)
+          , tile_layer_id(tile_entry.tilelayer.actor_id)
           , layer_id(tile_entry.tilelayer.layer_id)
         {
         }

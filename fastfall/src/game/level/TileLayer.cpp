@@ -700,4 +700,9 @@ ColliderTileMap* TileLayer::get_collider(World& world) {
     return world.get(*dyn.collision.collider);
 }
 
+void TileLayer::ImGui_Inspect() {
+    using namespace ImGui;
+
+}
+
 }
