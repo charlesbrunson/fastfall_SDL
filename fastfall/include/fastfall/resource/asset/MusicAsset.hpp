@@ -7,8 +7,6 @@ namespace ff {
 
 class MusicAsset : public Asset {
 public:
-    struct Impl;
-
     explicit MusicAsset(const std::filesystem::path& t_asset_path);
     ~MusicAsset() override;
 
@@ -19,8 +17,12 @@ public:
 
     void ImGui_getContent(secs deltaTime) override {};
 
+    ma_resource_manager_data_source* get_data_source() const { return data_source.get(); }
+
 private:
-    ma_sound music;
+    std::unique_ptr<ma_resource_manager_data_source> data_source = nullptr;
+
+    void destroy_data_source();
 };
 
 }

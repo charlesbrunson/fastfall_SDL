@@ -1,39 +1,44 @@
 #include "fastfall/resource/asset/SoundAsset.hpp"
 
 #include <fastfall/engine/audio.hpp>
+#include <memory>
 
 namespace ff {
-
-void ma_sound_deleter::operator()(ma_sound* sound)
-{
-    if (sound && audio::is_init())
-    {
-        ma_sound_uninit(sound);
-    }
-    delete sound;
-}
 
 SoundAsset::SoundAsset(const std::filesystem::path& t_asset_path)
     : Asset(t_asset_path)
 {
 }
 
+SoundAsset::~SoundAsset() {
+    destroy_data_source();
+}
+
+
+void SoundAsset::destroy_data_source() {
+    if (audio::is_init() && data_source) {
+        ma_resource_manager_data_source_uninit(data_source.get());
+        data_source.reset();
+    }
+}
+
 bool SoundAsset::loadFromFile() {
     auto str = asset_path.generic_string();
 
-    sound.reset();
+    destroy_data_source();
 
     loaded = false;
     if (audio::is_init())
     {
-        sound.reset(new ma_sound);
-        loaded = ma_sound_init_from_file(
-            &audio::get_engine(),
+        data_source = std::make_unique<ma_resource_manager_data_source>();
+
+        loaded = ma_resource_manager_data_source_init(
+            audio::get_engine().pResourceManager,
             str.c_str(),
-            0,
-            &audio::get_game_sound_group(),
+            MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE,
             nullptr,
-            sound.get()) == MA_SUCCESS;
+            data_source.get()) == MA_SUCCESS;
+
     }
 
     return loaded;
