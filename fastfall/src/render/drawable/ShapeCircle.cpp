@@ -1,6 +1,8 @@
 #include "fastfall/render/drawable/ShapeCircle.hpp"
 #include "fastfall/render/target/RenderTarget.hpp"
 
+#include <numbers>
+
 namespace ff {
 
 ShapeCircle::ShapeCircle(glm::fvec2 center, float radius, size_t vertexCount, Color color, Color lineColor)
@@ -46,7 +48,7 @@ void ShapeCircle::initVertexArray() {
 	m_verts[0].pos = glm::fvec2{ 0.f, 0.f };
 	m_verts[0].color = m_color;
 
-	float angle = (M_PI * 2.f) / (float)m_circleVertCount;
+	float angle = (std::numbers::pi_v<float> * 2.f) / (float)m_circleVertCount;
 	for (size_t step = 1; step < m_circleVertCount + 1; step++) {
 		m_verts[step].pos = glm::fvec2(
 			cosf((step - 1) * angle) * m_radius,

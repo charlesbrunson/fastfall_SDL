@@ -37,7 +37,7 @@ Particle EmitterStrategy::spawn(Vec2f emitter_pos, Vec2f emitter_vel, Angle emit
 {
     Particle p;
     float dist      = pick_random(0.f, scatter_max_radius, rand);
-    float dist_ang  = pick_random(0.f, (float)M_PI * 2.f, rand);
+    float dist_ang  = pick_random(0.f, std::numbers::pi_v<float> * 2.f, rand);
     p.position = emitter_pos;
     p.position.x += local_spawn_area.left + pick_random(0.f, local_spawn_area.width, rand);
     p.position.y += local_spawn_area.top  + pick_random(0.f, local_spawn_area.height, rand);

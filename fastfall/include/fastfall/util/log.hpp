@@ -51,7 +51,7 @@ public:
 		VERB = 2,
 		INFO = 3,
 		WARN = 4,
-		ERR = 5,
+		ERR  = 5,
 		SIZE = 6
 	};
 
@@ -68,21 +68,22 @@ public:
 
 	// log internal call, use appropriate LOG_ macros instead
 	template<class... Args>
-	static void _log(level lvl, std::source_location loc, const std::string_view& format, Args&&...args) noexcept {
+	static void _log(level lvl, std::source_location loc, std::string_view format, Args&&...args) noexcept {
 
 		if (lvl < get_verbosity())
 			return;
 
 		std::filesystem::path path(loc.file_name());
 		std::string msgContent = fmt::format(format, std::forward<Args>(args)...);
-		detail_log(lvl, path.filename().c_str(), loc.line(), msgContent);
+		auto str = path.filename().string();
+		detail_log(lvl, str.c_str(), loc.line(), msgContent);
 	}
 
 
 	static void set_tick(unsigned tick) { currentTick = tick; }
 
 private:
-	static void detail_log(level lvl, const std::string_view& file, uint32_t line, std::string& msg) noexcept;
+	static void detail_log(level lvl, std::string_view file, uint32_t line, std::string& msg) noexcept;
 
 	static unsigned currentTick;
 
@@ -90,7 +91,7 @@ private:
 	static unsigned currentDepth;
 	static constexpr unsigned maxDepth = 10u;
 
-	static constexpr unsigned LOG_HISTORY_SIZE = 50;
+	static constexpr unsigned LOG_HISTORY_SIZE = 1000;
 	static std::deque<log::LogMessage> messages;
 };
 

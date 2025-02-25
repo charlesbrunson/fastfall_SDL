@@ -33,7 +33,7 @@ TilePlatform::TilePlatform(ActorInit init, Rectu area, int level_layer, ObjLevel
     // pilfer tiles from level tile layer
     auto* active_level = w.system<LevelSystem>().get_active(w);
     auto* layer_proxy = active_level->get_tile_layer(level_layer);
-    if (auto* layer = (layer_proxy ? w.get(layer_proxy->cmp_id) : nullptr))
+    if (auto* layer = (layer_proxy ? w.get(layer_proxy->actor_id) : nullptr))
     {
         steal_tiles(w, *layer, area);
     }

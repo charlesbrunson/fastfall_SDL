@@ -30,7 +30,7 @@ log::level log::get_verbosity() noexcept {
 }
 
 
-void log::detail_log(level lvl, const std::string_view& file, uint32_t line, std::string& msg) noexcept {
+void log::detail_log(level lvl, std::string_view file, uint32_t line, std::string& msg) noexcept {
 
 	static constexpr char fill[] = {
 		' ',
