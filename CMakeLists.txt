@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : Top-level CMake project file, do global configuration
 # and include sub-projects here.
 #
-cmake_minimum_required (VERSION 3.16)
+cmake_minimum_required (VERSION 3.19)
 
 project ("fastfall_test_project")
 
@@ -109,6 +109,13 @@ else()
 				"$<TARGET_FILE_DIR:test_project>/test_project${CMAKE_EXECUTABLE_SUFFIX}"
 				"$<TARGET_FILE_DIR:test_project>/data"
 			)
+	else()
+		# copy data directory to bin folder
+		add_custom_command(
+			TARGET test_project
+			POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E create_symlink
+			${CMAKE_SOURCE_DIR}/data/ $<TARGET_FILE_DIR:test_project>/data/)
 	endif()
 endif()
 
