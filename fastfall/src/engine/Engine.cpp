@@ -692,6 +692,9 @@ void Engine::handleEvents(bool* timeWasted)
                 hasFocus = false;
                 Mouse::reset();
                 break;
+            case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+                update_window_scale();
+                break;
             }
         }
         else if (event.type == SDL_EVENT_KEY_UP)
@@ -816,6 +819,7 @@ void Engine::initRenderTarget(bool fullscreen)
         window->setWindowCentered();
         window->setWindowResizable();
     }
+    update_window_scale();
     window->setActive();
 
     // browser handles vsync if emscripten
@@ -880,7 +884,11 @@ void Engine::resizeWindow(Vec2u size, bool force_size)
     bool expandMargins = settings.showDebug && settings.allowMargins;
     ImGuiFrame::getInstance().setDisplay(expandMargins);
 
-    Vec2u minSize{ expandMargins ? Vec2u{ GAME_W * 2, GAME_H * 2 } : Vec2u{ GAME_W, GAME_H } };
+    Vec2u minSize{
+        expandMargins
+        ? Vec2u{ GAME_W, GAME_H } * 2
+        : Vec2u{ GAME_W, GAME_H }
+    };
 
 
     Vec2u finalSize{ size };
@@ -889,10 +897,12 @@ void Engine::resizeWindow(Vec2u size, bool force_size)
         finalSize.y = (std::max)(size.y, minSize.y);
     }
 
-    int scale = static_cast<int>((std::min)(floor((float)finalSize.x / GAME_W), floor((float)finalSize.y / GAME_H)));
+    float scale = (std::min)(
+        floor((float)finalSize.x / GAME_W),
+        floor((float)finalSize.y / GAME_H));
 
     if (expandMargins)
-        scale = (std::max)(1, scale - 1);
+        scale = (std::max)(1.f, scale - (1 * window_scale));
 
     if (window) {
         if (finalSize.x != size.x || finalSize.y != size.y) {
@@ -957,7 +967,7 @@ void Engine::resizeWindow(Vec2u size, bool force_size)
     marginView.setCenter(Vec2f{ finalSize } / 2.f);
     
     if (ImGuiFrame::getInstance().isDisplay()) {
-        ImGuiFrame::getInstance().resize(windowSize, Vec2u(viewport.getSize().x, viewport.getSize().y));
+        ImGuiFrame::getInstance().resize(windowSize, Vec2u(viewport.getSize()));
     }
 }
 
@@ -1003,7 +1013,7 @@ void Engine::ImGui_getContent(secs deltaTime) {
     if (ImGui::CollapsingHeader("Framerate Graph", ImGuiTreeNodeFlags_DefaultOpen))
     {
         const auto& buff = profiler::duration_buffer;
-        if (ImPlot::BeginPlot("##FPS", ImVec2(-1, 150),
+        if (ImPlot::BeginPlot("##FPS", ImVec2(-1, 150 * window_scale),
             ImPlotFlags_NoTitle | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMouseText))
         {
             profiler::enable = true;
@@ -1127,6 +1137,21 @@ void Engine::unfreeze() {
 bool Engine::isFrozen() const noexcept {
     return pauseUpdate;
 };
+
+void Engine::update_window_scale() {
+    float scale = SDL_GetWindowDisplayScale(window->getSDL_Window());
+    if ((scale / window_scale) == 1.f)
+        return;
+
+    LOG_INFO("scale changed: {}", scale);
+    auto& style = ImGui::GetStyle();
+    style.ScaleAllSizes(scale / window_scale);
+
+    auto& io = ImGui::GetIO();
+    io.FontGlobalScale = scale;
+
+    window_scale = scale;
+}
 
 DebugDrawImgui::DebugDrawImgui() :
     ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Debug", "System")

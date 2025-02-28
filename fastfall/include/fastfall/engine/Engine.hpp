@@ -123,6 +123,8 @@ private:
 	void display();
 	void sleep();
 
+	void update_window_scale();
+
 	EngineSettings settings;
 
 	bool initialized = false;
@@ -162,6 +164,8 @@ private:
 	bool pauseUpdate = false;
 	bool stepUpdate  = false;
 	bool interpolate = true;
+
+	float window_scale = 1.f;
 
 	std::vector<EngineRunnable> runnables;
 
