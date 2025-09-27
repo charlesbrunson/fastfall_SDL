@@ -245,8 +245,8 @@ ColliderSurface findColliderGhosts(const std::vector<const ColliderQuad*>& nearb
             Angle lhsAng(atan2f(v1.y, v1.x));
             Angle rhsAng(atan2f(v2.y, v2.x));
 
-            float lhsDiff = abs((lhsAng - idealAng).radians());
-            float rhsDiff = abs((rhsAng - idealAng).radians());
+            float lhsDiff = std::abs((lhsAng - idealAng).radians());
+            float rhsDiff = std::abs((rhsAng - idealAng).radians());
             return lhsDiff < rhsDiff;
         });
 
@@ -279,8 +279,8 @@ ColliderSurface findColliderGhosts(const std::vector<const ColliderQuad*>& nearb
             Angle lhsAng(atan2f(v1.y, v1.x));
             Angle rhsAng(atan2f(v2.y, v2.x));
 
-            float lhsDiff = abs((lhsAng - idealAng).radians());
-            float rhsDiff = abs((rhsAng - idealAng).radians());
+            float lhsDiff = std::abs((lhsAng - idealAng).radians());
+            float rhsDiff = std::abs((rhsAng - idealAng).radians());
             return lhsDiff < rhsDiff;
         });
 

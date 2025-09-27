@@ -1,5 +1,5 @@
 
-cmake_minimum_required (VERSION 3.18)
+cmake_minimum_required (VERSION 4.0)
 
 include(FetchContent)
 
@@ -39,7 +39,7 @@ FetchContent_Declare(
 FetchContent_Declare(
 	json
 	GIT_REPOSITORY https://github.com/nlohmann/json.git
-	GIT_TAG        a09bfa5faa00da25944b07df131e0f8338d2251e
+	GIT_TAG        55f93686c01528224f448c19128836e7df245f72
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/json
 )
 
@@ -69,7 +69,6 @@ FetchContent_Declare(
 	GIT_TAG			v0.10
 	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/tracy
 	GIT_SHALLOW 	TRUE
-	GIT_PROGRESS 	TRUE
 )
 FetchContent_Declare(
 	magic_enum
@@ -121,16 +120,12 @@ if (NOT EMSCRIPTEN)
 	#zlib
 	FetchContent_Declare(
 		zlib
-		URL			   https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
+		GIT_REPOSITORY	https://github.com/madler/zlib.git
+		GIT_TAG			v1.3.1
+		GIT_SHALLOW 	TRUE
 	)
 	FetchContent_MakeAvailable(zlib)
-
-	if (MSVC)
-		set(ZLIB_LIBRARY zlibstatic)
-	else()
-		set(ZLIB_LIBRARY zlib)
-	endif()
 
 	set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
 	set(ZLIB_INCLUDE_DIRS ${zlib_SOURCE_DIR} ${zlib_BINARY_DIR})
@@ -143,20 +138,23 @@ if (NOT EMSCRIPTEN)
 			"${zlib_SOURCE_DIR}/zconf.h"
 			COPYONLY
 	)
+	set(ZLIB_ROOT ${zlib_SOURCE_DIR})
 
 	#libpng
 	set(PNG_SHARED 			OFF CACHE BOOL "" FORCE)
 	set(PNG_STATIC 			ON 	CACHE BOOL "" FORCE)
 	set(PNG_TESTS 			OFF CACHE BOOL "" FORCE)
-	set(PNG_BUILD_ZLIB 		ON 	CACHE BOOL "" FORCE)
+	set(PNG_BUILD_ZLIB 		OFF	CACHE BOOL "" FORCE)
 	set(PNG_EXECUTABLES 	OFF CACHE BOOL "" FORCE)
 	set(PNG_TESTS 			OFF CACHE BOOL "" FORCE)
 	set(SKIP_INSTALL_ALL 	ON 	CACHE BOOL "" FORCE)
 
 	FetchContent_Declare(
 			libpng
-			URL			https://github.com/glennrp/libpng/archive/refs/tags/v1.6.39.zip
 			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/libpng
+			GIT_REPOSITORY	https://github.com/pnggroup/libpng.git
+			GIT_TAG			v1.6.50
+			GIT_SHALLOW 	TRUE
 	)
 	FetchContent_MakeAvailable(libpng)
 	set(PNG_LIBRARY png_static)
@@ -186,9 +184,8 @@ if (NOT EMSCRIPTEN)
 			sdl
 			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
 			GIT_REPOSITORY	https://github.com/libsdl-org/SDL.git
-			GIT_TAG			release-3.2.4
+			GIT_TAG			release-3.2.22
 			GIT_SHALLOW 	TRUE
-			GIT_PROGRESS 	TRUE
 	)
 	FetchContent_MakeAvailable(sdl)
 
@@ -197,9 +194,8 @@ if (NOT EMSCRIPTEN)
 			sdl_image
 			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_image
 			GIT_REPOSITORY	https://github.com/libsdl-org/SDL_image.git
-			GIT_TAG			release-3.2.0
+			GIT_TAG			release-3.2.4
 			GIT_SHALLOW 	TRUE
-			GIT_PROGRESS 	TRUE
 	)
 	FetchContent_MakeAvailable(sdl_image)
 
@@ -209,7 +205,6 @@ if (NOT EMSCRIPTEN)
 		GIT_REPOSITORY	https://github.com/mackron/miniaudio.git
 		GIT_TAG			0.11.21
 		GIT_SHALLOW 	TRUE
-		GIT_PROGRESS 	TRUE
 	)
 	FetchContent_MakeAvailable(miniaudio)
 

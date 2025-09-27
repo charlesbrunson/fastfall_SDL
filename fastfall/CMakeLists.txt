@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : CMake project for fastfall_SDL, include source and define
 # project specific logic here.
 #
-cmake_minimum_required (VERSION 3.16)
+cmake_minimum_required (VERSION 4.0)
 
 add_library(fastfall STATIC ${FF_SOURCES})
 add_subdirectory("external")

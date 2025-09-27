@@ -1,12 +1,15 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 4.0)
 
-cmake_policy(SET CMP0135 NEW)
+# cmake_policy(SET CMP0135 NEW)
 
 include(FetchContent)
 FetchContent_Declare(
 	googletest
-	URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
 	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/google_test
+	GIT_REPOSITORY	https://github.com/google/googletest.git
+	GIT_TAG			v1.17.0
+	GIT_SHALLOW 	TRUE
+	GIT_PROGRESS 	TRUE
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
