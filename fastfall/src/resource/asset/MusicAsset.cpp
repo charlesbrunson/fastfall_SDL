@@ -1,8 +1,11 @@
 #include "fastfall/resource/asset/MusicAsset.hpp"
 
-#include <fastfall/engine/audio.hpp>
+#include "fastfall/engine/audio.hpp"
 
-#include "miniaudio.h"
+#include <SDL3/SDL_iostream.h>
+#include <SDL3_mixer/SDL_mixer.h>
+
+#include "fastfall/util/log.hpp"
 
 namespace ff {
 
@@ -13,33 +16,29 @@ MusicAsset::MusicAsset(const std::filesystem::path &t_asset_path)
 
 MusicAsset::~MusicAsset()
 {
-    destroy_data_source();
-}
-
-void MusicAsset::destroy_data_source() {
-    if (audio::is_init() && data_source) {
-        ma_resource_manager_data_source_uninit(data_source.get());
-        data_source.reset();
+    if (audio::is_init() && music_impl) {
+        SDL_CloseIO(music_impl);
     }
 }
+
 
 bool MusicAsset::loadFromFile() {
     auto str = asset_path.generic_string();
 
-    destroy_data_source();
-
     loaded = false;
     if (audio::is_init())
     {
-        data_source = std::make_unique<ma_resource_manager_data_source>();
+        if (music_impl) {
+            SDL_CloseIO(music_impl);
+            music_impl = nullptr;
+        }
 
-        loaded = ma_resource_manager_data_source_init(
-            audio::get_engine().pResourceManager,
-            str.c_str(),
-            MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM,
-            nullptr,
-            data_source.get()) == MA_SUCCESS;
+        music_impl = SDL_IOFromFile(str.c_str(), "rb");
 
+        loaded = music_impl != nullptr;
+        if (!loaded) {
+            LOG_WARN("Failed to load {}: {}", str, SDL_GetError());
+        }
     }
 
     return loaded;

@@ -184,7 +184,7 @@ if (NOT EMSCRIPTEN)
 			sdl
 			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
 			GIT_REPOSITORY	https://github.com/libsdl-org/SDL.git
-			GIT_TAG			release-3.2.22
+			GIT_TAG			1c1f7082ab9fb87a9388012e0d119927bbb9333f
 			GIT_SHALLOW 	TRUE
 	)
 	FetchContent_MakeAvailable(sdl)
@@ -199,18 +199,39 @@ if (NOT EMSCRIPTEN)
 	)
 	FetchContent_MakeAvailable(sdl_image)
 
+	set(SDLMIXER_FLAC_LIBFLAC      OFF CACHE INTERNAL "")
+	set(SDLMIXER_FLAC_DRFLAC       OFF CACHE INTERNAL "")
+	set(SDLMIXER_GME               OFF CACHE INTERNAL "")
+	set(SDLMIXER_GME_SHARED        OFF CACHE INTERNAL "")
+	set(SDLMIXER_MOD_XMP           OFF CACHE INTERNAL "")
+	set(SDLMIXER_MP3_DRMP3         OFF CACHE INTERNAL "")
+	set(SDLMIXER_MP3_MPG123        OFF CACHE INTERNAL "")
+	set(SDLMIXER_MIDI_TIMIDITY     OFF CACHE INTERNAL "")
+	set(SDLMIXER_OPUS              OFF CACHE INTERNAL "")
+	set(SDLMIXER_VORBIS_STB        OFF CACHE INTERNAL "")
+	set(SDLMIXER_VORBIS_VORBISFILE OFF CACHE INTERNAL "")
+	set(SDLMIXER_VORBIS_TREMOR     OFF CACHE INTERNAL "")
 	FetchContent_Declare(
-		miniaudio
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/miniaudio
-		GIT_REPOSITORY	https://github.com/mackron/miniaudio.git
-		GIT_TAG			0.11.21
+		sdl_mixer
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_mixer
+		GIT_REPOSITORY	https://github.com/libsdl-org/SDL_mixer.git
+		GIT_TAG			93685a9006952fdc49c58fa0f95306a9cff1ed83
 		GIT_SHALLOW 	TRUE
 	)
-	FetchContent_MakeAvailable(miniaudio)
+	FetchContent_MakeAvailable(sdl_mixer)
 
-	add_library(miniaudio INTERFACE ${miniaudio_SOURCE_DIR}/miniaudio.h)
-	add_library(miniaudio::miniaudio ALIAS miniaudio)
-	target_include_directories(miniaudio INTERFACE ${miniaudio_SOURCE_DIR})
+	# FetchContent_Declare(
+	# 	miniaudio
+	# 	SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/miniaudio
+	# 	GIT_REPOSITORY	https://github.com/mackron/miniaudio.git
+	# 	GIT_TAG			0.11.21
+	# 	GIT_SHALLOW 	TRUE
+	# )
+	# FetchContent_MakeAvailable(miniaudio)
+
+	# add_library(miniaudio INTERFACE ${miniaudio_SOURCE_DIR}/miniaudio.h)
+	# add_library(miniaudio::miniaudio ALIAS miniaudio)
+	# target_include_directories(miniaudio INTERFACE ${miniaudio_SOURCE_DIR})
 
 endif()
 
@@ -273,13 +294,14 @@ target_link_libraries(fastfall
 		freetype
 		Tracy::TracyClient
 		magic_enum::magic_enum
-		miniaudio::miniaudio
+
 )
 if(NOT EMSCRIPTEN)
 	target_link_libraries(fastfall
 		PUBLIC
 			SDL3::SDL3
 			SDL3_image::SDL3_image
+			SDL3_mixer::SDL3_mixer
 			zlibstatic
 			glew_s
 	)

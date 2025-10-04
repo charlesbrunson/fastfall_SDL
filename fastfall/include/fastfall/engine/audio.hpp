@@ -1,8 +1,64 @@
 #pragma once
-#include "miniaudio.h"
 
-// TODO: replace SoLoud
+#include "fastfall/resource/asset/SoundAsset.hpp"
+
+struct MIX_Mixer;
+struct MIX_Group;
+
+namespace ff {
+struct SoundCfg {
+    float gain = 1.f;
+};
+
+class SoundHandle {
+public:
+    explicit SoundHandle(const char* tag = nullptr, MIX_Group* group = nullptr);
+    SoundHandle(const SoundHandle&) = delete;
+    SoundHandle& operator=(const SoundHandle&) = delete;
+    SoundHandle(SoundHandle&& other) = default;
+    SoundHandle& operator=(SoundHandle&& other) = default;
+    ~SoundHandle();
+
+    SoundCfg config;
+
+    bool apply_config();
+
+    bool set_sound(const SoundAsset& asset);
+    bool play();
+    bool stop();
+
+    size_t hash() const {
+        return (static_cast<size_t>(track_id) << 32) | static_cast<size_t>(generation);
+    }
+
+    bool operator==(const SoundHandle& other) const {
+        return track_id == other.track_id && generation == other.generation;
+    }
+
+private:
+
+    uint32_t track_id = 0;
+    uint32_t generation = 0;
+
+    const char* tag = nullptr;
+    MIX_Group* group = nullptr;
+};
+
+}
+
+namespace std {
+
+template<>
+struct hash<ff::SoundHandle> {
+    size_t operator()(const ff::SoundHandle& hdl) const {
+        return hdl.hash();
+    }
+};
+
+}
+
 namespace ff::audio {
+
 
 bool init();
 void quit();
@@ -16,8 +72,6 @@ float get_master_volume();
 float get_game_volume();
 float get_music_volume();
 
-ma_engine& get_engine();
-ma_sound_group& get_game_sound_group();
-ma_sound_group& get_music_sound_group();
+MIX_Mixer* get_mixer();
 
 }

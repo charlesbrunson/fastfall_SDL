@@ -1,7 +1,8 @@
 #pragma once
 
-#include "miniaudio.h"
 #include "fastfall/resource/Asset.hpp"
+
+struct SDL_IOStream;
 
 namespace ff {
 
@@ -17,10 +18,10 @@ public:
 
     void ImGui_getContent(secs deltaTime) override {};
 
-    ma_resource_manager_data_source* get_data_source() const { return data_source.get(); }
+    [[nodiscard]] SDL_IOStream* get_data() const { return music_impl; }
 
 private:
-    std::unique_ptr<ma_resource_manager_data_source> data_source = nullptr;
+    SDL_IOStream* music_impl = nullptr;
 
     void destroy_data_source();
 };
