@@ -3,7 +3,6 @@
 #include <unordered_set>
 #include "fastfall/util/log.hpp"
 
-// #include "miniaudio.h"
 #include "fastfall/engine/audio.hpp"
 #include "fastfall/engine/time/time.hpp"
 
@@ -35,6 +34,7 @@ namespace ff {
         SoundAsset* get_asset_impl(std::string_view sound_asset_name);
 
         secs upTime = 0.0;
+        MIX_Group* group = nullptr;
     };
 
 }

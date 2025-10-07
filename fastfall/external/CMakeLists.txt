@@ -116,7 +116,6 @@ target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLEW )
 
 if (NOT EMSCRIPTEN)
 
-
 	#zlib
 	FetchContent_Declare(
 		zlib
@@ -219,25 +218,9 @@ if (NOT EMSCRIPTEN)
 		GIT_SHALLOW 	TRUE
 	)
 	FetchContent_MakeAvailable(sdl_mixer)
-
-	# FetchContent_Declare(
-	# 	miniaudio
-	# 	SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/miniaudio
-	# 	GIT_REPOSITORY	https://github.com/mackron/miniaudio.git
-	# 	GIT_TAG			0.11.21
-	# 	GIT_SHALLOW 	TRUE
-	# )
-	# FetchContent_MakeAvailable(miniaudio)
-
-	# add_library(miniaudio INTERFACE ${miniaudio_SOURCE_DIR}/miniaudio.h)
-	# add_library(miniaudio::miniaudio ALIAS miniaudio)
-	# target_include_directories(miniaudio INTERFACE ${miniaudio_SOURCE_DIR})
-
 endif()
 
 #freetype
-#set(ZLIB_LIBRARY zlib)
-#set(ZLIB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/zlib" CACHE INTERNAL "")
 set(FT_DISABLE_HARFBUZZ ON CACHE INTERNAL "")
 FetchContent_Declare(
 		freetype

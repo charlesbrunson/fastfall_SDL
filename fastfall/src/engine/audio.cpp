@@ -21,12 +21,24 @@ public:
 
     MIX_Track* ptr() const { return p_impl; }
 
+    void set_tag(const char* ntag) {
+        if (tag) { MIX_UntagTrack(ptr(), tag); }
+        tag = ntag;
+        if (tag) { MIX_TagTrack(ptr(), tag); }
+    }
+
+    void clear_tag() {
+        if (tag) { MIX_UntagTrack(ptr(), tag); }
+        tag = nullptr;
+    }
+
     uint32_t id;
     uint32_t generation_counter = 0;
 
     bool in_use = false;
 
 private:
+    const char* tag = nullptr;
     MIX_Track* p_impl;
 };
 
@@ -110,7 +122,7 @@ SoundHandle::SoundHandle(const char* tag, MIX_Group* group) {
 
     audio::Track* use_track = nullptr;
     for (auto& track : audio::state.tracks) {
-        if (!track.in_use || !MIX_TrackPlaying(track.ptr())) {
+        if (!track.in_use && !MIX_TrackPlaying(track.ptr())) {
             use_track = &track;
             break;
         }
@@ -129,6 +141,32 @@ SoundHandle::SoundHandle(const char* tag, MIX_Group* group) {
         track_id   = use_track->id;
         generation = use_track->generation_counter;
     }
+}
+
+SoundHandle::SoundHandle(SoundHandle&& other) noexcept {
+    track_id = other.track_id;
+    generation = other.generation;
+    tag = other.tag;
+    group = other.group;
+
+    other.track_id = 0;
+    other.generation = 0;
+    other.tag = nullptr;
+    other.group = nullptr;
+}
+
+SoundHandle& SoundHandle::operator=(SoundHandle&& other) noexcept {
+    track_id = other.track_id;
+    generation = other.generation;
+    tag = other.tag;
+    group = other.group;
+
+    other.track_id = 0;
+    other.generation = 0;
+    other.tag = nullptr;
+    other.group = nullptr;
+
+    return *this;
 }
 
 SoundHandle::~SoundHandle() {
@@ -150,6 +188,8 @@ bool SoundHandle::apply_config() {
         auto& track = audio::state.tracks[track_id];
 
         MIX_SetTrackGain(track.ptr(), config.gain);
+        track.set_tag(config.tag);
+        MIX_SetTrackGroup(track.ptr(), config.group);
     }
     return false;
 }

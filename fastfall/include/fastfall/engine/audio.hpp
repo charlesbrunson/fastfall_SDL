@@ -8,6 +8,8 @@ struct MIX_Group;
 namespace ff {
 struct SoundCfg {
     float gain = 1.f;
+    const char* tag = nullptr;
+    MIX_Group* group = nullptr;
 };
 
 class SoundHandle {
@@ -15,8 +17,8 @@ public:
     explicit SoundHandle(const char* tag = nullptr, MIX_Group* group = nullptr);
     SoundHandle(const SoundHandle&) = delete;
     SoundHandle& operator=(const SoundHandle&) = delete;
-    SoundHandle(SoundHandle&& other) = default;
-    SoundHandle& operator=(SoundHandle&& other) = default;
+    SoundHandle(SoundHandle&& other) noexcept;
+    SoundHandle& operator=(SoundHandle&& other) noexcept;
     ~SoundHandle();
 
     SoundCfg config;
