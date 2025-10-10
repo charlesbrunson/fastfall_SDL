@@ -17,6 +17,7 @@ FetchContent_Declare(
 	#GIT_TAG        6ad79aae3eb5bf809c30bf1168171e9e55857e45
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glm
 	GIT_TAG        1.0.1
+	EXCLUDE_FROM_ALL
 )
 
 #fmt
@@ -25,6 +26,7 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://github.com/fmtlib/fmt.git
 	GIT_TAG        7.1.3
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/fmt
+	EXCLUDE_FROM_ALL
 )
 
 #rapidxml
@@ -33,6 +35,7 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://github.com/discord/rapidxml.git
 	GIT_TAG        2ae4b2888165a393dfb6382168825fddf00c27b9
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/rapidxml
+	EXCLUDE_FROM_ALL
 )
 
 #json
@@ -41,6 +44,7 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://github.com/nlohmann/json.git
 	GIT_TAG        55f93686c01528224f448c19128836e7df245f72
     SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/json
+	EXCLUDE_FROM_ALL
 )
 
 # imgui
@@ -49,6 +53,7 @@ FetchContent_Declare(
 	GIT_REPOSITORY	https://github.com/ocornut/imgui.git
     SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/imgui
 	GIT_TAG 		v1.91.8-docking
+	EXCLUDE_FROM_ALL
 )
 
 # implot
@@ -56,6 +61,7 @@ FetchContent_Declare(
 	implot
 	GIT_REPOSITORY	https://github.com/epezent/implot.git
     SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/implot
+	EXCLUDE_FROM_ALL
 )
 
 # tracy
@@ -69,12 +75,14 @@ FetchContent_Declare(
 	GIT_TAG			v0.10
 	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/tracy
 	GIT_SHALLOW 	TRUE
+	EXCLUDE_FROM_ALL
 )
 FetchContent_Declare(
 	magic_enum
 	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/magic_enum
 	GIT_REPOSITORY	https://github.com/Neargye/magic_enum.git
 	GIT_TAG			v0.9.7
+	EXCLUDE_FROM_ALL
 )
 
 FetchContent_MakeAvailable(
@@ -117,43 +125,35 @@ target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLEW )
 if (NOT EMSCRIPTEN)
 
 	#zlib
+	set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "")
 	FetchContent_Declare(
 		zlib
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
 		GIT_REPOSITORY	https://github.com/madler/zlib.git
 		GIT_TAG			v1.3.1
 		GIT_SHALLOW 	TRUE
+		OVERRIDE_FIND_PACKAGE
+		EXCLUDE_FROM_ALL
 	)
 	FetchContent_MakeAvailable(zlib)
-
-	set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
-	set(ZLIB_INCLUDE_DIRS ${zlib_SOURCE_DIR} ${zlib_BINARY_DIR})
-
-	include_directories(
-			${ZLIB_INCLUDE_DIRS}
-	)
-	configure_file(
-			"${zlib_BINARY_DIR}/zconf.h"
-			"${zlib_SOURCE_DIR}/zconf.h"
-			COPYONLY
-	)
-	set(ZLIB_ROOT ${zlib_SOURCE_DIR})
+	add_library(ZLIB::ZLIB ALIAS zlibstatic)
 
 	#libpng
 	set(PNG_SHARED 			OFF CACHE BOOL "" FORCE)
 	set(PNG_STATIC 			ON 	CACHE BOOL "" FORCE)
 	set(PNG_TESTS 			OFF CACHE BOOL "" FORCE)
 	set(PNG_BUILD_ZLIB 		OFF	CACHE BOOL "" FORCE)
-	set(PNG_EXECUTABLES 	OFF CACHE BOOL "" FORCE)
+	set(PNG_TOOLS           OFF CACHE BOOL "" FORCE)
 	set(PNG_TESTS 			OFF CACHE BOOL "" FORCE)
 	set(SKIP_INSTALL_ALL 	ON 	CACHE BOOL "" FORCE)
 
 	FetchContent_Declare(
-			libpng
-			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/libpng
-			GIT_REPOSITORY	https://github.com/pnggroup/libpng.git
-			GIT_TAG			v1.6.50
-			GIT_SHALLOW 	TRUE
+		libpng
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/libpng
+		GIT_REPOSITORY	https://github.com/pnggroup/libpng.git
+		GIT_TAG			v1.6.50
+		GIT_SHALLOW 	TRUE
+		EXCLUDE_FROM_ALL
 	)
 	FetchContent_MakeAvailable(libpng)
 	set(PNG_LIBRARY png_static)
@@ -163,10 +163,11 @@ if (NOT EMSCRIPTEN)
 	# glew
 	set(BUILD_UTILS OFF PARENT)
 	FetchContent_Declare(
-			glew
-			URL				https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.zip
-			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glew
-			SOURCE_SUBDIR  build/cmake
+		glew
+		URL				https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.zip
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glew
+		SOURCE_SUBDIR  build/cmake
+		EXCLUDE_FROM_ALL
 	)
 	FetchContent_MakeAvailable(glew)
 
@@ -180,42 +181,64 @@ if (NOT EMSCRIPTEN)
 	endif()
 
 	FetchContent_Declare(
-			sdl
-			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
-			GIT_REPOSITORY	https://github.com/libsdl-org/SDL.git
-			GIT_TAG			1c1f7082ab9fb87a9388012e0d119927bbb9333f
-			GIT_SHALLOW 	TRUE
+		sdl
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
+		GIT_REPOSITORY	https://github.com/libsdl-org/SDL.git
+		GIT_TAG			main
+		GIT_SHALLOW 	TRUE
+		EXCLUDE_FROM_ALL
 	)
 	FetchContent_MakeAvailable(sdl)
 
-	set(SDLIMAGE_AVIF OFF  CACHE INTERNAL "")
+
+
+	set(SDLIMAGE_VENDORED OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_AVIF OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_BMP  OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_GIF  OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_JPG  OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_JXL  OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_LBM  OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_PCX  OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_PNG  ON CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_PNM  OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_QOI  OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_SVG  OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_TGA  OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_TIF  OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_WEBP OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_XCF  OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_XPM  OFF CACHE INTERNAL "" FORCE)
+	set(SDLIMAGE_XV   OFF CACHE INTERNAL "" FORCE)
 	FetchContent_Declare(
-			sdl_image
-			SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_image
-			GIT_REPOSITORY	https://github.com/libsdl-org/SDL_image.git
-			GIT_TAG			release-3.2.4
-			GIT_SHALLOW 	TRUE
+		sdl_image
+		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_image
+		GIT_REPOSITORY	https://github.com/libsdl-org/SDL_image.git
+		GIT_TAG			release-3.2.4
+		GIT_SHALLOW 	TRUE
+		EXCLUDE_FROM_ALL
 	)
 	FetchContent_MakeAvailable(sdl_image)
 
-	set(SDLMIXER_FLAC_LIBFLAC      OFF CACHE INTERNAL "")
-	set(SDLMIXER_FLAC_DRFLAC       OFF CACHE INTERNAL "")
-	set(SDLMIXER_GME               OFF CACHE INTERNAL "")
-	set(SDLMIXER_GME_SHARED        OFF CACHE INTERNAL "")
-	set(SDLMIXER_MOD_XMP           OFF CACHE INTERNAL "")
-	set(SDLMIXER_MP3_DRMP3         OFF CACHE INTERNAL "")
-	set(SDLMIXER_MP3_MPG123        OFF CACHE INTERNAL "")
-	set(SDLMIXER_MIDI_TIMIDITY     OFF CACHE INTERNAL "")
-	set(SDLMIXER_OPUS              OFF CACHE INTERNAL "")
-	set(SDLMIXER_VORBIS_STB        OFF CACHE INTERNAL "")
-	set(SDLMIXER_VORBIS_VORBISFILE OFF CACHE INTERNAL "")
-	set(SDLMIXER_VORBIS_TREMOR     OFF CACHE INTERNAL "")
+	set(SDLMIXER_FLAC_LIBFLAC      OFF CACHE INTERNAL "" FORCE)
+	set(SDLMIXER_FLAC_DRFLAC       OFF CACHE INTERNAL "" FORCE)
+	set(SDLMIXER_GME               OFF CACHE INTERNAL "" FORCE)
+	set(SDLMIXER_GME_SHARED        OFF CACHE INTERNAL "" FORCE)
+	set(SDLMIXER_MOD_XMP           OFF CACHE INTERNAL "" FORCE)
+	set(SDLMIXER_MP3_DRMP3         OFF CACHE INTERNAL "" FORCE)
+	set(SDLMIXER_MP3_MPG123        OFF CACHE INTERNAL "" FORCE)
+	set(SDLMIXER_MIDI_TIMIDITY     OFF CACHE INTERNAL "" FORCE)
+	set(SDLMIXER_OPUS              OFF CACHE INTERNAL "" FORCE)
+	set(SDLMIXER_VORBIS_STB        OFF CACHE INTERNAL "" FORCE)
+	set(SDLMIXER_VORBIS_VORBISFILE OFF CACHE INTERNAL "" FORCE)
+	set(SDLMIXER_VORBIS_TREMOR     OFF CACHE INTERNAL "" FORCE)
 	FetchContent_Declare(
 		sdl_mixer
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_mixer
 		GIT_REPOSITORY	https://github.com/libsdl-org/SDL_mixer.git
 		GIT_TAG			93685a9006952fdc49c58fa0f95306a9cff1ed83
 		GIT_SHALLOW 	TRUE
+		EXCLUDE_FROM_ALL
 	)
 	FetchContent_MakeAvailable(sdl_mixer)
 endif()
@@ -223,9 +246,10 @@ endif()
 #freetype
 set(FT_DISABLE_HARFBUZZ ON CACHE INTERNAL "")
 FetchContent_Declare(
-		freetype
-		URL https://download.savannah.gnu.org/releases/freetype/freetype-2.11.1.tar.xz
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/freetype
+	freetype
+	URL https://download.savannah.gnu.org/releases/freetype/freetype-2.11.1.tar.xz
+	SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/freetype
+	EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(freetype)
 
@@ -260,10 +284,7 @@ if(NOT EMSCRIPTEN)
 		sdl_image/include
 		sdl/include
 		libpng
-		zlib
-	)
-	include_directories(
-		zlib
+		zlibstatic
 	)
 endif()
 
