@@ -27,7 +27,7 @@ class Level;
 class TileLayer : public Actor {
 private:
 	static constexpr int	TILEDATA_NONE	= std::numeric_limits<uint8_t>::max();
-	static constexpr Vec2u	kChunkSize		= Vec2u{ GAME_TILE_W / 2u, GAME_TILE_H / 2u };
+	static constexpr Vec2u	kChunkSize		= Vec2u{ 8u, 8u };
 
 	// copy of layer from asset
 	TileLayerData layer_data;
