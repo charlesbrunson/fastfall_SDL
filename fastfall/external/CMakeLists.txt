@@ -132,11 +132,22 @@ if (NOT EMSCRIPTEN)
 		GIT_REPOSITORY	https://github.com/madler/zlib.git
 		GIT_TAG			v1.3
 		GIT_SHALLOW 	TRUE
-		OVERRIDE_FIND_PACKAGE
+		FIND_PACKAGE_ARGS NAMES ZLIB::ZLIB
 		EXCLUDE_FROM_ALL
 	)
 	FetchContent_MakeAvailable(zlib)
 	add_library(ZLIB::ZLIB ALIAS zlibstatic)
+
+	set(ZLIB_FOUND 				ON 					CACHE BOOL "" FORCE)
+	set(ZLIB_LIBRARY 			ZLIB::ZLIB 			CACHE BOOL "" FORCE)
+	set(ZLIB_LIBRARIES 			ZLIB::ZLIB 			CACHE BOOL "" FORCE)
+	set(ZLIB_INCLUDE_DIR 		"${zlib_SOURCE_DIR};${zlib_BINARY_DIR}" CACHE BOOL "" FORCE)
+	set(ZLIB_INCLUDE_DIRS 		"${zlib_SOURCE_DIR};${zlib_BINARY_DIR}" CACHE BOOL "" FORCE)
+	set(ZLIB_VERSION 			"1.3" 				CACHE BOOL "" FORCE)
+	set(ZLIB_USE_STATIC_LIBS 	ON 					CACHE BOOL "" FORCE)
+	set(ZLIB_ROOT 				${zlib_SOURCE_DIR} 	CACHE BOOL "" FORCE)
+
+	# add_library(ZLIB::ZLIB ALIAS zlibstatic)
 
 	#libpng
 	set(PNG_SHARED 			OFF CACHE BOOL "" FORCE)
@@ -156,9 +167,9 @@ if (NOT EMSCRIPTEN)
 		EXCLUDE_FROM_ALL
 	)
 	FetchContent_MakeAvailable(libpng)
-	set(PNG_LIBRARY png_static)
-	set(PNG_PNG_INCLUDE_DIR ${libpng_SOURCE_DIR})
-	include_directories(${libpng_BINARY_DIR})
+	# set(PNG_LIBRARY png_static)
+	# set(PNG_PNG_INCLUDE_DIR ${libpng_SOURCE_DIR})
+	# include_directories(${libpng_BINARY_DIR})
 
 	# glew
 	set(BUILD_UTILS OFF PARENT)
@@ -244,7 +255,11 @@ if (NOT EMSCRIPTEN)
 endif()
 
 #freetype
+set(FT_DISABLE_ZLIB   	ON CACHE INTERNAL "")
+set(FT_DISABLE_BZIP2  	ON CACHE INTERNAL "")
+set(FT_DISABLE_PNG 		ON CACHE INTERNAL "")
 set(FT_DISABLE_HARFBUZZ ON CACHE INTERNAL "")
+set(FT_DISABLE_BROTLI 	ON CACHE INTERNAL "")
 FetchContent_Declare(
 	freetype
 	URL https://download.savannah.gnu.org/releases/freetype/freetype-2.11.1.tar.xz
@@ -284,7 +299,7 @@ if(NOT EMSCRIPTEN)
 		sdl_image/include
 		sdl/include
 		libpng
-		zlibstatic
+		${ZLIB_INCLUDE_DIR}
 	)
 endif()
 
@@ -306,7 +321,7 @@ if(NOT EMSCRIPTEN)
 			SDL3::SDL3
 			SDL3_image::SDL3_image
 			SDL3_mixer::SDL3_mixer
-			zlibstatic
+			${ZLIB_LIBRARY}
 			glew_s
 	)
 endif()
