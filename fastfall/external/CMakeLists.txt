@@ -130,7 +130,7 @@ if (NOT EMSCRIPTEN)
 		zlib
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
 		GIT_REPOSITORY	https://github.com/madler/zlib.git
-		GIT_TAG			v1.3.1
+		GIT_TAG			v1.3
 		GIT_SHALLOW 	TRUE
 		OVERRIDE_FIND_PACKAGE
 		EXCLUDE_FROM_ALL
