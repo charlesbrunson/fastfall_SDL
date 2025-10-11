@@ -6,6 +6,13 @@ struct MIX_Mixer;
 struct MIX_Group;
 
 namespace ff {
+
+class AudioImGui : public ImGuiContent {
+public:
+    AudioImGui();
+    void ImGui_getContent(secs deltaTime) override;
+};
+
 struct SoundCfg {
     float gain = 1.f;
     const char* tag = nullptr;

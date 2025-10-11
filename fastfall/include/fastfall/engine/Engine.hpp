@@ -11,6 +11,7 @@
 #include "fastfall/render/drawable/VertexArray.hpp"
 #include "fastfall/render/target/Window.hpp"
 #include "fastfall/engine/input/InputConfig.hpp"
+#include "fastfall/engine/audio.hpp"
 #include "fastfall/game/WorldImGui.hpp"
 
 #include <queue>
@@ -21,6 +22,7 @@
 
 #include <mutex>
 #include <barrier>
+
 
 namespace ff {
 
@@ -59,8 +61,10 @@ public:
 
 class Engine : public ImGuiContent {
 	DebugDrawImgui debugdrawImgui;
-	InputConfig::InputObserver input_cfg;
     WorldImGui worldImgui;
+	AudioImGui audioImgui;
+
+	InputConfig::InputObserver input_cfg;
 
 	RenderTexture target;
 

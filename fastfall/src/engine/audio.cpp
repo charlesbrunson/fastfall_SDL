@@ -37,17 +37,22 @@ public:
 
     bool in_use = false;
 
+    const SoundAsset* source = nullptr;
+
 private:
     const char* tag = nullptr;
     MIX_Track* p_impl;
 };
 
 
-constexpr uint32_t tracks_min = 8;
-constexpr uint32_t tracks_max = 32;
+constexpr uint32_t tracks_min = 16;
+constexpr uint32_t tracks_max = 16;
 
 struct {
     bool init_state = false;
+
+    bool muted = false;
+    float gain = 1.0f;
 
     MIX_Mixer* mixer = nullptr;
     std::vector<Track> tracks;
@@ -103,11 +108,14 @@ void quit() {
 bool is_init() { return state.init_state; }
 
 void set_master_volume(float volume) {
-    MIX_SetMasterGain(state.mixer, volume);
+    state.gain = volume;
+    if (!state.muted) {
+        MIX_SetMasterGain(state.mixer, volume);
+    }
 }
 
 float get_master_volume() {
-    return MIX_GetMasterGain(state.mixer);
+    return state.gain;
 }
 
 MIX_Mixer* get_mixer() {
@@ -178,6 +186,7 @@ SoundHandle::~SoundHandle() {
 bool SoundHandle::set_sound(const SoundAsset& asset) {
     if (generation > 0) {
         auto& track = audio::state.tracks[track_id];
+        track.source = &asset;
         return MIX_SetTrackAudio(track.ptr(), asset.get_data());
     }
     return false;
@@ -209,6 +218,72 @@ bool SoundHandle::stop() {
         return MIX_StopTrack(track.ptr(), {});
     }
     return false;
+}
+
+AudioImGui::AudioImGui() :
+    ImGuiContent(ImGuiContentType::SIDEBAR_LEFT, "Audio", "System")
+{
+}
+
+void AudioImGui::ImGui_getContent(secs deltaTime) {
+
+    using namespace audio;
+
+    if (ImGui::Checkbox("Mute", &state.muted)) {
+        MIX_SetMasterGain(state.mixer, state.muted ? 0.f : state.gain);
+    }
+
+    float master_gain = get_master_volume();
+    if (ImGui::SliderFloat("Master Gain", &master_gain, 0.0f, 2.0f)) {
+        set_master_volume(master_gain);
+    }
+
+    ImGui::Text("Tracks (%lu)", state.tracks.size());
+    for (auto& track : state.tracks) {
+
+        MIX_Track* trackptr = track.ptr();
+        ImGui::PushID(trackptr);
+
+        bool in_use = track.in_use || MIX_TrackPlaying(trackptr);
+        ImGui::Checkbox("", &in_use);
+
+        ImGui::SameLine();
+        int64_t pos_ms = 0;
+        int64_t len_ms = 1;
+        int64_t zero = 0;
+
+        if (in_use) {
+            pos_ms = MIX_TrackFramesToMS(trackptr, MIX_GetTrackPlaybackPosition(trackptr));
+            if (pos_ms != -1) {
+                len_ms = pos_ms + MIX_TrackFramesToMS(trackptr, MIX_GetTrackRemaining(trackptr));
+            }
+            else {
+                pos_ms = 0;
+            }
+        }
+
+        // static char track_name[128] = {};
+        // memset(track_name, 0, sizeof(track_name));
+
+        const SoundAsset* sound_asset = track.source && in_use ? track.source : nullptr;
+
+        // fmt::format_to_n(track_name, 128, "{}", sound_asset ? sound_asset->get_name() : "");
+        // ImGui::SliderScalar(track_name, ImGuiDataType_S64, &pos_ms, &zero, &len_ms, "%dms");
+
+        static char overlay[128] = {};
+        memset(overlay, 0, sizeof(overlay));
+        fmt::format_to_n(overlay, 128, "{}ms", pos_ms);
+
+        ImGui::ProgressBar(
+            (float)pos_ms / (float)len_ms,
+            ImVec2(0.f, ImGui::GetFrameHeight()),
+            overlay);
+
+        ImGui::SameLine();
+        ImGui::Text("%s", sound_asset ? sound_asset->get_name().data() : "");
+
+        ImGui::PopID();
+    }
 }
 
 

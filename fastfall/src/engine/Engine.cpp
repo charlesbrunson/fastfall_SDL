@@ -128,6 +128,7 @@ void Engine::prerun_init()
     worldImgui.ImGui_addContent();
     input_cfg.ImGui_addContent();
     debugdrawImgui.ImGui_addContent();
+    audioImgui.ImGui_addContent();
     Resources::ImGui_init();
 
     if (window) {
