@@ -16,6 +16,16 @@ namespace ff {
         region_arbiters.erase(id);
 	}
 
+	Arbiter* CollidableArbiter::get_quad_arbiter(CollisionID id) {
+		if (auto rarb_it = region_arbiters.find(id.collider); rarb_it != region_arbiters.end()) {
+			auto& quad_arbs = rarb_it->second.getQuadArbiters();
+			if (auto qarb_it = quad_arbs.find(id.quad); qarb_it != quad_arbs.end()) {
+				return &(qarb_it->second);
+			}
+		}
+		return nullptr;
+	}
+
 	void CollidableArbiter::gather_collisions(
             World& world,
 			secs deltaTime,

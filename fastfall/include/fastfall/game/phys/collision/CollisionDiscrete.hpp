@@ -25,30 +25,30 @@ public:
 
     CollisionDiscrete(CollisionContext ctx, ColliderQuad quad, CollisionID t_id, Type collidePrev);
 
-	inline void setPrevious() { collision_time = Type::PrevFrame; };
-	inline const DiscreteContact& getContact() const noexcept { return contact; };
+	void setPrevious() { collision_time = Type::PrevFrame; };
+	[[nodiscard]] const DiscreteContact& getContact() const noexcept { return contact; };
 
 	void updateContact(CollisionContext ctx) noexcept;
 
-	void setAxisApplied(Vec2f ortho_normal) noexcept {
+	void setAxisApplied(const Vec2f ortho_normal) noexcept {
 		for (auto& axis : axes) {
 			if (axis.contact.ortho_n == ortho_normal)
 				axis.applied = true;
 		}
 	}
 
-	inline const CollisionAxis& getCollisionAxis(unsigned ndx) { 
+	[[nodiscard]] const CollisionAxis& getCollisionAxis(unsigned ndx) const {
 		assert(ndx < axis_count);
 		return axes.at(ndx); 
-	};
+	}
 
-	inline unsigned getAxisCount() { return axis_count; };
+	[[nodiscard]] unsigned getAxisCount() const { return axis_count; }
 
 	void reset(CollisionContext ctx, ColliderQuad quad, Type collidePrev);
 
     CollisionID id;
 
-	int getChosenAxis() const { return chosen_axis; };
+	[[nodiscard]] int getChosenAxis() const { return chosen_axis; };
 
 protected:
 

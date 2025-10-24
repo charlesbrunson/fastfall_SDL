@@ -44,31 +44,28 @@ public:
             poly_id_map<ColliderRegion>* colliders,
             std::vector<AppliedContact>& contacts);
 
-	bool has_contact() const noexcept;
-    bool has_contact_with(ID<ColliderRegion> collider) const noexcept;
+	[[nodiscard]] bool has_contact() const noexcept;
+    [[nodiscard]] bool has_contact_with(ID<ColliderRegion> collider) const noexcept;
 
 	// applies velocity/acceleration accounting for gravity (for movement consistency)
 	// if !has_contact, no op
-	std::optional<float> traverse_get_speed() const;
+	[[nodiscard]] std::optional<float> traverse_get_speed() const;
 	void traverse_set_speed(float speed);
 	void traverse_add_accel(float accel);
 	void traverse_add_decel(float decel);
 
     void force_end_contact();
 
-	//inline ID<Collidable> get_collidable_id() { return owner_id; };
-    //inline void set_collidable_ptr(Collidable* ptr) { owner = ptr;}
+	[[nodiscard]] bool can_make_contact_with(const AppliedContact& contact) const noexcept;
+    [[nodiscard]] bool can_make_contact_with(Vec2f collier_normal) const noexcept;
 
-	bool can_make_contact_with(const AppliedContact& contact) const noexcept;
-    bool can_make_contact_with(Vec2f collier_normal) const noexcept;
-
-	const std::optional<AppliedContact>& get_contact() const { return currentContact; };
+	[[nodiscard]] const std::optional<AppliedContact>& get_contact() const { return currentContact; };
 
 
 	void firstCollisionWith(const AppliedContact& contact);
 
 	// time in contact
-	// this will propogate across different surfaces
+	// this will propagate across different surfaces
 	// as long as they're within the angle range
 	secs contact_time = 0.0;
 	secs air_time = 0.0;
@@ -95,7 +92,7 @@ public:
 
 	AngleRange angle_range;
 
-    Vec2f calc_friction(Vec2f prevVel) const;
+    [[nodiscard]] Vec2f calc_friction(Vec2f prevVel) const;
     float accel_accum = 0.f;
 
 private:

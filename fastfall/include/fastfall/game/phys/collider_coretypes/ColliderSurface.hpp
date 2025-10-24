@@ -29,15 +29,15 @@ public:
 	std::optional<ColliderSurfaceID> prev_id = std::nullopt;
 	std::optional<ColliderSurfaceID> next_id = std::nullopt;
 
-	Linef getGhostPrev() const {
+	[[nodiscard]] Linef getGhostPrev() const {
 		return { ghostp0, surface.p1 };
 	}
 
-	Linef getGhostNext() const {
+	[[nodiscard]] Linef getGhostNext() const {
 		return { surface.p2, ghostp3 };
 	}
 
-	ColliderSurface reverse() const {
+	[[nodiscard]] ColliderSurface reverse() const {
 		ColliderSurface r;
 
 		r.surface = surface.reverse();

@@ -4,8 +4,7 @@
 #include "fastfall/game/phys/collider_coretypes/ColliderSurface.hpp"
 #include "fastfall/game/tile/Tile.hpp"
 
-#include <array>
-#include <assert.h>
+#include <cassert>
 
 namespace ff {
 
@@ -15,19 +14,17 @@ public:
 	constexpr static unsigned MAX_SURFACES = 4;
 
 	struct QuadSurface {
-		constexpr QuadSurface() noexcept :
-			hasSurface(false),
-			collider(ColliderSurface{})
+		constexpr QuadSurface() noexcept : collider(ColliderSurface{})
 		{
 		}
 
-		constexpr QuadSurface(ColliderSurface colliderSurface, bool surfaceExists = true) noexcept :
+		constexpr explicit QuadSurface(ColliderSurface colliderSurface, bool surfaceExists = true) noexcept :
 			hasSurface(surfaceExists),
 			collider(colliderSurface)
 		{
 		}
 
-		friend inline bool operator==(const QuadSurface& lhs, const QuadSurface& rhs) {
+		friend bool operator==(const QuadSurface& lhs, const QuadSurface& rhs) {
 			return lhs.hasSurface == rhs.hasSurface
 				&& lhs.collider.surface == rhs.collider.surface;
 		}
@@ -38,41 +35,41 @@ public:
 	};
 
 	ColliderQuad() noexcept;
-	ColliderQuad(const cardinal_array<QuadSurface>& surfaces) noexcept;
-	ColliderQuad(cardinal_array<QuadSurface>&& surfaces) noexcept;
-	ColliderQuad(const Rectf& shape) noexcept;
+	explicit ColliderQuad(const cardinal_array<QuadSurface>& surfaces) noexcept;
+	explicit ColliderQuad(cardinal_array<QuadSurface>&& surfaces) noexcept;
+	explicit ColliderQuad(const Rectf& shape) noexcept;
 
 	void translate(Vec2f offset) noexcept;
 
 
-	const ColliderSurface* getSurface(Cardinal side) const noexcept;
+	[[nodiscard]] const ColliderSurface* getSurface(Cardinal side) const noexcept;
 	ColliderSurface* getSurface(Cardinal side) noexcept;
 	void setSurface(Cardinal side, const ColliderSurface& surface) noexcept;
 	void removeSurface(Cardinal side);
 
-	inline void clearSurfaces() noexcept {
+	void clearSurfaces() noexcept {
 		surfaces[Cardinal::N].hasSurface = false;
 		surfaces[Cardinal::E].hasSurface = false;
 		surfaces[Cardinal::S].hasSurface = false;
 		surfaces[Cardinal::W].hasSurface = false;
 	}
 
-	inline bool hasAnySurface() const noexcept {
+	[[nodiscard]] bool hasAnySurface() const noexcept {
 		return surfaces[Cardinal::N].hasSurface
 			|| surfaces[Cardinal::E].hasSurface
 			|| surfaces[Cardinal::S].hasSurface
 			|| surfaces[Cardinal::W].hasSurface;
 	};
 
-	inline bool isOneWay(Cardinal dir) const {
+	[[nodiscard]] bool isOneWay(Cardinal dir) const {
 		return hasOneWay && oneWayDir == dir;
 	}
-	inline bool isBoundary(Cardinal dir) const {
+	[[nodiscard]] bool isBoundary(Cardinal dir) const {
 		return hasBoundary && oneWayDir == dir;
 	}
 
-	inline QuadID getID() const noexcept { return quad_id; };
-	inline void setID(QuadID id) {
+	[[nodiscard]] QuadID getID() const noexcept { return quad_id; };
+	void setID(QuadID id) {
 		assert(id.value >= 0);
 		quad_id = id;
 
@@ -81,14 +78,14 @@ public:
 		}
 	};
 
-	friend inline bool operator==(const ColliderQuad& lhs, const ColliderQuad& rhs) {
+	friend bool operator==(const ColliderQuad& lhs, const ColliderQuad& rhs) {
 		return lhs.surfaces[Cardinal::N] == rhs.surfaces[Cardinal::N]
 			&& lhs.surfaces[Cardinal::E] == rhs.surfaces[Cardinal::E]
 			&& lhs.surfaces[Cardinal::S] == rhs.surfaces[Cardinal::S]
 			&& lhs.surfaces[Cardinal::W] == rhs.surfaces[Cardinal::W];
 	}
 
-    std::optional<Rectf> get_bounds() const {
+    [[nodiscard]] std::optional<Rectf> get_bounds() const {
         std::optional<Rectf> bounds{};
         for (auto& surf : surfaces) {
             if (!bounds) {

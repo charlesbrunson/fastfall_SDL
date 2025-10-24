@@ -28,17 +28,17 @@ public:
 
 	void update(CollisionContext ctx, secs deltaTime);
 
-	inline void updateContact(CollisionContext ctx) noexcept { currCollision.updateContact(ctx); };
+	void updateContact(const CollisionContext ctx) noexcept { currCollision.updateContact(ctx); };
 
-    inline void set_touch_duration(secs time) noexcept {
+    void set_touch_duration(const secs time) noexcept {
         contact.touchDuration = time;
     }
 
-	inline ContinuousContact& getContact() noexcept { return contact; }
+	ContinuousContact& getContact() noexcept { return contact; }
 
     CollisionID id;
 
-	inline void setAxisApplied(Vec2f ortho_normal) noexcept { currCollision.setAxisApplied(ortho_normal); }
+	void setAxisApplied(const Vec2f ortho_normal) noexcept { currCollision.setAxisApplied(ortho_normal); }
 };
 
 }

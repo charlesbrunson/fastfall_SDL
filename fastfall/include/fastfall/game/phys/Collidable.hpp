@@ -64,7 +64,6 @@ public:
 		float leeway = 0.f;
 	};
 
-public:
 	Collidable(Vec2f position, Vec2f size, Vec2f gravity = Vec2f{});
 
     Collidable(const Collidable&);
@@ -77,15 +76,15 @@ public:
 
 	Rectf getBoundingBox();
 
-	inline Rectf getBox() const noexcept { return currRect; };
-	inline Rectf getPrevBox() const noexcept { return prevRect; };
+	Rectf getBox() const noexcept { return currRect; };
+	Rectf getPrevBox() const noexcept { return prevRect; };
 
-	inline Vec2f getPosition() const noexcept { return currPos; };
-	inline Vec2f getPrevPosition() const noexcept { return prevPos; };
+	Vec2f getPosition() const noexcept { return currPos; };
+	Vec2f getPrevPosition() const noexcept { return prevPos; };
 
 	void setPosition(Vec2f position, bool swapPrev = true) noexcept;
 
-	inline void move(Vec2f offset, bool swapPrev = true) {
+	void move(Vec2f offset, bool swapPrev = true) {
 		setPosition(getPosition() + offset, swapPrev);
 	};
 
@@ -129,7 +128,7 @@ public:
 	bool has_contact(Angle angle) const noexcept;
 	bool has_contact(Cardinal dir) const noexcept;
 
-	inline const std::vector<AppliedContact>& get_contacts()   const noexcept { return currContacts; };
+	const std::vector<AppliedContact>& get_contacts()   const noexcept { return currContacts; };
 
 	void set_frame(poly_id_map<ColliderRegion>*  colliders,
                    std::vector<AppliedContact>&& curr_frame);

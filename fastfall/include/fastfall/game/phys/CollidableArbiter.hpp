@@ -19,17 +19,17 @@ public:
     ID<Collidable> collidable_id;
 	std::unordered_map<ID<ColliderRegion>, RegionArbiter> region_arbiters;
 
-	inline void gather_and_solve_collisions(
+	void gather_and_solve_collisions(
             World& world,
 			secs deltaTime,
 			nlohmann::ordered_json* dump_ptr = nullptr)
 	{
 		gather_collisions(world, deltaTime, dump_ptr);
 		solve_collisions(world, deltaTime, dump_ptr);
-	};
+	}
 	void erase_region(ID<ColliderRegion> region);
 
-    Arbiter* get_quad_arbiter(CollisionID id);
+    [[nodiscard]] Arbiter* get_quad_arbiter(CollisionID id);
 
 private:
 	void gather_collisions(

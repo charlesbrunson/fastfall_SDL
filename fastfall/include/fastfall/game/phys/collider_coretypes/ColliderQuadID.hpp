@@ -9,14 +9,7 @@ struct QuadID {
 
     std::strong_ordering operator<=>(const QuadID& other) const = default;
 
-    //bool operator==(const QuadID other) const {
-    //    return value == other.value;
-    //}
-    //bool operator<(const QuadID other) const {
-    //    return value < other.value;
-    //}
-
-    Vec2i to_pos(Vec2u size, bool border) const {
+    [[nodiscard]] Vec2i to_pos(const Vec2u size, const bool border) const {
         Vec2i pos;
         Vec2i size_min{ 0, 0 };
         Vec2i size_max{ size };

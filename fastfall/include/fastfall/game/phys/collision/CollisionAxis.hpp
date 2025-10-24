@@ -17,18 +17,16 @@ struct AxisPreStep {
 
 class CollisionAxis {
 public:
-	CollisionAxis(const AxisPreStep& initData) 
-		: dir(initData.dir)
-		, quadIndex(initData.quadNdx)
-		, collider_real(initData.is_real)
+	explicit CollisionAxis(const AxisPreStep& initData)
+		: quadIndex(initData.quadNdx)
+		, dir(initData.dir)
 		, collider_valid(initData.is_valid)
+		, collider_real(initData.is_real)
 	{
 		contact.collider = initData.surface;
 	}
 
-	CollisionAxis()
-	{
-	}
+	CollisionAxis() = default;
 
 	// the contact on this axis
 	DiscreteContact contact;
@@ -49,16 +47,16 @@ public:
 	float separationOffset = 0.f;
 
 	// this axis can be used for resolving a collision
-	inline bool is_collider_valid() const noexcept {
+	[[nodiscard]] bool is_collider_valid() const noexcept {
 		return collider_valid;
 	}
 
 	// the collider from this axis exists, and wasn't generated (ie. corners are generated)
-	inline bool is_collider_real() const noexcept {
+	[[nodiscard]] bool is_collider_real() const noexcept {
 		return collider_real;
 	}
 
-	inline bool is_intersecting() const noexcept {
+	[[nodiscard]] bool is_intersecting() const noexcept {
 		return (collider_valid ? contact.separation > 0.f : contact.separation >= 0.f);
 	}
 

@@ -19,15 +19,15 @@ public:
 	{
 	}
 
-	inline auto& getQuadArbiters() { return quadArbiters; };
-	inline const auto& getQuadArbiters() const { return quadArbiters; };
+	auto& getQuadArbiters() { return quadArbiters; };
+	[[nodiscard]] const auto& getQuadArbiters() const { return quadArbiters; };
 
 	void updateRegion(CollisionContext ctx, Rectf bounds);
 
-    ID<Collidable> get_collidable_id() const { return collidable_id; }
-    ID<ColliderRegion> get_collider_id() const { return collider_id; }
+    [[nodiscard]] ID<Collidable> get_collidable_id() const { return collidable_id; }
+    [[nodiscard]] ID<ColliderRegion> get_collider_id() const { return collider_id; }
 
-	bool operator< (const RegionArbiter& rhs) {
+	bool operator< (const RegionArbiter& rhs) const {
 		return collider_id < rhs.collider_id;
 	}
 

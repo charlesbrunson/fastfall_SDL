@@ -8,13 +8,12 @@
 #include "fastfall/util/grid_vector.hpp"
 
 #include <functional>
-#include <array>
 #include <queue>
+#include <utility>
 
 namespace ff {
 
-class ColliderTileMap : public ColliderRegion {
-private:
+class ColliderTileMap final : public ColliderRegion {
 	struct Edit {
 		Edit(
 			Vec2i pos, 
@@ -44,32 +43,32 @@ private:
 	};
 	
 public:
-	ColliderTileMap(Vec2i size, bool border = false);
+	explicit ColliderTileMap(Vec2i size, bool border = false);
 
 	void update(secs deltaTime) override;
 
-	const ColliderQuad* get_quad(QuadID quad_id) const noexcept override;
-	const ColliderQuad* get_quad(const Vec2i& at) const noexcept;
+	[[nodiscard]] const ColliderQuad* get_quad(QuadID quad_id) const noexcept override;
+	[[nodiscard]] const ColliderQuad* get_quad(const Vec2i& at) const noexcept;
 
-    Vec2i to_pos(QuadID quad_id) const noexcept;
+    [[nodiscard]] Vec2i to_pos(QuadID quad_id) const noexcept;
 
-	void setBorders(const Vec2u& size, const unsigned cardinalBits);
+	void setBorders(const Vec2u& size, unsigned cardinalBits);
 
-    inline void fill(const TileShape& toShape, const TileMaterial* mat = nullptr, Cardinal matFacing = Cardinal::N) {
+    void fill(const TileShape& toShape, const TileMaterial* mat = nullptr, Cardinal matFacing = Cardinal::N) {
         for (auto x = size_min.x; x < size_max.x; x++) {
             for (auto y = size_min.y; y < size_max.y; y++) {
                 setTile({ x, y }, toShape, mat, matFacing);
             }
         }
     }
-	inline void setTile(const Vec2i& at, const TileShape& toShape, const TileMaterial* mat = nullptr, Cardinal matFacing = Cardinal::N)
+	void setTile(const Vec2i& at, const TileShape& toShape, const TileMaterial* mat = nullptr, Cardinal matFacing = Cardinal::N)
 	{ 
-		editQueue.push(Edit{ at, false, toShape, mat, matFacing }); 
-	};
-	inline void removeTile(const Vec2i& at) 
+		editQueue.emplace( at, false, toShape, mat, matFacing );
+	}
+	void removeTile(const Vec2i& at)
 	{ 
-		editQueue.push(Edit{ at, true }); 
-	};
+		editQueue.emplace( at, true );
+	}
 	void clear();
 	void applyChanges();
 
@@ -77,13 +76,13 @@ public:
 	void on_postcontact(World& w, const AppliedContact& contact, secs deltaTime) const override;
 
 	void set_on_precontact(std::function<bool(World&, const ContinuousContact&, secs)> func) {
-		callback_on_precontact = func;
+		callback_on_precontact = std::move(func);
 	}
 	void set_on_postcontact(std::function<void(World&, const AppliedContact&, secs)> func) {
-		callback_on_postcontact = func;
+		callback_on_postcontact = std::move(func);
 	}
 
-    Rectf tile_area(QuadID quad_id) const noexcept override;
+    [[nodiscard]] Rectf tile_area(QuadID quad_id) const noexcept override;
 
 protected:
     [[nodiscard]] std::optional<QuadID> first_quad_in_rect(Rectf area, Recti& tile_area, bool skip_empty) const override;
@@ -97,11 +96,11 @@ private:
 	bool applyRemoveTile(const Edit& change);
 	bool applySetTile(const Edit& change);
 
-	bool validPosition(const Vec2i& at) const noexcept;
-	bool validPosition(QuadID ndx) const noexcept;
-	QuadID getTileID(const Vec2i& at) const noexcept;
+	[[nodiscard]] bool validPosition(const Vec2i& at) const noexcept;
+	[[nodiscard]] bool validPosition(QuadID ndx) const noexcept;
+	[[nodiscard]] QuadID getTileID(const Vec2i& at) const noexcept;
 
-    Recti get_tile_area_for_rect(Rectf area) const;
+    [[nodiscard]] Recti get_tile_area_for_rect(Rectf area) const;
 
 	std::pair<ColliderQuad*, const ColliderTile*> get_tile(const Vec2i& at);
 

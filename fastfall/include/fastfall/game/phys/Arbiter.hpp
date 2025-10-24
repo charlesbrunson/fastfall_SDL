@@ -8,7 +8,6 @@
 namespace ff {
 
 class Arbiter {
-private:
 	CollisionContinuous collision;
 
 	secs aliveTimer = 0.0; // time this arbiter has existed
@@ -22,17 +21,15 @@ public:
 
 	void setApplied();
 
-	inline const CollisionContinuous* getCollision() const noexcept { return &collision; };
+	[[nodiscard]] const CollisionContinuous* getCollision() const noexcept { return &collision; };
 
-	inline ContinuousContact& getContact() noexcept { return collision.getContact(); };
+	ContinuousContact& getContact() noexcept { return collision.getContact(); };
 
-	inline secs getAliveDuration() const noexcept { return aliveTimer; };
-	inline secs getTouchDuration() const noexcept { return touchTimer; };
-	inline size_t getRecalcCount() const noexcept { return recalcCounter; };
+	[[nodiscard]] secs getAliveDuration() const noexcept { return aliveTimer; };
+	[[nodiscard]] secs getTouchDuration() const noexcept { return touchTimer; };
+	[[nodiscard]] size_t getRecalcCount() const noexcept { return recalcCounter; };
 
     CollisionID id;
-
-	//Rectf quad_bounds;
 
 	bool stale = false;
 
