@@ -25,11 +25,24 @@ TestPhysRenderer::TestPhysRenderer(World& w, ff::Rectf area)
 
 	impl = std::make_unique<GifWriterImpl>();
 
-	surface = SDL_CreateRGBSurfaceWithFormat(0, render_area.width * scale, render_area.height * scale, 32, SDL_PIXELFORMAT_ABGR8888);
-	SDL_FillRect(surface, NULL, 0);
+	surface = SDL_CreateSurface(
+		render_area.width * scale,
+		render_area.height * scale,
+		SDL_PIXELFORMAT_RGBA32);
+
 	render = SDL_CreateSoftwareRenderer(surface);
 
-	GifBegin(&impl->writer, test_name.c_str(), render_area.width * scale, render_area.height * scale, frame_delay);
+	GifBegin(&impl->writer,
+		test_name.c_str(),
+		render_area.width * scale,
+		render_area.height * scale,
+		frame_delay);
+
+	// std::string test_dir = fmt::format("phys_render_out/{}__{}",
+	// 	::testing::UnitTest::GetInstance()->current_test_info()->test_suite_name(),
+	// 	::testing::UnitTest::GetInstance()->current_test_info()->name());
+	// SDL_CreateDirectory(test_dir.c_str());
+
 #endif
 }
 
@@ -37,7 +50,8 @@ TestPhysRenderer::~TestPhysRenderer()
 {
 #if FF_TESTPHYSRENDERER_ENABLED
 	GifEnd(&impl->writer);
-	SDL_FreeSurface(surface);
+
+	SDL_DestroySurface(surface);
 	SDL_DestroyRenderer(render);
 #endif
 }
@@ -46,11 +60,7 @@ void TestPhysRenderer::draw() {
 
 #if FF_TESTPHYSRENDERER_ENABLED
 
-	//float scale = 2.f;
-
-	//SDL_FillRect(surface, NULL, 0);
-
-	SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
+	SDL_SetRenderDrawColor(render, 0x10, 0x10, 0x10, 0xFF);
 	SDL_RenderClear(render);
 
 	//SDL_RenderSetScale(render, 4, 4);
@@ -63,19 +73,20 @@ void TestPhysRenderer::draw() {
 
 		p1 = (off + math::rect_topleft(rect)) * scale;
 		p2 = (off + math::rect_topright(rect)) * scale;
-		SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
+		SDL_RenderLine(render, p1.x, p1.y, p2.x, p2.y);
+
 
 		p1 = (off + math::rect_topright(rect)) * scale;
 		p2 = (off + math::rect_botright(rect)) * scale;
-		SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
+		SDL_RenderLine(render, p1.x, p1.y, p2.x, p2.y);
 
 		p1 = (off + math::rect_botright(rect)) * scale;
 		p2 = (off + math::rect_botleft(rect)) * scale;
-		SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
+		SDL_RenderLine(render, p1.x, p1.y, p2.x, p2.y);
 
 		p1 = (off + math::rect_botleft(rect)) * scale;
 		p2 = (off + math::rect_topleft(rect)) * scale;
-		SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
+		SDL_RenderLine(render, p1.x, p1.y, p2.x, p2.y);
 	};
 
 	// draw colliders
@@ -93,7 +104,7 @@ void TestPhysRenderer::draw() {
 					li.p2 += off + offset;
 					li.p1 *= scale;
 					li.p2 *= scale;
-					SDL_RenderDrawLineF(render, li.p1.x, li.p1.y, li.p2.x, li.p2.y);
+					SDL_RenderLine(render, li.p1.x, li.p1.y, li.p2.x, li.p2.y);
 				}
 			}
 			
@@ -106,7 +117,7 @@ void TestPhysRenderer::draw() {
 					li.p2 += off + offset;
 					li.p1 *= scale;
 					li.p2 *= scale;
-					SDL_RenderDrawLineF(render, li.p1.x, li.p1.y, li.p2.x, li.p2.y);
+					SDL_RenderLine(render, li.p1.x, li.p1.y, li.p2.x, li.p2.y);
 
 					// add extra line for one ways
 					if (quad->hasOneWay
@@ -116,7 +127,7 @@ void TestPhysRenderer::draw() {
 						Linef li2 = math::shift(li, -n * scale);
 						li2.p1 += n.righthand() * scale;
 						li2.p2 += n.lefthand() * scale;
-						SDL_RenderDrawLineF(render, li2.p1.x, li2.p1.y, li2.p2.x, li2.p2.y);
+						SDL_RenderLine(render, li2.p1.x, li2.p1.y, li2.p2.x, li2.p2.y);
 					}
 				}
 			}
@@ -125,7 +136,7 @@ void TestPhysRenderer::draw() {
 
 	// draw collidables
 	for (const auto& [collidable_id, collidable] : world->all<Collidable>()) {
-		SDL_SetRenderDrawColor(render, 0, 150, 0, 255);
+		// SDL_SetRenderDrawColor(render, 0, 150, 0, 255);
 
 		Rectf prev = collidable.getPrevBox();
 		Rectf box = collidable.getBox();
@@ -141,7 +152,7 @@ void TestPhysRenderer::draw() {
 			Vec2f p2 = off + p1 + collidable.get_global_vel() * (1.f / 60.f);
 			p1 *= scale;
 			p2 *= scale;
-			SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
+			SDL_RenderLine(render, p1.x, p1.y, p2.x, p2.y);
 		}
 
 		// draw contacts
@@ -153,7 +164,7 @@ void TestPhysRenderer::draw() {
 				Vec2f p2 = off + p1 + contact.ortho_n * contact.separation * 1.f;
 				p1 *= scale;
 				p2 *= scale;
-				SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
+				SDL_RenderLine(render, p1.x, p1.y, p2.x, p2.y);
 
 
 				SDL_SetRenderDrawColor(render, 255, 255, 0, 255);
@@ -161,18 +172,23 @@ void TestPhysRenderer::draw() {
 				p2 = off + contact.collider.surface.p2;
 				p1 *= scale;
 				p2 *= scale;
-				SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
+				SDL_RenderLine(render, p1.x, p1.y, p2.x, p2.y);
 				p1 = off + contact.collider.surface.p1 - contact.collider_n;
 				p2 = off + contact.collider.surface.p2 - contact.collider_n;
 				p1 *= scale;
 				p2 *= scale;
-				SDL_RenderDrawLineF(render, p1.x, p1.y, p2.x, p2.y);
+				SDL_RenderLine(render, p1.x, p1.y, p2.x, p2.y);
 
 			}
 		}
 	}
 
-	GifWriteFrame(&impl->writer, (const uint8_t*)surface->pixels, render_area.width * scale, render_area.height * scale, frame_delay);
+	SDL_RenderPresent(render);
+	GifWriteFrame(&impl->writer,
+	              static_cast<const uint8_t*>(surface->pixels),
+	              render_area.width * scale,
+	              render_area.height * scale,
+	              frame_delay);
 
 #endif
 

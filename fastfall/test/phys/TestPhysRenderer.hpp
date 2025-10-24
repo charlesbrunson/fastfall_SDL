@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <fmt/format.h>
 
 #include "fastfall/game/World.hpp"

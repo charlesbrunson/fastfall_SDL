@@ -73,7 +73,7 @@ public:
 	struct callbacks_t {
 		std::function<void(Collidable&, AppliedContact&)> on_start_touch;
 		std::function<void(Collidable&, AppliedContact&)> on_end_touch;
-		std::function<void(Collidable&, const SurfaceFollow::travel_result&, const ColliderSurface& surface)> on_stick;
+		std::function<void(Collidable&, const SurfaceFollow::Result&, const ColliderSurface& surface)> on_stick;
 	} callbacks;
 
 	struct Settings {

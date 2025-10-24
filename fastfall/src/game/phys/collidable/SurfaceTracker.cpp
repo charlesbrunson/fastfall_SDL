@@ -301,13 +301,23 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         ColliderSurfaceID  surf_id;
     };
 
-    std::map<SurfaceFollow::surface_id, surface_id> surface_map;
-    SurfaceFollow follower { init_path, init_pos, travel_dir, distance, angle_range, settings.stick_angle_max, owner->getBox().getSize() };
+	SurfaceFollow follower {
+		init_path,
+		init_pos,
+		travel_dir,
+		distance,
+		angle_range,
+		settings.stick_angle_max,
+		owner->getBox().getSize()
+	};
+	//std::map<size_t, surface_id> surface_map;
+
+	std::vector<surface_id> surface_ids;
     std::vector<Rectf> quads_visited;
 
     Vec2f curr_pos = init_pos;
     while (follower.remaining_distance() > 0.f) {
-        surface_map.clear();
+        surface_ids.clear();
 
         Rectf bounds = math::line_bounds(follower.current_path().surface_line);
 
@@ -323,8 +333,8 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
                     if (auto* surf = quad->getSurface(dir)) {
                         auto surf_id = ColliderSurfaceID{ quad->getID(), dir };
                         auto line = math::shift(surf->surface, region_ptr->getPosition());
-                        if (auto id = follower.add_surface(line)) {
-                            surface_map.emplace(*id, surface_id{ region_id, surf_id });
+                        if (follower.try_push_back(line)) {
+                            surface_ids.emplace_back(surface_id{ region_id, surf_id });
                         }
                     }
                 }
@@ -340,7 +350,7 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
                 float slow = 1.f - settings.slope_stick_speed_factor *
                                    abs(result.path.diff_angle.degrees() / settings.stick_angle_max.degrees());
 
-                const auto& surface = surface_map.at(result.path.id);
+                const auto& surface = surface_ids.at(result.path.index);
 
                 owner->reset_surface_vel();
                 float vmag = owner->get_local_vel().magnitude() * slow;

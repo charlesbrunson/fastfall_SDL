@@ -7,7 +7,7 @@
 using namespace ff;
 
 
-bool SurfaceFollow::compare_paths(float travel_dir, const surface_path& from, const surface_path& pick, const surface_path& candidate)
+bool SurfaceFollow::compare_paths(float travel_dir, const Path& from, const Path& pick, const Path& candidate)
 {
     float curr_dist = math::dist(pick.start_pos,      from.start_pos);
     float cand_dist = math::dist(candidate.start_pos, from.start_pos);
@@ -98,30 +98,23 @@ SurfaceFollow::SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, 
     }
 }
 
-std::optional<SurfaceFollow::surface_id>
-SurfaceFollow::add_surface(Linef path)
+bool SurfaceFollow::try_push_back(Linef path)
 {
-    if (auto surf_path = valid_surface(path, candidate_paths.size())) {
-        candidate_paths.push_back(*surf_path);
-        return surf_path->id;
-    }
-    return{};
+    return add_surface_if_valid(path);
 }
 
 void SurfaceFollow::reset() {
-    candidate_paths.clear();
+    path_candidates.clear();
 }
 
-std::optional<SurfaceFollow::surface_id>
-SurfaceFollow::pick_surface_to_follow()
-{
+std::optional<size_t> SurfaceFollow::pick_surface_to_follow() const {
     if (travel_dir == 0.f)
         return {};
 
-    const surface_path* curr_pick = nullptr;
+    const Path* curr_pick = nullptr;
     Vec2f curr_dir = travel_dir * math::tangent(curr_path.surface_line);
 
-    for (auto& candidate : candidate_paths)
+    for (auto& candidate : path_candidates)
     {
         auto dir_cand = travel_dir > 0.f ? candidate.surface_line : candidate.surface_line.reverse();
 
@@ -129,12 +122,18 @@ SurfaceFollow::pick_surface_to_follow()
         if (candidate.start_pos == dir_cand.p2) {
             continue;
         }
+
         // skip surfaces we've already been on
+        bool skip = false;
         for (auto& visited : path_taken) {
             if (visited.surface_line == candidate.surface_line) {
-                continue;
+                skip = true;
+                break;
             }
         }
+        if (skip)
+            continue;
+
         // skip if surface intersect is behind us
         float dir_dot = math::dot(curr_dir, candidate.start_pos - curr_path.start_pos);
         if (dir_dot <= 0) {
@@ -160,13 +159,13 @@ SurfaceFollow::pick_surface_to_follow()
     }
 
 
-    return (curr_pick ? std::make_optional(curr_pick->id) : std::nullopt);
+    return (curr_pick ? std::make_optional(curr_pick->index) : std::nullopt);
 }
 
-SurfaceFollow::travel_result
-SurfaceFollow::travel_to(surface_id id)
+SurfaceFollow::Result
+SurfaceFollow::travel_to(size_t id)
 {
-    const surface_path& path = candidate_paths[id];
+    const Path& path = path_candidates[id];
     Vec2f unit = (path.start_pos - curr_path.start_pos).unit();
     float dist = math::dist(curr_path.start_pos, path.start_pos);
 
@@ -195,7 +194,7 @@ SurfaceFollow::travel_to(surface_id id)
     };
 }
 
-SurfaceFollow::travel_result SurfaceFollow::finish() {
+SurfaceFollow::Result SurfaceFollow::finish() {
     Vec2f unit = math::tangent(curr_path.surface_line).unit() * travel_dir;
 
     Vec2f npos = curr_path.start_pos + (unit * travel_dist);
@@ -237,8 +236,7 @@ surface_type get_surface_type(const Linef& line) {
     }
 }
 
-std::optional<SurfaceFollow::surface_path>
-SurfaceFollow::valid_surface(Linef path, surface_id id) const
+bool SurfaceFollow::add_surface_if_valid(Linef path)
 {
     if (path == curr_path.surface_line) {
         // this is the surface we're currently on
@@ -363,14 +361,15 @@ SurfaceFollow::valid_surface(Linef path, surface_id id) const
     }
 
     if (is_valid) {
-        return surface_path {
-            .id           = id,
-            .surface_line = path,
-            .travel_line  = travel_line,
-            .start_pos    = *intersect,
-            .angle        = next_ang,
-            .diff_angle   = diff
-        };
+        auto ndx = path_candidates.size();
+        path_candidates.push_back({
+            .index         = ndx,
+            .surface_line  = path,
+            .travel_line   = travel_line,
+            .start_pos     = *intersect,
+            .angle         = next_ang,
+            .diff_angle    = diff
+        });
     }
-    return {};
+    return is_valid;
 }

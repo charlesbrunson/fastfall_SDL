@@ -8,50 +8,48 @@ namespace ff {
 
     class SurfaceFollow {
     public:
-        using surface_id = size_t;
 
-        struct surface_path {
-            surface_id  id;
-            Linef       surface_line;
-            Linef       travel_line;
-            Vec2f       start_pos;
-            Angle       angle;
-            Angle       diff_angle;
+        struct Path {
+            size_t index;
+            Linef  surface_line;
+            Linef  travel_line;
+            Vec2f  start_pos;
+            Angle  angle;
+            Angle  diff_angle;
         };
 
-        struct travel_result {
-            surface_path path = {};
-            float        dist = {};
-            Vec2f        pos  = {};
-            float        travel_dir = 1.f;
-            bool         on_new_surface = false;
+        struct Result {
+            Path  path = {};
+            float dist = {};
+            Vec2f pos  = {};
+            float travel_dir = 1.f;
+            bool  on_new_surface = false;
         };
 
-        static bool compare_paths(float travel_dir, const surface_path& from, const surface_path& pick, const surface_path& candidate);
+        static bool compare_paths(float travel_dir, const Path& from, const Path& pick, const Path& candidate);
 
         SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, float distance, AngleRange angle_ranges, Angle max_angle, Vec2f collidable_size);
 
         void reset();
 
-        [[nodiscard]] std::optional<surface_id> add_surface(Linef path);
+        [[nodiscard]] bool try_push_back(Linef path);
 
-        [[nodiscard]] std::optional<surface_id> pick_surface_to_follow();
-        [[nodiscard]] travel_result travel_to(surface_id id);
+        [[nodiscard]] std::optional<size_t> pick_surface_to_follow() const;
+        [[nodiscard]] Result travel_to(size_t candidate_ndx);
 
         [[nodiscard]] float remaining_distance() const { return travel_dist; }
         [[nodiscard]] explicit operator bool() const { return travel_dist > 0; }
-        [[nodiscard]] const surface_path& current_path() const { return curr_path; }
+        [[nodiscard]] const Path& current_path() const { return curr_path; }
 
-        [[nodiscard]] const std::vector<surface_path>& get_path_taken()      const { return path_taken; }
-        [[nodiscard]] const std::vector<surface_path>& get_path_candidates() const { return candidate_paths; }
+        [[nodiscard]] const std::vector<Path>& get_path_taken()      const { return path_taken; }
+        [[nodiscard]] const std::vector<Path>& get_path_candidates() const { return path_candidates; }
 
-        travel_result finish();
+        Result finish();
 
     private:
+        [[nodiscard]] bool add_surface_if_valid(Linef path);
 
-        [[nodiscard]] std::optional<surface_path> valid_surface(Linef path, surface_id id) const;
-
-        surface_path curr_path;
+        Path curr_path;
 
         float travel_dir;
         float travel_dist = 0.f;
@@ -61,8 +59,8 @@ namespace ff {
         Angle angle_max;
         AngleRange angle_range;
 
-        std::vector<surface_path> candidate_paths;
-        std::vector<surface_path> path_taken;
+        std::vector<Path> path_candidates;
+        std::vector<Path> path_taken;
     };
 
 }
