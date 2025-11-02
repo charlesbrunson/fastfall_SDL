@@ -108,7 +108,7 @@ bool glew_init() {
     if (glewInitialized) return true;
 
     GLenum glew_err = glewInit();
-    if (GLEW_OK != glew_err) {
+    if (GLEW_OK != glew_err && GLEW_ERROR_NO_GLX_DISPLAY != glew_err) {
         glewInitialized = false;
         std::string err = (char *) glewGetErrorString(glew_err);
         LOG_ERR_("Unable to init glew: {}", err);

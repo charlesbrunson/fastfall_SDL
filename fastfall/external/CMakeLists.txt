@@ -247,7 +247,7 @@ if (NOT EMSCRIPTEN)
 		sdl_mixer
 		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_mixer
 		GIT_REPOSITORY	https://github.com/libsdl-org/SDL_mixer.git
-		GIT_TAG			93685a9006952fdc49c58fa0f95306a9cff1ed83
+		GIT_TAG			8c516fcd2eca48262188426fbe75365ba4326346
 		GIT_SHALLOW 	TRUE
 		EXCLUDE_FROM_ALL
 	)

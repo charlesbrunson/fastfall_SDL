@@ -282,8 +282,8 @@ namespace ff {
 			, m_columns(columns)
 			, m_rows(rows)
 		{
-			if (left + columns > src.column_size()
-				|| top + rows > src.row_size())
+			if (left + columns > src.column_count()
+				|| top + rows > src.row_count())
 			{
 				throw std::invalid_argument("invalid grid view");
 			}

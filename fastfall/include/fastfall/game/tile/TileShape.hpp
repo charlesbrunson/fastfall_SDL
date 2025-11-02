@@ -66,7 +66,7 @@ namespace ff {
 		};
 	};
 
-	constexpr TileShape operator"" _ts(const char* c_str, size_t len)
+	constexpr TileShape operator""_ts(const char* c_str, size_t len)
 	{
 		return TileShape::from_string(std::string_view{ c_str, len });
 	}

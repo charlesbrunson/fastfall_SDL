@@ -54,7 +54,7 @@ public:
     id_iterator operator++(int) { id_iterator it{*this}; ++(*this); return it; }
 
     id_iterator& operator--() { --m_ptr; return *this; }
-    id_iterator operator--(int) { id_iterator it{*this}; --(this); return it; }
+    id_iterator operator--(int) { id_iterator it{*this}; --(*this); return it; }
 
     id_iterator operator+(difference_type movement) const { auto it = *this; it.m_ptr += movement; return it; }
     id_iterator operator-(difference_type movement) const { auto it = *this; it.m_ptr -= movement; return it; }
