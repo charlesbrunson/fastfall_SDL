@@ -216,33 +216,12 @@ constexpr inline bool operator>= (const ff::Vec2<T>& left, const ff::Vec2<T>& ri
 }
 
 
-template <typename T> 
-struct fmt::formatter<ff::Vec2<T>> {
-	std::string presentation = "{}";
-
-	constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
-		auto it = ctx.begin(), end = ctx.end();
-
-		if (it != end) {
-			bool has_arg = it != end && *it != '}';
-
-			while (it != end && *it != '}') 
-				it++;
-
-			if (has_arg) {
-				presentation = std::string{ "{:" }
-				+ std::string{ ctx.begin(), it + 1 };
-			}
+namespace fmt {
+	template <typename T, typename Char>
+	struct formatter<ff::Vec2<T>, Char> : formatter<T, Char> {
+		template <typename FormatContext>
+		constexpr auto format(const ff::Vec2<T>& p, FormatContext& ctx) const -> decltype(ctx.out()) {
+			return format_to(ctx.out(), "({}, {})", p.x, p.y);
 		}
-
-		if (it != end && *it != '}') throw format_error("invalid format");
-		return it;
-	}
-
-	template <typename FormatContext>
-	auto format(const ff::Vec2<T>& p, FormatContext& ctx) -> decltype(ctx.out()) {
-		return format_to(ctx.out(), "({})", 
-			fmt::format(presentation, fmt::join(std::initializer_list<T>{ p.x, p.y }, ", "))
-		);
-	}
-};
+	};
+}

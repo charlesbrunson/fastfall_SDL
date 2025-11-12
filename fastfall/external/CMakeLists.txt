@@ -1,327 +1,207 @@
 
 cmake_minimum_required (VERSION 4.0)
 
-include(FetchContent)
+# include(FetchContent)
 
+include(cmake/get_cpm.cmake)
 
-set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
-set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
-set(OpenGL_GL_PREFERENCE "GLVND" CACHE INTERNAL "")
+# est(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
+# set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
+# set(OpenGL_GL_PREFERENCE "GLVND" CACHE INTERNAL "")
 
-cmake_policy(SET CMP0135 NEW)
+# cmake_policy(SET CMP0135 NEW)
 
 # glm
-FetchContent_Declare(
-	glm
-	GIT_REPOSITORY https://github.com/g-truc/glm.git
-	#GIT_TAG        6ad79aae3eb5bf809c30bf1168171e9e55857e45
-    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glm
-	GIT_TAG        1.0.1
-	EXCLUDE_FROM_ALL
-)
 
-#fmt
-FetchContent_Declare(
-	fmt
-	GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-	GIT_TAG        7.1.3
-    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/fmt
-	EXCLUDE_FROM_ALL
-)
-
-#rapidxml
-FetchContent_Declare(
-	rapidxml
-	GIT_REPOSITORY https://github.com/discord/rapidxml.git
-	GIT_TAG        2ae4b2888165a393dfb6382168825fddf00c27b9
-    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/rapidxml
-	EXCLUDE_FROM_ALL
-)
-
-#json
-FetchContent_Declare(
-	json
-	GIT_REPOSITORY https://github.com/nlohmann/json.git
-	GIT_TAG        55f93686c01528224f448c19128836e7df245f72
-    SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/json
-	EXCLUDE_FROM_ALL
-)
-
-# imgui
-FetchContent_Declare(
-	imgui
-	GIT_REPOSITORY	https://github.com/ocornut/imgui.git
-    SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/imgui
-	GIT_TAG 		v1.91.8-docking
-	EXCLUDE_FROM_ALL
-)
-
-# implot
-FetchContent_Declare(
-	implot
-	GIT_REPOSITORY	https://github.com/epezent/implot.git
-    SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/implot
-	EXCLUDE_FROM_ALL
-)
-
-# tracy
-if (NOT ${FF_TRACE})
-	set(TRACY_ENABLE OFF CACHE INTERNAL "Disable Tracy")
-endif()
-
-FetchContent_Declare(
-	tracy
-	GIT_REPOSITORY	https://github.com/wolfpld/tracy.git
-	GIT_TAG			v0.10
-	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/tracy
-	GIT_SHALLOW 	TRUE
-	EXCLUDE_FROM_ALL
-)
-FetchContent_Declare(
-	magic_enum
-	SOURCE_DIR		${CMAKE_CURRENT_SOURCE_DIR}/magic_enum
-	GIT_REPOSITORY	https://github.com/Neargye/magic_enum.git
-	GIT_TAG			v0.9.7
-	EXCLUDE_FROM_ALL
-)
-
-FetchContent_MakeAvailable(
-	glm
-	fmt	
-	json
-	rapidxml
-	imgui
-	implot
-	tracy
-	magic_enum
+CPMAddPackage(
+		URI "gh:g-truc/glm#1.0.2"
+		OPTIONS
+		"BUILD_STATIC_LIBS ON"
+		"BUILD_SHARED_LIBS OFF"
+		"GLM_ENABLE_CXX_20 ON"
+		"OpenGL_GL_PREFERENCE GLVND"
 )
 target_compile_definitions(glm PUBLIC GLM_ENABLE_EXPERIMENTAL)
 
-# compile imgui and implot as library
-add_library(imgui STATIC
-		imgui/imgui.cpp
-		imgui/imgui_demo.cpp
-		imgui/imgui_draw.cpp
-		imgui/imgui_tables.cpp
-		imgui/imgui_widgets.cpp
-		imgui/backends/imgui_impl_sdl3.cpp
-		imgui/backends/imgui_impl_opengl3.cpp
+CPMAddPackage("gh:fmtlib/fmt#12.1.0")
+CPMAddPackage("gh:CodeFinder2/rapidxml#v1.13")
+CPMAddPackage(
+	URI "gh:nlohmann/json#v3.12.0"
+	OPTIONS
+		"JSON_BuildTests OFF"
+		"JSON_Install OFF"
+		"JSON_MultipleHeaders ON"
+)
 
-		implot/implot.cpp
-		implot/implot_demo.cpp
-		implot/implot_items.cpp
-		)
+CPMAddPackage("gh:ocornut/imgui#v1.92.4-docking")
 
-target_include_directories(imgui PRIVATE
-		imgui
-		implot
-		sdl/include
-		)
+CPMAddPackage(
+	URI "gh:wolfpld/tracy#v0.12.2"
+	OPTIONS
+	"TRACY_ENABLE ${FF_TRACE}"
+)
 
-target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLEW )
+CPMAddPackage("gh:Neargye/magic_enum#v0.9.7")
+
+
+CPMAddPackage("gh:epezent/implot#master")
 
 
 
 if (NOT EMSCRIPTEN)
 
-	#zlib
-	set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "")
-	FetchContent_Declare(
-		zlib
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/zlib
-		GIT_REPOSITORY	https://github.com/madler/zlib.git
-		GIT_TAG			v1.3
-		GIT_SHALLOW 	TRUE
-		FIND_PACKAGE_ARGS NAMES ZLIB::ZLIB
-		EXCLUDE_FROM_ALL
+	CPMAddPackage(
+		URI "gh:madler/zlib#v1.3.1"
+		OPTIONS
+			"ZLIB_BUILD_EXAMPLES OFF"
+			"ZLIB_BUILD_TESTING OFF"
+			"ZLIB_BUILD_SHARED OFF"
+			"ZLIB_BUILD_STATIC ON"
+			"ZLIB_INSTALL OFF"
+			"ZLIB_PREFIX OFF"
 	)
-	FetchContent_MakeAvailable(zlib)
 	add_library(ZLIB::ZLIB ALIAS zlibstatic)
 
-	set(ZLIB_FOUND 				ON 					CACHE BOOL "" FORCE)
-	set(ZLIB_LIBRARY 			ZLIB::ZLIB 			CACHE BOOL "" FORCE)
-	set(ZLIB_LIBRARIES 			ZLIB::ZLIB 			CACHE BOOL "" FORCE)
-	set(ZLIB_INCLUDE_DIR 		"${zlib_SOURCE_DIR};${zlib_BINARY_DIR}" CACHE BOOL "" FORCE)
-	set(ZLIB_INCLUDE_DIRS 		"${zlib_SOURCE_DIR};${zlib_BINARY_DIR}" CACHE BOOL "" FORCE)
-	set(ZLIB_VERSION 			"1.3" 				CACHE BOOL "" FORCE)
-	set(ZLIB_USE_STATIC_LIBS 	ON 					CACHE BOOL "" FORCE)
-	set(ZLIB_ROOT 				${zlib_SOURCE_DIR} 	CACHE BOOL "" FORCE)
-
-	# add_library(ZLIB::ZLIB ALIAS zlibstatic)
-
-	#libpng
-	set(PNG_SHARED 			OFF CACHE BOOL "" FORCE)
-	set(PNG_STATIC 			ON 	CACHE BOOL "" FORCE)
-	set(PNG_TESTS 			OFF CACHE BOOL "" FORCE)
-	set(PNG_BUILD_ZLIB 		OFF	CACHE BOOL "" FORCE)
-	set(PNG_TOOLS           OFF CACHE BOOL "" FORCE)
-	set(PNG_TESTS 			OFF CACHE BOOL "" FORCE)
-	set(SKIP_INSTALL_ALL 	ON 	CACHE BOOL "" FORCE)
-
-	FetchContent_Declare(
-		libpng
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/libpng
-		GIT_REPOSITORY	https://github.com/pnggroup/libpng.git
-		GIT_TAG			v1.6.50
-		GIT_SHALLOW 	TRUE
-		EXCLUDE_FROM_ALL
+	CPMAddPackage(
+		URI "gh:pnggroup/libpng#v1.6.50"
+		OPTIONS
+			"SKIP_INSTALL_ALL ON"
+			"PNG_SHARED OFF"
+			"PNG_STATIC ON"
+			"PNG_TESTS OFF"
+			"PNG_TOOLS OFF"
+			"PNG_TESTS OFF"
+			"ZLIB_FOUND ${zlib_ADDED}"
+			"ZLIB_ROOT ${zlib_SOURCE_DIR}"
+			"ZLIB_LIBRARY ZLIB::ZLIB"
+			"ZLIB_LIBRARIES ZLIB::ZLIB"
+			"ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR};${zlib_BINARY_DIR}"
+			"ZLIB_INCLUDE_DIRS ${zlib_SOURCE_DIR};${zlib_BINARY_DIR}"
+			"ZLIB_USE_STATIC_LIBS ON"
 	)
-	FetchContent_MakeAvailable(libpng)
-	# set(PNG_LIBRARY png_static)
-	# set(PNG_PNG_INCLUDE_DIR ${libpng_SOURCE_DIR})
-	# include_directories(${libpng_BINARY_DIR})
 
-	# glew
-	set(BUILD_UTILS OFF PARENT)
-	FetchContent_Declare(
-		glew
-		URL				https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.zip
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/glew
-		SOURCE_SUBDIR  build/cmake
-		EXCLUDE_FROM_ALL
+	CPMAddPackage(
+		URI "gh:Perlmint/glew-cmake#glew-cmake-2.2.0"
+		OPTIONS
+			"OpenGL_GL_PREFERENCE GLVND"
+			"glew-cmake_BUILD_SHARED OFF"
+			"ONLY_LIBS ON"
 	)
-	FetchContent_MakeAvailable(glew)
 
-	# sdl
-	set(SDL_SHARED OFF CACHE INTERNAL "")
-	set(SDL_STATIC ON  CACHE INTERNAL "")
-
-	if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-		# no idea why this is now needed on clion
-		set(LIBC ON CACHE INTERNAL "")
-	endif()
-
-	FetchContent_Declare(
-		sdl
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl
-		GIT_REPOSITORY	https://github.com/libsdl-org/SDL.git
-		GIT_TAG			main
-		GIT_SHALLOW 	TRUE
-		EXCLUDE_FROM_ALL
+	CPMAddPackage(
+		URI "gh:libsdl-org/SDL#preview-3.3.2"
+		OPTIONS
+			"SDL_SHARED OFF"
+			"SDL_STATIC ON"
+			"SDL_TEST_LIBRARY OFF"
 	)
-	FetchContent_MakeAvailable(sdl)
+	set(SDL3_DIR ${SDL_BINARY_DIR})
 
-
-
-	set(SDLIMAGE_VENDORED OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_AVIF OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_BMP  OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_GIF  OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_JPG  OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_JXL  OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_LBM  OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_PCX  OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_PNG  ON CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_PNM  OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_QOI  OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_SVG  OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_TGA  OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_TIF  OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_WEBP OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_XCF  OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_XPM  OFF CACHE INTERNAL "" FORCE)
-	set(SDLIMAGE_XV   OFF CACHE INTERNAL "" FORCE)
-	FetchContent_Declare(
-		sdl_image
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_image
-		GIT_REPOSITORY	https://github.com/libsdl-org/SDL_image.git
-		GIT_TAG			release-3.2.4
-		GIT_SHALLOW 	TRUE
-		EXCLUDE_FROM_ALL
+	CPMAddPackage(
+		URI "gh:libsdl-org/SDL_image#main"
+		OPTIONS
+			"BUILD_SHARED_LIBS OFF"
+			"SDLIMAGE_INSTALL OFF"
+			"SDLIMAGE_VENDORED OFF"
+			"SDLIMAGE_AVIF OFF"
+			"SDLIMAGE_BMP OFF"
+			"SDLIMAGE_GIF OFF"
+			"SDLIMAGE_JPG OFF"
+			"SDLIMAGE_JXL OFF"
+			"SDLIMAGE_LBM OFF"
+			"SDLIMAGE_PCX OFF"
+			"SDLIMAGE_PNG ON"
+			"SDLIMAGE_PNM OFF"
+			"SDLIMAGE_QOI OFF"
+			"SDLIMAGE_SVG OFF"
+			"SDLIMAGE_TGA OFF"
+			"SDLIMAGE_TIF OFF"
+			"SDLIMAGE_WEBP OFF"
+			"SDLIMAGE_XCF OFF"
+			"SDLIMAGE_XPM OFF"
+			"SDLIMAGE_XV OFF"
+			"SDLIMAGE_STB OFF"
 	)
-	FetchContent_MakeAvailable(sdl_image)
 
-	set(SDLMIXER_FLAC_LIBFLAC      OFF CACHE INTERNAL "" FORCE)
-	set(SDLMIXER_FLAC_DRFLAC       OFF CACHE INTERNAL "" FORCE)
-	set(SDLMIXER_GME               OFF CACHE INTERNAL "" FORCE)
-	set(SDLMIXER_GME_SHARED        OFF CACHE INTERNAL "" FORCE)
-	set(SDLMIXER_MOD_XMP           OFF CACHE INTERNAL "" FORCE)
-	set(SDLMIXER_MP3_DRMP3         OFF CACHE INTERNAL "" FORCE)
-	set(SDLMIXER_MP3_MPG123        OFF CACHE INTERNAL "" FORCE)
-	set(SDLMIXER_MIDI_TIMIDITY     OFF CACHE INTERNAL "" FORCE)
-	set(SDLMIXER_OPUS              OFF CACHE INTERNAL "" FORCE)
-	set(SDLMIXER_VORBIS_STB        OFF CACHE INTERNAL "" FORCE)
-	set(SDLMIXER_VORBIS_VORBISFILE OFF CACHE INTERNAL "" FORCE)
-	set(SDLMIXER_VORBIS_TREMOR     OFF CACHE INTERNAL "" FORCE)
-	FetchContent_Declare(
-		sdl_mixer
-		SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/sdl_mixer
-		GIT_REPOSITORY	https://github.com/libsdl-org/SDL_mixer.git
-		GIT_TAG			8c516fcd2eca48262188426fbe75365ba4326346
-		GIT_SHALLOW 	TRUE
-		EXCLUDE_FROM_ALL
+	CPMAddPackage(
+		URI "gh:libsdl-org/SDL_mixer#main"
+		OPTIONS
+			"SDLMIXER_AIFF OFF"
+			"SDLMIXER_VOC OFF"
+			"SDLMIXER_AU OFF"
+			"SDLMIXER_FLAC_LIBFLAC OFF"
+			"SDLMIXER_FLAC_DRFLAC OFF"
+			"SDLMIXER_GME OFF"
+			"SDLMIXER_GME_SHARED OFF"
+			"SDLMIXER_MOD_XMP OFF"
+			"SDLMIXER_MP3_DRMP3 OFF"
+			"SDLMIXER_MP3_MPG123 OFF"
+			"SDLMIXER_MIDI_TIMIDITY OFF"
+			"SDLMIXER_OPUS OFF"
+			"SDLMIXER_VORBIS_STB OFF"
+			"SDLMIXER_VORBIS_VORBISFILE OFF"
+			"SDLMIXER_VORBIS_TREMOR OFF"
 	)
-	FetchContent_MakeAvailable(sdl_mixer)
 endif()
 
-#freetype
-set(FT_DISABLE_ZLIB   	ON CACHE INTERNAL "")
-set(FT_DISABLE_BZIP2  	ON CACHE INTERNAL "")
-set(FT_DISABLE_PNG 		ON CACHE INTERNAL "")
-set(FT_DISABLE_HARFBUZZ ON CACHE INTERNAL "")
-set(FT_DISABLE_BROTLI 	ON CACHE INTERNAL "")
-FetchContent_Declare(
-	freetype
-	URL https://download.savannah.gnu.org/releases/freetype/freetype-2.11.1.tar.xz
-	SOURCE_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/freetype
-	EXCLUDE_FROM_ALL
+CPMAddPackage(
+	NAME freetype
+	URL https://download.savannah.gnu.org/releases/freetype/freetype-2.14.1.tar.xz
+	URL_HASH SHA256=32427e8c471ac095853212a37aef816c60b42052d4d9e48230bab3bdf2936ccc
+	OPTIONS
+		"FT_DISABLE_ZLIB ON"
+		"FT_DISABLE_BZIP2 ON"
+		"FT_DISABLE_PNG ON"
+		"FT_DISABLE_HARFBUZZ ON"
+		"FT_DISABLE_BROTLI ON"
 )
-FetchContent_MakeAvailable(freetype)
-
 if (EMSCRIPTEN)
-	target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_ES3)
-
-	target_compile_options(imgui PRIVATE -sUSE_SDL=3)
-	target_link_options(imgui PRIVATE -sUSE_SDL=3)
-
 	target_compile_options(freetype PRIVATE -sUSE_LIBPNG=1)
 	target_link_options(freetype PRIVATE -sUSE_LIBPNG=1)
 endif()
 
-# add all include directories to fastfall
-target_include_directories(fastfall
-PUBLIC
-	glm
-	imgui
-	implot
-	freetype/include
-	rapidxml
-	json/include
-	fmt/include
-	tracy/public/
-)
-
-
-if(NOT EMSCRIPTEN)
-	target_include_directories(fastfall
-	PUBLIC
-		glew/include
-		sdl_image/include
-		sdl/include
-		libpng
-		${ZLIB_INCLUDE_DIR}
+if (imgui_ADDED)
+	set(IMGUI_SOURCES
+		${imgui_SOURCE_DIR}/imgui.cpp
+		${imgui_SOURCE_DIR}/imgui_demo.cpp
+		${imgui_SOURCE_DIR}/imgui_draw.cpp
+		${imgui_SOURCE_DIR}/imgui_tables.cpp
+		${imgui_SOURCE_DIR}/imgui_widgets.cpp
+		${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp
+		${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
 	)
+	add_library(imgui STATIC ${IMGUI_SOURCES})
+	target_include_directories(imgui PUBLIC "${imgui_SOURCE_DIR};${imgui_SOURCE_DIR}/backends/")
+	# target_link_libraries(imgui PUBLIC glew)
+	target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLEW )
+
+	if (EMSCRIPTEN)
+		target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_ES3)
+		target_compile_options(imgui PRIVATE -sUSE_SDL=3)
+		target_link_options(imgui PRIVATE -sUSE_SDL=3)
+	else()
+		target_link_libraries(imgui PRIVATE SDL3::SDL3)
+	endif()
 endif()
 
+if(implot_ADDED)
 
-# add all libraries and includes to fastfall
-target_link_libraries(fastfall
-	PUBLIC
-		glm
-		fmt::fmt
-		imgui
-		freetype
-		Tracy::TracyClient
-		magic_enum::magic_enum
-
-)
-if(NOT EMSCRIPTEN)
-	target_link_libraries(fastfall
-		PUBLIC
-			SDL3::SDL3
-			SDL3_image::SDL3_image
-			SDL3_mixer::SDL3_mixer
-			${ZLIB_LIBRARY}
-			glew_s
+	set(IMPLOT_SOURCES
+		${implot_SOURCE_DIR}/implot.cpp
+		${implot_SOURCE_DIR}/implot_demo.cpp
+		${implot_SOURCE_DIR}/implot_items.cpp
 	)
+	add_library(implot STATIC ${IMPLOT_SOURCES})
+	target_include_directories(implot PUBLIC ${implot_SOURCE_DIR})
+	target_include_directories(implot PUBLIC ${imgui_SOURCE_DIR})
+	target_link_libraries(implot PUBLIC imgui)
+
+	if (EMSCRIPTEN)
+		target_compile_definitions(implot PRIVATE IMGUI_IMPL_OPENGL_ES3)
+		target_compile_options(implot PRIVATE -sUSE_SDL=3)
+		target_link_options(implot PRIVATE -sUSE_SDL=3)
+	else()
+		target_link_libraries(implot PRIVATE SDL3::SDL3)
+	endif()
 endif()
+

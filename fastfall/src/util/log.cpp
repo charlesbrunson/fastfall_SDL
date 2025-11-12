@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <mutex>
 
+#include "fmt/color.h"
+
 //namespace ff {
 
 std::deque<log::LogMessage> log::messages;
@@ -30,7 +32,7 @@ log::level log::get_verbosity() noexcept {
 }
 
 
-void log::detail_log(level lvl, std::string_view file, uint32_t line, std::string& msg) noexcept {
+void log::detail_log(level lvl, const std::source_location loc, fmt::string_view fmt, fmt::format_args args) noexcept {
 
 	static constexpr char fill[] = {
 		' ',
@@ -58,17 +60,18 @@ void log::detail_log(level lvl, std::string_view file, uint32_t line, std::strin
 
 	std::string_view levelStr = lvlStr[lvlNdx];
 
-	std::string fileContent = fmt::format("{}:{}", file, line);
+	auto file = std::filesystem::path{loc.file_name()}.filename().string();
+	std::string fileContent = fmt::format("{}:{}", file, loc.line());
+
 	if (fileContent.size() > 30)
 		fileContent.resize(30, ' ');
 
-	msg.insert(msg.begin(), (size_t)currentDepth * 2, ' ');
 	if (fileContent.size() > 80)
 		fileContent.resize(80, ' ');
 
 	messages.push_back(LogMessage{
 		.lvl = lvl,
-		.message = fmt::format("{:<10}{:<5s}{:<30s}{:<s}", currentTick, levelStr, fileContent, msg)
+		.message = fmt::format("{:<10}{:<5s}{:<30s}{:\t>{}}{:<s}", currentTick, levelStr, fileContent, "\t", currentDepth, fmt::vformat(fmt, args))
 	});
 
 	int fillSize = 28 - fileContent.size();
@@ -77,8 +80,18 @@ void log::detail_log(level lvl, std::string_view file, uint32_t line, std::strin
 		std::fill_n(&messages.back().message[15 + fileContent.size() + 1], fillSize, fillChar);
 	}
 
+	fmt::color color = fmt::color::white;
+	switch (lvl) {
+		case level::NONE: color = fmt::color::black; break;
+		case level::STEP: color = fmt::color::dark_gray; break;
+		case level::VERB: color = fmt::color::gray; break;
+		case level::INFO: color = fmt::color::light_gray; break;
+		case level::WARN: color = fmt::color::yellow; break;
+		case level::ERR : color = fmt::color::red; break;
+	}
+
 	if (lvl >= get_verbosity())
-		fmt::print("{}\n", messages.back().message);
+		fmt::print(fmt::fg(color), "{}\n", messages.back().message);
 }
 
 

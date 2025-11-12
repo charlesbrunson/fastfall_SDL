@@ -847,7 +847,7 @@ bool Engine::setFullscreen(bool fullscreen) {
 
     settings.fullscreen = fullscreen;
 
-    LOG_INFO(settings.fullscreen ? "Entering fullscreen" : "Exiting fullscreen");
+    LOG_INFO("{}", settings.fullscreen ? "Entering fullscreen" : "Exiting fullscreen");
 
     int display_count;
     const SDL_DisplayID* display_ids = SDL_GetDisplays(&display_count);

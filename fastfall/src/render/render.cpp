@@ -110,12 +110,12 @@ bool glew_init() {
     GLenum glew_err = glewInit();
     if (GLEW_OK != glew_err && GLEW_ERROR_NO_GLX_DISPLAY != glew_err) {
         glewInitialized = false;
-        std::string err = (char *) glewGetErrorString(glew_err);
+        std::string err = (const char*)glewGetErrorString(glew_err);
         LOG_ERR_("Unable to init glew: {}", err);
         return false;
     }
     glewInitialized = true;
-    LOG_INFO("{:>10} {}", "GLEW", glewGetString(GLEW_VERSION));
+    LOG_INFO("{:>10} {}", "GLEW", (const char*)glewGetString(GLEW_VERSION));
 
 
     GLint glvmajor, glvminor;
@@ -127,10 +127,10 @@ bool glew_init() {
     LOG_INFO("{:>10} {}.{}", "OpenGL", glvmajor, glvminor);
 #endif
 
-    LOG_INFO("OpenGL Vendor:         {}", glGetString(GL_VENDOR));
-    LOG_INFO("OpenGL Renderer:       {}", glGetString(GL_RENDERER));
-    LOG_INFO("OpenGL Version:        {}", glGetString(GL_VERSION));
-    LOG_INFO("OpenGL Shader Version: {}", glGetString(GL_SHADING_LANGUAGE_VERSION));
+    LOG_INFO("OpenGL Vendor:         {}", (const char*)glGetString(GL_VENDOR));
+    LOG_INFO("OpenGL Renderer:       {}", (const char*)glGetString(GL_RENDERER));
+    LOG_INFO("OpenGL Version:        {}", (const char*)glGetString(GL_VERSION));
+    LOG_INFO("OpenGL Shader Version: {}", (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
 
     ShaderProgram::getDefaultProgram();
     LOG_INFO("Loaded default shader");

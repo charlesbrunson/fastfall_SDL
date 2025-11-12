@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rapidxml.hpp"
+#include <rapidxml/rapidxml.hpp>
 
 #include "fastfall/game/tile/Tile.hpp"
 #include "fastfall/resource/asset/TextureAsset.hpp"
@@ -41,6 +41,8 @@ protected:
 		std::string logicType;
 		std::vector<std::string> logicArg;
 	};
+
+	using ApplyTilePropFn = void(*)(TilesetAsset&, TileData&, char*);
 
 	//std::unique_ptr<TileData[]> tiles;
 	Vec2u texTileSize;

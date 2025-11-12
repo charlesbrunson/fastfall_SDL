@@ -8,12 +8,14 @@
 
 #include "fastfall/user_types.hpp"
 
+#include "fastfall/util/Vec2.hpp"
+
 #include <assert.h>
 #include <fstream>
 
 namespace ff {
 
-const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char*)> TilesetAsset::tileProperties
+const std::map<std::string, TilesetAsset::ApplyTilePropFn> TilesetAsset::tileProperties
 {
 	{"shape", [](TilesetAsset& asset, TileData& state, char* value)
 	{
@@ -95,13 +97,14 @@ const std::map<std::string, void(*)(TilesetAsset&, TilesetAsset::TileData&, char
 	}},
 
 	// auto tile constraints
-	{"auto_constraint", [](TilesetAsset& asset, TileData& state, char* value) 
+	{"auto_constraint", [](TilesetAsset& asset, TileData& state, char* value)
 	{
 		using namespace nlohmann;
 
 		if (state.tile.auto_substitute)
 		{
-			LOG_ERR_("cannot set auto_constraint for tile with auto_substitute set: {}", state.tile.id.to_vec());
+			auto v = state.tile.id.to_vec();
+			LOG_ERR_("cannot set auto_constraint for tile with auto_substitute set: {}", v);
 			return;
 		}
 

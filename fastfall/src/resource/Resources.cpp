@@ -2,7 +2,7 @@
 
 #include "fastfall/util/log.hpp"
 
-#include "rapidxml.hpp"
+#include "rapidxml/rapidxml.hpp"
 using namespace rapidxml;
 
 #include <mutex>

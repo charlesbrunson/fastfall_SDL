@@ -4,7 +4,7 @@
 #include <fstream>
 
 #include "fastfall/util/xml.hpp"
-#include "rapidxml.hpp"
+#include "rapidxml/rapidxml.hpp"
 #include "../../render/detail/error.hpp"
 
 using namespace rapidxml;

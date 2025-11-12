@@ -4,7 +4,35 @@
 cmake_minimum_required (VERSION 4.0)
 
 add_library(fastfall STATIC ${FF_SOURCES})
+
 add_subdirectory("external")
+
+# add all libraries and includes to fastfall
+target_link_libraries(fastfall
+	PUBLIC
+	glm
+	fmt::fmt
+	imgui
+	implot
+	freetype
+	Tracy::TracyClient
+	magic_enum::magic_enum
+	rapidxml
+	nlohmann_json
+)
+if(NOT EMSCRIPTEN)
+	target_link_libraries(fastfall
+		PUBLIC
+		SDL3::SDL3
+		SDL3_image::SDL3_image
+		SDL3_mixer::SDL3_mixer
+		ZLIB::ZLIB
+		libglew_static
+	)
+endif()
+
+
+
 add_subdirectory("src")
 set_target_properties(fastfall PROPERTIES
 	CXX_STANDARD 20
