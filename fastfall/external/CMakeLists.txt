@@ -1,17 +1,7 @@
 
-cmake_minimum_required (VERSION 4.0)
-
-# include(FetchContent)
+cmake_minimum_required (VERSION 3.25)
 
 include(cmake/get_cpm.cmake)
-
-# est(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
-# set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
-# set(OpenGL_GL_PREFERENCE "GLVND" CACHE INTERNAL "")
-
-# cmake_policy(SET CMP0135 NEW)
-
-# glm
 
 CPMAddPackage(
 		URI "gh:g-truc/glm#1.0.2"

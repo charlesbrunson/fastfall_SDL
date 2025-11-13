@@ -9,10 +9,6 @@
 
 #include <algorithm>
 
-#if __cpp_lib_parallel_algorithm
-#include <execution>
-#endif
-
 #include <cmath>
 #include <ranges>
 
@@ -206,18 +202,12 @@ void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, predraw_state_t predr
 
         if (strategy.draw_order == ParticleDrawOrder::NewestFirst) {
             std::for_each(
-#if __cpp_lib_parallel_algorithm
-                std::execution::par,
-#endif
                 make_enumerator(particles.cbegin()),
                 make_enumerator(particles.cend()),
                 predraw_particle);
         }
         else {
             std::for_each(
-#if __cpp_lib_parallel_algorithm
-                std::execution::par,
-#endif
                 make_enumerator(particles.crbegin()),
                 make_enumerator(particles.crend()),
                 predraw_particle);
@@ -265,9 +255,6 @@ void Emitter::update_particle(const Emitter& e, Particle& p, secs deltaTime, boo
 void Emitter::update_particles(secs deltaTime)
 {
     std::for_each(
-#if __cpp_lib_parallel_algorithm
-            std::execution::par,
-#endif
             particles.begin(),
             particles.end(),
             [this, &deltaTime](Particle& p) { update_particle(*this, p, deltaTime, false); }
@@ -457,9 +444,6 @@ void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders, even
             }
 
             std::for_each(
-#if __cpp_lib_parallel_algorithm
-                std::execution::par,
-#endif
                 particles.begin(),
                 particles.end(),
                 [&](Particle& p) {

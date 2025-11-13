@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : Top-level CMake project file, do global configuration
 # and include sub-projects here.
 #
-cmake_minimum_required (VERSION 4.0)
+cmake_minimum_required (VERSION 3.25)
 
 project ("fastfall_test_project")
 
@@ -54,6 +54,8 @@ add_executable(test_project
 target_link_libraries(test_project PRIVATE 
 	fastfall
 )
+
+target_link_options(test_project PRIVATE -static-libstdc++)
 
 if(EMSCRIPTEN)
 	set(CMAKE_EXECUTABLE_SUFFIX .html)

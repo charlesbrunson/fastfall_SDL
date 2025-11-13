@@ -4,7 +4,6 @@
 #include "fastfall/game/World.hpp"
 
 #include <algorithm>
-#include <execution>
 
 #include "nlohmann/json.hpp"
 #include "tracy/Tracy.hpp"
