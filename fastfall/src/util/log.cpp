@@ -88,6 +88,7 @@ void log::detail_log(level lvl, const std::source_location loc, fmt::string_view
 		case level::INFO: color = fmt::color::light_gray; break;
 		case level::WARN: color = fmt::color::yellow; break;
 		case level::ERR : color = fmt::color::red; break;
+		default: ;
 	}
 
 	if (lvl >= get_verbosity())

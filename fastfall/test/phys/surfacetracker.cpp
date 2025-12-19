@@ -108,7 +108,7 @@ protected:
 TEST_F(surfacetracker, moving_first_contact_horizontal)
 {
     initTileMap({
-    /*          x:0
+    /*          x:0 */
     /* y:0 _*/ {""},
     /* y:16_*/ {""},
     /* y:32_*/ {"solid"},
@@ -141,7 +141,7 @@ TEST_F(surfacetracker, moving_first_contact_horizontal)
 TEST_F(surfacetracker, moving_first_contact_vertical)
 {
     initTileMap({
-    /*          x:0
+    /*          x:0 */
     /* y:0 _*/ {""},
     /* y:16_*/ {""},
     /* y:32_*/ {"solid"},

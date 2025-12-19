@@ -47,6 +47,10 @@ create_ff_test(ff_test_phys
 	phys/TestPhysRenderer.cpp
 )
 
+create_ff_test(ff_test_phys2
+		phys2/fixed.cpp
+)
+
 create_ff_test(ff_test_ghost
 		phys/colliderghost.cpp
 		phys/ghostedge.cpp

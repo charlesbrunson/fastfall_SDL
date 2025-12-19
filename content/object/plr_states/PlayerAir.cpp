@@ -101,7 +101,7 @@ PlayerStateID PlayerAirState::update(ff::World& w, plr::members& plr, secs delta
 			}
 		}
 		else {
-			box.add_decel({50.f, 0.f});
+			box.add_decel(50.f);
 		}
 		prevVelY = box.get_local_vel().y;
 	}

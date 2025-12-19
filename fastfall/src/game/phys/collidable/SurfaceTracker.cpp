@@ -245,9 +245,9 @@ CollidablePreMove SurfaceTracker::do_max_speed(CollidablePreMove in, secs deltaT
 		&& settings.max_speed > 0.f) 
 	{
 		float speed   = *traverse_get_speed();
-		Vec2f acc_vec = math::projection(owner->get_acc(), currentContact->collider_n.righthand(), true);
+		Vec2f acc_vec = math::projection(owner->get_accel(), currentContact->collider_n.righthand(), true);
 		float acc_mag = acc_vec.magnitude();
-        float acc_dir = math::dot(owner->get_acc(), currentContact->collider_n.righthand()) > 0 ? 1.f : -1.f;
+        float acc_dir = math::dot(owner->get_accel(), currentContact->collider_n.righthand()) > 0 ? 1.f : -1.f;
         float nSpeed  = speed + (acc_dir * acc_mag * deltaTime);
 
 		if (abs(nSpeed) > settings.max_speed) {
@@ -471,8 +471,8 @@ void SurfaceTracker::traverse_add_accel(float accel) {
 
 void SurfaceTracker::traverse_add_decel(float decel) {
 	if (has_contact()) {
-		Vec2f surf_unit = currentContact->collider_n.righthand();
-		owner->add_decel(Vec2f{ abs(surf_unit.x), abs(surf_unit.y) } *decel);
+		// Vec2f surf_unit = currentContact->collider_n.righthand();
+		owner->add_decel(decel);
 	}
 }
 

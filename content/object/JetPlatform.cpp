@@ -179,7 +179,7 @@ JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLe
             {
                 // auto& contact = track->get_contact();
                 push_vel.x += collidable.get_friction().x;
-                push_acc.x -= collidable.get_acc().x * 0.5f;
+                push_acc.x -= collidable.get_accel().x * 0.5f;
             }
 
             attach.set_local_vel(attach.local_vel() + push_vel + (push_acc * (float)deltaTime));

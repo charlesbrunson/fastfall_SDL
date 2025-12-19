@@ -79,7 +79,7 @@ if (NOT EMSCRIPTEN)
 	)
 
 	CPMAddPackage(
-		URI "gh:libsdl-org/SDL#preview-3.3.2"
+		URI "gh:libsdl-org/SDL#main"
 		OPTIONS
 			"SDL_SHARED OFF"
 			"SDL_STATIC ON"

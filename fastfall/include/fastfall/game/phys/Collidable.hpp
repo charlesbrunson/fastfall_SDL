@@ -74,7 +74,7 @@ public:
 
 	void update(poly_id_map<ColliderRegion>* colliders, secs deltaTime);
 
-	Rectf getBoundingBox();
+	Rectf getBoundingBox() const;
 
 	Rectf getBox() const noexcept { return currRect; };
 	Rectf getPrevBox() const noexcept { return prevRect; };
@@ -113,10 +113,10 @@ public:
     void set_last_parent_vel(Vec2f pvel) noexcept;
 
 	void add_accel(Vec2f acceleration);
-	void add_decel(Vec2f deceleration);
+	void add_decel(float deceleration);
 
 	Vec2f get_friction() const noexcept;
-	Vec2f get_acc() const noexcept;
+	Vec2f get_accel() const noexcept;
 
 	void applyContact(const AppliedContact& contact, ContactType type);
 
@@ -178,15 +178,13 @@ private:
 	Vec2f local_precollision_vel; // velocity saved before collision, used for friction calculation
 
 	Vec2f friction;
-	Vec2f acc;
-	Vec2f gravity_acc;
-	Vec2f accel_accum;
-	Vec2f decel_accum;
+	Vec2f gravity;
+	Vec2f accel;
+	float decel;
 
     std::optional<SurfaceTracker> _tracker;
 
 	std::vector<AppliedContact> currContacts;
-    //std::vector<NearContact>  nearContacts;
 };
 
 void imgui_component(World&w , ID<Collidable> id);

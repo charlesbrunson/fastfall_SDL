@@ -130,24 +130,23 @@ void debugDrawContact(const AppliedContact& contact) {
 	}
 }
 
-Collidable::Collidable(Vec2f position, Vec2f size, Vec2f gravity)
+Collidable::Collidable(Vec2f _position, Vec2f _size, Vec2f _gravity)
 {
-	if (size.x > TILESIZE_F)
-		LOG_WARN("{} collidable width > {} not recommended, may break collision", size.x, TILESIZE_F);
+	if (_size.x > TILESIZE_F)
+		LOG_WARN("{} collidable width > {} not recommended, may break collision", _size.x, TILESIZE_F);
 
-	Vec2f topleft = position - Vec2f(size.x / 2.f, size.y);
+	Vec2f topleft = _position - Vec2f(_size.x / 2.f, _size.y);
 
-	currRect = Rectf(topleft, size);
+	currRect = Rectf(topleft, _size);
 	prevRect = currRect;
 	currPos = Vec2f(currRect.getPosition()) + Vec2f(currRect.width / 2, currRect.height);
 	prevPos = currPos;
-	gravity_acc = gravity;
+	gravity = _gravity;
 }
 
 
 Collidable::Collidable(const Collidable& rhs)
 {
-    col_state       = rhs.col_state;
     slip            = rhs.slip;
 
     currPos         = rhs.currPos;
@@ -162,10 +161,9 @@ Collidable::Collidable(const Collidable& rhs)
     local_precollision_vel = rhs.local_precollision_vel;
 
     friction        = rhs.friction;
-    acc             = rhs.acc;
-    gravity_acc     = rhs.gravity_acc;
-    accel_accum     = rhs.accel_accum;
-    decel_accum     = rhs.decel_accum;
+    gravity         = rhs.gravity;
+    accel           = rhs.accel;
+    decel           = rhs.decel;
 
     _tracker        = rhs._tracker;
     currContacts    = rhs.currContacts;
@@ -178,7 +176,6 @@ Collidable::Collidable(const Collidable& rhs)
 
 Collidable::Collidable(Collidable&& rhs) noexcept
 {
-    col_state       = rhs.col_state;
     slip            = rhs.slip;
 
     currPos         = rhs.currPos;
@@ -193,10 +190,9 @@ Collidable::Collidable(Collidable&& rhs) noexcept
     local_precollision_vel = rhs.local_precollision_vel;
 
     friction        = rhs.friction;
-    acc             = rhs.acc;
-    gravity_acc     = rhs.gravity_acc;
-    accel_accum     = rhs.accel_accum;
-    decel_accum     = rhs.decel_accum;
+    gravity         = rhs.gravity;
+    accel           = rhs.accel;
+    decel           = rhs.decel;
 
     _tracker        = std::move(rhs._tracker);
     currContacts    = std::move(rhs.currContacts);
@@ -212,7 +208,6 @@ Collidable& Collidable::operator=(const Collidable& rhs)
     if (this == &rhs)
         return *this;
 
-    col_state       = rhs.col_state;
     slip            = rhs.slip;
 
     currPos         = rhs.currPos;
@@ -227,10 +222,9 @@ Collidable& Collidable::operator=(const Collidable& rhs)
     local_precollision_vel = rhs.local_precollision_vel;
 
     friction        = rhs.friction;
-    acc             = rhs.acc;
-    gravity_acc     = rhs.gravity_acc;
-    accel_accum     = rhs.accel_accum;
-    decel_accum     = rhs.decel_accum;
+    gravity         = rhs.gravity;
+    accel           = rhs.accel;
+    decel           = rhs.decel;
 
     _tracker        = rhs._tracker;
     currContacts    = rhs.currContacts;
@@ -247,7 +241,6 @@ Collidable& Collidable::operator=(Collidable&& rhs) noexcept
     if (this == &rhs)
         return *this;
 
-    col_state       = rhs.col_state;
     slip            = rhs.slip;
 
     currPos         = rhs.currPos;
@@ -262,10 +255,9 @@ Collidable& Collidable::operator=(Collidable&& rhs) noexcept
     local_precollision_vel = rhs.local_precollision_vel;
 
     friction        = rhs.friction;
-    acc             = rhs.acc;
-    gravity_acc     = rhs.gravity_acc;
-    accel_accum     = rhs.accel_accum;
-    decel_accum     = rhs.decel_accum;
+    gravity         = rhs.gravity;
+    accel           = rhs.accel;
+    decel           = rhs.decel;
 
     _tracker        = std::move(rhs._tracker);
     currContacts    = std::move(rhs.currContacts);
@@ -286,13 +278,12 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
 	if (deltaTime > 0.0)
     {
 		local_vel -= friction;
-		acc = accel_accum;
 
 		if (_tracker) {
 			auto offsets = _tracker->premove_update(colliders, deltaTime);
 			next_pos    += offsets.pos_offset;
             local_vel   += offsets.vel_offset;
-			acc         += offsets.acc_offset;
+			accel       += offsets.acc_offset;
 
             if (_tracker->has_contact()) {
                 parent_vel = offsets.parent_vel;
@@ -300,11 +291,20 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
             }
 		}
 
-        Vec2f zero_vel = _tracker && _tracker->has_contact() ? Vec2f{} : last_parent_vel;
+		// apply acceleration
+        local_vel += accel * (float)deltaTime;
 
-        local_vel += acc * (float)deltaTime;
-        local_vel.x = math::reduce(local_vel.x, decel_accum.x * (float)deltaTime, zero_vel.x);
-        local_vel.y = math::reduce(local_vel.y, decel_accum.y * (float)deltaTime, zero_vel.y);
+		// apply deceleration
+        Vec2f zero_vel = _tracker && _tracker->has_contact() ? Vec2f{} : last_parent_vel;
+		auto local_vel_from_zero = local_vel - zero_vel;
+		auto decel_vel = -1.f * local_vel_from_zero.unit() * (decel * (float)deltaTime);
+		local_vel = local_vel_from_zero.magnitudeSquared() > decel_vel.magnitudeSquared()
+			? local_vel + decel_vel
+			: zero_vel;
+
+		// reset accel/decel for next frame
+		accel = Vec2f{};
+		decel = 0.f;
 
         next_pos += get_global_vel() * (float)deltaTime;
 
@@ -314,18 +314,19 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
 			next_pos += offsets.pos_offset;
 		}
 
-        local_vel += gravity_acc * deltaTime;
-		next_pos  += gravity_acc * deltaTime * deltaTime;
+		// apply gravity to vel and pos
+        local_vel += gravity * deltaTime;
+		next_pos  += gravity * deltaTime * deltaTime;
 
+		// cache frame inital velocity for post collision friction calculation
 		local_precollision_vel = local_vel;
-		setPosition(next_pos);
 
-		accel_accum = Vec2f{};
-		decel_accum = Vec2f{};
+		// apply new calculated position
+		setPosition(next_pos);
 	}
 }
 
-Rectf Collidable::getBoundingBox() {
+Rectf Collidable::getBoundingBox() const {
 
 	Rectf box = getBox();
 	Rectf prev = getPrevBox();
@@ -492,8 +493,8 @@ void Collidable::debug_draw() const
 	}
 }
 
-Vec2f Collidable::get_gravity() const noexcept { return gravity_acc; };
-void  Collidable::set_gravity(Vec2f grav) noexcept { gravity_acc = grav; };
+Vec2f Collidable::get_gravity() const noexcept { return gravity; };
+void  Collidable::set_gravity(Vec2f grav) noexcept { gravity= grav; };
 
 Vec2f Collidable::get_local_vel()   const noexcept { return local_vel; };
 Vec2f Collidable::get_parent_vel()  const noexcept { return parent_vel; };
@@ -536,11 +537,11 @@ void Collidable::set_parent_vel(Vec2f pvel) noexcept { parent_vel = pvel; }
 Vec2f Collidable::get_last_parent_vel() const noexcept { return last_parent_vel; }
 void Collidable::set_last_parent_vel(Vec2f pvel) noexcept { last_parent_vel = pvel; }
 
-void Collidable::add_accel(Vec2f acceleration) { accel_accum += acceleration; };
-void Collidable::add_decel(Vec2f deceleration) { decel_accum += deceleration; };
+void Collidable::add_accel(Vec2f acceleration) { accel += acceleration; };
+void Collidable::add_decel(float deceleration) { decel += deceleration; };
 
 Vec2f Collidable::get_friction()   const noexcept { return friction; };
-Vec2f Collidable::get_acc() const noexcept { return acc; };
+Vec2f Collidable::get_accel() const noexcept { return accel; };
 
 void imgui_component(World& w, ID<Collidable> id) {
     auto& col = w.at(id);
@@ -568,7 +569,7 @@ void imgui_component(World& w, ID<Collidable> id) {
     text_vec2("Surface Vel",     col.get_surface_vel());
     text_vec2("Global Vel",      col.get_global_vel());
 
-    text_vec2("Accel",    col.get_acc());
+    text_vec2("Accel",    col.get_accel());
     text_vec2("Friction", col.get_friction());
     text_vec2("Gravity",  col.get_gravity());
 
