@@ -18,9 +18,9 @@ struct ColliderSurfaceID
 
 class ColliderSurface {
 public:
-	Linef surface;
-	Vec2f ghostp0;
-	Vec2f ghostp3;
+	Linef surface = {};
+	Vec2f ghostp0 = {};
+	Vec2f ghostp3 = {};
 
 	bool g0virtual = true;
 	bool g3virtual = true;

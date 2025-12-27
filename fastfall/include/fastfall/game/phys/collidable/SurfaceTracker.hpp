@@ -20,14 +20,14 @@ struct Friction {
 };
 
 struct CollidablePreMove {
-    Vec2f pos_offset;
-    Vec2f vel_offset;
-    Vec2f acc_offset;
-    Vec2f parent_vel;
+    Vec2f pos_offset = {0, 0};
+    Vec2f vel_offset = {0, 0};
+    Vec2f acc_offset = {0, 0};
+    Vec2f parent_vel = {0, 0};
 };
 
 struct CollidablePostMove {
-    Vec2f pos_offset;
+    Vec2f pos_offset = {0, 0};
 };
 
 // track contact duration for surfaces between the given angle ranges

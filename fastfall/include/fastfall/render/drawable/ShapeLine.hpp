@@ -17,12 +17,11 @@ public:
 		m_verts[1].pos = p2;
 		m_verts[0].color = color;
 		m_verts[1].color = color;
-		//m_verts.glTransfer();
 	}
 
-	inline glm::fvec2 getP1() { return m_verts[0].pos; }
-	inline glm::fvec2 getP2() { return m_verts[1].pos; }
-	inline glm::fvec2 getPoint(unsigned ndx) { return m_verts[ndx].pos; }
+	glm::fvec2 getP1() { return m_verts[0].pos; }
+	glm::fvec2 getP2() { return m_verts[1].pos; }
+	glm::fvec2 getPoint(unsigned ndx) { return m_verts[ndx].pos; }
 
 	void setP1(glm::fvec2 point);
 	void setP2(glm::fvec2 point);

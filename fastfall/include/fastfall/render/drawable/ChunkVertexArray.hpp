@@ -39,11 +39,11 @@ public:
 
 	void predraw(predraw_state_t predraw_state) override;
 
-	Vec2f offset;
-	Vec2f scroll;
+	Vec2f offset = {};
+	Vec2f scroll = {};
 
 	bool use_visible_rect = false;
-	Rectf visibility;
+	Rectf visibility = {};
 
 private:
 	void do_setTile(Vec2u at, TileID tile);
@@ -69,8 +69,8 @@ private:
 	Rectf getChunkBounds(const Chunk& chunk, Vec2f draw_offset = Vec2f{}) const noexcept;
 	Rectf getChunkLocalBounds(const Chunk& chunk) const noexcept;
 
-	Vec2u m_size;
-	Vec2u m_chunk_size;
+	Vec2u m_size = {};
+	Vec2u m_chunk_size = {};
 
 	TextureRef m_tex;
 	std::vector<Chunk> m_chunks;

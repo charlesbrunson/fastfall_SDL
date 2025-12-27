@@ -35,7 +35,7 @@ public:
 	}
 
 protected:
-    Vec2f position;
+    Vec2f position = {};
 
 private:
 	bool has_camera = false;

@@ -23,7 +23,7 @@ protected:
 	ColliderTileMap* collider = nullptr;
 	std::fstream log;
 
-	static constexpr secs one_frame = (1.0 / 60.0);
+	static constexpr float one_frame = (1.0 / 60.0);
 
 	nlohmann::ordered_json data;
 
@@ -96,7 +96,7 @@ protected:
 TEST_F(collision, minimal)
 {
     initTileMap({
-            /*          x:0
+            /*          x:0 */
             /* y:0 _*/ {""},
             /* y:16_*/ {""},
             /* y:32_*/ {"solid"},
@@ -182,7 +182,7 @@ TEST_F(collision, ghostcheck_slopedceil_to_wall)
 	const auto& contact = box->get_contacts().at(0);
 	EXPECT_TRUE(contact.hasContact);
 	EXPECT_TRUE(contact.ortho_n == Vec2f(0.f, 1.f) );
-	EXPECT_TRUE(contact.collider_n == Vec2f(1.f, 1.f).unit() );
+	EXPECT_TRUE(contact.collider_n == math::normalize(Vec2f(1.f, 1.f)) );
 	EXPECT_EQ(contact.impactTime, 0.5f);
 
 
@@ -477,7 +477,7 @@ TEST_F(collision, floor_into_wedge_left)
 	while (render.curr_frame < 60) {
 
 		//Vec2f vel{ 0.f, -50.f };
-		Vec2f vel{ 0.f, (float)std::max(-100.0, (0.f - floor->getPosition().y) / one_frame) };
+		Vec2f vel{ 0.f, std::max(-100.f, (0.f - floor->getPosition().y) / one_frame) };
 
 		floor->setPosition(floor->getPosition() + (vel * one_frame));
 		floor->delta_velocity = vel - floor->velocity;

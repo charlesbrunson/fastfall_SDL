@@ -30,13 +30,13 @@ public:
 
 	void restart_anim(bool reset_time_buffer = true);
 
-	inline bool has_anim() noexcept { return animation != nullptr; };
-	inline const Animation* get_anim() { return animation; };
+	bool has_anim() noexcept { return animation != nullptr; };
+	const Animation* get_anim() { return animation; };
 
-	inline std::string anim_name()  noexcept { return has_anim() ? animation->anim_name : ""; };
+	std::string anim_name()  noexcept { return has_anim() ? animation->anim_name : ""; };
 
 	void set_frame(unsigned frame) { current_frame = frame; };
-	inline unsigned	get_frame()  noexcept { return current_frame; };
+	unsigned	get_frame()  noexcept { return current_frame; };
 
 	void update(secs deltaTime) override;
 	void predraw(predraw_state_t predraw_state) override;
@@ -49,13 +49,13 @@ public:
 	bool is_playing(AnimID id, unsigned incl_chain_anims_depth = 1) const noexcept;
 	bool is_playing_any(std::vector<AnimID> ids, unsigned incl_chain_anims_depth = 1) const noexcept;
 	
-	inline void  set_pos(Vec2f pos) noexcept { position = pos; };
-	inline Vec2f get_pos()          noexcept { return position; };
+	void  set_pos(Vec2f pos) noexcept { position = pos; };
+	Vec2f get_pos()          noexcept { return position; };
 
-	inline bool get_hflip()	const noexcept {
+	bool get_hflip()	const noexcept {
 		return hflip;
 	};
-	inline void set_hflip(bool flipped) noexcept {
+	void set_hflip(bool flipped) noexcept {
 		if (hflip != flipped) {
 			hflip = flipped;
 			flag_dirty = true;
@@ -63,10 +63,10 @@ public:
 	};
 
 
-	inline void set_playback(float rate) noexcept {
+	void set_playback(float rate) noexcept {
 		playback_speed = (std::max)(0.f, rate);
 	}
-	inline float get_playback() noexcept {
+	float get_playback() noexcept {
 		return playback_speed;
 	}
 
@@ -79,7 +79,7 @@ private:
 
 	void draw(RenderTarget& target, RenderState states = RenderState{}) const override;
 
-	Vec2f position;
+	Vec2f position = {};
 
 	bool hflip = false;
 

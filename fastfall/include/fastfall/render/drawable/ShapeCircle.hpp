@@ -18,8 +18,8 @@ public:
 private:
 	void initVertexArray();
 
-	ff::Color m_color;
-	ff::Color m_lineColor;
+	Color m_color;
+	Color m_lineColor;
 
 	float m_radius;
 

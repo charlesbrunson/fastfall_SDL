@@ -69,14 +69,14 @@ public:
     TileEntry* get_tile_layer_at(position_t pos);
     const TileEntry* get_tile_layer_at(position_t pos) const;
 
-    inline std::vector<TileEntry>& get_tile_layers() { return tile_layers; }
-    inline const std::vector<TileEntry>& get_tile_layers() const { return tile_layers; }
+    std::vector<TileEntry>& get_tile_layers() { return tile_layers; }
+    const std::vector<TileEntry>& get_tile_layers() const { return tile_layers; }
 
-    inline ObjLayerT& get_obj_layer() { return obj_layer; };
-    inline const ObjLayerT& get_obj_layer() const { return obj_layer; };
+    ObjLayerT& get_obj_layer() { return obj_layer; };
+    const ObjLayerT& get_obj_layer() const { return obj_layer; };
 
-    inline int get_fg_count() const  { return fg_count; };
-    inline int get_bg_count() const  { return bg_count; };
+    int get_fg_count() const  { return fg_count; };
+    int get_bg_count() const  { return bg_count; };
 
 };
 

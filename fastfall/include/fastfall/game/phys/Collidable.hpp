@@ -160,27 +160,27 @@ public:
 private:
 
     ID<AttachPoint> attachpoint;
-    Vec2f attachpoint_origin;
+    Vec2f attachpoint_origin = {};
 
 	collision_state_t col_state;
 
 	slip_t slip;
 
-	Vec2f currPos;
-	Vec2f prevPos;
-	Rectf currRect;
-	Rectf prevRect;
+	Vec2f currPos = {};
+	Vec2f prevPos = {};
+	Rectf currRect = {};
+	Rectf prevRect = {};
 
-    Vec2f last_parent_vel;
-    Vec2f parent_vel;
-    Vec2f surface_vel;
-	Vec2f local_vel;
-	Vec2f local_precollision_vel; // velocity saved before collision, used for friction calculation
+    Vec2f last_parent_vel = {};
+    Vec2f parent_vel = {};
+    Vec2f surface_vel = {};
+	Vec2f local_vel = {};
+	Vec2f local_precollision_vel = {}; // velocity saved before collision, used for friction calculation
 
-	Vec2f friction;
-	Vec2f gravity;
-	Vec2f accel;
-	float decel;
+	Vec2f friction = {};
+	Vec2f gravity = {};
+	Vec2f accel = {};
+	float decel = {};
 
     std::optional<SurfaceTracker> _tracker;
 

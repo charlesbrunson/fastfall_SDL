@@ -64,14 +64,14 @@ public:
 
 
 private:
-    Vec2f _curr_pos;
-    Vec2f _prev_pos;
+    Vec2f _curr_pos = {};
+    Vec2f _prev_pos = {};
 
-    Vec2f _lvel;
-    Vec2f _pvel;
+    Vec2f _lvel = {};
+    Vec2f _pvel = {};
 
-    Vec2f _prev_lvel;
-    Vec2f _prev_pvel;
+    Vec2f _prev_lvel = {};
+    Vec2f _prev_pvel = {};
 
     ID<AttachPoint> _id;
     size_t _tick = 0;

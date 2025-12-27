@@ -71,21 +71,21 @@ void TestPhysRenderer::draw() {
 		SDL_SetRenderDrawColor(render, r, g, b, a);
 		Vec2f p1, p2;
 
-		p1 = (off + math::rect_topleft(rect)) * scale;
-		p2 = (off + math::rect_topright(rect)) * scale;
+		p1 = (off + rect.topleft()) * scale;
+		p2 = (off + rect.topright()) * scale;
 		SDL_RenderLine(render, p1.x, p1.y, p2.x, p2.y);
 
 
-		p1 = (off + math::rect_topright(rect)) * scale;
-		p2 = (off + math::rect_botright(rect)) * scale;
+		p1 = (off + rect.topright()) * scale;
+		p2 = (off + rect.botright()) * scale;
 		SDL_RenderLine(render, p1.x, p1.y, p2.x, p2.y);
 
-		p1 = (off + math::rect_botright(rect)) * scale;
-		p2 = (off + math::rect_botleft(rect)) * scale;
+		p1 = (off + rect.botright()) * scale;
+		p2 = (off + rect.botleft()) * scale;
 		SDL_RenderLine(render, p1.x, p1.y, p2.x, p2.y);
 
-		p1 = (off + math::rect_botleft(rect)) * scale;
-		p2 = (off + math::rect_topleft(rect)) * scale;
+		p1 = (off + rect.botleft()) * scale;
+		p2 = (off + rect.topleft()) * scale;
 		SDL_RenderLine(render, p1.x, p1.y, p2.x, p2.y);
 	};
 
@@ -123,10 +123,10 @@ void TestPhysRenderer::draw() {
 					if (quad->hasOneWay
 						&& quad->getSurface(quad->oneWayDir) == &line.collider)
 					{
-						Vec2f n = math::vector(line.collider.surface).lefthand().unit();
+						Vec2f n = math::lefthand_normal(line.collider.surface);
 						Linef li2 = math::shift(li, -n * scale);
-						li2.p1 += n.righthand() * scale;
-						li2.p2 += n.lefthand() * scale;
+						li2.p1 += math::righthand(n) * scale;
+						li2.p2 += math::lefthand(n) * scale;
 						SDL_RenderLine(render, li2.p1.x, li2.p1.y, li2.p2.x, li2.p2.y);
 					}
 				}
@@ -148,7 +148,7 @@ void TestPhysRenderer::draw() {
 
 		{
 			SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
-			Vec2f p1 = off + math::rect_mid(box);
+			Vec2f p1 = off + box.center();
 			Vec2f p2 = off + p1 + collidable.get_global_vel() * (1.f / 60.f);
 			p1 *= scale;
 			p2 *= scale;

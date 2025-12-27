@@ -6,8 +6,8 @@
 
 namespace ff {
 
-struct ColliderTile {
-
+struct ColliderTile
+{
 	ColliderTile() = default;
 	ColliderTile(Vec2i _pos, TileShape _shape) :
 		position(_pos),
@@ -26,8 +26,8 @@ struct ColliderTile {
 
 	ColliderQuad toQuad(QuadID id = {}) const;
 
-	Vec2i position;
-	TileShape shape;
+	Vec2i position = {};
+	TileShape shape = {};
 
 	const TileMaterial* mat = nullptr;
 	Cardinal matFacing = Cardinal::N;

@@ -75,18 +75,18 @@ protected:
 	Type collision_time;
 
 	// some derived info
-	Vec2f tPos;
-	Rectf tArea;
-	Vec2f tMid;
-	Vec2f tHalf;
+	Vec2f tPos = {};
+	Rectf tArea = {};
+	Vec2f tMid = {};
+	Vec2f tHalf = {};
 
-	Rectf cBox;
-	Rectf cPrev;
-	Vec2f cMid;
-	Vec2f cHalf;
-    Vec2f cVel;
+	Rectf cBox = {};
+	Rectf cPrev = {};
+	Vec2f cMid = {};
+	Vec2f cHalf = {};
+    Vec2f cVel = {};
 
-    Vec2f collider_deltap;
+    Vec2f collider_deltap = {};
 
 	ordinal_array<bool> valleys = { false, false, false, false };
 

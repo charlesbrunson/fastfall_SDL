@@ -10,12 +10,12 @@ namespace ff {
     public:
 
         struct Path {
-            size_t index;
-            Linef  surface_line;
-            Linef  travel_line;
-            Vec2f  start_pos;
-            Angle  angle;
-            Angle  diff_angle;
+            size_t index = {};
+            Linef  surface_line = {};
+            Linef  travel_line = {};
+            Vec2f  start_pos = {};
+            Angle  angle = {};
+            Angle  diff_angle = {};
         };
 
         struct Result {
@@ -49,15 +49,15 @@ namespace ff {
     private:
         [[nodiscard]] bool add_surface_if_valid(Linef path);
 
-        Path curr_path;
+        Path curr_path = {};
 
-        float travel_dir;
+        float travel_dir = {};
         float travel_dist = 0.f;
 
         Vec2f body_size = {};
 
-        Angle angle_max;
-        AngleRange angle_range;
+        Angle angle_max = {};
+        AngleRange angle_range = {};
 
         std::vector<Path> path_candidates;
         std::vector<Path> path_taken;

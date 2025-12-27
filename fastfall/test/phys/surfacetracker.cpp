@@ -27,7 +27,7 @@ protected:
 	ColliderTileMap* collider = nullptr;
 	std::fstream log;
 
-	static constexpr secs one_frame = (1.0 / 60.0);
+	static constexpr float one_frame = float{1.0 / 60.0};
 
 	nlohmann::ordered_json data;
 

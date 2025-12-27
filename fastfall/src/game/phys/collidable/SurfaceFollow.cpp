@@ -169,7 +169,7 @@ SurfaceFollow::travel_to(size_t id)
     Vec2f unit = math::normalize(path.start_pos - curr_path.start_pos);
     float dist = math::distance(curr_path.start_pos, path.start_pos);
 
-    Vec2f npos;
+    Vec2f npos = {};
     bool can_get_to_new_path = dist <= travel_dist;
 
     if (!can_get_to_new_path) {

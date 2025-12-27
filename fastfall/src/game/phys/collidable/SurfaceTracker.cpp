@@ -138,7 +138,7 @@ void SurfaceTracker::process_contacts(
 
 
 Vec2f SurfaceTracker::calc_friction(Vec2f prevVel) const {
-	Vec2f friction;
+	Vec2f friction = {};
 	if (has_contact() 
 		&& (!currentContact->hasImpactTime || contact_time > 0.0)
 		&& settings.has_friction) 
@@ -165,7 +165,10 @@ Vec2f SurfaceTracker::calc_friction(Vec2f prevVel) const {
 
 		float Ff = std::clamp(Fn * friction_mag, -Ft, Ft);
 
-		friction = math::change_magnitude(tangent, Ff);
+		if (tangent != Vec2f{})
+		{
+			friction = math::change_magnitude(tangent, Ff);
+		}
 	}
 	return friction;
 }
@@ -247,7 +250,7 @@ CollidablePreMove SurfaceTracker::do_max_speed(CollidablePreMove in, secs deltaT
 		&& settings.slope_sticking 
 		&& settings.max_speed > 0.f) 
 	{
-		float speed   = *traverse_get_speed();
+		float speed   = traverse_get_speed().value();
 		Vec2f acc_vec = math::projection(owner->get_accel(), math::righthand(currentContact->collider_n));
 		float acc_mag = math::magnitude(acc_vec);
         float acc_dir = math::dot(owner->get_accel(), math::righthand(currentContact->collider_n)) > 0 ? 1.f : -1.f;
@@ -284,7 +287,7 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
     float travel_dir = 0.f;
     {
         Vec2f curr_vec = math::vectorize(init_path);
-        float dir_dot  = math::dot(math::projection(wish_pos - prev_pos, curr_vec), curr_vec);
+        float dir_dot  = math::dot(math::projection_unnormalized(wish_pos - prev_pos, curr_vec), curr_vec);
         if (dir_dot > 0.f) {
             travel_dir = 1.f;
         }
@@ -513,7 +516,7 @@ void SurfaceTracker::firstCollisionWith(const AppliedContact& contact)
 
         //  project collidable velocity onto stickLine
 		float vmag = math::magnitude(owner->get_local_vel());
-        Vec2f vproj = math::projection(owner->get_local_vel(), math::normalize(contact.stickLine));
+        Vec2f vproj = math::normalize(math::projection(owner->get_local_vel(), math::normalize(contact.stickLine)));
         owner->set_local_vel(vmag * vproj);
         owner->setPosition(owner->getPosition() + (contact.ortho_n * contact.stickOffset), false);
 	}

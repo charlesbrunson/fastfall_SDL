@@ -35,16 +35,16 @@ std::string_view contactTypeToString(ContactType t);
 struct DiscreteContact {
     ColliderSurface collider;
 
-    Vec2f ortho_n;
-    Vec2f collider_n;
+    Vec2f ortho_n = {};
+    Vec2f collider_n = {};
 
     float separation = 0.f;
-    Vec2f position;
+    Vec2f position = {};
 
     // offset to stick to the surface after the contact
     // multiply with ortho_normal
     float stickOffset = 0.f;
-    Linef stickLine;
+    Linef stickLine = {};
 
     bool hasContact = false;
     bool hasValley = false;
@@ -87,7 +87,7 @@ struct ContinuousContact : public DiscreteContact {
 
     // the velocity of the surface in contact
     // relative to worldspace
-    Vec2f velocity;
+    Vec2f velocity = {};
 
     secs touchDuration = 0.0;
 

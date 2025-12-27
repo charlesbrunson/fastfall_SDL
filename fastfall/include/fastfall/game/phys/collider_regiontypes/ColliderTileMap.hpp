@@ -30,8 +30,8 @@ class ColliderTileMap final : public ColliderRegion {
 		{
 		}
 
-		Vec2i position;
-		bool removal;
+		Vec2i position = {};
+		bool removal = {};
 		TileShape toShape;
 		const TileMaterial* material;
 		Cardinal matFacing;

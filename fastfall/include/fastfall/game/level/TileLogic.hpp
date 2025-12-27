@@ -24,7 +24,7 @@ struct TileLogicCommand {
 	};
 
 	Type type;
-	Vec2u position;
+	Vec2u position = {};
 	TileID texposition;
 	std::reference_wrapper<const TilesetAsset> tileset;
 	bool updateLogic = true;
@@ -79,14 +79,14 @@ public:
 
 	virtual void on_postcontact(World& w, const AppliedContact& contact, secs deltaTime) const {};
 
-	inline std::string_view getName() const {
+	std::string_view getName() const {
 		return m_name;
 	}
 
-	inline bool hasNextCommand() const { return !commands.empty(); }
-	inline const TileLogicCommand& nextCommand() const { return commands.front(); }
-	inline void popCommand() { commands.pop(); }
-	inline void clearCommands() { commands = std::queue<TileLogicCommand>{}; }
+	bool hasNextCommand() const { return !commands.empty(); }
+	const TileLogicCommand& nextCommand() const { return commands.front(); }
+	void popCommand() { commands.pop(); }
+	void clearCommands() { commands = std::queue<TileLogicCommand>{}; }
 
 	//template<typename T, typename = std::enable_if<std::is_base_of<TileLogic, T>::value>>
 	//static void addType(const std::string& typeName) {

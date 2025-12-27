@@ -35,37 +35,37 @@ namespace ff::math
     template<typename T>
     Vec2<T> righthand(const Vec2<T> &v)
     {
-        return {v.y, -v.x};
+        return {-v.y, v.x};
     }
 
     template<typename T>
     Vec2<T> righthand_normal(const Vec2<T> &v)
     {
-        return math::normalize(Vec2<T>{v.y, -v.x});
+        return normalize(righthand(v));
     }
 
     template<typename T>
     Vec2<T> lefthand(const Vec2<T> &v)
     {
-        return {-v.y, v.x};
+        return {v.y, -v.x};
     }
 
     template<typename T>
     Vec2<T> lefthand_normal(const Vec2<T> &v)
     {
-        return math::normalize(Vec2<T>{-v.y, v.x});
+        return normalize(lefthand(v));
     }
 
     template<typename T>
     bool is_vertical(const Vec2<T> &v)
     {
-        return v.x == 0 && v.y != 0;
+        return v.x == 0;
     }
 
     template<typename T>
     bool is_horizontal(const Vec2<T> &v)
     {
-        return v.x != 0 && v.y == 0;
+        return v.y == 0;
     }
 
     template<typename T>
@@ -138,13 +138,13 @@ namespace ff::math
     template<typename T>
     constexpr Angle angle(const Vec2<T>& normal)
     {
-        return glm::orientedAngle(normal, Vec2<T>{1, 0});
+        return glm::orientedAngle(Vec2<T>{1, 0}, normal);
     }
 
     template<typename T>
     constexpr Angle angle_unnormalized(const Vec2<T>& v)
     {
-        return glm::orientedAngle(math::normalize(v), Vec2<T>{1, 0});
+        return glm::orientedAngle(Vec2<T>{1, 0}, math::normalize(v));
     }
 
     template<typename T, typename I>
