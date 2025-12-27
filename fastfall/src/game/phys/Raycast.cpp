@@ -130,9 +130,9 @@ std::optional<RaycastHit> raycast_surface(const ColliderRegion& region, const Co
     Linef surface  = math::shift(surf->surface, region.getPosition());
     Vec2f normal   = math::lefthand_normal(surface);
 
-    if (math::dot(math::normalize(raycastLine), normal) < 0.f)
+    if (math::dot(math::vectorize(raycastLine), normal) < 0.f)
     {
-        Vec2f unit      = math::normalize(raycastLine);
+        Vec2f unit      = math::unit(raycastLine);
         Linef line      = { raycastLine.p1 + unit * backoff, raycastLine.p2 };
         Vec2f intersect = math::intersection(line, surface).value_or({ NAN, NAN });
         bool  forwards  = math::dot(unit, raycastLine.p1 - line.p1) >= 0;
@@ -163,7 +163,7 @@ std::optional<RaycastHit> raycast_quad_diag(const ColliderRegion& region, const 
 
     for (const auto& surf : quad->surfaces) {
         if (!surf.hasSurface ||
-            (math::dot(math::lefthand_normal(surf.collider.surface), math::normalize(raycastLine)) > 0.f))
+            (math::dot(math::lefthand_normal(surf.collider.surface), math::vectorize(raycastLine)) > 0.f))
             continue;
 
         for (auto dir : direction::cardinals) {
@@ -183,7 +183,7 @@ std::optional<RaycastHit> raycast_quad_ortho(const ColliderRegion& region, const
 
 	for (const auto& surf : quad->surfaces) {
 		if (!surf.hasSurface ||
-			(math::dot(math::lefthand_normal(surf.collider.surface), math::normalize(raycastLine)) > 0.f))
+			(math::dot(math::lefthand_normal(surf.collider.surface), math::vectorize(raycastLine)) > 0.f))
 			continue;
 
         auto surface = math::shift(surf.collider.surface, region.getPosition());

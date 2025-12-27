@@ -64,7 +64,7 @@ struct DiscreteContact {
     }
 
     Vec2f surface_vel() const {
-        return (material ? math::righthand(collider_n) * material->velocity : Vec2f{});
+        return (material ? math::righthand_unit_normal(collider_n) * material->velocity : Vec2f{});
     }
 };
 

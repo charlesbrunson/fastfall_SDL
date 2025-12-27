@@ -25,7 +25,7 @@ bool SurfaceFollow::compare_paths(float travel_dir, const Path& from, const Path
 
 Linef travel_form(Linef line, Vec2f body_size)
 {
-    Vec2f n     = math::normalize(line);
+    Vec2f n     = math::lefthand_unit_normal(line);
     float halfx = body_size.x * 0.5f;
     float ang   = math::angle(line).radians();
 
@@ -79,10 +79,10 @@ SurfaceFollow::SurfaceFollow(Linef init_path, Vec2f init_pos, float travel_dir, 
         float depth = 2.f;
         lines[0].pos = curr_path.surface_line.p1;
         lines[1].pos = curr_path.surface_line.p2;
-        lines[2].pos = curr_path.surface_line.p1 - math::normalize(curr_path.surface_line) * depth;
-        lines[3].pos = curr_path.surface_line.p1 - math::normalize(curr_path.surface_line) * depth;
+        lines[2].pos = curr_path.surface_line.p1 - math::lefthand_unit_normal(curr_path.surface_line) * depth;
+        lines[3].pos = curr_path.surface_line.p1 - math::lefthand_unit_normal(curr_path.surface_line) * depth;
         lines[4].pos = curr_path.surface_line.p2;
-        lines[5].pos = curr_path.surface_line.p2 - math::normalize(curr_path.surface_line) * depth;
+        lines[5].pos = curr_path.surface_line.p2 - math::lefthand_unit_normal(curr_path.surface_line) * depth;
 
         auto travel_lines = debug::draw(Primitive::LINES, 10, {}, { .color = Color::Blue });
         travel_lines[0].pos = curr_path.travel_line.p1;
@@ -112,7 +112,7 @@ std::optional<size_t> SurfaceFollow::pick_surface_to_follow() const {
         return {};
 
     const Path* curr_pick = nullptr;
-    Vec2f curr_dir = travel_dir * math::normalize(curr_path.surface_line);
+    Vec2f curr_dir = travel_dir * math::unit(curr_path.surface_line);
 
     for (auto& candidate : path_candidates)
     {
@@ -151,10 +151,10 @@ std::optional<size_t> SurfaceFollow::pick_surface_to_follow() const {
             float depth = 2.f;
             lines[0].pos = curr_pick->surface_line.p1;
             lines[1].pos = curr_pick->surface_line.p2;
-            lines[2].pos = curr_pick->surface_line.p1 - math::normalize(curr_pick->surface_line) * depth;
-            lines[3].pos = curr_pick->surface_line.p1 - math::normalize(curr_pick->surface_line) * depth;
+            lines[2].pos = curr_pick->surface_line.p1 - math::lefthand_unit_normal(curr_pick->surface_line) * depth;
+            lines[3].pos = curr_pick->surface_line.p1 - math::lefthand_unit_normal(curr_pick->surface_line) * depth;
             lines[4].pos = curr_pick->surface_line.p2;
-            lines[5].pos = curr_pick->surface_line.p2 - math::normalize(curr_pick->surface_line) * depth;
+            lines[5].pos = curr_pick->surface_line.p2 - math::lefthand_unit_normal(curr_pick->surface_line) * depth;
         }
     }
 
@@ -166,7 +166,7 @@ SurfaceFollow::Result
 SurfaceFollow::travel_to(size_t id)
 {
     const Path& path = path_candidates[id];
-    Vec2f unit = math::normalize(path.start_pos - curr_path.start_pos);
+    Vec2f unit = math::unit(path.start_pos - curr_path.start_pos);
     float dist = math::distance(curr_path.start_pos, path.start_pos);
 
     Vec2f npos = {};
@@ -195,7 +195,7 @@ SurfaceFollow::travel_to(size_t id)
 }
 
 SurfaceFollow::Result SurfaceFollow::finish() {
-    Vec2f unit = math::normalize(curr_path.surface_line) * travel_dir;
+    Vec2f unit = math::unit(curr_path.surface_line) * travel_dir;
 
     Vec2f npos = curr_path.start_pos + (unit * travel_dist);
 
@@ -223,7 +223,7 @@ enum class surface_type {
 
 surface_type get_surface_type(const Linef& line) {
     if (!math::is_vertical(line)) {
-        Vec2f n = math::normalize(line);
+        Vec2f n = math::lefthand_unit_normal(line);
         if (n.y < 0) {
             return surface_type::Floor;
         }
@@ -250,9 +250,10 @@ bool SurfaceFollow::add_surface_if_valid(Linef path)
     auto dir_curr = curr_path.travel_line;
     auto dir_path = travel_line;
 
+    Vec2f nan_inter{std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
     Vec2f inter = dir_curr.p2 == dir_path.p1
                   ? dir_curr.p2
-                  : math::intersection(dir_path, dir_curr).value_or({NAN, NAN});
+                  : math::intersection(dir_path, dir_curr).value_or(nan_inter);
 
     surface_type curr_type = get_surface_type(curr_path.travel_line);
     surface_type path_type = get_surface_type(travel_line);
@@ -273,7 +274,7 @@ bool SurfaceFollow::add_surface_if_valid(Linef path)
     {
         bool curr_has_inter = math::distance_from_line(dir_curr, inter) == 0.f;
         bool path_has_inter = math::distance_from_line(dir_path, inter) == 0.f;
-        float dot = math::dot(inter - ahead_pos, math::normalize(dir_curr));
+        float dot = math::dot(inter - ahead_pos, math::lefthand_unit_normal(dir_curr));
         bool is_ahead = dot > 0;
 
         // make sure the intersection lies on both lines
@@ -309,11 +310,11 @@ bool SurfaceFollow::add_surface_if_valid(Linef path)
                 collinear_intersect += Vec2f{0, body_size.y};
             }
             else if (path_type == surface_type::Wall) {
-                collinear_intersect += math::normalize(path) * body_size.x * 0.5f;
+                collinear_intersect += math::lefthand_unit_normal(path) * body_size.x * 0.5f;
             }
             bool has_point = math::distance_from_line(dir_curr, collinear_intersect) == 0.f;
 
-            float dot = math::dot(collinear_intersect - ahead_pos, math::normalize(dir_curr));
+            float dot = math::dot(collinear_intersect - ahead_pos, math::vectorize(dir_curr));
             bool is_ahead = dot > 0;
 
             if (is_ahead && has_point) {
@@ -326,7 +327,7 @@ bool SurfaceFollow::add_surface_if_valid(Linef path)
     Angle curr_ang  = math::angle(dir_curr);
 
     Angle diff      = next_ang - curr_ang;
-    Angle normal    = math::angle(path);
+    Angle normal    = math::angle(math::lefthand_normal(path));
 
     bool in_range   = angle_range.contains(normal);
     bool in_max_ang = std::abs(diff.degrees()) < std::abs(angle_max.degrees());
@@ -338,10 +339,10 @@ bool SurfaceFollow::add_surface_if_valid(Linef path)
         float depth = is_valid ? 2.f : 0.5f;
         lines[0].pos = path.p1;
         lines[1].pos = path.p2;
-        lines[2].pos = path.p1 - math::normalize(path) * depth;
-        lines[3].pos = path.p1 - math::normalize(path) * depth;
+        lines[2].pos = path.p1 - math::lefthand_unit_normal(path) * depth;
+        lines[3].pos = path.p1 - math::lefthand_unit_normal(path) * depth;
         lines[4].pos = path.p2;
-        lines[5].pos = path.p2 - math::normalize(path) * depth;
+        lines[5].pos = path.p2 - math::lefthand_unit_normal(path) * depth;
 
         if (intersect) {
             auto travel_lines = debug::draw(Primitive::LINES, 10, {}, { .color = Color::Blue });

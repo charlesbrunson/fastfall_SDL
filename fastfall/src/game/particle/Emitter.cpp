@@ -348,7 +348,7 @@ bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, 
 
     Linef movement = { p.prev_position + region.getDeltaPosition(), p.position };
     Linef surface  = math::shift(surf->surface, region.getPosition());
-    Vec2f normal   = math::lefthand_normal(surface);
+    Vec2f normal   = math::lefthand_unit_normal(surface);
 
     if (math::dot(math::vectorize(movement), normal) < 0.f)
     {
@@ -369,7 +369,7 @@ bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, 
             auto scatter = Vec2f{ cosf(scatter_ang.radians()), sinf(scatter_ang.radians()) } * pick_random(cfg.collision_scatter_force_min, cfg.collision_scatter_force_max, rand);
 
             p.velocity = math::projection(region.velocity, normal)
-                    + math::projection(p.velocity, math::righthand(normal)) * (1.f - cfg.collision_damping)
+                    + math::projection(p.velocity, math::unit(surface)) * (1.f - cfg.collision_damping)
                     + bounce
                     + scatter;
 

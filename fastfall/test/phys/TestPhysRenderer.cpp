@@ -123,10 +123,10 @@ void TestPhysRenderer::draw() {
 					if (quad->hasOneWay
 						&& quad->getSurface(quad->oneWayDir) == &line.collider)
 					{
-						Vec2f n = math::lefthand_normal(line.collider.surface);
+						Vec2f n = math::lefthand_unit_normal(line.collider.surface);
 						Linef li2 = math::shift(li, -n * scale);
-						li2.p1 += math::righthand(n) * scale;
-						li2.p2 += math::lefthand(n) * scale;
+						li2.p1 += math::righthand_normal(n) * scale;
+						li2.p2 += math::lefthand_normal(n) * scale;
 						SDL_RenderLine(render, li2.p1.x, li2.p1.y, li2.p2.x, li2.p2.y);
 					}
 				}

@@ -182,7 +182,7 @@ TEST_F(collision, ghostcheck_slopedceil_to_wall)
 	const auto& contact = box->get_contacts().at(0);
 	EXPECT_TRUE(contact.hasContact);
 	EXPECT_TRUE(contact.ortho_n == Vec2f(0.f, 1.f) );
-	EXPECT_TRUE(contact.collider_n == math::normalize(Vec2f(1.f, 1.f)) );
+	EXPECT_TRUE(contact.collider_n == math::unit(Vec2f(1.f, 1.f)) );
 	EXPECT_EQ(contact.impactTime, 0.5f);
 
 

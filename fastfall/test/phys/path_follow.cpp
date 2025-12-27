@@ -5,7 +5,7 @@
 using namespace ff;
 
 bool add_path(SurfaceFollow& follow, Linef line) {
-    return follow.add_surface(line).has_value();
+    return follow.try_push_back(line);
 }
 
 TEST(pathfollow, basic)

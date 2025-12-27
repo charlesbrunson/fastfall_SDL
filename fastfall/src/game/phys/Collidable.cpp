@@ -96,8 +96,8 @@ void debugDrawContact(const AppliedContact& contact) {
 		corner[2].color = Color::White;
 
 		corner[0].pos = contact.collider.surface.p1;
-		corner[1].pos = contact.collider.surface.p1 - (contact.ortho_n - math::lefthand(contact.ortho_n)) * 2.f;
-		corner[2].pos = contact.collider.surface.p1 - (contact.ortho_n + math::lefthand(contact.ortho_n)) * 2.f;
+		corner[1].pos = contact.collider.surface.p1 - (contact.ortho_n - math::lefthand_unit_normal(contact.ortho_n)) * 2.f;
+		corner[2].pos = contact.collider.surface.p1 - (contact.ortho_n + math::lefthand_unit_normal(contact.ortho_n)) * 2.f;
 	}
 	else {
 		auto surf = debug::draw(Primitive::TRIANGLES, 18);
@@ -107,7 +107,7 @@ void debugDrawContact(const AppliedContact& contact) {
 
 		auto draw_surf = [&](Linef s, size_t start_ndx, Color left, Color right)
 		{
-			Vec2f n = math::lefthand_normal(s) * 0.5f;
+			Vec2f n = math::lefthand_unit_normal(s) * 0.5f;
 
 			surf[start_ndx + 0].pos = s.p1;
 			surf[start_ndx + 1].pos = s.p2;
@@ -297,7 +297,7 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
 		// apply deceleration
         Vec2f zero_vel = _tracker && _tracker->has_contact() ? Vec2f{} : last_parent_vel;
 		auto local_vel_from_zero = local_vel - zero_vel;
-		auto decel_vel = -1.f * math::normalize(local_vel_from_zero) * (decel * (float)deltaTime);
+		auto decel_vel = -1.f * math::unit(local_vel_from_zero) * (decel * (float)deltaTime);
 		local_vel = math::magnitude2(local_vel_from_zero) > math::magnitude2(decel_vel)
 			? local_vel + decel_vel
 			: zero_vel;
