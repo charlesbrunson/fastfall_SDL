@@ -10,10 +10,10 @@ namespace ff {
 void debugDrawTrigger(const Trigger& tr) {
 
 	auto varr = debug::draw(Primitive::TRIANGLE_STRIP, 4);
-	varr[0].pos = math::rect_topleft( tr.get_area());
-	varr[1].pos = math::rect_topright(tr.get_area());
-	varr[2].pos = math::rect_botleft(tr.get_area());
-	varr[3].pos = math::rect_botright(tr.get_area());
+	varr[0].pos = tr.get_area().topleft();
+	varr[1].pos = tr.get_area().topright();
+	varr[2].pos = tr.get_area().botleft();
+	varr[3].pos = tr.get_area().botright();
 
 	Color c = tr.is_enabled() ? Color::Yellow : Color::Black;
 	c.alpha(tr.is_activated() ? 200.f : 50.f);

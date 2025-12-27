@@ -79,7 +79,7 @@ namespace ff {
 
     Rectf ColliderTileMap::tile_area(QuadID quad_id) const noexcept {
         if (validPosition(quad_id)) {
-            return Rectf{ to_pos(quad_id) * Vec2f{ TILESIZE_F, TILESIZE_F }, {TILESIZE_F, TILESIZE_F} };
+            return Rectf{ Vec2f{to_pos(quad_id)} * Vec2f{ TILESIZE_F, TILESIZE_F }, {TILESIZE_F, TILESIZE_F} };
         }
         return {};
     }

@@ -172,7 +172,7 @@ namespace ff {
 			directional_array<TileTouch, T> out;
 			for (auto dir : directions_list) {
 				Vec2i vdir = direction::to_vector<int>(dir);
-				Vec2u pos = position + vdir;
+				Vec2u pos = Vec2i{position} + vdir;
 
 				if (grid.valid(pos)) {
 					out[dir] = TileTouch{ grid[pos] };

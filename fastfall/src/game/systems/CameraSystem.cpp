@@ -68,10 +68,10 @@ void CameraSystem::update(World& world, secs deltaTime) {
 		for (int i = 0; i < visible_box.size(); i++) {
 			visible_box[i].color = Color::White;
 		}
-		visible_box[0].pos = math::rect_topleft(area);
-		visible_box[1].pos = math::rect_topright(area);
-		visible_box[2].pos = math::rect_botright(area);
-		visible_box[3].pos = math::rect_botleft(area);
+		visible_box[0].pos = area.topleft();
+		visible_box[1].pos = area.topright();
+		visible_box[2].pos = area.botright();
+		visible_box[3].pos = area.botleft();
 	}
 
 	if (debug::enabled(debug::Camera_Target)) {

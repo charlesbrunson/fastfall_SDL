@@ -48,8 +48,8 @@ std::weak_ordering compare_contact(const ContinuousContact& lhs, const Continuou
     }
 
     // favor unmoving contact
-    float aVelMag = lhs.velocity.magnitudeSquared();
-    float bVelMag = rhs.velocity.magnitudeSquared();
+    float aVelMag = math::magnitude2(lhs.velocity);
+    float bVelMag = math::magnitude2(rhs.velocity);
     if (aVelMag != bVelMag) {
         return aVelMag < bVelMag ? std::weak_ordering::less : std::weak_ordering::greater;
     }

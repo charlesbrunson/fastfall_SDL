@@ -345,6 +345,7 @@ void Collidable::setPosition(Vec2f position, bool swapPrev) noexcept {
 		prevPos = Vec2f(prevRect.getPosition()) + Vec2f(prevRect.width / 2, prevRect.height);
 	}
 
+	LOG_WARN("{:.9f}", Vec2f{1.f, 0.999f});
 	assert(!std::isnan(position.x) && !std::isnan(position.y));
 
     currRect.left = position.x - (currRect.width / 2.f);

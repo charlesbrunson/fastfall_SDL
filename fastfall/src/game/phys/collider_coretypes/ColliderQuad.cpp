@@ -126,10 +126,10 @@ ColliderQuad::ColliderQuad(const Rectf& shape) noexcept
 	}
 
 	ordinal_array<Vec2f> points = {
-		math::rect_topleft(shape),
-		math::rect_topright(shape),
-		math::rect_botright(shape),
-		math::rect_botleft(shape)
+		shape.topleft(),
+		shape.topright(),
+		shape.botright(),
+		shape.botleft()
 	};
 
 	QuadSurface* prev = nullptr;
@@ -199,19 +199,19 @@ ColliderSurface findColliderGhosts(const std::vector<const ColliderQuad*>& nearb
                 continue;
 
             if (qsurf.collider.surface.p2 == surface.surface.p1
-                && qsurf.collider.surface.reverse() != surface.surface)
+                && math::reverse(qsurf.collider.surface) != surface.surface)
             {
                 candidatesg0.push_back(&qsurf.collider);
             }
             else if (qsurf.collider.surface.p1 == surface.surface.p2
-                 && qsurf.collider.surface.reverse() != surface.surface)
+                 && math::reverse(qsurf.collider.surface) != surface.surface)
              {
                 candidatesg3.push_back(&qsurf.collider);
             }
         }
     }
 
-    auto v = math::vector(surface.surface);
+    auto v = math::vectorize(surface.surface);
     auto vvert = math::is_vertical(v);
     Angle idealAng(atan2f(v.y, v.x));
 
@@ -221,8 +221,8 @@ ColliderSurface findColliderGhosts(const std::vector<const ColliderQuad*>& nearb
             if (lhs == rhs)
                 return false;
 
-            auto v1 = math::vector(Linef(lhs->surface.p1, surface.surface.p1));
-            auto v2 = math::vector(Linef(rhs->surface.p1, surface.surface.p1));
+            auto v1 = math::vectorize(Linef(lhs->surface.p1, surface.surface.p1));
+            auto v2 = math::vectorize(Linef(rhs->surface.p1, surface.surface.p1));
 
             auto v1vert = math::is_vertical(v1);
             auto v2vert = math::is_vertical(v2);
@@ -255,8 +255,8 @@ ColliderSurface findColliderGhosts(const std::vector<const ColliderQuad*>& nearb
             if (lhs == rhs)
                 return false;
 
-            auto v1 = math::vector(Linef(surface.surface.p2, lhs->surface.p2));
-            auto v2 = math::vector(Linef(surface.surface.p2, rhs->surface.p2));
+            auto v1 = math::vectorize(Linef(surface.surface.p2, lhs->surface.p2));
+            auto v2 = math::vectorize(Linef(surface.surface.p2, rhs->surface.p2));
 
             auto v1vert = math::is_vertical(v1);
             auto v2vert = math::is_vertical(v2);

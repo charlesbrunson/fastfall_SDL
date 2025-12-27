@@ -70,10 +70,10 @@ void PathSystem::update(World& world, secs deltaTime) {
             for (auto & path_po : path_pos) {
                 path_po.color = Color::White;
             }
-            path_pos[0].pos = math::rect_topleft(area);
-            path_pos[1].pos = math::rect_topright(area);
-            path_pos[2].pos = math::rect_botright(area);
-            path_pos[3].pos = math::rect_botleft(area);
+            path_pos[0].pos = area.topleft();
+            path_pos[1].pos = area.topright();
+            path_pos[2].pos = area.botright();
+            path_pos[3].pos = area.botleft();
         }
     }
 }

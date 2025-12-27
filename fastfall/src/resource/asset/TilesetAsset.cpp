@@ -47,7 +47,7 @@ const std::map<std::string, TilesetAsset::ApplyTilePropFn> TilesetAsset::tilePro
 			LOG_ERR_("Tileset: {}, unknown logic type for args at {}", asset.asset_path.generic_string(), state.tile.id.to_vec());
 		}
 	}},
-	{"next_x", [](TilesetAsset& asset, TileData& state, char* value)
+	{"next_x", +[](TilesetAsset& asset, TileData& state, char* value)
 	{
 		int v = std::stoi(value);
 		auto& next = state.tile.next_offset;

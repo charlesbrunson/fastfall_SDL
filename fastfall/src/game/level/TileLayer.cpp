@@ -4,6 +4,7 @@
 
 #include "fastfall/resource/Resources.hpp"
 #include "fastfall/util/log.hpp"
+#include "fastfall/util/math.hpp"
 
 #include "fastfall/render/target/RenderTarget.hpp"
 #include "fastfall/render/DebugDraw.hpp"

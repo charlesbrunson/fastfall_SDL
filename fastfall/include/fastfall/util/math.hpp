@@ -1,5 +1,7 @@
 #pragma once
 
+#include <regex>
+
 #include "fastfall/util/glm_types.hpp"
 #include "fastfall/util/Line.hpp"
 #include "fastfall/util/Angle.hpp"
@@ -13,9 +15,15 @@
 #include "glm/gtx/vector_angle.hpp"
 #include "glm/gtx/closest_point.hpp"
 
-
 namespace ff::math
 {
+
+    template<typename T>
+    constexpr T epsilon()
+    {
+        return glm::epsilon<T>();
+    }
+
     // VEC2
 
     template<typename T>
@@ -89,6 +97,13 @@ namespace ff::math
     {
         return glm::proj(v, normal);
     }
+
+    template<typename T>
+    constexpr bool collinear(const Vec2<T>& normal_v1, const Vec2<T>& normal_v2)
+    {
+        return std::abs(dot(normal_v1, normal_v2)) > (T{1} - glm::epsilon<T>());
+    }
+
 
     template<typename T>
     constexpr auto projection_unnormalized(const Vec2<T>& v1, const Vec2<T>& v2)
@@ -265,6 +280,24 @@ namespace ff::math
         return math::distance(result, point);
     }
 
+    template<typename T>
+    constexpr bool collinear(const Line<T>& a, const Line<T>& b)
+    {
+        return collinear(normalize(a.p2 - a.p1), normalize(b.p2 - a.p1));
+    }
+
+    template<typename T>
+    constexpr auto distance(const Line<T>& line)
+    {
+        return glm::distance(line.p1, line.p2);
+    }
+
+    template<typename T>
+    constexpr auto distance2(const Line<T>& line)
+    {
+        return glm::distance2(line.p1, line.p2);
+    }
+
     // RECT
     template<typename T>
     [[nodiscard]] constexpr Rect<T> rect_extend(const Rect<T>& a, Cardinal dir, T amount) {
@@ -333,33 +366,67 @@ namespace ff::math
 }
 
 namespace fmt {
-    template <typename T, glm::length_t L, glm::qualifier Q, typename Char>
-    struct formatter<glm::vec<L, T, Q>, Char> : formatter<std::string, Char> {
-        template <typename FormatContext>
-        constexpr auto format(const auto& p, FormatContext& ctx) const -> decltype(ctx.out()) {
-            return formatter<std::string, Char>::format(glm::to_string(p), ctx);
+
+    template<glm::length_t L, typename T, glm::qualifier Q>
+    struct formatter<glm::vec<L, T, Q>> {
+
+        // Parse the format string to extract the precision
+        template<typename ParseContext>
+        constexpr auto parse(ParseContext &ctx) {
+            auto it = ctx.begin();
+            auto end = ctx.end();
+
+            while (it != end && *it != '}')
+            {
+                ++it;  // Skip to the end of the range
+            }
+
+            // Return the iterator after parsing
+            return it;
+        }
+
+        template<typename Scalar, typename FormatContext>
+        constexpr auto format_element(Scalar value, FormatContext &ctx) const {
+            fmt::format_to(ctx.out(), "{}", value);
+        }
+
+        // Format the matrix with the specified precision
+        template<typename FormatContext>
+        constexpr auto format(const glm::vec<L, T, Q>& v, FormatContext &ctx) const {
+            fmt::format_to(ctx.out(), "{}", "(");
+            for (int i = 0; i < L; i++)
+            {
+                format_element(v[i], ctx);
+                if (i != L - 1)
+                    fmt::format_to(ctx.out(), "{}", ", ");
+            }
+            fmt::format_to(ctx.out(), "{}", ")");
+            return ctx.out();
         }
     };
 
-    template <typename T, glm::length_t C, glm::length_t R, glm::qualifier Q, typename Char>
-    struct formatter<glm::mat<C, R, T, Q>, Char> : formatter<std::string, Char> {
-        template <typename FormatContext>
-        constexpr auto format(const auto& p, FormatContext& ctx) const -> decltype(ctx.out()) {
-            return formatter<std::string, Char>::format(glm::to_string(p), ctx);
-        }
-    };
 }
 
-template<typename T>
-requires std::integral<T>
-constexpr std::strong_ordering operator<=> (const ff::Vec2<T>& a, const ff::Vec2<T>& b)
+namespace glm
 {
-    if (a.x < b.x) return std::strong_ordering::less;
-    if (a.x > b.x) return std::strong_ordering::greater;
-    if (a.x == b.x)
+    template<typename T, qualifier Q>
+    requires std::is_integral_v<T>
+    constexpr std::strong_ordering operator<=> (const vec<2, T, Q>& a, const vec<2, T, Q>& b)
     {
+        if (a.y == b.y)
+        {
+            if (a.x < b.x) return std::strong_ordering::less;
+            if (a.x > b.x) return std::strong_ordering::greater;
+        }
         if (a.y < b.y) return std::strong_ordering::less;
         if (a.y > b.y) return std::strong_ordering::greater;
+        return std::strong_ordering::equal;
     }
-    return std::strong_ordering::equal;
+
+    template<typename T, qualifier Q>
+    requires std::is_integral_v<T>
+    constexpr bool operator<(const vec<2, T, Q>& a, const vec<2, T, Q>& b)
+    {
+        return a.y == b.y ? a.x < b.x : a.y < b.y;
+    }
 }

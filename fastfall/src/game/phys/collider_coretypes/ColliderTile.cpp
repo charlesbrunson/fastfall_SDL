@@ -86,8 +86,8 @@ ColliderQuad ColliderTile::toQuad(QuadID id) const {
 		if ((shape.flip_v || shape.flip_h) && !(shape.flip_v && shape.flip_h))
 			std::swap(surfLine.p1, surfLine.p2);
 
-		surfLine.p1 += position * TILESIZE_F;
-		surfLine.p2 += position * TILESIZE_F;
+		surfLine.p1 += position * int{TILESIZE};
+		surfLine.p2 += position * int{TILESIZE};
 	}
 
 	auto swapFacing = [&q](Cardinal dir) {

@@ -118,7 +118,7 @@ void CollisionDiscrete::createAxes() noexcept
 			continue;
 
 		const ColliderSurface& surf = surface.collider;
-		Vec2f v = math::vector(surface.collider.surface);
+		Vec2f v = math::vectorize(surface.collider.surface);
 
 		assert(v != Vec2f());
 
@@ -376,13 +376,13 @@ void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
 		else if (axis.dir == Cardinal::E) {
 
 			axis.contact.separation = (tArea.left + tArea.width) - cMid.x + axis.separationOffset;
-			axis.contact.position = Vec2f((tArea.left + tArea.width), math::clamp(cMid.y, axis.contact.collider.surface.p1.y, axis.contact.collider.surface.p2.y));
+			axis.contact.position = Vec2f((tArea.left + tArea.width), std::clamp(cMid.y, axis.contact.collider.surface.p1.y, axis.contact.collider.surface.p2.y));
 
 		}
 		else if (axis.dir == Cardinal::W) {
 
 			axis.contact.separation = cMid.x - (tArea.left) + axis.separationOffset;
-			axis.contact.position = Vec2f(tArea.left, math::clamp(cMid.y, axis.contact.collider.surface.p2.y, axis.contact.collider.surface.p1.y));
+			axis.contact.position = Vec2f(tArea.left, std::clamp(cMid.y, axis.contact.collider.surface.p2.y, axis.contact.collider.surface.p1.y));
 		}
 	}
 
@@ -403,8 +403,8 @@ void CollisionDiscrete::evalContact() noexcept {
 		if (axis.dir == Cardinal::N) 
 		{
 			// follow up on valley check
-			if ((valleys[Ordinal::NE] && cMid.x > math::rect_topright(tArea).x - VALLEY_FLATTEN_THRESH) ||
-				(valleys[Ordinal::NW] && cMid.x < math::rect_topleft(tArea).x + VALLEY_FLATTEN_THRESH)) 
+			if ((valleys[Ordinal::NE] && cMid.x > tArea.topright().x - VALLEY_FLATTEN_THRESH) ||
+				(valleys[Ordinal::NW] && cMid.x < tArea.topleft().x + VALLEY_FLATTEN_THRESH))
 			{
 				axis.contact.collider_n = axis.contact.ortho_n;
 				float nSep = -std::max(axis.contact.collider.surface.p1.y, axis.contact.collider.surface.p2.y) + (cMid.y + cHalf.y);
@@ -415,8 +415,8 @@ void CollisionDiscrete::evalContact() noexcept {
 		else if (axis.dir == Cardinal::S) 
 		{
 			// follow up on valley check
-			if ((valleys[Ordinal::SE] && cMid.x > math::rect_topright(tArea).x - VALLEY_FLATTEN_THRESH) ||
-				(valleys[Ordinal::SW] && cMid.x < math::rect_topleft(tArea).x + VALLEY_FLATTEN_THRESH)) 
+			if ((valleys[Ordinal::SE] && cMid.x > tArea.topright().x - VALLEY_FLATTEN_THRESH) ||
+				(valleys[Ordinal::SW] && cMid.x < tArea.topleft().x + VALLEY_FLATTEN_THRESH))
 			{
 				axis.contact.collider_n = axis.contact.ortho_n;
 				float nSep = std::min(axis.contact.collider.surface.p1.y, axis.contact.collider.surface.p2.y) - (cMid.y - cHalf.y);
@@ -500,20 +500,20 @@ CollisionAxis CollisionDiscrete::createFloor(const AxisPreStep& initData) noexce
 	// if this is a oneway, invalidate it if the collider's previous position is not above it
 	if (collision_time == Type::CurrFrame && cQuad.isOneWay(Cardinal::N))
 	{
-		Vec2f cpMid  = math::rect_mid(cPrev);
+		Vec2f cpMid  = cPrev.center();
 		Vec2f cpSize = cPrev.getSize() * 0.5f;
-        Vec2f cSize  = cBox.getSize() * 0.5f;
+        // Vec2f cSize  = cBox.getSize() * 0.5f;
 
 		Linef prev_line  = axis.contact.collider.surface;
-		bool valid_ghost = true;
+		// bool valid_ghost = true;
 		if (cpMid.x < axis.contact.collider.surface.p1.x - collider_deltap.x)
 		{
-			valid_ghost = !axis.contact.collider.g0virtual;
+			// valid_ghost = !axis.contact.collider.g0virtual;
             prev_line   = axis.contact.collider.getGhostPrev();
 		}
 		else if (cpMid.x > axis.contact.collider.surface.p2.x - collider_deltap.x)
 		{
-			valid_ghost = !axis.contact.collider.g3virtual;
+			// valid_ghost = !axis.contact.collider.g3virtual;
             prev_line   = axis.contact.collider.getGhostNext();
 		}
 
@@ -542,20 +542,20 @@ CollisionAxis CollisionDiscrete::createCeil(const AxisPreStep& initData) noexcep
 	// if this is a oneway, invalidate it if the collider's previous position is not below it
 	if (collision_time == Type::CurrFrame && cQuad.isOneWay(Cardinal::S))
 	{
-		Vec2f cpMid = math::rect_mid(cPrev);
+		Vec2f cpMid = cPrev.center();
 		Vec2f cpSize = cPrev.getSize() * 0.5f;
-        Vec2f cSize = cBox.getSize() * 0.5f;
+        // Vec2f cSize = cBox.getSize() * 0.5f;
 
 		Linef prev_line = axis.contact.collider.surface;
-		bool valid_ghost = true;
+		// bool valid_ghost = true;
 		if (cpMid.x < axis.contact.collider.surface.p2.x - collider_deltap.x)
 		{
-			valid_ghost = !axis.contact.collider.g3virtual;
+			// valid_ghost = !axis.contact.collider.g3virtual;
             prev_line = axis.contact.collider.getGhostNext();
 		}
 		else if (cpMid.x > axis.contact.collider.surface.p1.x - collider_deltap.x)
 		{
-			valid_ghost = !axis.contact.collider.g0virtual;
+			// valid_ghost = !axis.contact.collider.g0virtual;
             prev_line = axis.contact.collider.getGhostPrev();
 		}
         
@@ -750,14 +750,14 @@ CollisionAxis CollisionDiscrete::createEastWall(const AxisPreStep& initData) noe
 		axis.contact.material = &cQuad.material->getSurface(Cardinal::E, cQuad.matFacing);
 	}
 
-	Vec2f pMid = math::rect_mid(cPrev) + collider_deltap;
+	Vec2f pMid = cPrev.center() + collider_deltap;
 	bool extend = wallCanExtend(axis, cQuad, Cardinal::E, pMid, cMid, tMid, tHalf, collision_time == Type::PrevFrame);
 	bool has_valley = wallHasValley(axis, axes, axis_count, Cardinal::E, valleys);
 
 	// if this is a oneway, invalidate it if the collider's previous position is not left of it
 	if (collision_time == Type::CurrFrame && cQuad.isOneWay(Cardinal::E)) {
         float sliph = (cSlip.state == Collidable::SlipState::SlipHorizontal && cVel.x <= 0.f) ? cSlip.leeway : 0.f;
-		axis.axisValid = math::rect_topleft(cPrev).x >= tPos.x + tArea.width - sliph;
+		axis.axisValid = cPrev.topleft().x >= tPos.x + tArea.width - sliph;
 	}
 
 	axis.separationOffset = (extend ? cHalf.x : 0.f) + (has_valley ? VALLEY_FLATTEN_THRESH : 0.f);
@@ -774,14 +774,14 @@ CollisionAxis CollisionDiscrete::createWestWall(const AxisPreStep& initData) noe
 		axis.contact.material = &cQuad.material->getSurface(Cardinal::W, cQuad.matFacing);
 	}
 
-	Vec2f pMid = math::rect_mid(cPrev) + collider_deltap;
+	Vec2f pMid = cPrev.center() + collider_deltap;
 	bool extend = wallCanExtend(axis, cQuad, Cardinal::W, pMid, cMid, tMid, tHalf, collision_time == Type::PrevFrame);
 	bool has_valley = wallHasValley(axis, axes, axis_count, Cardinal::W, valleys);
 
 	// if this is a oneway, invalidate it if the collider's previous position is not left of it
 	if (collision_time == Type::CurrFrame && cQuad.isOneWay(Cardinal::W)) {
         float sliph = (cSlip.state == Collidable::SlipState::SlipHorizontal && cVel.x >= 0.f) ? cSlip.leeway : 0.f;
-		axis.axisValid = math::rect_topright(cPrev).x <= tArea.left + sliph;
+		axis.axisValid = cPrev.topright().x <= tArea.left + sliph;
 	}
 
 	axis.separationOffset = (extend ? cHalf.x : 0.f) + (has_valley ? VALLEY_FLATTEN_THRESH : 0.f);
@@ -798,7 +798,7 @@ void CollisionDiscrete::initCollidableData(CollisionContext ctx) {
         cVel = Vec2f{};
     }
     cPrev = ctx.collidable->getPrevBox();
-    cMid  = math::rect_mid(cBox);
+    cMid  = cBox.center();
     cHalf = cBox.getSize() / 2.f;
     cSlip = ctx.collidable->getSlip();
 }

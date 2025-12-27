@@ -19,7 +19,7 @@ void PlayerGroundState::enter(ff::World& w, plr::members& plr, PlayerState* from
 
 	// set initial ground max speed
 	ground.settings.max_speed =
-		math::clamp(std::abs(speed), constants::norm_speed.get(), constants::max_speed.get());
+		std::clamp(std::abs(speed), constants::norm_speed.get(), constants::max_speed.get());
 
 }
 
@@ -66,7 +66,7 @@ PlayerStateID PlayerGroundState::update(ff::World& w, plr::members& plr, secs de
 
 		// clamp ground max speed to current speed and normal speed
 		ground.settings.max_speed =
-			math::clamp(move.speed, constants::norm_speed.get(), ground.settings.max_speed);
+			std::clamp(move.speed, constants::norm_speed.get(), ground.settings.max_speed);
 
 		// if we're going faster than normal, force decceleration
 		if (move.speed > constants::norm_speed && ground.settings.has_friction) {
