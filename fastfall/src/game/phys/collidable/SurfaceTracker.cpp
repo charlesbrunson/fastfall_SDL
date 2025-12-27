@@ -165,7 +165,7 @@ Vec2f SurfaceTracker::calc_friction(Vec2f prevVel) const {
 
 		float Ff = std::clamp(Fn * friction_mag, -Ft, Ft);
 
-		friction = math::change_magnitude(tangent, Ff);
+		friction = math::unit(tangent) * Ff;
 	}
 	return friction;
 }
@@ -214,10 +214,8 @@ bool SurfaceTracker::do_slope_wall_stop(poly_id_map<ColliderRegion>* colliders, 
 			surface,
 			Linef{ Vec2f{X, 0.f}, Vec2f{X, 1.f} }
 		);
-		if (intersect_opt.has_value())
-		{
-			owner->setPosition(intersect_opt.value(), false);
-		}
+
+		owner->setPosition(intersect_opt.value(), false);
 	}
 	return can_stop;
 

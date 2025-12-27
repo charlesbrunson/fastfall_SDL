@@ -269,7 +269,7 @@ void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
 				Y = getYforX(axis.contact.collider.surface, cMid.x);
 
                 float clamp = std::clamp(cMid.x, tArea.left, tArea.left + tArea.width);
-                axis.contact.collider_n = math::lefthand_normal(axis.contact.collider.surface);
+                axis.contact.collider_n = math::lefthand_unit_normal(axis.contact.collider.surface);
 				if (cPrev.top + cPrev.height <= tArea.top - collider_deltap.y &&
 					Y <= tArea.top &&
 					(axis.quadIndex != 255U) &&
@@ -323,7 +323,7 @@ void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
 			if (!math::is_horizontal(axis.contact.collider.surface)) {
 
 				Y = getYforX(axis.contact.collider.surface, cMid.x);
-                axis.contact.collider_n = math::lefthand_normal(axis.contact.collider.surface);
+                axis.contact.collider_n = math::lefthand_unit_normal(axis.contact.collider.surface);
                 float clamp = std::clamp(cMid.x, tArea.left, tArea.left + tArea.width);
 
 				if (cPrev.top >= tArea.top + tArea.height - collider_deltap.y &&

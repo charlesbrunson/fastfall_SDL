@@ -102,10 +102,10 @@ bool is_diverging_V(Linef A, Linef B)
 	Vec2f nMid{ math::midpoint(A) };
 	Vec2f sMid{ math::midpoint(B) };
 
-	Vec2f nNormal = math::lefthand_normal(A);
+	Vec2f nNormal = math::lefthand_unit_normal(A);
 	bool nFacingAway = math::dot(sMid - nMid, nNormal) < 0;
 
-	Vec2f sNormal = math::lefthand_normal(B);
+	Vec2f sNormal = math::lefthand_unit_normal(B);
 	bool sFacingAway = math::dot(nMid - sMid, sNormal) < 0;
 
 	return nFacingAway && sFacingAway;
@@ -369,7 +369,7 @@ GhostEdge isGhostEdge(const ContinuousContact& basis, const ContinuousContact& c
         }
     }
 
-	Vec2f basisNormal = math::lefthand_normal(basis.collider.surface);
+	Vec2f basisNormal = math::lefthand_unit_normal(basis.collider.surface);
 
 	float dotp1 = math::dot(basisNormal, candLine.p1 - basisLine.p2);
 	float dotp2 = math::dot(basisNormal, candLine.p2 - basisLine.p1);

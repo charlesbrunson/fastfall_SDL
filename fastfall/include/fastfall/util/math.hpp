@@ -163,7 +163,7 @@ namespace ff::math
 
     template<typename T>
     constexpr Line<T> shift(const Line<T>& line, const Vec2<T>& offset) {
-        return Line(line.p2 + offset, line.p1 + offset);
+        return Line(line.p1 + offset, line.p2 + offset);
     }
 
     template<typename T>
@@ -179,13 +179,13 @@ namespace ff::math
     template<typename T>
     constexpr bool is_vertical(const Line<T> &line)
     {
-        return is_vertical(vectorize(line));
+        return line.p1.x == line.p2.x;
     }
 
     template<typename T>
     constexpr bool is_horizontal(const Line<T> &line)
     {
-        return is_horizontal(vectorize(line));
+        return line.p1.y == line.p2.y;
     }
     template<typename T>
     constexpr Angle angle(const Line<T>& line)

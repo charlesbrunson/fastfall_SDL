@@ -274,7 +274,7 @@ bool SurfaceFollow::add_surface_if_valid(Linef path)
     {
         bool curr_has_inter = math::distance_from_line(dir_curr, inter) == 0.f;
         bool path_has_inter = math::distance_from_line(dir_path, inter) == 0.f;
-        float dot = math::dot(inter - ahead_pos, math::lefthand_unit_normal(dir_curr));
+        float dot = math::dot(inter - ahead_pos, math::vectorize(dir_curr));
         bool is_ahead = dot > 0;
 
         // make sure the intersection lies on both lines
@@ -327,7 +327,7 @@ bool SurfaceFollow::add_surface_if_valid(Linef path)
     Angle curr_ang  = math::angle(dir_curr);
 
     Angle diff      = next_ang - curr_ang;
-    Angle normal    = math::angle(math::lefthand_normal(path));
+    Angle normal    = math::angle(math::lefthand_unit_normal(path));
 
     bool in_range   = angle_range.contains(normal);
     bool in_max_ang = std::abs(diff.degrees()) < std::abs(angle_max.degrees());
