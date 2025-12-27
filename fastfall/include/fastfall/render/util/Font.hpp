@@ -4,7 +4,7 @@
 #include <array>
 #include <deque>
 
-#include "fastfall/util/Vec2.hpp"
+#include "fastfall/util/glm_types.hpp"
 #include "fastfall/render/external/freetype.hpp"
 #include "Texture.hpp"
 
@@ -16,8 +16,8 @@ public:
 	struct GlyphMetrics
 	{
 		unsigned glyph_index = 0;
-		glm::ivec2 size		= { 0,0 };
-		glm::ivec2 bearing	= { 0,0 };
+		Vec2i size		= { 0,0 };
+		Vec2i bearing	= { 0,0 };
 		unsigned advance_x	= 0;
 	};
 
@@ -44,7 +44,7 @@ public:
 	void loadBitmapTex(unsigned px_size) const;
 
 	const GlyphMetrics& getMetrics(unsigned char ch) const { return curr_cache->glyph_metrics[ch]; };
-	glm::i64vec2		getGlyphSize() const { return curr_cache->glyph_max_size; };
+	Vec2<uint64_t>		getGlyphSize() const { return curr_cache->glyph_max_size; };
 	unsigned			getPixelSize() const { return curr_cache->px_size; };
 
 	int getYMin()	const { return curr_cache->yMin; };
@@ -78,7 +78,7 @@ private:
 		SDL_Surface* bitmap_surface = nullptr;
 		Texture bitmap_texture;
 
-		glm::i64vec2 glyph_max_size = { 0, 0 };
+		Vec2<uint64_t> glyph_max_size = { 0, 0 };
 		std::array<GlyphMetrics, CHAR_COUNT> glyph_metrics;
 	};
 

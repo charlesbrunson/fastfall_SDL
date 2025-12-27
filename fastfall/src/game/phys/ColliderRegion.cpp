@@ -73,7 +73,7 @@ Rectf ColliderRegion::getSweptBoundingBox() const noexcept {
     Rectf prevB( Vec2f(prevBoundingBox.getPosition()) + prevPosition, Vec2f(prevBoundingBox.getSize()) );
     Rectf currB( Vec2f(boundingBox.getPosition()) + position, Vec2f(boundingBox.getSize()) );
 
-    return math::rect_bound(prevB, currB);
+    return math::rect_bounds(prevB, currB);
 }
 
 void imgui_component(World& w, ID<ColliderRegion> id) {
@@ -89,7 +89,7 @@ void imgui_component(World& w, ID<ColliderRegion> id) {
     if (ImGui::DragFloat2("Set Pos", pos)) {
         col.setPosition(Vec2f(pos[0], pos[1]));
 
-        Vec2f nVel = (col.getPosition() - col.getPrevPosition()) / (1.0 / 60.0);
+        Vec2f nVel = (col.getPosition() - col.getPrevPosition()) / static_cast<float>(1.0 / 60.0);
         col.delta_velocity = nVel - col.velocity;
         col.velocity = nVel;
     }

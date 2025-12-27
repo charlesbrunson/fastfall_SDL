@@ -27,8 +27,8 @@ void imgui_collidables(World* w) {
             ImGui::Text("Curr Pos: %3.2f, %3.2f", col.getPosition().x, col.getPosition().y);
             ImGui::Text("Prev Pos: %3.2f, %3.2f", col.getPrevPosition().x, col.getPrevPosition().y);
             ImGui::NewLine();
-            ImGui::Text("Curr Center: %3.2f, %3.2f", math::rect_mid(col.getBox()).x, math::rect_mid(col.getBox()).y);
-            ImGui::Text("Prev Center: %3.2f, %3.2f", math::rect_mid(col.getPrevBox()).x, math::rect_mid(col.getPrevBox()).y);
+            ImGui::Text("Curr Center: %3.2f, %3.2f", col.getBox().center().x, col.getBox().center().y);
+            ImGui::Text("Prev Center: %3.2f, %3.2f", col.getPrevBox().center().x, col.getPrevBox().center().y);
             ImGui::NewLine();
             ImGui::Text("Curr Size: %3.2f, %3.2f", col.getBox().getSize().x, col.getBox().getSize().y);
             ImGui::Text("Prev Size: %3.2f, %3.2f", col.getPrevBox().getSize().x, col.getPrevBox().getSize().y);
@@ -43,9 +43,9 @@ void imgui_collidables(World* w) {
             ImGui::Text("Friction:     %3.2f, %3.2f", col.get_friction().x, col.get_friction().y);
             ImGui::Text("Gravity:      %3.2f, %3.2f", col.get_gravity().x, col.get_gravity().y);
             ImGui::NewLine();
-            ImGui::Text("Local  Speed: %3.2f", col.get_local_vel().magnitude());
-            ImGui::Text("Parent Speed: %3.2f", col.get_parent_vel().magnitude());
-            ImGui::Text("Global Speed: %3.2f", col.get_global_vel().magnitude());
+            ImGui::Text("Local  Speed: %3.2f", math::magnitude(col.get_local_vel()));
+            ImGui::Text("Parent Speed: %3.2f", math::magnitude(col.get_parent_vel()));
+            ImGui::Text("Global Speed: %3.2f", math::magnitude(col.get_global_vel()));
             ImGui::NewLine();
 
             if (ImGui::TreeNode((void*)(&col.tracker()), "Tracker")) {
@@ -224,7 +224,7 @@ void imgui_colliders(World* w) {
             if (ImGui::DragFloat2("Set Pos", pos)) {
                 col->setPosition(Vec2f(pos[0], pos[1]));
 
-                Vec2f nVel = (col->getPosition() - col->getPrevPosition()) / (1.0 / 60.0);
+                Vec2f nVel = (col->getPosition() - col->getPrevPosition()) / static_cast<float>(1.0 / 60.0);
                 col->delta_velocity = nVel - col->velocity;
                 col->velocity = nVel;
             }

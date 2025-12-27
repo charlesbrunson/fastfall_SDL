@@ -8,7 +8,7 @@
 
 #include "fastfall/user_types.hpp"
 
-#include "fastfall/util/Vec2.hpp"
+#include "fastfall/util/log.hpp"
 
 #include <assert.h>
 #include <fstream>
@@ -44,7 +44,7 @@ const std::map<std::string, TilesetAsset::ApplyTilePropFn> TilesetAsset::tilePro
 		}
 		else 
 		{
-			LOG_ERR_("Tileset: {}, unknown logic type for args at {}", asset.asset_path.generic_string(), state.tile.id.to_vec().to_string());
+			LOG_ERR_("Tileset: {}, unknown logic type for args at {}", asset.asset_path.generic_string(), state.tile.id.to_vec());
 		}
 	}},
 	{"next_x", [](TilesetAsset& asset, TileData& state, char* value)
@@ -114,7 +114,7 @@ const std::map<std::string, TilesetAsset::ApplyTilePropFn> TilesetAsset::tilePro
 		}
 		catch (json::exception except) {
 			LOG_ERR_("json string parse failure: {}", except.what());
-			LOG_ERR_("for tile: {}", state.tile.id.to_vec().to_string());
+			LOG_ERR_("for tile: {}", state.tile.id.to_vec());
 			LOG_ERR_("json: {}", value);
 			return;
 		}
@@ -334,7 +334,7 @@ void TilesetAsset::loadFromFile_Header(xml_node<>* tileset_node)
 	if (!TextureAsset::loadFromFile())
 		throw parse_error("could not load sprite source", nullptr);
 
-	texTileSize = Vec2u(tex.size()) / TILESIZE;
+	texTileSize = tex.size() / TILESIZE;
 
 	if (texTileSize.x > TileID::dimension_max 
 		|| texTileSize.y > TileID::dimension_max)

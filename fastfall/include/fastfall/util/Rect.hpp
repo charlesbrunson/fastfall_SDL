@@ -2,8 +2,7 @@
 
 #include <array>
 
-#include "glm/glm.hpp"
-#include "fastfall/util/Vec2.hpp"
+#include "fastfall/util/glm_types.hpp"
 #include "fastfall/util/Line.hpp"
 
 namespace ff {
@@ -11,6 +10,10 @@ namespace ff {
 template<typename T>
 class Rect {
 public:
+	using value_type = T;
+	using point_type = Vec2<T>;
+	using size_type  = Vec2<T>;
+
 	constexpr Rect() 
 	{
 		left = 0;
@@ -27,15 +30,7 @@ public:
 		height = r_height;
 	}
 
-	constexpr Rect(glm::vec<2, T> topleft, glm::vec<2, T> size)
-	{
-		left = topleft.x;
-		top = topleft.y;
-		width = size.x;
-		height = size.y;
-	}
-
-	constexpr Rect(Vec2<T> topleft, Vec2<T> size)
+	constexpr Rect(point_type topleft, size_type size)
 	{
 		left = topleft.x;
 		top = topleft.y;
@@ -52,80 +47,73 @@ public:
 		height = static_cast<T>(rect.height);
 	}
 
-	inline void setPosition(T X, T Y) 
+	void setPosition(T X, T Y)
 	{
 		left = X; top = Y;
 	}
-	inline void setPosition(glm::vec<2, T> position) 
+	void setPosition(point_type position)
 	{
 		left = position[0]; top = position[1];
 	}
-	inline void setPosition(Vec2<T> position)
-	{
-		left = position.x; top = position.y;
-	}
-	inline void setSize(T W, T H)
+
+	void setSize(T W, T H)
 	{
 		width = W; height = H;
 	}
-	inline void setSize(glm::vec<2, T> size)
-	{
-		width = size[0]; height = size[1];
-	}
-	inline void setSize(Vec2<T> size)
+	void setSize(size_type size)
 	{
 		width = size[0]; height = size[1];
 	}
 
-	inline glm::vec<2, T> getPosition() const 
+	point_type getPosition() const
 	{ 
-		return glm::vec<2, T>{left, top}; 
-	};
-	inline glm::vec<2, T> getSize() const 
+		return point_type{left, top};
+	}
+	point_type getSize() const
 	{ 
-		return glm::vec<2, T>{width, height}; 
-	};
-    inline T getArea() const
+		return point_type{width, height};
+	}
+    T getArea() const
     {
         return width * height;
-    };
+    }
 
-	Rect<T>& operator* (T value) {
-		left	*= value;
-		top		*= value;
-		width	*= value;
-		height	*= value;
-		return *this;
+	Rect operator* (T value) {
+		return {
+			left	* value,
+			top		* value,
+			width	* value,
+			height	* value,
+		};
 	}
-	Rect<T>& operator/ (T value) {
-		left	/= value;
-		top		/= value;
-		width	/= value;
-		height	/= value;
-		return *this;
+	Rect operator/ (T value) {
+		return {
+			left	/ value,
+			top		/ value,
+			width	/ value,
+			height	/ value,
+		};
 	}
 
-	bool operator== (const Rect<T> rect) const
+	bool operator== (const Rect rect) const
 	{
 		return left == rect.left
 			&& top == rect.top
 			&& width == rect.width
 			&& height == rect.height;
-
 	}
 
-	constexpr glm::vec<4, T> toVec4() const {
-		return glm::vec<4, T>{
-				left,
-				top,
-				width,
-				height
-			};
+	constexpr Vec4<T> toVec4() const {
+		return {
+			left,
+			top,
+			width,
+			height
+		};
 	}
 
-
-	constexpr std::array<glm::vec<2, T>, 4> toPoints() const {
-		std::array<glm::vec<2, T>, 4> arr;
+	constexpr std::array<point_type, 4> toPoints() const {
+		std::array<point_type, 4> arr;
 
 		T right = left + width;
 		T bottom = top + height;
@@ -137,14 +125,13 @@ public:
 		return arr;
 	}
 
-
-	bool intersects(const Rect<T>& rectangle) const
+	bool intersects(const Rect& rectangle) const
 	{
-		Rect<T> intersection;
-		return intersects(rectangle, intersection);
+		Rect tmp;
+		return intersects(rectangle, tmp);
 	}
 
-	bool intersects(const Rect<T>& rectangle, Rect<T>& intersection) const
+	bool intersects(const Rect& rectangle, Rect& intersection) const
 	{
 		// Rectangles with negative dimensions are allowed, so we must handle them correctly
 
@@ -169,24 +156,24 @@ public:
 		// If the intersection is valid (positive non zero area), then there is an intersection
 		if ((interLeft < interRight) && (interTop < interBottom))
 		{
-			intersection = Rect<T>(interLeft, interTop, interRight - interLeft, interBottom - interTop);
+			intersection = Rect(interLeft, interTop, interRight - interLeft, interBottom - interTop);
 			return true;
 		}
 		else
 		{
-			intersection = Rect<T>(0, 0, 0, 0);
+			intersection = Rect(0, 0, 0, 0);
 			return false;
 		}
 	}
 
 
-	bool touches(const Rect<T>& rectangle) const
+	bool touches(const Rect& rectangle) const
 	{
-		Rect<T> intersection;
-		return touches(rectangle, intersection);
+		Rect tmp;
+		return touches(rectangle, tmp);
 	}
 
-	bool touches(const Rect<T>& rectangle, Rect<T>& intersection) const
+	bool touches(const Rect& rectangle, Rect& intersection) const
 	{
 		// Compute the min and max of the first rectangle on both axes
 		T r1MinX = std::min(left, static_cast<T>(left + width));
@@ -208,12 +195,12 @@ public:
 
 		if ((interLeft <= interRight) && (interTop <= interBottom))
 		{
-			intersection = Rect<T>(interLeft, interTop, interRight - interLeft, interBottom - interTop);
+			intersection = Rect(interLeft, interTop, interRight - interLeft, interBottom - interTop);
 			return true;
 		}
 		else
 		{
-			intersection = Rect<T>(0, 0, 0, 0);
+			intersection = Rect(0, 0, 0, 0);
 			return false;
 		}
 	}

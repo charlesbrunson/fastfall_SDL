@@ -19,7 +19,7 @@ AttachPoint::AttachPoint(ID<AttachPoint> t_id, Vec2f init_pos, Vec2f init_vel, S
 }
 
 void AttachPoint::apply_vel(secs deltaTime) {
-    _curr_pos += global_vel() * deltaTime;
+    _curr_pos += global_vel() * static_cast<float>(deltaTime);
 }
 
 void AttachPoint::set_pos(Vec2f next_pos) {

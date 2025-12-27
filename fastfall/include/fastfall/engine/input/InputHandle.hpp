@@ -3,7 +3,6 @@
 #include "fastfall/engine/input/Input_Def.hpp"
 
 #include "fastfall/engine/time/time.hpp"
-#include "fastfall/util/Vec2.hpp"
 
 #include <cfloat>
 

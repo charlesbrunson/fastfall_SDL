@@ -6,7 +6,6 @@
 
 #include "imgui/ImGuiContent.hpp"
 
-#include "fastfall/util/Vec2.hpp"
 
 #include "fastfall/render/drawable/VertexArray.hpp"
 #include "fastfall/render/target/Window.hpp"

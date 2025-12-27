@@ -9,8 +9,8 @@ using namespace ff;
 
 bool SurfaceFollow::compare_paths(float travel_dir, const Path& from, const Path& pick, const Path& candidate)
 {
-    float curr_dist = math::dist(pick.start_pos,      from.start_pos);
-    float cand_dist = math::dist(candidate.start_pos, from.start_pos);
+    float curr_dist = math::distance2(pick.start_pos,      from.start_pos);
+    float cand_dist = math::distance2(candidate.start_pos, from.start_pos);
 
     if (cand_dist < curr_dist) {
         return true;

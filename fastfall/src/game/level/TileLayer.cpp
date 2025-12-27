@@ -146,7 +146,7 @@ void TileLayer::update(World& world, secs deltaTime)
     //scrolling
 	if (hasScrolling()) {
 		dyn.scroll.prev_offset = dyn.scroll.offset;
-		dyn.scroll.offset += getScrollRate() * deltaTime;
+		dyn.scroll.offset += getScrollRate() * static_cast<float>(deltaTime);
 
 		Vec2f sizef = Vec2f{ getSize() } *TILESIZE_F;
 
@@ -470,7 +470,7 @@ void TileLayer::steal_tiles(World& w, TileLayer& from, Recti area) {
                 Vec2u p{ (unsigned)x, (unsigned)y };
                 if (auto tid = from.getTileBaseID(p))
                 {
-                    setTile(w, p - topleft, *tid, *from.getTileTileset(p));
+                    setTile(w, Vec2i{p} - topleft, *tid, *from.getTileTileset(p));
                     from.removeTile(w, p);
                 }
             }
@@ -652,7 +652,7 @@ TileShape TileLayer::getTileShape(Vec2u tile_pos) const
 
 TileLayer::world_pos_t TileLayer::getWorldPosFromTilePos(Vec2i tile_pos) const
 {
-	Vec2f pos = Vec2f{ tile_pos * TILESIZE } + get_total_offset();
+	Vec2f pos = Vec2f{ tile_pos * int{TILESIZE} } + get_total_offset();
 	return world_pos_t{
 		.mirrorx = pos.x >= getSize().x * TILESIZE_F,
 		.mirrory = pos.y >= getSize().y * TILESIZE_F,

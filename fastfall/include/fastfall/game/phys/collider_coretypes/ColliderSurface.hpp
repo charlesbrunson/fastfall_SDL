@@ -40,7 +40,7 @@ public:
 	[[nodiscard]] ColliderSurface reverse() const {
 		ColliderSurface r;
 
-		r.surface = surface.reverse();
+		r.surface = math::reverse(surface);
 		r.ghostp0 = ghostp3;
 		r.ghostp3 = ghostp0;
 

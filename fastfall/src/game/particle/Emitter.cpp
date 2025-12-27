@@ -60,7 +60,7 @@ void Emitter::update_bounds() {
     for (auto& p : particles) {
         [[likely]]
         if (particle_bounds) {
-            particle_bounds = math::rect_bound(*particle_bounds, math::line_bounds( Linef{ p.prev_position, p.position } ));
+            particle_bounds = math::rect_bounds(*particle_bounds, math::line_bounds( Linef{ p.prev_position, p.position } ));
         }
         else {
             particle_bounds = math::line_bounds( Linef{ p.prev_position, p.position } );
@@ -85,13 +85,13 @@ void Emitter::update(secs deltaTime, event_out_iter* events_out) {
                 auto p_bounds = debug::draw(
                         (const void *) this, Primitive::LINE_LOOP, 4);
 
-                for (int i = 0; i < p_bounds.size(); i++) {
-                    p_bounds[i].color = Color::Red;
+                for (auto& p_bound : p_bounds) {
+                    p_bound.color = Color::Red;
                 }
-                p_bounds[0].pos = math::rect_topleft(*particle_bounds);
-                p_bounds[1].pos = math::rect_topright(*particle_bounds);
-                p_bounds[2].pos = math::rect_botright(*particle_bounds);
-                p_bounds[3].pos = math::rect_botleft(*particle_bounds);
+                p_bounds[0].pos = particle_bounds->topleft();
+                p_bounds[1].pos = particle_bounds->topright();
+                p_bounds[2].pos = particle_bounds->botright();
+                p_bounds[3].pos = particle_bounds->botleft();
             }
 
 
@@ -240,14 +240,14 @@ void Emitter::update_particle(const Emitter& e, Particle& p, secs deltaTime, boo
 
         p.prev_position = p.position;
         for (auto& acc : e.strategy.constant_accel) {
-            p.velocity += acc * deltaTime;
-            p.position += acc * deltaTime * deltaTime;
+            p.velocity += acc * static_cast<float>(deltaTime);
+            p.position += acc * static_cast<float>(deltaTime * deltaTime);
         }
         if (!born && e.strategy.move_with_emitter) {
             p.position += e.position - e.prev_position;
             // p.velocity += e.velocity - e.prev_velocity;
         }
-        p.position += p.velocity * deltaTime;
+        p.position += p.velocity * static_cast<float>(deltaTime);
         p.velocity *= (1.f - e.strategy.particle_damping);
     }
 }
@@ -348,26 +348,28 @@ bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, 
 
     Linef movement = { p.prev_position + region.getDeltaPosition(), p.position };
     Linef surface  = math::shift(surf->surface, region.getPosition());
-    Vec2f normal   = math::vector(surface).lefthand().unit();
+    Vec2f normal   = math::lefthand_normal(surface);
 
-    if (math::dot(math::vector(movement), normal) < 0.f)
+    if (math::dot(math::vectorize(movement), normal) < 0.f)
     {
-        Vec2f intersect = math::intersection(movement, surface);
-        Rectf bounds = math::rect_bound(math::line_bounds(movement), math::line_bounds(surface));
-        if (bounds.contains(intersect)
-            && math::line_has_point(movement, intersect, 0.01f)
-            && math::line_has_point(surface,  intersect, 0.01f))
+        auto intersect_opt = math::intersection(movement, surface);
+        Vec2f intersect = intersect_opt.value_or(Vec2f{});
+        Rectf bounds = math::rect_bounds(math::line_bounds(movement), math::line_bounds(surface));
+        if (intersect_opt.has_value()
+            && bounds.contains(intersect)
+            && math::distance_from_line(movement, intersect) < 0.01f
+            && math::distance_from_line(surface,  intersect) < 0.01f)
         {
             p.position = intersect;
 
             std::default_random_engine rand{ p.id };
 
-            auto bounce = -math::projection(p.velocity, normal, true) * pick_random(cfg.collision_bounce_min, cfg.collision_bounce_max, rand);
+            auto bounce = -math::projection(p.velocity, normal) * pick_random(cfg.collision_bounce_min, cfg.collision_bounce_max, rand);
             auto scatter_ang = math::angle(normal) + Angle::Degree(pick_random(-cfg.collision_scatter_angle_max, cfg.collision_scatter_angle_max, rand));
             auto scatter = Vec2f{ cosf(scatter_ang.radians()), sinf(scatter_ang.radians()) } * pick_random(cfg.collision_scatter_force_min, cfg.collision_scatter_force_max, rand);
 
-            p.velocity = math::projection(region.velocity, normal, true)
-                    + math::projection(p.velocity, normal.righthand(), true) * (1.f - cfg.collision_damping)
+            p.velocity = math::projection(region.velocity, normal)
+                    + math::projection(p.velocity, math::righthand(normal)) * (1.f - cfg.collision_damping)
                     + bounce
                     + scatter;
 
@@ -414,10 +416,10 @@ void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders, even
             for (auto & p_bound : p_bounds) {
                 p_bound.color = Color::White;
             }
-            p_bounds[0].pos = math::rect_topleft(r_bounds);
-            p_bounds[1].pos = math::rect_topright(r_bounds);
-            p_bounds[2].pos = math::rect_botright(r_bounds);
-            p_bounds[3].pos = math::rect_botleft(r_bounds);
+            p_bounds[0].pos = r_bounds.topleft();
+            p_bounds[1].pos = r_bounds.topright();
+            p_bounds[2].pos = r_bounds.botright();
+            p_bounds[3].pos = r_bounds.botleft();
         }
 
         for (auto quad : quad_area) {
@@ -437,10 +439,10 @@ void Emitter::apply_collision(const poly_id_map<ColliderRegion>& colliders, even
                 for (auto & q_bound : q_bounds) {
                     q_bound.color = Color::Green;
                 }
-                q_bounds[0].pos = math::rect_topleft(*bounds);
-                q_bounds[1].pos = math::rect_topright(*bounds);
-                q_bounds[2].pos = math::rect_botright(*bounds);
-                q_bounds[3].pos = math::rect_botleft(*bounds);
+                q_bounds[0].pos = bounds->topleft();
+                q_bounds[1].pos = bounds->topright();
+                q_bounds[2].pos = bounds->botright();
+                q_bounds[3].pos = bounds->botleft();
             }
 
             std::for_each(

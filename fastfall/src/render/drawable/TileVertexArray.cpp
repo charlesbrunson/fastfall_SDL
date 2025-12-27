@@ -1,7 +1,6 @@
 #include "fastfall/render/drawable/TileVertexArray.hpp"
 
 #include "fastfall/util/log.hpp"
-#include "fastfall/util/Vec2.hpp"
 
 #include "fastfall/engine/config.hpp"
 #include "fastfall/render/target/RenderTarget.hpp"

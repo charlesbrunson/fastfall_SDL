@@ -38,24 +38,24 @@ void drawDrawCollidable(const Collidable& c) {
 		i.color = Color(255, 255, 0, 200);
 	}
 
-	prevShape[0].pos = math::rect_topleft(prevRect);
-	prevShape[1].pos = math::rect_topright(prevRect);
-	prevShape[2].pos = math::rect_botright(prevRect);
-	prevShape[3].pos = math::rect_botleft(prevRect);
+	prevShape[0].pos = prevRect.topleft();
+	prevShape[1].pos = prevRect.topright();
+	prevShape[2].pos = prevRect.botright();
+	prevShape[3].pos = prevRect.botleft();
 
-	curShape[0].pos = math::rect_topleft(curRect);
-	curShape[1].pos = math::rect_topright(curRect);
-	curShape[2].pos = math::rect_botleft(curRect);
-	curShape[3].pos = math::rect_botright(curRect);
+	curShape[0].pos = curRect.topleft();
+	curShape[1].pos = curRect.topright();
+	curShape[2].pos = curRect.botleft();
+	curShape[3].pos = curRect.botright();
 
-	Rectf r = math::rect_bound(
+	Rectf r = math::rect_bounds(
 		Rectf(curShape[0].pos, curShape[3].pos - curShape[0].pos),
 		Rectf(prevShape[0].pos, prevShape[2].pos - prevShape[0].pos)
 	);
-	bounding[0].pos = math::rect_topleft(r);
-	bounding[1].pos = math::rect_topright(r);
-	bounding[2].pos = math::rect_botright(r);
-	bounding[3].pos = math::rect_botleft(r);
+	bounding[0].pos = r.topleft();
+	bounding[1].pos = r.topright();
+	bounding[2].pos = r.botright();
+	bounding[3].pos = r.botleft();
 	
 }
 
@@ -96,8 +96,8 @@ void debugDrawContact(const AppliedContact& contact) {
 		corner[2].color = Color::White;
 
 		corner[0].pos = contact.collider.surface.p1;
-		corner[1].pos = contact.collider.surface.p1 - (contact.ortho_n - contact.ortho_n.lefthand()) * 2.f;
-		corner[2].pos = contact.collider.surface.p1 - (contact.ortho_n + contact.ortho_n.lefthand()) * 2.f;
+		corner[1].pos = contact.collider.surface.p1 - (contact.ortho_n - math::lefthand(contact.ortho_n)) * 2.f;
+		corner[2].pos = contact.collider.surface.p1 - (contact.ortho_n + math::lefthand(contact.ortho_n)) * 2.f;
 	}
 	else {
 		auto surf = debug::draw(Primitive::TRIANGLES, 18);
@@ -107,7 +107,7 @@ void debugDrawContact(const AppliedContact& contact) {
 
 		auto draw_surf = [&](Linef s, size_t start_ndx, Color left, Color right)
 		{
-			Vec2f n = math::vector(s).lefthand().unit() * 0.5f;
+			Vec2f n = math::lefthand_normal(s) * 0.5f;
 
 			surf[start_ndx + 0].pos = s.p1;
 			surf[start_ndx + 1].pos = s.p2;
@@ -297,8 +297,8 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
 		// apply deceleration
         Vec2f zero_vel = _tracker && _tracker->has_contact() ? Vec2f{} : last_parent_vel;
 		auto local_vel_from_zero = local_vel - zero_vel;
-		auto decel_vel = -1.f * local_vel_from_zero.unit() * (decel * (float)deltaTime);
-		local_vel = local_vel_from_zero.magnitudeSquared() > decel_vel.magnitudeSquared()
+		auto decel_vel = -1.f * math::normalize(local_vel_from_zero) * (decel * (float)deltaTime);
+		local_vel = math::magnitude2(local_vel_from_zero) > math::magnitude2(decel_vel)
 			? local_vel + decel_vel
 			: zero_vel;
 
@@ -315,8 +315,8 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
 		}
 
 		// apply gravity to vel and pos
-        local_vel += gravity * deltaTime;
-		next_pos  += gravity * deltaTime * deltaTime;
+        local_vel += gravity * static_cast<float>(deltaTime);
+		next_pos  += gravity * static_cast<float>(deltaTime * deltaTime);
 
 		// cache frame inital velocity for post collision friction calculation
 		local_precollision_vel = local_vel;
@@ -573,9 +573,9 @@ void imgui_component(World& w, ID<Collidable> id) {
     text_vec2("Friction", col.get_friction());
     text_vec2("Gravity",  col.get_gravity());
 
-    text_vec1("Local  Speed", col.get_local_vel().magnitude());
-    text_vec1("Parent Speed", col.get_parent_vel().magnitude());
-    text_vec1("Global Speed", col.get_global_vel().magnitude());
+    text_vec1("Local  Speed", math::magnitude(col.get_local_vel()));
+    text_vec1("Parent Speed", math::magnitude(col.get_parent_vel()));
+    text_vec1("Global Speed", math::magnitude(col.get_global_vel()));
 
     ImGui::Text("Attach ID: "); ImGui::NextColumn();
     imgui_component_ref(w, col.get_attach_id()); ImGui::NextColumn();

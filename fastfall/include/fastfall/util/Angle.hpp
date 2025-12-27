@@ -8,6 +8,7 @@ namespace ff {
 
 class Angle {
 public:
+
     constexpr static inline float PI = std::numbers::pi_v<float>;
 
 	constexpr Angle() {
@@ -93,14 +94,83 @@ protected:
 	}
 
 	// dunno why this doesn't already exist
-	static constexpr inline float constexpr_abs(float v)
+	static constexpr float constexpr_abs(float v)
 	{
 		return (v < 0.f ? -v : v);
 	}
 
-	static constexpr inline float remainder(float _X, float _Y) {
+	static constexpr float remainder(float _X, float _Y) {
 		float sign = (_X < 0.f ? -1.f : 1.f);
 		return sign * (constexpr_abs(_X) - static_cast<long long int>(constexpr_abs(_X / _Y)) * constexpr_abs(_Y));
+	}
+
+	friend constexpr bool operator< (const Angle& lhs, const Angle& rhs) noexcept {
+		return lhs.radians() < rhs.radians();
+	}
+	friend constexpr bool operator<= (const Angle& lhs, const Angle& rhs) noexcept {
+		return lhs.radians() <= rhs.radians();
+	}
+
+	friend constexpr bool operator> (const Angle& lhs, const Angle& rhs) noexcept {
+		return lhs.radians() > rhs.radians();
+	}
+	friend constexpr bool operator>= (const Angle& lhs, const Angle& rhs) noexcept {
+		return lhs.radians() >= rhs.radians();
+	}
+
+	friend constexpr bool operator== (const Angle& lhs, const Angle& rhs) noexcept {
+		return lhs.radians() == rhs.radians();
+	}
+	friend constexpr bool operator!= (const Angle& lhs, const Angle& rhs) noexcept {
+		return lhs.radians() != rhs.radians();
+	}
+
+	friend constexpr Angle operator -(const Angle& right) {
+		return Angle(-right.radians());
+	}
+	friend constexpr Angle& operator +=(Angle& left, const Angle& right) {
+		left.setRad(left.radians() + right.radians());
+		return left;
+	}
+	friend constexpr Angle& operator -=(Angle& left, const Angle& right) {
+		left.setRad(left.radians() - right.radians());
+		return left;
+	}
+
+	friend constexpr Angle operator +(const Angle& left, const Angle& right) {
+		return Angle(left.radians() + right.radians());
+	}
+	friend constexpr Angle operator -(const Angle& left, const Angle& right) {
+		return Angle(left.radians() - right.radians());
+	}
+	friend constexpr Angle operator *(const Angle& left, float right) {
+		return Angle(left.radians() * right);
+	}
+	friend constexpr Angle operator *(float left, const Angle& right) {
+		return Angle(right.radians() * left);
+	}
+	friend constexpr Angle& operator *=(Angle& left, float right) {
+		left.setRad(left.radians() * right);
+		return left;
+	}
+	friend constexpr Angle operator /(const Angle& left, float right) {
+		return Angle(left.radians() / right);
+	}
+	friend constexpr Angle& operator /=(Angle& left, float right) {
+		left.setRad(left.radians() / right);
+		return left;
+	}
+
+	friend constexpr Angle operator /(const Angle& left, Angle right) {
+		return Angle(left.radians() / right.radians());
+	}
+	friend constexpr Angle& operator /=(Angle& left, Angle right) {
+		left.setRad(left.radians() / right.radians());
+		return left;
+	}
+
+	friend constexpr Angle abs(const Angle& ang) {
+		return (ang >= Angle{} ? ang : -ang);
 	}
 };
 
@@ -110,7 +180,7 @@ struct AngleRange {
     bool  inclusive = true;
 
     [[nodiscard]]
-    inline bool contains(Angle ang) const {
+    bool contains(Angle ang) const {
         if (inclusive) {
             return ang.radians() >= min.radians() && ang.radians() <= max.radians();
         }
@@ -130,71 +200,3 @@ inline const AngleRange AngleRange::Any = {
 
 }
 
-constexpr bool operator< (const ff::Angle& lhs, const ff::Angle& rhs) noexcept {
-	return lhs.radians() < rhs.radians();
-}
-constexpr bool operator<= (const ff::Angle& lhs, const ff::Angle& rhs) noexcept {
-	return lhs.radians() <= rhs.radians();
-}
-
-constexpr bool operator> (const ff::Angle& lhs, const ff::Angle& rhs) noexcept {
-	return lhs.radians() > rhs.radians();
-}
-constexpr bool operator>= (const ff::Angle& lhs, const ff::Angle& rhs) noexcept {
-	return lhs.radians() >= rhs.radians();
-}
-
-constexpr bool operator== (const ff::Angle& lhs, const ff::Angle& rhs) noexcept {
-	return lhs.radians() == rhs.radians();
-}
-constexpr bool operator!= (const ff::Angle& lhs, const ff::Angle& rhs) noexcept {
-	return lhs.radians() != rhs.radians();
-}
-
-inline constexpr ff::Angle operator -(const ff::Angle& right) {
-	return ff::Angle(-right.radians());
-}
-inline constexpr ff::Angle& operator +=(ff::Angle& left, const ff::Angle& right) {
-	left.setRad(left.radians() + right.radians());
-	return left;
-}
-inline constexpr ff::Angle& operator -=(ff::Angle& left, const ff::Angle& right) {
-	left.setRad(left.radians() - right.radians());
-	return left;
-}
-
-inline constexpr ff::Angle operator +(const ff::Angle& left, const ff::Angle& right) {
-	return ff::Angle(left.radians() + right.radians());
-}
-inline constexpr ff::Angle operator -(const ff::Angle& left, const ff::Angle& right) {
-	return ff::Angle(left.radians() - right.radians());
-}
-inline constexpr ff::Angle operator *(const ff::Angle& left, float right) {
-	return ff::Angle(left.radians() * right);
-}
-inline constexpr ff::Angle operator *(float left, const ff::Angle& right) {
-	return ff::Angle(right.radians() * left);
-}
-inline constexpr ff::Angle& operator *=(ff::Angle& left, float right) {
-	left.setRad(left.radians() * right);
-	return left;
-}
-inline constexpr ff::Angle operator /(const ff::Angle& left, float right) {
-	return ff::Angle(left.radians() / right);
-}
-inline constexpr ff::Angle& operator /=(ff::Angle& left, float right) {
-	left.setRad(left.radians() / right);
-	return left;
-}
-
-inline constexpr ff::Angle operator /(const ff::Angle& left, ff::Angle right) {
-    return ff::Angle(left.radians() / right.radians());
-}
-inline constexpr ff::Angle& operator /=(ff::Angle& left, ff::Angle right) {
-    left.setRad(left.radians() / right.radians());
-    return left;
-}
-
-inline constexpr ff::Angle abs(const ff::Angle& ang) {
-	return (ang >= ff::Angle{} ? ang : -ang);
-}

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "fastfall/util/math.hpp"
-#include "fastfall/util/Vec2.hpp"
 #include "fastfall/util/log.hpp"
 #include "fastfall/render/util/Color.hpp"
 

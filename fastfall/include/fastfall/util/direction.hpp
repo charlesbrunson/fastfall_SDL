@@ -3,7 +3,8 @@
 #include <concepts>
 #include <array>
 
-#include "Vec2.hpp"
+#include <fmt/format.h>
+#include "glm_types.hpp"
 #include "Angle.hpp"
 
 namespace ff {

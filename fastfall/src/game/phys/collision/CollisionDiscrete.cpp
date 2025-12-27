@@ -7,7 +7,7 @@
 namespace ff {
 
 inline float getYforX(const Linef& onLine, float X) {
-	Vec2f v = math::vector(onLine);
+	Vec2f v = math::vectorize(onLine);
 	assert(v.x != 0.f); // no vertical lines
 	float scale = ((X - onLine.p1.x) / v.x);
 	return (scale * v.y) + onLine.p1.y;
@@ -82,8 +82,8 @@ void CollisionDiscrete::reset(CollisionContext ctx, ColliderQuad quad, Type coll
 	assert(tArea.width > 0.f);
 	assert(tArea.height > 0.f);
 
-	tPos = math::rect_topleft(tArea);
-	tMid = math::rect_mid(tArea);
+	tPos = tArea.topleft();
+	tMid = tArea.center();
 	tHalf = tArea.getSize() / 2.f;
 
     initCollidableData(ctx);
@@ -268,8 +268,8 @@ void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
 			if (!math::is_horizontal(axis.contact.collider.surface)) {
 				Y = getYforX(axis.contact.collider.surface, cMid.x);
 
-                float clamp = math::clamp(cMid.x, tArea.left, tArea.left + tArea.width);
-                axis.contact.collider_n = math::vector(axis.contact.collider.surface).lefthand().unit();
+                float clamp = std::clamp(cMid.x, tArea.left, tArea.left + tArea.width);
+                axis.contact.collider_n = math::lefthand_normal(axis.contact.collider.surface);
 				if (cPrev.top + cPrev.height <= tArea.top - collider_deltap.y &&
 					Y <= tArea.top &&
 					(axis.quadIndex != 255U) &&
@@ -292,11 +292,11 @@ void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
 			}
 
 			axis.contact.separation = -Y + (cMid.y + cHalf.y);
-			axis.contact.position = Vec2f(math::clamp(cMid.x, tArea.left, tArea.left + tArea.width), Y);
+			axis.contact.position = Vec2f(std::clamp(cMid.x, tArea.left, tArea.left + tArea.width), Y);
             axis.contact.on_center = axis.contact.position.x == cMid.x;
 
 			// calc stick
-			Vec2f pMid = math::rect_mid(cPrev);
+			Vec2f pMid = cPrev.center();
 			Linef left{ axis.contact.collider.ghostp0, axis.contact.collider.surface.p1 };
 			Linef right{ axis.contact.collider.surface.p2, axis.contact.collider.ghostp3 };
 
@@ -323,8 +323,8 @@ void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
 			if (!math::is_horizontal(axis.contact.collider.surface)) {
 
 				Y = getYforX(axis.contact.collider.surface, cMid.x);
-                axis.contact.collider_n = math::vector(axis.contact.collider.surface).lefthand().unit();
-                float clamp = math::clamp(cMid.x, tArea.left, tArea.left + tArea.width);
+                axis.contact.collider_n = math::lefthand_normal(axis.contact.collider.surface);
+                float clamp = std::clamp(cMid.x, tArea.left, tArea.left + tArea.width);
 
 				if (cPrev.top >= tArea.top + tArea.height - collider_deltap.y &&
 					Y >= tArea.top + tArea.height &&
@@ -348,11 +348,11 @@ void CollisionDiscrete::updateContact(CollisionContext ctx) noexcept {
 			}
 
 			axis.contact.separation = Y - (cMid.y - cHalf.y);
-			axis.contact.position = Vec2f(math::clamp(cMid.x, tArea.left, tArea.left + tArea.width), Y);
+			axis.contact.position = Vec2f(std::clamp(cMid.x, tArea.left, tArea.left + tArea.width), Y);
             axis.contact.on_center = axis.contact.position.x == cMid.x;
 
 			// calc stick
-			Vec2f pMid = math::rect_mid(cPrev);
+			Vec2f pMid = cPrev.center();
 			Linef left{ axis.contact.collider.surface.p2, axis.contact.collider.ghostp3 };
 			Linef right{ axis.contact.collider.ghostp0, axis.contact.collider.surface.p1 };
 

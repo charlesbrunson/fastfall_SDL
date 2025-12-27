@@ -92,7 +92,7 @@ public:
                 bounds = math::line_bounds(surf.collider.surface);
             }
             else {
-                *bounds = math::rect_bound(*bounds, math::line_bounds(surf.collider.surface));
+                *bounds = math::rect_bounds(*bounds, math::line_bounds(surf.collider.surface));
             }
         }
         return bounds;

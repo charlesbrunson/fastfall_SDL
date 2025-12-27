@@ -143,7 +143,7 @@ namespace ff {
 
 				pen.x += metrics.advance_x;
 
-				bounding_size = math::rect_bound(Rectf{
+				bounding_size = math::rect_bounds(Rectf{
 						(float)pen.x + metrics.bearing.x,
 						(float)pen.y - m_font->getYMax(),
 						(float)metrics.size.x,

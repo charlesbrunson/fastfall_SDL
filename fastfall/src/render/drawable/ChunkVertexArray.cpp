@@ -2,6 +2,7 @@
 
 #include "fastfall/engine/config.hpp"
 #include "fastfall/util/log.hpp"
+#include "fastfall/util/math.hpp"
 
 #include "fastfall/render/DebugDraw.hpp"
 
@@ -68,7 +69,7 @@ void ChunkVertexArray::do_setTile(Vec2u at, TileID tile) {
 
 	auto iter = std::upper_bound(m_chunks.begin(), m_chunks.end(), chunkPos, [](const Vec2u& pos, const Chunk& chunk) {
 		return pos <= chunk.chunk_pos;
-		});
+	});
 
 	if (iter == m_chunks.end()) {
 		m_chunks.emplace_back(Chunk{
@@ -192,10 +193,10 @@ void ChunkVertexArray::predraw(predraw_state_t predraw_state) {
 				for (auto & i : chunk_box) {
 					i.color = Color(255, 0, 0, 200);
 				}
-				chunk_box[0].pos = math::rect_topleft(bound);
-				chunk_box[1].pos = math::rect_topright(bound);
-				chunk_box[2].pos = math::rect_botright(bound);
-				chunk_box[3].pos = math::rect_botleft(bound);
+				chunk_box[0].pos = bound.topleft();
+				chunk_box[1].pos = bound.topright();
+				chunk_box[2].pos = bound.botright();
+				chunk_box[3].pos = bound.botleft();
 			}
 		}
 
@@ -211,10 +212,10 @@ void ChunkVertexArray::predraw(predraw_state_t predraw_state) {
 			for (auto & i : size_box) {
 				i.color = Color::White;
 			}
-			size_box[0].pos = math::rect_topleft(bound);
-			size_box[1].pos = math::rect_topright(bound);
-			size_box[2].pos = math::rect_botright(bound);
-			size_box[3].pos = math::rect_botleft(bound);
+			size_box[0].pos = bound.topleft();
+			size_box[1].pos = bound.topright();
+			size_box[2].pos = bound.botright();
+			size_box[3].pos = bound.botleft();
 
 		}
 	}

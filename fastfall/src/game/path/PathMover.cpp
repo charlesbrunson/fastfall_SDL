@@ -67,7 +67,7 @@ void PathMover::update(AttachPoint& attach, secs deltaTime)
             // if we're not at the end
             if (curr_ndx < _path.waypoints.size() - 1) {
                 ++curr_ndx;
-                dist_to_next_waypoint = (next_waypoint_pos() - prev_waypoint_pos()).magnitude();
+                dist_to_next_waypoint = math::magnitude(next_waypoint_pos() - prev_waypoint_pos());
                 //progress = 0.f;
             }
         };
@@ -99,7 +99,7 @@ void PathMover::update(AttachPoint& attach, secs deltaTime)
 
         attach.set_pos(get_pos());
 
-        vel = (get_pos() - prev_pos) / deltaTime;
+        vel = (get_pos() - prev_pos) / static_cast<float>(deltaTime);
 
         attach.set_parent_vel(vel);
     }

@@ -887,7 +887,7 @@ void Engine::resizeWindow(Vec2u size, bool force_size)
 
     Vec2u minSize{
         expandMargins
-        ? Vec2u{ GAME_W, GAME_H } * 2
+        ? Vec2u{ GAME_W, GAME_H } * 2u
         : Vec2u{ GAME_W, GAME_H }
     };
 
@@ -953,16 +953,16 @@ void Engine::resizeWindow(Vec2u size, bool force_size)
     Rectf wsf {windowSize};
 
     auto& margin = *margins;
-    margin[0] = { math::rect_topleft(wsf)  };
-    margin[1] = { math::rect_topleft(vpf)  };
-    margin[2] = { math::rect_botleft(wsf)  };
-    margin[3] = { math::rect_botleft(vpf)  };
-    margin[4] = { math::rect_botright(wsf) };
-    margin[5] = { math::rect_botright(vpf) };
-    margin[6] = { math::rect_topright(wsf) };
-    margin[7] = { math::rect_topright(vpf) };
-    margin[8] = { math::rect_topleft(wsf)  };
-    margin[9] = { math::rect_topleft(vpf)  };
+    margin[0] = { wsf.topleft()  };
+    margin[1] = { vpf.topleft()  };
+    margin[2] = { wsf.botleft()  };
+    margin[3] = { vpf.botleft()  };
+    margin[4] = { wsf.botright() };
+    margin[5] = { vpf.botright() };
+    margin[6] = { wsf.topright() };
+    margin[7] = { vpf.topright() };
+    margin[8] = { wsf.topleft()  };
+    margin[9] = { vpf.topleft()  };
 
     marginView = View{ { 0.f, 0.f }, Vec2f{ finalSize } };
     marginView.setCenter(Vec2f{ finalSize } / 2.f);

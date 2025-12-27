@@ -2,20 +2,23 @@
 
 #include <stdexcept>
 
-#include "fastfall/util/Vec2.hpp"
+#include "fastfall/util/glm_types.hpp"
 
 namespace ff {
 
 template<class T>
 class Line {
 public:
+	using value_type = T;
+	using point_type = Vec2<T>;
+
 	constexpr Line() :
 		p1(),
 		p2()
 	{
 
 	};
-	constexpr Line(Vec2<T> point1, Vec2<T> point2) :
+	constexpr Line(point_type point1, point_type point2) :
 		p1(point1),
 		p2(point2)
 	{
@@ -30,44 +33,52 @@ public:
 
 	};
 
-	Vec2<T> p1;
-	Vec2<T> p2;
+	point_type p1;
+	point_type p2;
 
-	constexpr inline Vec2<T>& operator[](std::size_t ndx) {
+	constexpr point_type& operator[](std::size_t ndx) {
 		if (ndx >= 2)
 			throw std::out_of_range("out of range");
 
 		return ndx == 0 ? p1 : p2;
 	};
-	constexpr inline const Vec2<T>& operator[](std::size_t ndx) const {
+	constexpr const point_type& operator[](std::size_t ndx) const {
 		if (ndx >= 2)
 			throw std::out_of_range("out of range");
 
 		return ndx == 0 ? p1 : p2;
 	};
 
-	std::string to_string() const noexcept {
+	[[nodiscard]] std::string to_string() const noexcept {
 		return p1.to_string() + "->" + p2.to_string();
 	}
 
-	Line<T> reverse() const {
-		return Line<T>(p2, p1);
+	/*
+	constexpr Line reverse() const {
+		return Line(p2, p1);
 	}
 
+	constexpr Line shift(const Vec2<T>& offset) const {
+		return Line(p2 + offset, p1 + offset);
+	}
 
+	constexpr Vec2<T> vector() const
+	{
+		return p2 - p1;
+	}
+	*/
+
+	friend bool operator==(const Line& lhs, const Line& rhs) {
+		return (lhs.p1 == rhs.p1) && (lhs.p2 == rhs.p2);
+	}
+
+	friend bool operator!=(const Line& lhs, const Line& rhs) {
+		return (lhs.p1 != rhs.p1) || (lhs.p2 != rhs.p2);
+	}
 };
 
-typedef Line<int> Linei;
-typedef Line<float> Linef;
+using Linei = Line<int>;
+using Linef = Line<float>;
 
 }
 
-template<class T>
-inline bool operator==(const ff::Line<T>& lhs, const ff::Line<T>& rhs) {
-	return (lhs.p1 == rhs.p1) && (lhs.p2 == rhs.p2);
-}
-
-template<class T>
-inline bool operator!=(const ff::Line<T>& lhs, const ff::Line<T>& rhs) {
-	return (lhs.p1 != rhs.p1) || (lhs.p2 != rhs.p2);
-}

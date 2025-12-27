@@ -102,10 +102,10 @@ bool is_diverging_V(Linef A, Linef B)
 	Vec2f nMid{ math::midpoint(A) };
 	Vec2f sMid{ math::midpoint(B) };
 
-	Vec2f nNormal = math::vector(A).lefthand().unit();
+	Vec2f nNormal = math::lefthand_normal(A);
 	bool nFacingAway = math::dot(sMid - nMid, nNormal) < 0;
 
-	Vec2f sNormal = math::vector(B).lefthand().unit();
+	Vec2f sNormal = math::lefthand_normal(B);
 	bool sFacingAway = math::dot(nMid - sMid, sNormal) < 0;
 
 	return nFacingAway && sFacingAway;
@@ -369,7 +369,7 @@ GhostEdge isGhostEdge(const ContinuousContact& basis, const ContinuousContact& c
         }
     }
 
-	Vec2f basisNormal = math::vector(basis.collider.surface).lefthand().unit();
+	Vec2f basisNormal = math::lefthand_normal(basis.collider.surface);
 
 	float dotp1 = math::dot(basisNormal, candLine.p1 - basisLine.p2);
 	float dotp2 = math::dot(basisNormal, candLine.p2 - basisLine.p1);
@@ -446,9 +446,10 @@ std::optional<ContinuousContact> CollisionSolver::detectWedge(const ContinuousCo
 		Linef floorLine = north->collider.surface;
 		Linef ceilLine = math::shift(south->collider.surface, Vec2f{ 0.f, colBox.height });
 
-		Vec2f intersect = math::intersection(floorLine, ceilLine);
+		auto intersect_opt = math::intersection(floorLine, ceilLine);
+		Vec2f intersect = intersect_opt.value_or(Vec2f{});
 
-		if (std::isnan(intersect.x) || std::isnan(intersect.y)) 
+		if (!intersect_opt.has_value())
 		{
 			LOG_WARN("bad intersection");
 		}
@@ -461,14 +462,14 @@ std::optional<ContinuousContact> CollisionSolver::detectWedge(const ContinuousCo
             contact->id = std::nullopt;
             contact->separation = abs(intersect.x - pos.x),
             contact->hasContact = true,
-            contact->position	= Vec2f{ pos.x, math::rect_mid(colBox).y },
+            contact->position	= Vec2f{ pos.x, colBox.center().y },
             contact->ortho_n	= Vec2f{ side, 0.f },
             contact->collider_n = Vec2f{ side, 0.f },
             contact->velocity	= Vec2f{
                 intersect
                 - math::intersection(
                     math::shift(floorLine, -north->velocity),
-                    math::shift(ceilLine, -south->velocity))
+                    math::shift(ceilLine, -south->velocity)).value_or(Vec2f{ 0, 0 })
             };
 
 			if (json_dump)
@@ -704,7 +705,7 @@ bool CollisionSolver::applyFirst(std::deque<ContinuousContact*>& stack) {
 			else {
 				const ContinuousContact* c1 = *pick;
 				const ContinuousContact* c2 = *it;
-				Vec2f mid = math::rect_mid(collidable->getBox());
+				Vec2f mid = collidable->getBox().center();
 
 				if (math::is_horizontal((*pick)->ortho_n)) {
 					if (abs(c2->position.y - mid.y) < abs(c1->position.y - mid.y)) {

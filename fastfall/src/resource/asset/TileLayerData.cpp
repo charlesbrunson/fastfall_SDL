@@ -72,7 +72,10 @@ void TileLayerData::resize(Vec2u size, Vec2i offset) {
 			if (!tile.has_tile)
 				continue;
 
-			n_data.setTile(tile.pos + offset, tile.tile_id, *tilesets[tile.tileset_ndx].tileset);
+			Vec2i pos = tile.pos;
+			pos += offset;
+
+			n_data.setTile(pos, tile.tile_id, *tilesets[tile.tileset_ndx].tileset);
 		}
 	}
 
@@ -280,7 +283,7 @@ void TileLayerData::setShape(Vec2u at, TileShape shape, TileChangeArray& changes
 				adj_at.y %= shapes_view.row_count();
 			}
 			else {
-				adj_at = at + vdir;
+				adj_at = Vec2i{at} + vdir;
 			}
 
 
