@@ -70,13 +70,13 @@ namespace ff::math
     }
 
     template<typename T>
-    constexpr auto magnitude(const Vec2<T>& v)
+    constexpr auto mag(const Vec2<T>& v)
     {
         return glm::length(v);
     }
 
     template<typename T>
-    constexpr auto magnitude2(const Vec2<T>& v)
+    constexpr auto mag2(const Vec2<T>& v)
     {
         return glm::length2(v);
     }
@@ -94,27 +94,15 @@ namespace ff::math
     }
 
     template<typename T>
-    constexpr auto projection(const Vec2<T>& v, const Vec2<T>& unit)
+    constexpr auto proj(const Vec2<T>& v, const Vec2<T>& normal)
     {
-        return glm::proj(v, unit);
+        return glm::proj(v, normal);
     }
 
     template<typename T>
-    constexpr auto projection_unnormalized(const Vec2<T>& v1, const Vec2<T>& v2)
+    constexpr bool collinear(const Vec2<T>& unit_v1, const Vec2<T>& unit_v2)
     {
-        return glm::proj(v1, math::unit(v2));
-    }
-
-    template<typename T>
-    constexpr bool collinear(const Vec2<T>& normal_v1, const Vec2<T>& normal_v2)
-    {
-        return std::abs(dot(normal_v1, normal_v2)) > (T{1} - glm::epsilon<T>());
-    }
-
-    template<typename T>
-    constexpr auto change_magnitude(const Vec2<T>& v, T magnitude)
-    {
-        return math::unit(v) * magnitude;
+        return std::abs(dot(unit_v1, unit_v2)) > (T{1} - glm::epsilon<T>());
     }
 
     template<typename T>
@@ -127,13 +115,13 @@ namespace ff::math
     }
 
     template<typename T>
-    constexpr auto distance(const Vec2<T>& v1, const Vec2<T>& v2)
+    constexpr auto dist(const Vec2<T>& v1, const Vec2<T>& v2)
     {
         return glm::distance(v1, v2);
     }
 
     template<typename T>
-    constexpr auto distance2(const Vec2<T>& v1, const Vec2<T>& v2)
+    constexpr auto dist2(const Vec2<T>& v1, const Vec2<T>& v2)
     {
         return glm::distance2(v1, v2);
     }
@@ -167,13 +155,13 @@ namespace ff::math
     }
 
     template<typename T>
-    constexpr Vec2<T> vectorize(const Line<T>& line) {
+    constexpr Vec2<T> vector(const Line<T>& line) {
         return line.p2 - line.p1;
     }
 
     template<typename T>
     constexpr Vec2<T> unit(const Line<T>& line) {
-        return math::unit(math::vectorize(line));
+        return math::unit(math::vector(line));
     }
 
     template<typename T>
@@ -190,31 +178,31 @@ namespace ff::math
     template<typename T>
     constexpr Angle angle(const Line<T>& line)
     {
-        return angle(math::vectorize(line));
+        return angle(math::vector(line));
     }
 
     template<typename T>
     constexpr auto righthand_normal(const Line<T> &line)
     {
-        return righthand_normal(math::vectorize(line));
+        return righthand_normal(math::vector(line));
     }
 
     template<typename T>
     constexpr auto righthand_unit_normal(const Line<T> &line)
     {
-        return righthand_unit_normal(math::vectorize(line));
+        return righthand_unit_normal(math::vector(line));
     }
 
     template<typename T>
     constexpr auto lefthand_normal(const Line<T> &line)
     {
-        return lefthand_normal(math::vectorize(line));
+        return lefthand_normal(math::vector(line));
     }
 
     template<typename T>
     constexpr auto lefthand_unit_normal(const Line<T> &line)
     {
-        return lefthand_unit_normal(math::vectorize(line));
+        return lefthand_unit_normal(math::vector(line));
     }
 
     template<typename T>
@@ -274,7 +262,7 @@ namespace ff::math
                 Vec3<T>{line.p2.x, line.p2.y, 0}
             );
         Vec2<T> result{ result3 };
-        return math::distance(result, point);
+        return math::dist(result, point);
     }
 
     template<typename T>
@@ -284,13 +272,13 @@ namespace ff::math
     }
 
     template<typename T>
-    constexpr auto distance(const Line<T>& line)
+    constexpr auto dist(const Line<T>& line)
     {
         return glm::distance(line.p1, line.p2);
     }
 
     template<typename T>
-    constexpr auto distance2(const Line<T>& line)
+    constexpr auto dist2(const Line<T>& line)
     {
         return glm::distance2(line.p1, line.p2);
     }
@@ -353,7 +341,7 @@ namespace ff::math
     // ANGLE
 
     template<typename T = float>
-    constexpr Vec2<T> vectorize(const Angle& ang) {
+    constexpr Vec2<T> vector(const Angle& ang) {
         return Vec2<T>{
             std::cos(ang.radians()),
             std::sin(ang.radians()),

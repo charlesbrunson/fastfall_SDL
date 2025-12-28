@@ -9,8 +9,8 @@ using namespace ff;
 
 bool SurfaceFollow::compare_paths(float travel_dir, const Path& from, const Path& pick, const Path& candidate)
 {
-    float curr_dist = math::distance2(pick.start_pos,      from.start_pos);
-    float cand_dist = math::distance2(candidate.start_pos, from.start_pos);
+    float curr_dist = math::dist2(pick.start_pos,      from.start_pos);
+    float cand_dist = math::dist2(candidate.start_pos, from.start_pos);
 
     if (cand_dist < curr_dist) {
         return true;
@@ -167,7 +167,7 @@ SurfaceFollow::travel_to(size_t id)
 {
     const Path& path = path_candidates[id];
     Vec2f unit = math::unit(path.start_pos - curr_path.start_pos);
-    float dist = math::distance(curr_path.start_pos, path.start_pos);
+    float dist = math::dist(curr_path.start_pos, path.start_pos);
 
     Vec2f npos = {};
     bool can_get_to_new_path = dist <= travel_dist;
@@ -274,7 +274,7 @@ bool SurfaceFollow::add_surface_if_valid(Linef path)
     {
         bool curr_has_inter = math::distance_from_line(dir_curr, inter) == 0.f;
         bool path_has_inter = math::distance_from_line(dir_path, inter) == 0.f;
-        float dot = math::dot(inter - ahead_pos, math::vectorize(dir_curr));
+        float dot = math::dot(inter - ahead_pos, math::vector(dir_curr));
         bool is_ahead = dot > 0;
 
         // make sure the intersection lies on both lines
@@ -314,7 +314,7 @@ bool SurfaceFollow::add_surface_if_valid(Linef path)
             }
             bool has_point = math::distance_from_line(dir_curr, collinear_intersect) == 0.f;
 
-            float dot = math::dot(collinear_intersect - ahead_pos, math::vectorize(dir_curr));
+            float dot = math::dot(collinear_intersect - ahead_pos, math::vector(dir_curr));
             bool is_ahead = dot > 0;
 
             if (is_ahead && has_point) {

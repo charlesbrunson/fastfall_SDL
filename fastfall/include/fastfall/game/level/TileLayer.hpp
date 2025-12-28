@@ -41,14 +41,14 @@ private:
 
 	struct dyn_t {
 		struct parallax_dyn_t {
-			Vec2f init_offset;
-			Vec2f cam_factor;
-			Vec2f offset;
+			Vec2f init_offset = {};
+			Vec2f cam_factor = {};
+			Vec2f offset = {};
 		} parallax;
 
 		struct scroll_dyn_t {
-			Vec2f prev_offset;
-			Vec2f offset;
+			Vec2f prev_offset = {};
+			Vec2f offset = {};
 		} scroll;
 
 		struct collision_dyn_t {
@@ -108,18 +108,18 @@ public:
 	bool set_scroll(World& world, bool enabled, Vec2f rate = Vec2f{});
 
 	// TileLayerData passthrough
-	inline bool			hasParallax()			const { return layer_data.hasParallax();		 };
-	inline Vec2u		getParallaxSize()		const { return layer_data.getParallaxSize();	 };
-	inline bool			hasScrolling()			const { return layer_data.hasScrolling();		 };
-	inline Vec2f		getScrollRate()			const { return layer_data.getScrollRate();		 };
-	inline bool			hasCollision()			const { return layer_data.hasCollision();		 };
-	inline unsigned		getCollisionBorders()	const { return layer_data.getCollisionBorders(); };
-	inline unsigned		getID()					const { return layer_data.getID();				 };
-	inline Vec2u		getLevelSize()			const { return layer_data.getSize();			 };
-	inline std::string_view getName()			const { return layer_data.getName();			 };
+	bool			hasParallax()			const { return layer_data.hasParallax();		 };
+	Vec2u		getParallaxSize()		const { return layer_data.getParallaxSize();	 };
+	bool			hasScrolling()			const { return layer_data.hasScrolling();		 };
+	Vec2f		getScrollRate()			const { return layer_data.getScrollRate();		 };
+	bool			hasCollision()			const { return layer_data.hasCollision();		 };
+	unsigned		getCollisionBorders()	const { return layer_data.getCollisionBorders(); };
+	unsigned		getID()					const { return layer_data.getID();				 };
+	Vec2u		getLevelSize()			const { return layer_data.getSize();			 };
+	std::string_view getName()			const { return layer_data.getName();			 };
 
 	// size varies based on parallax enabled
-	inline Vec2u		getSize() const { return hasParallax() ? getParallaxSize() : getLevelSize(); };
+	Vec2u		getSize() const { return hasParallax() ? getParallaxSize() : getLevelSize(); };
 
 	// tile queries
 	bool hasTileAt(Vec2u tile_pos) const;

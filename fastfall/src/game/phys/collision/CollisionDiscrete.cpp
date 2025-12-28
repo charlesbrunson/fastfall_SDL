@@ -7,7 +7,7 @@
 namespace ff {
 
 inline float getYforX(const Linef& onLine, float X) {
-	Vec2f v = math::vectorize(onLine);
+	Vec2f v = math::vector(onLine);
 	assert(v.x != 0.f); // no vertical lines
 	float scale = ((X - onLine.p1.x) / v.x);
 	return (scale * v.y) + onLine.p1.y;
@@ -118,7 +118,7 @@ void CollisionDiscrete::createAxes() noexcept
 			continue;
 
 		const ColliderSurface& surf = surface.collider;
-		Vec2f v = math::vectorize(surface.collider.surface);
+		Vec2f v = math::vector(surface.collider.surface);
 
 		assert(v != Vec2f());
 

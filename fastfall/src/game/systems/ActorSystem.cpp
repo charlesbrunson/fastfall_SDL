@@ -10,11 +10,13 @@ void ActorSystem::update(World& world, secs deltaTime)
     for (auto obj : update_order) {
         world.at(obj).update(world, deltaTime);
     }
-    append_created(world);
 }
 
 void ActorSystem::predraw(World& world, predraw_state_t predraw_state)
 {
+    if (predraw_state.updated)
+        append_created(world);
+
     std::vector<ID<Entity>> to_erase;
     for (auto& id : update_order) {
         auto& actor = world.at(id);

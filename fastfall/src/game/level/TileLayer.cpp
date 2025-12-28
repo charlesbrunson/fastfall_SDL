@@ -67,7 +67,7 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 
         chunk->setTexture(tileset->getTexture());
         chunk->use_visible_rect = true;
-        world.system<AttachSystem>().create(world, attach_id, chunk);
+        world.system<AttachSystem>().create(world, attach_id, chunk.id);
 	}
 
 	// init tiles

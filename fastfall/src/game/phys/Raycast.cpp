@@ -130,13 +130,13 @@ std::optional<RaycastHit> raycast_surface(const ColliderRegion& region, const Co
     Linef surface  = math::shift(surf->surface, region.getPosition());
     Vec2f normal   = math::lefthand_normal(surface);
 
-    if (math::dot(math::vectorize(raycastLine), normal) < 0.f)
+    if (math::dot(math::vector(raycastLine), normal) < 0.f)
     {
         Vec2f unit      = math::unit(raycastLine);
         Linef line      = { raycastLine.p1 + unit * backoff, raycastLine.p2 };
         Vec2f intersect = math::intersection(line, surface).value_or(Vec2f{ NAN, NAN });
         bool  forwards  = math::dot(unit, raycastLine.p1 - line.p1) >= 0;
-        float distance  = math::distance(raycastLine.p1, intersect) * (forwards ? 1.f : -1.f);
+        float distance  = math::dist(raycastLine.p1, intersect) * (forwards ? 1.f : -1.f);
 
         if (math::distance_from_line(line, intersect) < math::epsilon<float>()
             && math::distance_from_line(surface,  intersect) < math::epsilon<float>()
@@ -163,7 +163,7 @@ std::optional<RaycastHit> raycast_quad_diag(const ColliderRegion& region, const 
 
     for (const auto& surf : quad->surfaces) {
         if (!surf.hasSurface ||
-            (math::dot(math::lefthand_normal(surf.collider.surface), math::vectorize(raycastLine)) > 0.f))
+            (math::dot(math::lefthand_normal(surf.collider.surface), math::vector(raycastLine)) > 0.f))
             continue;
 
         for (auto dir : direction::cardinals) {
@@ -183,7 +183,7 @@ std::optional<RaycastHit> raycast_quad_ortho(const ColliderRegion& region, const
 
 	for (const auto& surf : quad->surfaces) {
 		if (!surf.hasSurface ||
-			(math::dot(math::lefthand_normal(surf.collider.surface), math::vectorize(raycastLine)) > 0.f))
+			(math::dot(math::lefthand_normal(surf.collider.surface), math::vector(raycastLine)) > 0.f))
 			continue;
 
         auto surface = math::shift(surf.collider.surface, region.getPosition());
@@ -196,14 +196,14 @@ std::optional<RaycastHit> raycast_quad_ortho(const ColliderRegion& region, const
 
 			Vec2f intersect = math::intersection(raycastLine, surface).value_or(Vec2f{NAN, NAN});
 			float dot = math::dot(
-				intersect - (raycastLine.p1 - math::vectorize(raycastLine)),
-				math::vectorize(raycastLine));
+				intersect - (raycastLine.p1 - math::vector(raycastLine)),
+				math::vector(raycastLine));
 
 			if (!std::isnan(intersect.x) && !std::isnan(intersect.y) && (dot >= 0.f)) {
 
 				float nDist = 0.f;
 
-				auto dir = direction::from_vector(math::vectorize(raycastLine)).value();
+				auto dir = direction::from_vector(math::vector(raycastLine)).value();
 				switch (dir) {
 				case Cardinal::N: nDist = raycastLine.p1.y - intersect.y; break;
 				case Cardinal::S: nDist = intersect.y - raycastLine.p1.y; break;
@@ -251,7 +251,7 @@ std::optional<RaycastHit> raycastRegion(const ColliderRegion& region, const Line
 }
 
 std::optional<RaycastHit> raycast(const World& world, Linef path, float backoff) {
-    float distance = math::distance(path);
+    float distance = math::dist(path);
     backoff = -abs(backoff);
 
     std::vector<std::pair<Rectf, const ColliderQuad*>> buffer;

@@ -45,6 +45,7 @@ private:
 
         // misc
         size_t update_counter = 0;
+        size_t predraw_counter = 0;
         secs   update_time = 0.0;
 
         // input
@@ -213,10 +214,10 @@ public:
 
     // misc
     std::string name;
-    inline size_t tick_count() const { return state.update_counter; }
-    inline secs uptime() const { return state.update_time; }
-    inline InputState& input() { return state._input; }
-    inline InputHandle& input(Input in) { return state._input[in]; }
+    size_t tick_count() const { return state.update_counter; }
+    secs uptime() const { return state.update_time; }
+    InputState& input() { return state._input; }
+    InputHandle& input(Input in) { return state._input[in]; }
 
     bool due_to_erase(ID<Drawable> id) const;
 

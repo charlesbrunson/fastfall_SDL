@@ -67,7 +67,7 @@ void PathMover::update(AttachPoint& attach, secs deltaTime)
             // if we're not at the end
             if (curr_ndx < _path.waypoints.size() - 1) {
                 ++curr_ndx;
-                dist_to_next_waypoint = math::magnitude(next_waypoint_pos() - prev_waypoint_pos());
+                dist_to_next_waypoint = math::mag(next_waypoint_pos() - prev_waypoint_pos());
                 //progress = 0.f;
             }
         };

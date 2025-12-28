@@ -116,7 +116,7 @@ void Crawler::update(ff::World& w, secs deltaTime)
 
         if (w.input(Input::Jump).if_confirm_press(0.1)) {
             tracker.force_end_contact();
-            col.set_local_vel(math::projection(col.get_local_vel(), math::righthand_normal(contact.collider_n)) + (contact.collider_n * jump_vel));
+            col.set_local_vel(math::proj(col.get_local_vel(), math::righthand_normal(contact.collider_n)) + (contact.collider_n * jump_vel));
             col.set_gravity(grav_falling);
         }
         else {

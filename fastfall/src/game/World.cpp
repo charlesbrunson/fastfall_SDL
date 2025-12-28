@@ -82,6 +82,12 @@ void World::update(secs deltaTime) {
 
 void World::predraw(predraw_state_t predraw_state)
 {
+    if (state.predraw_counter == 0)
+    {
+        predraw_state.updated = true;
+    }
+    ++state.predraw_counter;
+
     if (auto* active = system<LevelSystem>().get_active(*this))
     {
         system<SceneSystem>().set_bg_color(active->getBGColor());

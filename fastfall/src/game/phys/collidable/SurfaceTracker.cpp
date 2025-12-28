@@ -143,10 +143,10 @@ Vec2f SurfaceTracker::calc_friction(Vec2f prevVel) const {
 		&& (!currentContact->hasImpactTime || contact_time > 0.0)
 		&& settings.has_friction) 
 	{
-        Vec2f tangent = math::projection(prevVel, math::righthand_normal(currentContact->collider_n));
-        Vec2f normal = math::projection(prevVel, currentContact->collider_n);
-		float Ft = math::magnitude(tangent);
-		float Fn = math::magnitude(normal);
+        Vec2f tangent = math::proj(prevVel, math::righthand_normal(currentContact->collider_n));
+        Vec2f normal = math::proj(prevVel, currentContact->collider_n);
+		float Ft = math::mag(tangent);
+		float Fn = math::mag(normal);
 
 		float friction_mag;
 
@@ -246,8 +246,8 @@ CollidablePreMove SurfaceTracker::do_max_speed(CollidablePreMove in, secs deltaT
 		&& settings.max_speed > 0.f) 
 	{
 		float speed   = traverse_get_speed().value();
-		Vec2f acc_vec = math::projection(owner->get_accel(), math::righthand_normal(currentContact->collider_n));
-		float acc_mag = math::magnitude(acc_vec);
+		Vec2f acc_vec = math::proj(owner->get_accel(), math::righthand_normal(currentContact->collider_n));
+		float acc_mag = math::mag(acc_vec);
         float acc_dir = math::dot(owner->get_accel(), math::righthand_normal(currentContact->collider_n)) > 0 ? 1.f : -1.f;
         float nSpeed  = speed + (acc_dir * acc_mag * deltaTime);
 
@@ -281,8 +281,8 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
 
     float travel_dir = 0.f;
     {
-        Vec2f curr_vec = math::vectorize(init_path);
-        float dir_dot  = math::dot(math::projection_unnormalized(wish_pos - prev_pos, curr_vec), curr_vec);
+        Vec2f curr_vec = math::vector(init_path);
+        float dir_dot  = math::dot(math::proj(wish_pos - prev_pos, curr_vec), curr_vec);
         if (dir_dot > 0.f) {
             travel_dir = 1.f;
         }
@@ -291,7 +291,7 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
         }
     }
 
-    float distance = math::distance(prev_pos, wish_pos);
+    float distance = math::dist(prev_pos, wish_pos);
 
     if (distance == 0.f) {
         return {};
@@ -354,7 +354,7 @@ Vec2f SurfaceTracker::do_slope_stick(poly_id_map<ColliderRegion>* colliders, Vec
                 const auto& surface = surface_ids.at(result.path.index);
 
                 owner->reset_surface_vel();
-                float vmag = math::magnitude(owner->get_local_vel()) * slow;
+                float vmag = math::mag(owner->get_local_vel()) * slow;
                 Vec2f n_vel = math::unit(result.path.angle) * vmag;
                 owner->set_local_vel(n_vel);
 
@@ -481,17 +481,17 @@ std::optional<float> SurfaceTracker::traverse_get_speed() const {
 	std::optional<float> speed;
 	if (has_contact()) {
 		Vec2f surf = math::righthand_normal(currentContact->collider_n);
-		Vec2f proj = math::projection(owner->get_local_vel(), surf);
+		Vec2f proj = math::proj(owner->get_local_vel(), surf);
         float dot  = math::dot(owner->get_local_vel(), surf);
 
 		if (dot == 0.f) {
 			speed = 0.f;
 		}
 		else if (dot < 0.f) {
-			speed = -math::magnitude(proj);
+			speed = -math::mag(proj);
 		}
 		else {
-			speed = math::magnitude(proj);
+			speed = math::mag(proj);
 		}
 	}
 	return speed;
@@ -510,8 +510,8 @@ void SurfaceTracker::firstCollisionWith(const AppliedContact& contact)
         currentContact = pc;
 
         //  project collidable velocity onto stickLine
-		float vmag = math::magnitude(owner->get_local_vel());
-        Vec2f vproj = math::unit(math::projection(owner->get_local_vel(), math::unit(contact.stickLine)));
+		float vmag = math::mag(owner->get_local_vel());
+        Vec2f vproj = math::unit(math::proj(owner->get_local_vel(), math::unit(contact.stickLine)));
         owner->set_local_vel(vmag * vproj);
         owner->setPosition(owner->getPosition() + (contact.ortho_n * contact.stickOffset), false);
 	}

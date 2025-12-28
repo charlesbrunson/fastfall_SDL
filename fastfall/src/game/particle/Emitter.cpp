@@ -350,7 +350,7 @@ bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, 
     Linef surface  = math::shift(surf->surface, region.getPosition());
     Vec2f normal   = math::lefthand_unit_normal(surface);
 
-    if (math::dot(math::vectorize(movement), normal) < 0.f)
+    if (math::dot(math::vector(movement), normal) < 0.f)
     {
         auto intersect_opt = math::intersection(movement, surface);
         Vec2f intersect = intersect_opt.value_or(Vec2f{});
@@ -364,12 +364,12 @@ bool collide_surface(const ColliderRegion& region, const ColliderSurface* surf, 
 
             std::default_random_engine rand{ p.id };
 
-            auto bounce = -math::projection(p.velocity, normal) * pick_random(cfg.collision_bounce_min, cfg.collision_bounce_max, rand);
+            auto bounce = -math::proj(p.velocity, normal) * pick_random(cfg.collision_bounce_min, cfg.collision_bounce_max, rand);
             auto scatter_ang = math::angle(normal) + Angle::Degree(pick_random(-cfg.collision_scatter_angle_max, cfg.collision_scatter_angle_max, rand));
             auto scatter = Vec2f{ cosf(scatter_ang.radians()), sinf(scatter_ang.radians()) } * pick_random(cfg.collision_scatter_force_min, cfg.collision_scatter_force_max, rand);
 
-            p.velocity = math::projection(region.velocity, normal)
-                    + math::projection(p.velocity, math::unit(surface)) * (1.f - cfg.collision_damping)
+            p.velocity = math::proj(region.velocity, normal)
+                    + math::proj(p.velocity, math::unit(surface)) * (1.f - cfg.collision_damping)
                     + bounce
                     + scatter;
 

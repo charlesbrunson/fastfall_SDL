@@ -43,9 +43,9 @@ void imgui_collidables(World* w) {
             ImGui::Text("Friction:     %3.2f, %3.2f", col.get_friction().x, col.get_friction().y);
             ImGui::Text("Gravity:      %3.2f, %3.2f", col.get_gravity().x, col.get_gravity().y);
             ImGui::NewLine();
-            ImGui::Text("Local  Speed: %3.2f", math::magnitude(col.get_local_vel()));
-            ImGui::Text("Parent Speed: %3.2f", math::magnitude(col.get_parent_vel()));
-            ImGui::Text("Global Speed: %3.2f", math::magnitude(col.get_global_vel()));
+            ImGui::Text("Local  Speed: %3.2f", math::mag(col.get_local_vel()));
+            ImGui::Text("Parent Speed: %3.2f", math::mag(col.get_parent_vel()));
+            ImGui::Text("Global Speed: %3.2f", math::mag(col.get_global_vel()));
             ImGui::NewLine();
 
             if (ImGui::TreeNode((void*)(&col.tracker()), "Tracker")) {

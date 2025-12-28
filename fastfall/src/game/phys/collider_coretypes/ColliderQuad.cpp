@@ -211,7 +211,7 @@ ColliderSurface findColliderGhosts(const std::vector<const ColliderQuad*>& nearb
         }
     }
 
-    auto v = math::vectorize(surface.surface);
+    auto v = math::vector(surface.surface);
     auto vvert = math::is_vertical(v);
     Angle idealAng(atan2f(v.y, v.x));
 
@@ -221,8 +221,8 @@ ColliderSurface findColliderGhosts(const std::vector<const ColliderQuad*>& nearb
             if (lhs == rhs)
                 return false;
 
-            auto v1 = math::vectorize(Linef(lhs->surface.p1, surface.surface.p1));
-            auto v2 = math::vectorize(Linef(rhs->surface.p1, surface.surface.p1));
+            auto v1 = math::vector(Linef(lhs->surface.p1, surface.surface.p1));
+            auto v2 = math::vector(Linef(rhs->surface.p1, surface.surface.p1));
 
             auto v1vert = math::is_vertical(v1);
             auto v2vert = math::is_vertical(v2);
@@ -255,8 +255,8 @@ ColliderSurface findColliderGhosts(const std::vector<const ColliderQuad*>& nearb
             if (lhs == rhs)
                 return false;
 
-            auto v1 = math::vectorize(Linef(surface.surface.p2, lhs->surface.p2));
-            auto v2 = math::vectorize(Linef(surface.surface.p2, rhs->surface.p2));
+            auto v1 = math::vector(Linef(surface.surface.p2, lhs->surface.p2));
+            auto v2 = math::vector(Linef(surface.surface.p2, rhs->surface.p2));
 
             auto v1vert = math::is_vertical(v1);
             auto v2vert = math::is_vertical(v2);

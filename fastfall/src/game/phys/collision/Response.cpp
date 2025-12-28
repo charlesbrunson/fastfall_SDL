@@ -10,15 +10,15 @@ namespace phys_resp {
 
 		NormalTangent resp_standard(Vec2f curr_vel, const AppliedContact& contact) {
 
-			Vec2f normal = math::projection(contact.velocity, contact.collider_n);
-			Vec2f tangent = math::projection(curr_vel, math::righthand_normal(contact.collider_n));
+			Vec2f normal = math::proj(contact.velocity, contact.collider_n);
+			Vec2f tangent = math::proj(curr_vel, math::righthand_normal(contact.collider_n));
 			return std::make_pair(normal, tangent);
 		}
 
 		NormalTangent resp_flatten(Vec2f curr_vel, const AppliedContact& contact) {
 
-			Vec2f normal = math::projection(contact.velocity, contact.ortho_n);
-			Vec2f tangent = math::projection(curr_vel, math::righthand_normal(contact.ortho_n));
+			Vec2f normal = math::proj(contact.velocity, contact.ortho_n);
+			Vec2f tangent = math::proj(curr_vel, math::righthand_normal(contact.ortho_n));
 			return std::make_pair(normal, tangent);
 
 		}

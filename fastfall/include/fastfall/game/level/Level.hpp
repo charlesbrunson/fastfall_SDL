@@ -44,9 +44,9 @@ public:
         }
     }
 
-	inline const Color& getBGColor() const { return bgColor; };
-	inline const Vec2u& size() const { return levelSize; };
-	inline const std::string& name() const { return levelName; };
+	const Color& getBGColor() const { return bgColor; };
+	const Vec2u& size() const { return levelSize; };
+	const std::string& name() const { return levelName; };
 
 	void resize(World& world, Vec2u n_size);
 	void set_name(std::string_view name) { levelName = name; };

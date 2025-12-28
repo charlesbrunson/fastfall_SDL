@@ -298,7 +298,7 @@ void Collidable::update(poly_id_map<ColliderRegion>* colliders, secs deltaTime) 
         Vec2f zero_vel = _tracker && _tracker->has_contact() ? Vec2f{} : last_parent_vel;
 		auto local_vel_from_zero = local_vel - zero_vel;
 		auto decel_vel = -1.f * math::unit(local_vel_from_zero) * (decel * (float)deltaTime);
-		local_vel = math::magnitude2(local_vel_from_zero) > math::magnitude2(decel_vel)
+		local_vel = math::mag2(local_vel_from_zero) > math::mag2(decel_vel)
 			? local_vel + decel_vel
 			: zero_vel;
 
@@ -573,9 +573,9 @@ void imgui_component(World& w, ID<Collidable> id) {
     text_vec2("Friction", col.get_friction());
     text_vec2("Gravity",  col.get_gravity());
 
-    text_vec1("Local  Speed", math::magnitude(col.get_local_vel()));
-    text_vec1("Parent Speed", math::magnitude(col.get_parent_vel()));
-    text_vec1("Global Speed", math::magnitude(col.get_global_vel()));
+    text_vec1("Local  Speed", math::mag(col.get_local_vel()));
+    text_vec1("Parent Speed", math::mag(col.get_parent_vel()));
+    text_vec1("Global Speed", math::mag(col.get_global_vel()));
 
     ImGui::Text("Attach ID: "); ImGui::NextColumn();
     imgui_component_ref(w, col.get_attach_id()); ImGui::NextColumn();

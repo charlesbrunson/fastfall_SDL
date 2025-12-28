@@ -1,9 +1,7 @@
 #pragma once
 
-#include "fastfall/util/id.hpp"
-#include "fastfall/util/copyable_uniq_ptr.hpp"
-#include "fastfall/render/util/Texture.hpp"
 #include "fastfall/render/util/RenderState.hpp"
+#include "fastfall/util/math.hpp"
 
 namespace ff {
 
