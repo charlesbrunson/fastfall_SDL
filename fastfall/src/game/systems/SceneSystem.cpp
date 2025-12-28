@@ -38,7 +38,7 @@ void SceneSystem::predraw(World& world, predraw_state_t predraw_state)
             auto& ucfg = update_configs.at(did);
             Vec2f prev = ucfg.prev_pos;
             Vec2f curr = ucfg.curr_pos;
-            ucfg.rstate.transform.setPosition(prev + (curr - prev) * predraw_state.interp);
+            ucfg.rstate.transform.setPosition(math::lerp(prev, curr, predraw_state.interp));
         }
     }
 
@@ -168,42 +168,38 @@ void SceneSystem::draw(const World& world, RenderTarget& target, RenderState sta
 
 bool SceneSystem::enableScissor(const RenderTarget& target, Vec2f viewPos) const {
 
-	glm::fvec4 scissor;
 	View view = target.getView();
-	scissor = view.getViewport();
-
-	Vec2f vpOff{ view.getViewport()[0], view.getViewport()[1] };
-	Vec2f vpSize{ view.getViewport()[2], view.getViewport()[3] };
+	Rectf vp = view.getViewport();
 
 	if (scene_size.x * scene_size.y > 0.f) {
-		float zoom = view.getViewport()[2] / view.getSize().x;
+		float zoom = vp.width / view.getSize().x;
 
-		glm::fvec2 levelsize = Vec2f{ scene_size };
-		glm::fvec2 campos = viewPos;
-		glm::fvec2 campos2window = vpOff + (vpSize / 2.f);
-		glm::fvec2 lvlbotleft2cam{ campos.x, levelsize.y - campos.y };
-		glm::fvec2 levelbotleft2window = campos2window - (lvlbotleft2cam * zoom);
+		Vec2f levelsize = Vec2f{ scene_size };
+		Vec2f campos = viewPos;
+		Vec2f campos2window = vp.center();
+		Vec2f lvlbotleft2cam{ campos.x, levelsize.y - campos.y };
+		Vec2f levelbotleft2window = campos2window - (lvlbotleft2cam * zoom);
 
-		scissor[0] = roundf((std::max)(scissor[0], levelbotleft2window.x));
-		scissor[1] = roundf((std::max)(scissor[1], levelbotleft2window.y));
+		vp.left = roundf((std::max)(vp.left, levelbotleft2window.x));
+		vp.top = roundf((std::max)(vp.top, levelbotleft2window.y));
 
-		scissor[2] = (std::min)(vpOff.x + vpSize.x, levelbotleft2window.x + (levelsize.x * zoom)) - scissor[0];
-		scissor[3] = (std::min)(vpOff.y + vpSize.y, levelbotleft2window.y + (levelsize.y * zoom)) - scissor[1];
+		vp.width = (std::min)(vp.rightmid().x, levelbotleft2window.x + (levelsize.x * zoom)) - vp.left;
+		vp.height = (std::min)(vp.botmid().y, levelbotleft2window.y + (levelsize.y * zoom)) - vp.top;
 
-		scissor[2] = roundf((std::max)(scissor[2], 0.f));
-		scissor[3] = roundf((std::max)(scissor[3], 0.f));
+		vp.width = roundf((std::max)(vp.width, 0.f));
+		vp.height = roundf((std::max)(vp.height, 0.f));
 	}
 
-	if (scissor[2] > 0.f && scissor[3] > 0.f) {
+	if (vp.width > 0.f && vp.height > 0.f) {
 		glScissor(
-			scissor[0],
-			scissor[1],
-			scissor[2],
-			scissor[3]
+			vp.left,
+			vp.top,
+			vp.width,
+			vp.height
 		);
 		glEnable(GL_SCISSOR_TEST);
 	}
-	return scissor[2] > 0.f && scissor[3] > 0.f;
+	return vp.width > 0.f && vp.height > 0.f;
 }
 
 void SceneSystem::disableScissor() const {

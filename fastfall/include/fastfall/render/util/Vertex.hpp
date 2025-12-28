@@ -1,15 +1,14 @@
 #pragma once 
 
-#include "glm/glm.hpp"
-
+#include "fastfall/util/glm_types.hpp"
 #include "Color.hpp"
 
 namespace ff {
 
 struct Vertex {
-	glm::fvec2 pos;
-	ff::Color color;
-	glm::fvec2 tex_pos;
+	Vec2f pos;
+	Color color;
+	Vec2f tex_pos;
 };
 
 }

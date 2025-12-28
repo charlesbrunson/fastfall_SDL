@@ -56,11 +56,13 @@ void RenderTarget::setDefaultView() {
 
 void RenderTarget::setView(const View& view) {
 	m_view = view;
+	Rectf vp = m_view.getViewport();
     glCheck(glViewport(
-		m_view.getViewport()[0],
-		m_view.getViewport()[1],
-		m_view.getViewport()[2],
-		m_view.getViewport()[3]));
+    	vp.left,
+    	vp.top,
+    	vp.width,
+    	vp.height
+	));
 }
 
 void RenderTarget::draw(const Drawable& drawable, const RenderState& state) {
@@ -277,21 +279,22 @@ void RenderTarget::draw(debug::detail::state_t& debug, debug::detail::gpu_state_
 
 // ------------------------------------------------------
 
-glm::fvec2 RenderTarget::coordToWorldPos(glm::ivec2 windowCoord) {
+Vec2f RenderTarget::coordToWorldPos(Vec2i windowCoord) {
     return coordToWorldPos(windowCoord.x, windowCoord.y);
 }
 
-glm::ivec2 RenderTarget::worldPosToCoord(glm::fvec2 worldCoord) {
+Vec2i RenderTarget::worldPosToCoord(Vec2f worldCoord) {
     return worldPosToCoord(worldCoord.x, worldCoord.y);
 }
 
-glm::fvec2 RenderTarget::coordToWorldPos(int windowCoordX, int windowCoordY) {
+Vec2f RenderTarget::coordToWorldPos(int windowCoordX, int windowCoordY) {
     const View& v = getView();
-    glm::fvec2 vsize = v.getSize();
-    glm::fvec2 vzoom = glm::fvec2(v.getViewport()[2] / vsize.x, v.getViewport()[3] / vsize.y);
-    glm::fvec2 viewcenter{ v.getViewport()[0] + v.getViewport()[2] / 2, v.getViewport()[1] + v.getViewport()[3] / 2 };
+    Vec2f vsize = v.getSize();
+	auto vp = v.getViewport();
+    Vec2f vzoom = vp.getSize() / vsize;
+    Vec2f viewcenter = vp.center();
 
-    glm::fvec2 world_coord{
+    Vec2f world_coord{
             ((float)windowCoordX - viewcenter.x) / vzoom.x,
             ((float)windowCoordY - viewcenter.y) / vzoom.y
     };
@@ -300,18 +303,19 @@ glm::fvec2 RenderTarget::coordToWorldPos(int windowCoordX, int windowCoordY) {
     return world_coord;
 }
 
-glm::ivec2 RenderTarget::worldPosToCoord(float worldCoordX, float worldCoordY) {
+Vec2i RenderTarget::worldPosToCoord(float worldCoordX, float worldCoordY) {
     const View& v = getView();
-    glm::fvec2 vsize = v.getSize();
-    glm::fvec2 vzoom = glm::fvec2(v.getViewport()[2] / vsize.x, v.getViewport()[3] / vsize.y);
-    glm::fvec2 viewcenter{ v.getViewport()[0] + v.getViewport()[2] / 2, v.getViewport()[1] + v.getViewport()[3] / 2 };
+    Vec2f vsize = v.getSize();
+	auto vp = v.getViewport();
+    Vec2f vzoom = vp.getSize() / vsize;
+    Vec2f viewcenter = vp.center();
 
-    glm::fvec2 world_coord{ worldCoordX, worldCoordY };
+    Vec2f world_coord{ worldCoordX, worldCoordY };
     world_coord -= v.getCenter();
     world_coord *= vzoom;
     world_coord += viewcenter;
 
-    return glm::ivec2{ roundf(world_coord.x), roundf(world_coord.y) };
+    return Vec2i{ roundf(world_coord.x), roundf(world_coord.y) };
 }
 // ------------------------------------------------------
 

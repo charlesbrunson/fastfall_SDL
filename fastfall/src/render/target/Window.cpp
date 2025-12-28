@@ -105,16 +105,16 @@ void Window::setWindowBorderless(bool enable) {
 #endif
 }
 
-void Window::setWindowSize(const glm::uvec2& size) {
+void Window::setWindowSize(const Vec2i& size) {
 	assert(size.x > 0 && size.y > 0);
 	SDL_SetWindowSize(m_window, size.x, size.y);
 }
-void Window::setWindowSize(unsigned W, unsigned H) {
+void Window::setWindowSize(int W, int H) {
 	assert(W > 0 && H > 0);
 	SDL_SetWindowSize(m_window, W, H);
 }
 
-void Window::setWindowPosition(const glm::ivec2& pos) {
+void Window::setWindowPosition(const Vec2i& pos) {
 	SDL_SetWindowPosition(m_window, pos.x, pos.y);
 }
 void Window::setWindowPosition(int X, int Y) {
@@ -166,8 +166,8 @@ void Window::setActive()
 }
 
 
-glm::ivec2 Window::getPosition() {
-	glm::ivec2 r;
+Vec2i Window::getPosition() {
+	Vec2i r;
 	SDL_GetWindowPosition(m_window, &r.x, &r.y);
 	return r;
 }
@@ -180,8 +180,8 @@ void Window::display() {
     TracyGpuCollect;
 }
 
-glm::ivec2 Window::getSize() const {
-	glm::ivec2 size;
+Vec2i Window::getSize() const {
+	Vec2i size;
 	SDL_GetWindowSize(m_window, &size.x, &size.y);
 	return size;
 }

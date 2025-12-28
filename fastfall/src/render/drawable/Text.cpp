@@ -97,7 +97,7 @@ namespace ff {
 
 			size_t ndx = 0;
 
-			glm::fvec2 pen = {0, m_font->getYMax() };
+			Vec2f pen = {0, m_font->getYMax() };
 
 			for (unsigned char ch : m_text)
 			{

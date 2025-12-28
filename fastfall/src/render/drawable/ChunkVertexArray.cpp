@@ -230,11 +230,11 @@ void ChunkVertexArray::draw(RenderTarget& target, RenderState states) const {
 	//Vec2f offset{ m_size * TILESIZE_F };
 	RenderState shift = states;
 
-	const std::array<glm::fvec2, 4> offsets{
-		glm::fvec2{ 0.f, 0.f},
-		glm::fvec2{ 0.f, m_size.y * TILESIZE },
-		glm::fvec2{ m_size.x * TILESIZE, 0.f },
-		glm::fvec2{ m_size.x * TILESIZE, m_size.y * TILESIZE }
+	const std::array<Vec2f, 4> offsets{
+		Vec2f{ 0.f, 0.f},
+		Vec2f{ 0.f, m_size.y * TILESIZE },
+		Vec2f{ m_size.x * TILESIZE, 0.f },
+		Vec2f{ m_size.x * TILESIZE, m_size.y * TILESIZE }
 	};
 
 	for (const auto& chunk : m_chunks) {

@@ -8,8 +8,6 @@
 
 #include "Sprite.hpp"
 
-#include <string_view>
-#include <array>
 #include <algorithm>
 
 namespace ff {

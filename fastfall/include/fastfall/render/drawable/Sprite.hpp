@@ -12,21 +12,21 @@ class Sprite : public Drawable, public Transformable {
 public:
 	Sprite();
 	Sprite(const Texture* texture);
-	Sprite(const Texture* texture, glm::fvec2 spriteSize);
+	Sprite(const Texture* texture, Vec2f spriteSize);
 	Sprite(const Texture* texture, float spriteSizeX, float spriteSizeY);
-	Sprite(const Texture* texture, Rectf textureRect, glm::fvec2 spriteSize);
+	Sprite(const Texture* texture, Rectf textureRect, Vec2f spriteSize);
 	Sprite(const Texture* texture, Rectf textureRect, float spriteSizeX, float spriteSizeY);
 
 	void setTexture(const Texture* texture, bool resetRect = false);
 	void setTextureRect(Rectf textureRect);
 	void setColor(Color color);
-	void setSize(glm::fvec2 size);
+	void setSize(Vec2f size);
 	void setSize(float sizeX, float sizeY);
 
 	Rectf getTextureRect() const;
 	const Texture* getTexture() const;
 	Color getColor() const;
-	glm::fvec2 getSize() const;
+	Vec2f getSize() const;
 
 private:
 	void init();
@@ -36,7 +36,7 @@ private:
 	Color m_color;
 	TextureRef m_texture;
 	Rectf m_textureRect;
-	glm::fvec2 m_size;
+	Vec2f m_size;
 
 	VertexArray m_verts;
 };

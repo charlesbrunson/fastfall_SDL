@@ -9,10 +9,10 @@ class RenderTarget;
 
 class ShapeCircle : public Transformable, public Drawable {
 public:
-	ShapeCircle(glm::fvec2 center, float radius, size_t vertexCount = 8, Color color = ff::Color::White, Color lineColor = ff::Color::Transparent);
+	ShapeCircle(Vec2f center, float radius, size_t vertexCount = 8, Color color = Color::White, Color lineColor = Color::Transparent);
 
-	void setColor(ff::Color color);
-	void setOutlineColor(ff::Color color);
+	void setColor(Color color);
+	void setOutlineColor(Color color);
 	void setRadius(float radius);
 
 private:

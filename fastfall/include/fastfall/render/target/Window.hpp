@@ -7,6 +7,7 @@
 #include "glm/glm.hpp"
 
 #include "RenderTarget.hpp"
+#include "fastfall/util/glm_types.hpp"
 
 namespace ff {
 
@@ -30,10 +31,10 @@ public:
 	void setWindowResizable(bool enable = true);
 	void setWindowBorderless(bool enable = true);
 
-	void setWindowSize(const glm::uvec2& size);
-	void setWindowSize(unsigned W = SDL_WINDOWPOS_UNDEFINED, unsigned H = SDL_WINDOWPOS_UNDEFINED);
+	void setWindowSize(const Vec2i& size);
+	void setWindowSize(int W = SDL_WINDOWPOS_UNDEFINED, int H = SDL_WINDOWPOS_UNDEFINED);
 
-	void setWindowPosition(const glm::ivec2& pos);
+	void setWindowPosition(const Vec2i& pos);
 	void setWindowPosition(int X, int Y);
 
 	void setWindowCentered();
@@ -44,12 +45,12 @@ public:
 
 	void setVsyncEnabled(bool enable = true);
 
-	glm::ivec2 getPosition();
+	Vec2i getPosition();
 	void showWindow(bool visible = true);
 
 	SDL_Window* getSDL_Window() const;
 
-	glm::ivec2 getSize() const override;
+	Vec2i getSize() const override;
 	void setActive();
 
 	void display();

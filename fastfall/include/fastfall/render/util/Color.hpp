@@ -34,18 +34,18 @@ struct Color {
 		r = (value >> 24) & 0xFF;
 	}
 
-    constexpr inline Color& red  (uint8_t amount) { r = amount; return *this; };
-    constexpr inline Color& green(uint8_t amount) { g = amount; return *this; };
-    constexpr inline Color& blue (uint8_t amount) { b = amount; return *this; };
-    constexpr inline Color& alpha(uint8_t amount) { a = amount; return *this; };
+    constexpr Color& red  (uint8_t amount) { r = amount; return *this; };
+    constexpr Color& green(uint8_t amount) { g = amount; return *this; };
+    constexpr Color& blue (uint8_t amount) { b = amount; return *this; };
+    constexpr Color& alpha(uint8_t amount) { a = amount; return *this; };
 
-    constexpr uint32_t hex() const {
+    [[nodiscard]] constexpr uint32_t hex() const {
         return (r << 24) + (g << 16) + (b << 8) + a;
     }
 
     constexpr Color operator() () const { return *this; };
 
-    constexpr inline bool operator== (const Color& color) const {
+    constexpr bool operator== (const Color& color) const {
 		return hex() == color.hex();
 	}
 
@@ -65,14 +65,14 @@ struct Color {
 	uint8_t a;
 };
 
-constexpr inline Color Color::Transparent  { 0x00000000 };
-constexpr inline Color Color::White        { 0xFFFFFFFF };
-constexpr inline Color Color::Black        { 0x000000FF };
-constexpr inline Color Color::Red          { 0xFF0000FF };
-constexpr inline Color Color::Green        { 0x00FF00FF };
-constexpr inline Color Color::Blue         { 0x0000FFFF };
-constexpr inline Color Color::Yellow       { 0xFFFF00FF };
-constexpr inline Color Color::Cyan         { 0x00FFFFFF };
-constexpr inline Color Color::Magenta      { 0xFF00FFFF };
+constexpr Color Color::Transparent  { 0x00000000 };
+constexpr Color Color::White        { 0xFFFFFFFF };
+constexpr Color Color::Black        { 0x000000FF };
+constexpr Color Color::Red          { 0xFF0000FF };
+constexpr Color Color::Green        { 0x00FF00FF };
+constexpr Color Color::Blue         { 0x0000FFFF };
+constexpr Color Color::Yellow       { 0xFFFF00FF };
+constexpr Color Color::Cyan         { 0x00FFFFFF };
+constexpr Color Color::Magenta      { 0xFF00FFFF };
 
 }

@@ -57,28 +57,28 @@ public:
 	void setDstFactor(Factor factorColor, Factor factorAlpha);
 	void setColor(ff::Color color);
 
-	inline Equation getEquationRGB() const { return equationRGB; };
-	inline Equation getEquationA() const { return equationRGB; };
+	Equation getEquationRGB() const { return equationRGB; };
+	Equation getEquationA() const { return equationRGB; };
 
-	inline Factor getSrcFactorRGB() const { return srcFactorRGB; };
-	inline Factor getSrcFactorA() const { return srcFactorA; };
+	Factor getSrcFactorRGB() const { return srcFactorRGB; };
+	Factor getSrcFactorA() const { return srcFactorA; };
 
-	inline Factor getDstFactorRGB() const { return dstFactorRGB; };
-	inline Factor getDstFactorA() const { return dstFactorA; };
+	Factor getDstFactorRGB() const { return dstFactorRGB; };
+	Factor getDstFactorA() const { return dstFactorA; };
 
-	inline Color getColor() const { return colorConstant; };
+	Color getColor() const { return colorConstant; };
 
-	inline bool hasSeparateEquation() const {
+	bool hasSeparateEquation() const {
 		return hasSepEquation;
 	}
-	inline bool hasSeparateFactor() const {
+	bool hasSeparateFactor() const {
 		return hasSepFactor;
 	}
-	inline bool hasConstantColor() const {
+	bool hasConstantColor() const {
 		return hasColor;
 	}
 
-	inline bool operator== (const BlendMode& mode) const {
+	bool operator== (const BlendMode& mode) const {
 		return hasSepEquation	== mode.hasSepEquation
 			&& hasSepFactor		== mode.hasSepFactor
 			&& hasColor			== mode.hasColor
@@ -162,9 +162,6 @@ public:
 	Transform transform;
 	TextureRef texture;
 	const ShaderProgram* program;
-
-	//static RenderState Default;
-
 };
 
 }

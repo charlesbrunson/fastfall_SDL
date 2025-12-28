@@ -55,6 +55,8 @@ namespace ff {
 
                 std::visit(
                     [&]<class T>(ID<T> cid) {
+                        log::scope sc;
+                        LOG_INFO("attach teleport visit: {} -> {}", cmpid_str(id), cmpid_str(cmp_id));
                         if constexpr (requires(ID<T> x_id, T& x, World& x_w, const AttachPoint& ap, Vec2f x_off) { detail::attach_teleport(x_w, x_id, x, ap, x_off); }) {
                         detail::attach_teleport(w, cid, w.at(cid), w.at(id), data.offset);
                     }
@@ -79,6 +81,7 @@ namespace ff {
             auto& cfg = w.system<SceneSystem>().config(id);
             cfg.prev_pos = attach.curr_pos() + offset;
             cfg.curr_pos = attach.curr_pos() + offset;
+            cfg.rstate.transform.setPosition(cfg.curr_pos);
         }
 
         // PathMover
@@ -354,6 +357,8 @@ namespace ff {
         cmp_lookup.emplace(cmp_id, id);
         std::visit(
         [&]<class T>(ID<T> cid) {
+            log::scope sc;
+            LOG_INFO("attach create visit: {} -> {}", cmpid_str(id), cmpid_str(cmp_id));
             if constexpr (requires(ID<T> x_id, T& x, World& x_w, const AttachPoint& ap, Vec2f x_off) { detail::attach_teleport(x_w, x_id, x, ap, x_off); }) {
                 detail::attach_teleport(world, cid, world.at(cid), world.at(id), offset);
             }

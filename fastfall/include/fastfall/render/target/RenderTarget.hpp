@@ -10,6 +10,8 @@
 
 #include <optional>
 
+#include "fastfall/util/glm_types.hpp"
+
 namespace ff {
 
 class Drawable;
@@ -27,7 +29,7 @@ public:
 	RenderTarget();
 	virtual ~RenderTarget() = default;
 
-	virtual glm::ivec2 getSize() const = 0;
+	virtual Vec2i getSize() const = 0;
 
 	SDL_GLContext getSDLContext() const;
 	void clear(Color clearColor = Color::Black);
@@ -50,10 +52,10 @@ public:
 	size_t getDrawCallCounter() { return draw_call_counter; }
 	void resetDrawCallCounter() { draw_call_counter = 0; }
 
-    glm::fvec2 coordToWorldPos(int windowCoordX, int windowCoordY);
-    glm::fvec2 coordToWorldPos(glm::ivec2 windowCoord);
-    glm::ivec2 worldPosToCoord(float worldCoordX, float worldCoordY);
-    glm::ivec2 worldPosToCoord(glm::fvec2 worldCoord);
+    Vec2f coordToWorldPos(int windowCoordX, int windowCoordY);
+    Vec2f coordToWorldPos(Vec2i windowCoord);
+    Vec2i worldPosToCoord(float worldCoordX, float worldCoordY);
+    Vec2i worldPosToCoord(Vec2f worldCoord);
 
 protected:
 	bool hasShader = false;

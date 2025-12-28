@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "fastfall/engine/state/EngineStateHandler.hpp"
 #include "fastfall/engine/state/EngineState.hpp"
 
@@ -26,18 +28,25 @@ void EngineStateHandler::update() {
 			break;
 
 		case EngineStateAction::SWAP_NEXT:
-			if (!st->nextState) {
-				st->eAct = EngineStateAction::CONTINUE;
-				break;
-			}
-			st->nextState->prevState = st->prevState;
-			if (st->prevState) {
-				st->prevState->nextState.reset(st->nextState.release());
-			}
-			else {
-				root.reset(st->nextState.release());
-
-				st = root.get();
+			{
+				auto next = st->nextState.get();
+				auto prev = st->prevState;
+				if (!next) {
+					st->eAct = EngineStateAction::EXIT_PREV;
+					break;
+				}
+				next->prevState = st->prevState;
+				st->active = false;
+				std::unique_ptr<EngineState> store = std::move(st->nextState);
+				store->active = true;
+				if (prev) {
+					prev->nextState.reset();
+					prev->nextState = std::move(store);
+				}
+				else {
+					root.reset();
+					root = std::move(store);
+				}
 			}
 			break;
 

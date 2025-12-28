@@ -1,43 +1,44 @@
 #include "fastfall/render/util/View.hpp"
 
+#include "fastfall/util/glm_types.hpp"
 #include "glm/gtx/matrix_transform_2d.hpp"
 
 namespace ff {
 
 View::View()
 {
-	setViewport(glm::vec4{ 0, 0, 640, 480 });
+	setViewport(Rectf{ 0, 0, 640, 480 });
 	setCenter({ 0.f, 0.f });
 	setZoom(1.f);
 	m_scale_mult = {1.f, 1.f};
 }
 
-View::View(glm::fvec2 botleft, glm::fvec2 size, glm::fvec2 scale)
+View::View(Vec2f botleft, Vec2f size, Vec2f scale)
 {
-	setViewport(glm::vec4{ botleft, size });
+	setViewport(Rectf{ botleft, size });
 	setCenter({ 0.f, 0.f });
 	setZoom(1.f);
 	m_scale_mult = scale;
 }
 
-void View::setCenter(glm::fvec2 center) {
+void View::setCenter(Vec2f center) {
 	m_center = center;
 }
 
-void View::setViewport(glm::vec4 viewport) {
+void View::setViewport(Rectf viewport) {
 	m_viewport = viewport;
 	m_size = glm::fvec2{
-		m_viewport[2],
-		m_viewport[3]
+		m_viewport.width,
+		m_viewport.height
 	};
 }
 
-void View::setSize(glm::fvec2 size) {
+void View::setSize(Vec2f size) {
 	m_size = size;
 }
 
 void View::setSize(float sizeX, float sizeY) {
-	m_size = glm::fvec2{ sizeX, sizeY };
+	m_size = Vec2f{ sizeX, sizeY };
 }
 
 void View::setZoom(float zoom) {
@@ -45,15 +46,15 @@ void View::setZoom(float zoom) {
 }
 
 
-glm::fvec2 View::getCenter() const {
+Vec2f View::getCenter() const {
 	return m_center; 
 }
 
-glm::vec4 View::getViewport() const { 
+Rectf View::getViewport() const {
 	return m_viewport; 
 }
 
-glm::fvec2 View::getSize() const {
+Vec2f View::getSize() const {
 	return m_size; 
 }
 
@@ -64,14 +65,14 @@ float View::getZoom() const {
 
 glm::mat3 View::getMatrix() const {
 	glm::mat3 mat;
-	mat = glm::scale(glm::mat3(1.0f), glm::fvec2{ (m_zoom * 2.f) / m_size } * m_scale_mult);
-	mat = glm::translate(mat, m_center * glm::fvec2(-1.f, 1.f));
+	mat = glm::scale(glm::mat3(1.0f), Vec2f{ (m_zoom * 2.f) / m_size } * m_scale_mult);
+	mat = glm::translate(mat, m_center * Vec2f(-1.f, 1.f));
 	return  mat;
 }
 glm::mat3 View::getInvMatrix() const {
 	glm::mat3 mat;
-	mat = glm::translate(glm::mat3(1.0f), m_center * glm::fvec2(1.f, -1.f));
-	mat = glm::scale(mat, glm::fvec2{ m_size / (m_zoom * 2.f) } * m_scale_mult);
+	mat = glm::translate(glm::mat3(1.0f), m_center * Vec2f(1.f, -1.f));
+	mat = glm::scale(mat, Vec2f{ m_size / (m_zoom * 2.f) } * m_scale_mult);
 	return  mat;
 }
 

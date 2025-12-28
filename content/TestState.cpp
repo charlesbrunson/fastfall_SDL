@@ -19,17 +19,17 @@
 #include "SDL3/SDL.h"
 
 TestState::TestState()
-    : insrc_realtime(input_sets::gameplay, 1.0/60.0, ff::RecordInputs::Yes)
+    : insrc_realtime(input_sets::gameplay, 1.0/60.0, RecordInputs::Yes)
 {
-	stateID = ff::EngineStateID::TEST_STATE;
-	clearColor = ff::Color{ 0x141013FF };
+	stateID = EngineStateID::TEST_STATE;
+	clearColor = Color{ 0x141013FF };
 
-    world = std::make_unique<ff::World>();
+    world = std::make_unique<World>();
     world->input().set_source(&insrc_realtime);
     on_realtime = true;
 
     ID<Level> lvl_id;
-	if (auto* lvl_asset = ff::Resources::get<ff::LevelAsset>("map_test.tmx"))
+	if (auto* lvl_asset = Resources::get<LevelAsset>("map_test.tmx"))
 	{
         lvl_id = world->create_actor<Level>(*lvl_asset)->id;
         world->system<LevelSystem>().set_active(lvl_id);
@@ -42,7 +42,7 @@ TestState::TestState()
 	edit->select_tileset("tech_fg.tsx");
 	edit->select_tile(edit->get_tileset()->getAutoTileForShape("slope"_ts).value_or(TileID{0u, 0u}));
 
-	auto font = ff::Resources::get<ff::FontAsset>("LionelMicroNbp-gA25.ttf");
+	auto font = Resources::get<FontAsset>("LionelMicroNbp-gA25.ttf");
 	tile_text.setText(*font, 8, {});
 
     save_world = std::make_unique<World>(*world);
@@ -68,13 +68,13 @@ void TestState::update(secs deltaTime) {
 		mpos = Mouse::world_pos();
 		tpos = tilelayer.getTileFromWorldPos(mpos).value_or(Vec2i{});
 
-		static auto onKeyPressed = [this](SDL_Scancode c, auto&& callable) {
+		auto onKeyPressed = [this](SDL_Scancode c, auto&& callable) {
 			if (currKeys && prevKeys && currKeys[c] && !prevKeys[c]) {
 				callable();
 			}
 		};
 
-		static auto tileOnKeyPressed = [this](SDL_Scancode c, Vec2i dir) {
+		auto tileOnKeyPressed = [&](SDL_Scancode c, Vec2i dir) {
 			onKeyPressed(c, [this, dir]() {
 				auto tileset = edit->get_tileset();
 				auto tile = edit->get_tile();
@@ -89,7 +89,7 @@ void TestState::update(secs deltaTime) {
 				}
 			});
 		};
-		static auto layerOnKeyPressed = [this](SDL_Scancode c, int i) {
+		auto layerOnKeyPressed = [&](SDL_Scancode c, int i) {
 			onKeyPressed(c, [this, i]() {
 				int curr_layer = edit->get_tile_layer()->position;
 
@@ -116,6 +116,10 @@ void TestState::update(secs deltaTime) {
         onKeyPressed(SDL_SCANCODE_F1, [&]() { to_save = true; });
         onKeyPressed(SDL_SCANCODE_F2, [&]() { to_load = true; on_realtime = true; });
         onKeyPressed(SDL_SCANCODE_F3, [&]() { to_load = true; on_realtime = false; });
+		onKeyPressed(SDL_SCANCODE_F4, [&]() {
+			createState<TestState>();
+			setEngineAction(EngineStateAction::SWAP_NEXT);
+		});
 
 		onKeyPressed(SDL_SCANCODE_C, [&]() {
 				auto tilelayer = edit->get_tile_layer();
@@ -221,7 +225,6 @@ void TestState::update(secs deltaTime) {
 			prevKeys = std::make_unique<bool[]>(key_count);
 		std::memcpy(&prevKeys[0], currKeys, key_count);
 	}
-
 }
 
 void TestState::predraw(predraw_state_t predraw_state, const WindowState* win_state) {
@@ -280,7 +283,7 @@ void TestState::predraw(predraw_state_t predraw_state, const WindowState* win_st
 
 			tile_ghost.setPosition(ghost_pos.real);
 			tile_ghost.setSize({ TILESIZE_F, TILESIZE_F });
-			tile_ghost.setColor(ff::Color::White().alpha(80));
+			tile_ghost.setColor(Color::White().alpha(80));
 			tile_ghost.setTexture(&tileset->getTexture());
 			tile_ghost.setTextureRect(Rectf{
 					Vec2f{ tile->to_vec() } * TILESIZE_F,
@@ -291,7 +294,7 @@ void TestState::predraw(predraw_state_t predraw_state, const WindowState* win_st
 			float win_scale = win_state->scale;
 			float scale = viewZoom / win_scale;
 			tile_text.setScale( Vec2f{ 1.f, 1.f } * scale * (win_scale > 2 ? 2.f : 1.f) );
-			tile_text.setColor(ff::Color::White);
+			tile_text.setColor(Color::White);
 
 			float posx, posy;
 			SDL_GetMouseState(&posx, &posy);
@@ -312,8 +315,8 @@ void TestState::predraw(predraw_state_t predraw_state, const WindowState* win_st
 		}
 	}
 	else {
-		tile_ghost.setColor(ff::Color::Transparent);
-		tile_text.setColor(ff::Color::Transparent);
+		tile_ghost.setColor(Color::Transparent);
+		tile_text.setColor(Color::Transparent);
 	}
 }
 
@@ -325,7 +328,7 @@ bool TestState::pushEvent(const SDL_Event& event) {
     return false;
 }
 
-void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const 
+void TestState::draw(RenderTarget& target, RenderState state) const
 {
     target.draw(*world,         state);
 
@@ -339,21 +342,21 @@ void TestState::draw(ff::RenderTarget& target, ff::RenderState state) const
 		{
 			if (ghost_pos.mirrorx)
 			{
-				ff::RenderState off_state = state;
+				RenderState off_state = state;
 				off_state.transform = off_state.transform.translate({ offset.x, 0.f });
 				target.draw(tile_ghost, off_state);
 				target.draw(tile_text, off_state);
 			}
 			if (ghost_pos.mirrory)
 			{
-				ff::RenderState off_state = state;
+				RenderState off_state = state;
 				off_state.transform = off_state.transform.translate({ 0.f, offset.y });
 				target.draw(tile_ghost, off_state);
 				target.draw(tile_text, off_state);
 			}
 			if (ghost_pos.mirrorx && ghost_pos.mirrory)
 			{
-				ff::RenderState off_state = state;
+				RenderState off_state = state;
 				off_state.transform = off_state.transform.translate(offset);
 				target.draw(tile_ghost, off_state);
 				target.draw(tile_text, off_state);

@@ -9,16 +9,16 @@ namespace ff {
 class ShapeRectangle : public Transformable, public Drawable {
 public:
 	ShapeRectangle();
-	ShapeRectangle(Rectf area, Color color = ff::Color::White, Color lineColor = ff::Color::Transparent);
+	ShapeRectangle(Rectf area, Color color = Color::White, Color lineColor = Color::Transparent);
 
-	void setSize(glm::fvec2 size);
+	void setSize(Vec2f size);
 	void setSize(float sizeX, float sizeY);
-	glm::fvec2 getSize() const;
+	Vec2f getSize() const;
 
-	void setColor(ff::Color color);
+	void setColor(Color color);
 	Color getColor() const;
 
-	void setOutlineColor(ff::Color color);
+	void setOutlineColor(Color color);
 	Color getOutlineColor() const;
 
 protected:

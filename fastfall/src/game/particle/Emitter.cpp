@@ -183,14 +183,14 @@ void Emitter::predraw(VertexArray& varr, SceneConfig& cfg, predraw_state_t predr
             constexpr float tex_offset = 1.f / 16384.f;
 
             // triange 1
-            varr[ndx + 0].tex_pos = (points[0] + glm::vec2{ tex_offset,  tex_offset}) * invSize;
-            varr[ndx + 1].tex_pos = (points[1] + glm::vec2{-tex_offset,  tex_offset}) * invSize;
-            varr[ndx + 2].tex_pos = (points[2] + glm::vec2{ tex_offset, -tex_offset}) * invSize;
+            varr[ndx + 0].tex_pos = (points[0] + Vec2f{ tex_offset,  tex_offset}) * invSize;
+            varr[ndx + 1].tex_pos = (points[1] + Vec2f{-tex_offset,  tex_offset}) * invSize;
+            varr[ndx + 2].tex_pos = (points[2] + Vec2f{ tex_offset, -tex_offset}) * invSize;
 
             // triange 2
-            varr[ndx + 3].tex_pos = (points[2] + glm::vec2{ tex_offset, -tex_offset}) * invSize;
-            varr[ndx + 4].tex_pos = (points[1] + glm::vec2{-tex_offset,  tex_offset}) * invSize;
-            varr[ndx + 5].tex_pos = (points[3] + glm::vec2{-tex_offset, -tex_offset}) * invSize;
+            varr[ndx + 3].tex_pos = (points[2] + Vec2f{ tex_offset, -tex_offset}) * invSize;
+            varr[ndx + 4].tex_pos = (points[1] + Vec2f{-tex_offset,  tex_offset}) * invSize;
+            varr[ndx + 5].tex_pos = (points[3] + Vec2f{-tex_offset, -tex_offset}) * invSize;
 
             varr[ndx + 0].color = Color::White;
             varr[ndx + 1].color = Color::White;

@@ -51,10 +51,10 @@ namespace ff::Mouse {
     }
 
     void update_view(const View& view) {
-        glm::vec4 viewport = view.getViewport();
-        glm::fvec2 vsize = view.getSize();
-        glm::fvec2 vzoom = glm::fvec2(viewport[2] / vsize.x, viewport[3] / vsize.y);
-        glm::fvec2 viewcenter{ viewport[0] + viewport[2] / 2, viewport[1] + viewport[3] / 2 };
+        Rectf vp = view.getViewport();
+        Vec2f vsize = view.getSize();
+        Vec2f vzoom = vp.getSize() / vsize;
+        Vec2f viewcenter = vp.center();
 
         _world_pos = Vec2f{
                 ((float)_window_pos.x - viewcenter.x) / vzoom.x,
@@ -62,10 +62,10 @@ namespace ff::Mouse {
         };
         _world_pos += Vec2f{ view.getCenter() };
 
-        mouse_in_view = _window_pos.x >= viewport[0]
-                     && _window_pos.x < (viewport[0] + viewport[2])
-                     && _window_pos.y >= viewport[1]
-                     && _window_pos.y < (viewport[1] + viewport[3]);
+        mouse_in_view = _window_pos.x >= vp.left
+                     && _window_pos.x < (vp.left + vp.width)
+                     && _window_pos.y >= vp.top
+                     && _window_pos.y < (vp.top + vp.height);
     }
 
     Vec2i window_pos() {

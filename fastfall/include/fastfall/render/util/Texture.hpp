@@ -3,6 +3,7 @@
 #include <string_view>
 #include <filesystem>
 
+#include "fastfall/util/glm_types.hpp"
 #include "glm/glm.hpp"
 
 #include "SDL3_image/SDL_image.h"
@@ -66,8 +67,8 @@ public:
 
 	unsigned int getID() const { return texture_id; };
 
-	glm::uvec2 size() const { return m_size; };
-	glm::fvec2 inverseSize() const { return m_invSize; };
+	Vec2u size() const { return m_size; };
+	Vec2f inverseSize() const { return m_invSize; };
 
 	static void destroyNullTexture();
 
@@ -75,8 +76,8 @@ private:
 
 	bool load(const void* data, unsigned width, unsigned height, ImageFormat format = ImageFormat::BMP);
 
-	glm::uvec2 m_size;
-	glm::fvec2 m_invSize;
+	Vec2u m_size;
+	Vec2f m_invSize;
 
 	static Texture NullTexture;
 

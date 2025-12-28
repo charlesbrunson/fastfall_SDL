@@ -23,7 +23,7 @@ Sprite::Sprite(const Texture* texture)
 }
 
 
-Sprite::Sprite(const Texture* texture, glm::fvec2 spriteSize)
+Sprite::Sprite(const Texture* texture, Vec2f spriteSize)
 	: m_verts{ Primitive::TRIANGLE_STRIP, 4 },
 	m_color{ ff::Color::White },
 	m_size{ spriteSize }
@@ -32,7 +32,7 @@ Sprite::Sprite(const Texture* texture, glm::fvec2 spriteSize)
 	if (m_texture.exists()) {
 		m_textureRect = Rectf{
 			{0.f, 0.f},
-			glm::fvec2{m_texture.get()->size()}
+			Vec2f{m_texture.get()->size()}
 		};
 	}
 	init();
@@ -44,7 +44,7 @@ Sprite::Sprite(const Texture* texture, float spriteSizeX, float spriteSizeY)
 
 }
 
-Sprite::Sprite(const Texture* texture, Rectf textureRect, glm::fvec2 spriteSize)
+Sprite::Sprite(const Texture* texture, Rectf textureRect, Vec2f spriteSize)
 	: m_verts{Primitive::TRIANGLE_FAN, 4},
 	m_color{ff::Color::White},
 	m_textureRect{textureRect},
@@ -86,10 +86,10 @@ void Sprite::setTextureRect(Rectf textureRect) {
 		m_verts[2].tex_pos = points[2] * inv_size;
 		m_verts[3].tex_pos = points[3] * inv_size;
 
-        m_verts[0].tex_pos += glm::vec2{  tex_offset,  tex_offset } * inv_size;
-        m_verts[1].tex_pos += glm::vec2{ -tex_offset,  tex_offset } * inv_size;
-        m_verts[2].tex_pos += glm::vec2{  tex_offset, -tex_offset } * inv_size;
-        m_verts[3].tex_pos += glm::vec2{ -tex_offset, -tex_offset } * inv_size;
+        m_verts[0].tex_pos += Vec2f{  tex_offset,  tex_offset } * inv_size;
+        m_verts[1].tex_pos += Vec2f{ -tex_offset,  tex_offset } * inv_size;
+        m_verts[2].tex_pos += Vec2f{  tex_offset, -tex_offset } * inv_size;
+        m_verts[3].tex_pos += Vec2f{ -tex_offset, -tex_offset } * inv_size;
 	}
 
 
@@ -107,7 +107,7 @@ void Sprite::setColor(Color color) {
 	//m_verts.glTransfer();
 }
 
-void Sprite::setSize(glm::fvec2 size) {
+void Sprite::setSize(Vec2f size) {
 	setSize(size.x, size.y);
 }
 void Sprite::setSize(float sizeX, float sizeY) {
@@ -130,7 +130,7 @@ Color Sprite::getColor() const {
 	return m_color;
 }
 
-glm::fvec2 Sprite::getSize() const {
+Vec2f Sprite::getSize() const {
 	return m_size;
 }
 

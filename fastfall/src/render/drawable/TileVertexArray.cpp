@@ -47,29 +47,29 @@ const TextureRef& TileVertexArray::getTexture() const noexcept {
 void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 	assert(at.x <= m_size.x && at.y <= m_size.y);
 
-	static const std::array<glm::fvec2, 6> offsets{
-		glm::fvec2(0.f, 0.f),
-		glm::fvec2(1.f, 0.f),
-		glm::fvec2(0.f, 1.f),
-		glm::fvec2(1.f, 1.f),
-		glm::fvec2(0.f, 1.f),
-		glm::fvec2(1.f, 0.f)
+	static constexpr std::array offsets{
+		Vec2f(0.f, 0.f),
+		Vec2f(1.f, 0.f),
+		Vec2f(0.f, 1.f),
+		Vec2f(1.f, 1.f),
+		Vec2f(0.f, 1.f),
+		Vec2f(1.f, 0.f)
 	};
 
 	// terrible awful no good uv mapping hack
 	constexpr float uv_bias = 1.f / 16384.f;
-    static const std::array<glm::fvec2, 6> bias{
-		glm::fvec2( uv_bias,  uv_bias),
-		glm::fvec2(-uv_bias,  uv_bias),
-		glm::fvec2( uv_bias, -uv_bias),
-		glm::fvec2(-uv_bias, -uv_bias),
-		glm::fvec2( uv_bias, -uv_bias),
-		glm::fvec2(-uv_bias,  uv_bias)
+    static const std::array bias{
+		Vec2f( uv_bias,  uv_bias),
+		Vec2f(-uv_bias,  uv_bias),
+		Vec2f( uv_bias, -uv_bias),
+		Vec2f(-uv_bias, -uv_bias),
+		Vec2f( uv_bias, -uv_bias),
+		Vec2f(-uv_bias,  uv_bias)
 	};
 
 
-	auto pos = glm::fvec2(at.x, at.y);
-	auto texpos = glm::fvec2(texPos.x, texPos.y);
+	auto pos = Vec2f(at.x, at.y);
+	auto texpos = Vec2f(texPos.x, texPos.y);
 
 	size_t vndx = (size_t)(at.x) + ((size_t)at.y * m_size.x);
 
@@ -82,7 +82,7 @@ void TileVertexArray::setTile(Vec2u at, Vec2u texPos) {
 		m_verts[vndx + i].color = Color::White;
 		m_verts[vndx + i].pos = (pos + offsets[i]) * TILESIZE_F;
 
-		glm::fvec2 tilesize {m_tex.get()->inverseSize() * TILESIZE_F};
+		Vec2f tilesize {m_tex.get()->inverseSize() * TILESIZE_F};
 		m_verts[vndx + i].tex_pos = ((texpos + offsets[i]) * tilesize) + bias[i];
 	}
 
@@ -99,13 +99,6 @@ void TileVertexArray::blank(Vec2u at) {
 	vndx *= VERTICES_PER_TILE;
 	memset(&m_verts[vndx], 0, sizeof(Vertex) * VERTICES_PER_TILE);
 	
-	/*
-	for (int i = 0; i < VERTICES_PER_TILE; i++) {
-		m_verts[vndx + i].color = Color::Transparent;
-		m_verts[vndx + i].pos = glm::fvec2{ 0, 0 };
-		m_verts[vndx + i].tex_pos = glm::fvec2{ 0, 0 };
-	}
-	*/
 }
 
 

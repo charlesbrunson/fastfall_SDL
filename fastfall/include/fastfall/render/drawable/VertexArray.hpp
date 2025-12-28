@@ -49,18 +49,18 @@ public:
 
 	void swap(VertexArray& varray);
 
-	inline size_t size() const { return m_vec.size(); };
-	inline bool empty() const { return m_vec.empty(); };
+	size_t size() const { return m_vec.size(); };
+	bool empty() const { return m_vec.empty(); };
 
 
 	void insert(size_t ndx, size_t count = 1, Vertex value = Vertex{});
 	void erase(size_t ndx, size_t count = 1);
 
-	inline void clear() {
+	void clear() {
 		m_vec.clear();
 	}
 
-	inline const std::vector<Vertex>& vec() const { 
+	const std::vector<Vertex>& vec() const {
 		return m_vec; 
 	};
 
@@ -80,7 +80,6 @@ private:
 	Primitive m_primitive;
 
 	void draw(RenderTarget& target, RenderState state = RenderState()) const override;
-
 
 	std::vector<Vertex> m_vec;
 

@@ -940,13 +940,7 @@ void Engine::resizeWindow(Vec2u size, bool force_size)
 
     //update margins
 
-    glm::fvec4 vp = window->getView().getViewport();
-    Recti viewport{ 
-        (int)(vp[0]), 
-        (int)(vp[1]),
-        (int)(vp[2]),
-        (int)(vp[3])
-    };
+    Recti viewport{ window->getView().getViewport() };
     Recti windowSize(0, 0, finalSize.x, finalSize.y);
 
     Rectf vpf {viewport};
@@ -1002,8 +996,8 @@ void Engine::ImGui_getContent(secs deltaTime) {
         setFullscreen(goFullscreen);
     }
     ImGui::Separator();
-    glm::fvec4 vp = window->getView().getViewport();
-    ImGui::Text("Viewport      = (%6.2f, %6.2f, %6.2f, %6.2f)", vp[0], vp[1], vp[2], vp[3]);
+    Rectf vp = window->getView().getViewport();
+    ImGui::Text("Viewport      = (%6.2f, %6.2f, %6.2f, %6.2f)", vp.left, vp.top, vp.width, vp.height);
     ImGui::Text("Zoom          =  %2dx", windowZoom);
     ImGui::Text("Cursor (game) = (%6.2f, %6.2f)", Mouse::world_pos().x, Mouse::world_pos().y);
     ImGui::Text("Cursor inside = %s", Mouse::in_view() ? "true" : "false");

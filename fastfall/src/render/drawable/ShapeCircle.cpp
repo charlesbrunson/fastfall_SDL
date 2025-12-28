@@ -5,7 +5,7 @@
 
 namespace ff {
 
-ShapeCircle::ShapeCircle(glm::fvec2 center, float radius, size_t vertexCount, Color color, Color lineColor)
+ShapeCircle::ShapeCircle(Vec2f center, float radius, size_t vertexCount, Color color, Color lineColor)
 	: m_verts{ ff::Primitive::TRIANGLE_FAN, vertexCount + 2 },
 	m_outline_verts{ ff::Primitive::LINE_LOOP, vertexCount },
 	m_radius{ radius },
@@ -45,25 +45,25 @@ void ShapeCircle::setRadius(float radius) {
 void ShapeCircle::initVertexArray() {
 
 	// init circle
-	m_verts[0].pos = glm::fvec2{ 0.f, 0.f };
+	m_verts[0].pos = Vec2f{ 0.f, 0.f };
 	m_verts[0].color = m_color;
 
 	float angle = (std::numbers::pi_v<float> * 2.f) / (float)m_circleVertCount;
 	for (size_t step = 1; step < m_circleVertCount + 1; step++) {
-		m_verts[step].pos = glm::fvec2(
+		m_verts[step].pos = Vec2f(
 			cosf((step - 1) * angle) * m_radius,
 			sinf((step - 1) * angle) * m_radius
 		);
 		m_verts[step].color = m_color;
 
-		m_outline_verts[step - 1].pos = glm::fvec2(
+		m_outline_verts[step - 1].pos = Vec2f(
 			cosf((step - 1) * angle) * m_radius,
 			sinf((step - 1) * angle) * m_radius
 		);
 		m_outline_verts[step - 1].color = m_lineColor;
 	}
 
-	m_verts[m_circleVertCount + 1].pos = glm::fvec2(
+	m_verts[m_circleVertCount + 1].pos = Vec2f(
 		cosf(0) * m_radius,
 		sinf(0) * m_radius
 	);

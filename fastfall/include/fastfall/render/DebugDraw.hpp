@@ -17,7 +17,7 @@ namespace debug {
             size_t id;
             size_t vertex_offset;
             size_t vertex_count;
-            ff::Primitive primitive;
+            Primitive primitive;
             Vec2f draw_offset;
         };
 
@@ -89,8 +89,8 @@ namespace debug {
 
     bool type_enabled(type t);
 
-    std::span<Vertex> draw(ff::Primitive primitive, size_t vertex_count, Vec2f offset = {}, Vertex vertex = {});
-    std::span<Vertex> draw(const void* signature, ff::Primitive primitive, size_t vertex_count, Vec2f offset = {}, Vertex vertex = {});
+    std::span<Vertex> draw(Primitive primitive, size_t vertex_count, Vec2f offset = {}, Vertex vertex = {});
+    std::span<Vertex> draw(const void* signature, Primitive primitive, size_t vertex_count, Vec2f offset = {}, Vertex vertex = {});
     bool repeat(const void* signature, Vec2f offset = {});
 
     void reset();

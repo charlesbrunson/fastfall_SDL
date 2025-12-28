@@ -3,7 +3,7 @@
 
 namespace ff {
 
-bool RenderTexture::create(glm::ivec2 size) {
+bool RenderTexture::create(Vec2i size) {
 	return create(size.x, size.y);
 }
 bool RenderTexture::create(int sizeX, int sizeY) {

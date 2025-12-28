@@ -145,7 +145,7 @@ bool Texture::load(const void* data, unsigned width, unsigned height, ImageForma
 		}
 
 		m_size = { width, height };
-		m_invSize = 1.f / glm::fvec2{ m_size };
+		m_invSize = 1.f / Vec2f{ m_size };
 
 	}
 	return exists();
@@ -206,14 +206,14 @@ void Texture::destroyNullTexture() {
 	}
 }
 
-bool Texture::create(glm::uvec2 size) {
+bool Texture::create(Vec2u size) {
 	return create(size.x, size.y);
 }
 
 bool Texture::create(unsigned sizeX, unsigned sizeY) {
 	clear();
 	m_size = { sizeX, sizeY };
-	m_invSize = 1.f / glm::fvec2{ m_size };
+	m_invSize = 1.f / Vec2f{ m_size };
 
 	glGenTextures(1, &texture_id);
 	glBindTexture(GL_TEXTURE_2D, texture_id);

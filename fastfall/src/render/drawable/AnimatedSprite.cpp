@@ -133,7 +133,7 @@ void AnimatedSprite::predraw(predraw_state_t predraw_state)
 			}
 
 			sprite.setScale(Vec2f{ (hflip ? -1.f : 1.f), 1.f });
-			sprite.setOrigin(glm::fvec2(animation->origin.x, animation->origin.y));
+			sprite.setOrigin(Vec2f{ animation->origin });
 			sprite.setColor(Color::White);
 			flag_dirty = false;
 		}

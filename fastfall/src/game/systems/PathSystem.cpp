@@ -79,6 +79,8 @@ void PathSystem::update(World& world, secs deltaTime) {
 }
 
 void PathSystem::notify_created(World& world, ID<PathMover> id) {
+    auto& pm = world.at(id);
+    pm.update(world.at(pm.get_attach_id()), 0);
 }
 
 void PathSystem::notify_erased(World& world, ID<PathMover> id) {
