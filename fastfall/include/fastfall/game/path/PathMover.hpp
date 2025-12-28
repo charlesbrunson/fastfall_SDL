@@ -49,8 +49,8 @@ private:
     size_t curr_ndx = 0;
     float dist_to_next_waypoint = 0.f;
     float progress = 0.f;
-    Vec2f vel;
-    Vec2f path_offset;
+    Vec2f vel = {};
+    Vec2f path_offset = {};
     bool reversed = false;
     bool stopped = false;
 

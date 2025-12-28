@@ -134,7 +134,7 @@ std::optional<RaycastHit> raycast_surface(const ColliderRegion& region, const Co
     {
         Vec2f unit      = math::unit(raycastLine);
         Linef line      = { raycastLine.p1 + unit * backoff, raycastLine.p2 };
-        Vec2f intersect = math::intersection(line, surface).value_or({ NAN, NAN });
+        Vec2f intersect = math::intersection(line, surface).value_or(Vec2f{ NAN, NAN });
         bool  forwards  = math::dot(unit, raycastLine.p1 - line.p1) >= 0;
         float distance  = math::distance(raycastLine.p1, intersect) * (forwards ? 1.f : -1.f);
 
@@ -194,7 +194,7 @@ std::optional<RaycastHit> raycast_quad_ortho(const ColliderRegion& region, const
 
 		if (is_between) {
 
-			Vec2f intersect = math::intersection(raycastLine, surface).value_or({NAN, NAN});
+			Vec2f intersect = math::intersection(raycastLine, surface).value_or(Vec2f{NAN, NAN});
 			float dot = math::dot(
 				intersect - (raycastLine.p1 - math::vectorize(raycastLine)),
 				math::vectorize(raycastLine));
