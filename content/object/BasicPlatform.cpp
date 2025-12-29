@@ -37,8 +37,8 @@ BasicPlatform:: BasicPlatform(ff::ActorInit init, ff::Rectf area, ff::ObjLevelID
         attach_id = w.create<AttachPoint>(init.entity_id, id_placeholder, area.topleft());
     }
 
-    w.system<AttachSystem>().create(w, attach_id, collider_id);
-    w.system<AttachSystem>().create(w, attach_id, shape_id);
+    w.system<AttachSystem>().attach_component(w, attach_id, collider_id);
+    w.system<AttachSystem>().attach_component(w, attach_id, shape_id);
 }
 
 

@@ -35,8 +35,8 @@ public:
     // need to do this anytime the world state is copied :(
     void reset_proxy_ptrs(const poly_id_map<Drawable>& drawables);
 
-	inline Color get_bg_color() const { return background.getColor(); };
-	inline Vec2f get_size() const { return scene_size; };
+	Color get_bg_color() const { return background.getColor(); };
+	Vec2f get_size() const { return scene_size; };
 
     const std::vector<proxy_drawable_t>& get_scene_order() const { return scene_order; }
 

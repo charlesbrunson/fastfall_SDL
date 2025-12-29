@@ -68,7 +68,7 @@ plr::members::members(ActorInit init, Vec2f position, bool face_dir)
     auto& hitbox = w.at(hitbox_id);
     hitbox.set_area(box.getBox());
     hitbox.self_flags = {"hitbox"};
-    w.system<AttachSystem>().create(w, attachid, hitbox_id, { -box.getBox().width / 2.f, -box.getBox().height });
+    w.system<AttachSystem>().attach_component(w, attachid, hitbox_id, { -box.getBox().width / 2.f, -box.getBox().height });
 
     auto& hurtbox = w.at(hurtbox_id);
     hurtbox.set_area(box.getBox());
@@ -91,15 +91,17 @@ plr::members::members(ActorInit init, Vec2f position, bool face_dir)
     auto& sprite = w.at(sprite_id);
     sprite.set_anim(plr::anim::idle);
     sprite.set_hflip(face_dir);
-    w.system<AttachSystem>().create(w, attachid, sprite_id);
+    w.system<AttachSystem>().attach_component(w, attachid, sprite_id);
 
     auto& jet_spr = w.at(jet_id);
     //jet_spr.visible = false;
-    w.system<AttachSystem>().create(w, attachid, jet_id, Vec2f{ 0, -16 });
+    w.system<AttachSystem>().attach_component(w, attachid, jet_id, Vec2f{ 0, -16 });
 
     auto& jetcfg = w.system<SceneSystem>().config(jet_id);
     jetcfg.visible = false;
     jetcfg.priority = scene_priority::Low;
+
+    w.system<AttachSystem>().notify_teleport(w, attachid);
 }
 
 namespace plr::anim {

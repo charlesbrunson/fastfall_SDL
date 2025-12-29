@@ -39,7 +39,6 @@ void PathMover::reset() {
 
 void PathMover::update(AttachPoint& attach, secs deltaTime)
 {
-
     if (deltaTime > 0.0) {
         Vec2f prev_pos = get_pos();
         auto next_segment = [&, this]() {
@@ -98,9 +97,7 @@ void PathMover::update(AttachPoint& attach, secs deltaTime)
         }
 
         attach.set_pos(get_pos());
-
         vel = (get_pos() - prev_pos) / static_cast<float>(deltaTime);
-
         attach.set_parent_vel(vel);
     }
 }
@@ -131,7 +128,7 @@ Vec2f PathMover::next_waypoint_pos() const {
 
 Vec2f PathMover::get_pos() const {
     float fract = dist_to_next_waypoint != 0.f ? progress / dist_to_next_waypoint : 0.f;
-    return prev_waypoint_pos() + (next_waypoint_pos() - prev_waypoint_pos()) * fract;
+    return math::lerp(prev_waypoint_pos(), next_waypoint_pos(), fract);
 }
 
 Vec2f PathMover::get_vel() const {

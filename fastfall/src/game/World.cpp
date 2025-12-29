@@ -61,9 +61,9 @@ void World::update(secs deltaTime) {
         { ZoneScopedN("Update Actor System");       system<ActorSystem>().update(*this, deltaTime); }
         { ZoneScopedN("Update Trigger System");     system<TriggerSystem>().update(*this, deltaTime); }
         { ZoneScopedN("Update Path System");        system<PathSystem>().update(*this, deltaTime); }
-        { ZoneScopedN("Update Attachpoints Pre");   system<AttachSystem>().update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostUpdate); }
+        // { ZoneScopedN("Update Attachpoints Pre");   system<AttachSystem>().update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostUpdate); }
         { ZoneScopedN("Update Collision");          system<CollisionSystem>().update(*this, deltaTime); }
-        { ZoneScopedN("Update Attachpoints Post");  system<AttachSystem>().update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostCollision); }
+        // { ZoneScopedN("Update Attachpoints Post");  system<AttachSystem>().update_attachpoints(*this, deltaTime, AttachPoint::Schedule::PostCollision); }
         { ZoneScopedN("Update Camera System");      system<CameraSystem>().update(*this, deltaTime); }
         { ZoneScopedN("Update Emitter System");     system<EmitterSystem>().update(*this, deltaTime); }
         { ZoneScopedN("Update Audio System");       system<AudioSystem>().update(deltaTime); }
@@ -88,19 +88,21 @@ void World::predraw(predraw_state_t predraw_state)
     }
     ++state.predraw_counter;
 
+    auto& scene_sys = system<SceneSystem>();
+
     if (auto* active = system<LevelSystem>().get_active(*this))
     {
-        system<SceneSystem>().set_bg_color(active->getBGColor());
-        system<SceneSystem>().set_size(active->size());
+        scene_sys.set_bg_color(active->getBGColor());
+        scene_sys.set_size(active->size());
         system<ActorSystem>().predraw(*this, predraw_state);
         system<LevelSystem>().predraw(*this, predraw_state);
         system<EmitterSystem>().predraw(*this, predraw_state);
-        system<SceneSystem>().set_cam_pos(system<CameraSystem>().getPosition(predraw_state.interp));
-        system<SceneSystem>().predraw(*this, predraw_state);
+        scene_sys.set_cam_pos(system<CameraSystem>().getPosition(predraw_state.interp));
+        scene_sys.predraw(*this, predraw_state);
     }
     else
     {
-        system<SceneSystem>().set_bg_color(ff::Color::Transparent);
+        scene_sys.set_bg_color(ff::Color::Transparent);
     }
     clean_drawables();
 }
@@ -178,7 +180,7 @@ bool World::erase(ID<Entity> entity) {
 bool World::erase(ComponentID component) {
     auto ent = entity_of(component);
     if (system<AttachSystem>().is_attached(component)) {
-        system<AttachSystem>().erase(component);
+        system<AttachSystem>().detach_component(component);
     }
     std::visit([&, this]<typename T>(ID<T> id) {
             system_notify_erased(id);

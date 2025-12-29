@@ -27,10 +27,10 @@ public:
     void notify_erased(World& world, ID<ColliderRegion> id);
 
 	// dump collision data from this frame into json, is reset at the end of the update
-	inline void dumpCollisionDataThisFrame(nlohmann::ordered_json* dump_ptr) { collision_dump = dump_ptr; };
+	void dumpCollisionDataThisFrame(nlohmann::ordered_json* dump_ptr) { collision_dump = dump_ptr; };
 
-	inline void resetFrameCount() { frame_count = 0; };
-	inline size_t getFrameCount() const { return frame_count; };
+	void resetFrameCount() { frame_count = 0; };
+	size_t getFrameCount() const { return frame_count; };
 
     const CollidableArbiter& get_arbiter(ID<Collidable> id) const {
         return arbiters.at(id);

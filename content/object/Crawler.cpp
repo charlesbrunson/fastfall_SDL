@@ -65,7 +65,7 @@ Crawler::Crawler(ActorInit init, Vec2f position, Cardinal t_surface_dir, bool fa
 
     move_dir = !face_left ? 1 : -1;
 
-    w.system<AttachSystem>().create(w, col.get_attach_id(), spr_id);
+    w.system<AttachSystem>().attach_component(w, col.get_attach_id(), spr_id);
 
     col.tracker()->callbacks.on_stick = [](Collidable& c, auto result, const ColliderSurface& surf) {
         auto ang = result.path.diff_angle.degrees();

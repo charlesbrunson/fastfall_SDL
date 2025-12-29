@@ -136,10 +136,10 @@ JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLe
     auto attach = w.create<AttachPoint>(entity_id, id_placeholder);
     attach->teleport(base_position);
     attach->constraint = makeSpringConstraint({30, 50}, {8, 3}, 48.f);
-    w.system<AttachSystem>().create(w, attach, sprite);
-    w.system<AttachSystem>().create(w, attach, collider);
-    w.system<AttachSystem>().create(w, attach, jet_emitter, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
-    attach->sched = AttachPoint::Schedule::PostCollision;
+    w.system<AttachSystem>().attach_component(w, attach, sprite);
+    w.system<AttachSystem>().attach_component(w, attach, collider);
+    w.system<AttachSystem>().attach_component(w, attach, jet_emitter, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
+    // attach->sched = AttachPoint::Schedule::PostCollision;
 
     // base attachpoint
     Level* active_level = w.system<LevelSystem>().get_active(w);
@@ -154,7 +154,7 @@ JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLe
 
     auto& base_attach = w.at(base_attach_id);
     base_attach.teleport(base_position);
-    w.system<AttachSystem>().create(w, base_attach_id, attach);
+    w.system<AttachSystem>().attach_component(w, base_attach_id, attach);
 
     collider->set_on_postcontact(
     [
@@ -185,6 +185,7 @@ JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLe
             attach.set_local_vel(attach.local_vel() + push_vel + (push_acc * (float)deltaTime));
         }
     });
+    w.system<AttachSystem>().notify_teleport(w, base_attach_id);
 }
 
 

@@ -67,7 +67,8 @@ void TileLayer::initFromAsset(World& world, const TileLayerData& layerData) {
 
         chunk->setTexture(tileset->getTexture());
         chunk->use_visible_rect = true;
-        world.system<AttachSystem>().create(world, attach_id, chunk.id);
+
+        world.system<AttachSystem>().attach_component(world, attach_id, chunk.id);
 	}
 
 	// init tiles
@@ -266,7 +267,7 @@ bool TileLayer::set_collision(World& world, bool enabled, unsigned border)
                 }
 			);
 
-            world.system<AttachSystem>().create(world, attach_id, *dyn.collision.collider);
+            world.system<AttachSystem>().attach_component(world, attach_id, *dyn.collision.collider);
 		}
 	}
 	else if (!enabled) {
@@ -431,7 +432,7 @@ void TileLayer::setTile(World& world, const Vec2u& position, TileID tile_id, con
         chunk->setTexture(tileset.getTexture());
         chunk->use_visible_rect = true;
         dyn.chunks.push_back(chunk);
-        world.system<AttachSystem>().create(world, attach_id, chunk);
+        world.system<AttachSystem>().attach_component(world, attach_id, chunk);
         world.system<SceneSystem>().set_config(chunk, { layer, scene_type::Level });
     }
 	for (int i = 0; i < result.changes.count; i++) {

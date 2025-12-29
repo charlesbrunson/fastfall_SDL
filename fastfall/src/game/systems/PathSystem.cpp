@@ -9,8 +9,9 @@ namespace ff {
 void PathSystem::update(World& world, secs deltaTime) {
     for (auto [id, pm] : world.all<PathMover>()) {
         pm.update(world.at(pm.get_attach_id()), deltaTime);
+        world.system<AttachSystem>().notify_moved(world, pm.get_attach_id(), deltaTime);
 
-        if (debug::enabled(debug::Path) && !debug::repeat((void*)&pm.get_path(), pm.get_path().origin))
+        if (debug::enabled(debug::Path) && !debug::repeat(&pm.get_path(), pm.get_path().origin))
         {
             auto path_arr = debug::draw(
                     (const void*)&pm.get_path(), Primitive::LINE_STRIP, pm.get_path().waypoints.size(), pm.get_path().origin);
@@ -59,8 +60,7 @@ void PathSystem::update(World& world, secs deltaTime) {
 
         if (debug::enabled(debug::Path) && !debug::repeat((void*)&pm, pm.get_pos()))
         {
-            auto path_pos = debug::draw(
-                    (const void*)&pm, Primitive::LINE_LOOP, 4, pm.get_pos());
+            auto path_pos = debug::draw(&pm, Primitive::LINE_LOOP, 4, pm.get_pos());
 
             constexpr Rectf area{
                     Vec2f{-3, -3},
@@ -79,8 +79,6 @@ void PathSystem::update(World& world, secs deltaTime) {
 }
 
 void PathSystem::notify_created(World& world, ID<PathMover> id) {
-    auto& pm = world.at(id);
-    pm.update(world.at(pm.get_attach_id()), 0);
 }
 
 void PathSystem::notify_erased(World& world, ID<PathMover> id) {

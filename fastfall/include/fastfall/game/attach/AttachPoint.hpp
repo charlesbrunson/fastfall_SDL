@@ -13,12 +13,14 @@ class World;
 class AttachPoint {
 public:
 
+    /*
     enum class Schedule {
         PostUpdate,
         PostCollision
     };
+    */
 
-    AttachPoint(ID<AttachPoint> t_id, Vec2f init_pos = {}, Vec2f init_vel = {}, Schedule sch = Schedule::PostUpdate);
+    AttachPoint(ID<AttachPoint> t_id, Vec2f init_pos = {}, Vec2f init_vel = {});
 
     // apply vel to position
     void apply_vel(secs deltaTime);
@@ -55,13 +57,10 @@ public:
 
     ID<AttachPoint> id() const;
 
-    void set_tick(size_t t) { _tick = t; }
-    size_t get_tick() const { return _tick; }
+    // void set_tick(size_t t) { _tick = t; }
+    // size_t get_tick() const { return _tick; }
 
     AttachConstraint constraint;
-
-    Schedule sched = Schedule::PostUpdate;
-
 
 private:
     Vec2f _curr_pos = {};
@@ -74,7 +73,7 @@ private:
     Vec2f _prev_pvel = {};
 
     ID<AttachPoint> _id;
-    size_t _tick = 0;
+    // size_t _tick = 0;
 
 };
 

@@ -113,11 +113,6 @@
    </properties>
    <polyline points="-512,-176 -384,-176"/>
   </object>
-  <object id="35" type="JetPlatform" x="624" y="144" width="48" height="16">
-   <properties>
-    <property name="path" value=""/>
-   </properties>
-  </object>
   <object id="36" type="TilePlatform" x="864" y="64" width="64" height="48">
    <properties>
     <property name="layer" type="int" value="1"/>
@@ -131,11 +126,6 @@
     <property name="wait_on_end" type="float" value="3"/>
    </properties>
    <polyline points="-256,-176 -192,-176"/>
-  </object>
-  <object id="38" type="JetPlatform" x="480" y="48" width="48" height="16">
-   <properties>
-    <property name="path" value=""/>
-   </properties>
   </object>
   <object id="52" type="Crawler" x="1120" y="48" width="16" height="16" visible="0">
    <properties>

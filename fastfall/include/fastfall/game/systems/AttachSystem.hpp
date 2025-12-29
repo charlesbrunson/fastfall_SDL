@@ -12,24 +12,6 @@ namespace ff {
     class World;
 
     class AttachSystem {
-    public:
-        /*
-        struct ConstraintOut {
-            Vec2f attachmentPos;
-            Vec2f attachmentVel;
-        };
-
-        struct ConstraintIn {
-            Vec2f attachmentPos;
-            Vec2f attachmentVel;
-            Vec2f attachpointPos;
-            secs deltaTime;
-        };
-
-        using ConstraintFn = std::function<ConstraintOut(const ConstraintIn&)>;
-        */
-
-    private:
         struct AttachmentData {
             Vec2f offset;
         };
@@ -37,10 +19,9 @@ namespace ff {
     public:
         using attach_map = std::map<ID<AttachPoint>, std::map<ComponentID, AttachmentData>>;
 
-
         void update(World& world, secs deltaTime);
 
-        void update_attachpoints(World& world, secs deltaTime, AttachPoint::Schedule sched);
+        // void update_attachpoints(World& world, secs deltaTime, AttachPoint::Schedule sched);
 
         void notify_created(World& world, ID<AttachPoint> id);
         void notify_erased(World& world, ID<AttachPoint> id);
@@ -51,8 +32,8 @@ namespace ff {
         void notify_created(World& world, ID<PathMover> id);
         void notify_erased(World& world, ID<PathMover> id);
 
-        void create(World& world, ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset = {});
-        void erase(ComponentID cmp_id);
+        void attach_component(World& world, ID<AttachPoint> parent_id, ComponentID child_id, Vec2f offset = {});
+        void detach_component(ComponentID cmp_id);
 
         bool is_attached(ComponentID cmp_id) const;
         std::optional<ID<AttachPoint>> get_attachpoint(ComponentID cmp_id) const;
@@ -63,13 +44,20 @@ namespace ff {
 
         bool is_attachpoint_root(ID<AttachPoint> id) const;
 
+        void notify_moved(World& world, ID<AttachPoint> id, secs deltaTime)
+        {
+            update_attachments(world, id, deltaTime, false);
+        }
+        void notify_teleport(World& world, ID<AttachPoint> id)
+        {
+            update_attachments(world, id, 0.0, true);
+        }
+
     private:
-        void update_attachments(World& world, ID<AttachPoint> id, std::set<ID<AttachPoint>>& visited);
+        void update_attachments(World& world, ID<AttachPoint> id, secs deltaTime, bool teleport);
 
         attach_map attachments;
         std::map<ComponentID, ID<AttachPoint>> cmp_lookup;
-        secs curr_delta;
     };
 
-    //AttachSystem::ConstraintFn makeSpringConstraint(Vec2f springF, Vec2f dampingF);
 }

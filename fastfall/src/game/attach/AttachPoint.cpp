@@ -9,9 +9,8 @@ namespace ff {
 void imgui_component(World& w, AttachPoint& cmp) {
 }
 
-AttachPoint::AttachPoint(ID<AttachPoint> t_id, Vec2f init_pos, Vec2f init_vel, Schedule sch)
+AttachPoint::AttachPoint(ID<AttachPoint> t_id, Vec2f init_pos, Vec2f init_vel)
     : _id(t_id)
-    , sched(sch)
 {
     teleport(init_pos);
     set_parent_vel(init_vel);
@@ -41,7 +40,7 @@ void AttachPoint::shift(Vec2f offset) {
 }
 
 Vec2f AttachPoint::interpolate(float interp) const {
-    return _prev_pos + (_curr_pos - _prev_pos) * interp;
+    return math::lerp(_prev_pos, _curr_pos, interp);
 }
 
 Vec2f AttachPoint::curr_pos() const {

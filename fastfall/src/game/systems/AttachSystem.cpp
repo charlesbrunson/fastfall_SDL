@@ -10,12 +10,12 @@ namespace ff {
 
     struct AttachState {
         const AttachPoint& parent;
+        bool teleport;
         Vec2f ppos;
         Vec2f cpos;
         Vec2f offset;
-        //Vec2f vel;
         secs deltaTime;
-        size_t tick;
+        // size_t tick;
     };
 
     namespace detail {
@@ -119,15 +119,12 @@ namespace ff {
 
         // AttachPoint
         void attach_update(World& w, ID<AttachPoint> id, AttachPoint& cmp, const AttachState& st) {
-            if (cmp.get_tick() != st.tick) {
-                if (cmp.constraint) {
-                    cmp.constraint(cmp, st.parent, st.offset, st.deltaTime);
-                } else {
-                    cmp.set_pos(st.cpos);
-                    cmp.set_parent_vel(st.parent.global_vel());
-                    cmp.set_local_vel({});
-                }
-                cmp.set_tick(st.tick);
+            if (cmp.constraint && !st.teleport) {
+                cmp.constraint(cmp, st.parent, st.offset, st.deltaTime);
+            } else {
+                cmp.set_pos(st.cpos);
+                cmp.set_parent_vel(st.parent.global_vel());
+                cmp.set_local_vel({});
             }
         }
 
@@ -213,25 +210,25 @@ namespace ff {
     }
 
     template<class T>
-    Vec2f update_attachment(World& w, const AttachPoint& attachpoint, ID<T> attachment_id, Vec2f offset, secs deltaTime)
+    Vec2f update_attached_component(World& w, const AttachPoint& attachpoint, ID<T> component_id, Vec2f offset, secs deltaTime, bool teleport)
     {
-        auto& component = w.at(attachment_id);
+        auto& component = w.at(component_id);
         AttachState state {
             .parent = attachpoint,
+            .teleport = teleport,
             .ppos = attachpoint.prev_pos() + offset,
             .cpos = attachpoint.curr_pos() + offset,
             .offset = offset,
-            //.vel = attachpoint.vel(),
             .deltaTime = deltaTime,
-            .tick = w.tick_count()
+            // .tick = w.tick_count()
         };
 
         if constexpr (requires(ID<T> x_id, T& x, World& x_w, const AttachState& st) { detail::attach_update(x_w, x_id, x, st); }) {
-            detail::attach_update(w, attachment_id, component, state);
+            detail::attach_update(w, component_id, component, state);
         }
 
         if constexpr (requires(ID<T> x_id, T& x, World& x_w) { detail::attach_get_pos(x_w, x_id, x); }) {
-            return detail::attach_get_pos(w, attachment_id, component);
+            return detail::attach_get_pos(w, component_id, component);
         }
         else {
             return {};
@@ -240,13 +237,46 @@ namespace ff {
 
     void AttachSystem::update(World& world, secs deltaTime) {
         if (deltaTime > 0.0) {
-            curr_delta = deltaTime;
+            // curr_delta = deltaTime;
             for (auto [id, ap]: world.all<AttachPoint>()) {
                 ap.update_prev();
             }
         }
     }
 
+    void AttachSystem::update_attachments(World& world, ID<AttachPoint> id, secs deltaTime, bool teleport)
+    {
+        auto& ap = world.at(id);
+        for (auto& [c_id, data] : attachments.at(id))
+        {
+            Vec2f p = std::visit(
+                [&](auto attach_id)
+                {
+                    return update_attached_component(world, ap, attach_id, data.offset, deltaTime, teleport);
+                }, c_id);
+
+            if (holds_alternative<ID<AttachPoint>>(c_id)) {
+                update_attachments(world, std::get<ID<AttachPoint>>(c_id), deltaTime, teleport);
+            }
+
+            if (debug::enabled(debug::Attach)) {
+                auto draw = debug::draw(&data, Primitive::LINES, 6);
+
+                for (auto & ndx : draw) {
+                    ndx.color = Color::Green;
+                }
+
+                draw[0].pos = ap.curr_pos() + Vec2f{-2, -2};
+                draw[1].pos = ap.curr_pos() + Vec2f{ 2,  2};
+                draw[2].pos = ap.curr_pos() + Vec2f{-2,  2};
+                draw[3].pos = ap.curr_pos() + Vec2f{ 2, -2};
+                draw[4].pos = ap.curr_pos();
+                draw[5].pos = p;
+            }
+        }
+    }
+
+    /*
     void AttachSystem::update_attachpoints(World& world, secs deltaTime, AttachPoint::Schedule sched) {
         if (deltaTime > 0.0) {
             std::set<ID<AttachPoint>> visited;
@@ -257,13 +287,15 @@ namespace ff {
                     && ap.sched == sched)
                 {
                     ap.set_tick(world.tick_count());
-                    update_attachments(world, aid, visited);
+                    // update_attachments(world, aid, visited);
                     visited.clear();
                 }
             }
         }
     }
+    */
 
+    /*
     void AttachSystem::update_attachments(World& world, ID<AttachPoint> id, std::set<ID<AttachPoint>>& visited) {
         if (visited.contains(id))
             return;
@@ -301,6 +333,7 @@ namespace ff {
             }
         }
     }
+    */
 
     bool AttachSystem::is_attachpoint_root(ID<AttachPoint> id) const {
         return !cmp_lookup.contains(id);
@@ -313,7 +346,7 @@ namespace ff {
     void AttachSystem::notify_erased(World& world, ID<AttachPoint> id){
         auto attchs = std::move(attachments.at(id));
         for (auto& [id, _] : attchs) {
-            erase(id);
+            detach_component(id);
         }
         attachments.erase(id);
     }
@@ -327,7 +360,6 @@ namespace ff {
         attach->set_pos(col.getPosition());
         attach->set_parent_vel(col.get_global_vel());
         attach->set_local_vel({});
-        attach->sched = AttachPoint::Schedule::PostCollision;
     }
 
     void AttachSystem::notify_erased(World& world, ID<Collidable> id) {
@@ -351,21 +383,14 @@ namespace ff {
         world.erase(col.get_attach_id());
     }
 
-    void AttachSystem::create(World& world, ID<AttachPoint> id, ComponentID cmp_id, Vec2f offset)
+    void AttachSystem::attach_component(World& world, ID<AttachPoint> parent_id, ComponentID child_id, Vec2f offset)
     {
-        attachments.at(id).emplace(cmp_id, AttachmentData{ offset });
-        cmp_lookup.emplace(cmp_id, id);
-        std::visit(
-        [&]<class T>(ID<T> cid) {
-            log::scope sc;
-            LOG_INFO("attach create visit: {} -> {}", cmpid_str(id), cmpid_str(cmp_id));
-            if constexpr (requires(ID<T> x_id, T& x, World& x_w, const AttachPoint& ap, Vec2f x_off) { detail::attach_teleport(x_w, x_id, x, ap, x_off); }) {
-                detail::attach_teleport(world, cid, world.at(cid), world.at(id), offset);
-            }
-        }, cmp_id);
+        attachments.at(parent_id).emplace(child_id, AttachmentData{ offset });
+        cmp_lookup.emplace(child_id, parent_id);
+        // update_attachments(world, id, 0.0, true);
     }
 
-    void AttachSystem::erase(ComponentID cmp_id) {
+    void AttachSystem::detach_component(ComponentID cmp_id) {
         auto iter = cmp_lookup.find(cmp_id);
         if (iter != cmp_lookup.end())
         {

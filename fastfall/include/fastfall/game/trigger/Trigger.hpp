@@ -3,7 +3,7 @@
 #include "fastfall/engine/time/time.hpp"
 #include "fastfall/util/tag.hpp"
 #include "fastfall/util/id.hpp"
-#include "fastfall/game/attach/Attachable.hpp"
+#include "fastfall/util/Rect.hpp"
 
 #include <functional>
 #include <optional>
