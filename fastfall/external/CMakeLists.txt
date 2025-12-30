@@ -12,6 +12,7 @@ CPMAddPackage(
 		"OpenGL_GL_PREFERENCE GLVND"
 )
 target_compile_definitions(glm PUBLIC GLM_ENABLE_EXPERIMENTAL)
+target_compile_definitions(glm PUBLIC GLM_FORCE_XYZW_ONLY)
 
 CPMAddPackage("gh:fmtlib/fmt#12.1.0")
 CPMAddPackage("gh:CodeFinder2/rapidxml#v1.13")

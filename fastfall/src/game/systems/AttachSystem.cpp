@@ -10,130 +10,61 @@ namespace ff {
 
     struct AttachState {
         const AttachPoint& parent;
-        bool teleport;
         Vec2f ppos;
         Vec2f cpos;
         Vec2f offset;
         secs deltaTime;
-        // size_t tick;
     };
 
     namespace detail {
 
-        // TELEPORT ----------------------------
-        // Trigger
-        void attach_teleport(World& w, ID<Trigger> id, Trigger& cmp, const AttachPoint& attach, Vec2f offset) {
-            auto area = cmp.get_area();
-            area.setPosition(attach.curr_pos() + offset);
-            cmp.set_area(area);
-        }
-
-        // Collidable
-        void attach_teleport(World& w, ID<Collidable> id, Collidable& cmp, const AttachPoint& attach, Vec2f offset) {
-            cmp.teleport(attach.curr_pos() + offset);
-            cmp.set_parent_vel(attach.global_vel());
-            cmp.set_local_vel(Vec2f{});
-        }
-
-        // Emitter
-        void attach_teleport(World& w, ID<Emitter> id, Emitter& cmp, const AttachPoint& attach, Vec2f offset) {
-            cmp.velocity = attach.global_vel();
-            cmp.prev_position = attach.curr_pos() + offset;
-            cmp.position = attach.curr_pos() + offset;
-        }
-
-        // AttachPoint
-        void attach_teleport(World& w, ID<AttachPoint> id, AttachPoint& cmp, const AttachPoint& attach, Vec2f offset) {
-            cmp.teleport(attach.curr_pos() + offset);
-            cmp.set_parent_vel(attach.global_vel());
-            cmp.set_local_vel({});
-
-            for (auto& pair : w.system<AttachSystem>().get_attachments(id)) {
-
-                auto& cmp_id = pair.first;
-                auto& data   = pair.second;
-
-                std::visit(
-                    [&]<class T>(ID<T> cid) {
-                        log::scope sc;
-                        LOG_INFO("attach teleport visit: {} -> {}", cmpid_str(id), cmpid_str(cmp_id));
-                        if constexpr (requires(ID<T> x_id, T& x, World& x_w, const AttachPoint& ap, Vec2f x_off) { detail::attach_teleport(x_w, x_id, x, ap, x_off); }) {
-                        detail::attach_teleport(w, cid, w.at(cid), w.at(id), data.offset);
-                    }
-                }, cmp_id);
-            }
-        }
-
-        // ColliderRegion
-        void attach_teleport(World& w, ID<ColliderRegion> id, ColliderRegion& cmp, const AttachPoint& attach, Vec2f offset) {
-            cmp.delta_velocity = Vec2f{};
-            cmp.velocity = attach.global_vel();
-            cmp.teleport(attach.curr_pos() + offset);
-            cmp.setPosition(attach.curr_pos() + offset);
-        }
-
-        // CameraTarget
-        //void attach_teleport(World& w, ID<CameraTarget> id, CameraTarget& cmp, const AttachPoint& attach) {
-        //}
-
-        // Drawable
-        void attach_teleport(World& w, ID<Drawable> id, Drawable& cmp, const AttachPoint& attach, Vec2f offset) {
-            auto& cfg = w.system<SceneSystem>().config(id);
-            cfg.prev_pos = attach.curr_pos() + offset;
-            cfg.curr_pos = attach.curr_pos() + offset;
-            cfg.rstate.transform.setPosition(cfg.curr_pos);
-        }
-
-        // PathMover
-        void attach_teleport(World& w, ID<PathMover> id, PathMover& cmp, const AttachPoint& attach, Vec2f offset) {
-            cmp.set_path_offset(attach.curr_pos() + offset);
-        }
-
-        // TileLayer
-        //void attach_teleport(World& w, ID<Emitter> id, Emitter& cmp, const AttachPoint& attach) {
-        //}
-
         // UPDATES -----------------------------
         // Trigger
-        void attach_update(World& w, ID<Trigger> id, Trigger& cmp, const AttachState& st) {
+        Vec2f attach_update(World& w, ID<Trigger> id, Trigger& cmp, const AttachState& st) {
             auto area = cmp.get_area();
             area.setPosition(st.cpos);
             cmp.set_area(area);
+            return cmp.get_area().getPosition();
         }
 
         // Collidable
-        void attach_update(World& w, ID<Collidable> id, Collidable& cmp, const AttachState& st) {
+        Vec2f attach_update(World& w, ID<Collidable> id, Collidable& cmp, const AttachState& st) {
             cmp.teleport(st.ppos);
             cmp.setPosition(st.cpos);
             cmp.set_parent_vel(st.parent.global_vel());
             cmp.set_local_vel(Vec2f{});
+            return cmp.getPosition();
         }
 
         // Emitter
-        void attach_update(World& w, ID<Emitter> id, Emitter& cmp, const AttachState& st) {
+        Vec2f attach_update(World& w, ID<Emitter> id, Emitter& cmp, const AttachState& st) {
             cmp.prev_velocity = st.parent.prev_global_vel();
             cmp.velocity = st.parent.global_vel();
             cmp.prev_position = st.ppos;
             cmp.position = st.cpos;
+            return cmp.position;
         }
 
         // AttachPoint
-        void attach_update(World& w, ID<AttachPoint> id, AttachPoint& cmp, const AttachState& st) {
-            if (cmp.constraint && !st.teleport) {
+        Vec2f attach_update(World& w, ID<AttachPoint> id, AttachPoint& cmp, const AttachState& st) {
+            if (cmp.constraint) {
                 cmp.constraint(cmp, st.parent, st.offset, st.deltaTime);
             } else {
+                cmp.teleport(st.ppos);
                 cmp.set_pos(st.cpos);
                 cmp.set_parent_vel(st.parent.global_vel());
                 cmp.set_local_vel({});
             }
+            return cmp.curr_pos();
         }
 
         // ColliderRegion
-        void attach_update(World& w, ID<ColliderRegion> id, ColliderRegion& cmp, const AttachState& st) {
+        Vec2f attach_update(World& w, ID<ColliderRegion> id, ColliderRegion& cmp, const AttachState& st) {
             cmp.delta_velocity = (st.parent.global_vel() - cmp.velocity);
             cmp.velocity = st.parent.global_vel();
             cmp.teleport(st.ppos);
             cmp.setPosition(st.cpos);
+            return cmp.getPosition();
         }
 
         // CameraTarget
@@ -144,78 +75,32 @@ namespace ff {
         */
 
         // Drawable
-        void attach_update(World& w, ID<Drawable> id, Drawable& cmp, const AttachState& st) {
+        Vec2f attach_update(World& w, ID<Drawable> id, Drawable& cmp, const AttachState& st) {
             auto& cfg = w.system<SceneSystem>().config(id);
             cfg.prev_pos = st.ppos;
             cfg.curr_pos = st.cpos;
+            return cfg.curr_pos;
         }
 
         // PathMover
-        void attach_update(World& w, ID<PathMover> id, PathMover& cmp, const AttachState& st) {
+        Vec2f attach_update(World& w, ID<PathMover> id, PathMover& cmp, const AttachState& st) {
             cmp.set_path_offset(st.cpos);
-        }
-
-        // TileLayer
-        //void attach_update(World& w, ID<TileLayer> id, TileLayer& cmp, const AttachState& st) {
-        //    auto& attch = w.at(cmp.get_attach_id())
-        //}
-
-        // POSITION -----------------------------
-        // Trigger
-        Vec2f attach_get_pos(World& w, ID<Trigger> id, Trigger& cmp) {
-            return cmp.get_area().getPosition();
-        }
-
-        // Collidable
-        Vec2f attach_get_pos(World& w, ID<Collidable> id, Collidable& cmp) {
-            return cmp.getPosition();
-        }
-
-        // Emitter
-        Vec2f attach_get_pos(World& w, ID<Emitter> id, Emitter& cmp) {
-            return cmp.position;
-        }
-
-        // AttachPoint
-        Vec2f attach_get_pos(World& w, ID<AttachPoint> id, AttachPoint& cmp) {
-            return cmp.curr_pos();
-        }
-
-        // ColliderRegion
-        Vec2f attach_get_pos(World& w, ID<ColliderRegion> id, ColliderRegion& cmp) {
-            return cmp.getPosition();
-        }
-
-        // CameraTarget
-        /*
-        Vec2f attach_get_pos(World& w, ID<CameraTarget> id, CameraTarget& cmp) {
-            return cmp.get_target_pos();
-        }
-        */
-
-        // Drawable
-        Vec2f attach_get_pos(World& w, ID<Drawable> id, Drawable& cmp) {
-            return w.system<SceneSystem>().config(id).curr_pos;
-        }
-
-        // PathMover
-        Vec2f attach_get_pos(World& w, ID<PathMover> id, PathMover& cmp) {
             return cmp.get_path_offset();
         }
 
         // TileLayer
-        //Vec2f attach_get_pos(World& w, ID<TileLayer> id, TileLayer& cmp) {
-        //    //return cmp.getOffset();
+        //Vec2f attach_update(World& w, ID<TileLayer> id, TileLayer& cmp, const AttachState& st) {
+        //    auto& attch = w.at(cmp.get_attach_id())
         //}
+
     }
 
     template<class T>
-    Vec2f update_attached_component(World& w, const AttachPoint& attachpoint, ID<T> component_id, Vec2f offset, secs deltaTime, bool teleport)
+    Vec2f update_attached_component(World& w, const AttachPoint& attachpoint, ID<T> component_id, Vec2f offset, secs deltaTime)
     {
         auto& component = w.at(component_id);
         AttachState state {
             .parent = attachpoint,
-            .teleport = teleport,
             .ppos = attachpoint.prev_pos() + offset,
             .cpos = attachpoint.curr_pos() + offset,
             .offset = offset,
@@ -224,13 +109,10 @@ namespace ff {
         };
 
         if constexpr (requires(ID<T> x_id, T& x, World& x_w, const AttachState& st) { detail::attach_update(x_w, x_id, x, st); }) {
-            detail::attach_update(w, component_id, component, state);
+            return detail::attach_update(w, component_id, component, state);
         }
-
-        if constexpr (requires(ID<T> x_id, T& x, World& x_w) { detail::attach_get_pos(x_w, x_id, x); }) {
-            return detail::attach_get_pos(w, component_id, component);
-        }
-        else {
+        else
+        {
             return {};
         }
     }
@@ -244,19 +126,21 @@ namespace ff {
         }
     }
 
-    void AttachSystem::update_attachments(World& world, ID<AttachPoint> id, secs deltaTime, bool teleport)
+    void AttachSystem::update_attachments(World& world, ID<AttachPoint> id, secs deltaTime)
     {
         auto& ap = world.at(id);
-        for (auto& [c_id, data] : attachments.at(id))
+        auto& attachments_map = attachments.at(id);
+        for (auto& [child_id, data] : attachments_map)
         {
+
             Vec2f p = std::visit(
                 [&](auto attach_id)
                 {
-                    return update_attached_component(world, ap, attach_id, data.offset, deltaTime, teleport);
-                }, c_id);
+                    return update_attached_component(world, ap, attach_id, data.offset, deltaTime);
+                }, child_id);
 
-            if (holds_alternative<ID<AttachPoint>>(c_id)) {
-                update_attachments(world, std::get<ID<AttachPoint>>(c_id), deltaTime, teleport);
+            if (std::holds_alternative<ID<AttachPoint>>(child_id)) {
+                update_attachments(world, std::get<ID<AttachPoint>>(child_id), deltaTime);
             }
 
             if (debug::enabled(debug::Attach)) {
@@ -276,71 +160,12 @@ namespace ff {
         }
     }
 
-    /*
-    void AttachSystem::update_attachpoints(World& world, secs deltaTime, AttachPoint::Schedule sched) {
-        if (deltaTime > 0.0) {
-            std::set<ID<AttachPoint>> visited;
-            for (auto [aid, ap]: world.all<AttachPoint>()) {
-
-                if (is_attachpoint_root(aid)
-                    && ap.get_tick() != world.tick_count()
-                    && ap.sched == sched)
-                {
-                    ap.set_tick(world.tick_count());
-                    // update_attachments(world, aid, visited);
-                    visited.clear();
-                }
-            }
-        }
-    }
-    */
-
-    /*
-    void AttachSystem::update_attachments(World& world, ID<AttachPoint> id, std::set<ID<AttachPoint>>& visited) {
-        if (visited.contains(id))
-            return;
-
-        visited.insert(id);
-        auto& ap = world.at(id);
-        for (auto& attach : attachments.at(id))
-        {
-            auto& id = attach.first;
-            auto& data = attach.second;
-
-            Vec2f p;
-            std::visit(
-                [&]<class T>(ID<T> c_id) {
-                    p = update_attachment(world, ap, c_id, data.offset, curr_delta);
-                }, id);
-
-            if (holds_alternative<ID<AttachPoint>>(id)) {
-                update_attachments(world, std::get<ID<AttachPoint>>(id), visited);
-            }
-
-            if (debug::enabled(debug::Attach)) {
-                auto draw = debug::draw((const void *)&data, Primitive::LINES, 6);
-
-                for (auto & ndx : draw) {
-                    ndx.color = Color::Green;
-                }
-
-                draw[0].pos = ap.curr_pos() + Vec2f{-2, -2};
-                draw[1].pos = ap.curr_pos() + Vec2f{ 2,  2};
-                draw[2].pos = ap.curr_pos() + Vec2f{-2,  2};
-                draw[3].pos = ap.curr_pos() + Vec2f{ 2, -2};
-                draw[4].pos = ap.curr_pos();
-                draw[5].pos = p;
-            }
-        }
-    }
-    */
-
     bool AttachSystem::is_attachpoint_root(ID<AttachPoint> id) const {
         return !cmp_lookup.contains(id);
     }
 
     void AttachSystem::notify_created(World& world, ID<AttachPoint> id){
-        attachments.emplace(id, std::map<ComponentID, AttachmentData>{});
+        attachments.emplace(id, std::map<ComponentID, AttachConfig>{});
     }
 
     void AttachSystem::notify_erased(World& world, ID<AttachPoint> id){
@@ -383,11 +208,10 @@ namespace ff {
         world.erase(col.get_attach_id());
     }
 
-    void AttachSystem::attach_component(World& world, ID<AttachPoint> parent_id, ComponentID child_id, Vec2f offset)
+    void AttachSystem::attach_component(World& world, ID<AttachPoint> parent_id, ComponentID child_id, AttachConfig cfg)
     {
-        attachments.at(parent_id).emplace(child_id, AttachmentData{ offset });
+        attachments.at(parent_id).emplace(child_id, cfg);
         cmp_lookup.emplace(child_id, parent_id);
-        // update_attachments(world, id, 0.0, true);
     }
 
     void AttachSystem::detach_component(ComponentID cmp_id) {
@@ -412,19 +236,20 @@ namespace ff {
         return attachments.contains(id) && !attachments.at(id).empty();
     }
 
-    const std::map<ComponentID, AttachSystem::AttachmentData>&
+    const std::map<ComponentID, AttachConfig>&
     AttachSystem::get_attachments(ID<AttachPoint> id) const
     {
         return attachments.at(id);
     }
 
-    void AttachSystem::set_attach_offset(ID<AttachPoint> id, ComponentID cmp, Vec2f offset) {
-        if (attachments.contains(id)) {
-            auto& attach = attachments.at(id);
+    AttachConfig* AttachSystem::get_attach_config(ComponentID cmp) {
+        if (auto attach_id_opt = get_attachpoint(cmp)) {
+            auto& attach = attachments.at(*attach_id_opt);
             if (auto it = attach.find(cmp); it != attach.end())
             {
-                it->second.offset = offset;
+                return &it->second;
             }
         }
+        return nullptr;
     }
 }

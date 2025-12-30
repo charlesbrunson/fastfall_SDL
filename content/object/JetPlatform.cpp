@@ -139,7 +139,6 @@ JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLe
     w.system<AttachSystem>().attach_component(w, attach, sprite);
     w.system<AttachSystem>().attach_component(w, attach, collider);
     w.system<AttachSystem>().attach_component(w, attach, jet_emitter, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
-    // attach->sched = AttachPoint::Schedule::PostCollision;
 
     // base attachpoint
     Level* active_level = w.system<LevelSystem>().get_active(w);
@@ -185,7 +184,7 @@ JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLe
             attach.set_local_vel(attach.local_vel() + push_vel + (push_acc * (float)deltaTime));
         }
     });
-    w.system<AttachSystem>().notify_teleport(w, base_attach_id);
+    w.system<AttachSystem>().update_attachments(w, base_attach_id);
 }
 
 

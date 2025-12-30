@@ -8,14 +8,14 @@ namespace ff {
             {
                 Vec2f accel;
                 auto diff = (self.curr_pos() - (attached.curr_pos() + offset));
-                auto du = math::unit(diff);
+                auto dunit = math::unit(diff);
 
                 if (math::mag(diff) > rad) {
 
-                    diff = du * rad;
+                    diff = dunit * rad;
                     self.set_pos(attached.curr_pos() + offset + diff);
-                    if (math::dot(self.local_vel(), du) > 0) {
-                        self.set_local_vel(math::proj(self.local_vel(), math::lefthand_normal(du)));
+                    if (math::dot(self.local_vel(), dunit) > 0) {
+                        self.set_local_vel(math::proj(self.local_vel(), math::lefthand_normal(dunit)));
                     }
                 }
                 self.set_parent_vel(attached.global_vel());

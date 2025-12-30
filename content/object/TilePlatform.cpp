@@ -48,8 +48,7 @@ TilePlatform::TilePlatform(ActorInit init, Rectu area, int level_layer, ObjLevel
         attach_id = w.create<AttachPoint>(entity_id, id_placeholder, Vec2f{ area.topleft() } * TILESIZE_F);
     }
 
-
-    auto attachsys = w.system<AttachSystem>();
+    auto& attachsys = w.system<AttachSystem>();
     attachsys.attach_component(w, attach_id, get_attach_id());
-    attachsys.notify_teleport(w, attach_id);
+    attachsys.update_attachments(w, attach_id);
 };

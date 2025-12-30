@@ -12,16 +12,10 @@ namespace ff {
     class World;
 
     class AttachSystem {
-        struct AttachmentData {
-            Vec2f offset;
-        };
-
     public:
-        using attach_map = std::map<ID<AttachPoint>, std::map<ComponentID, AttachmentData>>;
+        using attach_map = std::map<ID<AttachPoint>, std::map<ComponentID, AttachConfig>>;
 
         void update(World& world, secs deltaTime);
-
-        // void update_attachpoints(World& world, secs deltaTime, AttachPoint::Schedule sched);
 
         void notify_created(World& world, ID<AttachPoint> id);
         void notify_erased(World& world, ID<AttachPoint> id);
@@ -32,29 +26,21 @@ namespace ff {
         void notify_created(World& world, ID<PathMover> id);
         void notify_erased(World& world, ID<PathMover> id);
 
-        void attach_component(World& world, ID<AttachPoint> parent_id, ComponentID child_id, Vec2f offset = {});
+        void attach_component(World& world, ID<AttachPoint> parent_id, ComponentID child_id, AttachConfig cfg = {});
         void detach_component(ComponentID cmp_id);
 
         bool is_attached(ComponentID cmp_id) const;
         std::optional<ID<AttachPoint>> get_attachpoint(ComponentID cmp_id) const;
 
         bool has_attachments(ID<AttachPoint> id) const;
-        const std::map<ComponentID, AttachmentData>& get_attachments(ID<AttachPoint> id) const;
-        void set_attach_offset(ID<AttachPoint> id, ComponentID cmp, Vec2f offset);
+        const std::map<ComponentID, AttachConfig>& get_attachments(ID<AttachPoint> id) const;
+
+        AttachConfig* get_attach_config(ComponentID cmp);
 
         bool is_attachpoint_root(ID<AttachPoint> id) const;
 
-        void notify_moved(World& world, ID<AttachPoint> id, secs deltaTime)
-        {
-            update_attachments(world, id, deltaTime, false);
-        }
-        void notify_teleport(World& world, ID<AttachPoint> id)
-        {
-            update_attachments(world, id, 0.0, true);
-        }
-
+        void update_attachments(World& world, ID<AttachPoint> id, secs deltaTime = 0.0);
     private:
-        void update_attachments(World& world, ID<AttachPoint> id, secs deltaTime, bool teleport);
 
         attach_map attachments;
         std::map<ComponentID, ID<AttachPoint>> cmp_lookup;

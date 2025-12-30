@@ -4,7 +4,6 @@
 #include "fastfall/game/attach/AttachPoint.hpp"
 #include "fastfall/util/id.hpp"
 
-
 namespace ff {
 
 

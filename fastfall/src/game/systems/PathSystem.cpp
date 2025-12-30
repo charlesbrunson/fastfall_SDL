@@ -9,7 +9,7 @@ namespace ff {
 void PathSystem::update(World& world, secs deltaTime) {
     for (auto [id, pm] : world.all<PathMover>()) {
         pm.update(world.at(pm.get_attach_id()), deltaTime);
-        world.system<AttachSystem>().notify_moved(world, pm.get_attach_id(), deltaTime);
+        world.system<AttachSystem>().update_attachments(world, pm.get_attach_id(), deltaTime);
 
         if (debug::enabled(debug::Path) && !debug::repeat(&pm.get_path(), pm.get_path().origin))
         {

@@ -104,7 +104,10 @@ void imgui_component(World& w, ID<AttachPoint> id) {
             v[0] = data.offset.x;
             v[1] = data.offset.y;
             if (ImGui::DragFloat2("", v)) {
-                sys.set_attach_offset(cmp.id(), cmp_id, Vec2f{ v[0], v[1] });
+                if (auto* cfg = sys.get_attach_config(cmp.id()))
+                {
+                    cfg->offset = Vec2f{ v[0], v[1] };
+                }
             }
             ImGui::PopID();
             ImGui::NextColumn();

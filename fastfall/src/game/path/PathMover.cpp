@@ -127,7 +127,7 @@ Vec2f PathMover::next_waypoint_pos() const {
 }
 
 Vec2f PathMover::get_pos() const {
-    float fract = dist_to_next_waypoint != 0.f ? progress / dist_to_next_waypoint : 0.f;
+    float fract = dist_to_next_waypoint != 0.f ? (progress / dist_to_next_waypoint) : 0.f;
     return math::lerp(prev_waypoint_pos(), next_waypoint_pos(), fract);
 }
 

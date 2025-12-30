@@ -5,21 +5,19 @@
 #include "fastfall/engine/time/time.hpp"
 
 #include "fastfall/game/attach/AttachConstraint.hpp"
+#include "fastfall/game/ComponentID.hpp"
 
 namespace ff {
 
 class World;
 
+struct AttachConfig
+{
+    Vec2f offset = {};
+};
+
 class AttachPoint {
 public:
-
-    /*
-    enum class Schedule {
-        PostUpdate,
-        PostCollision
-    };
-    */
-
     AttachPoint(ID<AttachPoint> t_id, Vec2f init_pos = {}, Vec2f init_vel = {});
 
     // apply vel to position
@@ -57,9 +55,6 @@ public:
 
     ID<AttachPoint> id() const;
 
-    // void set_tick(size_t t) { _tick = t; }
-    // size_t get_tick() const { return _tick; }
-
     AttachConstraint constraint;
 
 private:
@@ -73,8 +68,6 @@ private:
     Vec2f _prev_pvel = {};
 
     ID<AttachPoint> _id;
-    // size_t _tick = 0;
-
 };
 
 void imgui_component(World& w, ID<AttachPoint> id);

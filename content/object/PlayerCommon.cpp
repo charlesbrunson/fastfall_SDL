@@ -93,15 +93,15 @@ plr::members::members(ActorInit init, Vec2f position, bool face_dir)
     sprite.set_hflip(face_dir);
     w.system<AttachSystem>().attach_component(w, attachid, sprite_id);
 
-    auto& jet_spr = w.at(jet_id);
-    //jet_spr.visible = false;
+    // auto& jet_spr = w.at(jet_id);
+    // jet_spr.visible = false;
     w.system<AttachSystem>().attach_component(w, attachid, jet_id, Vec2f{ 0, -16 });
 
     auto& jetcfg = w.system<SceneSystem>().config(jet_id);
     jetcfg.visible = false;
     jetcfg.priority = scene_priority::Low;
 
-    w.system<AttachSystem>().notify_teleport(w, attachid);
+    w.system<AttachSystem>().update_attachments(w, attachid);
 }
 
 namespace plr::anim {
