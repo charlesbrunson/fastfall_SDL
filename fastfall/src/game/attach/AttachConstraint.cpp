@@ -4,26 +4,26 @@ namespace ff {
 
     AttachConstraint makeSpringConstraint(Vec2f spring, Vec2f damping, float max_radius) {
         return [spr = spring, damp = damping, rad = max_radius]
-            (AttachPoint& self, const AttachPoint& attached, Vec2f offset, secs delta)
+            (AttachPoint& child, const AttachPoint& parent, Vec2f offset, secs delta)
             {
-                Vec2f accel;
-                auto diff = (self.curr_pos() - (attached.curr_pos() + offset));
-                auto dunit = math::unit(diff);
+                Vec2f accel = {};
+                auto diff = (child.curr_pos() - (parent.curr_pos() + offset));
 
-                if (math::mag(diff) > rad) {
+                if (diff != Vec2f{} && math::mag(diff) > rad) {
+                    auto dunit = math::unit(diff);
 
                     diff = dunit * rad;
-                    self.set_pos(attached.curr_pos() + offset + diff);
-                    if (math::dot(self.local_vel(), dunit) > 0) {
-                        self.set_local_vel(math::proj(self.local_vel(), math::lefthand_normal(dunit)));
+                    child.set_pos(parent.curr_pos() + offset + diff);
+                    if (math::dot(child.local_vel(), dunit) > 0) {
+                        child.set_local_vel(math::proj(child.local_vel(), math::lefthand_normal(dunit)));
                     }
                 }
-                self.set_parent_vel(attached.global_vel());
+                child.set_parent_vel(parent.global_vel());
 
                 accel += diff * -spr;
-                accel += self.local_vel() * -damp;
-                self.set_local_vel(self.local_vel() + accel * static_cast<float>(delta));
-                self.apply_vel(delta);
+                accel += child.local_vel() * -damp;
+                child.set_local_vel(child.local_vel() + accel * static_cast<float>(delta));
+                child.apply_vel(delta);
             };
     }
 }

@@ -138,7 +138,8 @@ JetPlatform::JetPlatform(ff::ActorInit init, ff::Vec2f pos, int width, ff::ObjLe
     attach->constraint = makeSpringConstraint({30, 50}, {8, 3}, 48.f);
     w.system<AttachSystem>().attach_component(w, attach, sprite);
     w.system<AttachSystem>().attach_component(w, attach, collider);
-    w.system<AttachSystem>().attach_component(w, attach, jet_emitter, { (float)tile_width * TILESIZE_F * 0.5f, TILESIZE_F - 5.f });
+    auto jet_emitter_offset = Vec2f{ tile_width, 1 } * Vec2f{ 0.5f, 1.f } * TILESIZE_F + Vec2f{0.f, -5.f};
+    w.system<AttachSystem>().attach_component(w, attach, jet_emitter, { .offset = jet_emitter_offset });
 
     // base attachpoint
     Level* active_level = w.system<LevelSystem>().get_active(w);

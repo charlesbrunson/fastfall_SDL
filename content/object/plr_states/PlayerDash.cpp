@@ -114,12 +114,8 @@ void PlayerDashState::enter(ff::World& w, plr::members& plr, PlayerState* from)
         }
 
         auto* jet_anim = AnimDB::get_animation(dash_anims.dash_anim.id());
-
-        w.system<AttachSystem>().set_attach_offset(
-            box.get_attach_id(),
-            plr.jet_id,
-            jet_anim->get_offset( "jet", sprite.get_hflip() ).value()
-        );
+		auto jet_anim_offset = jet_anim->get_offset( "jet", sprite.get_hflip() ).value();
+        w.system<AttachSystem>().get_attach_config(plr.jet_id)->offset = jet_anim_offset;
 
 		if (sprite.set_anim_if_not(dash_anims.dash_anim.id()))
 		{
@@ -152,11 +148,8 @@ PlayerStateID PlayerDashState::update(ff::World& w, plr::members& plr, secs delt
 		auto dash_anims = select_dash_anim(w, plr);
 		sprite.set_anim_if_not(dash_anims.dash_anim.id());
         jet_spr.set_anim_if_not(dash_anims.jet_anim.id());
-        w.system<AttachSystem>().set_attach_offset(
-            box.get_attach_id(),
-            plr.jet_id,
-            AnimDB::get_animation(dash_anims.dash_anim)->get_offset( "jet", sprite.get_hflip() ).value()
-        );
+		auto dash_anim_offset = AnimDB::get_animation(dash_anims.dash_anim)->get_offset( "jet", sprite.get_hflip() ).value();
+        w.system<AttachSystem>().get_attach_config(plr.jet_id)->offset = dash_anim_offset;
 
 		if (w.input(Input::Jump).if_confirm_press(0.1))
 		{
