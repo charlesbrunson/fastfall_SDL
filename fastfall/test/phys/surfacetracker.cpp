@@ -765,104 +765,169 @@ TEST_F(surfacetracker, treadmill_to_slope)
     }
 }
 
-TEST_F(surfacetracker, split_slope) {
+TEST_F(surfacetracker, split_slope)
+{
+	constexpr unsigned framecount = 20;
+	std::array<Vec2f, framecount> control;
 
-    constexpr unsigned framecount = 20;
-    std::array<Vec2f, framecount> control;
+	initTileMap({
+		{"",      "",      ""},
+		{"",      "",      ""},
+		{"",      "slope", "solid"},
+		{"solid", "solid", "solid"},
+	});
 
-    initTileMap({
-        {"",      "",      ""},
-        {"",      "",      ""},
-        {"",      "slope", "solid"},
-        {"solid", "solid", "solid"},
-    });
+	Rectf area = collider->getBoundingBox();
+	TestPhysRenderer render(world, area);
 
-    Rectf area = collider->getBoundingBox();
-    TestPhysRenderer render(world, area);
+	box->teleport({8, 48});
+	box->set_gravity({0, 500});
+	box->set_local_vel({200.f, 10.f});
 
-    box->teleport({8, 48});
-    box->set_gravity({0, 500});
-    box->set_local_vel({200.f, 10.f});
+	ground->settings.surface_friction.kinetic = 100.0f;
+	ground->settings.surface_friction.stationary = 100.0f;
+	ground->settings.move_with_platforms = true;
+	ground->settings.slope_sticking = true;
 
-    ground->settings.surface_friction.kinetic = 100.0f;
-    ground->settings.surface_friction.stationary = 100.0f;
-    ground->settings.move_with_platforms = true;
-    ground->settings.slope_sticking = true;
+	{
+		for (unsigned i = 0; i < framecount; ++i) {
+			update();
+			render.draw();
+			control[i] = box->getPosition();
+		}
+	}
 
-    {
-        for (unsigned i = 0; i < framecount; ++i) {
-            update();
-            render.draw();
-            control[i] = box->getPosition();
-        }
-    }
+	ColliderTileMap* collider2;
+	{
+		collider->removeTile({1, 2});
+		collider->removeTile({2, 2});
+		collider->applyChanges();
 
-    ColliderTileMap* collider2;
-    {
-        collider->removeTile({1, 2});
-        collider->removeTile({2, 2});
-        collider->applyChanges();
+		auto ent2 = world.create_entity();
+		collider2 = world.create<ColliderTileMap>(ent2, Vec2i{3, 4}).ptr;
+		collider2->setTile({1, 2}, TileShape::from_string("slope"));
+		collider2->setTile({2, 2}, TileShape::from_string("solid"));
+		collider2->applyChanges();
 
-        auto ent2 = world.create_entity();
-        collider2 = world.create<ColliderTileMap>(ent2, Vec2i{3, 4}).ptr;
-        collider2->setTile({1, 2}, TileShape::from_string("slope"));
-        collider2->setTile({2, 2}, TileShape::from_string("solid"));
-        collider2->applyChanges();
+		box->teleport({8, 48});
+		box->set_gravity({0, 500});
+		box->set_local_vel({200.f, 10.f});
 
-        box->teleport({8, 48});
-        box->set_gravity({0, 500});
-        box->set_local_vel({200.f, 10.f});
+		for (unsigned i = 0; i < framecount; ++i) {
+			update();
+			render.draw();
+			auto p = box->getPosition();
+			EXPECT_EQ(control[i].x, p.x);
+			EXPECT_EQ(control[i].y, p.y);
+		}
+	}
 
-        for (unsigned i = 0; i < framecount; ++i) {
-            update();
-            render.draw();
-            auto p = box->getPosition();
-            EXPECT_EQ(control[i].x, p.x);
-            EXPECT_EQ(control[i].y, p.y);
-        }
-    }
+	{
+		collider->removeTile({1, 3});
+		collider->removeTile({2, 3});
+		collider->applyChanges();
 
-    {
-        collider->removeTile({1, 3});
-        collider->removeTile({2, 3});
-        collider->applyChanges();
+		collider2->setTile({1, 3}, TileShape::from_string("solid"));
+		collider2->setTile({2, 3}, TileShape::from_string("solid"));
+		collider2->applyChanges();
 
-        collider2->setTile({1, 3}, TileShape::from_string("solid"));
-        collider2->setTile({2, 3}, TileShape::from_string("solid"));
-        collider2->applyChanges();
+		box->teleport({8, 48});
+		box->set_gravity({0, 500});
+		box->set_local_vel({200.f, 10.f});
 
-        box->teleport({8, 48});
-        box->set_gravity({0, 500});
-        box->set_local_vel({200.f, 10.f});
+		for (unsigned i = 0; i < framecount; ++i) {
+			update();
+			render.draw();
+			auto p = box->getPosition();
+			EXPECT_EQ(control[i].x, p.x);
+			EXPECT_EQ(control[i].y, p.y);
+		}
+	}
 
-        for (unsigned i = 0; i < framecount; ++i) {
-            update();
-            render.draw();
-            auto p = box->getPosition();
-            EXPECT_EQ(control[i].x, p.x);
-            EXPECT_EQ(control[i].y, p.y);
-        }
-    }
+	{
+		collider->setTile({1, 2}, TileShape::from_string("slope"));
+		collider->setTile({1, 3}, TileShape::from_string("solid"));
+		collider->applyChanges();
 
-    {
-        collider->setTile({1, 2}, TileShape::from_string("slope"));
-        collider->setTile({1, 3}, TileShape::from_string("solid"));
-        collider->applyChanges();
+		collider2->removeTile({1, 2});
+		collider2->removeTile({1, 3});
+		collider2->applyChanges();
 
-        collider2->removeTile({1, 2});
-        collider2->removeTile({1, 3});
-        collider2->applyChanges();
+		box->teleport({8, 48});
+		box->set_gravity({0, 500});
+		box->set_local_vel({200.f, 10.f});
 
-        box->teleport({8, 48});
-        box->set_gravity({0, 500});
-        box->set_local_vel({200.f, 10.f});
+		for (unsigned i = 0; i < framecount; ++i) {
+			update();
+			render.draw();
+			auto p = box->getPosition();
+			EXPECT_EQ(control[i].x, p.x);
+			EXPECT_EQ(control[i].y, p.y);
+		}
+	}
+}
 
-        for (unsigned i = 0; i < framecount; ++i) {
-            update();
-            render.draw();
-            auto p = box->getPosition();
-            EXPECT_EQ(control[i].x, p.x);
-            EXPECT_EQ(control[i].y, p.y);
-        }
-    }
+TEST_F(surfacetracker, shallow_before_solid)
+{
+
+	constexpr unsigned framecount = 2;
+
+	initTileMap({
+		{"",         "",      ""},
+		{"",         "",      ""},
+		{"shallow1", "solid", "solid"},
+	});
+
+	Rectf area = collider->getBoundingBox();
+	TestPhysRenderer render(world, area);
+
+	box->teleport({27, 32});
+	box->set_gravity({0, 500});
+	box->set_local_vel({200.f, 0.f});
+
+	ground->settings.surface_friction.kinetic = 100.0f;
+	ground->settings.surface_friction.stationary = 100.0f;
+	ground->settings.slope_sticking = true;
+
+	for (unsigned i = 0; i < framecount; ++i) {
+		update();
+		render.draw();
+
+		EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
+	}
+}
+
+TEST_F(surfacetracker, shallow_after_solid)
+{
+
+	constexpr unsigned framecount = 120;
+
+	initTileMap({
+		{"",         "",      ""},
+		{"",         "",      ""},
+		{"",      "shallow1-h", ""},
+		{"solid", "solid", "slope-h"},
+	});
+
+	Rectf area = collider->getBoundingBox();
+	TestPhysRenderer render(world, area);
+
+	box->teleport({24, 44});
+	box->set_gravity({0, 500});
+	ground->traverse_set_speed(10.f);
+
+	ground->settings.surface_friction.kinetic = 100.0f;
+	ground->settings.surface_friction.stationary = 100.0f;
+	ground->settings.slope_sticking = true;
+	ground->settings.slope_wall_stop = true;
+	ground->settings.move_with_platforms = true;
+	ground->settings.has_friction = true;
+
+	for (unsigned i = 0; i < framecount; ++i) {
+		ground->traverse_set_speed(10.f);
+		update();
+		render.draw();
+
+		EXPECT_TRUE(box->get_state_flags().has_set(collision_state_t::flags::Floor));
+	}
 }
