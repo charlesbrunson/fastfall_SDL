@@ -1,4 +1,6 @@
 
+#include <numeric>
+
 #include "gtest/gtest.h"
 #include "fastfall/game/phys/collidable/SurfaceFollow.hpp"
 
@@ -329,4 +331,48 @@ TEST(pathfollow, wall_down_floor)
 
     SurfaceFollow follow(init_line, init_pos, move_dir, dist_to_move, angle_range, follow_max_ang, body_size);
     EXPECT_EQ(add_path(follow, next_line), true);
+}
+
+TEST(pathfollow, intersect_test1)
+{
+
+    auto angle_range = AngleRange::Any;
+
+    auto init_line = Linef{ {0.f,  0.f}, {16.f, 0.f} };
+    auto init_pos  = init_line.p1;
+
+    auto follow_max_ang = Angle::Degree(90);
+    auto body_size = Vec2f{ 16.f, 16.f};
+
+    float move_dir = 1.f;
+    float dist_to_move = 32.f;
+
+    struct candidate_t
+    {
+        Linef line;
+        bool should_add;
+    };
+
+    std::vector<candidate_t> candidates = {
+        { .line = { {-16, 16 }, {0, 8} }, .should_add = false},
+        { .line = { {16, 0}, {32, 0} }, .should_add = true},
+    };
+
+    SurfaceFollow follow(init_line, init_pos, move_dir, dist_to_move, angle_range, follow_max_ang, body_size);
+
+    int total_candidates = std::count_if(candidates.begin(), candidates.end(), [](const auto& cmp)
+    {
+        return cmp.should_add;
+    });
+    for (const auto& cand : candidates)
+    {
+        bool added = add_path(follow, cand.line);
+        EXPECT_EQ(added, cand.should_add);
+    }
+
+    EXPECT_EQ(follow.get_path_candidates().size(), total_candidates);
+
+    auto result =  follow.pick_surface_to_follow();
+    ASSERT_TRUE(result.has_value());
+    ASSERT_EQ(result.value(), 0);
 }

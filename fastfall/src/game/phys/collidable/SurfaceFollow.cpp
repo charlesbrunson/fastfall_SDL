@@ -278,7 +278,7 @@ bool SurfaceFollow::add_surface_if_valid(Linef path)
         bool is_ahead = dot > 0;
 
         // make sure the intersection lies on both lines
-        if (is_ahead && (curr_has_inter || path_has_inter))
+        if (is_ahead && curr_has_inter && path_has_inter)
         {
             /*
             // surface connects at the end of curr_path

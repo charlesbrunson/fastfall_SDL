@@ -99,11 +99,13 @@ namespace ff::math
         return glm::proj(v, normal);
     }
 
+    /*
     template<typename T>
     constexpr bool collinear(const Vec2<T>& unit_v1, const Vec2<T>& unit_v2)
     {
         return std::abs(dot(unit_v1, unit_v2)) > (T{1} - glm::epsilon<T>());
     }
+    */
 
     template<typename T>
     constexpr auto rotate(const Vec2<T>& v, const Angle& ang)
@@ -268,7 +270,19 @@ namespace ff::math
     template<typename T>
     constexpr bool collinear(const Line<T>& a, const Line<T>& b)
     {
-        return collinear(unit(a.p2 - a.p1), unit(b.p2 - a.p1));
+        double x1 = a.p1.x;
+        double x2 = a.p2.x;
+        double x3 = b.p2.x;
+
+        double y1 = a.p1.y;
+        double y2 = a.p2.y;
+        double y3 = b.p2.y;
+
+        double d = x1 * (y2 - y3)
+                 + x2 * (y3 - y1)
+                 + x3 * (y1 - y2);
+
+        return d == 0.f;
     }
 
     template<typename T>
